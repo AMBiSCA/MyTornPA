@@ -3,7 +3,7 @@
 /* Main Peeper Tool Container - Overall Box */
 .peeper-tool-container {
     max-width: 900px;
-    margin-top: -60px; /* Adjusted to move it up for better visual balance */
+    margin-top: 50px; /* Adjusted to move it up for better visual balance */
     margin-left: auto;
     margin-right: auto;
     margin-bottom: auto; /* Keeps it vertically centered if content is short */
