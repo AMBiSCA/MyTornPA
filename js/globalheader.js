@@ -10,14 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const usefulLinksBtn = document.getElementById('usefulLinksBtn');
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-    const contactUsBtn = document.getElementById('headerContactUsBtn');
-    const contactUsDropdown = document.getElementById('headerContactUsDropdown');
+    const contactUsBtn = document.getElementById('headerContactUsBtn'); // Corrected ID here to match HTML
+    const contactUsDropdown = document.getElementById('headerContactUsDropdown'); // This is the dropdown-content DIV
     
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
     const loggedInUserDisplay = document.getElementById('logged-in-user-display');
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
 
     // --- Initial display of elements (managed by JS based on rules) ---
+    // All header elements are initially hidden. Their display will be set by auth.onAuthStateChanged.
+    // This is safer than relying on HTML default and then hiding.
     if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
     if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
     if (homeButtonHeader) homeButtonHeader.style.display = 'none';
@@ -88,7 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Firebase Auth state listener ---
+    // --- Firebase Auth state listener (UPDATED LOGIC for all header elements) ---
+    // This script should manage the header UI based on Firebase authentication state.
+    // It should NOT call social.js's initialization functions.
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(function(user) {
             console.log("globalheader.js: Auth state changed. User:", user);
@@ -100,59 +104,63 @@ document.addEventListener('DOMContentLoaded', function() {
             const isSignUpPage = (pageName === 'signup.html');
 
             if (user) {
+                // User is signed in
                 console.log("globalheader.js: User IS signed in:", user.uid);
 
-                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+                // Elements NOT shown in header when logged in
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // "Hello, [Name]!" (if you have one)
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none'; // "Torn City - Homepage" link (if you have one)
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; // Hide Register button
                 
+                // Main header buttons container: ALWAYS shown when logged in, unless it's the very root index
                 if (headerButtonsContainer) {
-                    if (isSignUpPage || isHomePage) {
-                        headerButtonsContainer.style.display = 'none';
+                    // Assuming 'home.html' is the hub page, we should *show* the buttons on it.
+                    // If 'index.html' is a public landing, then hide.
+                    if (isSignUpPage || isHomePage) { // Assuming home.html is the current hub page
+                        headerButtonsContainer.style.display = 'none'; // Hide all if on signup/home (if home is the hub)
                     } else {
-                        headerButtonsContainer.style.display = 'flex';
+                        headerButtonsContainer.style.display = 'flex'; // Show if on other pages
                     }
                 }
                 
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
+                // Specific button visibility for logged-in state
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex'; // Show Logout
+                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex'; // Always show Edit Profile when logged in
 
+                // Home button logic: show if not on home page itself
                 if (homeButtonHeader) {
                     if (isHomePage) {
-                        homeButtonHeader.style.display = 'none';
+                        homeButtonHeader.style.display = 'none'; // Hide Home button if already on the home page
                     } else {
-                        homeButtonHeader.style.display = 'inline-flex';
+                        homeButtonHeader.style.display = 'inline-flex'; // Show Home button on other pages
                     }
-                }
-
-                // >>> ADDED: Call the social hub initializer after user is confirmed logged in and header is set up
-                if (typeof window.initializeSocialHub === 'function') {
-                    window.initializeSocialHub(user);
-                } else {
-                    console.warn("globalheader.js: window.initializeSocialHub is not defined. Social hub content might not load.");
                 }
 
             } else {
+                // No user is signed in (Logged Out)
                 console.log("globalheader.js: No user is signed in.");
 
+                // Hide all logged-in specific elements
                 if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hide main buttons container
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                 if (homeButtonHeader) homeButtonHeader.style.display = 'none';
                 if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
 
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
-                if (signUpButtonHeader) {
+                // Display logged-out specific elements (based on current page)
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Torn City Homepage link: Show
+                if (signUpButtonHeader) { // Register button: Show (unless on signup page)
                     if (isSignUpPage) {
-                        signUpButtonHeader.style.display = 'none';
+                        signUpButtonHeader.style.display = 'none'; // Hide Register button if already on the signup page
                     } else {
-                        signUpButtonHeader.style.display = 'inline-flex';
+                        signUpButtonHeader.style.display = 'inline-flex'; // Show Register button on other pages
                     }
                 }
             }
         });
     } else {
         console.warn("Firebase auth object is not available for header UI script. Ensure Firebase App and Auth SDKs are loaded correctly before globalheader.js.");
+        // Fallback: If Firebase not loaded, assume logged out state and set minimal header
         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
         if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
         if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
