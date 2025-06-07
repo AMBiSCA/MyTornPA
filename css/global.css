@@ -56,6 +56,50 @@ body::before {
 ::-webkit-scrollbar-corner {
     background: #222;
 }
+.btn-uniform {
+    -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;
+    -webkit-appearance: none; appearance: none;
+    background-color: #131314; background-image: none;
+    border: 1px solid #00a8ff;
+    border-radius: 20px;
+    box-sizing: border-box;
+    color: #e3e3e3; cursor: pointer;
+    font-family: inherit; 
+    font-size: 14px; font-weight: 500;
+    height: 40px; letter-spacing: 0.25px;
+    outline: none; overflow: hidden;
+    padding: 0 12px; position: relative; z-index: 0;
+    text-align: center;
+    transition: background-color .218s, border-color .218s, box-shadow .218s;
+    vertical-align: middle; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: min-content;
+    margin: 8px 0; text-transform: none;
+}
+.btn-uniform::before {
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; background-color: white;
+    opacity: 0; border-radius: inherit;
+    transition: opacity .218s; pointer-events: none; z-index: 1;
+}
+.btn-uniform .btn-text { order: 1; }
+.btn-uniform .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
+.btn-uniform:not(:disabled):hover {
+    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
+    border-color: #4dc4ff;
+}
+.btn-uniform:not(:disabled):hover::before { opacity: 0.08; }
+.btn-uniform:not(:disabled):active { border-color: #00a8ff; }
+.btn-uniform:not(:disabled):active::before, .btn-uniform:not(:disabled):focus::before { opacity: 0.12; }
+.btn-uniform:disabled {
+    cursor: default; background-color: rgba(19, 19, 20, 0.38);
+    border-color: rgba(0, 168, 255, 0.38); color: rgba(227, 227, 227, 0.38);
+}
+.btn-uniform:disabled::before { opacity: 0 !important; }
+.btn-uniform:disabled .btn-icon, .btn-uniform:disabled .btn-text { opacity: 0.38; }
+
+der-buttons .dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
+.header-buttons .dropdown-content.show { display: block; }
 
 /* HEADER Styles (ALL header styles are now here) */
 header {
