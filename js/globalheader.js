@@ -2,18 +2,10 @@
 // This script manages the header UI based on Firebase authentication state.
 document.addEventListener('DOMContentLoaded', function() {
     // --- Configuration ---
-    const useMimicNotification = true; // Set to true to enable mimic, false for real system
+    // const useMimicNotification = true; // Removed: Notification system entirely removed from header
 
     // --- Bell Icon SVG ---
-    const bellIconSVG = `
-        <svg id="notificationBellIcon" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 90 90" style="vertical-align: middle; cursor: pointer; margin-right: 8px;">
-            <g>
-                <path d="M 55.913 76.439 c 0 0.029 0.004 0.057 0.004 0.087 C 55.918 83.967 49.885 90 42.443 90 s -13.475 -6.033 -13.475 -13.475 c 0 -0.029 0.004 -0.057 0.004 -0.087 C 37.953 69.714 46.933 69.714 55.913 76.439 z" style="fill: rgb(219,156,32);"/>
-                <path d="M 72.956 56.082 V 30.513 C 72.956 13.661 59.295 0 42.443 0 C 25.591 0 11.93 13.661 11.93 30.513 v 25.569 c 0 3.238 -1.418 6.314 -3.88 8.417 c -2.462 2.103 -3.88 5.179 -3.88 8.417 c 0 1.945 1.577 3.522 3.522 3.522 h 69.503 c 1.945 0 3.522 -1.577 3.522 -3.522 c 0 -3.238 -1.418 6.314 -3.88 8.417 C 74.374 62.396 72.956 59.32 72.956 56.082 z" style="fill: rgb(255,185,46);"/>
-                <circle cx="67.524" cy="18.304" r="18.304" style="fill: rgb(237,38,38);"/>
-            </g>
-        </svg>
-    `;
+    // const bellIconSVG = `...`; // Removed: Bell SVG not needed in header
 
     // Get header element references
     const headerButtonsContainer = document.getElementById('headerButtonsContainer');
@@ -24,153 +16,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown');
-    let notificationBellElement = null; // Defined here for broader scope
+    // let notificationBellElement = null; // Removed: Bell icon not used in header
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
     const loggedInUserDisplay = document.getElementById('logged-in-user-display'); // Get the user display element
+    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn'); // Get Edit Profile button
 
     // --- Initial setup for header buttons ---
-    // Inject bell icon and get its reference
+    // Inject bell icon and get its reference (REMOVED)
+    // if (headerButtonsContainer) {
+    //     headerButtonsContainer.insertAdjacentHTML('afterbegin', bellIconSVG);
+    //     notificationBellElement = document.getElementById('notificationBellIcon');
+    // }
+
+    // Make the main header buttons container visible by default (CSS defines layout)
+    // This is managed by auth.onAuthStateChanged based on new rules
     if (headerButtonsContainer) {
-        headerButtonsContainer.insertAdjacentHTML('afterbegin', bellIconSVG);
-        notificationBellElement = document.getElementById('notificationBellIcon'); // Now correctly gets the element after insertion
+        headerButtonsContainer.style.display = 'none'; // Initially hide, JS will show/hide as needed
     }
 
-    // Make the main header buttons container visible by default (it holds Home, Useful Links, Contact Us, Logout).
-    // CSS should define its layout (e.g., display: flex).
-    if (headerButtonsContainer) {
-        headerButtonsContainer.style.display = 'flex';
-    }
-
-    // Hide register and logout buttons initially by default until auth state is known
-    // (Their visibility will be managed by auth.onAuthStateChanged)
+    // Hide all elements not immediately visible based on new rules
     if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
     if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-
-    // Ensure Torn City Homepage link is hidden by default (will be shown if logged in)
     if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
+    if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+    if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none'; // Hide Edit Profile initially
 
-    // --- Mimic Notification Panel Logic ---
-    let mimicPanelVisible = false;
-    let currentMimicPanel = null;
-
-    function closeMimicPanel() {
-        if (currentMimicPanel) {
-            currentMimicPanel.remove();
-        }
-        mimicPanelVisible = false;
-        currentMimicPanel = null;
-        if (notificationBellElement && useMimicNotification) { // Or if actual unread notifications exist
-            notificationBellElement.classList.add('bell-has-notifications'); // Start pulsing again
-        }
-        document.removeEventListener('click', outsideClickListenerMimic, { capture: true });
-    }
-
-    function openMimicPanel(bellButton) {
-        if (currentMimicPanel) {
-            currentMimicPanel.remove();
-        }
-
-        const panel = document.createElement('div');
-        panel.setAttribute('id', 'notificationMimicPanel');
-        panel.className = 'notification-panel-mimic'; // Use this class for styling
-                                                    
-        panel.innerHTML = `
-            <div class="notification-panel-header">
-                <span>Notifications (Mimic)</span>
-                <button type="button" class="btn-close mimic-panel-close-btn" aria-label="Close panel">&times;</button>
-            </div>
-            <ul>
-                <li>
-                    <strong>Huddle Invite:</strong> UserX added you to a huddle.
-                    <div>(Links to Huddle page)</div>
-                </li>
-                <li>
-                    <strong>Activity Finished:</strong> Your 'Crime X' is complete.
-                    <div>(Links to Activity page)</div>
-                </li>
-                <li>
-                    <strong>Grouped Item:</strong> 3 new market updates.
-                    <div>(Links to Market page)</div>
-                </li>
-            </ul>
-            <div> 
-                This is a test panel.
-            </div>
-        `;
-        
-        panel.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevents click from bubbling up and triggering outsideClickListenerMimic
-        });
-
-        document.body.appendChild(panel);
-        
-        // Position the panel relative to the bell button
-        const bellRect = bellButton.getBoundingClientRect();
-        panel.style.position = 'absolute';
-        panel.style.top = (bellRect.bottom + window.scrollY + 5) + 'px'; // 5px below bell
-        
-        // Horizontal positioning: try to center under bell, or adjust if too close to edge
-        let panelLeft = bellRect.left + window.scrollX - (panel.offsetWidth / 2) + (bellRect.width / 2);
-        if (panelLeft < 10) { // If too close to left edge
-            panelLeft = 10;
-        } else if (panelLeft + panel.offsetWidth > window.innerWidth - 10) { // If too close to right edge
-            panelLeft = window.innerWidth - panel.offsetWidth - 10;
-        }
-        panel.style.left = panelLeft + 'px';
-
-        currentMimicPanel = panel;
-        mimicPanelVisible = true;
-        if (notificationBellElement) {
-            notificationBellElement.classList.remove('bell-has-notifications'); // Stop pulsing when panel is open
-        }
-
-        const closeButton = panel.querySelector('.mimic-panel-close-btn');
-        if (closeButton) {
-            closeButton.addEventListener('click', function() {
-                closeMimicPanel();
-            });
-        }
-        
-        // Add outside click listener after a small delay to prevent immediate closing
-        setTimeout(() => {
-            document.addEventListener('click', outsideClickListenerMimic, { capture: true, once: true });
-        }, 0); // 0ms delay, just puts it at end of current event loop
-    }
-
-    function toggleMimicNotificationPanel(bellButton) {
-        if (mimicPanelVisible) {
-            closeMimicPanel();
-        } else {
-            openMimicPanel(bellButton);
-        }
-    }
-
-    function outsideClickListenerMimic(event) {
-        if (mimicPanelVisible && currentMimicPanel && !currentMimicPanel.contains(event.target) && event.target.id !== 'notificationBellIcon' && !event.target.closest('#notificationBellIcon')) {
-            closeMimicPanel();
-        } else if (mimicPanelVisible) { 
-            // Re-add listener if it was not closed (e.g., if another click inside but not on panel, or another bell click)
-            document.addEventListener('click', outsideClickListenerMimic, { capture: true, once: true });
-        }
-    }
-
-    // Bell Icon Event Listener
-    if (notificationBellElement) {
-        if (useMimicNotification) {
-            notificationBellElement.classList.add('bell-has-notifications'); // Initially make bell pulse
-        }
-        notificationBellElement.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevents the click from immediately closing it via window listener
-            if (useMimicNotification) {
-                toggleMimicNotificationPanel(notificationBellElement);
-            } else {
-                console.log('Real notification system would be triggered here.');
-                if (notificationBellElement) {
-                    notificationBellElement.classList.remove('bell-has-notifications');
-                }
-            }
-        });
-    }
+    // --- Mimic Notification Panel Logic (REMOVED from header) ---
+    // All functions related to mimic notification panel are removed:
+    // closeMimicPanel, openMimicPanel, toggleMimicNotificationPanel, outsideClickListenerMimic.
+    // Also removed the bell icon event listener section.
 
     // --- Dropdown Logic (re-used from previous scripts) ---
     // This function helps close other dropdowns if they are open
@@ -237,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Firebase Auth state listener ---
+    // --- Firebase Auth state listener (UPDATED LOGIC) ---
     // Ensure 'auth' is available from firebase-init.js (loaded before this script)
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(function(user) {
@@ -246,54 +120,97 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentPagePath = window.location.pathname;
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
             const indexPages = ['index.html', 'home.html', '']; // Assuming 'home.html' is an alias for your root index page
+            const isHomePage = indexPages.includes(pageName);
 
             if (user) {
                 // User is signed in
                 console.log("globalheader.js: User IS signed in:", user.uid);
-                if (loggedInUserDisplay) {
-                    loggedInUserDisplay.textContent = `Hello, ${user.email.split('@')[0]}!`;
-                    loggedInUserDisplay.style.display = 'inline-block';
-                }
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
 
-                // Manage visibility of Logout vs. Register buttons
+                // --- Logged-in state specific visibility ---
+                // Name display: NOT shown in header
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+                // Torn City Homepage link: NOT shown in header
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
+                // Notification Bell: NOT shown in header
+                // if (notificationBellElement) notificationBellElement.style.display = 'none'; // Already removed bell injection
+
+                // Main header buttons container: ALWAYS shown when logged in
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+
+                // Home vs Edit Profile
+                if (homeButtonHeader) {
+                    if (isHomePage) {
+                        homeButtonHeader.style.display = 'none'; // Hide Home on homepage
+                    } else {
+                        homeButtonHeader.style.display = 'inline-flex'; // Show Home on other pages
+                    }
+                }
+                if (headerEditProfileBtn) {
+                    if (isHomePage) {
+                        headerEditProfileBtn.style.display = 'inline-flex'; // Show Edit Profile on homepage
+                    } else {
+                        headerEditProfileBtn.style.display = 'none'; // Hide Edit Profile on other pages
+                    }
+                }
+
+                // Sign Up button: Hidden when logged in
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+
+                // Logout button: Shown when logged in
                 if (logoutButtonHeader) {
-                    logoutButtonHeader.style.display = 'inline-flex'; // Show Logout
+                    logoutButtonHeader.style.display = 'inline-flex';
                     logoutButtonHeader.onclick = function() {
                         auth.signOut().then(() => {
                             console.log('User signed out');
+                            // Redirect to home page after logout if needed
                             if (!indexPages.includes(pageName)) {
-                                window.location.href = 'home.html';
+                                window.location.href = 'home.html'; // Adjust path if home is in root, e.g., '../home.html'
                             }
                         }).catch((error) => {
                             console.error('Sign out error', error);
                         });
                     };
                 }
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; // Hide Register when logged in
-            } else {
-                // No user is signed in
-                console.log("globalheader.js: No user is signed in.");
-                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
 
-                // Manage visibility of Logout vs. Register buttons
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none'; // Hide Logout
+            } else {
+                // No user is signed in (Logged Out)
+                console.log("globalheader.js: No user is signed in.");
+
+                // --- Logged-out state specific visibility ---
+                // Name display: NOT shown in header
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+                // Notification Bell: NOT shown in header
+                // if (notificationBellElement) notificationBellElement.style.display = 'none'; // Already removed bell injection
+
+                // Torn City Homepage link: Shown when logged out
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
+
+                // Main header buttons container: Hidden when logged out
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                
+                // Sign Up button: Shown when logged out (unless on signup page)
                 if (signUpButtonHeader) {
                     if (!indexPages.includes(pageName) && pageName !== 'signup.html') {
-                        signUpButtonHeader.style.display = 'inline-flex'; // Show Register
+                        signUpButtonHeader.style.display = 'inline-flex';
                     } else {
-                        signUpButtonHeader.style.display = 'none'; // Hide Register on home/index/signup pages
+                        signUpButtonHeader.style.display = 'none';
                     }
                 }
+
+                // Logout button: Hidden when logged out
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+
+                // Home & Edit Profile buttons: Hidden when logged out
+                if (homeButtonHeader) homeButtonHeader.style.display = 'none';
+                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
             }
         });
     } else {
         console.warn("Firebase auth object is not available for header UI script. Ensure Firebase App and Auth SDKs are loaded correctly before globalheader.js.");
         // Fallback: If Firebase not loaded, assume logged out state
-        if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex'; // Keep visible if no auth control
+        if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hidden if no auth control
         if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-        if (signUpButtonHeader) {
+        if (signUpButtonHeader) { // Show register if not on index/signup page if auth is not available
             const currentPagePath = window.location.pathname;
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
             const indexPages = ['index.html', 'home.html', ''];
@@ -303,5 +220,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 signUpButtonHeader.style.display = 'none';
             }
         }
+        if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none'; // Hidden if no auth control
+        if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+        if (homeButtonHeader) homeButtonHeader.style.display = 'none';
+        if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
     }
 });
