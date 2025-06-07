@@ -1,4 +1,4 @@
-/* mysite/css/global.css - Consolidated Global Styles */
+/* mysite/css/global.css - Consolidated Global Styles (Corrected & Cleaned) */
 
 /* Base HTML & Body Styles */
 html, body {
@@ -35,9 +35,9 @@ body::before {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    filter: grayscale(100%); /* Revert to original */
-    opacity: 0.8; /* Revert to original */
-    z-index: -1; /* Puts it behind other content */
+    filter: grayscale(100%); 
+    opacity: 0.8; 
+    z-index: -1; 
 }
 
 /* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) */
@@ -56,50 +56,6 @@ body::before {
 ::-webkit-scrollbar-corner {
     background: #222;
 }
-.btn-uniform {
-    -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;
-    -webkit-appearance: none; appearance: none;
-    background-color: #131314; background-image: none;
-    border: 1px solid #00a8ff;
-    border-radius: 20px;
-    box-sizing: border-box;
-    color: #e3e3e3; cursor: pointer;
-    font-family: inherit; 
-    font-size: 14px; font-weight: 500;
-    height: 40px; letter-spacing: 0.25px;
-    outline: none; overflow: hidden;
-    padding: 0 12px; position: relative; z-index: 0;
-    text-align: center;
-    transition: background-color .218s, border-color .218s, box-shadow .218s;
-    vertical-align: middle; white-space: nowrap; text-decoration: none;
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: min-content;
-    margin: 8px 0; text-transform: none;
-}
-.btn-uniform::before {
-    content: ""; position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%; background-color: white;
-    opacity: 0; border-radius: inherit;
-    transition: opacity .218s; pointer-events: none; z-index: 1;
-}
-.btn-uniform .btn-text { order: 1; }
-.btn-uniform .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
-.btn-uniform:not(:disabled):hover {
-    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
-    border-color: #4dc4ff;
-}
-.btn-uniform:not(:disabled):hover::before { opacity: 0.08; }
-.btn-uniform:not(:disabled):active { border-color: #00a8ff; }
-.btn-uniform:not(:disabled):active::before, .btn-uniform:not(:disabled):focus::before { opacity: 0.12; }
-.btn-uniform:disabled {
-    cursor: default; background-color: rgba(19, 19, 20, 0.38);
-    border-color: rgba(0, 168, 255, 0.38); color: rgba(227, 227, 227, 0.38);
-}
-.btn-uniform:disabled::before { opacity: 0 !important; }
-.btn-uniform:disabled .btn-icon, .btn-uniform:disabled .btn-text { opacity: 0.38; }
-
-der-buttons .dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
-.header-buttons .dropdown-content.show { display: block; }
 
 /* HEADER Styles (ALL header styles are now here) */
 header {
@@ -144,23 +100,69 @@ header {
     display: flex; align-items: center; gap: 10px;
 }
 
-/* Reusable Button Styles for Header and Actions */
-.btn, .btn-header, .action-btn, .header-text-link {
-    font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
-    display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
-}
-.btn-header { 
-    background: #00a8ff; border: none; color: #222;
-}
-.btn-header:hover {
-    background: #0086d1; transform: translateY(-1px);
-}
-.btn-header.active {
-    background: #007acc; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+/* Refactored: Base Button Style (Now includes .btn-uniform properties) */
+/* This defines the base look for ALL buttons that have .btn or .btn-header classes */
+.btn, .btn-header { /* REMOVED .action-btn from this selector list, it will be in page-specific CSS */
+    font-weight: bold; border-radius: 20px; /* Global 20px radius */
+    cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center; 
+    font-size: 14px; /* Global font size */
+    line-height: 1.4; padding: 0 12px; /* Global padding */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+    -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;
+    -webkit-appearance: none; appearance: none; /* Crucial for consistent styling across browsers */
+    background-image: none; /* Prevents default browser background images */
+    box-sizing: border-box; /* Ensures padding/border are included in dimensions */
+    outline: none; overflow: hidden; position: relative; z-index: 0;
+    text-align: center; text-transform: none;
+    vertical-align: middle; min-width: min-content;
+    margin: 8px 0; /* Default margin for all buttons */
+
+    /* Core "Little Button" appearance with !important to ensure it wins */
+    background-color: #131314 !important; /* Dark background */
+    border: 1px solid #00a8ff !important; /* Light blue border */
+    color: #e3e3e3 !important; /* Light text color */
+    height: 40px !important; /* Fixed height for consistency */
 }
 
-.header-text-link {
+/* Button Hover/Focus/Active States */
+.btn:not(:disabled):hover, .btn:not(:disabled):focus {
+    border-color: #4dc4ff !important; /* Lighter blue border on hover/focus */
+    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
+    transform: translateY(-1px); /* Slight lift on hover */
+}
+.btn::before { /* Overlay for hover/focus effects */
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; background-color: white;
+    opacity: 0; border-radius: inherit; transition: opacity 0.218s;
+    pointer-events: none; z-index: -1; 
+}
+.btn:not(:disabled):hover::before { opacity: 0.08; }
+.btn:not(:disabled):active, .btn:not(:disabled):focus { border-color: #00a8ff !important; }
+.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before { opacity: 0.12; }
+
+/* Disabled Button State */
+.btn:disabled {
+    cursor: default;
+    background-color: rgba(19, 19, 20, 0.38) !important;
+    border-color: rgba(0, 168, 255, 0.38) !important;
+    color: rgba(227, 227, 227, 0.38) !important;
+}
+.btn:disabled::before { opacity: 0 !important; }
+.btn:disabled .btn-text, .btn:disabled .btn-icon { opacity: 0.38; }
+
+/* Button Text/Icon Alignment */
+.btn .btn-text { order: 1; }
+.btn .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
+
+/* Specific Header Button Overrides (if any) */
+/* These make header buttons slightly different from the base .btn if needed, without messing with core style */
+.btn-header { 
+    margin: 0 4px; /* Adjust margin for header context */
+    box-shadow: none; /* No shadow by default for header buttons */
+}
+.header-text-link { /* For text-based links in header */
     font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
     display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
     color: #00a8ff; background: none; border: none; box-shadow: none;
@@ -170,60 +172,32 @@ header {
 }
 
 /* Dropdown Styles (Common to all pages) */
-.dropdown {
-    position: relative; display: inline-block;
-}
-
-.dropdown-toggle::after {
-    content: ' \25BC'; font-size: 0.6em; margin-left: 4px;
-}
+.dropdown { position: relative; display: inline-block; }
+.dropdown-toggle::after { content: ' \25BC'; font-size: 0.6em; margin-left: 4px; }
 .dropdown-content {
     display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
-    border: 1px solid #00a8ff; right: 0; top: calc(100% + 5px); overflow-y: auto;
-    max-height: 300px; padding: 0;
+    border: 1px solid #00a8ff; right: 0; top: calc(100% + 5px); overflow-y: auto; max-height: 300px; padding: 0;
 }
-.header-buttons .dropdown-content::-webkit-scrollbar {
-    width: 8px;
-}
-.header-buttons .dropdown-content::-webkit-scrollbar-track {
-    background: #2c2f33; border-radius: 0 8px 8px 0;
-}
-.header-buttons .dropdown-content::-webkit-scrollbar-thumb {
-    background: #555; border-radius: 8px;
-}
-.header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover {
-    background: #00a8ff;
-}
-.dropdown-content.show {
-    display: block;
-}
-.dropdown.align-right .dropdown-content {
-    left: auto; right: 0;
-}
+.header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #2c2f33; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
+.header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
+.dropdown-content.show { display: block; }
+.dropdown.align-right .dropdown-content { left: auto; right: 0; }
 .dropdown-content a {
     color: #d0d0d0; padding: 10px 15px; text-decoration: none; display: block;
     font-size: 0.9rem; font-weight: bold; white-space: nowrap;
     transition: background-color 0.2s ease, color 0.2s ease; position: relative; text-align: left;
 }
-#usefulLinksDropdown a::after {
-    content: "\00a0\00a0🔗";
-}
-.dropdown-content a:hover {
-    background-color: #333333; color: #00c0ff;
-}
+#usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
+.dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
+
 
 /* Main Content Wrapper (Common to all pages) */
 .main-content-wrapper {
-    flex-grow: 1; /* Allows main content to take available vertical space */
-    box-sizing: border-box; /* Include padding in element's total dimensions */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers content horizontally */
-    position: relative;
-    z-index: 1;
-    /* No padding-top/bottom here; body handles it. */
-    /* No overflow-y here; body handles it. */
+    flex-grow: 1; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 1;
 }
 
 /* Background image glows (Common to all pages) - Corrected sizing and Z-index */
@@ -232,9 +206,8 @@ header {
     left: -3%;
     bottom: 0;
     filter: drop-shadow(0px 0px 12px #00a8ff);
-    /* Removed fixed width to allow full responsiveness */
-    max-width: 30%; /* Adjusted: Make them scale to a smaller percentage of viewport width */
-    z-index: 0; /* Ensures they are behind the content (content has z-index: 1) */
+    max-width: 30%; /* Adjusted for responsiveness */
+    z-index: 0; /* Behind content */
     pointer-events: none;
 }
 .image-glow-flipped {
@@ -243,9 +216,8 @@ header {
     bottom: 0;
     transform: scaleX(-1);
     filter: drop-shadow(0px 0px 12px #00a8ff);
-    /* Removed fixed width to allow full responsiveness */
-    max-width: 30%; /* Adjusted: Make them scale to a smaller percentage of viewport width */
-    z-index: 0; /* Ensures they are behind the content */
+    max-width: 30%; /* Adjusted for responsiveness */
+    z-index: 0; /* Behind content */
     pointer-events: none;
 }
 
@@ -269,7 +241,7 @@ footer.footer {
     user-select: none;
     z-index: 102;
     box-sizing: border-box;
-    height: 70px; /* Adjusted height for consistency */
+    height: 70px; 
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -287,36 +259,16 @@ footer.footer > p {
 }
 
 /* General Styles for common HTML elements inside main content sections */
-main { /* General main content area styling - might be used on pages like home.html */
-    max-width: 1500px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: rgba(34, 34, 34, 0.85);
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
+main { /* General main content area styling - might be used on home.html */
+    max-width: 1500px; margin: 20px auto; padding: 20px;
+    background-color: rgba(34, 34, 34, 0.85); border-radius: 12px; box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
     width: 90%;
 }
-h2 { /* General H2 style for main content */
-    color: #007acc;
-    margin-bottom: 20px;
-    font-weight: 600;
-    text-align: center;
-}
-p { /* General paragraph style for main content */
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 15px;
-    color: #d0d0d0;
-}
-ul { /* General list style */
-    list-style: none; padding-left: 0;
-}
-ul li {
-    padding: 10px 0; border-bottom: 1px solid #333; font-size: 1rem; color: #ccc;
-}
-ul li:last-child {
-    border-bottom: none;
-}
+h2 { color: #007acc; margin-bottom: 20px; font-weight: 600; text-align: center; }
+p { font-size: 1rem; line-height: 1.6; margin-bottom: 15px; color: #d0d0d0; }
+ul { list-style: none; padding-left: 0; }
+ul li { padding: 10px 0; border-bottom: 1px solid #333; font-size: 1rem; color: #ccc; }
+ul li:last-child { border-bottom: none; }
 
 /* General form input style - used on login/profile modals/pages */
 .custom-input {
@@ -324,12 +276,8 @@ ul li:last-child {
     border-radius: 5px; background-color: #333; color: #fff; font-size: 16px;
     box-sizing: border-box;
 }
-.custom-input::placeholder {
-    color: #aaa; opacity: 1;
-}
-.custom-input:focus {
-    border-color: #00a8ff; outline: none; box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
-}
+.custom-input::placeholder { color: #aaa; opacity: 1; }
+.custom-input:focus { border-color: #00a8ff; outline: none; box-shadow: 0 0 5px rgba(0, 168, 255, 0.5); }
 
 /* General Modal & Spinner Styles (ALL modal styles are now here) */
 .loading-overlay {
@@ -382,8 +330,7 @@ ul li:last-child {
 .modal-content .modal-close-btn {
     position: absolute; top: 12px; right: 12px; background: none; border: none;
     font-size: var(--btn-close-font-size, 1.8rem); color: var(--btn-close-color, #00a8ff);
-    cursor: pointer; line-height: 1; padding: 5px;
-    transition: color var(--btn-close-transition-speed, 0.2s) ease;
+    cursor: pointer; line-height: 1;
 }
 .modal-content .modal-close-btn:hover {
     color: var(--btn-close-hover-color, #00e0ff);
