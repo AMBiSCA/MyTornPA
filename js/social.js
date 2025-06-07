@@ -89,6 +89,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
     const theHubMainUi = document.getElementById('theHubMainUi');
+    // RESTORED: headerButtonsContainer and logoutButtonHeader
+    const headerButtonsContainer = document.getElementById('headerButtonsContainer');
+    const logoutButtonHeader = document.getElementById('logoutButtonHeader');
+
     const homeButtonFooter = document.getElementById('homeButtonFooter');
     const usefulLinksBtn = document.getElementById('usefulLinksBtn');
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
@@ -208,6 +212,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial UI State
     if (theHubMainUi) theHubMainUi.style.display = 'none';
+    // RESTORED: Initial display states for header elements
+    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+    if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+
     if (homeButtonFooter) homeButtonFooter.style.display = 'inline-block';
 
     function setupButtonListener(buttonEl, buttonName, callback) {
@@ -1643,6 +1651,7 @@ function resetLeadershipFilters() {
 // --- End of NEW Leadership View Functions ---
 
     // --- EVENT LISTENER ATTACHMENTS ---
+    // RESTORED: usefulLinksBtn and headerContactUsBtn event listeners
     if (usefulLinksBtn) { usefulLinksBtn.addEventListener('click', (event) => { event.stopPropagation(); usefulLinksDropdown.classList.toggle('show'); usefulLinksBtn.classList.toggle('active'); if (headerContactUsDropdown.classList.contains('show')) { headerContactUsDropdown.classList.remove('show'); headerContactUsBtn.classList.remove('active');} }); }
     if (headerContactUsBtn) { headerContactUsBtn.addEventListener('click', (event) => { event.stopPropagation(); headerContactUsDropdown.classList.toggle('show'); headerContactUsBtn.classList.toggle('active'); if (usefulLinksDropdown.classList.contains('show')) { usefulLinksDropdown.classList.remove('show'); usefulLinksBtn.classList.remove('active'); } }); }
     window.addEventListener('click', (event) => { if (!event.target.matches('.header-btn, .header-btn *')) closeAllDropdowns(); });
@@ -1823,7 +1832,7 @@ function resetLeadershipFilters() {
             if(globalChatContent) globalChatContent.innerHTML = '<p class="chat-system-message">Loading global messages...</p>';
             setupGlobalChatListener();
         } else if (clickedTab.id === 'factionChatTabBtn') {
-            if(factionChatContent) factionChatContent.innerHTML = `<p class="chat-system-message">Checking profile for faction chat access...</p вместо того чтобы использовать только header buttons I could potentially use the header.js to also set the other header buttons based on whether they are logged in or not`;
+            if(factionChatContent) factionChatContent.innerHTML = `<p class="chat-system-message">Checking profile for faction chat access...</p>`;
             loadHubUserProfileData().then(() => setupFactionChatListener()).catch(error => {
                 console.error("Chat Tabs: Error loading profile data before setting up faction chat:", error);
                 if(factionChatContent) factionChatContent.innerHTML = '<p class="chat-system-message">Failed to load profile for faction chat. Please try again.</p>';
@@ -1938,6 +1947,25 @@ function resetLeadershipFilters() {
     setupButtonListener(saveViewerAccessBtn, "Save Viewer Access Button", async () => {});
 
     if (auth) {
+        // RESTORED: logoutButtonHeader.onclick
+        if (logoutButtonHeader) {
+            logoutButtonHeader.onclick = () => {
+                auth.signOut().then(() => {
+                    console.log("User signed out.");
+                    if (globalChatUnsub) { globalChatUnsub(); globalChatUnsub = null; }
+                    if (factionChatUnsub) { factionChatUnsub(); factionChatUnsub = null; }
+                    if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
+                    if (recentChatsUnsub) { recentChatsUnsub(); recentChatsUnsub = null; }
+                    if (dmChatUnsub) { dmChatUnsub(); dmChatUnsub = null; }
+                    currentDmFriendId = null;
+                    updateUserOnlineStatus(false);
+                }).catch((error) => {
+                    console.error("Error signing out:", error);
+                    alert("Failed to sign out. Please try again.");
+                });
+            };
+        }
+
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUserId = user.uid;
@@ -1949,11 +1977,17 @@ function resetLeadershipFilters() {
                         if (!currentUserProfileData || !currentUserProfileData.profileSetupComplete) {
                             console.log("Auth State Change: Profile incomplete or not found. Showing profile setup modal.");
                             if (theHubMainUi) theHubMainUi.style.display = 'none';
+                            // RESTORED: headerButtonsContainer and logoutButtonHeader display logic
+                            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                             showProfileSetupModal();
                             return;
                         }
                         console.log("Auth State Change: Profile complete. Displaying hub UI.");
                         if (theHubMainUi) theHubMainUi.style.display = 'grid';
+                        // RESTORED: headerButtonsContainer and logoutButtonHeader display logic
+                        if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                        if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
                         await loadHubUserProfileData();
                         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
                         setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
@@ -1974,6 +2008,10 @@ function resetLeadershipFilters() {
                 console.log("Auth State Change: User logged out.");
                 currentUserId = null; currentUserProfileData = null;
                 if (theHubMainUi) theHubMainUi.style.display = 'none';
+                // RESTORED: headerButtonsContainer and logoutButtonHeader display logic
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+
                 if (globalChatUnsub) { globalChatUnsub(); globalChatUnsub = null; }
                 if (factionChatUnsub) { factionChatUnsub(); factionChatUnsub = null; }
                 if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
