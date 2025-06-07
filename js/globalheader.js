@@ -1,10 +1,7 @@
 // mysite/js/globalheader.js
 // This script manages the header UI based on Firebase authentication state.
-// Notification bell logic is now handled by a separate script.
+// Notification bell logic is now handled EXCLUSIVELY by a separate script (e.g., notification.js).
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Configuration ---
-    const useMimicNotification = true; // Set to true to enable mimic, false for real system
-
     // Get header element references
     const headerButtonsContainer = document.getElementById('headerButtonsContainer');
     const signUpButtonHeader = document.getElementById('signUpButtonHeader');
@@ -14,26 +11,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown');
-    const notificationBellButton = document.getElementById('notificationBell'); 
+    // REMOVED: notificationBellButton reference and all related logic
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
     const loggedInUserDisplay = document.getElementById('logged-in-user-display');
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
 
     // --- Initial display of elements (managed by JS based on rules) ---
-    // These will all be explicitly set by auth.onAuthStateChanged
+    // All header elements are initially hidden. Their display will be set by auth.onAuthStateChanged.
+    // This is safer than relying on HTML default and then hiding.
     if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
     if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+    if (homeButtonHeader) homeButtonHeader.style.display = 'none';
     if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
     if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
     if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
     if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-    if (notificationBellButton) notificationBellButton.style.display = 'none';
-
-    // --- Mimic Notification Panel Logic (ALL REMOVED from this file) ---
-    // This section is empty as notification logic is handled elsewhere.
-    // However, the related functions are needed if you want the bell to work later.
-    // For now, these functions are NOT in this file based on your last request.
-    // If you add a separate notification.js, these functions should go there.
+    // REMOVED: notificationBellButton.style.display = 'none';
 
     // --- Dropdown Logic ---
     function closeOtherDropdowns(currentDropdown, currentButton) {
@@ -106,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
             const indexPages = ['index.html', 'home.html', ''];
             const isHomePage = indexPages.includes(pageName);
+            const isIndexPage = (pageName === 'index.html' || pageName === ''); // Specific check for the very root index page
 
             if (user) {
                 // User is signed in
@@ -114,11 +108,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Elements NOT shown in header when logged in (based on your rules)
                 if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // "Hello, [Name]!"
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none'; // "Torn City - Homepage" link
+                // REMOVED: Notification Bell visibility logic
 
                 // Main header buttons container: ALWAYS shown when logged in
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                if (headerButtonsContainer) {
+                    if (isIndexPage) {
+                        headerButtonsContainer.style.display = 'none'; // Hide all if on index page
+                    } else {
+                        headerButtonsContainer.style.display = 'flex'; // Show if on home or other pages
+                    }
+                }
                 
-                // Set specific element visibility for logged-in state
+                // Specific button visibility for logged-in state
                 if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; // Hide Register
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex'; // Show Logout
 
@@ -138,9 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Bell icon: No logic here, as it's managed externally and should be hidden by default
-                if (notificationBellButton) notificationBellButton.style.display = 'none'; 
-
             } else {
                 // No user is signed in (Logged Out)
                 console.log("globalheader.js: No user is signed in.");
@@ -151,15 +149,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                 if (homeButtonHeader) homeButtonHeader.style.display = 'none';
                 if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-                if (notificationBellButton) notificationBellButton.style.display = 'none'; // Hide bell
+                // REMOVED: Notification Bell visibility logic
 
                 // Display logged-out specific elements
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Torn City Homepage link: Shown
                 if (signUpButtonHeader) { // Register button: Shown (unless on signup page)
-                    if (!isHomePage && pageName !== 'signup.html') { // Not home/index and not signup
+                    if (!isHomePage && !isIndexPage && pageName !== 'signup.html') {
                         signUpButtonHeader.style.display = 'inline-flex';
                     } else {
-                        signUpButtonHeader.style.display = 'none';
+                        signUpButtonHeader.style.display = 'none'; // Hide Register on home/index/signup
                     }
                 }
             }
@@ -183,6 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
         if (homeButtonHeader) homeButtonHeader.style.display = 'none';
         if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-        if (notificationBellButton) notificationBellButton.style.display = 'none'; // Hide bell
+        // REMOVED: Notification Bell visibility logic
     }
 });
