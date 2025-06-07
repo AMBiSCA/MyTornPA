@@ -8,20 +8,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const homeButtonHeader = document.getElementById('homeButtonHeader');
     const logoutButtonHeader = document.getElementById('logoutButtonHeader');
 
-    // CORRECTED: Ensure these match your HTML IDs exactly
     const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown'); // This is the dropdown-content DIV
-    const contactUsBtn = document.getElementById('headerContactUsBtn'); // CORRECTED ID here to match HTML
-    const contactUsDropdown = document.getElementById('headerContactUsDropdown'); // This is the dropdown-content DIV
+    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+    const contactUsBtn = document.getElementById('headerContactUsBtn');
+    const contactUsDropdown = document.getElementById('headerContactUsDropdown');
     
-    // REMOVED: notificationBellButton reference and all related logic
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
     const loggedInUserDisplay = document.getElementById('logged-in-user-display');
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
 
     // --- Initial display of elements (managed by JS based on rules) ---
-    // All header elements are initially hidden. Their display will be set by auth.onAuthStateChanged.
-    // This is safer than relying on HTML default and then hiding.
     if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
     if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
     if (homeButtonHeader) homeButtonHeader.style.display = 'none';
@@ -29,19 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
     if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
     if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-    // REMOVED: notificationBellButton.style.display = 'none';
 
     // --- Dropdown Logic ---
     function closeOtherDropdowns(currentDropdownElement, currentButtonElement) {
-        // Find all currently open dropdowns (those with the 'show' class)
         const allDropdownContents = document.querySelectorAll('.dropdown-content.show');
         allDropdownContents.forEach(dropdownContent => {
-            // Only close if it's not the one we just clicked or its child
             if (dropdownContent !== currentDropdownElement) {
                 dropdownContent.classList.remove('show');
-                // Find the button associated with this dropdown and remove its 'active' class
-                // The structure is usually <div class="dropdown"><button>...</button><div class="dropdown-content">...</div></div>
-                // So, the button is the previous sibling of the dropdown-content
                 const associatedButton = dropdownContent.previousElementSibling;
                 if (associatedButton && associatedButton.classList.contains('btn') && associatedButton.classList.contains('active')) {
                     associatedButton.classList.remove('active');
@@ -53,9 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Useful Links Dropdown
     if (usefulLinksBtn && usefulLinksDropdown) {
         usefulLinksBtn.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent click from bubbling up to window and closing immediately
+            event.stopPropagation();
             const currentlyOpen = usefulLinksDropdown.classList.contains('show');
-            closeOtherDropdowns(usefulLinksDropdown, usefulLinksBtn); // Close others before opening this one
+            closeOtherDropdowns(usefulLinksDropdown, usefulLinksBtn);
             if (!currentlyOpen) {
                 usefulLinksDropdown.classList.add('show');
                 usefulLinksBtn.classList.add('active');
@@ -69,9 +59,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Contact Us Dropdown
     if (contactUsBtn && contactUsDropdown) {
         contactUsBtn.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent click from bubbling up to window and closing immediately
+            event.stopPropagation();
             const currentlyOpen = contactUsDropdown.classList.contains('show');
-            closeOtherDropdowns(contactUsDropdown, contactUsBtn); // Close others before opening this one
+            closeOtherDropdowns(contactUsDropdown, contactUsBtn);
             if (!currentlyOpen) {
                 contactUsDropdown.classList.add('show');
                 contactUsBtn.classList.add('active');
@@ -84,16 +74,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Global click listener to close dropdowns when clicking outside
     window.addEventListener('click', function(event) {
-        // If the click was not inside a dropdown button or its content
         if (usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) {
-            // Check if the click target is NOT the button and NOT inside the dropdown itself
             if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
                 usefulLinksDropdown.classList.remove('show');
                 usefulLinksBtn.classList.remove('active');
             }
         }
         if (contactUsDropdown && contactUsDropdown.classList.contains('show')) {
-            // Check if the click target is NOT the button and NOT inside the dropdown itself
             if (!contactUsBtn.contains(event.target) && !contactUsDropdown.contains(event.target)) {
                 contactUsDropdown.classList.remove('show');
                 contactUsBtn.classList.remove('active');
@@ -101,75 +88,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
-    // --- Firebase Auth state listener (UPDATED LOGIC for all header elements) ---
-    // Ensure Firebase auth object is available. It is loaded via firebase-init.js *before* this script.
+    // --- Firebase Auth state listener ---
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(function(user) {
             console.log("globalheader.js: Auth state changed. User:", user);
 
             const currentPagePath = window.location.pathname;
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
-            const indexPages = ['index.html', 'home.html', '']; // 'home.html' if it's your dashboard after login
-            const isHomePage = indexPages.includes(pageName); // True if on index.html, home.html, or root
+            const indexPages = ['index.html', 'home.html', ''];
+            const isHomePage = indexPages.includes(pageName);
             const isSignUpPage = (pageName === 'signup.html');
 
             if (user) {
-                // User is signed in
                 console.log("globalheader.js: User IS signed in:", user.uid);
 
-                // Elements NOT shown in header when logged in
-                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // "Hello, [Name]!" (if you have one)
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none'; // "Torn City - Homepage" link (if you have one)
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; // Hide Register button
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
                 
-                // Main header buttons container: ALWAYS shown when logged in, unless it's the very root index
                 if (headerButtonsContainer) {
-                    if (isSignUpPage || isHomePage) { // If on login/signup page, or home page, hide these (as the hub should manage its own buttons)
+                    if (isSignUpPage || isHomePage) {
                         headerButtonsContainer.style.display = 'none';
                     } else {
-                        headerButtonsContainer.style.display = 'flex'; // Show other header buttons on other pages
+                        headerButtonsContainer.style.display = 'flex';
                     }
                 }
                 
-                // Specific button visibility for logged-in state
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex'; // Show Logout
-                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex'; // Always show Edit Profile when logged in
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+                if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex';
 
-                // Home button logic: show if not on home page itself
                 if (homeButtonHeader) {
                     if (isHomePage) {
-                        homeButtonHeader.style.display = 'none'; // Hide Home button if already on the home page
+                        homeButtonHeader.style.display = 'none';
                     } else {
-                        homeButtonHeader.style.display = 'inline-flex'; // Show Home button on other pages
+                        homeButtonHeader.style.display = 'inline-flex';
                     }
+                }
+
+                // >>> ADDED: Call the social hub initializer after user is confirmed logged in and header is set up
+                if (typeof window.initializeSocialHub === 'function') {
+                    window.initializeSocialHub(user);
+                } else {
+                    console.warn("globalheader.js: window.initializeSocialHub is not defined. Social hub content might not load.");
                 }
 
             } else {
-                // No user is signed in (Logged Out)
                 console.log("globalheader.js: No user is signed in.");
 
-                // Hide all logged-in specific elements
                 if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hide main buttons container
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                 if (homeButtonHeader) homeButtonHeader.style.display = 'none';
                 if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
 
-                // Display logged-out specific elements (based on current page)
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Torn City Homepage link: Show
-                if (signUpButtonHeader) { // Register button: Show (unless on signup page)
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
+                if (signUpButtonHeader) {
                     if (isSignUpPage) {
-                        signUpButtonHeader.style.display = 'none'; // Hide Register button if already on the signup page
+                        signUpButtonHeader.style.display = 'none';
                     } else {
-                        signUpButtonHeader.style.display = 'inline-flex'; // Show Register button on other pages
+                        signUpButtonHeader.style.display = 'inline-flex';
                     }
                 }
             }
         });
     } else {
         console.warn("Firebase auth object is not available for header UI script. Ensure Firebase App and Auth SDKs are loaded correctly before globalheader.js.");
-        // Fallback: If Firebase not loaded, assume logged out state and set minimal header
         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
         if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
         if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
