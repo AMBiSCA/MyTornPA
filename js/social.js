@@ -1,4 +1,6 @@
-// social.js - Debugging for Faction Chat Display 
+// mysite/js/social.js - Debugging for Faction Chat Display 
+// This script focuses ONLY on the Hub page's main functionalities (chat, profile toggles, recruitment, etc.).
+// Header button visibility and dropdowns are now handled by globalheader.js.
 document.addEventListener('DOMContentLoaded', function() {
     console.log("social.js: DOMContentLoaded event fired. The Hub is loading!");
 
@@ -31,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     // NEW: Custom Battlestats Steps for the slider (for "Leadership View")
-    // This allows for non-linear steps which can be better for large ranges
     const battlestatsSteps = [
         0, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000,
         25000000, 50000000, 100000000, 250000000, 500000000, 1000000000, 2500000000,
@@ -54,10 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store unsubs for chat listeners to prevent memory leaks when switching tabs/logging out
     let globalChatUnsub = null;
     let factionChatUnsub = null;
-    let friendChatUnsub = null; // Placeholder for friend chat if implemented later
-    let friendsListUnsub = null; // For real-time friends list updates
-    let recentChatsUnsub = null; // For real-time recent chats updates
-    let dmChatUnsub = null; // For real-time direct message updates
+    let friendChatUnsub = null;
+    let friendsListUnsub = null;
+    let recentChatsUnsub = null;
+    let dmChatUnsub = null;
 
     // Store the ID of the friend currently being DMed
     let currentDmFriendId = null;
@@ -84,21 +85,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
     const filterArrowIcon = document.getElementById('filterArrowIcon');
     const filterOptions = document.getElementById('filterOptions');
-    // Removed filterRespectMin, filterRespectMax, filterMembersMin, filterMembersMax, filterFactionLevel
-    // as they are replaced by new slider/checkbox elements for the "On The Hunt" filter block
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
     const theHubMainUi = document.getElementById('theHubMainUi');
-    // RESTORED: headerButtonsContainer and logoutButtonHeader
-    const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-    const logoutButtonHeader = document.getElementById('logoutButtonHeader');
+    
+    const homeButtonFooter = document.getElementById('homeButtonFooter'); // This is a FOOTER button, remains here
+    // REMOVED: usefulLinksBtn, usefulLinksDropdown, headerContactUsBtn, headerContactUsDropdown
+    // These are now exclusively managed by globalheader.js
 
-    const homeButtonFooter = document.getElementById('homeButtonFooter');
-    const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-    const headerContactUsBtn = document.getElementById('headerContactUsBtn');
-    const headerContactUsDropdown = document.getElementById('headerContactUsDropdown');
-    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
+    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn'); // This button opens profile modal, its click is in social.js
     const profileSetupModal = document.getElementById('profileSetupModal');
     const preferredNameInput = document.getElementById('preferredName');
     const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
@@ -142,11 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const addFriendForm = document.getElementById('addFriendForm');
     const friendIdInput = document.getElementById('friendIdInput');
     const addFriendBtn = document.getElementById('addFriendBtn');
-    // const removeFriendBtn = document.getElementById('removeFriendBtn'); // This ID might not exist or is for a general button
     const hubActionFactionInfoBtn = document.getElementById('hubActionFactionInfoFinal');
     const factionInfoModal = document.getElementById('factionInfoModal');
     const factionInfoModalTitleEl = document.getElementById('factionInfoModalTitle');
-    // Renamed factionInfoModalBodyEl to generalInfoContent to be more specific
     const generalInfoContent = document.getElementById('generalInfoContent');
     const closeFactionInfoModalBtn = document.getElementById('closeFactionInfoModalBtn');
     const hubActionLeadershipViewBtn = document.getElementById('hubActionLeadershipViewFinal');
@@ -173,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // NEW DOM Elements for Faction Filters
     const filterMinRespectSlider = document.getElementById('filterMinRespectSlider');
-    const filterMinRespectValue = document.getElementById('filterMinRespectValue'); // This will display the formatted value
+    const filterMinRespectValue = document.getElementById('filterMinRespectValue');
     const filterMinMembersSlider = document.getElementById('filterMinMembersSlider');
     const filterMinMembersValue = document.getElementById('filterMinMembersValue');
     const filterTierBronze = document.getElementById('filterTierBronze');
@@ -210,12 +203,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const recentChatsSearchInput = document.getElementById('recentChatsSearchInput');
 
 
-    // Initial UI State
+    // Initial UI State (only for elements managed by social.js)
     if (theHubMainUi) theHubMainUi.style.display = 'none';
-    // RESTORED: Initial display states for header elements
-    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-    if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-
     if (homeButtonFooter) homeButtonFooter.style.display = 'inline-block';
 
     function setupButtonListener(buttonEl, buttonName, callback) {
@@ -224,10 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
             buttonEl.addEventListener('click', callback);
         }
     }
-    function closeAllDropdowns() {
-        if (usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) { usefulLinksDropdown.classList.remove('show'); if (usefulLinksBtn) usefulLinksBtn.classList.remove('active'); }
-        if (headerContactUsDropdown && headerContactUsDropdown.classList.contains('show')) { headerContactUsDropdown.classList.remove('show'); if (headerContactUsBtn) headerContactUsBtn.classList.remove('active'); }
-    }
+    // REMOVED: closeAllDropdowns function (now in globalheader.js)
 
     async function fetchUserBattleStats(apiKey, userId) {
         console.log(`Placeholder: Fetching battlestats for User ID: ${userId} with API Key: ${apiKey}`);
@@ -256,7 +242,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // NEW: Function to fetch faction members and their stats
     async function fetchFactionMembersWithStats(factionId, apiKey) {
         if (!factionId || !apiKey) {
             console.warn("Faction ID or API key missing, cannot fetch faction members.");
@@ -265,8 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (isTestMode) {
             console.log("Using dummy faction member data for testing.");
-            // Dummy data for faction members to test the battle stats table
-            return [
+            const dummyFactions = [
                 { name: "JohnDoe", level: 10, strength: 10000, defense: 12000, speed: 9000, dexterity: 11000, total: 42000 },
                 { name: "JaneSmith", level: 25, strength: 50000, defense: 45000, speed: 55000, dexterity: 60000, total: 210000 },
                 { name: "AlphaWolf", level: 50, strength: 200000, defense: 220000, speed: 190000, dexterity: 210000, total: 820000 },
@@ -278,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { name: "MidTier", level: 40, strength: 150000, defense: 160000, speed: 140000, dexterity: 170000, total: 620000 },
                 { name: "Prodigy", level: 85, strength: 10000000, defense: 10500000, speed: 9800000, dexterity: 10200000, total: 40500000 }
             ];
+            return dummyFactions;
         }
 
         try {
@@ -296,10 +281,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (const memberId in members) {
                 const member = members[memberId];
-                // Fetch each member's battlestats and level
                 const stats = await fetchUserBattleStats(apiKey, memberId);
                 
-                // Fetch member's level
                 let memberLevel = 0;
                 try {
                     const userProfileResponse = await fetch(`https://api.torn.com/user/${memberId}?selections=profile&key=${apiKey}&comment=MyTornPA_MemberLevel`);
@@ -321,7 +304,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     total: stats.total
                 });
             }
-            // Sort by total stats descending
             memberStats.sort((a, b) => b.total - a.total);
             return memberStats;
 
@@ -331,18 +313,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // NEW: Function to calculate gradient opacity based on level
     function getLevelGradientOpacity(level) {
-        // Levels 1-100. Let's say:
-        // Level 1: 0% opacity (mostly pink background shows through CSS)
-        // Level 100: 100% opacity (fully red background shows through CSS)
         const minLevel = 1;
         const maxLevel = 100;
         const clampedLevel = Math.min(Math.max(level, minLevel), maxLevel);
-        return (clampedLevel - minLevel) / (maxLevel - minLevel); // Value between 0 and 1
+        return (clampedLevel - minLevel) / (maxLevel - minLevel);
     }
 
-    // NEW: Function to display faction battle stats
     async function displayFactionBattleStats(factionId, apiKey) {
         if (!factionBattleStatsTableBody) return;
 
@@ -360,23 +337,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        factionBattleStatsTableBody.innerHTML = ''; // Clear loading message
+        factionBattleStatsTableBody.innerHTML = '';
 
         membersWithStats.forEach(member => {
             const row = document.createElement('tr');
-            // Calculate opacity for the level cell's gradient
             const gradientOpacity = getLevelGradientOpacity(member.level);
 
             row.innerHTML = `
                 <td>${member.name}</td>
-                <td class="level-cell" style="--gradient-opacity: ${gradientOpacity};"><span style="color: black !important;">${member.level}</span></td>
+                <td class="level-cell" style="--gradient-opacity: ${gradientOpacity};"><span style="color: black;">${member.level}</span></td>
                 <td>${formatNumberForDisplay(member.strength)}</td>
                 <td>${formatNumberForDisplay(member.defense)}</td>
                 <td>${formatNumberForDisplay(member.speed)}</td>
                 <td>${formatNumberForDisplay(member.dexterity)}</td>
                 <td>${formatNumberForDisplay(member.total)}</td>
             `;
-            // Apply the opacity to the ::before pseudo-element
             row.querySelector('.level-cell').style.setProperty('--gradient-opacity', gradientOpacity);
             factionBattleStatsTableBody.appendChild(row);
         });
@@ -772,35 +747,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // NEW: Placeholder for blocking a friend
     async function blockFriend(friendUserIdToBlock, friendName) {
         if (!db || !currentUserId) return;
         if (!confirm(`Are you sure you want to block ${friendName}? Blocking will also remove them from your friends list and prevent future communication.`)) {
             return;
         }
         try {
-            // Implement Firebase logic here to:
-            // 1. Remove friend from both users' friends lists (call removeFriend first, or duplicate its logic)
-            await removeFriend(friendUserIdToBlock, friendName); // Reuse existing remove logic
+            await removeFriend(friendUserIdToBlock, friendName);
 
-            // 2. Add to current user's 'blockedUsers' collection
             await db.collection('userProfiles').doc(currentUserId).collection('blockedUsers').doc(friendUserIdToBlock).set({
                 userId: friendUserIdToBlock,
                 preferredName: friendName,
                 blockedOn: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // 3. (Optional) Add to friend's 'blockedBy' for advanced features like informing them
-            // await db.collection('userProfiles').doc(friendUserIdToBlock).collection('blockedBy').doc(currentUserId).set({
-            //   userId: currentUserId,
-            //   preferredName: currentUserProfileData.preferredName,
-            //   blockedOn: firebase.firestore.FieldValue.serverTimestamp()
-            // });
-
             alert(`${friendName} has been blocked.`);
             console.log(`User ${friendName} (${friendUserIdToBlock}) has been blocked by ${currentUserId}.`);
 
-            // Reload relevant lists
             loadFriendsList();
             loadRecentChats();
             if (currentDmFriendId === friendUserIdToBlock) {
@@ -830,7 +793,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const timestamp = formatChatTimestamp(friendData.lastMessageTimestamp);
             lastMessageInfo = `<span class="chat-time">${timestamp}</span>`;
         }
-        // Conditionally render buttons based on whether it's the manage modal
         let actionButtonsHtml = '';
         if (isManageModal) {
             actionButtonsHtml = `
@@ -849,15 +811,14 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         const startChatBtn = listItem.querySelector('.start-chat-btn');
         const removeFriendBtnItem = listItem.querySelector('.remove-friend-btn');
-        const blockFriendBtnItem = listItem.querySelector('.block-friend-btn'); // Get the new block button
+        const blockFriendBtnItem = listItem.querySelector('.block-friend-btn');
 
         if (startChatBtn) {
             startChatBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (hubChatModal) { // Ensure chat modal is open before starting DM
+                if (hubChatModal) {
                     hubChatModal.style.display = 'flex';
-                    // Activate friends tab
-                    if (friendChatTabBtn) friendChatTabBtn.click(); // Simulate click on Friends tab
+                    if (friendChatTabBtn) friendChatTabBtn.click();
                     startDirectMessage(friendData.userId, friendData.preferredName);
                 } else {
                     console.warn('Chat modal not available to start DM.');
@@ -871,14 +832,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 removeFriend(friendData.userId, friendData.preferredName);
             });
         }
-        if (blockFriendBtnItem) { // Add event listener for the new block button
+        if (blockFriendBtnItem) {
             blockFriendBtnItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 blockFriend(friendData.userId, friendData.preferredName);
             });
         }
         listItem.addEventListener('click', () => {
-            // Only if not clicked on a button within the item
             if (!event.target.closest('button')) {
                 if (hubChatModal) {
                     hubChatModal.style.display = 'flex';
@@ -897,7 +857,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!db || !currentUserId) return;
         if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
         
-        // Clear both friend lists and show loading messages
         if (fullFriendsListEl) {
             fullFriendsListEl.innerHTML = '<li><p class="chat-system-message">Loading friends list...</p></li>';
         }
@@ -921,8 +880,8 @@ document.addEventListener('DOMContentLoaded', function() {
             onlineCount = 0;
             dummyFriends.forEach(friend => {
                 if (friend.isOnline) onlineCount++;
-                if (fullFriendsListEl) renderFriendListItem(friend, fullFriendsListEl, false, false); // For hub display
-                if (fullFriendsListInManageModal) renderFriendListItem(friend, fullFriendsListInManageModal, false, true); // For manage modal
+                if (fullFriendsListEl) renderFriendListItem(friend, fullFriendsListEl, false, false);
+                if (fullFriendsListInManageModal) renderFriendListItem(friend, fullFriendsListInManageModal, false, true);
             });
             if(friendsOnlineCountFinal) friendsOnlineCountFinal.textContent = onlineCount.toString();
             console.log("Friends list loaded with dummy data for both displays.");
@@ -970,7 +929,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!db || !currentUserId) return;
         if (recentChatsUnsub) { recentChatsUnsub(); recentChatsUnsub = null; }
         
-        // Clear both recent chat lists and show loading messages
         if (recentChatsListEl) {
             recentChatsListEl.innerHTML = '<li><p class="chat-system-message">Loading recent chats...</p></li>';
         }
@@ -1153,7 +1111,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentDmFriendId = null;
     }
 
-    // Modified function to handle Faction Info tabs
     async function displayUserFactionInfo(tabToShow = 'general') {
         if (!factionInfoModal || !factionInfoModalTitleEl || !generalInfoContent || !factionInfoTabsContainer || !generalInfoTabBtn || !battleStatsTabBtn || !factionBattleStatsContent) {
             console.error("Faction Info modal core elements NOT FOUND!");
@@ -1164,11 +1121,9 @@ document.addEventListener('DOMContentLoaded', function() {
         factionInfoModalTitleEl.textContent = "Faction Info";
         factionInfoModal.style.display = 'flex';
 
-        // Clear active states and hide all content areas
         [generalInfoTabBtn, battleStatsTabBtn].forEach(btn => btn.classList.remove('active'));
         [generalInfoContent, factionBattleStatsContent].forEach(content => content.classList.remove('active'));
 
-        // Handle initial load or tab switch
         if (tabToShow === 'general') {
             generalInfoTabBtn.classList.add('active');
             generalInfoContent.classList.add('active');
@@ -1195,13 +1150,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- "On The Hunt" Faction Scout Functions ---
     function displayFactionsPage() {
         if (!recruitingFactionsList || !factionPageInfo || !prevFactionPageBtn || !nextFactionPageBtn) return;
 
-        recruitingFactionsList.innerHTML = ''; // Clear current list
+        recruitingFactionsList.innerHTML = '';
 
-        // Use currentlyDisplayedFactions for rendering
         const factionsToDisplay = currentlyDisplayedFactions.length > 0 ? currentlyDisplayedFactions : allRecruitingFactionsData;
 
         if (factionsToDisplay.length === 0) {
@@ -1240,11 +1193,10 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadRecruitingFactions() {
         if (!recruitingFactionsList) return;
         recruitingFactionsList.innerHTML = '<li class="text-placeholder-final">Loading recruiting factions...</li>';
-        allRecruitingFactionsData = []; // Reset
-        currentFactionPage = 1; // Reset page
+        allRecruitingFactionsData = [];
+        currentFactionPage = 1;
 
         if (isTestMode) {
-            // Dummy data for 15 factions to test pagination
             const dummyFactions = [
             { id: 100, name: "The Elite Crew of Torn City", totalRespect: 15000000, members: 75, maxMembers: 100, level: "Gold" },
             { id: 101, name: "Shadow Syndicate", totalRespect: 8000000, members: 50, maxMembers: 75, level: "Silver" },
@@ -1273,16 +1225,12 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 124, name: "Blackhole Brigade", totalRespect: 17500000, members: 99, maxMembers: 100, level: "Platinum" }
             ];
             allRecruitingFactionsData = dummyFactions;
-            currentlyDisplayedFactions = [...allRecruitingFactionsData]; // Initialize with all data
+            currentlyDisplayedFactions = [...allRecruitingFactionsData];
             console.log("Recruiting factions loaded with dummy data for pagination test.");
         } else {
             try {
-                // Example: Fetch ALL factions that are recruiting, then paginate client-side.
-                // Your actual Firestore query might need adjustment if you have many factions.
-                // This example assumes 'recruitingFactions' collection has docs with faction data.
                 const snapshot = await db.collection('recruitingFactions')
-                    // .orderBy('totalRespect', 'desc') // Example ordering
-                    .get(); // Fetch all, or use server-side pagination if too many
+                    .get();
 
                 if (snapshot.empty) {
                     console.log("No factions currently recruiting from Firestore.");
@@ -1290,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     snapshot.forEach(doc => {
                         allRecruitingFactionsData.push({ id: doc.id, ...doc.data() });
                     });
-                    currentlyDisplayedFactions = [...allRecruitingFactionsData]; // Initialize with all data
+                    currentlyDisplayedFactions = [...allRecruitingFactionsData];
                     console.log("Recruiting factions loaded from Firestore.");
                 }
             } catch (error) {
@@ -1300,7 +1248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        displayFactionsPage(); // Display the first page
+        displayFactionsPage();
         if (factionPaginationControls) {
             factionPaginationControls.style.display = currentlyDisplayedFactions.length > 0 ? 'block' : 'none';
         }
@@ -1315,19 +1263,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         onTheHuntModal.style.display = 'flex';
-        // Only load data if it's not an update (i.e., first time opening or resetting filters)
         if (!isUpdate || allRecruitingFactionsData.length === 0) {
-            await loadRecruitingFactions(); // This will load data and then call displayFactionsPage
+            await loadRecruitingFactions();
         } else {
-            displayFactionsPage(); // Just display current filtered data if it's an update
+            displayFactionsPage();
         }
 
-        // Initialize slider values and event listeners if not already done
         if (filterMinRespectSlider && filterMinRespectValue) {
-            // Set slider's max to the number of steps - 1 for array indexing
             filterMinRespectSlider.max = respectSteps.length - 1;
-            
-            // Get saved index, default to 0 (min value)
             const savedIndex = parseInt(localStorage.getItem('filterMinRespectIndex') || '0');
             filterMinRespectSlider.value = savedIndex;
             filterMinRespectValue.textContent = formatNumberForDisplay(respectSteps[savedIndex]);
@@ -1335,7 +1278,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filterMinRespectSlider.oninput = () => {
                 const currentIndex = parseInt(filterMinRespectSlider.value);
                 filterMinRespectValue.textContent = formatNumberForDisplay(respectSteps[currentIndex]);
-                localStorage.setItem('filterMinRespectIndex', currentIndex); // Save the index
+                localStorage.setItem('filterMinRespectIndex', currentIndex);
             };
         }
         if (filterMinMembersSlider && filterMinMembersValue) {
@@ -1346,7 +1289,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('filterMinMembers', filterMinMembersSlider.value);
             };
         }
-        // Initialize checkboxes based on localStorage
         const savedTiers = JSON.parse(localStorage.getItem('filterTiers')) || [];
         [filterTierBronze, filterTierSilver, filterTierGold, filterTierPlatinum].forEach(checkbox => {
             if (checkbox) {
@@ -1362,15 +1304,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-
-// --- Faction Filter Functions (for "On The Hunt") ---
 function applyAllFilters() {
-    if (!filterMinRespectSlider || !filterMinMembersSlider || !filterTierBronze) { // Check one of each type
+    if (!filterMinRespectSlider || !filterMinMembersSlider || !filterTierBronze) {
         console.error("Filter input elements not all found for applyAllFilters.");
         return;
     }
 
-    // Get the actual numeric value from the respectSteps array
     const minRespectIndex = parseInt(filterMinRespectSlider.value);
     const minRespect = respectSteps[minRespectIndex];
 
@@ -1384,16 +1323,14 @@ function applyAllFilters() {
         const respectMatch = faction.totalRespect >= minRespect;
         const membersMatch = faction.members >= minMembers;
         
-        // If no tiers are selected, all tiers match. Otherwise, faction.level must be in selectedTiers.
         const levelMatch = selectedTiers.length === 0 || (faction.level && selectedTiers.includes(faction.level));
 
         return respectMatch && membersMatch && levelMatch;
     });
 
     currentFactionPage = 1; 
-    displayFactionsPage(); // This will now use currentlyDisplayedFactions
+    displayFactionsPage();
 
-    // Ensure pagination controls visibility is updated based on new currentlyDisplayedFactions length
     if (factionPaginationControls) {
         factionPaginationControls.style.display = currentlyDisplayedFactions.length > 0 ? 'block' : 'none';
     }
@@ -1405,10 +1342,9 @@ function resetAllFilters() {
         return;
     }
 
-    // Reset respect slider to its minimum (index 0)
     filterMinRespectSlider.value = 0;
     if(filterMinRespectValue) filterMinRespectValue.textContent = formatNumberForDisplay(respectSteps[0]);
-    localStorage.removeItem('filterMinRespectIndex'); // Remove saved index
+    localStorage.removeItem('filterMinRespectIndex');
 
     filterMinMembersSlider.value = filterMinMembersSlider.min;
     if(filterMinMembersValue) filterMinMembersValue.textContent = filterMinMembersSlider.value;
@@ -1419,18 +1355,14 @@ function resetAllFilters() {
     });
     localStorage.removeItem('filterTiers');
 
-    currentlyDisplayedFactions = [...allRecruitingFactionsData]; // Reset to full list
+    currentlyDisplayedFactions = [...allRecruitingFactionsData];
     currentFactionPage = 1;
-    displayFactionsPage(); // Display all factions again
+    displayFactionsPage();
 
-    // Ensure pagination controls visibility is updated
     if (factionPaginationControls) {
        factionPaginationControls.style.display = currentlyDisplayedFactions.length > 0 ? 'block' : 'none';
     }
 }
-// --- End of Faction Filter Functions ---
-
-// --- NEW Leadership View Functions (for Looking For Factions) ---
 
 async function displayLeadershipView() {
     console.log("displayLeadershipView called.");
@@ -1441,10 +1373,8 @@ async function displayLeadershipView() {
     }
 
     leadershipPanelModal.style.display = 'flex';
-    // Ensure leadership data is loaded (this will handle test mode vs real data)
     await loadLookingForFactionUsers();
 
-    // Initialize slider values and event listeners for Leadership View
     if (leadershipFilterMaxLevelSlider && leadershipFilterMaxLevelValue) {
         leadershipFilterMaxLevelSlider.value = localStorage.getItem('leadershipFilterMaxLevel') || leadershipFilterMaxLevelSlider.max;
         leadershipFilterMaxLevelValue.textContent = leadershipFilterMaxLevelSlider.value;
@@ -1455,9 +1385,7 @@ async function displayLeadershipView() {
     }
 
     if (leadershipFilterTotalBattlestatsSlider && leadershipFilterTotalBattlestatsValue) {
-        // Set slider's max to the number of steps - 1 for array indexing
         leadershipFilterTotalBattlestatsSlider.max = battlestatsSteps.length - 1;
-        // Get saved index, default to 0 (min value)
         const savedIndex = parseInt(localStorage.getItem('leadershipFilterTotalBattlestatsIndex') || '0');
         leadershipFilterTotalBattlestatsSlider.value = savedIndex;
         leadershipFilterTotalBattlestatsValue.textContent = formatNumberForDisplay(battlestatsSteps[savedIndex]);
@@ -1465,7 +1393,7 @@ async function displayLeadershipView() {
         leadershipFilterTotalBattlestatsSlider.oninput = () => {
             const currentIndex = parseInt(leadershipFilterTotalBattlestatsSlider.value);
             leadershipFilterTotalBattlestatsValue.textContent = formatNumberForDisplay(battlestatsSteps[currentIndex]);
-            localStorage.setItem('leadershipFilterTotalBattlestatsIndex', currentIndex); // Save the index
+            localStorage.setItem('leadershipFilterTotalBattlestatsIndex', currentIndex);
         };
     }
 }
@@ -1474,11 +1402,10 @@ async function displayLeadershipView() {
 async function loadLookingForFactionUsers() {
     if (!lookingForFactionsList || !db) return;
     lookingForFactionsList.innerHTML = '<li class="text-placeholder-final">Loading players looking for factions...</li>';
-    allLookingForFactionUsersData = []; // Reset
-    currentLeadershipPage = 1; // Reset page
+    allLookingForFactionUsersData = [];
+    currentLeadershipPage = 1;
 
     if (isTestMode) {
-        // Dummy data for users looking for faction
         const dummyUsers = [
             { userId: "player1", preferredName: "TestUserAlpha", tornProfileId: "123456", level: 50, strength: 1000000, defense: 1200000, speed: 900000, dexterity: 1100000, totalBattlestats: 4200000, isLookingForFaction: true },
             { userId: "player2", preferredName: "BattleKing", tornProfileId: "789012", level: 90, strength: 30000000, defense: 35000000, speed: 40000000, dexterity: 45000000, totalBattlestats: 150000000, isLookingForFaction: true },
@@ -1501,53 +1428,43 @@ async function loadLookingForFactionUsers() {
         console.log("Looking for faction users loaded with dummy data.");
     } else {
         try {
-            // Fetch users where 'isLookingForFaction' is true
             const snapshot = await db.collection('userProfiles')
                 .where('isLookingForFaction', '==', true)
-                // Optionally, add more filters here directly in Firestore query for better performance
-                // .orderBy('totalBattlestats', 'desc')
                 .get();
 
-            if (snapshot.empty) {
-                console.log("No users currently looking for factions from Firestore.");
-            } else {
-                const userPromises = snapshot.docs.map(async doc => {
-                    const userData = doc.data();
-                    const tornProfileId = userData.tornProfileId;
-                    const tornApiKey = currentUserProfileData ? currentUserProfileData.tornApiKey : null; // Leader's API key
-                    let totalBattlestats = 0;
-                    let userLevel = userData.level || 1; // Assuming 'level' might be stored or fetched from their profile
+            const userPromises = snapshot.docs.map(async doc => {
+                const userData = doc.data();
+                const tornProfileId = userData.tornProfileId;
+                const tornApiKey = currentUserProfileData ? currentUserProfileData.tornApiKey : null;
+                let totalBattlestats = 0;
+                let userLevel = userData.level || 1;
 
-                    if (tornProfileId && tornApiKey) {
-                        // Fetch battle stats using the LEADER'S API key for the USER'S Torn ID
-                        const stats = await fetchUserBattleStats(tornApiKey, tornProfileId);
-                        totalBattlestats = stats.total;
-                        
-                        // Also fetch level if not already stored in userProfile (using leader's API key)
-                        const userProfileResponse = await fetch(`https://api.torn.com/user/${tornProfileId}?selections=profile&key=${tornApiKey}`);
-                        const userProfileData = await userProfileResponse.json();
-                        if (!userProfileData.error && userProfileData.level) {
-                            userLevel = userProfileData.level;
-                        }
-
-                    } else {
-                        // If leader doesn't have an API key, or user doesn't have Torn ID, stats won't be fetched live
-                        console.warn(`User ${userData.preferredName} (${userData.userId}) is looking for faction but unable to fetch live stats (missing leader API key or user Torn ID).`);
+                if (tornProfileId && tornApiKey) {
+                    const stats = await fetchUserBattleStats(tornApiKey, tornProfileId);
+                    totalBattlestats = stats.total;
+                    
+                    const userProfileResponse = await fetch(`https://api.torn.com/user/${tornProfileId}?selections=profile&key=${tornApiKey}`);
+                    const userProfileData = await userProfileResponse.json();
+                    if (!userProfileData.error && userProfileData.level) {
+                        userLevel = userProfileData.level;
                     }
 
-                    return {
-                        userId: doc.id,
-                        preferredName: userData.preferredName || `TornID: ${tornProfileId || 'N/A'}`,
-                        tornProfileId: tornProfileId,
-                        level: userLevel,
-                        totalBattlestats: totalBattlestats,
-                        isLookingForFaction: true
-                    };
-                });
-                allLookingForFactionUsersData = await Promise.all(userPromises);
-                currentlyDisplayedUsers = [...allLookingForFactionUsersData];
-                console.log("Looking for faction users loaded from Firestore.");
-            }
+                } else {
+                    console.warn(`User ${userData.preferredName} (${userData.userId}) is looking for faction but unable to fetch live stats (missing leader API key or user Torn ID).`);
+                }
+
+                return {
+                    userId: doc.id,
+                    preferredName: userData.preferredName || `TornID: ${tornProfileId || 'N/A'}`,
+                    tornProfileId: tornProfileId,
+                    level: userLevel,
+                    totalBattlestats: totalBattlestats,
+                    isLookingForFaction: true
+                };
+            });
+            allLookingForFactionUsersData = await Promise.all(userPromises);
+            currentlyDisplayedUsers = [...allLookingForFactionUsersData];
+            console.log("Looking for faction users loaded from Firestore.");
         } catch (error) {
             console.error("Error loading users looking for factions from Firestore:", error);
             lookingForFactionsList.innerHTML = '<li class="specific-error-message">Error loading players. Ensure leader\'s API key is valid.</li>';
@@ -1564,7 +1481,7 @@ async function loadLookingForFactionUsers() {
 function displayLookingForFactionUsersPage() {
     if (!lookingForFactionsList || !leadershipPageInfo || !prevLeadershipPageBtn || !nextLeadershipPageBtn) return;
 
-    lookingForFactionsList.innerHTML = ''; // Clear current list
+    lookingForFactionsList.innerHTML = '';
 
     const usersToDisplay = currentlyDisplayedUsers.length > 0 ? currentlyDisplayedUsers : allLookingForFactionUsersData;
 
@@ -1582,7 +1499,7 @@ function displayLookingForFactionUsersPage() {
 
     paginatedUsers.forEach(user => {
         const userItem = document.createElement('li');
-        userItem.classList.add('looking-for-faction-item'); // Apply new class for styling
+        userItem.classList.add('looking-for-faction-item');
         userItem.innerHTML = `
             <h5>${user.preferredName}</h5>
             <p>Level:<strong> ${user.level}</strong></p>
@@ -1635,11 +1552,11 @@ function resetLeadershipFilters() {
     if(leadershipFilterMaxLevelValue) leadershipFilterMaxLevelValue.textContent = leadershipFilterMaxLevelSlider.max;
     localStorage.removeItem('leadershipFilterMaxLevel');
 
-    leadershipFilterTotalBattlestatsSlider.value = 0; // Reset to index 0 of battlestatsSteps
+    leadershipFilterTotalBattlestatsSlider.value = 0;
     if(leadershipFilterTotalBattlestatsValue) leadershipFilterTotalBattlestatsValue.textContent = formatNumberForDisplay(battlestatsSteps[0]);
     localStorage.removeItem('leadershipFilterTotalBattlestatsIndex');
 
-    currentlyDisplayedUsers = [...allLookingForFactionUsersData]; // Reset to full list
+    currentlyDisplayedUsers = [...allLookingForFactionUsersData];
     currentLeadershipPage = 1;
     displayLookingForFactionUsersPage();
 
@@ -1648,18 +1565,21 @@ function resetLeadershipFilters() {
     }
 }
 
-// --- End of NEW Leadership View Functions ---
-
-    // --- EVENT LISTENER ATTACHMENTS ---
-    // RESTORED: usefulLinksBtn and headerContactUsBtn event listeners
-    if (usefulLinksBtn) { usefulLinksBtn.addEventListener('click', (event) => { event.stopPropagation(); usefulLinksDropdown.classList.toggle('show'); usefulLinksBtn.classList.toggle('active'); if (headerContactUsDropdown.classList.contains('show')) { headerContactUsDropdown.classList.remove('show'); headerContactUsBtn.classList.remove('active');} }); }
-    if (headerContactUsBtn) { headerContactUsBtn.addEventListener('click', (event) => { event.stopPropagation(); headerContactUsDropdown.classList.toggle('show'); headerContactUsBtn.classList.toggle('active'); if (usefulLinksDropdown.classList.contains('show')) { usefulLinksDropdown.classList.remove('show'); usefulLinksBtn.classList.remove('active'); } }); }
-    window.addEventListener('click', (event) => { if (!event.target.matches('.header-btn, .header-btn *')) closeAllDropdowns(); });
+    // REMOVED: usefulLinksBtn and headerContactUsBtn event listeners (now in globalheader.js)
+    // REMOVED: window click listener for dropdowns (now in globalheader.js)
 
     setupButtonListener(closePersonalStatsDialogBtn, "Close Personal Stats", () => { if(personalStatsModal) personalStatsModal.style.display = 'none'; });
     setupButtonListener(skipProfileSetupBtn, "Skip Profile Setup", hideProfileSetupModal);
     setupButtonListener(closeProfileModalBtn, "Close Profile Modal", hideProfileSetupModal);
-    setupButtonListener(headerEditProfileBtn, "Header Edit Profile", showProfileSetupModal);
+    // headerEditProfileBtn: This button is in the header, but its function (showProfileSetupModal) is in social.js.
+    // The listener for it needs to be in globalheader.js, but it will call showProfileSetupModal from social.js.
+    // This requires globalheader.js to have access to showProfileSetupModal, which can be done by making it global or passing it.
+    // For simplicity, let's keep its direct listener here in social.js, as it pertains to content unique to social.js.
+    // HOWEVER, the visibility of headerEditProfileBtn is managed by globalheader.js.
+    if (headerEditProfileBtn) {
+        headerEditProfileBtn.addEventListener('click', showProfileSetupModal);
+    }
+
 
     setupButtonListener(saveProfileBtn, "Save Profile", async () => {
         if (!currentUserId || !db) {
@@ -1719,31 +1639,21 @@ function resetLeadershipFilters() {
     setupButtonListener(hubActionFactionChatBtn, "Faction Chat Button", () => showChatModal('faction'));
     setupButtonListener(hubActionFriendsChatBtn, "Friends Chat Button", () => showChatModal('friends', 'showRecentsAndList'));
     
-    // START MODIFIED SECTION FOR viewFriendsBtnFinal (Manage Friends List Button)
     setupButtonListener(viewFriendsBtnHub, "Manage Friends List Button", () => {
-        // This line makes the modal visible.
-        if (manageFriendsModal) manageFriendsModal.style.display = 'flex'; // Or 'block', depending on your CSS.
-
-        // These lines clear the content inside the friends lists and show loading messages
-        // to prevent stale data from showing while new data is fetched.
+        if (manageFriendsModal) manageFriendsModal.style.display = 'flex';
         if (fullFriendsListInManageModal) {
             fullFriendsListInManageModal.innerHTML = '<li><p class="chat-system-message">Loading friends list...</p></li>';
         }
         if (recentChatsListInManageModal) {
             recentChatsListInManageModal.innerHTML = '<li><p class="chat-system-message">Loading recent chats...</p></li>';
         }
-
-        // Your existing code to actually load the friends data should follow here.
-        // These functions will now populate the lists within the manageFriendsModal
-        loadFriendsList(); 
-        loadRecentChats(); 
+        loadFriendsList();
+        loadRecentChats();
     });
 
-    // MODIFIED SECTION FOR closeManageFriendsModalBtn
     if (closeManageFriendsModalBtn) {
         closeManageFriendsModalBtn.addEventListener('click', () => {
             if (manageFriendsModal) manageFriendsModal.style.display = 'none';
-            // Clear content when modal closes to reset it for next open
             if (fullFriendsListInManageModal) {
                 fullFriendsListInManageModal.innerHTML = '<li><p class="text-placeholder-final">Friend list loading or empty.</p></li>';
             }
@@ -1752,21 +1662,21 @@ function resetLeadershipFilters() {
             }
         });
     }
-    // END MODIFIED SECTION
 
-    if (addFriendBtn && friendIdInput) { // Ensure friendIdInput also exists
+    if (addFriendBtn && friendIdInput) {
         addFriendBtn.addEventListener('click', async () => {
             const friendTornId = friendIdInput.value;
             await addFriend(friendTornId);
         });
     }
+
 // Event Listeners for Faction Filters (On The Hunt)
     if (toggleFiltersBtn && filterOptions && filterArrowIcon) {
         toggleFiltersBtn.addEventListener('click', () => {
             const isHidden = filterOptions.style.display === 'none';
-            filterOptions.style.display = isHidden ? 'flex' : 'none'; // Changed to 'flex' as it's a flex container
-            filterArrowIcon.innerHTML = isHidden ? '&#9650;' : '&#9660;'; // Up/Down arrow
-            localStorage.setItem('filtersHidden', !isHidden); // Save state
+            filterOptions.style.display = isHidden ? 'flex' : 'none';
+            filterArrowIcon.innerHTML = isHidden ? '&#9650;' : '&#9660;';
+            localStorage.setItem('filtersHidden', !isHidden);
         });
     }
 
@@ -1778,10 +1688,8 @@ function resetLeadershipFilters() {
         resetFiltersBtn.addEventListener('click', resetAllFilters);
     }
 
-    // Slider Event Listeners for "On The Hunt" Filters
     if (filterMinRespectSlider && filterMinRespectValue) {
         filterMinRespectSlider.addEventListener('input', () => {
-            // Value is now the index in the respectSteps array
             const displayedValue = respectSteps[parseInt(filterMinRespectSlider.value)];
             filterMinRespectValue.textContent = formatNumberForDisplay(displayedValue);
         });
@@ -1791,15 +1699,11 @@ function resetLeadershipFilters() {
             filterMinMembersValue.textContent = filterMinMembersSlider.value;
         });
     }
-    // Checkbox Event Listeners for "On The Hunt" Faction Tiers
     [filterTierBronze, filterTierSilver, filterTierGold, filterTierPlatinum].forEach(checkbox => {
         if (checkbox) {
-            checkbox.addEventListener('change', applyAllFilters); // Apply filters on change
+            checkbox.addEventListener('change', applyAllFilters);
         }
     });
-
-
-    // Removed event listener for a general removeFriendBtn as it's now per item
 
     if (chatTabsContainer) {
       chatTabsContainer.addEventListener('click', (event) => {
@@ -1824,7 +1728,7 @@ function resetLeadershipFilters() {
                 loadRecentChats();
                 loadFriendsList();
             }
-        } else if (friendsInitialViewEl && directMessageViewEl) { // Ensure these exist before trying to hide
+        } else if (friendsInitialViewEl && directMessageViewEl) {
             friendsInitialViewEl.style.display = 'none';
             directMessageViewEl.style.display = 'none';
         }
@@ -1856,12 +1760,10 @@ function resetLeadershipFilters() {
         });
     }
 
-    // MODIFIED: Initial call to displayUserFactionInfo will now default to 'general' tab
     setupButtonListener(hubActionFactionInfoBtn, "Faction Info Button", () => displayUserFactionInfo('general'));
     setupButtonListener(closeFactionInfoModalBtn, "Close Faction Info Modal", () => { if (factionInfoModal) factionInfoModal.style.display = 'none'; });
     if (factionInfoModal) factionInfoModal.addEventListener('click', (e) => { if (e.target === factionInfoModal) factionInfoModal.style.display = 'none'; });
 
-    // NEW: Event listener for Faction Info tabs
     if (factionInfoTabsContainer) {
         factionInfoTabsContainer.addEventListener('click', (event) => {
             const clickedTab = event.target.closest('.faction-info-tab-button');
@@ -1872,8 +1774,6 @@ function resetLeadershipFilters() {
         });
     }
 
-
-    // Modified to call the new displayLeadershipView function
     setupButtonListener(hubActionLeadershipViewBtn, "Leadership View Button", displayLeadershipView);
     setupButtonListener(hubActionOnTheHuntViewBtn, "On The Hunt View Button", () => displayOnTheHuntView(false));
 
@@ -1883,7 +1783,6 @@ function resetLeadershipFilters() {
     setupButtonListener(closeOnTheHuntModalBtn, "Close On The Hunt Modal", () => { if(onTheHuntModal) onTheHuntModal.style.display = 'none';});
     if(onTheHuntModal) onTheHuntModal.addEventListener('click', (e) => { if(e.target === onTheHuntModal) onTheHuntModal.style.display = 'none';});
     
-    // Event listeners for Faction Pagination (On The Hunt)
     if (prevFactionPageBtn) {
         prevFactionPageBtn.addEventListener('click', () => {
             if (currentFactionPage > 1) {
@@ -1894,7 +1793,7 @@ function resetLeadershipFilters() {
     }
     if (nextFactionPageBtn) {
         nextFactionPageBtn.addEventListener('click', () => {
-            const totalPages = Math.ceil(currentlyDisplayedFactions.length / factionsPerPage); // Use currentlyDisplayedFactions
+            const totalPages = Math.ceil(currentlyDisplayedFactions.length / factionsPerPage);
             if (currentFactionPage < totalPages) {
                 currentFactionPage++;
                 displayFactionsPage();
@@ -1902,14 +1801,12 @@ function resetLeadershipFilters() {
         });
     }
 
-    // NEW: Event listeners for Leadership View Filters
     if (applyLeadershipFiltersBtn) {
         applyLeadershipFiltersBtn.addEventListener('click', applyLeadershipFilters);
     }
     if (resetLeadershipFiltersBtn) {
         resetLeadershipFiltersBtn.addEventListener('click', resetLeadershipFilters);
     }
-    // NEW: Slider Event Listeners for Leadership View Filters
     if (leadershipFilterMaxLevelSlider && leadershipFilterMaxLevelValue) {
         leadershipFilterMaxLevelSlider.addEventListener('input', () => {
             leadershipFilterMaxLevelValue.textContent = leadershipFilterMaxLevelSlider.value;
@@ -1922,7 +1819,6 @@ function resetLeadershipFilters() {
         });
     }
 
-    // NEW: Event listeners for Leadership View Pagination
     if (prevLeadershipPageBtn) {
         prevLeadershipPageBtn.addEventListener('click', () => {
             if (currentLeadershipPage > 1) {
@@ -1941,98 +1837,55 @@ function resetLeadershipFilters() {
         });
     }
 
-
     setupButtonListener(closeAccessSettingsModalBtn, "Close Access Settings Modal", () => { if (accessSettingsModal) accessSettingsModal.style.display = 'none'; });
     if (accessSettingsModal) accessSettingsModal.addEventListener('click', (e) => { if (e.target === accessSettingsModal) accessSettingsModal.style.display = 'none'; });
     setupButtonListener(saveViewerAccessBtn, "Save Viewer Access Button", async () => {});
 
-    if (auth) {
-        // RESTORED: logoutButtonHeader.onclick
-        if (logoutButtonHeader) {
-            logoutButtonHeader.onclick = () => {
-                auth.signOut().then(() => {
-                    console.log("User signed out.");
-                    if (globalChatUnsub) { globalChatUnsub(); globalChatUnsub = null; }
-                    if (factionChatUnsub) { factionChatUnsub(); factionChatUnsub = null; }
-                    if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
-                    if (recentChatsUnsub) { recentChatsUnsub(); recentChatsUnsub = null; }
-                    if (dmChatUnsub) { dmChatUnsub(); dmChatUnsub = null; }
-                    currentDmFriendId = null;
-                    updateUserOnlineStatus(false);
-                }).catch((error) => {
-                    console.error("Error signing out:", error);
-                    alert("Failed to sign out. Please try again.");
-                });
-            };
-        }
+    // REMOVED: auth.onAuthStateChanged listener and updateUserOnlineStatus (now in globalheader.js)
+    // The social.js script should NOT manage general user auth state or header button visibility.
+    // However, it STILL NEEDS `auth` and `db` to be initialized, which firebase-init.js handles.
+    // And it needs currentUserProfileData, which loadHubUserProfileData will get.
 
-        auth.onAuthStateChanged(async (user) => {
+    // If social.js requires currentUserProfileData on load, you might need an initial call
+    // or rely on a Firebase listener if it's the *only* thing that should trigger it.
+    // For now, I'm removing the global onAuthStateChanged from social.js to centralize it in globalheader.js.
+    // This means functions like loadHubUserProfileData() will need to be called explicitly
+    // when a user is confirmed logged in (e.g., from globalheader.js if it fully initializes social.js).
+
+    // Since showProfileSetupModal() is called by headerEditProfileBtn, and its listener is now in social.js,
+    // this setup is okay. However, if other parts of social.js relied on onAuthStateChanged to
+    // *enable* features, that logic will need to be re-evaluated.
+
+    // For now, I am going to put a simple immediate check for a logged-in user to populate data
+    // assuming globalheader.js will handle the visual states.
+    if (typeof auth !== 'undefined' && auth.currentUser) {
+        currentUserId = auth.currentUser.uid;
+        // Proceed to load profile data if user is already logged in when social.js runs
+        loadHubUserProfileData();
+        updateUserOnlineStatus(true); // Ensure online status is set even if globalheader.js also does it
+    } else if (typeof auth !== 'undefined') {
+        // If not logged in, but auth is available, set up listener for when they *do* log in.
+        auth.onAuthStateChanged(function(user) {
             if (user) {
                 currentUserId = user.uid;
-                if (db) {
-                    try {
-                        console.log("Auth State Change: User logged in. Attempting to load profile.");
-                        const doc = await db.collection('userProfiles').doc(user.uid).get();
-                        currentUserProfileData = doc.exists ? doc.data() : null;
-                        if (!currentUserProfileData || !currentUserProfileData.profileSetupComplete) {
-                            console.log("Auth State Change: Profile incomplete or not found. Showing profile setup modal.");
-                            if (theHubMainUi) theHubMainUi.style.display = 'none';
-                            // RESTORED: headerButtonsContainer and logoutButtonHeader display logic
-                            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-                            showProfileSetupModal();
-                            return;
-                        }
-                        console.log("Auth State Change: Profile complete. Displaying hub UI.");
-                        if (theHubMainUi) theHubMainUi.style.display = 'grid';
-                        // RESTORED: headerButtonsContainer and logoutButtonHeader display logic
-                        if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                        if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                        await loadHubUserProfileData();
-                        setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
-                        setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
-                        setupToggleSwitch(lookingForRecruitToggleFinal, 'isLookingForRecruits');
-                        setupToggleSwitch(appearOnlineToggleFinal, 'appearOnline');
-                        db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                        updateUserOnlineStatus(true);
-                        setupGlobalChatListener();
-                    } catch (e) {
-                        console.error("Auth State Change: Error fetching profile or setting up UI:", e);
-                        if (profileSetupModal) showProfileSetupModal();
-                    }
-                } else {
-                    console.error("Auth State Change: Firebase db object is NULL.");
-                    if (theHubMainUi) theHubMainUi.style.display = 'none';
-                }
+                loadHubUserProfileData();
+                updateUserOnlineStatus(true);
+                setupGlobalChatListener(); // Start global chat only when user is known to be logged in
             } else {
-                console.log("Auth State Change: User logged out.");
-                currentUserId = null; currentUserProfileData = null;
-                if (theHubMainUi) theHubMainUi.style.display = 'none';
-                // RESTORED: headerButtonsContainer and logoutButtonHeader display logic
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-
+                currentUserId = null;
+                currentUserProfileData = null;
+                // Clear chat listeners if user logs out while on this page
                 if (globalChatUnsub) { globalChatUnsub(); globalChatUnsub = null; }
                 if (factionChatUnsub) { factionChatUnsub(); factionChatUnsub = null; }
                 if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
                 if (recentChatsUnsub) { recentChatsUnsub(); recentChatsUnsub = null; }
                 if (dmChatUnsub) { dmChatUnsub(); dmChatUnsub = null; }
                 currentDmFriendId = null;
-                const publicPaths = ['/index.html', '/signup.html', '/', '/mytornpa/']; // Added /mytornpa/ as a base
-                const currentPath = window.location.pathname.toLowerCase();
-                const isPublicPage = publicPaths.some(p => currentPath.endsWith(p) || currentPath === p || (p.endsWith('/') && currentPath.startsWith(p.slice(0,-1))));
-
-                if (!isPublicPage && !currentPath.includes("index.html") && !currentPath.includes("signup.html")) {
-                    // Construct path relative to current location assuming 'pages' and 'index.html' are siblings or one level up
-                    let redirectPath = '../index.html'; // Default assumption
-                    if (window.location.pathname.includes('/pages/')) {
-                            // Potentially adjust based on depth if pages are nested
-                    }
-                    window.location.href = redirectPath;
-                }
+                // No need for redirection logic here, globalheader.js handles it.
             }
         });
-    } else { console.error("CRITICAL: Firebase auth object is NULL. UI will not work."); }
+    }
+
 
     window.addEventListener('beforeunload', async () => {
         if (currentUserId && currentUserProfileData && currentUserProfileData.appearOnline) {
