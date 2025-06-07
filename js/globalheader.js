@@ -3,10 +3,7 @@
 // Notification bell logic is now handled by a separate script.
 document.addEventListener('DOMContentLoaded', function() {
     // --- Configuration ---
-    // const useMimicNotification = true; // REMOVED: No longer needed here
-
-    // --- Bell Icon SVG (REMOVED: SVG no longer injected from here) ---
-    // const bellIconSVG = `...`; 
+    const useMimicNotification = true; // Set to true to enable mimic, false for real system
 
     // Get header element references
     const headerButtonsContainer = document.getElementById('headerButtonsContainer');
@@ -17,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown');
-    // const notificationBellButton = document.getElementById('notificationBell'); // REMOVED: Bell logic removed
+    const notificationBellButton = document.getElementById('notificationBell'); 
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
     const loggedInUserDisplay = document.getElementById('logged-in-user-display');
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
@@ -30,13 +27,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
     if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
     if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-    // if (notificationBellButton) notificationBellButton.style.display = 'none'; // REMOVED: Bell logic removed
+    if (notificationBellButton) notificationBellButton.style.display = 'none';
 
     // --- Mimic Notification Panel Logic (ALL REMOVED from this file) ---
-    // Functions closeMimicPanel, openMimicPanel, toggleMimicNotificationPanel, outsideClickListenerMimic are removed.
-    // Bell button event listener is removed.
+    // This section is empty as notification logic is handled elsewhere.
+    // However, the related functions are needed if you want the bell to work later.
+    // For now, these functions are NOT in this file based on your last request.
+    // If you add a separate notification.js, these functions should go there.
 
-    // --- Dropdown Logic (re-used from previous scripts) ---
+    // --- Dropdown Logic ---
     function closeOtherDropdowns(currentDropdown, currentButton) {
         const allDropdowns = document.querySelectorAll('.dropdown-content.show');
         allDropdowns.forEach(dropdown => {
@@ -95,7 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 contactUsDropdown.classList.remove('show');
                 contactUsBtn.classList.remove('active');
             }
-        });
+        }
+    });
 
     // --- Firebase Auth state listener (UPDATED LOGIC for all header elements) ---
     if (typeof auth !== 'undefined') {
@@ -138,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Bell icon: No logic here, as it's managed externally (REMOVED from this file's control)
-                // if (notificationBellButton) notificationBellButton.style.display = 'none'; 
+                // Bell icon: No logic here, as it's managed externally and should be hidden by default
+                if (notificationBellButton) notificationBellButton.style.display = 'none'; 
 
             } else {
                 // No user is signed in (Logged Out)
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                 if (homeButtonHeader) homeButtonHeader.style.display = 'none';
                 if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-                // if (notificationBellButton) notificationBellButton.style.display = 'none'; // REMOVED: Bell logic removed
+                if (notificationBellButton) notificationBellButton.style.display = 'none'; // Hide bell
 
                 // Display logged-out specific elements
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Torn City Homepage link: Shown
@@ -183,6 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
         if (homeButtonHeader) homeButtonHeader.style.display = 'none';
         if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'none';
-        // if (notificationBellButton) notificationBellButton.style.display = 'none'; // REMOVED: Bell logic removed
+        if (notificationBellButton) notificationBellButton.style.display = 'none'; // Hide bell
     }
 });
