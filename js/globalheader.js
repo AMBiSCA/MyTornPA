@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const signUpButtonHeader = document.getElementById('signUpButtonHeader');
     const homeButtonHeader = document.getElementById('homeButtonHeader');
     const logoutButtonHeader = document.getElementById('logoutButtonHeader');
-    const usefulLinksBtn = document.getElementById('usefulLinksBtn'); 
+    const usefulLinksBtn = document.getElementById('usefulLinksBtn');
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown');
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Firebase Auth state listener (UPDATED LOGIC for all header elements) ---
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(function(user) {
-            console.log("globalheader.js: Auth state changed. User:", user); 
+            console.log("globalheader.js: Auth state changed. User:", user);
 
             const currentPagePath = window.location.pathname;
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
@@ -131,13 +131,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         homeButtonHeader.style.display = 'inline-flex'; // Show Home on other pages
                     }
                 }
+
+                // >>> MODIFIED SECTION START <<<
+                // Always show the Edit Profile button when logged in, regardless of page
                 if (headerEditProfileBtn) {
-                    if (isHomePage) {
-                        headerEditProfileBtn.style.display = 'inline-flex'; // Show Edit Profile on homepage
-                    } else {
-                        headerEditProfileBtn.style.display = 'none'; // Hide Edit Profile on other pages
-                    }
+                    headerEditProfileBtn.style.display = 'inline-flex'; // Always show when logged in
                 }
+                // >>> MODIFIED SECTION END <<<
 
             } else {
                 // No user is signed in (Logged Out)
