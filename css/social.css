@@ -1,0 +1,1809 @@
+/* Main Hub Pa/* Main Hub Page Container - Transparent, controls overall content flow */
+main:has(.hub-layout-final) {
+    max-width: none !important;
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.hub-layout-final {
+    width: auto;
+    max-width: none !important;
+    margin: 20px 10px !important;
+    padding: 10px !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: grid !important;
+    grid-template-columns: minmax(280px, 320px) minmax(280px, 320px) !important; /* Both columns now 280-320px wide */
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    box-sizing: border-box !important;
+    font-weight: bold !important;
+}
+
+/* Left Column: Stack for Intro, Profile, Friends */
+.hub-left-column-final {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+    width: 100%;
+    box-sizing: border-box !important;
+}
+
+/* Right Column: Spacer and TornHub Actions */
+.hub-right-column-final {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box !important;
+    margin-top: 250px !important;
+}
+
+.hub-right-spacer-final {
+    flex-grow: 0;
+    min-height: 0;
+}
+
+/* General Module Styling (Final Version - Compact) */
+.hub-module-final {
+    background-color: #2a2a2a !important;
+    border: 1px solid var(--theme-accent-color, #00a8ff) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    color: var(--text-color-normal, #d0d0d0) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    font-weight: bold !important;
+}
+
+.hub-module-header-final {
+    background-color: var(--theme-accent-color, #00a8ff) !important;
+    color: #131314 !important;
+    padding: 8px 12px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+.hub-module-header-final h2,
+.hub-module-header-final h3 {
+    margin: 0 !important;
+    font-weight: bold !important;
+    letter-spacing: 0.25px !important;
+    color: inherit !important;
+}
+
+.hub-module-header-final h2 {
+    font-size: 1.1rem !important;
+}
+
+.hub-module-header-final h3 {
+    font-size: 1rem !important;
+}
+
+.hub-intro-panel-final .hub-module-header-final h2 {
+    color: #000000 !important;
+}
+
+.hub-module-content-final {
+    padding: 10px 12px !important;
+    flex-grow: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    color: inherit !important; /* Will inherit from .hub-module-final */
+    box-sizing: border-box !important;
+    font-weight: bold !important; /* General bold for content text */
+}
+
+/* Ensure direct text elements within module content are bold */
+.hub-module-content-final p,
+.hub-module-content-final label,
+.hub-module-content-final span:not(.btn-icon):not(.slider):not(.round):not(.faction-page-info), /* Exclude new page info span from general bold */
+.hub-module-content-final div:not(.hub-switch-final):not(.faction-pagination-controls):not(.faction-filters-container):not(.filter-options):not(.filter-group):not(.filter-actions), /* Exclude new filter divs */
+.no-friends-online-final,
+.text-placeholder-final,
+.text-placeholder-V5,
+.intro-subheader-final,
+.helper-text-small-final {
+    font-weight: bold !important;
+    color: inherit !important;
+}
+
+.hub-module-content-final strong {
+    font-weight: bold !important; /* Ensures strong is also bold if nested */
+    color: inherit !important;
+}
+
+.hub-module-content-final p {
+    margin-bottom: 6px !important;
+    line-height: 1.4 !important;
+    font-size: 0.85rem !important;
+}
+
+hr.hub-divider-final {
+    border: 0 !important;
+    border-top: 2px solid var(--theme-accent-color, #00a8ff) !important;
+    margin: 6px 0 !important;
+}
+
+.hub-layout-final .btn .btn-text,
+.hub-layout-final button.btn,
+.hub-layout-final .btn {
+    font-weight: bold !important;
+}
+
+.hub-intro-panel-final .intro-subheader-final {
+    text-align: center !important;
+    font-size: 0.8rem !important;
+    line-height: 1.3 !important;
+}
+
+/* Profile Panel Specifics - Corrected for alignment and font weights */
+.hub-profile-panel-final .profile-info-item-final {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 0.8rem !important;
+    padding: 4px 0 !important;
+}
+
+.hub-profile-panel-final .profile-info-item-final span:first-child { /* Label part */
+    font-weight: normal !important; /* Make label normal for contrast with value */
+    color: var(--text-color-normal, #d0d0d0) !important;
+    margin-right: 8px;
+}
+
+.hub-profile-panel-final .profile-toggle-item-final {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 6px 0 !important;
+    font-size: 0.8rem !important;
+}
+
+.hub-profile-panel-final .profile-toggle-item-final:not(:first-child) {
+    border-top: 1px dashed rgba(var(--theme-accent-color-rgb, 0,168,255), 0.1) !important;
+}
+
+.hub-profile-panel-final .profile-toggle-item-final label {
+    margin-right: 8px !important;
+    cursor: default !important; /* Label text no longer needs cursor:pointer if not toggling */
+    flex-grow: 1;
+}
+
+.hub-profile-panel-final .helper-text-small-final {
+    font-weight: normal !important; /* Helper text typically not bold */
+}
+
+/* Friends Panel */
+.hub-friends-panel-final .hub-module-content-final {
+    text-align: center !important;
+}
+
+.hub-friends-panel-final .hub-module-content-final p {
+    margin-bottom: 8px !important;
+}
+
+.hub-friends-panel-final .hub-module-content-final p strong {}
+
+.hub-dropdown-final {
+    font-weight: bold !important;
+}
+
+/* TornHub Actions Panel */
+.hub-tornhub-actions-final .hub-module-header-final h3 {
+    font-weight: bold !important;
+}
+
+/* Hub Switch Styling (Corrected and Ensured Complete) */
+.hub-switch-final {
+    position: relative !important;
+    display: inline-block !important;
+    width: 34px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+    font-weight: normal !important; /* Override parent bold for the switch container itself */
+    cursor: pointer !important; /* Make the switch area look clickable */
+}
+
+.hub-switch-final .toggle-switch-checkbox {
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.hub-switch-final .slider {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: #555 !important;
+    transition: .3s !important;
+    border-radius: 18px !important;
+}
+
+.hub-switch-final .slider:before {
+    position: absolute !important;
+    content: "" !important;
+    height: 14px !important;
+    width: 14px !important;
+    left: 2px !important;
+    bottom: 2px !important;
+    background-color: white !important;
+    transition: .3s !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+}
+
+.hub-switch-final .toggle-switch-checkbox:checked + .slider {
+    background-color: var(--theme-accent-color, #00a8ff) !important;
+}
+
+.hub-switch-final .toggle-switch-checkbox:focus + .slider {
+    box-shadow: 0 0 0 2px rgba(var(--theme-accent-color-rgb, 0,168,255), 0.4) !important;
+}
+
+.hub-switch-final .toggle-switch-checkbox:checked + .slider:before {
+    transform: translateX(16px) !important;
+}
+
+.text-placeholder-V5 {
+    font-style: italic !important;
+    text-align: center !important;
+    font-size: 0.9em !important;
+}
+
+/* Existing chat-modal-overlay remains, but the content will be overridden */
+.chat-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    z-index: 1050;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* Base chat-modal-content - kept for other chat modals if they use it */
+.chat-modal-content {
+    background-color: var(--modal-content-bg, #2a2a2a);
+    color: var(--text-color-normal, #d0d0d0);
+    padding: 20px;
+    border-radius: var(--modal-border-radius, 12px);
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 1000px;
+    min-height: 700px;
+    max-height: calc(100vh - 70px - 40px);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Specific styling for the NEW manage-friends-content to mimic onTheHuntModal */
+.manage-friends-modal-content { /* Renamed for clarity to avoid conflict with generic chat-modal-content */
+    background-color: #2c3034 !important; /* Same as #onTheHuntModal */
+    color: #e9ecef !important; /* Same as #onTheHuntModal */
+    border: 3px solid #0d6efd !important; /* Same as #onTheHuntModal */
+    border-radius: 8px !important; /* Same as #onTheHuntModal */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important; /* Same as #onTheHuntModal */
+    padding: 25px !important; /* Same as #onTheHuntModal */
+    width: 100% !important;
+    max-width: 1000px !important; /* Maintain original max-width of chat modal */
+    min-height: 700px !important; /* Maintain original min-height of chat modal */
+    max-height: calc(100vh - 70px - 40px) !important; /* Maintain original max-height of chat modal */
+    display: flex !important;
+    flex-direction: column !important;
+    font-weight: bold !important;
+    margin-top: 10px !important;
+}
+
+
+/* General modal header for new modal styles */
+.modal-header {
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #495057; /* Matches onTheHuntModal header border */
+}
+
+.modal-header h2 {
+    color: #ffffff; /* Explicitly white as requested */
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-decoration: underline; /* Added underline to match onTheHuntModal */
+}
+
+/* Close button styling for new modal style (mimics onTheHuntModal) */
+.modal-content-box > .modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: #0d6efd; /* Blue color for 'x' like onTheHuntModal */
+    background-color: transparent;
+    border: none;
+    padding: 5px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+}
+.modal-content-box > .modal-close-btn:hover {
+    color: #0a58ca; /* Darker blue on hover */
+    opacity: 1.0;
+}
+
+
+.chat-modal-header { /* Original chat modal header - now largely superseded by .modal-header for friend settings */
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+.chat-modal-header h3 { /* Original chat modal header h3 */
+    color: var(--theme-accent-color, #00a8ff);
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.chat-modal-close-btn { /* Original chat modal close btn - now largely superseded by .modal-close-btn for friend settings */
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-color-normal, #d0d0d0);
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px;
+    transition: color 0.2s ease;
+}
+
+.chat-modal-close-btn:hover {
+    color: var(--theme-accent-hover-color, #00e0ff);
+}
+
+.chat-tabs { /* Friends chat modal tabs - should not apply to the new "Manage Friends List" */
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+.chat-tab-button { /* Friends chat modal tab buttons - should not apply to the new "Manage Friends List" */
+    flex-grow: 1;
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-color-normal, #d0d0d0);
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    text-align: center;
+}
+
+.chat-tab-button:hover {
+    background-color: rgba(var(--theme-accent-color-rgb, 0, 168, 255), 0.1);
+}
+
+.chat-tab-button.active {
+    color: var(--theme-accent-color, #00a8ff);
+    border-bottom: 3px solid var(--theme-accent-color, #00a8ff);
+}
+
+.chat-content-wrapper {
+    flex-grow: 1;
+    overflow-y: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages-area {
+    display: none;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid rgba(var(--theme-accent-color-rgb, 0, 168, 255), 0.2);
+    border-radius: 4px;
+    background-color: rgba(0,0,0,0.2);
+    min-height: 150px;
+}
+
+.chat-messages-area.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-system-message {
+    font-style: italic;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.chat-message {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    background-color: rgba(50, 50, 50, 0.7);
+    color: #f0f0f0;
+    font-weight: normal;
+    align-self: flex-start;
+    max-width: 80%;
+}
+
+.chat-message-own {
+    background-color: var(--theme-accent-color, #00a8ff);
+    color: #131314;
+    align-self: flex-end;
+    text-align: right;
+}
+
+.chat-message-other {
+    background-color: #3f3f3f;
+    color: #f0f0f0;
+    align-self: flex-start;
+    text-align: left;
+}
+
+.chat-message .chat-sender-name {
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 0.85em;
+    color: var(--text-color-light, #eee);
+}
+
+.chat-message .chat-time {
+    font-size: 0.75em;
+    color: #999;
+    margin-left: 8px;
+    display: inline-block;
+}
+
+.chat-message .chat-text {
+    margin: 4px 0 0 0;
+    font-size: 0.9em;
+    font-weight: normal !important;
+}
+
+#friendsInitialView h4 {
+    color: var(--theme-accent-color, #00a8ff);
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+/* Initial styling for recent/full friends list - will be overridden by custom styles for manage-friends-content */
+#recentChatsList,
+#fullFriendsList {
+    list-style: none;
+    padding-left: 0;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+#recentChatsList li,
+#fullFriendsList li {
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(var(--theme-accent-color-rgb, 0,168,255),0.1);
+}
+
+#recentChatsList li:last-child,
+#fullFriendsList li:last-child {
+    border-bottom: none;
+}
+
+.friend-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 3px;
+    cursor: pointer;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.friend-list-item:hover {
+    background-color: rgba(var(--theme-accent-color-rgb, 0,168,255),0.15);
+}
+
+.friend-name-display {
+    flex-grow: 1;
+    font-weight: bold;
+    color: var(--text-color-light, #eee);
+}
+
+.friend-list-item.offline .friend-name-display {
+    color: var(--text-color-normal, #d0d0d0);
+}
+
+.friend-status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.friend-status-indicator.online {
+    background-color: #4CAF50;
+}
+
+.friend-status-indicator.offline {
+    background-color: #888;
+}
+
+.friend-preferred-name-tooltip {
+    display: none;
+    position: absolute;
+    background-color: #111;
+    color: #fff;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    z-index: 10;
+}
+
+/* Re-added chat input area styles */
+.chat-input-area {
+    display: flex;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+#chatMessageInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+    background-color: rgba(0,0,0,0.3);
+    color: var(--text-color-light, #f0f0f0);
+    border-radius: 4px 0 0 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-sizing: border-box; /* Crucial for proper width calculation */
+}
+
+#chatMessageInput:focus {
+    outline: none;
+    border-color: var(--theme-accent-hover-color, #00e0ff);
+    box-shadow: 0 0 5px rgba(var(--theme-accent-color-rgb, 0,168,255),0.5);
+}
+
+#sendChatMessageBtn.btn {
+    border-radius: 0 4px 4px 0; /* Only right corners rounded for input + button combo */
+    padding: 10px 15px;
+    margin-left: 0; /* Remove margin-left to make it flush with input */
+    font-weight: bold !important;
+}
+
+/* Original add friend form styling - replaced/moved in HTML */
+#addFriendForm {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(var(--theme-accent-color-rgb, 0,168,255),0.2);
+}
+
+#friendIdInput {
+    flex-grow: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+    background-color: rgba(0,0,0,0.3);
+    color: var(--text-color-light, #f0f0f0);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+#friendIdInput:focus {
+    outline: none;
+    border-color: var(--theme-accent-hover-color, #00e0ff);
+    box-shadow: 0 0 5px rgba(var(--theme-accent-color-rgb, 0,168,255),0.5);
+}
+
+#addFriendBtn,
+#removeFriendBtn { /* This #removeFriendBtn might be a general one, not per item */
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+#addFriendBtn {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
+}
+
+#removeFriendBtn { /* General remove button if exists */
+    background-color: #f44336;
+    border-color: #f44336;
+    color: white;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.friend-actions button { /* Targets buttons within .friend-actions (Chat, Remove per item) */
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.friend-actions .start-chat-btn {
+    background-color: #0d6efd; /* Blue color to match the modal theme */
+    color: white; /* White text for contrast */
+    border: 1px solid #0d6efd;
+}
+
+.friend-actions .start-chat-btn:hover {
+    background-color: #0a58ca; /* Darker blue on hover */
+    border-color: #0a58ca;
+}
+
+.friend-actions .remove-friend-btn { /* Per item remove button */
+    background-color: #dc3545; /* Red */
+    color: white;
+    border: 1px solid #dc3545;
+}
+
+.friend-actions .remove-friend-btn:hover {
+    background-color: #c82333; /* Darker red on hover */
+    border-color: #bd2130;
+}
+
+.friend-actions .block-friend-btn { /* NEW: Block button style */
+    background-color: #ffc107; /* Orange/Yellow for block */
+    color: #212529; /* Dark text for contrast */
+    border: 1px solid #ffc107;
+}
+.friend-actions .block-friend-btn:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+
+@media (max-width: 768px) {
+    .hub-layout-final {
+        grid-template-columns: 1fr !important;
+        justify-content: center !important;
+        margin: 10px auto !important;
+        padding: 10px !important;
+        gap: 15px !important;
+        font-weight: bold !important;
+    }
+
+    .hub-right-spacer-final { display: none !important; }
+    .hub-left-column-final, .hub-right-column-final { height: auto !important; gap: 15px !important; }
+    .hub-module-header-final h2 { font-size: 1rem !important; }
+    .hub-module-header-final h3 { font-size: 0.9rem !important; }
+    .hub-module-content-final { padding: 8px 10px !important; gap: 6px !important; }
+    .hub-module-content-final p { font-size: 0.8rem !important; margin-bottom: 4px !important; }
+    .hub-profile-panel-final .profile-info-item-final, .hub-profile-panel-final .profile-toggle-item-final { font-size: 0.75rem !important; padding: 4px 0 !important; }
+    .hub-profile-panel-final .profile-info-item-final span:first-child { font-weight: normal !important; }
+    .hub-profile-panel-final .profile-toggle-item-final label { font-weight: bold !important; }
+    .hub-friends-panel-final .btn.btn-fullwidth-final, .hub-tornhub-actions-final .hub-action-button-final.btn { font-size: 0.8rem !important; padding: 6px 10px !important; }
+    .hub-layout-final .btn .btn-text { font-weight: bold !important; }
+    .chat-modal-overlay { top: 0; padding: 10px; align-items: center; }
+    .chat-modal-content { min-height: auto; max-height: 90vh; padding: 15px; }
+    .chat-modal-header h3 { font-size: 1.2rem; }
+    .chat-tab-button { font-size: 0.9rem; padding: 8px 10px; }
+    #chatMessageInput, #sendChatMessageBtn.btn { font-size: 0.85rem; padding: 8px; }
+    #sendChatMessageBtn.btn { border-radius: 4px; margin-left: 8px; /* Added some margin for smaller screens */ } /* Adjusted for mobile */
+
+    #onTheHuntModal .modal-content-box {
+        max-width: 95%;
+        padding: 15px;
+        max-height: 90vh;
+    }
+    #recruitingFactionsList {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .recruiting-faction-item h5 { font-size: 0.85rem; height: 2.6em; }
+    .recruiting-faction-item p { font-size: 0.7rem; }
+    .recruiting-faction-item .apply-link { font-size: 0.75rem; padding: 5px 7px;}
+
+    /* Mobile adjustments for filters */
+    .faction-filters-container .filter-options {
+        max-width: none; /* Remove max-width on mobile */
+        margin: 0 0 15px 0; /* Remove auto margins on mobile, keep bottom margin */
+        grid-template-columns: 1fr; /* Single column for mobile */
+        grid-template-areas: none; /* Remove grid areas on mobile to revert to flow order */
+        padding: 10px;
+        gap: 10px;
+    }
+    .faction-filters-container .filter-group {
+        flex-direction: row; /* Keep label and input on same line for mobile if possible */
+        align-items: center;
+        justify-content: space-between; /* Push label left, input right */
+        gap: 10px;
+    }
+    .faction-filters-container .filter-group label {
+        margin-bottom: 3px;
+    }
+    .faction-filters-container .filter-group input[type="number"],
+    .faction-filters-container .filter-group select {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    .faction-filters-container .filter-label-inline {
+        margin-left: 0 !important;
+    }
+    .filter-group span[id$="Display"] {
+        margin-top: 0; /* Reset margin top */
+        margin-left: 5px; /* Add margin left */
+        position: static; /* No absolute positioning */
+        align-self: center; /* Center vertically */
+    }
+    .filter-actions {
+        flex-direction: column; /* Stack buttons vertically on mobile */
+        gap: 10px;
+    }
+    .filter-actions button {
+        width: 100%;
+        margin-right: 0 !important;
+    }
+    /* Mobile adjustments for Manage Friends List */
+    .manage-friends-modal-content {
+        max-width: 95% !important;
+        padding: 15px !important;
+        max-height: 90vh !important;
+    }
+    .manage-friends-layout {
+        flex-direction: column !important; /* Stack columns vertically on mobile */
+        gap: 15px !important;
+    }
+    .manage-friends-column {
+        width: 100% !important;
+    }
+    .friends-list-scrollable {
+        max-height: 250px !important; /* Adjust height for mobile */
+    }
+}
+
+.specific-error-message {
+    background-color: #2a2a2a;
+    border: 1px solid #D32F2F;
+    color: #F5F5F5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 10px auto;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.4;
+    max-width: 450px;
+    box-shadow: 0 1px 3px rgba(200, 0, 0, 0.3);
+}
+
+/* Styles for #onTheHuntModal */
+#onTheHuntModal .modal-content-box {
+    background-color: #2c3034;
+    color: #e9ecef;
+    border: 3px solid #0d6efd;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    padding: 25px;
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+    max-height: 92vh;
+    box-sizing: border-box;
+}
+
+#onTheHuntModal .modal-content-box .modal-header h2 { /* "TCPs Faction Scout" */
+    color: #ffffff;
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #495057;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+#onTheHuntModal .modal-content-box #onTheHuntModalBody {
+    flex-grow: 1;
+    overflow-y: hidden;
+}
+
+#onTheHuntModal .modal-content-box #onTheHuntModalBody h4 { /* "Factions Who Are Recruiting" */
+    color: #e9ecef;
+    font-size: 1.2rem; /* Made a bit larger */
+    text-align: center;
+    margin-top: 10px; /* Added some space above if filters are collapsed */
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Close button styling */
+#onTheHuntModal .modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: #0d6efd;
+    background-color: transparent;
+    border: none;
+    padding: 5px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+}
+#onTheHuntModal .modal-close-btn:hover { color: #0a58ca; opacity: 1.0; }
+
+/* General .modal-content-box for other modals (e.g., profile setup) */
+.modal-content-box {
+    background-color: var(--modal-content-bg, #2a2a2a);
+    color: var(--text-color-light, #eee);
+    padding: 25px 30px;
+    border-radius: var(--modal-border-radius, 12px);
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+    box-shadow: 0 0 20px var(--modal-shadow-color, rgba(0, 168, 255, 0.35));
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    text-align: left;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+/* Profile Setup Modal Specifics */
+#profileSetupModal .modal-content-box h3, #profileSetupModal .modal-profile-setup h3 { color: var(--theme-accent-color, #00a8ff); text-align: center; margin-top: 0; margin-bottom: 15px; font-size: 1.6rem; }
+#profileSetupModal .modal-content-box .modal-subtitle, #profileSetupModal .modal-profile-setup .modal-subtitle { text-align: center; font-size: 0.9em; color: var(--text-color-normal, #d0d0d0); margin-bottom: 20px; font-weight: normal !important; }
+#profileSetupModal .modal-content-box .form-group, #profileSetupModal .modal-profile-setup .form-group { margin-bottom: 15px; text-align: left; }
+#profileSetupModal .modal-content-box .form-group label, #profileSetupModal .modal-profile-setup .form-group label { display: block; margin-bottom: 5px; font-weight: bold !important; font-size: 0.9rem; color: var(--text-color-light, #eee); }
+#profileSetupModal .modal-content-box input[type="text"], #profileSetupModal .modal-profile-setup input[type="text"] { width: 100%; padding: 10px; margin-bottom: 5px; border: 1px solid #555; border-radius: 4px; background-color: #333; color: #fff; font-size: 0.9rem; box-sizing: border-box; }
+#profileSetupModal .modal-content-box input[type="text"]:focus, #profileSetupModal .modal-profile-setup input[type="text"]:focus { border-color: var(--theme-accent-color, #00a8ff); outline: none; box-shadow: 0 0 5px rgba(var(--theme-accent-color-rgb, 0,168,255),0.5); }
+#profileSetupModal .modal-content-box .helper-text, #profileSetupModal .modal-profile-setup .helper-text { font-size: 0.75rem; color: #aaa; display: block; margin-top: 3px; font-weight: normal !important; }
+#profileSetupModal .modal-content-box .name-warning { color: #ffc107; }
+#profileSetupModal .modal-content-box .modal-error-message, #profileSetupModal .modal-profile-setup .modal-error-message { color: #dc3545; font-size: 0.8rem; font-weight: bold; margin-top: 5px; text-align: center; }
+#profileSetupModal .modal-content-box .modal-actions, #profileSetupModal .modal-profile-setup .modal-actions { margin-top: 25px; display: flex; justify-content: space-between; gap: 10px; }
+#profileSetupModal .modal-content-box .modal-actions .btn, #profileSetupModal .modal-profile-setup .modal-actions .btn { flex-grow: 1; }
+
+/* Leadership Settings Modal Specifics */
+#leadershipSettingsModal .modal-content-box h3 { color: var(--theme-accent-color, #00a8ff); text-align: center; margin-top: 0; margin-bottom: 25px; font-size: 1.6rem; }
+#leadershipSettingsModal .modal-content-box .form-group { margin-bottom: 20px; text-align: left; }
+#leadershipSettingsModal .modal-content-box .form-group label { display: block; margin-bottom: 8px; font-weight: bold !important; font-size: 0.95rem; color: var(--text-color-light, #eee); }
+#leadershipSettingsModal .modal-content-box #recruiterIdInput { width: 100%; box-sizing: border-box; padding: 12px 15px; border: 1px solid #555; background-color: #333; color: #fff; border-radius: 5px; font-size: 1rem; margin-bottom: 0; }
+#leadershipSettingsModal .modal-content-box #recruiterIdInput:focus { border-color: var(--theme-accent-color, #00a8ff); outline: none; box-shadow: 0 0 5px rgba(var(--theme-accent-color-rgb, 0,168,255),0.5); }
+#leadershipSettingsModal .modal-content-box .btn { display: block; width: auto; min-width: 120px; margin-left: auto; margin-right: auto; margin-top: 10px; }
+#leadershipSettingsModal .modal-content-box .helper-text { font-size: 0.8em; color: #aaa; text-align: center; margin-top: 20px; font-weight: normal !important; }
+
+/* On The Hunt Filter Container (already existing, might need minor tweaks if any) */
+#onTheHuntFilterContainer { padding: 15px; border-top: 1px solid #495057; margin-top: 15px; text-align: center; background-color: #2c3034; order: 3; }
+#onTheHuntFilterContainer label { font-size: 0.9rem; color: #adb5bd; margin-right: 8px; vertical-align: middle; font-weight: normal !important; }
+#onTheHuntFilterContainer #currentLevelDisplayOnTheHunt { font-weight: bold; color: #f8f9fa; min-width: 25px; display: inline-block; text-align: left; vertical-align: middle; }
+#onTheHuntFilterContainer input[type="range"]#levelRangeInputOnTheHunt { width: 60%; max-width: 250px; margin-top: 5px; vertical-align: middle; cursor: pointer; accent-color: #0d6efd; }
+
+/* Player Actions Area (already existing) */
+.player-actions-area { background-color: #2c3034; padding: 10px; margin-top: 5px; border-radius: 0 0 4px 4px; border: 1px solid #495057; border-top: none; text-align: left; }
+.player-actions-area .player-bstats-display h5 { margin: 0 0 8px 0; color: var(--theme-accent-color, #00a8ff); font-size: 0.9rem; border-bottom: 1px solid #555; padding-bottom: 5px; }
+.player-actions-area .player-bstats-display p { margin: 3px 0 !important; font-size: 0.75rem !important; font-weight: normal !important; color: #adb5bd !important; }
+.player-actions-area .player-bstats-display p strong { color: #fff; font-weight: bold !important; margin-right: 5px; }
+.player-actions-area .action-buttons-container { margin-top: 10px; display: flex; gap: 8px; }
+.player-actions-area .btn-player-action { padding: 4px 8px !important; font-size: 0.75rem !important; border-radius: 3px !important; min-width: auto !important; height: auto !important; font-weight: normal !important; }
+
+/* Access Settings Modal (already existing) */
+#manageHuntAccessBtn { display: block; margin: 15px auto 10px auto; padding: 8px 15px; width: calc(100% - 30px); box-sizing: border-box; order: 2; }
+#accessSettingsModal.modal-overlay { z-index: 1060 !important; }
+#accessSettingsModal .modal-content-box { max-width: 520px; text-align: left; }
+#accessSettingsModal .access-modal-close-btn { position: absolute; top: 12px; left: 12px; right: auto; font-size: 1.6rem; color: var(--btn-close-color, #00a8ff); background: none; border: none; padding: 5px; line-height: 1; cursor: pointer; transition: color 0.2s ease; }
+#accessSettingsModal .access-modal-close-btn:hover { color: var(--btn-close-hover-color, #00e0ff); }
+#accessSettingsModal .modal-content-box h3 { color: var(--theme-accent-color, #00a8ff); text-align: center; margin-top: 5px; margin-bottom: 15px; font-size: 1.5rem; }
+#accessSettingsModal #accessSettingsModalBody .helper-text { font-size: 0.8rem !important; font-weight: normal !important; text-align: center; margin-bottom: 20px !important; color: #aaa; }
+#viewerSlotsContainer .viewer-slot { display: flex; align-items: center; margin-bottom: 10px; border: 1px solid #444; padding: 8px; border-radius: 4px; background-color: rgba(0,0,0,0.1); }
+#viewerSlotsContainer .viewer-slot label { margin-right: 8px; font-size: 0.9rem; color: var(--text-color-normal, #d0d0d0); min-width: 50px; font-weight: normal !important; }
+#viewerSlotsContainer .viewer-slot input[type="text"] { flex-grow: 1; padding: 8px 10px; border: 1px solid #555; background-color: #333; color: #fff; border-radius: 4px; font-size: 0.9rem; }
+#viewerSlotsContainer .viewer-slot input[type="text"]:focus { border-color: var(--theme-accent-color, #00a8ff); outline: none; box-shadow: 0 0 5px rgba(var(--theme-accent-color-rgb, 0,168,255),0.5); }
+#accessSettingsModal #saveViewerAccessBtn.btn { display: block; margin: 20px auto 0 auto; }
+#accessSettingsModal #accessSettingsError { color: #dc3545; font-size: 0.85rem; text-align: center; margin-top: 15px; min-height: 1.2em; }
+
+/* Faction Scout: Recruiting Factions List */
+#recruitingFactionsContainer { margin-top: 0; padding-top: 0; border-top: none; text-align: center; }
+#recruitingFactionsList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+.recruiting-faction-item { background-color: #3f3f3f; border: 1px solid rgba(var(--theme-accent-color-rgb, 0, 168, 255), 0.3); border-radius: 6px; padding: 10px; text-align: left; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; }
+.recruiting-faction-item:hover { background-color: #4a4a4a; border-color: var(--theme-accent-hover-color, #00e0ff); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); transform: translateY(-2px); }
+.recruiting-faction-item h5 { color: var(--text-color-light, #f8f9fa); font-size: 0.9rem; font-weight: bold; word-wrap: break-word; margin: 0 0 8px 0; height: 2.4em; line-height: 1.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.recruiting-faction-item p { font-size: 0.8rem; color: var(--text-color-normal, #d0d0d0); margin: 3px 0 !important; font-weight: normal !important; line-height: 1.3; }
+.recruiting-faction-item p strong { color: var(--theme-accent-color, #00a8ff); font-weight: bold !important; margin-left: 4px; }
+.recruiting-faction-item .apply-link { display: block; width: 100%; margin-top: 10px; padding: 6px 8px; background-color: var(--theme-accent-color, #00a8ff); color: #131314; text-align: center; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.8rem; transition: background-color 0.2s ease; margin-top: auto; }
+.recruiting-faction-item .apply-link:hover { background-color: var(--theme-accent-hover-color, #00e0ff); }
+
+/* Faction Pagination Controls */
+.faction-pagination-controls { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #495057; }
+.faction-page-arrow { background-color: var(--theme-accent-color, #00a8ff); color: #131314; border: none; padding: 8px 12px; margin: 0 5px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.2s ease; font-size: 0.9rem; }
+.faction-page-arrow:hover { background-color: var(--theme-accent-hover-color, #00e0ff); }
+.faction-page-arrow:disabled { background-color: #555; color: #888; cursor: not-allowed; opacity: 0.7; }
+.faction-page-info { margin: 0 15px; font-weight: bold; color: var(--text-color-normal, #d0d0d0); font-size: 0.9rem; }
+
+/* General Modal Close Button (if not specifically overridden) */
+.modal-content-box > .modal-close-btn { position: absolute; top: 15px; right: 15px; font-size: 1.8rem; color: var(--text-color-normal, #d0d0d0); }
+.modal-content-box > .modal-close-btn:hover { color: var(--theme-accent-color, #00a8ff); }
+
+/* NEW CSS FOR FILTERS */
+/* Redesign for Faction Scout Modal Filters */
+#onTheHuntModal .faction-filters-container {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #495057; /* Separator below filters */
+    background-color: #2c3034; /* Existing background */
+    text-align: center; /* Center buttons initially */
+}
+
+#toggleFiltersBtn { /* Overriding some btn styles if needed, or use a new class */
+    width: 100%;
+    margin-bottom: 10px;
+    text-align: left !important; /* Ensure text is left aligned */
+    padding-left: 15px !important; /* Indent text slightly */
+    display: flex; /* For aligning text and arrow */
+    justify-content: space-between; /* Pushes arrow to the right */
+    align-items: center;
+    background-color: #3e444a; /* Slightly different background for the button */
+    border-color: #555c63;
+}
+#toggleFiltersBtn:hover {
+    background-color: #495057;
+}
+
+#filterArrowIcon {
+    transition: transform 0.3s ease;
+}
+
+/* Adjust the general .filter-options to a grid layout */
+.faction-filters-container .filter-options {
+    display: grid;
+    /* Changed to fixed column widths for precise slider sizing */
+    grid-template-columns: repeat(2, 200px); /* Two columns, each 200px wide */
+    grid-template-areas:
+        "respect members"
+        "tier tier" /* Faction Tier spans both columns */
+        "actions actions"; /* Apply/Reset buttons span both columns */
+    gap: 15px 20px; /* Row and column gap */
+    padding: 15px;
+    border: 1px solid #40464c;
+    border-radius: 5px;
+    background-color: #343a40;
+
+    /* Max-width and centering for the entire filter options block */
+    max-width: 480px; /* Limits the overall width of the filter container */
+    margin: 0 auto 15px auto; /* Centers the block horizontally and adds bottom margin */
+    justify-content: center; /* Centers the grid content within its parent */
+}
+
+/* Assign grid areas */
+.filter-group#respectFilterBlock {
+    grid-area: respect;
+}
+
+.filter-group#membersFilterBlock {
+    grid-area: members;
+}
+
+.filter-group#tierFilterBlock {
+    grid-area: tier;
+}
+
+.filter-actions {
+    grid-area: actions;
+    /* Existing styles for spacing and alignment of buttons inside this area */
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(var(--theme-accent-color-rgb, 0,168,255), 0.2);
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Ensure filter groups flex correctly within their grid cells */
+.filter-group {
+    display: flex;
+    flex-direction: column; /* Stack label/value and input vertically */
+    align-items: center; /* Center content horizontally within the column */
+    gap: 5px; /* Smaller gap between label/value and input */
+    width: 100%; /* Ensure it takes full width of its grid cell */
+}
+
+.filter-group label {
+    margin-bottom: 0;
+    font-size: 0.9rem; /* Slightly larger labels */
+    color: var(--text-color-light, #eee); /* Brighter label color */
+}
+.filter-label-inline { /* For labels next to another input */
+    margin-left: 10px;
+}
+
+/* Style for input type range (sliders) */
+.filter-group input[type="range"] {
+    width: 100%; /* Take 100% of its parent's (now 200px) width */
+    /* Removed max-width: 180px as column width now controls it */
+    height: 18px; /* Standard height for better usability */
+    background: transparent; /* Hide default track */
+    cursor: pointer;
+    -webkit-appearance: none; /* Remove default webkit styles */
+    appearance: none;
+    margin: 0; /* Remove default margin */
+}
+
+/* Slider Track (Webkit) */
+.filter-group input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px; /* Track height */
+    background: #555; /* Default track color */
+    border-radius: 3px;
+    border: 0.5px solid #404040;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Slider Thumb (Webkit) */
+.filter-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px; /* Thumb size */
+    width: 16px;
+    border-radius: 50%; /* Round thumb */
+    background: var(--theme-accent-color, #00a8ff); /* Accent color for thumb */
+    margin-top: -5px; /* Adjust to center on track */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    border: 1px solid var(--theme-accent-color, #00a8ff); /* Border matching accent */
+}
+
+/* Slider Track (Moz) */
+.filter-group input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    background: #555;
+    border-radius: 3px;
+    border: 0.5px solid #404040;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Slider Thumb (Moz) */
+.filter-group input[type="range"]::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--theme-accent-color, #00a8ff);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+/* Specific styling for the display of slider values (inside the label) */
+.filter-group span[id$="Display"] { /* Selects spans ending with "Display" */
+    font-weight: bold;
+    color: var(--theme-accent-color, #00a8ff); /* Make value stand out */
+    font-size: 0.9rem; /* Slightly larger display for value */
+    /* Remove old positioning styles (align-self, margin-top, margin-right, etc.) as it's now inline with label */
+    padding: 0 3px; /* Adjust padding for better visual flow within label */
+}
+
+.filter-input,
+.filter-select {
+    padding: 8px 10px;
+    background-color: #2c3034; /* Darker input background */
+    border: 1px solid #555c63; /* Input border */
+    color: var(--text-color-light, #eee);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    flex-grow: 1; /* Allow inputs to take available space */
+    min-width: unset; /* Remove min-width to let it adapt in grid */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+.filter-input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+.filter-input[type="number"]::-webkit-outer-spin-button,
+.filter-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.filter-select {
+    cursor: pointer;
+    -webkit-appearance: none; /* Remove default arrow on select */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23dddddd%22%20d%3D%22M287%2C197.3L159.2%2C69.5c-4.7-4.7-12.3-4.7-17%2C0L5.4%2C197.3c-4.7%2C4.7-4.7%2C12.3%2C0%2C17l16%2C16c4.7%2C4.7%2C12.3%2C4.7%2C17%2C0l113.8-113.7l113.8%2C113.7c4.7%2C4.7%2C12.3%2C4.7%2C17%2C0l16-16C291.7%2C209.6%2C291.7%2C202%2C287%2C197.3z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 12px auto;
+}
+
+/* Styling for the checkbox grid within the tier filter */
+.checkbox-group-grid {
+    display: flex; /* Changed from grid to flex */
+    flex-wrap: wrap; /* Allow wrapping if space is limited */
+    justify-content: center; /* Center items if they don't fill the row */
+    gap: 10px 15px; /* Row and column gap */
+    width: 100%;
+    align-items: center;
+}
+
+.checkbox-group-grid div {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Space between checkbox input and its label */
+}
+
+.checkbox-group-grid input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--theme-accent-color, #00a8ff); /* Apply accent color to checkboxes */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+}
+
+.checkbox-group-grid .checkbox-label {
+    font-weight: normal !important; /* Ensure checkbox labels are not bold */
+    color: var(--text-color-normal, #d0d0d0);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* Apply and Reset buttons */
+.filter-actions {
+    grid-column: 1 / -1; /* Span across all columns in the grid */
+    display: flex;
+    justify-content: center; /* Center the buttons horizontally */
+    gap: 15px; /* Space between buttons */
+    margin-top: 10px; /* Space above buttons */
+    padding-top: 15px;
+    border-top: 1px dashed rgba(var(--theme-accent-color-rgb, 0,168,255), 0.2); /* Separator above buttons */
+}
+
+/* Ensure buttons in filter-actions use existing .btn styles but can be overridden */
+.filter-actions .btn.btn-primary {
+    background-color: #0d6efd !important; /* Primary blue */
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+.filter-actions .btn.btn-primary:hover {
+    background-color: #0a58ca !important;
+    border-color: #0a58ca !important;
+}
+
+.filter-actions .btn.btn-secondary {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
+}
+.filter-actions .btn.btn-secondary:hover {
+    background-color: #5a6268 !important;
+    border-color: #545b62 !important;
+}
+/* Styles for #leadershipPanelModal - Make it look like #onTheHuntModal */
+#leadershipPanelModal .modal-content-box {
+    background-color: #2c3034; /* Same as #onTheHuntModal */
+    color: #e9ecef; /* Same as #onTheHuntModal */
+    border: 3px solid #0d6efd; /* Same as #onTheHuntModal */
+    border-radius: 8px; /* Same as #onTheHuntModal */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); /* Same as #onTheHuntModal */
+    padding: 25px; /* Same as #onTheHuntModal */
+    width: 100%;
+    max-width: 1200px; /* Same as #onTheHuntModal */
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+    max-height: 92vh; /* Same as #onTheHuntModal */
+    box-sizing: border-box;
+}
+
+#leadershipPanelModal .modal-content-box .modal-header h2 {
+    color: #ffffff; /* Same as #onTheHuntModal */
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #495057;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+#leadershipPanelModal .modal-close-btn { /* Style the close button */
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: #0d6efd;
+    background-color: transparent;
+    border: none;
+    padding: 5px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+}
+#leadershipPanelModal .modal-close-btn:hover { color: #0a58ca; opacity: 1.0; }
+
+
+#leadershipPanelModal .faction-filters-container {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #495057;
+    background-color: #2c3034;
+    text-align: center;
+}
+
+#leadershipPanelModal .faction-filters-container .filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+/* Ensure sliders look consistent */
+#leadershipPanelModal .filter-group input[type="range"]::-webkit-slider-runnable-track,
+#leadershipPanelModal .filter-group input[type="range"]::-moz-range-track {
+    background: #555;
+    border: 0.5px solid #404040;
+}
+
+#leadershipPanelModal .filter-group input[type="range"]::-webkit-slider-thumb,
+#leadershipPanelModal .filter-group input[type="range"]::-moz-range-thumb {
+    background: var(--theme-accent-color, #00a8ff);
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+#leadershipPanelModal .filter-group .slider-value {
+    font-weight: bold;
+    color: var(--theme-accent-color, #00a8ff);
+    font-size: 0.9rem;
+    padding: 0 3px;
+}
+
+
+/* Styling for the user list in Leadership View (mimicking recruiting factions list) */
+#lookingForFactionsContainer h4 {
+    color: #e9ecef;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+#lookingForFactionsList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* Adjust as needed for number of columns */
+    gap: 10px;
+}
+
+.looking-for-faction-item { /* New class for individual user items */
+    background-color: #3f3f3f;
+    border: 1px solid rgba(var(--theme-accent-color-rgb, 0, 168, 255), 0.3);
+    border-radius: 6px;
+    padding: 10px;
+    text-align: left;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: auto; /* Ensure height adapts to content */
+}
+
+.looking-for-faction-item:hover {
+    background-color: #4a4a4a;
+    border-color: var(--theme-accent-hover-color, #00e0ff);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.looking-for-faction-item h5 { /* User name */
+    color: var(--text-color-light, #f8f9fa);
+    font-size: 0.9rem;
+    font-weight: bold;
+    word-wrap: break-word;
+    margin: 0 0 8px 0;
+    height: 2.4em; /* Keep consistent height for names */
+    line-height: 1.2em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.looking-for-faction-item p { /* Battlestats info */
+    font-size: 0.8rem;
+    color: var(--text-color-normal, #d0d0d0);
+    margin: 3px 0 !important;
+    font-weight: normal !important;
+    line-height: 1.3;
+}
+
+.looking-for-faction-item p strong {
+    color: var(--theme-accent-color, #00a8ff);
+    font-weight: bold !important;
+    margin-left: 4px;
+}
+
+.interested-link { /* Button style for 'Interested?' link */
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 6px 8px;
+    background-color: #0d6efd; /* Changed to blue accent color */
+    color: #131314;
+    text-align: center;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.8rem;
+    transition: background-color 0.2s ease;
+    margin-top: auto;
+    border: 1px solid #0d6efd; /* Changed to blue accent color */
+}
+.interested-link:hover {
+    background-color: #0a58ca; /* Changed to blue accent hover color */
+    border-color: #0a58ca; /* Changed to blue accent hover color */
+}
+
+/* Pagination controls (re-use existing faction-pagination-controls class) */
+#leadershipPaginationControls {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #495057;
+}
+
+/* Mobile adjustments (adjust these to target #leadershipPanelModal specifically if needed) */
+@media (max-width: 768px) {
+    #leadershipPanelModal .modal-content-box {
+        max-width: 95%;
+        padding: 15px;
+        max-height: 90vh;
+    }
+    #lookingForFactionsList {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .looking-for-faction-item h5 { font-size: 0.85rem; height: 2.6em; }
+    .looking-for-faction-item p { font-size: 0.7rem; }
+    .interested-link { font-size: 0.75rem; padding: 5px 7px;}
+
+    #leadershipPanelModal .faction-filters-container .filter-options { /* If you were to use filter options */
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 10px;
+    }
+    #leadershipPanelModal .faction-filters-container .filter-group {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.specific-error-message {
+    background-color: #2a2a2a;
+    border: 1px solid #D32F2F;
+    color: #F5F5F5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 10px auto;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.4;
+    max-width: 450px;
+    box-shadow: 0 1px 3px rgba(200, 0, 0, 0.3);
+}
+
+/* Styles for #factionInfoModal - Make it look like #onTheHuntModal */
+#factionInfoModal .modal-content-box {
+    background-color: #2c3034; /* Darker background like onTheHuntModal */
+    color: #e9ecef; /* Lighter text color */
+    border: 3px solid #0d6efd; /* Blue border */
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); /* Deeper shadow */
+    padding: 25px; /* Consistent padding */
+    width: 100%;
+    max-width: 600px; /* Adjusted width for faction info, still allows for more content */
+    height: auto;
+    min-height: auto;
+    max-height: 92vh; /* Consistent max height */
+    box-sizing: border-box;
+    display: flex; /* Make it a flex container to manage tab content */
+    flex-direction: column;
+}/* Styles for #factionInfoModal - Make it look like #onTheHuntModal */
+#factionInfoModal .modal-content-box {
+    background-color: #2c3034; /* Darker background like onTheHuntModal */
+    color: #e9ecef; /* Lighter text color */
+    border: 3px solid #0d6efd; /* Blue border */
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); /* Deeper shadow */
+    padding: 25px; /* Consistent padding */
+    width: 100%;
+    max-width: 1200px; /* INCREASED WIDTH: Made it wider from 600px to 800px */
+    height: auto;
+    min-height: auto;
+    max-height: 80vh; /* REDUCED HEIGHT: Made it smaller from 92vh to 80vh */
+    box-sizing: border-box;
+    display: flex; /* Make it a flex container to manage tab content */
+    flex-direction: column;
+
+    /* Positioning adjustments */
+    margin-top: -40px; /* Pushes it down from the top (header area) */
+    margin-bottom: -20px; /* Adds space below the modal before the bottom of the screen */
+    /* The 'margin: auto;' in the .modal-content-box general style will handle horizontal centering. */
+}
+
+/* Style for #factionInfoModal's header to match #onTheHuntModal's header */
+#factionInfoModal .chat-modal-header h3 { /* Targeting the existing h3 within chat-modal-header */
+    color: #ffffff; /* White title */
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #495057; /* Consistent separator */
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Style for #factionInfoModal's close button to match #onTheHuntModal's close button */
+#factionInfoModal .modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: #0d6efd; /* Blue color for 'x' */
+    background-color: transparent;
+    border: none;
+    padding: 5px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+}
+#factionInfoModal .modal-close-btn:hover {
+    color: #0a58ca; /* Darker blue on hover */
+    opacity: 1.0;
+}
+
+/* Adjust the content style for consistency */
+#factionInfoModalBody {
+    flex-grow: 1; /* Allow content to grow */
+    overflow-y: auto; /* Enable scrolling for content if needed */
+    text-align: left; /* Keep left alignment for text */
+    font-size: 1rem;
+    color: #d0d0d0;
+    padding: 15px; /* Add some padding */
+    display: none; /* Hidden by default */
+}
+#factionInfoModalBody.active {
+    display: block; /* Show when active */
+}
+
+#factionInfoModalBody p {
+    margin-bottom: 8px; /* Standard paragraph spacing */
+}
+#factionInfoModalBody p strong {
+    color: var(--theme-accent-color, #00a8ff); /* Accent color for strong text */
+}
+
+/* New Styles for Faction Info Tabs */
+#factionInfoTabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+.faction-info-tab-button {
+    flex-grow: 1;
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-color-normal, #d0d0d0);
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    text-align: center;
+}
+
+.faction-info-tab-button:hover {
+    background-color: rgba(var(--theme-accent-color-rgb, 0, 168, 255), 0.1);
+}
+
+.faction-info-tab-button.active {
+    color: var(--theme-accent-color, #00a8ff);
+    border-bottom: 3px solid var(--theme-accent-color, #00a8ff);
+}
+
+/* Faction Battle Stats specific styling */
+#factionBattleStatsContent {
+    display: none; /* Hidden by default */
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+#factionBattleStatsContent.active {
+    display: block; /* Show when active */
+}
+
+#factionBattleStatsContent table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    color: #f0f0f0; /* Light text for table */
+}
+
+#factionBattleStatsContent th,
+#factionBattleStatsContent td {
+    padding: 8px 12px;
+    border: 1px solid #444;
+    text-align: left;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+#factionBattleStatsContent th {
+    background-color: #3e444a;
+    color: #ffffff;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+#factionBattleStatsContent tr:nth-child(even) {
+    background-color: #333;
+}
+
+#factionBattleStatsContent tr:nth-child(odd) {
+    background-color: #2a2a2a;
+}
+
+/* Styling for the level cell based on level value for gradient */
+.level-cell {
+    position: relative;
+    overflow: hidden;
+    color: black !important; /* Always black font for level number */
+    font-weight: bold !important;
+}
+
+/* Gradient effect for the background of the level cell */
+.level-cell::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #FFC0CB, #FF0000); /* Pink to Red */
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.5s ease-in-out; /* Smooth transition for opacity */
+    z-index: 0;
+}
+
+.level-cell span {
+    position: relative;
+    z-index: 1; /* Ensure text is above the gradient background */
+}
+
+/* JavaScript will apply opacity based on the level (e.g., as a custom property or direct style) */
+/* Example: .level-cell[data-level="X"]::before { opacity: CALCULATION_BASED_ON_X; } */
+
+/* NEW Styles for TCPs Friendship Settings Modal */
+.manage-friends-layout {
+    display: flex;
+    flex-grow: 1; /* Allow this container to take up available space */
+    gap: 20px; /* Space between the two columns */
+    margin-top: 15px; /* Space from the header */
+    padding-top: 15px; /* Padding above the content */
+    border-top: 1px solid #495057; /* Separator from the header, matches onTheHuntModal */
+    min-height: 0; /* Allow columns to shrink if content is small */
+}
+
+.manage-friends-column {
+    flex: 1; /* Each column takes equal space */
+    display: flex;
+    flex-direction: column;
+    background-color: #343a40; /* Slightly lighter background than modal body */
+    border: 1px solid #0d6efd; /* Blue border like onTheHuntModal */
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Inner shadow for depth */
+}
+
+.manage-friends-subheader {
+    color: #e9ecef; /* Light text for subheaders */
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(var(--theme-accent-color-rgb, 0,168,255), 0.2); /* Dashed separator */
+}
+
+/* Custom scrollbars for friends lists */
+.friends-list-scrollable {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Allow list to take remaining height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 400px; /* Limit height of scrollable area */
+    background-color: rgba(0,0,0,0.2); /* Slightly transparent dark background for scroll area */
+    border-radius: 4px;
+    padding: 8px; /* Inner padding for list items */
+    border: 1px solid rgba(var(--theme-accent-color-rgb, 0,168,255), 0.2); /* Light border */
+}
+
+/* Webkit (Chrome, Safari) scrollbar styles */
+.friends-list-scrollable::-webkit-scrollbar {
+    width: 8px; /* width of the entire scrollbar */
+}
+.friends-list-scrollable::-webkit-scrollbar-track {
+    background: #333; /* color of the tracking area */
+    border-radius: 10px;
+}
+.friends-list-scrollable::-webkit-scrollbar-thumb {
+    background-color: #0d6efd; /* color of the scroll thumb (dark blue as requested) */
+    border-radius: 10px; /* roundness of the scroll thumb */
+    border: 2px solid #333; /* creates padding around scroll thumb */
+}
+.friends-list-scrollable::-webkit-scrollbar-thumb:hover {
+    background-color: #0a58ca; /* darker blue on hover */
+}
+
+/* Firefox scrollbar styles */
+.friends-list-scrollable {
+    scrollbar-width: thin; /* "auto" or "thin" */
+    scrollbar-color: #0d6efd #333; /* thumb and track color */
+}
+
+/* Friend list item styling */
+.manage-friends-column .friend-list-item {
+    background-color: #2c3034; /* Darker background for items */
+    border: 1px solid #495057; /* Subtler border */
+    border-radius: 4px;
+    margin-bottom: 6px; /* Increased margin between items */
+    padding: 8px 10px; /* More padding */
+    justify-content: flex-start; /* Align content to start */
+    gap: 8px; /* Space between elements within item */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.manage-friends-column .friend-list-item:hover {
+    background-color: #3e444a; /* Hover effect */
+    border-color: #0d6efd; /* Blue border on hover */
+}
+
+.manage-friends-column .friend-name-display {
+    flex-grow: 1;
+    font-weight: bold;
+    color: #f8f9fa; /* Brighter name */
+    font-size: 0.95rem;
+}
+
+.manage-friends-column .friend-status-indicator {
+    width: 12px; /* Slightly larger indicator */
+    height: 12px;
+    border: 1px solid rgba(255,255,255,0.2); /* Small border for definition */
+}
+
+.manage-friends-column .friend-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+/* Friend Actions buttons (Chat, Remove) in the list */
+.manage-friends-column .friend-actions button {
+    padding: 6px 10px; /* Larger click area */
+    font-size: 0.8rem;
+    border-radius: 5px; /* Slightly more rounded */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.manage-friends-column .friend-actions .start-chat-btn {
+    background-color: #0d6efd; /* Blue */
+    color: white;
+    border: 1px solid #0d6efd;
+}
+.manage-friends-column .friend-actions .start-chat-btn:hover {
+    background-color: #0a58ca;
+    border-color: #0a58ca;
+}
+
+.manage-friends-column .friend-actions .remove-friend-btn {
+    background-color: #dc3545; /* Red */
+    color: white;
+    border: 1px solid #dc3545;
+}
+.manage-friends-column .friend-actions .remove-friend-btn:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Search bar styling */
+.search-bar-container {
+    margin-bottom: 15px; /* Space below search bar */
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(var(--theme-accent-color-rgb, 0,168,255), 0.2); /* Separator */
+}
+
+.search-bar-container .standard-input { /* Reusing standard-input or defining new */
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #555c63; /* Match modal borders */
+    background-color: #2c3034; /* Match modal background */
+    color: #e9ecef;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.search-bar-container .standard-input::placeholder {
+    color: #adb5bd; /* Lighter placeholder text */
+    font-weight: normal;
+}
+
+.search-bar-container .standard-input:focus {
+    outline: none;
+    border-color: #0d6efd; /* Blue focus border */
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); /* Blue glow on focus */
+}
+/* Prevent main page scroll on larger screens (desktop) */

@@ -1,0 +1,354 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Matches global, consider var(--btn-font-family) as primary if Roboto is site-wide */
+    color: var(--text-color-light, #eee); /* From global */
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative; /* Kept from report, global doesn't specify body position directly */
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Matches global */
+    /* overflow-x: hidden; from global body, body should handle its own padding for fixed elements */
+    /* min-height: 100vh; from global body */
+    /* padding-top/bottom for fixed header/footer will come from global body style */
+}
+
+header {
+    width: 100%;
+    background: #222;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    border-bottom: 3px solid var(--theme-accent-color, #00a8ff); /* From global */
+}
+
+.header-left {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.header-left a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.header-left h1 {
+    font-size: 1.6rem;
+    color: var(--theme-accent-color, #00a8ff);
+    margin: 0;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.header-left .tagline {
+    font-size: 0.8rem;
+    color: #aaa;
+    font-weight: 400; /* Global tagline has bold, this is 400. Keep as per original report for now. */
+    margin-left: 8px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.header-center {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#headerMainLogo {
+    max-height: 360px; /* Report: 360px, Global: 70px. This is a large difference. Assuming report specific logo size for this context. */
+    width: auto;
+    display: block;
+    margin-top: 7px; /* Global uses -5px. */
+    filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7)); /* Specific shadow */
+}
+
+.header-right-controls {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-header, .header-text-link { /* Combined rule from original, separated from dropdown-toggle::after */
+    font-weight: bold;
+    border-radius: 6px; /* Specific, global .btn is var(--btn-border-radius, 20px) */
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem; /* global .btn is 14px */
+    line-height: 1.4;
+    padding: 8px 12px; /* Specific, global .btn padding is 0 12px with fixed height */
+}
+
+.btn-header {
+    background: var(--theme-accent-color, #00a8ff);
+    border: none;
+    color: #222; /* Specific text color for this button type */
+    transition: background-color 0.3s ease;
+}
+
+.btn-header:hover {
+    background: #0086d1; /* Darker accent, no direct global var. Keep for now. */
+}
+
+.header-text-link {
+    color: var(--theme-accent-color, #00a8ff);
+    background: none;
+    border: none;
+    padding: 8px 5px; /* Specific padding */
+}
+
+.header-text-link:hover {
+  text-decoration: underline;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle::after { /* Original simple toggle arrow */
+    content: ' \\25BC';
+    font-size: 0.6em; /* Consider aligning with global .dropdown-toggle.btn.header-btn::after if structure matches */
+    margin-left: 4px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #272727; /* Global uses #1e1e1e. Report uses slightly different shade. */
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+    z-index: 1001; /* Align with global dropdown z-index */
+    border-radius: var(--modal-border-radius, 8px); /* Global dropdown has 8px, report has 6px. Using global. */
+    margin-top: 6px; /* Or use global calc(100% + 5px) if top is defined similarly */
+    left: 0; /* Global can be right:0; top: calc(100% + 5px) */
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+}
+
+.dropdown-content.show { display: block; }
+
+.dropdown.align-right .dropdown-content {
+    left: auto;
+    right: 0;
+}
+
+.dropdown-content a {
+    color: var(--theme-accent-color, #00a8ff); /* Report specific: accent color for links. Global uses --text-color-normal */
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.85rem; /* Global dropdown link 0.9rem */
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Align with global transition */
+    position: relative;
+}
+
+.dropdown-content a::after { content: "\\00a0\\00a0🔗"; } /* General link icon for this dropdown */
+
+.dropdown-content a:hover {
+    background-color: #333333; /* Global dropdown hover bg */
+    color: var(--theme-accent-hover-color, #00c0ff); /* Global dropdown hover text */
+}
+
+.main-content-wrapper {
+    flex-grow: 1;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1; /* Ensure it's above body z-index if any, and image-glow */
+    align-items: center; /* From global .main-content-wrapper */
+    /* padding-top and padding-bottom for fixed header/footer should come from body global style */
+    /* overflow-y: auto; removed, body will scroll */
+}
+
+.image-glow {
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
+    width: 570px;
+    z-index: 0; /* Below main-content-wrapper */
+}
+
+.image-glow-flipped {
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
+    width: 570px;
+    z-index: 0; /* Below main-content-wrapper */
+}
+
+main.report-page-content {
+    max-width: 600px;
+    margin: 40px auto; /* Specific margin */
+    padding: 30px; /* Specific padding */
+    background-color: var(--modal-content-bg, #2a2a2a);
+    border-radius: var(--modal-border-radius, 12px);
+    box-shadow: 0 0 15px var(--modal-shadow-color, rgba(0, 168, 255, 0.35)); /* Use modal shadow var */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    position: relative;
+    z-index: 1; /* Ensure it's above image-glow if it overlaps */
+}
+
+main.report-page-content h1 {
+    margin-bottom: 0;
+    color: var(--theme-accent-color, #00a8ff);
+    font-size: 2.2rem;
+}
+
+.report-box {
+    background-color: #3b3b4b; /* Specific background */
+    border-radius: var(--modal-border-radius, 12px);
+    padding: 25px 30px;
+    box-shadow: inset 0 0 12px rgba(0, 168, 255, 0.2); /* Specific inset shadow with accent color */
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.report-box ul {
+    list-style-type: none;
+    padding-left: 0;
+    font-size: 1.15rem;
+    margin: 0;
+}
+
+.report-box ul li {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    color: var(--text-color-light, #eee);
+}
+
+.report-box ul li .icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+    line-height: 1;
+}
+
+.contact-note {
+    font-size: 0.95rem;
+    color: #bbb; /* Specific lighter gray, between normal and light */
+    line-height: 1.4;
+    max-width: 520px;
+    margin: 0 auto;
+}
+.contact-note a {
+    color: var(--theme-accent-color, #00a8ff);
+    text-decoration: none;
+}
+.contact-note a:hover {
+    text-decoration: underline;
+}
+
+/* This rule was at the end of the first CSS block, syntax corrected */
+.logout-screen-wrapper .btn,
+.logout-screen-wrapper button,
+.logout-dialog .btn,
+.logout-dialog button,
+.logout-page-container .btn,
+.logout-page-container button,
+.btn-logout {
+    font-weight: bold !important;
+}
+
+/* This rule for header buttons bold was also at the end, keep for specific enforcement */
+header .btn,
+header button,
+header .header-btn {
+    font-weight: bold !important;
+}
+
+
+@media (max-width: 768px) {
+    header { /* Assuming global.css makes header position: static; here */
+        height: auto;
+        min-height: 70px;
+        padding: 10px; /* Report: 10px, Global: 10px top/bottom */
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .header-left, .header-center, .header-right-controls {
+        flex-basis: auto;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+    /* If global body padding is removed, main-content-wrapper does not need specific large padding for static header */
+    .main-content-wrapper {
+        /* padding-top: 100px; padding-bottom: 100px; /* Removed, assuming body handles scroll & global.css removes body padding */
+        /* Content will flow naturally after static header */
+    }
+    main.report-page-content {
+        margin: 20px 15px;
+        padding: 20px;
+        width: auto;
+    }
+    #headerMainLogo { /* Copied from global.css media query for consistency */
+        max-height: 50px;
+        margin-top: 0;
+    }
+    .header-left h1 { font-size: 1.4rem; } /* Matches global MQ */
+    .tagline { font-size: 0.7rem; } /* Matches global MQ */
+
+    .btn-header, .header-text-link { /* Adjusting report specific buttons */
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+    /* .btn.header-btn from global would also have its own responsive styles */
+
+    main.report-page-content h1 { font-size: 1.9rem; }
+    .report-box ul li { font-size: 1rem; }
+    .image-glow, .image-glow-flipped { display: none; }
+}
+
+@media (max-width: 480px) {
+    .header-left h1 { font-size: 1.2rem; }
+    .header-left .tagline { display: none; }
+    /* .main-content-wrapper { padding-top: 80px; } /* Re-evaluate if needed with static header */
+    main.report-page-content {
+        margin: 10px;
+        padding: 15px;
+    }
+    /* From original, assuming it's for a different page but was in the same block */
+    main.about-page-content h2.highlight {
+        font-size: 1.7rem;
+    }
+}

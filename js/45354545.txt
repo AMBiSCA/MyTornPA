@@ -1,0 +1,53 @@
+/* 
+
+
+
+
+
+ <h2>TCP's Faction Scout - Current Factions recruiting.</h2>
+
+
+
+
+
+.chat-modal-content {
+    background-color: var(--modal-content-bg, #2a2a2a); /* Sets the background color of the modal. 
+                                                              It tries to use a CSS variable '--modal-content-bg', 
+                                                              but if that variable isn't defined, it defaults to a dark gray (#2a2a2a). */
+    color: var(--text-color-normal, #d0d0d0);           /* Sets the color of the text inside the modal.
+                                                              It tries to use a CSS variable '--text-color-normal',
+                                                              defaulting to a light gray (#d0d0d0) if not defined. */
+    padding: 20px;                                      /* Adds 20 pixels of space (padding) on all four sides 
+                                                              INSIDE the modal, between the border and the content. */
+    border-radius: var(--modal-border-radius, 12px);    /* Rounds the corners of the modal.
+                                                              Uses a CSS variable '--modal-border-radius', 
+                                                              defaulting to 12 pixels if not defined. */
+    border: 1px solid var(--theme-accent-color, #00a8ff);/* Puts a 1-pixel thick solid border around the modal.
+                                                              The color uses a CSS variable '--theme-accent-color',
+                                                              defaulting to a bright blue (#00a8ff) if not defined. */
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);          /* Adds a shadow effect around the modal.
+                                                              - 0: horizontal offset (no shift left/right)
+                                                              - 5px: vertical offset (shadow shifts down 5px)
+                                                              - 25px: blur radius (how much the shadow spreads and softens)
+                                                              - rgba(0, 0, 0, 0.5): shadow color (black with 50% transparency). */
+    width: 100%;                                        /* Makes the modal try to be 100% of the width of its parent container.
+                                                              This is often constrained by 'max-width'. */
+    max-width: 600px;                                   /* Sets the MAXIMUM width the modal can be. 
+                                                              Even if 'width: 100%' would make it wider, it won't exceed 600 pixels. */
+    min-height: 400px;                                  /* Sets the MINIMUM height the modal can be. 
+                                                              It will be at least 400 pixels tall, even if content is less. */
+    max-height: calc(100vh - 70px - 40px);              /* Sets the MAXIMUM height the modal can be.
+                                                              '100vh' is 100% of the viewport (browser window) height.
+                                                              It calculates the max height by taking the full viewport height and subtracting
+                                                              70px (likely for a header) and 40px (likely for top/bottom padding of the overlay). */
+    position: relative;                                 /* Establishes a positioning context for absolutely positioned child elements 
+                                                              (like a close button if it were positioned absolutely within this modal).
+                                                              It doesn't move the modal itself unless top/right/bottom/left are also used. */
+    display: flex;                                      /* Turns the modal into a flex container. This allows you to easily arrange 
+                                                              its direct children (like a header, content area, footer within the modal). */
+    flex-direction: column;                             /* When 'display: flex', this makes the direct children stack vertically 
+                                                              (one above the other) rather than side-by-side. */
+    font-weight: bold;                                  /* Makes the text inside the modal bold by default. */
+    margin-top: 0;                                      /* Sets the top margin of the modal to 0. 
+                                                              This can be used to ensure it sits flush against the top of its positioning context if needed. */
+}

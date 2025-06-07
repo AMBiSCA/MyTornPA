@@ -1,0 +1,78 @@
+cd "C:\Users\amybennett\Desktop\TCP-day 3"
+
+
+/
+* CORRECTED AND MERGED .chat-modal-content */
+.chat-modal-content {
+    background-color: var(--modal-content-bg, #2a2a2a);
+    color: var(--text-color-normal, #d0d0d0);
+    padding: 20px;
+    border-radius: var(--modal-border-radius, 12px);
+    border: 1px solid var(--theme-accent-color, #00a8ff);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    width: 100%; /* This makes it try to use the full width of its parent */
+    max-width: 600px; /* << THIS IS THE LINE THAT LIMITS HOW WIDE IT CAN GET */
+    min-height: 400px; 
+    max-height: calc(100vh - 70px - 40px); 
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+    margin-top: 0;
+}
+
+.hub-layout-final {
+    width: auto;
+    max-width: none !important;
+    margin: 20px 10px !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: grid !important;
+    grid-template-columns: minmax(280px, 320px) minmax(280px, 320px) !important; /* Both columns now 280-320px wide */
+    justify-content: space-between !important; /* This might create a larger gap in the middle if the overall container is wide */
+    align-items: flex-start !important;
+    box-sizing: border-box !important;
+    font-weight: bold !important;
+}
+
+
+
+Ah, I understand now! You're referring to the HTML id attributes for the elements related to the "Leadership View" and the "On The Hunt View" features that we've been working on.
+
+Based on our recent discussions and the code, the two most prominent IDs you'd likely be focused on for triggering these views would be the IDs of the main buttons that open these features:
+
+For the Leadership View (the button on your main page that's intended to open the Faction Leadership Panel):
+
+Button ID: hubActionLeadershipViewFinal
+The modal it's supposed to open: leadershipPanelModal (and its close button closeLeadershipPanelModalBtn)
+For the On The Hunt View (the button on your main page that opens the recruiting list modal):
+
+Button ID: hubActionOnTheHuntViewFinal
+The modal it opens: onTheHuntModal (this one is created dynamically, its close button ID was set as closeOnTheHuntModalBtn_dyn in recent JS versions).
+So, if you're thinking of two specific IDs for the trigger buttons for these two features, they would be:
+
+hubActionLeadershipViewFinal
+hubActionOnTheHuntViewFinal
+And the main modal container IDs associated with them are:
+
+leadershipPanelModal
+onTheHuntModal
+
+
+
+.hub-right-column-final {
+    /* These are likely your existing styles for this class: */
+    /* display: flex !important; */
+    /* flex-direction: column !important; */
+    /* gap: 15px !important; */
+    /* height: 100%; */
+    /* width: 100%; */
+    /* box-sizing: border-box !important; */
+
+    /* Add this line to move the whole right column down: */
+    margin-top: 40px !important; /* Adjust 40px to the desired amount of space */
+}
+
+

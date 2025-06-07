@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyTornPA - Event Calendar</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/eventcalendar.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+        <a href="home.html" style="text-decoration: none;">
+            <h1>MyTornPA <span class="tagline">Your personal assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+              <button class="btn-header dropdown-toggle" id="usefulLinksBtn">Useful Links&nbsp;🔗</button>
+              <div class="dropdown-content" id="usefulLinksDropdown">
+                <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+              </div>
+            </div>
+            <button class="btn-header" id="homeButtonHeader" onclick="window.location.href='home.html'">Home&nbsp;🏠</button>
+            <button class="btn-header" id="logoutButtonHeader">Logout&nbsp;🚪</button>
+        </div>
+        <button class="btn-header" id="signUpButtonHeader" onclick="window.location.href='signup.html';" style="display: none;">Sign Up!</button>
+    </div>
+  </header>
+      <main class="page-specific-content-area">
+      <h2>Torn Event Calendar & Tracker</h2>
+      <p>Stay updated with official Torn City events, important dates, competitions, and territory reset schedules. This section will provide a comprehensive overview to help you plan your activities.</p>
+      
+      <div class="placeholder-box">
+        <p><strong>Event Calendar Feature - Coming Soon!</strong></p>
+        <p>To make this page functional, you would typically need to:</p>
+        <ol style="text-align: left; margin-left: 20px; line-height: 1.6;">
+            <li><strong>Source Event Data:</strong> This could be from manually curated lists, community feeds, or if available, a Torn API endpoint for events (though official event APIs might be limited).</li>
+            <li><strong>HTML Structure:</strong> Design how you want to display events (e.g., a list view, a calendar grid). You might use `<div>`s for each event, or a `<table>` if appropriate.
+                <br>Example: `<div class="event-item"><h4>Event Name</h4><p>Date:

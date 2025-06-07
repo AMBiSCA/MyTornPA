@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyTornPA - Item Market Watcher</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/itemwatcher.css"> 
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+        <a href="home.html" style="text-decoration: none;">
+            <h1>MyTornPA <span class="tagline">Your personal assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+              <button class="btn-header dropdown-toggle" id="usefulLinksBtn">Useful Links&nbsp;🔗</button>
+              <div class="dropdown-content" id="usefulLinksDropdown">
+                <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+              </div>
+            </div>
+            <button class="btn-header" id="homeButtonHeader" onclick="window.location.href='home.html'">Home&nbsp;🏠</button>
+            <button class="btn-header" id="logoutButtonHeader">Logout&nbsp;🚪</button>
+        </div>
+        <button class="btn-header" id="signUpButtonHeader" onclick="window.location.href='signup.html';" style="display: none;">Sign Up!</button>
+    </div>
+  </header>
+
+  <div class="main-content-wrapper">
+    <main class="page-specific-content-area">
+      <h2>Item Market Watcher</h2>
+      <p>This tool will help you track item prices in Torn City, find good deals, and monitor market trends. Configure items you're interested in and let MyTornPA do the watching!</p>
+      
+      <div class="placeholder-box">
+        <p><strong>To make this Item Market Watcher functional and appealing, consider these steps:</strong></p>
+        <ul>
+            <li>
+                <strong>Data Source:</strong> Determine how you'll get item market data. The Torn API provides access to item market listings (`torn/items/{item_id}/Torn API`). You'll need to handle API calls and potentially store/cache data frequently.
+            </li>
+            <li>
+                <strong>Item Selection:</strong>
+                <ul>
+                    <li>Allow users to search for specific items by name or ID.</li>
+                    <li>Provide a way for users to create a "watchlist" of items they want to monitor.</li>
+                    <li>Perhaps categorize items (e.g., plushies, flowers, medical, weapons) for easier Browse.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Data Display:</strong>
+                <ul>
+                    <li>Show current lowest listings, average prices, and perhaps highest buy prices.</li>
+                    <li>Display price history charts for watched items (this would require storing historical data).</li>
+                    <li>Clearly show item name, image, description, and market price.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Core Functionality:</strong>
+                <ul>
+                    <li>Fetch and display real-time (or near real-time) market data for selected items.</li>
+                    <li>Allow users to add/remove items from their watchlist.</li>
+                    <li>Possibly implement price alert notifications (e.g., if an item drops below a certain price). This is more advanced.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>User Interface (UI) and User Experience (UX):</strong>
+                <ul>
+                    <li>Design a clean and intuitive interface for searching items and viewing data.</li>
+                    <li>Ensure the page is responsive and works well on mobile.</li>
+                    <li>Provide clear visual indicators for price changes (e.g., up/down arrows).</li>
+                    <li>Make it easy for users to refresh data.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Backend/Storage (Potentially):</strong> For features like price history, user-specific watchlists, or price alerts, you would likely need a database (like Firebase Firestore) to store this information.
+            </li>
+        </ul>
+        <p style="margin-top: 15px;"><em>This is a complex tool to build, so start with core features like searching for an item and displaying its current market price, then expand from there!</em></p>
+      </div>
+      
+      <p style="text-align:center; margin-top: 20px;"><em>Item Market Watcher - Feature Coming Soon!</em></p>
+    </main>
+  </div> <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/itemwatcher.js"></script>
+</body>
+</html>

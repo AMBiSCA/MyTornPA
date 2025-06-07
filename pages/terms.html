@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disclaimer & Terms | MyTornPA</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
+  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/terms.css"> 
+</head>
+<body>
+  <header>
+    <div class="header-left">
+        <a href="home.html" style="text-decoration: none;">
+            <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <button class="btn header-btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+            <span class="btn-text">Home:</span>
+            <span class="btn-icon">🏠</span>
+            </button>
+
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+                <button class="btn header-btn" id="usefulLinksBtn">
+                    <span class="btn-text">Useful Links:</span>
+                    <span class="btn-icon">🔗 🔽</span>
+                </button>
+                <div class="dropdown-content" id="usefulLinksDropdown">
+                    <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                    <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                    <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                    <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                    <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                    <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                    <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                    <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                    <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                </div>
+            </div>
+
+            <div class="dropdown" id="contactUsDropdownContainer"> 
+                <button class="btn header-btn" id="contactUsBtn"> 
+                    <span class="btn-text">Contact Us:</span>
+                    <span class="btn-icon">💬 🔽</span>
+                </button>
+                <div class="dropdown-content" id="contactUsDropdown"> 
+                    <a href="report.html">Report an Issue</a>
+                    <a href="#">Live Chat (Soon™)</a>
+                    <a href="#">Discord</a>
+                    <a href="FAQ.html">F.A.Q</a>
+                </div>
+            </div>
+
+            <button class="btn header-btn" id="logoutButtonHeader">
+                <span class="btn-text">Logout:</span>
+                <span class="btn-icon">🚪</span>
+            </button>
+        </div>
+
+        <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
+        <button class="btn" id="signUpButtonHeader" style="display: none;">Login Screen: 🔑</button>
+    </div>
+  </header>
+
+  <div class="main-content-wrapper">
+    <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+    <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+    <main class="terms-page-content">
+      <h2 class="highlight">Disclaimer & Terms and Conditions</h2>
+
+      <section>
+        <h3>Disclaimer</h3>
+        <p>
+          MyTornPA is an independent, fan-made website created by a passionate Torn player and developer. It is not affiliated with, endorsed by, or sponsored by the official Torn game or its developers. The Torn game and all associated trademarks, logos, and intellectual property are the property of their respective owners.
+        </p>
+        <p>
+          This site collects and displays publicly available data from the Torn API solely for informational and entertainment purposes. We make no claims to ownership of the data nor do we guarantee its accuracy or completeness. All use of data is intended to respect Torn's Terms of Service and community guidelines.
+        </p>
+        <p>
+          By using MyTornPA, you acknowledge and agree that this site and its creators hold no responsibility for any issues, losses, or damages arising from the use or interpretation of the information provided.
+        </p>
+      </section>
+
+      <section>
+        <h3>Terms and Conditions</h3>
+        <p>
+          By accessing and using MyTornPA, you agree to use the site responsibly and in compliance with all applicable laws and the Torn game's Terms of Service.
+        </p>
+        <p>
+          The site is provided "as is" without warranties of any kind. While we strive to maintain accurate and up-to-date information, we do not guarantee the reliability or availability of the service at all times.
+        </p>
+        <p>
+          You agree not to misuse the site or attempt to interfere with its proper functioning, including but not limited to unauthorized data scraping or hacking attempts.
+        </p>
+        <p>
+          MyTornPA reserves the right to modify, suspend, or discontinue any part of the site at any time without prior notice.
+        </p>
+        <p>
+          These Terms and Conditions may be updated periodically; continued use of the site constitutes acceptance of any changes.
+        </p>
+        <p>
+          If you have questions or concerns, please contact us at <a href="mailto:support@mytornpa.com">support@mytornpa.com</a>.
+        </p>
+      </section>
+    </main>
+  </div> 
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/terms.js"></script> </body>
+</html>

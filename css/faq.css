@@ -1,0 +1,148 @@
+.container {
+    width: 90%;
+    max-width: 1400px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #222;
+    padding: 20px 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
+    text-align: left;
+    position: relative;
+}
+
+.faq-page-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #00a8ff;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-top: 0;
+}
+
+.faq-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+.faq-item {
+    background-color: #272727;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.faq-question {
+    font-size: 1.3rem;
+    color: #00a8ff;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.faq-answer {
+    font-size: 0.88rem;
+    color: #ddd;
+    line-height: 1.55;
+    padding-left: 0;
+    flex-grow: 1;
+}
+.faq-answer a {
+    color: #00a8ff;
+    text-decoration: none;
+}
+.faq-answer a:hover {
+    text-decoration: underline;
+}
+
+.disclaimer-text {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #bbb;
+}
+.disclaimer-text p {
+    margin-bottom: 0;
+}
+.disclaimer-text a {
+    color: #00a8ff;
+    text-decoration: none;
+}
+.disclaimer-text a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: auto;
+        margin: 15px;
+        padding: 20px;
+    }
+    .faq-list {
+        margin-bottom: 15px;
+    }
+    .faq-page-title {
+        font-size: 1.9rem;
+        margin-bottom: 25px;
+    }
+    .faq-question {
+        font-size: 1.25rem;
+    }
+    .faq-answer {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 10px;
+        padding: 15px;
+    }
+    .faq-page-title {
+        font-size: 1.7rem;
+        margin-bottom: 20px;
+    }
+    .faq-question {
+        font-size: 1.15rem;
+    }
+    .faq-item {
+        padding: 12px;
+    }
+    .faq-answer {
+        font-size: 0.82rem;
+    }
+    .faq-list {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+    .disclaimer-text {
+        margin-top: 15px;
+    }
+}
+
+/* Force buttons in the header to be bold via faq.css */
+header .btn,
+header button,
+header .header-btn {
+    font-weight: bold !important;
+}
+
+/* Force buttons on logout screen to be bold via faq.css */
+/* Adjust selectors below to match your logout screen's HTML structure */
+.logout-screen-wrapper .btn,
+.logout-screen-wrapper button,
+.logout-dialog .btn,
+.logout-dialog button,
+.logout-page-container .btn,
+.logout-page-container button,
+.btn-logout { /* Example class for a specific logout button */
+    font-weight: bold !important;
+}

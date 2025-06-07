@@ -1,0 +1,441 @@
+
+.main-content-wrapper {
+    flex-grow: 1;
+    overflow-y: auto; /* Allows scrolling for content longer than the viewport height minus header/footer */
+    padding-top: 90px; /* Space for fixed header (70px + 20px buffer) */
+    padding-bottom: 90px; /* Space for fixed footer (70px + 20px buffer) */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: center;
+    z-index: 1;
+}
+
+/* Background image glows */
+.image-glow {
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    width: 570px;
+    max-width: 40%; /* Ensure it scales down on smaller viewports if needed */
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow-flipped {
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    width: 570px;
+    max-width: 40%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Main Battle Stats Peeper Container */
+.peeper-tool-container {
+    max-width: 900px;
+    margin: -10px auto;
+    background-color: #222;
+    padding: 30px 40px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff; /* Blue line around the container */
+    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4);
+    text-align: center;
+    position: center;
+    width: 90%;
+}
+
+.script-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    position: relative;
+    margin-top: 0;
+    margin-bottom: -40px;
+    color: #00a8ff;
+    -webkit-text-stroke: 1px black;
+    text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc;
+}
+
+/* API Key Status Message (re-added as a div in HTML) */
+#tornStatsApiKeyError {
+    color: #f39c12; /* Caution orange */
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 20px; /* Added margin-bottom to separate from content below */
+    text-align: center;
+    min-height: 1.2em;
+}
+
+/* Individual and Faction Search Boxes */
+.stats-container {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 30px;
+    max-width: 100%;
+    margin: 30px auto 0 auto;
+    flex-wrap: wrap;
+}
+.battle-stats-box, .faction-search-box {
+    flex: 1 1 300px; /* Allows flexibility and minimum width */
+    max-width: 420px;
+    min-height: 240px;
+    padding: 25px;
+    box-sizing: border-box;
+    background-color: rgba(43, 43, 43, 0.8);
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.battle-stats-box h3, .faction-search-box h3 {
+    color: #00a8ff;
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.battle-stats-box p, .faction-search-box p {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 15px;
+    flex-grow: 1; /* Allows text to push buttons to bottom if content varies */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Input fields within the boxes */
+.battle-stats-box input[type="text"],
+.faction-search-box input[type="text"] {
+    width: 100%;
+    height: 38px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    border: 1.5px solid #007acc;
+    background-color: #121212;
+    color: #eee;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.battle-stats-box input[type="text"]:focus,
+.faction-search-box input[type="text"]:focus {
+    outline: none;
+    border-color: #00b0ff;
+    box-shadow: 0 0 8px #00b0ff;
+}
+
+/* Error messages for individual inputs (Player ID, Faction ID) */
+.error-message {
+    color: #f39c12; /* Caution orange */
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-top: 5px;
+    text-align: center;
+    min-height: 1.2em; /* Ensures consistent spacing even when empty */
+    width: 100%;
+}
+
+/* Fetch Buttons */
+.fetch-btn {
+    display: block;
+    width: 180px;
+    padding: 10px 16px;
+    background-color: #28a745;
+    color: black; /* Changed to Black as requested in previous turn */
+    font-size: 1rem;
+    font-weight: bold;
+    border: 1px solid black; /* 1px black line around it */
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.5);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin: 15px auto 0 auto;
+    text-align: center;
+}
+.fetch-btn:hover {
+    background-color: #218838;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.7);
+}
+
+/* Inline status messages (e.g., "Fetching..." or "Error:...") */
+.results-inline-status {
+    font-size: 0.9rem;
+    margin-top: 10px;
+    color: #ffcc00; /* Yellow/Orange */
+    min-height: 1.2em;
+}
+
+/* Disclaimer text at bottom of container */
+.disclaimer {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #f39c12; /* Changed to your specific caution orange */
+    padding: 0px;
+    margin-top: 30px;
+    margin-bottom: 0;
+}
+.note p {
+    color: #f39c12; /* Changed to your specific caution orange */
+    font-weight: bold;
+    margin-top: 40px;
+    font-size: 0.9em;
+}
+
+/* General Error for main input fields (if it appears from JS) */
+.main-input-error-feedback {
+    color: #f39c12; /* Changed from red to caution orange */
+    background-color: rgba(243, 156, 18, 0.15); /* Orange background tint */
+    border-color: #f39c12; /* Orange border */
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 10px; /* Added padding for visibility */
+    border-radius: 5px; /* Added border-radius for styling */
+}
+
+
+/* --- Responsive Media Queries --- */
+@media (max-width: 768px) {
+    .peeper-tool-container { width: 95%; margin: 20px auto; padding: 20px; }
+    .script-title { font-size: 1.8rem; }
+    .input-group.api-key-group .input-field { width: 80%; max-width: 400px; } /* This group might no longer exist in HTML */
+    .stats-container { flex-direction: column; align-items: center; gap: 25px; }
+    .battle-stats-box, .faction-search-box { max-width: 90%; width: 100%; min-height: auto; }
+    .battle-stats-box p, .faction-search-box p { min-height: 50px; }
+    .image-glow, .image-glow-flipped { display: none; }
+}
+
+@media (max-width: 480px) {
+    .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
+    .script-title { font-size: 1.6rem; }
+    .input-group.api-key-group .input-field { width: 95%; } /* This group might no longer exist in HTML */
+    .battle-stats-box, .faction-search-box { max-width: 95%; }
+    .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
+}
+
+/* --- Common/Global styles (These should ideally be in global.css, but were found in your battlestats.css input) --- */
+/* If these are causing issues, verify they are NOT duplicated in global.css and then move them there. */
+
+/* HEADER related styles */
+header {
+    width: 100%;
+    background: #222;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+}
+.header-left {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.header-left a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+.header-left h1 {
+    font-size: 1.6rem;
+    color: #00a8ff;
+    margin: 0;
+    user-select: none;
+    white-space: nowrap;
+}
+.header-left .tagline {
+    font-size: 0.8rem;
+    color: #aaa;
+    font-weight: 400;
+    margin-left: 8px;
+    display: inline-block;
+    white-space: nowrap;
+}
+.header-right-controls {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn-header, .header-text-link {
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding: 8px 12px;
+}
+.btn-header {
+    background: #00a8ff;
+    border: none;
+    color: #222;
+    transition: background-color 0.3s ease;
+}
+.btn-header:hover {
+    background: #0086d1;
+}
+.action-buttons-container { /* This was in the factionpeeper.html CSS you sent */
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 25px auto;
+    flex-wrap: wrap;
+}
+/* IMPORTANT: .action-btn, .action-btn.fetch-btn, etc. are already defined earlier in this file.
+   These specific button styles below were likely copied from global.css or another file.
+   If you intend for .action-btn to be a global class, move this to global.css
+   and remove it from here to avoid duplication. */
+/*
+.action-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    min-width: 150px;
+    text-align: center;
+}
+.action-btn.fetch-btn { background-color: #28a745; color: #000; }
+.action-btn.fetch-btn:hover { background-color: #218838; }
+.clear-btn { background-color: #f39c12; color: #000; }
+.clear-btn:hover { background-color: #e08e0b; }
+.download-btn { background-color: #00a8ff; color: #222; }
+.download-btn:hover { background-color: #0086d1; }
+*/
+
+/* Dropdown styles (These should also ideally be in global.css) */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-toggle::after {
+    content: ' \25BC'; /* Down arrow for dropdown */
+    font-size: 0.6em;
+    margin-left: 4px;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #272727;
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+    z-index: 103;
+    border-radius: 6px;
+    margin-top: 6px;
+    left: 0; /* Default alignment */
+    border: 1px solid #00a8ff;
+}
+.dropdown-content.show { display: block; }
+.dropdown.align-right .dropdown-content { left: auto; right: 0; }
+.dropdown-content a {
+    color: #00a8ff;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.85rem;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+.dropdown-content a::after { content: "\00a0\00a0🔗"; }
+.dropdown-content a:hover { background-color: #383838; color: #fff; }
+
+/* Loading Spinner & Modal styles (These are fine to keep here if specific to this page's modals) */
+.loading-overlay {
+    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.75);
+    display: flex;justify-content: center;align-items: center;z-index: 2000;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);visibility: hidden;opacity: 0;transition: visibility 0s, opacity 0.3s ease-in-out;
+}
+.loading-overlay.visible {visibility: visible;opacity: 1;}
+.spinner {
+    border: 8px solid #444;
+    border-top: 8px solid #00a8ff;border-radius: 50%;
+    width: 60px;height: 60px;animation: spin 1s linear infinite;
+}
+@keyframes spin {0% { transform: rotate(0deg); }100% { transform: rotate(360deg); }}
+
+.modal-overlay {
+    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.85);
+    display: flex;justify-content: center;align-items: center;z-index: 1500;
+    visibility: hidden;opacity: 0;
+    transition: visibility 0s, opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
+}
+.modal-overlay.visible {visibility: visible;opacity: 1;}
+.modal-content {
+    background-color: #282828;
+    border-radius: 12px;box-shadow: 0 0 30px rgba(0, 168, 255, 0.7);
+    padding: 25px 30px;
+    width: 90%;max-width: 1000px;max-height: 90vh;overflow-y: auto;position: relative;
+    transform: scale(0.95) translateY(20px);opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+.modal-overlay.visible .modal-content {transform: scale(1) translateY(0);opacity: 1;}
+.modal-close-btn {
+    position: absolute;top: 12px;right: 12px;background: none;border: none;
+    font-size: 2rem;color: #00a8ff;cursor: pointer;z-index: 10; line-height: 1; padding:5px;
+}
+.modal-close-btn:hover {color: #00e0ff;}
+.modal-title {color: #00a8ff;font-size: 1.7rem;margin-top: 0;margin-bottom: 15px;text-align: center;}
+.modal-summary {margin-bottom: 15px;font-size: 1rem;color: #ddd;text-align: center; line-height: 1.5;}
+.modal-summary span {font-weight: bold;color: #fff; margin: 0 3px;}
+.modal-table-container {max-height: calc(90vh - 200px);overflow-y: auto;border: 1px solid #007acc;border-radius: 8px;margin-top: 15px;}
+.modal-table {width: 100%;border-collapse: collapse;margin: 0;background-color: #1c1c1c;}
+.modal-table thead th {
+    background-color: #007acc;color: white;padding: 12px 15px;text-align: left;
+    border: 1px solid #005f99;position: sticky;top: 0;z-index: 10; font-size: 0.95rem;
+}
+.modal-table tbody tr:nth-child(even) {background-color: #2a2a2a;}
+.modal-table tbody tr:nth-child(odd) {background-color: #333;}
+.modal-table tbody td {padding: 10px 15px;border: 1px solid #444;color: #eee;font-size: 0.9rem;text-align: left;}
+.modal-table tbody tr:hover {background-color: #404040;}
+
+/* Responsive Media Queries (These should also be in global.css if they apply site-wide) */
+@media (max-width: 768px) {
+    .peeper-tool-container { width: 95%; margin: 20px auto; padding: 20px; }
+    .script-title { font-size: 1.8rem; }
+    .input-group.api-key-group .input-field { width: 80%; max-width: 400px; }
+    .stats-container { flex-direction: column; align-items: center; gap: 25px; }
+    .battle-stats-box, .faction-search-box { max-width: 90%; width: 100%; min-height: auto; }
+    .battle-stats-box p, .faction-search-box p { min-height: 50px; }
+    .image-glow, .image-glow-flipped { display: none; }
+}
+
+@media (max-width: 480px) {
+    .peeper-tool-container { margin: 10px auto; padding: 15px; width: 95%;}
+    .script-title { font-size: 1.6rem; }
+    .input-group.api-key-group .input-field { width: 95%; }
+    .battle-stats-box, .faction-search-box { max-width: 95%; }
+    .fetch-btn { width: 160px; padding: 8px 12px; font-size: 0.9rem; }
+}

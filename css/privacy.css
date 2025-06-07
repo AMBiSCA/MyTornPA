@@ -1,0 +1,129 @@
+/* politics.css - Specific styles for the Politics page */
+
+.politics-page-content {
+    padding: 20px;
+    /* Inherits main styling from global.css, add specific overrides or new styles below */
+}
+
+.politics-page-content .highlight {
+    color: var(--theme-accent-color, #00a8ff);
+    margin-bottom: 25px;
+    text-align: center; /* As per global h2 */
+    font-weight: 600; /* As per global h2 */
+}
+
+.politics-page-content > p { /* Targeting the main introductory paragraph */
+    font-size: 1.05rem;
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--text-color-normal, #d0d0d0);
+}
+
+.politics-section {
+    background-color: rgba(30, 30, 30, 0.75); /* Darker, distinct section background */
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 10px; /* Slightly larger radius */
+    border: 1px solid rgba(0, 168, 255, 0.25);
+    box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.politics-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0, 168, 255, 0.2);
+}
+
+.politics-section h3 {
+    color: var(--theme-accent-hover-color, #00e0ff);
+    margin-top: 0;
+    margin-bottom: 18px;
+    border-bottom: 2px solid var(--theme-accent-color, #00a8ff);
+    padding-bottom: 12px;
+    font-size: 1.4rem; /* Larger subheadings */
+    font-weight: 500;
+}
+
+.politics-section p {
+    font-size: 0.95rem; /* Slightly smaller paragraph text within sections for density */
+    line-height: 1.65;
+    color: var(--text-color-light, #eee); /* Lighter text for contrast on darker section bg */
+    margin-bottom: 12px;
+}
+
+.politics-section ul {
+    list-style: none; /* Ensured by global.css */
+    padding-left: 0; /* Ensured by global.css */
+    margin-top: 15px;
+}
+
+.politics-section ul li {
+    background-color: rgba(42, 42, 42, 0.85); /* Slightly lighter than section bg */
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border-left: 4px solid var(--theme-accent-hover-color, #00e0ff);
+    color: var(--text-color-normal, #d0d0d0);
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, border-left-color 0.2s ease;
+}
+
+.politics-section ul li:hover {
+    background-color: rgba(55, 55, 55, 0.95);
+    border-left-color: #00ffc3; /* Example of a different hover accent */
+}
+
+/* Styles for potential interactive elements like buttons or category toggles if added later */
+/*
+.politics-category-toggle {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: var(--btn-default-bg-color);
+    color: var(--btn-default-text-color);
+    border: 1px solid var(--btn-default-border-color);
+    border-radius: var(--btn-border-radius);
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.politics-category-toggle:hover {
+    background-color: rgba(0, 168, 255, 0.15);
+    border-color: var(--btn-default-hover-border-color);
+}
+
+.politics-category-content {
+    display: none; // To be shown/hidden with JavaScript
+    margin-top: 10px;
+    padding: 15px;
+    background-color: rgba(20,20,20,0.5);
+    border-radius: 5px;
+}
+*/
+
+/* Responsive adjustments for politics page */
+@media (max-width: 768px) {
+    .politics-page-content {
+        padding: 15px;
+    }
+    .politics-page-content > p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+    .politics-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .politics-section h3 {
+        font-size: 1.25rem;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+    .politics-section p {
+        font-size: 0.9rem;
+    }
+    .politics-section ul li {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+}

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTornPA - The Hub</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/social.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <a href="home.html" style="text-decoration: none;">
+                <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+                <button class="btn header-btn" id="headerEditProfileBtn">
+                    <span class="btn-text">Profile:</span>
+                    <span class="btn-icon">⚙️</span>
+                </button>
+                <div class="dropdown" id="usefulLinksDropdownContainer">
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗</span>
+                    </button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
+                <div class="dropdown" id="headerContactUsContainer">
+                    <button class="btn header-btn" id="headerContactUsBtn">
+                        <span class="btn-text">Contact:</span>
+                        <span class="btn-icon">💬</span>
+                    </button>
+                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
+                        <a href="#">Live Chat</a>
+                        <a href="#">Discord</a>
+                        <a href="#">Email</a>
+                    </div>
+                </div>
+                <button class="btn header-btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span>
+                    <span class="btn-icon">🚪</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content-wrapper">
+        <main class="hub-layout-final" id="theHubMainUi">
+            <div class="hub-left-column-final">
+                <div class="hub-module-final hub-intro-panel-final">
+                    <div class="hub-module-header-final">
+                        <h2>✨📍 The Hub. 📍✨</h2>
+                    </div>
+                    <div class="hub-module-content-final">
+                        <p class="intro-subheader-final">Your central point for connection, coordination, and Torn activities.</p>
+                    </div>
+                </div>
+
+                <div class="hub-module-final hub-profile-panel-final">
+                    <div class="hub-module-header-final">
+                        <h3>👤📜 My Hub Profile. 📜👤</h3>
+                    </div>
+                    <div class="hub-module-content-final">
+                        <div class="profile-info-item-final">
+                            <span>Preferred Name:</span>
+                            <strong id="hubFinalPreferredName">Loading...</strong>
+                        </div>
+                        <div class="profile-info-item-final">
+                            <span>Torn Profile ID:</span>
+                            <strong id="hubFinalTornProfileId">Loading...</strong>
+                        </div>
+                        <hr class="hub-divider-final">
+                        <div class="profile-toggle-item-final">
+                            <label>Share Stats with Faction?</label> <div class="hub-switch-final">
+                                <input type="checkbox" id="shareStatsToggleFinal" class="toggle-switch-checkbox">
+                                <span class="slider round"></span>
+                            </div>
+                        </div>
+                        <div class="profile-toggle-item-final">
+                            <label>Looking for Faction?</label> <div class="hub-switch-final">
+                                <input type="checkbox" id="lookingForFactionToggleFinal" class="toggle-switch-checkbox">
+                                <span class="slider round"></span>
+                            </div>
+                        </div>
+                        <div class="profile-toggle-item-final">
+                            <label>Looking for Recruits?</label> <div class="hub-switch-final">
+                                <input type="checkbox" id="lookingForRecruitToggleFinal" class="toggle-switch-checkbox">
+                                <span class="slider round"></span>
+                            </div>
+                        </div>
+                        <div class="profile-toggle-item-final">
+                            <label>Appear On/Offline:</label> <div class="hub-switch-final">
+                                <input type="checkbox" id="appearOnlineToggleFinal" class="toggle-switch-checkbox" checked>
+                                <span class="slider round"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hub-module-final hub-tornhub-actions-final"> <div class="hub-module-header-final">
+                        <h3>🏛️🤗 TCP Social. 🤗🏛️</h3>
+                    </div>
+                    <div class="hub-module-content-final hub-tornhub-buttons-final">
+                        <button class="btn hub-action-button-final" id="hubActionGlobalChatFinal">Global Chat: 🌍</button>
+                        <button class="btn hub-action-button-final" id="hubActionFactionChatFinal">Faction Chat: 👥</button>
+                        <button class="btn hub-action-button-final" id="hubActionFriendsChatBtnFinal">Friends Chat: 👋</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hub-right-column-final">
+                <div class="hub-module-final hub-my-socials-panel-final">
+                    <div class="hub-module-header-final">
+                        <h3>🌟📰 Advertisement. 📰🌟</h3>
+                    </div>
+                    <div class="hub-module-content-final">
+                        <p class="text-placeholder-final">(Factions Recruiting And Players looking)</p>
+                    </div>
+                </div>
+
+                <div class="hub-right-spacer-final">
+                </div>
+
+                <div class="hub-module-final hub-friends-panel-final"> <div class="hub-module-header-final">
+                        <h3>🌐🗣️ Friends & Faction Links. 🗣️🌐</h3>
+                    </div>
+                    <div class="hub-module-content-final">
+                        <p>Friends Online: <strong id="friendsOnlineCountFinal">0</strong></p>
+                        <button class="btn hub-action-button-final" id="hubActionFactionInfoFinal">Faction info: ℹ️</button>
+                        <button class="btn btn-fullwidth-final" id="viewFriendsBtnFinal">Manage Friends List: ⚙️</button>
+                        <button class="btn hub-action-button-final" id="hubActionLeadershipViewFinal"> Leadership View: 👑</button>
+                        <button class="btn hub-action-button-final" id="hubActionOnTheHuntViewFinal">On The Hunt View: 🎯</button>
+                        <div id="friendsListContainerFinal" class="hub-dropdown-final" style="display: none; margin-top:10px;">
+                            <p class="no-friends-online-final" style="padding:8px; text-align:center;">No friends currently online.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="profileSetupModal" style="display: none;">
+        <div class="modal-content-box">
+            <span class="modal-close-btn" id="closeProfileModalBtn">&times;</span>
+            <h3>Complete Your Profile!</h3>
+            <p class="modal-subtitle">Help us personalize your MyTornPA experience!</p>
+            <div class="form-group">
+                <label for="preferredName">Display Name:</label>
+                <input type="text" id="preferredName" maxlength="10" placeholder="E.g., YourTornName">
+                <span class="helper-text name-warning">Max 10 characters. Please choose carefully.</span>
+                <div class="modal-error-message" id="nameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="profileSetupApiKey">Torn API Key (Limited Access Recommended):</label>
+                <input type="text" id="profileSetupApiKey" placeholder="Enter your Torn API Key">
+                <span class="helper-text">Optional - Enables richer data in tools. <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">(How to get?)</a>)</span>
+            </div>
+            <div class="form-group">
+                <label for="profileSetupProfileId">Your Torn Profile ID:</label>
+                <input type="text" id="profileSetupProfileId" placeholder="Enter your Torn User ID">
+                <span class="helper-text">(Optional - Helps personalize features. Find it in your Torn profile URL.)</span>
+            </div>
+            <div class="form-group checkbox-group">
+                <label for="shareFactionStatsModalToggle" class="checkbox-label-inline">
+                    <input type="checkbox" id="shareFactionStatsModalToggle">
+                    Allow Faction to see my stats via MyTornPA tools?
+                </label>
+            </div>
+            <div class="modal-error-message" id="profileSetupError"></div>
+            <div class="modal-actions">
+                <button id="skipProfileSetupBtn" class="btn">Skip for Now.</button>
+                <button id="saveProfileBtn" class="btn">Save Profile.</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="personalStatsModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content-box">
+            <span class="modal-close-btn" id="closePersonalStatsDialogBtn">&times;</span>
+            <h3>Your Personal Stats</h3>
+            <div id="personalStatsModalBody">
+                <p>Loading stats...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="hubChatModal" class="chat-modal-overlay" style="display: none;">
+        <div class="chat-modal-content">
+            <span class="chat-modal-close-btn" id="closeChatModalBtn">&times;</span>
+            <div class="chat-modal-header">
+                <h3>TCP Chat</h3>
+            </div>
+            <div class="chat-tabs" id="chatTabsContainer">
+                <button class="chat-tab-button active" id="globalChatTabBtn" data-target="globalChatContent">Global</button>
+                <button class="chat-tab-button" id="factionChatTabBtn" data-target="factionChatContent">Faction</button>
+                <button class="chat-tab-button" id="friendChatTabBtn" data-target="friendChatContent">Friends</button>
+            </div>
+            <div class="chat-content-wrapper">
+                <div id="globalChatContent" class="chat-messages-area active">
+                    <p class="chat-system-message">Welcome to Global Chat!</p>
+                </div>
+                <div id="factionChatContent" class="chat-messages-area">
+                    <p class="chat-system-message">Welcome to Faction Chat!</p>
+                </div>
+                <div id="friendChatContent" class="chat-messages-area">
+                    <div id="friendsInitialView" style="display: block;">
+                        <h4>Recent Chats:</h4>
+                        <ul id="recentChatsList" class="friends-list-scrollable"><li><p class="text-placeholder-final">No recent chats.</p></li></ul>
+                        <hr class="hub-divider-final">
+                        <h4>All Friends:</h4>
+                        <ul id="fullFriendsList" class="friends-list-scrollable"><li><p class="text-placeholder-final">Friend list loading or empty.</p></li></ul>
+                    </div>
+                    <div id="directMessageView" style="display: none;">
+                        <h4 id="dmOpponentName">Chat with [FriendName]</h4>
+                        <div id="dmMessagesArea" class="chat-messages-area" style="height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatMessageInput" placeholder="Type your message...">
+                <button class="btn" id="sendChatMessageBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="manageFriendsModal" class="modal-overlay manage-friends-modal-overlay" style="display: none;">
+        <div class="modal-content-box manage-friends-modal-content">
+            <span id="closeManageFriendsModalBtn" class="modal-close-btn">&times;</span>
+            <div class="modal-header">
+                <h2>TCPs Friendship Settings.</h2>
+            </div>
+            <div class="manage-friends-layout">
+                <div class="manage-friends-column add-friend-section">
+                    <h4 class="manage-friends-subheader">All Friends.</h4>
+                    <div class="search-bar-container">
+                        <input type="text" id="allFriendsSearchInput" placeholder="Search" class="standard-input">
+                    </div>
+                    <ul id="fullFriendsListInManageModal" class="friends-list-scrollable">
+                        <li><p class="text-placeholder-final">Friend list loading or empty.</p></li>
+                    </ul>
+                </div>
+                <div class="manage-friends-column">
+                    <h4 class="manage-friends-subheader">Recent Chats.</h4> <div class="search-bar-container">
+                        <input type="text" id="recentChatsSearchInput" placeholder="Search" class="standard-input">
+                    </div>
+                    <ul id="recentChatsListInManageModal" class="friends-list-scrollable"> <li><p class="text-placeholder-final">No recent chats.</p></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="factionInfoModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content-box">
+            <button type="button" class="modal-close-btn" id="closeFactionInfoModalBtn">&times;</button>
+            <div class="chat-modal-header">
+                <h3 id="factionInfoModalTitle">Faction Details</h3>
+            </div>
+            <div class="chat-tabs" id="factionInfoTabs">
+                <button class="faction-info-tab-button active" id="generalInfoTabBtn" data-target="generalInfoContent">General Info</button>
+                <button class="faction-info-tab-button" id="battleStatsTabBtn" data-target="factionBattleStatsContent">Battle Stats</button>
+            </div>
+            <div id="generalInfoContent" class="faction-info-modal-body-custom active">
+         </div>
+            <div id="factionBattleStatsContent">
+                <p class="chat-system-message">Loading battle stats...</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Level</th>
+                            <th>Strength</th>
+                            <th>Defense</th>
+                            <th>Speed</th>
+                            <th>Dexterity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="factionBattleStatsTableBody">
+                        <tr><td colspan="7" class="text-placeholder-final">No battle stats to display.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="accessSettingsModal" class="modal-overlay access-settings-overlay" style="display: none;">
+        <div class="modal-content-box">
+            <span id="closeAccessSettingsModalBtn" class="modal-close-btn access-modal-close-btn">&times;</span>
+            <h3>Manage Viewer Access</h3>
+            <div id="accessSettingsModalBody" style="padding: 10px 20px;">
+                <p class="helper-text" style="font-size: 0.85em; text-align: center; margin-bottom:15px;">
+                    Grant up to 5 faction members permission to view this list. Access is revoked if they leave the faction. (Backend logic required for enforcement).
+                </p>
+                <div id="viewerSlotsContainer">
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="saveViewerAccessBtn" class="btn">Save Viewer List</button>
+                </div>
+                <p id="accessSettingsError" class="modal-error-message" style="margin-top:10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="leadershipPanelModal" class="modal-overlay">
+        <div class="modal-content-box">
+            <span id="closeLeadershipPanelModalBtn" class="modal-close-btn">&times;</span>
+            <div class="modal-header">
+                <h2>Leadership Panel - Looking For Factions.</h2>
+            </div>
+            <div id="leadershipPanelModalBody">
+                <div class="faction-filters-container">
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <div class="filter-group" id="leadershipFilterMaxLevelBlock">
+                            <label for="leadershipFilterMaxLevelSlider">Max Level: <span id="leadershipFilterMaxLevelValue" class="slider-value">100</span></label>
+                            <input type="range" id="leadershipFilterMaxLevelSlider" class="filter-slider" min="1" max="100" value="100">
+                        </div>
+
+                        <div class="filter-group" id="leadershipFilterTotalBattlestatsBlock">
+                            <label for="leadershipFilterTotalBattlestatsSlider">Total Battlestats: <span id="leadershipFilterTotalBattlestatsValue" class="slider-value">0</span></label>
+                            <input type="range" id="leadershipFilterTotalBattlestatsSlider" class="filter-slider" min="0" max="10000000000" value="0">
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button id="applyLeadershipFiltersBtn" class="btn btn-primary">Apply</button>
+                        <button id="resetLeadershipFiltersBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                </div>
+
+                <div id="lookingForFactionsContainer">
+                    <h4>Players Looking For Factions</h4>
+                    <ul id="lookingForFactionsList">
+                        <li><p class="text-placeholder-final">Loading players...</p></li>
+                    </ul>
+                    <div id="leadershipPaginationControls" class="faction-pagination-controls" style="display: none;">
+                        <button id="prevLeadershipPageBtn" class="faction-page-arrow">&lt;</button>
+                        <span id="leadershipPageInfo" class="faction-page-info">Page 1 of 1</span>
+                        <button id="nextLeadershipPageBtn" class="faction-page-arrow">&gt;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="onTheHuntModal" class="modal-overlay">
+    <div class="modal-content-box">
+        <span id="closeOnTheHuntModalBtn" class="modal-close-btn">&times;</span>
+        <div class="modal-header">
+            <h2>TCP's Faction Scout - Current Factions recruiting.</h2>
+        </div>
+        <div id="onTheHuntModalBody">
+
+            <div class="faction-filters-container">
+               <div class="filter-group" id="respectFilterBlock">
+    <label for="filterMinRespectSlider">Max Respect: <span id="filterMinRespectValue" class="slider-value">0</span></label>
+    <input type="range" id="filterMinRespectSlider" class="filter-slider" min="0" max="20000000" value="20000000"> </div>
+
+    <div class="filter-group" id="membersFilterBlock">
+    <label for="filterMinMembersSlider">Max Members: <span id="filterMinMembersValue" class="slider-value">0</span></label>
+    <input type="range" id="filterMinMembersSlider" class="filter-slider" min="0" max="100" step="1" value="100"> </div>
+                
+            </div>
+
+            <div class="filter-group" id="tierFilterBlock">
+                <label class="filter-block-label">Faction Tier:</label>
+                <div class="checkbox-group-grid">
+                    <div><input type="checkbox" id="filterTierBronze" name="factionTier" value="Bronze" class="filter-checkbox"><label for="filterTierBronze" class="checkbox-label">Bronze</label></div>
+                    <div><input type="checkbox" id="filterTierSilver" name="factionTier" value="Silver" class="filter-checkbox"><label for="filterTierSilver" class="checkbox-label">Silver</label></div>
+                    <div><input type="checkbox" id="filterTierGold" name="factionTier" value="Gold" class="filter-checkbox"><label for="filterTierGold" class="checkbox-label">Gold</label></div>
+                    <div><input type="checkbox" id="filterTierPlatinum" name="factionTier" value="Platinum" class="filter-checkbox"><label for="filterTierPlatinum" class="checkbox-label">Platinum</label></div>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button id="applyFiltersBtn" class="btn btn-primary">Apply</button>
+                <button id="resetFiltersBtn" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+
+        <div id="recruitingFactionsContainer">
+            <h4>Factions Who Are Recruiting</h4>
+            <ul id="recruitingFactionsList">
+                <li><p class="text-placeholder-final">Loading recruiting factions...</p></li>
+            </ul>
+            <div id="factionPaginationControls" class="faction-pagination-controls" style="display: none;">
+                <button id="prevFactionPageBtn" class="faction-page-arrow">&lt;</button>
+                <span id="factionPageInfo" class="faction-page-info">Page 1 of 1</span>
+                <button id="nextFactionPageBtn" class="faction-page-arrow">&gt;</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/social.js"></script>
+</body>
+</html>

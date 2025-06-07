@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyTornPA - Stat Tracker</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/mypa.css"> 
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+        <a href="home.html" style="text-decoration: none;">
+            <h1>MyTornPA <span class="tagline">Your personal assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+              <button class="btn-header dropdown-toggle" id="usefulLinksBtn">Useful Links&nbsp;🔗</button>
+              <div class="dropdown-content" id="usefulLinksDropdown">
+                <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+              </div>
+            </div>
+            <button class="btn-header" id="homeButtonHeader" onclick="window.location.href='home.html'">Home&nbsp;🏠</button>
+            <button class="btn-header" id="logoutButtonHeader">Logout&nbsp;🚪</button>
+        </div>
+        <button class="btn-header" id="signUpButtonHeader" onclick="window.location.href='signup.html';" style="display: none;">Sign Up!</button>
+    </div>
+  </header>
+
+  <div class="main-content-wrapper">
+    <main class="page-specific-content-area">
+      
+      <h2>Battle Stat Gains Tracker</h2>
+      <p>See how your battle stats have changed since your last check. Your Torn API key will be used to fetch your current stats.</p>
+
+      <div id="statTrackerInterface">
+          <div class="stat-display-section">
+              <h3>Last Recorded Stats:</h3>
+              <p id="lastRecordedTimestamp">Checking...</p>
+              <ul id="lastStatsList">
+                  <li id="lastStrength">Strength: ---</li>
+                  <li id="lastSpeed">Speed: ---</li>
+                  <li id="lastDefense">Defense: ---</li>
+                  <li id="lastDexterity">Dexterity: ---</li>
+              </ul>
+          </div>
+
+          <button id="refreshStatsButton" class="btn-header" style="margin: 20px auto; display: block;">Refresh Stats & Calculate Gains</button>
+
+          <div class="stat-display-section">
+              <h3>Gains Since Last Check:</h3>
+              <p id="gainsMessage">Click the button above to see your gains.</p>
+              <ul id="gainsStatsList" style="display: none;">
+                  <li id="gainStrength">Strength: ---</li>
+                  <li id="gainSpeed">Speed: ---</li>
+                  <li id="gainDefense">Defense: ---</li>
+                  <li id="gainDexterity">Dexterity: ---</li>
+              </ul>
+          </div>
+      </div>
+
+    </main>
+  </div> 
+  
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/mypa.js"></script>
+</body>
+</html>

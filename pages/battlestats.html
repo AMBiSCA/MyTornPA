@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyTornPA - Battle Stats Peeper.</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/battlestats.css">
+	
+    </head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <a href="index.html" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-user-display" id="logged-in-user-display" style="display: none;">
+            </div>
+
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
+            
+            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+                <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+                    <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
+                </button>
+            
+                <div class="dropdown" id="usefulLinksDropdownContainer">
+                    <button class="btn dropdown-toggle" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links</span><span class="btn-icon">🔗</span>
+                    </button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
+                
+                <div class="dropdown" id="contactUsDropdownContainer">
+                    <button class="btn dropdown-toggle" id="contactUsBtn">
+                        <span class="btn-text">Contact Us</span><span class="btn-icon">💬</span>
+                    </button>
+                    <div class="dropdown-content" id="contactUsDropdown">
+                        <a href="pages/report.html">Report an Issue</a>
+                        <a href="#">Live Chat (Soon™)</a>
+                        <a href="pages/FAQ.html">F.A.Q</a>
+                    </div>
+                </div>
+                
+                <button class="btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout</span><span class="btn-icon">🚪</span>
+                </button>
+            </div>
+            
+            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+        </div>
+    </header>
+
+    <div class="main-content-wrapper">
+        <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+        <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+        <div class="peeper-tool-container">
+            <h2 class="script-title">Battle Stats Peeper.</h2>
+            
+            <div id="tornStatsApiKeyError" class="error-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;"></div>
+            <div class="stats-container">
+                <div class="battle-stats-box">
+                    <h3>Individual Battle Stats Checker:</h3>
+                    <p>Enter an individual's Profile ID to check their battle stats.</p>
+                    <input type="text" id="playerId" placeholder="Target Profile ID:">
+                    <div id="playerIdError" class="error-message"></div>
+                    <button id="checkBattleStats" class="fetch-btn">Fetch Individual Data!</button>
+                    <div id="battleStatsResults" class="results-inline-status"></div>
+                </div>
+                <div class="faction-search-box">
+                    <h3>Faction-Wide Search:</h3>
+                    <p>Enter a Faction ID to search faction-wide battle stats.</p>
+                    <input type="text" id="factionId" placeholder="Target Faction ID:" />
+                    <div id="factionIdError" class="error-message"></div>
+                    <button id="fetchFactionStats" class="fetch-btn">Fetch Faction Data!</button>
+                    <div id="factionStatsResults" class="results-inline-status"></div>
+                </div>
+            </div>
+          
+            <div class="note">
+                <p>Please Note: Data is Accurate from when the Target/Faction was last spied/settings are on within Tornstats.</p>
+            </div>
+        </div>
+
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="resultsModalOverlay" class="modal-overlay">
+            <div class="modal-content">
+                <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
+                <h3 class="modal-title">Spy Report</h3>
+                <div class="modal-summary">
+                </div>
+                <div class="modal-table-container">
+                    <table class="modal-table">
+                        <thead id="modal-results-table-header">
+                        </thead>
+                        <tbody id="modal-results-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/battlestats.js"></script>
+
+</body>
+</html>

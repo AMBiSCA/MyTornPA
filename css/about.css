@@ -1,0 +1,102 @@
+main.about-page-content {
+    max-width: 1200px; 
+    width: 90%;
+    margin: 30px auto;
+    padding: 30px 50px 20px; 
+    height: fit-content; 
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+    text-align: center;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+main.about-page-content h2.highlight {
+    color: #00a8ff;
+    margin-bottom: 20px;
+    user-select: none;
+    font-size: 2.2rem;
+}
+
+main.about-page-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    user-select: text;
+}
+main.about-page-content p strong {
+    color: #00a8ff;
+}
+main.about-page-content p a {
+    color: #00a8ff;
+    text-decoration: none;
+}
+main.about-page-content p a:hover {
+    text-decoration: underline;
+}
+
+.donate-button {
+    display: inline-block;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    background-color: #00a8ff;
+    color: #222;
+    font-weight: bold;
+    padding: 12px 25px;
+    border-radius: 10px;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0,168,255,0.5);
+    transition: background-color 0.3s ease;
+}
+.donate-button:hover {
+    background-color: #0086d1;
+    box-shadow: 0 6px 12px rgba(0,134,209,0.7);
+}
+
+@media (max-width: 768px) {
+    main.about-page-content { 
+        width: auto; 
+        margin: 20px 15px; 
+        padding: 20px; 
+        max-width: 90%; 
+    }
+    main.about-page-content p { 
+        max-width: 100%; 
+        font-size: 1rem; 
+    }
+    main.about-page-content h2.highlight { 
+        font-size: 1.9rem; 
+    }
+}
+
+@media (max-width: 480px) {
+    main.about-page-content { 
+        margin: 10px; 
+        padding: 15px; 
+    }
+    main.about-page-content h2.highlight { 
+        font-size: 1.7rem; 
+    }
+}
+
+header .btn,
+header button,
+header .header-btn {
+    font-weight: bold !important;
+}
+
+
+.logout-screen-wrapper .btn,
+.logout-screen-wrapper button,
+.logout-dialog .btn,
+.logout-dialog button,
+.logout-page-container .btn,
+.logout-page-container button,
+.btn-logout 
+    font-weight: bold !important;
+}

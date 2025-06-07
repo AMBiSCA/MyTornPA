@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | MyTornPA</title> 
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/ranked.css"> 
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+        <a href="home.html" style="text-decoration: none;">
+            <h1>MyTornPA <span class="tagline">Your personal assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+              <button class="btn-header dropdown-toggle" id="usefulLinksBtn">Useful Links&nbsp;🔗</button>
+              <div class="dropdown-content" id="usefulLinksDropdown">
+                <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+              </div>
+            </div>
+            <button class="btn-header" id="homeButtonHeader" onclick="window.location.href='home.html'">Home&nbsp;🏠</button>
+            <button class="btn-header" id="logoutButtonHeader">Logout&nbsp;🚪</button>
+        </div>
+        <button class="btn-header" id="signUpButtonHeader" onclick="window.location.href='signup.html';" style="display: none;">Sign Up!</button>
+    </div>
+  </header>
+
+  <div class="main-content-wrapper">
+    <div class="main-content">
+      <div class="login-container">
+        <h2>Login to MyTornPA</h2>
+        <input type="email" id="email" placeholder="Email" autocomplete="username" />
+
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+          <svg id="togglePassword" class="toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path id="eyeIcon" d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z"/>
+            <path id="eyeSlashIcon" style="display:none;" d="M12 5c-7 0-11 7-11 7s1.686 2.638 4.092 4.562l-1.53-1.53c-.501-.501-.762-1.207-.762-1.988 0-1.512 1.203-2.75 2.702-2.75.781 0 1.487.261 1.988.762l1.53-1.53c-1.924-2.406-4.562-4.091-7.02-4.091zm11.677 6.528c-.054-.102-.11-.203-.168-.303l-2.543-2.543c.934.899 1.658 1.978 2.092 3.109-.001.001-.001.001-.001.001.094.23.172.468.239.711l-1.757 1.757c.027-.232.044-.468.044-.707 0-.742-.2-1.44-.545-2.045l1.092 1.092c.015.027.029.054.044.081zm-11.132 7.927c.23-.094.468-.172.711-.239l1.757-1.757c-.232-.027-.468-.044-.707-.044-.742 0-1.44.2-2.045.545l1.092-1.092c.027-.015.054-.029.081-.044l-2.543-2.543c.899-.934 1.978-1.658 3.109-2.092s.001.001.001-.001c7 0 11 7 11 7s-1.686 2.638-4.092 4.562l-1.53-1.53c-.501-.501-.762-1.207-.762-1.988 0-1.512 1.203-2.75 2.702-2.75.781 0 1.487.261 1.988.762l1.53-1.53c-1.924-2.406-4.562-4.091-7.02-4.091zM2.702 12.044c1.131-.434 2.21-1.158 3.109-2.092l-1.53-1.53c-2.406 1.924-4.091 4.562-4.091 7.02s1.686 2.638 4.091 4.562l1.53-1.53c-.899-.934-1.658-1.978-2.092-3.109z"/>
+          </svg>
+        </div>
+
+        <label class="remember-me-label" for="rememberMe">
+          <input type="checkbox" id="rememberMe" />
+          Remember me?
+        </label>
+
+        <button id="loginBtn">Log In</button>
+        <div class="error-message" id="loginError"></div>
+        <button class="toggle-btn" id="showRegister">No account? Sign up</button>
+        <button class="toggle-btn" id="showForgotPassword">Forgot Password?</button>
+      </div>
+    </div>
+  </div> 
+
+  <div class="popup-overlay" id="registerOverlay">
+    <div class="popup">
+      <h3>Register</h3>
+      <input type="email" id="registerEmail" placeholder="Email" autocomplete="email" />
+      <input type="password" id="registerPassword" placeholder="Password (1 capital & special char)" autocomplete="new-password" />
+      <button id="registerBtn">Register</button>
+      <button id="googleSignInBtn" class="google-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/Google-logo.png" alt="Google Logo" /> Sign up with Google
+      </button>
+      <div class="error-message" id="registerError"></div>
+      <button class="toggle-btn" id="closeRegister">Back to Login</button>
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="forgotPasswordOverlay">
+    <div class="popup">
+      <h3>Reset Password</h3>
+      <input type="email" id="forgotEmail" placeholder="Enter your email" autocomplete="email" />
+      <button id="resetPasswordBtn">Send Reset Email</button>
+      <div class="error-message" id="forgotError"></div>
+      <div id="forgotSuccess"></div>
+      <button class="toggle-btn" id="closeForgot">Back to Login</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/ranked.js"></script>
+</body>
+</html>
