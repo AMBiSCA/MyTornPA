@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         5000000000, 7500000000, 10000000000 // Up to 10 Billion
     ];
 
+    // --- Helper function to format numbers ---
     function formatNumberForDisplay(num) {
         if (num >= 1000000000) {
             return (num / 1000000000).toLocaleString(undefined, {maximumFractionDigits:1}) + 'b';
@@ -50,16 +51,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return num.toLocaleString();
     }
 
+    // --- Unsubscribes for chat listeners ---
     let globalChatUnsub = null;
     let factionChatUnsub = null;
     let friendChatUnsub = null;
     let friendsListUnsub = null;
     let recentChatsUnsub = null;
     let dmChatUnsub = null;
-
     let currentDmFriendId = null;
 
-    // --- Firebase Service Assignments (Assuming firebase-init.js has already initialized the global 'firebase' object) ---
+    // --- Firebase Service Assignments ---
     console.log("social.js: Attempting to get Firebase service instances...");
     if (typeof firebase !== 'undefined' && firebase.app) {
         try {
@@ -114,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewFriendsBtnHub = document.getElementById('viewFriendsBtnFinal');
     const chatTabsContainer = document.getElementById('chatTabsContainer');
     const globalChatTabBtn = document.getElementById('globalChatTabBtn');
-    const factionChatTabBtn = document = document.getElementById('factionChatTabBtn');
+    const factionChatTabBtn = document.getElementById('factionChatTabBtn'); // Corrected typo here
     const friendChatTabBtn = document.getElementById('friendChatTabBtn');
     const globalChatContent = document.getElementById('globalChatContent');
     const factionChatContent = document.getElementById('factionChatContent');
@@ -152,13 +153,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const onTheHuntModalBody = document.getElementById('onTheHuntModalBody');
     const recruitingFactionsList = document.getElementById('recruitingFactionsList');
 
-    // NEW DOM Elements for Faction Pagination
     const factionPaginationControls = document.getElementById('factionPaginationControls');
     const prevFactionPageBtn = document.getElementById('prevFactionPageBtn');
     const nextFactionPageBtn = document.getElementById('nextFactionPageBtn');
     const factionPageInfo = document.getElementById('factionPageInfo');
 
-    // NEW DOM Elements for Faction Filters
     const filterMinRespectSlider = document.getElementById('filterMinRespectSlider');
     const filterMinRespectValue = document.getElementById('filterMinRespectValue');
     const filterMinMembersSlider = document.getElementById('filterMinMembersSlider');
@@ -168,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterTierGold = document.getElementById('filterTierGold');
     const filterTierPlatinum = document.getElementById('filterTierPlatinum');
 
-    // NEW DOM Elements for Leadership View Filters & List
     const leadershipFilterMaxLevelSlider = document.getElementById('leadershipFilterMaxLevelSlider');
     const leadershipFilterMaxLevelValue = document.getElementById('leadershipFilterMaxLevelValue');
     const leadershipFilterTotalBattlestatsSlider = document.getElementById('leadershipFilterTotalBattlestatsSlider');
@@ -181,14 +179,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextLeadershipPageBtn = document.getElementById('nextLeadershipPageBtn');
     const leadershipPageInfo = document.getElementById('leadershipPageInfo');
 
-    // NEW DOM elements for Faction Info Tabs
     const factionInfoTabsContainer = document.getElementById('factionInfoTabs');
     const generalInfoTabBtn = document.getElementById('generalInfoTabBtn');
     const battleStatsTabBtn = document.getElementById('battleStatsTabBtn');
     const factionBattleStatsContent = document.getElementById('factionBattleStatsContent');
     const factionBattleStatsTableBody = document.getElementById('factionBattleStatsTableBody');
 
-    // NEW DOM Elements for Manage Friends Modal
     const manageFriendsModal = document.getElementById('manageFriendsModal');
     const closeManageFriendsModalBtn = document.getElementById('closeManageFriendsModalBtn');
     const fullFriendsListInManageModal = document.getElementById('fullFriendsListInManageModal');
@@ -202,8 +198,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (homeButtonFooter) homeButtonFooter.style.display = 'inline-block'; // This is a footer button
 
 
-    // --- Core Initialization Function for The Hub Content (Now internal to social.js's logic) ---
-    // This function will be called once the user's authentication status is confirmed.
+    // --- Functions that must be defined early for accessibility ---
+    // Moved these up because initializeHubContent depends on them.
+    function showProfileSetupModal() {
+        if (profileSetupModal) { profileSetupModal.style.display = 'flex'; }
+        else { console.error("profileSetupModal element not found!"); }
+    }
+    function hideProfileSetupModal() {
+        if (profileSetupModal) {
+            profileSetupModal.style.display = 'none';
+            if(nameErrorEl) nameErrorEl.textContent='';
+            if(profileSetupErrorEl) profileSetupErrorEl.textContent='';
+        } else { console.error("profileSetupModal element not found!"); }
+    }
+    function setupButtonListener(buttonEl, buttonName, callback) {
+        if (buttonEl) {
+            console.log(`Attaching listener to: ${buttonName} (ID: ${buttonEl.id || 'N/A'})`);
+            buttonEl.addEventListener('click', callback);
+        }
+    }
+
+
+    // --- Core Initialization Function for The Hub Content (Internal to social.js's logic) ---
     async function initializeHubContent(user) {
         if (!user) {
             console.log("initializeHubContent: No user object received, cannot initialize content.");
@@ -214,7 +230,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentUserId = user.uid;
         console.log("initializeHubContent: User is signed in. Initializing social hub content...");
 
-        const profileComplete = await loadHubUserProfileData(); // Load profile and get completion status
+        // Load profile and get completion status
+        const profileComplete = await loadHubUserProfileData(); 
 
         if (!profileComplete) {
             console.log("initializeHubContent: User profile is incomplete. Showing profile setup modal.");
@@ -224,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // If profile is complete, display the main UI and load all dynamic content
-        if (theHubMainUi) theHubMainUi.style.display = 'grid'; // Make main content visible
+        if (theHubMainUi) theHubMainUi.style.display = 'grid'; // Make main content visible!
 
         // Setup toggle switches based on loaded data
         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
@@ -244,22 +261,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
 
-    // --- General Utility for attaching listeners ---
-    function setupButtonListener(buttonEl, buttonName, callback) {
-        if (buttonEl) {
-            console.log(`Attaching listener to: ${buttonName} (ID: ${buttonEl.id || 'N/A'})`);
-            buttonEl.addEventListener('click', callback);
-        }
-    }
-
-    // --- API & Data Fetching Functions ---
+    // --- API & Data Fetching Functions (Remain here) ---
     async function fetchUserBattleStats(apiKey, userId) { /* ... (unchanged) ... */ return { strength: 0, defense: 0, speed: 0, dexterity: 0, total: 0, error: "Error" }; }
     async function fetchFactionMembersWithStats(factionId, apiKey) { /* ... (unchanged) ... */ return []; }
     function getLevelGradientOpacity(level) { /* ... (unchanged) ... */ return 0; }
     async function displayFactionBattleStats(factionId, apiKey) { /* ... (unchanged) ... */ }
     async function getFactionInfo(apiKey, tornProfileId) { /* ... (unchanged) ... */ return null; }
 
-    // MODIFIED: loadHubUserProfileData now updates UI, and *also* returns profile completion status
+    // loadHubUserProfileData now updates UI, and *also* returns profile completion status
     async function loadHubUserProfileData() {
         if (!currentUserId || !db) {
             if (hubFinalPreferredNameEl) hubFinalPreferredNameEl.textContent = 'N/A';
