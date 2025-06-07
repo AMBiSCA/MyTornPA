@@ -1,4 +1,4 @@
-/* social.js - Debugging for Faction Chat Display */
+// social.js - Debugging for Faction Chat Display 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("social.js: DOMContentLoaded event fired. The Hub is loading!");
 
@@ -89,8 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
     const theHubMainUi = document.getElementById('theHubMainUi');
-    const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-    const logoutButtonHeader = document.getElementById('logoutButtonHeader');
     const homeButtonFooter = document.getElementById('homeButtonFooter');
     const usefulLinksBtn = document.getElementById('usefulLinksBtn');
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
@@ -210,8 +208,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial UI State
     if (theHubMainUi) theHubMainUi.style.display = 'none';
-    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-    if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
     if (homeButtonFooter) homeButtonFooter.style.display = 'inline-block';
 
     function setupButtonListener(buttonEl, buttonName, callback) {
@@ -788,9 +784,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 3. (Optional) Add to friend's 'blockedBy' for advanced features like informing them
             // await db.collection('userProfiles').doc(friendUserIdToBlock).collection('blockedBy').doc(currentUserId).set({
-            //     userId: currentUserId,
-            //     preferredName: currentUserProfileData.preferredName,
-            //     blockedOn: firebase.firestore.FieldValue.serverTimestamp()
+            //   userId: currentUserId,
+            //   preferredName: currentUserProfileData.preferredName,
+            //   blockedOn: firebase.firestore.FieldValue.serverTimestamp()
             // });
 
             alert(`${friendName} has been blocked.`);
@@ -874,7 +870,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         listItem.addEventListener('click', () => {
-             // Only if not clicked on a button within the item
+            // Only if not clicked on a button within the item
             if (!event.target.closest('button')) {
                 if (hubChatModal) {
                     hubChatModal.style.display = 'flex';
@@ -942,7 +938,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const friend = doc.data();
                     const presenceDoc = await db.collection('presence').doc(friend.userId).get();
                     const isOnline = presenceDoc.exists && presenceDoc.data().status === 'online' &&
-                                        (Date.now() - presenceDoc.data().lastUpdate.toDate().getTime() < 300000);
+                                     (Date.now() - presenceDoc.data().lastUpdate.toDate().getTime() < 300000);
                     if (isOnline) onlineCount++;
                     return { ...friend, isOnline };
                 });
@@ -1008,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const friend = doc.data();
                     const presenceDoc = await db.collection('presence').doc(friend.userId).get();
                     const isOnline = presenceDoc.exists && presenceDoc.data().status === 'online' &&
-                                        (Date.now() - presenceDoc.data().lastUpdate.toDate().getTime() < 300000);
+                                     (Date.now() - presenceDoc.data().lastUpdate.toDate().getTime() < 300000);
                     return { ...friend, isOnline };
                 });
                 const recentFriends = await Promise.all(chatPromises);
@@ -1373,8 +1369,8 @@ function applyAllFilters() {
     const minMembers = parseInt(filterMinMembersSlider.value) || 0;
     
     const selectedTiers = [filterTierBronze, filterTierSilver, filterTierGold, filterTierPlatinum]
-                            .filter(checkbox => checkbox && checkbox.checked)
-                            .map(checkbox => checkbox.value);
+                                .filter(checkbox => checkbox && checkbox.checked)
+                                .map(checkbox => checkbox.value);
 
     currentlyDisplayedFactions = allRecruitingFactionsData.filter(faction => {
         const respectMatch = faction.totalRespect >= minRespect;
@@ -1827,7 +1823,7 @@ function resetLeadershipFilters() {
             if(globalChatContent) globalChatContent.innerHTML = '<p class="chat-system-message">Loading global messages...</p>';
             setupGlobalChatListener();
         } else if (clickedTab.id === 'factionChatTabBtn') {
-            if(factionChatContent) factionChatContent.innerHTML = `<p class="chat-system-message">Checking profile for faction chat access...</p>`;
+            if(factionChatContent) factionChatContent.innerHTML = `<p class="chat-system-message">Checking profile for faction chat access...</p вместо того чтобы использовать только header buttons I could potentially use the header.js to also set the other header buttons based on whether they are logged in or not`;
             loadHubUserProfileData().then(() => setupFactionChatListener()).catch(error => {
                 console.error("Chat Tabs: Error loading profile data before setting up faction chat:", error);
                 if(factionChatContent) factionChatContent.innerHTML = '<p class="chat-system-message">Failed to load profile for faction chat. Please try again.</p>';
@@ -1941,24 +1937,6 @@ function resetLeadershipFilters() {
     if (accessSettingsModal) accessSettingsModal.addEventListener('click', (e) => { if (e.target === accessSettingsModal) accessSettingsModal.style.display = 'none'; });
     setupButtonListener(saveViewerAccessBtn, "Save Viewer Access Button", async () => {});
 
-    if (logoutButtonHeader && auth) {
-        logoutButtonHeader.onclick = () => {
-            auth.signOut().then(() => {
-                console.log("User signed out.");
-                if (globalChatUnsub) { globalChatUnsub(); globalChatUnsub = null; }
-                if (factionChatUnsub) { factionChatUnsub(); factionChatUnsub = null; }
-                if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
-                if (recentChatsUnsub) { recentChatsUnsub(); recentChatsUnsub = null; }
-                if (dmChatUnsub) { dmChatUnsub(); dmChatUnsub = null; }
-                currentDmFriendId = null;
-                updateUserOnlineStatus(false);
-            }).catch((error) => {
-                console.error("Error signing out:", error);
-                alert("Failed to sign out. Please try again.");
-            });
-        };
-    }
-
     if (auth) {
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -1971,15 +1949,11 @@ function resetLeadershipFilters() {
                         if (!currentUserProfileData || !currentUserProfileData.profileSetupComplete) {
                             console.log("Auth State Change: Profile incomplete or not found. Showing profile setup modal.");
                             if (theHubMainUi) theHubMainUi.style.display = 'none';
-                            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                             showProfileSetupModal();
                             return;
                         }
                         console.log("Auth State Change: Profile complete. Displaying hub UI.");
                         if (theHubMainUi) theHubMainUi.style.display = 'grid';
-                        if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                        if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
                         await loadHubUserProfileData();
                         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
                         setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
@@ -2000,8 +1974,6 @@ function resetLeadershipFilters() {
                 console.log("Auth State Change: User logged out.");
                 currentUserId = null; currentUserProfileData = null;
                 if (theHubMainUi) theHubMainUi.style.display = 'none';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                 if (globalChatUnsub) { globalChatUnsub(); globalChatUnsub = null; }
                 if (factionChatUnsub) { factionChatUnsub(); factionChatUnsub = null; }
                 if (friendsListUnsub) { friendsListUnsub(); friendsListUnsub = null; }
