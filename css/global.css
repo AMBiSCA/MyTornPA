@@ -173,7 +173,7 @@ header {
 
 /* Dropdown Styles (Common to all pages) */
 .dropdown { position: relative; display: inline-block; }
-.dropdown-toggle::after { content: ' \25BC'; font-size: 0.6em; margin-left: 4px; }
+
 .dropdown-content {
     display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
