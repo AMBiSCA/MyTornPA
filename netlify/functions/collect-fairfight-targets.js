@@ -16,12 +16,10 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 const TORN_API_KEY = process.env.TORN_API_KEY;
-const MAX_TORN_ID = 3000000;
-// --- MODIFIED PLAYERS_TO_PROCESS_PER_RUN ---
-const PLAYERS_TO_PROCESS_PER_RUN = 6; // Reduced to guarantee completion within 10-second timeout
-// --- END MODIFIED PLAYERS_TO_PROCESS_PER_RUN ---
-const CONCURRENT_API_CALLS = 3;
-const DELAY_BETWEEN_BATCHES_MS = 4000; // 4 seconds delay
+const MAX_TORN_FACTION_ID = 15000; // Approximate current highest Faction ID (based on search)
+const PLAYERS_TO_PROCESS_PER_RUN = 6; // Still aiming for 6 *players* saved per run for timeout
+const CONCURRENT_API_CALLS = 3; // Concurrent calls for *individual player data*
+const DELAY_BETWEEN_BATCHES_MS = 4000; // Delay between batches of *player* API calls
 
 const MIN_LEVEL_FILTER = 1;
 const MAX_DAYS_INACTIVE_FILTER = 9999;
@@ -57,123 +55,155 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
-    console.log(`Starting background collection of ${PLAYERS_TO_PROCESS_PER_RUN} random players.`);
+    console.log(`Starting background collection using random factions to find up to ${PLAYERS_TO_PROCESS_PER_RUN} players.`);
 
-    const playerIdsToFetch = new Set();
+    const foundPlayersThisRun = []; // Players successfully processed in this run
+    let factionsProcessed = 0;
+    const maxFactionsToAttempt = 5; // Max number of random factions to try per run (to avoid timeout)
     const startTime = Date.now();
-    let playersProcessed = 0;
-    let playersSaved = 0;
 
-    while (playerIdsToFetch.size < PLAYERS_TO_PROCESS_PER_RUN) {
-        playerIdsToFetch.add(Math.floor(Math.random() * MAX_TORN_ID) + 1);
-    }
+    for (let i = 0; i < maxFactionsToAttempt && foundPlayersThisRun.length < PLAYERS_TO_PROCESS_PER_RUN; i++) {
+        const randomFactionId = Math.floor(Math.random() * MAX_TORN_FACTION_ID) + 1;
+        factionsProcessed++;
 
-    const idsArray = Array.from(playerIdsToFetch);
-    
-    for (let i = 0; i < idsArray.length; i += CONCURRENT_API_CALLS) {
-        const batchIds = idsArray.slice(i, i + CONCURRENT_API_CALLS);
-        const playerPromises = batchIds.map(async playerId => {
-            try {
-                const tornApiUrl = `https://api.torn.com/user/${playerId}?selections=basic,battlestats,personalstats&key=${TORN_API_KEY}`;
-                const tornApiResponse = await axios.get(tornApiUrl);
-                const playerData = tornApiResponse.data;
-                playersProcessed++;
+        try {
+            // 1. Fetch faction data
+            const factionApiUrl = `https://api.torn.com/faction/${randomFactionId}?selections=basic&key=${TORN_API_KEY}`;
+            const factionApiResponse = await axios.get(factionApiUrl); // Make API call for faction
+            const factionData = factionApiResponse.data;
 
-                if (playerData.error) {
-                    console.warn(`Torn API error for ID ${playerId}:`, playerData.error.message);
-                    if (playerData.error.code === 2) {
-                        console.error("Collector: Invalid Torn API Key. Aborting.");
-                        throw new Error("Invalid Torn API Key for collector.");
-                    }
-                    if (playerData.error.code === 5 || playerData.error.code === 6) {
-                        console.warn(`Torn API rate limit hit for ID ${playerId}.`);
-                    }
-                    return null;
+            if (factionData.error) {
+                console.warn(`Faction API error for Faction ID ${randomFactionId}:`, factionData.error.message);
+                if (factionData.error.code === 2) {
+                    console.error("Collector: Invalid Torn API Key for faction lookup. Aborting.");
+                    throw new Error("Invalid Torn API Key for collector.");
                 }
-
-                if (!playerData.player_id || playerData.player_id.toString() === "0" || !playerData.name || !playerData.level || !playerData.last_action || !playerData.last_action.timestamp) {
-                    console.log(`Skipping ${playerId}: Missing basic data (ID, name, level, last_action).`);
-                    return null;
+                if (factionData.error.code === 5 || factionData.error.code === 6) {
+                    console.warn(`Torn Faction API rate limit hit for Faction ID ${randomFactionId}.`);
                 }
-                if (playerData.level < MIN_LEVEL_FILTER) {
-                    console.log(`Skipping ${playerId}: Level (${playerData.level}) below MIN_LEVEL_FILTER (${MIN_LEVEL_FILTER}).`);
-                    return null;
-                }
-                const ageDays = (Date.now() / 1000 - playerData.last_action.timestamp) / (24 * 60 * 60);
-                if (ageDays > MAX_DAYS_INACTIVE_FILTER) {
-                    console.log(`Skipping ${playerId}: Inactivity (${ageDays} days) beyond MAX_DAYS_INACTIVE_FILTER (${MAX_DAYS_INACTIVE_FILTER}).`);
-                    return null;
-                }
-                
-                const { level, strength, defense, speed, dexterity } = playerData;
-                
-                if (strength === 0 || defense === 0 || speed === 0 || dexterity === 0) {
-                    console.log(`Skipping ${playerId}: Zero battle stats (str:${strength}, def:${defense}, spd:${speed}, dex:${dexterity}).`);
-                    return null;
-                }
-
-                const totalBS = strength + defense + speed + dexterity;
-                let bs_estimate_human = formatNumber(totalBS);
-
-                const level_diff_for_ff = level - MIN_LEVEL_FILTER;
-
-                const def_eff = (defense + speed) / (dexterity + strength);
-                const str_eff = (strength + dexterity) / (defense + speed);
-
-                let fairFightScore = 0;
-                if (!isNaN(def_eff) && !isNaN(str_eff) && str_eff !== 0) {
-                    fairFightScore = get_ff_score(level_diff_for_ff, def_eff, str_eff);
-                } else {
-                    console.log(`Skipping ${playerId}: Invalid effective stats for FF calculation (def_eff:${def_eff}, str_eff:${str_eff}).`);
-                    return null;
-                }
-                
-                if (fairFightScore < COLLECTOR_MIN_FF || fairFightScore > COLLECTOR_MAX_FF) {
-                    console.log(`Skipping ${playerId}: FF score (${fairFightScore.toFixed(2)}) outside collector's range (${COLLECTOR_MIN_FF}-${COLLECTOR_MAX_FF}).`);
-                    return null;
-                }
-
-                return {
-                    playerId: playerId,
-                    playerName: playerData.name,
-                    playerLevel: playerData.level,
-                    fairFightScore: parseFloat(fairFightScore.toFixed(2)),
-                    fairFightDifficulty: get_difficulty_text(fairFightScore),
-                    estimatedBattleStatsHuman: bs_estimate_human,
-                    lastActiveTimestamp: playerData.last_action.timestamp,
-                    timestampCollected: Math.floor(Date.now() / 1000)
-                };
-
-            } catch (error) {
-                console.error(`Collector: Failed to process player ${playerId}:`, error.message.substring(0, 100));
-                return null;
+                continue; // Skip this faction
             }
-        });
 
-        const results = await Promise.all(playerPromises);
-
-        const batch = db.batch();
-        let currentBatchSaves = 0;
-        for (const player of results) {
-            if (player) {
-                const docRef = db.collection('fairFightTargets').doc(player.playerId.toString());
-                batch.set(docRef, player, { merge: true });
-                currentBatchSaves++;
-                playersSaved++;
+            if (!factionData.ID || !factionData.name || !factionData.members || Object.keys(factionData.members).length === 0) {
+                // console.log(`Skipping Faction ID ${randomFactionId}: Does not exist, has no members, or missing data.`);
+                continue; // Skip if invalid or no members
             }
+
+            const memberIds = Object.keys(factionData.members);
+            if (memberIds.length === 0) {
+                // console.log(`Skipping Faction ID ${randomFactionId}: No members found.`);
+                continue;
+            }
+
+            // Shuffle member IDs to get random selection
+            memberIds.sort(() => Math.random() - 0.5); 
+
+            // 2. Fetch individual player data for a few members from this faction
+            for (let j = 0; j < memberIds.length && foundPlayersThisRun.length < PLAYERS_TO_PROCESS_PER_RUN; j++) {
+                const memberId = memberIds[j];
+                
+                // Add a small delay between *individual member* API calls within a faction
+                // This is in addition to the batch delay below
+                await new Promise(resolve => setTimeout(resolve, 500)); 
+
+                try {
+                    const tornPlayerApiUrl = `https://api.torn.com/user/${memberId}?selections=basic,battlestats,personalstats&key=${TORN_API_KEY}`;
+                    const playerApiResponse = await axios.get(tornPlayerApiUrl);
+                    const playerData = playerApiResponse.data;
+
+                    if (playerData.error) {
+                        console.warn(`Torn Player API error for member ${memberId} (from Faction ${randomFactionId}):`, playerData.error.message);
+                        continue;
+                    }
+
+                    if (!playerData.player_id || !playerData.name || !playerData.level || !playerData.last_action || !playerData.last_action.timestamp) {
+                        console.log(`Skipping player ${memberId}: Missing basic data.`);
+                        continue;
+                    }
+                    if (playerData.level < MIN_LEVEL_FILTER) {
+                        console.log(`Skipping player ${memberId}: Level (${playerData.level}) below MIN_LEVEL_FILTER (${MIN_LEVEL_FILTER}).`);
+                        continue;
+                    }
+                    const ageDays = (Date.now() / 1000 - playerData.last_action.timestamp) / (24 * 60 * 60);
+                    if (ageDays > MAX_DAYS_INACTIVE_FILTER) {
+                        console.log(`Skipping player ${memberId}: Inactivity (${ageDays} days) beyond MAX_DAYS_INACTIVE_FILTER (${MAX_DAYS_INACTIVE_FILTER}).`);
+                        continue;
+                    }
+                    
+                    const { level, strength, defense, speed, dexterity } = playerData;
+                    
+                    if (strength === 0 || defense === 0 || speed === 0 || dexterity === 0) {
+                        console.log(`Skipping player ${memberId}: Zero battle stats.`);
+                        continue;
+                    }
+
+                    const totalBS = strength + defense + speed + dexterity;
+                    let bs_estimate_human = formatNumber(totalBS);
+
+                    const level_diff_for_ff = level - MIN_LEVEL_FILTER; 
+                    const def_eff = (defense + speed) / (dexterity + strength);
+                    const str_eff = (strength + dexterity) / (defense + speed);
+
+                    let fairFightScore = 0;
+                    if (!isNaN(def_eff) && !isNaN(str_eff) && str_eff !== 0) {
+                        fairFightScore = get_ff_score(level_diff_for_ff, def_eff, str_eff);
+                    } else {
+                        console.log(`Skipping player ${memberId}: Invalid effective stats for FF calculation.`);
+                        continue;
+                    }
+                    
+                    if (fairFightScore < COLLECTOR_MIN_FF || fairFightScore > COLLECTOR_MAX_FF) {
+                        console.log(`Skipping player ${memberId}: FF score (${fairFightScore.toFixed(2)}) outside collector's range.`);
+                        continue;
+                    }
+
+                    foundPlayersThisRun.push({
+                        playerId: memberId,
+                        playerName: playerData.name,
+                        playerLevel: playerData.level,
+                        fairFightScore: parseFloat(fairFightScore.toFixed(2)),
+                        fairFightDifficulty: get_difficulty_text(fairFightScore),
+                        estimatedBattleStatsHuman: bs_estimate_human,
+                        lastActiveTimestamp: playerData.last_action.timestamp,
+                        timestampCollected: Math.floor(Date.now() / 1000)
+                    });
+
+                } catch (memberError) {
+                    console.error(`Collector: Failed to process member ${memberId} from Faction ${randomFactionId}:`, memberError.message.substring(0, 100));
+                    continue;
+                }
+            }
+            // If we found enough players, break from inner loop
+            if (foundPlayersThisRun.length >= PLAYERS_TO_PROCESS_PER_RUN) break; 
         }
-        if (currentBatchSaves > 0) {
-            await batch.commit();
-            console.log(`Collector: Saved ${currentBatchSaves} players to Firestore batch.`);
-        }
-        
+
+        // Add a delay between processing each *random faction*
         await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS));
+
+    } catch (factionError) {
+        console.error(`Collector: Failed to process Faction ID ${randomFactionId}:`, factionError.message.substring(0, 100));
+        // If a faction API call fails, don't abort, just skip this faction and try another random one.
+        continue;
+    }
+}
+
+    // Save all collected players from this run to Firestore
+    const batch = db.batch();
+    let playersSaved = 0;
+    for (const player of foundPlayersThisRun) {
+        const docRef = db.collection('fairFightTargets').doc(player.playerId.toString());
+        batch.set(docRef, player, { merge: true });
+        playersSaved++;
+    }
+    if (playersSaved > 0) {
+        await batch.commit();
+        console.log(`Collector: Saved ${playersSaved} players to Firestore batch.`);
     }
 
-    console.log(`Collector finished. Processed ${playersProcessed} players, saved ${playersSaved} eligible targets. Total duration: ${Date.now() - startTime}ms`);
+    console.log(`Collector finished. Processed ${factionsProcessed} random factions, saved ${playersSaved} eligible targets. Total duration: ${Date.now() - startTime}ms`);
 
     return {
         statusCode: 200,
-        body: JSON.stringify({ message: `Collection complete. Processed ${playersProcessed}, saved ${playersSaved} targets.` }),
+        body: JSON.stringify({ message: `Collection complete. Processed ${factionsProcessed} factions, saved ${playersSaved} targets.` }),
     };
 };
