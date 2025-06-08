@@ -3,6 +3,11 @@
 <head>
     <title>MyTornPA - Battle Stats Peeper.</title>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+	
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/battlestats.css">
 	
@@ -133,11 +138,26 @@
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> <script src="../js/firebase-init.js"></script>
+    <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
     <script src="../js/battlestats.js"></script>
+<script>
+  // Toggle the Contact dropdown
+  document.addEventListener('DOMContentLoaded', function () {
+    const contactBtn = document.getElementById('headerContactUsBtn');
+    const contactDropdown = document.getElementById('headerContactUsDropdown');
+
+    contactBtn.addEventListener('click', function (event) {
+      event.stopPropagation();
+      contactDropdown.classList.toggle('show');
+    });
+
+    // Close dropdown if clicked outside
+    window.addEventListener('click', function () {
+      contactDropdown.classList.remove('show');
+    });
+  });
+</script>
 
 </body>
 </html>

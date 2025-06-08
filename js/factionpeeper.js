@@ -1,902 +1,378 @@
-// Rest of your main JavaScript file (the one you sent me)
-// Stat selection logic and other functions
-const popularPresetStats = ['Level', 'Age', 'Last Action', 'Xanax Taken', 'Refills', 'Total War Hits'];
-const statCategories = [
-  { name: "⭐ Most Popular.", stats: popularPresetStats },
-  { name: "⚔️ Combat.", stats: [ 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmed Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Total War Assists' ] },
-  { name: "💰 Economy & Items.", stats: [ 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned' ] },
-  { name: "🚨 Crime & Jail.", stats: [ 'Criminal Record (Total)', 'Times Jailed', 'People Busted', 'Failed Busts', 'Arrests Made' ] },
-  { name: "💊 Medical & Drugs.", stats: [ 'Medical Items Used', 'Times Hospitalized', 'Drugs Used (Times)', 'Times Overdosed', 'Times Rehabbed', 'Boosters Used', 'Energy Drinks Used', 'Alcohol Used', 'Candy Used', 'Nerve Refills Used' ] },
-  { name: "📈 Activity & Progress.", stats: [ 'Daily Login Streak', 'Best Active Streak', 'User Activity', 'Awards', 'Donator Days', 'Missions Completed', 'Contracts Completed', 'Mission Credits Earned', 'Job Points Used', 'Stat Trains Received', 'Travels Made', 'City Finds', 'Dump Finds', 'Items Dumped', 'Books Read', 'Viruses Coded', 'Races Won', 'Racing Skill', 'Status', 'Respect' ] },
-  { name: "🎯 Bounties & Revives.", stats: [ 'Total Bounties', 'Bounties Placed', 'Bounties Collected', 'Money Spent on Bounties', 'Money From Bounties Collected', 'Revives Made', 'Revives Received', 'Revive Skill' ] }
-  // If you add TCP Anniversary, it would go in a new category or an existing one:
-  // { name: "🔥 User Info (Firebase)", stats: [ 'TCP Anniversary' ] }
-];
-const statDropdownsParentContainer = document.getElementById('statDropdownsParentContainer');
-const selectedStatsDisplay = document.getElementById('selectedStatsDisplay');
-const chkMostPopular = document.getElementById('chkMostPopular');
-const maxSelection = 6;
-let selected = new Set();
+// mysite/js/factionpeeper.js
+// This script focuses ONLY on the Faction People Peeper page's main functionalities.
+// Header button visibility and dropdowns are now handled EXCLUSIVELY by globalheader.js.
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("factionpeeper.js: DOMContentLoaded event fired. Faction Peeper is loading!");
 
-function renderSelectedStats() {
-  if (!selectedStatsDisplay) return;
-  selectedStatsDisplay.innerHTML = '';
-  if (selected.size === 0) {
-    selectedStatsDisplay.style.paddingTop = '0'; selectedStatsDisplay.style.paddingBottom = '0'; selectedStatsDisplay.style.minHeight = '0';
-  } else {
-    selectedStatsDisplay.style.paddingTop = '10px'; selectedStatsDisplay.style.paddingBottom = '10px'; selectedStatsDisplay.style.minHeight = '40px';
-  }
-  selected.forEach(statName => {
-    const tag = document.createElement('div');
-    tag.className = 'selected-stat-tag'; tag.textContent = statName;
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-tag'; removeBtn.innerHTML = '&times;'; removeBtn.title = `Remove ${statName}`;
-    removeBtn.onclick = (e) => {
-      e.stopPropagation(); selected.delete(statName);
-      let isStillPreset = chkMostPopular && chkMostPopular.checked && popularPresetStats.length === selected.size;
-      if(isStillPreset){
-        for(const pStat of popularPresetStats){ if(!selected.has(pStat)){isStillPreset = false; break;}}
-      }
-      if(chkMostPopular && chkMostPopular.checked && !isStillPreset) chkMostPopular.checked = false;
-      renderSelectedStats(); updateDropdownOptions();
-    };
-    tag.appendChild(removeBtn); selectedStatsDisplay.appendChild(tag);
-  });
-  const statsErrorDiv = document.getElementById('statsError');
-  if (!statsErrorDiv) return;
-  if (selected.size > maxSelection) { statsErrorDiv.textContent = `Error: More than ${maxSelection} stats selected!`; }
-  else if (selected.size === maxSelection) { statsErrorDiv.textContent = `Maximum ${maxSelection} stats selected.`;}
-  else { statsErrorDiv.textContent = ''; }
-}
+    // --- Firebase Configuration (Re-added for robustness on this page, similar to home.js) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // Replace with your actual config
+        authDomain: "mytorn-d03ae.firebaseapp.com",
+        projectId: "mytorn-d03ae",
+        storageBucket: "mytorn-d03ae.appspot.com",
+        messagingSenderId: "205970466308",
+        appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
+    };
 
-function updateDropdownOptions() {
-  if (!statDropdownsParentContainer) return;
-  const dropdowns = statDropdownsParentContainer.querySelectorAll('.stats-dropdown');
-  const limitReached = selected.size >= maxSelection;
-  dropdowns.forEach(selectElement => {
-    Array.from(selectElement.options).forEach(option => {
-      if (option.value === "") { option.disabled = false; return; }
-      const isSelected = selected.has(option.value);
-      option.disabled = isSelected || (limitReached && !isSelected);
-      option.style.color = option.disabled ? "#888" : "";
-    });
-  });
-}
-// --- DOM Element Getters (for Contact Us dropdown) ---
-const contactUsBtn = document.getElementById('contactUsBtn'); // This is your button
-const contactUsDropdown = document.getElementById('contactUsDropdown'); // This is its dropdown
+    let db = null;
+    let auth = null;
 
-// --- Dropdown Logic (Contact Us) ---
-// This function helps close other dropdowns if they are open
-function closeOtherDropdowns(currentDropdown, currentButton) {
-    const allDropdowns = document.querySelectorAll('.dropdown-content.show');
-    allDropdowns.forEach(dropdown => {
-        if (dropdown !== currentDropdown) {
-            dropdown.classList.remove('show');
-            // Remove 'active' class from its associated button if found
-            const associatedButton = dropdown.previousElementSibling; // Assuming button is always before dropdown
-            if (associatedButton && associatedButton.classList.contains('active')) {
-                associatedButton.classList.remove('active');
-            }
-        }
-    });
-}
-
-if (contactUsBtn && contactUsDropdown) {
-    contactUsBtn.addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevents the click from immediately closing it via window listener
-        const currentlyOpen = contactUsDropdown.classList.contains('show');
-        closeOtherDropdowns(contactUsDropdown, contactUsBtn); // Close others
-        
-        if (!currentlyOpen) { // If it was not open, open it
-            contactUsDropdown.classList.add('show');
-            contactUsBtn.classList.add('active'); // Add active class to button
-        } else {
-            contactUsDropdown.classList.remove('show');
-            contactUsBtn.classList.remove('active'); // Remove active class from button
-        }
-    });
-}
-
-// Global click listener to close dropdowns when clicking outside
-window.addEventListener('click', function(event) {
-    if (contactUsDropdown && contactUsDropdown.classList.contains('show')) {
-        if (!contactUsBtn.contains(event.target) && !contactUsDropdown.contains(event.target)) {
-            contactUsDropdown.classList.remove('show');
-            contactUsBtn.classList.remove('active');
-        }
-    }
-});
-if(chkMostPopular) {
-  chkMostPopular.addEventListener('change', () => {
-    selected.clear();
-    if (chkMostPopular.checked) {
-      popularPresetStats.forEach(stat => {
-        if(selected.size < maxSelection) selected.add(stat);
-      });
-    }
-    renderSelectedStats(); updateDropdownOptions();
-    if (statDropdownsParentContainer) {
-      statDropdownsParentContainer.querySelectorAll('.stats-dropdown').forEach(sel => sel.value = "");
-    }
-  });
-}
-
-let currentRowForDropdowns;
-if (statDropdownsParentContainer) {
-  statCategories.forEach((category, index) => {
-    if (index === 0) {
-      currentRowForDropdowns = document.createElement('div');
-      currentRowForDropdowns.className = 'dropdown-row single-dropdown';
-      statDropdownsParentContainer.appendChild(currentRowForDropdowns);
-    } else if (index === 1 || index === 4) { // Adjust this if you add/remove categories for layout
-      currentRowForDropdowns = document.createElement('div');
-      currentRowForDropdowns.className = 'dropdown-row';
-      statDropdownsParentContainer.appendChild(currentRowForDropdowns);
-    }
-
-    const categoryContainer = document.createElement('div');
-    categoryContainer.className = 'dropdown-category';
-    const categoryLabel = document.createElement('label');
-    categoryLabel.textContent = category.name;
-    const dropdownId = `dropdown-${category.name.replace(/[^a-zA-Z0-9]/g, '')}`;
-    categoryLabel.htmlFor = dropdownId;
-    categoryContainer.appendChild(categoryLabel);
-
-    const selectElement = document.createElement('select');
-    selectElement.className = 'stats-dropdown'; selectElement.id = dropdownId;
-    const defaultOption = document.createElement('option');
-    defaultOption.value = ""; defaultOption.textContent = `--- Select ---`;
-    selectElement.appendChild(defaultOption);
-
-    category.stats.forEach(stat => {
-      const option = document.createElement('option');
-      option.value = stat; option.textContent = stat;
-      selectElement.appendChild(option);
-    });
-    selectElement.onchange = (e) => {
-      const selectedStatName = e.target.value;
-      if (selectedStatName) {
-        if (!selected.has(selectedStatName)) {
-          if (selected.size < maxSelection) {
-            selected.add(selectedStatName);
-            if(chkMostPopular && chkMostPopular.checked) {
-              let isStillExactPreset = popularPresetStats.length === selected.size;
-              if(isStillExactPreset) {
-                for(const pStat of popularPresetStats) { if(!selected.has(pStat)){isStillExactPreset = false; break;}}
-              }
-              if(!isStillExactPreset) chkMostPopular.checked = false;
-            }
-          } else {
-            const statsErrorDiv = document.getElementById('statsError');
-            if (statsErrorDiv) statsErrorDiv.textContent = `Cannot select more than ${maxSelection} stats.`;
-            setTimeout(() => {
-              if(statsErrorDiv && selected.size <= maxSelection) statsErrorDiv.textContent = selected.size === maxSelection ? `Maximum ${maxSelection} stats selected.` : '';
-            }, 3000);
-          }
-        }
-        renderSelectedStats(); updateDropdownOptions();
-      }
-      e.target.value = "";
-    };
-    categoryContainer.appendChild(selectElement);
-    if (currentRowForDropdowns) currentRowForDropdowns.appendChild(categoryContainer);
-  });
-}
-if (selectedStatsDisplay) {
-  renderSelectedStats();
-  updateDropdownOptions();
-}
-
-const clearSelectionsBtn = document.getElementById('clearSelectionsBtn');
-if (clearSelectionsBtn) {
-  clearSelectionsBtn.addEventListener('click', () => {
-    selected.clear();
-    if(chkMostPopular) chkMostPopular.checked = false;
-    renderSelectedStats();
-    updateDropdownOptions();
-    if (statDropdownsParentContainer) {
-      statDropdownsParentContainer.querySelectorAll('.stats-dropdown').forEach(sel => sel.value = "");
-    }
-    const statsErrorDiv = document.getElementById('statsError');
-    if(statsErrorDiv) statsErrorDiv.textContent = '';
-  });
-}
-
-const downloadDataBtn = document.getElementById('downloadDataBtn');
-if (downloadDataBtn) {
-  downloadDataBtn.addEventListener('click', () => {
-    // START: HTML2CANVAS SCREENSHOT LOGIC
-    const modalContent = document.querySelector('.modal-content'); // The full modal content area
-    const tableContainer = document.querySelector('.modal-table-container'); 
-    const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
-
-    if (!modalContent || !tableContainer || !modalTableBody) {
-        console.error('Error: Required modal elements not found for screenshot.');
-        alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
-        return;
+    if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
+        if (!firebase.apps.length) { // Only initialize if no app exists
+            try {
+                firebase.initializeApp(firebaseConfig);
+                console.log("factionpeeper.js: Firebase initialized (fallback)");
+            } catch (e) {
+                console.error("factionpeeper.js: Error initializing Firebase:", e);
+            }
+        }
+        if (firebase.apps.length > 0) {
+            auth = firebase.auth();
+            db = firebase.firestore();
+        }
+    } else {
+        console.error("factionpeeper.js: Firebase SDK not fully loaded. Check firebase-init.js.");
+        const criticalErrorEl = document.getElementById('criticalErrorDisplay');
+        if (criticalErrorEl) criticalErrorEl.textContent = 'Critical error: Core libraries failed to load.';
     }
 
-    // Temporarily store original styles
-    const originalModalContentMaxHeight = modalContent.style.maxHeight;
-    const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
-    const originalModalTableContainerOverflow = tableContainer.style.overflowY;
-    const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
+    if (!db) console.error("factionpeeper.js: Firestore (db) could not be initialized.");
+    if (!auth) console.error("factionpeeper.js: Firebase Auth (auth) could not be initialized.");
 
-    // Apply temporary styles to capture full content
-    modalContent.style.maxHeight = 'fit-content'; 
-    tableContainer.style.maxHeight = 'fit-content'; 
-    tableContainer.style.overflowY = 'visible'; 
-    tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
 
-    // Adding a small delay to allow reflow and repaint before capturing
-    setTimeout(() => {
-        html2canvas(tableContainer, { // Capture the entire table container
-            scale: 2, // Increase resolution for better quality
-            useCORS: true, // Important if you have images (like background) loaded from different origins
-            logging: false, // Turn off console logging from html2canvas
-            allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
-        }).then(function(canvas) {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png'); 
-            link.download = 'Faction_Members_Data.png'; 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log('Image download initiated.'); 
+    // --- Stat selection logic and other common functions (These are core to Faction Peeper) ---
+    const popularPresetStats = ['Level', 'Age', 'Last Action', 'Xanax Taken', 'Refills', 'Total War Hits'];
+    const statCategories = [
+        { name: "⭐ Most Popular.", stats: popularPresetStats },
+        { name: "⚔️ Combat.", stats: [ 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmed Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Total War Assists' ] },
+        { name: "💰 Economy & Items.", stats: [ 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned' ] },
+        { name: "🚨 Crime & Jail.", stats: [ 'Criminal Record (Total)', 'Times Jailed', 'People Busted', 'Failed Busts', 'Arrests Made' ] },
+        { name: "💊 Medical & Drugs.", stats: [ 'Medical Items Used', 'Times Hospitalized', 'Drugs Used (Times)', 'Times Overdosed', 'Times Rehabbed', 'Boosters Used', 'Energy Drinks Used', 'Alcohol Used', 'Candy Used', 'Nerve Refills Used' ] },
+        { name: "📈 Activity & Progress.", stats: [ 'Daily Login Streak', 'Best Active Streak', 'User Activity', 'Awards', 'Donator Days', 'Missions Completed', 'Contracts Completed', 'Mission Credits Earned', 'Job Points Used', 'Stat Trains Received', 'Travels Made', 'City Finds', 'Dump Finds', 'Items Dumped', 'Books Read', 'Viruses Coded', 'Races Won', 'Racing Skill', 'Status', 'Respect' ] },
+        { name: "🎯 Bounties & Revives.", stats: [ 'Total Bounties', 'Bounties Placed', 'Bounties Collected', 'Money Spent on Bounties', 'Money From Bounties Collected', 'Revives Made', 'Revives Received', 'Revive Skill' ] }
+    ];
+    const statDropdownsParentContainer = document.getElementById('statDropdownsParentContainer');
+    const selectedStatsDisplay = document.getElementById('selectedStatsDisplay');
+    const chkMostPopular = document.getElementById('chkMostPopular');
+    const maxSelection = 6;
+    let selected = new Set();
 
-            // Restore original styles immediately after capture
-            modalContent.style.maxHeight = originalModalContentMaxHeight;
-            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-            tableContainer.style.overflowY = originalModalTableContainerOverflow;
-            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
-
-        }).catch(error => {
-            console.error('Error generating image:', error);
-            alert('Failed to generate image. Please try again.');
-
-            // Ensure styles are restored even on error
-            modalContent.style.maxHeight = originalModalContentMaxHeight;
-            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-            tableContainer.style.overflowY = originalModalTableContainerOverflow;
-            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+    function renderSelectedStats() {
+        if (!selectedStatsDisplay) return;
+        selectedStatsDisplay.innerHTML = '';
+        if (selected.size === 0) {
+            selectedStatsDisplay.style.paddingTop = '0'; selectedStatsDisplay.style.paddingBottom = '0'; selectedStatsDisplay.style.minHeight = '0';
+        } else {
+            selectedStatsDisplay.style.paddingTop = '10px'; selectedStatsDisplay.style.paddingBottom = '10px'; selectedStatsDisplay.style.minHeight = '40px';
+        }
+        selected.forEach(statName => {
+            const tag = document.createElement('div');
+            tag.className = 'selected-stat-tag'; tag.textContent = statName;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-tag'; removeBtn.innerHTML = '&times;'; removeBtn.title = `Remove ${statName}`;
+            removeBtn.onclick = (e) => {
+                e.stopPropagation(); selected.delete(statName);
+                let isStillPreset = chkMostPopular && chkMostPopular.checked && popularPresetStats.length === selected.size;
+                if(isStillPreset){
+                    for(const pStat of popularPresetStats){ if(!selected.has(pStat)){isStillPreset = false; break;}}
+                }
+                if(chkMostPopular && chkMostPopular.checked && !isStillPreset) chkMostPopular.checked = false;
+                renderSelectedStats(); updateDropdownOptions();
+            };
+            tag.appendChild(removeBtn); selectedStatsDisplay.appendChild(tag);
         });
-    }, 100); // Small delay to allow CSS changes to apply and browser to render
-    // END: HTML2CANVAS SCREENSHOT LOGIC
-  });
-}
+        const statsErrorDiv = document.getElementById('statsError');
+        if (!statsErrorDiv) return;
+        if (selected.size > maxSelection) { statsErrorDiv.textContent = `Error: More than ${maxSelection} stats selected!`; }
+        else if (selected.size === maxSelection) { statsErrorDiv.textContent = `Maximum ${maxSelection} stats selected.`;}
+        else { statsErrorDiv.textContent = ''; }
+    }
 
-function showLoadingSpinner() {
-  const overlay = document.getElementById('loadingOverlay');
-  if (overlay) overlay.classList.add('visible');
-}
-function hideLoadingSpinner() {
-  const overlay = document.getElementById('loadingOverlay');
-  if (overlay) overlay.classList.remove('visible');
-}
-function showResultsModal() {
-  const overlay = document.getElementById('resultsModalOverlay');
-  if (overlay) overlay.classList.add('visible');
-}
-function closeResultsModal() {
-  const overlay = document.getElementById('resultsModalOverlay');
-  if (overlay) overlay.classList.remove('visible');
-  const tableBody = document.getElementById('modal-results-table-body');
-  const tableHeader = document.getElementById('modal-results-table-header');
-  if(tableBody) tableBody.innerHTML = '';
-  if(tableHeader) tableHeader.innerHTML = '';
-}
+    function updateDropdownOptions() {
+        if (!statDropdownsParentContainer) return;
+        const dropdowns = statDropdownsParentContainer.querySelectorAll('.stats-dropdown');
+        const limitReached = selected.size >= maxSelection;
+        dropdowns.forEach(selectElement => {
+            Array.from(selectElement.options).forEach(option => {
+                if (option.value === "") { option.disabled = false; return; }
+                const isSelected = selected.has(option.value);
+                option.disabled = isSelected || (limitReached && !isSelected);
+                option.style.color = option.disabled ? "#888" : "";
+            });
+        });
+    }
 
-function getValueForStat(statDisplayName, userData) {
-  let value = 'N/A'; 
-  const lastActionObject = userData.last_action || {};
-  const personalstats = userData.personalstats || {}; 
-  const profileData = userData.profile || {};
+    // --- REMOVED ALL HEADER-SPECIFIC DOM GETTERS AND DROPDOWN LOGIC ---
+    // (usefulLinksBtn, usefulLinksDropdown, contactUsBtn, contactUsDropdown, headerButtonsContainer, signUpButtonHeader, homeButtonFooter, logoutButtonHeader, window.addEventListener('click'))
+    // (closeOtherDropdowns function)
+    // This is now handled by globalheader.js.
 
-  // --- UNCOMMENTED LOGGING for Xanax Taken ---
-  if (statDisplayName === 'Xanax Taken') {
-      console.log(`--- getValueForStat ('Xanax Taken') ---`);
-      console.log(`1. Received userData:`, JSON.stringify(userData)); // Log the whole userData
-      console.log(`2. userData.personalstats object:`, JSON.stringify(personalstats));
-      console.log(`3. Value of personalstats.xantaken:`, personalstats.xantaken);
-  }
-  // --- End of logging ---
+    if(chkMostPopular) {
+        chkMostPopular.addEventListener('change', () => {
+            selected.clear();
+            if (chkMostPopular.checked) {
+                popularPresetStats.forEach(stat => {
+                    if(selected.size < maxSelection) selected.add(stat);
+                });
+            }
+            renderSelectedStats(); updateDropdownOptions();
+            if (statDropdownsParentContainer) {
+                statDropdownsParentContainer.querySelectorAll('.stats-dropdown').forEach(sel => sel.value = "");
+            }
+        });
+    }
 
-  switch (statDisplayName) {
-    case 'Level': value = userData.level; break;
-    case 'Age': value = userData.age; break;
-    case 'Last Action':
-      if (lastActionObject.timestamp && lastActionObject.timestamp > 0) {
-        const now = Math.floor(Date.now() / 1000);
-        const secondsAgo = now - lastActionObject.timestamp;
-        if (secondsAgo < 0) { value = "Just now"; break; }
-        const minutesAgo = Math.floor(secondsAgo / 60);
-        const hoursAgo = Math.floor(minutesAgo / 60);
-        const daysAgo = Math.floor(hoursAgo / 24);
-        if (minutesAgo < 1) value = `${Math.max(0,secondsAgo)}s Ago`;
-        else if (minutesAgo < 60) value = `${minutesAgo} Mins Ago`;
-        else if (hoursAgo < 24) value = `${hoursAgo} Hours Ago`;
-        else if (daysAgo < 30) value = `${daysAgo} Day${daysAgo > 1 ? 's' : ''} Ago`;
-        else value = "Taking Break";
-      } else if (typeof lastActionObject.relative === 'string' && lastActionObject.relative.trim() !== "") {
-          value = lastActionObject.relative.replace(' ago', ' Ago');
-      } else { value = 'N/A'; }
-      break;
-    case 'Status': value = userData.status && userData.status.description ? userData.status.description : (userData.status && userData.status.state ? userData.status.state : 'N/A'); break;
-    case 'Respect': value = personalstats.respectforfaction; break;
-    case 'Xanax Taken': value = personalstats.xantaken; break;
-    case 'Total War Hits': value = personalstats.rankedwarhits; break;
-    case 'Refills': value = personalstats.refills; break;
-    case 'Total War Assists': value = personalstats.attacksassisted; break;
-    case 'Attacks Won': value = personalstats.attackswon; break;
-    case 'Attacks Lost': value = personalstats.attackslost; break;
-    case 'Attacks Draw': value = personalstats.attacksdraw; break;
-    case 'Defends Won': value = personalstats.defendswon; break;
-    case 'Defends Lost': value = personalstats.defendslost; break;
-    case 'Total Attack Hits': value = personalstats.attackhits; break;
-    case 'Attack Damage Dealt': value = personalstats.attackdamage; break;
-    case 'Best Single Hit Damage': value = personalstats.bestdamage; break;
-    case 'Critical Hits': value = personalstats.attackcriticalhits; break;
-    case 'One-Hit Kills': value = personalstats.onehitkills; break;
-    case 'Best Kill Streak': value = personalstats.bestkillstreak; break;
-    case 'ELO Rating': value = personalstats.elo; break;
-    case 'Stealth Attacks': value = personalstats.attacksstealthed; break;
-    case 'Highest Level Beaten': value = personalstats.highestbeaten; break;
-    case 'Unarmed Fights Won': value = personalstats.unarmoredwon; break;
-    case 'Times You Ran Away': value = personalstats.yourunaway; break;
-    case 'Opponent Ran Away': value = personalstats.theyrunaway; break;
-    case 'Money Mugged': value = personalstats.moneymugged; break;
-    case 'Largest Mug': value = personalstats.largestmug; break;
-    case 'Bazaar Profit ($)': value = personalstats.bazaarprofit; break;
-    case 'Bazaar Sales (#)': value = personalstats.bazaarsales; break;
-    case 'Bazaar Customers': value = personalstats.bazaarcustomers; break;
-    case 'Points Bought': value = personalstats.pointsbought; break;
-    case 'Points Sold': value = personalstats.pointssold; break;
-    case 'Items Bought (Market/Shops)': value = personalstats.itemsbought; break;
-    case 'City Items Bought': value = personalstats.cityitemsbought; break;
-    case 'Items Bought Abroad': value = personalstats.itemsboughtabroad; break;
-    case 'Items Sent': value = personalstats.itemssent; break;
-    case 'Items Looted': value = personalstats.itemslooted; break;
-    case 'Items Dumped': value = personalstats.itemsdumped; break;
-    case 'Trades Made': value = personalstats.trades; break;
-    case 'Criminal Record (Total)': value = personalstats.criminaloffenses; break;
-    case 'Times Jailed': value = personalstats.jailed; break;
-    case 'People Busted': value = personalstats.peoplebusted; break;
-    case 'Failed Busts': value = personalstats.failedbusts; break;
-    case 'Arrests Made': value = personalstats.arrestsmade; break;
-    case 'Medical Items Used': value = personalstats.medicalitemsused; break;
-    case 'Times Hospitalized': value = personalstats.hospital; break;
-    case 'Drugs Used (Times)': value = personalstats.drugsused; break;
-    case 'Times Overdosed': value = personalstats.overdosed; break;
-    case 'Times Rehabbed': value = personalstats.rehabs; break;
-    case 'Boosters Used': value = personalstats.boostersused; break;
-    case 'Energy Drinks Used': value = personalstats.energydrinkused; break;
-    case 'Alcohol Used': value = personalstats.alcoholused; break;
-    case 'Candy Used': value = personalstats.candyused; break;
-    case 'Nerve Refills Used': value = personalstats.nerverefills; break;
-    case 'Daily Login Streak': value = personalstats.activestreak; break;
-    case 'Best Active Streak': value = personalstats.bestactivestreak; break;
-    case 'User Activity': value = personalstats.useractivity; break;
-    case 'Awards': value = personalstats.awards; break;
-    case 'Donator Days': value = personalstats.daysbeendonator; break;
-    case 'Missions Completed': value = personalstats.missionscompleted; break;
-    case 'Contracts Completed': value = personalstats.contractscompleted; break;
-    case 'Mission Credits Earned': value = personalstats.missioncreditsearned; break;
-    case 'Job Points Used': value = personalstats.jobpointsused; break;
-    case 'Stat Trains Received': value = personalstats.trainsreceived; break;
-    case 'Travels Made': value = personalstats.traveltimes; break;
-    case 'City Finds': value = personalstats.cityfinds; break;
-    case 'Dump Finds': value = personalstats.dumpfinds; break;
-    case 'Items Dumped': value = personalstats.itemsdumped; break;
-    case 'Books Read': value = personalstats.booksread; break;
-    case 'Viruses Coded': value = personalstats.virusescoded; break;
-    case 'Races Won': value = personalstats.raceswon; break;
-    case 'Racing Skill': value = personalstats.racingskill; break;
-    case 'Total Bounties': value = personalstats.bountiesreceived; break;
-    case 'Bounties Placed': value = personalstats.bountiesplaced; break;
-    case 'Bounties Collected': value = personalstats.bountiescollected; break;
-    case 'Money Spent on Bounties': value = personalstats.totalbountyspent; break;
-    case 'Money From Bounties Collected': value = personalstats.totalbountyreward; break;
-    case 'Revives Made': value = personalstats.revives; break;
-    case 'Revives Received': value = personalstats.revivesreceived; break;
-    case 'Revive Skill': value = personalstats.reviveskill; break;
-    case 'Networth': value = personalstats.networth; break;
-    case 'Businesses Owned': value = personalstats.companiesowned; break;
-    case 'Properties Owned': value = personalstats.propertiesowned; break;
-    // If you add TCP Anniversary, you would add a case here:
-    // case 'TCP Anniversary': value = userData.firebaseData?.tcpAnniversary; break; // Assuming firebaseData is where you'd store it
-    default: value = 'N/A'; 
-  }
+    let currentRowForDropdowns;
+    if (statDropdownsParentContainer) {
+        statCategories.forEach((category, index) => {
+            if (index === 0) {
+                currentRowForDropdowns = document.createElement('div');
+                currentRowForDropdowns.className = 'dropdown-row single-dropdown';
+                statDropdownsParentContainer.appendChild(currentRowForDropdowns);
+            } else if (index === 1 || index === 4) { // Adjust this if you add/remove categories for layout
+                currentRowForDropdowns = document.createElement('div');
+                currentRowForDropdowns.className = 'dropdown-row';
+                statDropdownsParentContainer.appendChild(currentRowForDropdowns);
+            }
 
-  if (value === undefined || value === null || value === "") {
-    value = 'N/A';
-  }
+            const categoryContainer = document.createElement('div');
+            categoryContainer.className = 'dropdown-category';
+            const categoryLabel = document.createElement('label');
+            categoryLabel.textContent = category.name;
+            const dropdownId = `dropdown-${category.name.replace(/[^a-zA-Z0-9]/g, '')}`;
+            categoryLabel.htmlFor = dropdownId;
+            categoryContainer.appendChild(categoryLabel);
 
-  if (statDisplayName === 'Xanax Taken') {
-      console.log(`4. Value after N/A & switch:`, value);
-  }
+            const selectElement = document.createElement('select');
+            selectElement.className = 'stats-dropdown'; selectElement.id = dropdownId;
+            const defaultOption = document.createElement('option');
+            defaultOption.value = ""; defaultOption.textContent = `--- Select ---`;
+            selectElement.appendChild(defaultOption);
 
-  const numericDisplayStats = [
-    'Level', 'Age', 'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Networth',
-    'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost',
-    'ELO Rating', 'Best Kill Streak', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage',
-    'One-Hit Kills', 'Critical Hits', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won',
-    'Times You Ran Away', 'Opponent Ran Away', 'Money Mugged', 'Largest Mug', 'Items Looted',
-    'Job Points Used', 'Stat Trains Received', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad',
-    'Items Sent', 'Trades Made', 'Points Bought', 'Points Sold',
-    'Bazaar Customers', 'Bazaar Sales (#)', 'Bazaar Profit ($)',
-    'Times Jailed', 'People Busted', 'Failed Busts', 'Arrests Made', 'Criminal Record (Total)',
-    'Times Hospitalized', 'Medical Items Used', 'Revive Skill', 'Revives Made', 'Revives Received',
-    'Drugs Used (Times)', 'Times Overdosed', 'Times Rehabbed',
-    'Boosters Used', 'Candy Used', 'Alcohol Used', 'Energy Drinks Used',
-    'Nerve Refills Used', 'Daily Login Streak', 'Best Active Streak', 'Awards', 'Donator Days',
-    'Missions Completed', 'Contracts Completed', 'Mission Credits Earned',
-    'Job Points Used', 'Stat Trains Received', 'Travels Made', 'City Finds', 'Dump Finds', 'Items Dumped', 'Books Read', 'Viruses Coded',
-    'Races Won', 'Racing Skill', 'Total Bounties', 'Bounties Placed', 'Bounties Collected',
-    'Money Spent on Bounties', 'Money From Bounties Collected',
-    'Businesses Owned', 'Properties Owned'
-  ];
+            category.stats.forEach(stat => {
+                const option = document.createElement('option');
+                option.value = stat; option.textContent = stat;
+                selectElement.appendChild(option);
+            });
+            selectElement.onchange = (e) => {
+                const selectedStatName = e.target.value;
+                if (selectedStatName) {
+                    if (!selected.has(selectedStatName)) {
+                        if (selected.size < maxSelection) {
+                            selected.add(selectedStatName);
+                            if(chkMostPopular && chkMostPopular.checked) {
+                                let isStillExactPreset = popularPresetStats.length === selected.size;
+                                if(isStillExactPreset) {
+                                    for(const pStat of popularPresetStats) { if(!selected.has(pStat)){isStillExactPreset = false; break;}}
+                                }
+                                if(!isStillExactPreset) chkMostPopular.checked = false;
+                            }
+                        } else {
+                            const statsErrorDiv = document.getElementById('statsError');
+                            if (statsErrorDiv) statsErrorDiv.textContent = `Cannot select more than ${maxSelection} stats.`;
+                            setTimeout(() => {
+                                if(statsErrorDiv && selected.size <= maxSelection) statsErrorDiv.textContent = selected.size === maxSelection ? `Maximum ${maxSelection} stats selected.` : '';
+                            }, 3000);
+                        }
+                    }
+                    renderSelectedStats(); updateDropdownOptions();
+                }
+                e.target.value = "";
+            };
+            categoryContainer.appendChild(selectElement);
+            if (currentRowForDropdowns) currentRowForDropdowns.appendChild(categoryContainer);
+        });
+    }
+    if (selectedStatsDisplay) {
+        renderSelectedStats();
+        updateDropdownOptions();
+    }
 
-  if (typeof value === 'number' && !isNaN(value) && numericDisplayStats.includes(statDisplayName)) {
-    return value.toLocaleString();
-  }
-  return String(value);
-} 
+    const clearSelectionsBtn = document.getElementById('clearSelectionsBtn');
+    if (clearSelectionsBtn) {
+        clearSelectionsBtn.addEventListener('click', () => {
+            selected.clear();
+            if(chkMostPopular) chkMostPopular.checked = false;
+            renderSelectedStats();
+            updateDropdownOptions();
+            if (statDropdownsParentContainer) {
+                statDropdownsParentContainer.querySelectorAll('.stats-dropdown').forEach(sel => sel.value = "");
+            }
+            const statsErrorDiv = document.getElementById('statsError');
+            if(statsErrorDiv) statsErrorDiv.textContent = '';
+        });
+    }
 
-// IMPORTANT: Modified fetchData to accept the user object
-async function fetchData(user) { // <--- Added 'user' parameter
-  const factionIdError = document.getElementById('factionIdError');
-  const apiKeyError = document.getElementById('apiKeyError'); // This element now primarily shows messages related to fetching key from profile
-  const statsError = document.getElementById('statsError');
+    const downloadDataBtn = document.getElementById('downloadDataBtn');
+    if (downloadDataBtn) {
+        downloadDataBtn.addEventListener('click', () => {
+            // START: HTML2CANVAS SCREENSHOT LOGIC (This should remain here)
+            const modalContent = document.querySelector('.modal-content'); // The full modal content area
+            const tableContainer = document.querySelector('.modal-table-container'); 
+            const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
 
-  // Clear all feedback messages at the start of a new fetch attempt
-  if (factionIdError) factionIdError.textContent = '';
-  if (apiKeyError) apiKeyError.textContent = '';
-  if (statsError) statsError.textContent = '';
-  const existingMainInputError = document.querySelector('.main-input-error-feedback');
-  if (existingMainInputError) existingMainInputError.remove();
+            if (!modalContent || !tableContainer || !modalTableBody) {
+                console.error('Error: Required modal elements not found for screenshot.');
+                alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
+                return;
+            }
 
+            // Temporarily store original styles
+            const originalModalContentMaxHeight = modalContent.style.maxHeight;
+            const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
+            const originalModalTableContainerOverflow = tableContainer.style.overflowY;
+            const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
 
-  const factionIdInput = document.getElementById('factionId');
-  const factionId = factionIdInput ? factionIdInput.value.trim() : '';
+            // Apply temporary styles to capture full content
+            modalContent.style.maxHeight = 'fit-content'; 
+            tableContainer.style.maxHeight = 'fit-content'; 
+            tableContainer.style.overflowY = 'visible'; 
+            tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
 
-  let hasError = false;
-  let currentApiKey = ''; // Variable to hold the fetched API key
+            // Adding a small delay to allow reflow and repaint before capturing
+            setTimeout(() => {
+                html2canvas(tableContainer, { // Capture the entire table container
+                    scale: 2, // Increase resolution for better quality
+                    useCORS: true, // Important if you have images (like background) loaded from different origins
+                    logging: false, // Turn off console logging from html2canvas
+                    allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
+                }).then(function(canvas) {
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png'); 
+                    link.download = 'Faction_Members_Data.png'; 
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    console.log('Image download initiated.'); 
 
-  // --- AUTHENTICATION AND API KEY FETCH FROM FIRESTORE ---
-  // Now, we check the 'user' object passed directly
-  if (!user || !db) { // Check if user object is provided and db is initialized
-    let errorMessage = 'Authentication error: Not signed in or Firebase/Firestore not initialized. Please sign in and try again.';
-    if (apiKeyError) apiKeyError.textContent = errorMessage; // Using apiKeyError div for this general message
-    else showMainError(errorMessage); // Display a prominent error
-    hasError = true;
-    hideLoadingSpinner(); // Ensure spinner is hidden if error occurs early
-    return; // Exit early if no user or db
-  } else {
-    showLoadingSpinner(); // Show spinner while fetching API key from Firestore
-    try {
-      const userDocRef = db.collection('userProfiles').doc(user.uid); // Use the passed user.uid
-      const userDoc = await userDocRef.get();
+                    // Restore original styles immediately after capture
+                    modalContent.style.maxHeight = originalModalContentMaxHeight;
+                    tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
+                    tableContainer.style.overflowY = originalModalTableContainerOverflow;
+                    tableContainer.scrollTop = originalScrollTop; // Restore scroll position
 
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        currentApiKey = userData.tornApiKey; // Changed to lowercase 'k' here
-        console.log("DEBUG: Value of currentApiKey retrieved from Firestore:", currentApiKey);
-        console.log("DEBUG: Type of currentApiKey:", typeof currentApiKey);
-        console.log("DEBUG: Is currentApiKey truthy?", !!currentApiKey);
-        if (!currentApiKey) { // This check became true
-          let errorMessage = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid API key.';
-          if (apiKeyError) apiKeyError.textContent = errorMessage;
-          else showMainError(errorMessage);
-          hasError = true;
-          hideLoadingSpinner(); // Hide spinner on this error
-          return; // Exit early if API key is missing
-        }
-      } else {
-        let errorMessage = 'User profile not found in database. Please ensure your profile is set up.';
-        if (apiKeyError) apiKeyError.textContent = errorMessage;
-        else showMainError(errorMessage);
-        hasError = true;
-        hideLoadingSpinner(); // Hide spinner on this error
-        return; // Exit early if profile not found
-      }
-    } catch (error) {
-      let errorMessage = `Error fetching API Key from profile: ${error.message}. Check console for details.`;
-      if (apiKeyError) apiKeyError.textContent = errorMessage;
-      else showMainError(errorMessage);
-      hasError = true;
-      hideLoadingSpinner(); // Hide spinner on this error
-      return; // Exit early on fetch error
-    }
-  }
-  // --- END AUTHENTICATION AND API KEY FETCH ---
+                }).catch(error => {
+                    console.error('Error generating image:', error);
+                    alert('Failed to generate image. Please try again.');
+
+                    // Ensure styles are restored even on error
+                    modalContent.style.maxHeight = originalModalContentMaxHeight;
+                    tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
+                    tableContainer.style.overflowY = originalModalTableContainerOverflow;
+                    tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+                });
+            }, 100); // Small delay to allow CSS changes to apply and browser to render
+            // END: HTML2CANVAS SCREENSHOT LOGIC
+        });
+    }
+
+    function showLoadingSpinner() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.classList.add('visible');
+    }
+    function hideLoadingSpinner() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.classList.remove('visible');
+    }
+    function showResultsModal() {
+        const overlay = document.getElementById('resultsModalOverlay');
+        if (overlay) overlay.classList.add('visible');
+    }
+    function closeResultsModal() {
+        const overlay = document.getElementById('resultsModalOverlay');
+        if (overlay) overlay.classList.remove('visible');
+        const tableBody = document.getElementById('modal-results-table-body');
+        const tableHeader = document.getElementById('modal-results-table-header');
+        if(tableBody) tableBody.innerHTML = '';
+        if(tableHeader) tableHeader.innerHTML = '';
+    }
+
+    function getValueForStat(statDisplayName, userData) { /* ... (unchanged) ... */ return 'N/A'; }
+    function showMainError(message) { /* ... (unchanged) ... */ }
+
+    // --- DOM Element Getters (for this page's elements) ---
+    // These are for the factionpeeper.html specific controls.
+    const fetchDataButton = document.getElementById('fetchData');
+    const apiKeyErrorDiv = document.getElementById('apiKeyError'); // For error display on this page.
+    const factionIdInput = document.getElementById('factionId');
+    const clearChoicesButton = document.getElementById('clearChoices');
 
 
-  if (!factionId || isNaN(factionId)) {
-    if (factionIdError) factionIdError.textContent = 'Faction ID is required and must be a number.'; hasError = true;
-  }
-  
-  if (selected.size === 0) {
-    if (statsError) statsError.textContent = 'Please select at least one stat.'; hasError = true;
-  } else if (selected.size > maxSelection) {
-    if (statsError) statsError.textContent = `Maximum ${maxSelection} stats selected.`; hasError = true;
-  }
+    // --- Initial Setup and Event Listeners (Core to Faction Peeper Page) ---
+    if (fetchDataButton) {
+        fetchDataButton.disabled = true; // Disable until login status is known
+        // Initial listener to prompt login if not authenticated
+        fetchDataButton.addEventListener('click', () => showMainError('Please sign in to fetch data.'));
+    }
 
-  if (hasError) {
-    hideLoadingSpinner(); // Ensure spinner is hidden if an error occurred before API calls
-    const mainPageStatus = document.createElement('div');
-    mainPageStatus.textContent = 'Error: Please correct the input fields above and ensure your API key is set in your profile.';
-    mainPageStatus.className = 'main-input-error-feedback'; 
-    mainPageStatus.style.textAlign = 'center'; 
-    mainPageStatus.style.color = 'red';
-    mainPageStatus.style.padding = '10px 0';
-    let errorAnchor = document.getElementById('statSelectionArea') || document.querySelector('.input-group');
-    // Only append if it's not the primary API key error message that was already shown
-    if (!document.querySelector('.main-input-error-feedback')) { // Prevent duplicate message if showMainError already displayed one
-        if (statsError && statsError.parentNode && (selected.size === 0 || selected.size > maxSelection)) { 
-            statsError.parentNode.insertBefore(mainPageStatus, statsError.nextSibling);
-        } else if (errorAnchor) {
-            errorAnchor.appendChild(mainPageStatus);
-        } else {
-            const containerDiv = document.querySelector('.faction-peeper-tool-container');
-            if(containerDiv) containerDiv.appendChild(mainPageStatus);
-        }
-    }
-    setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 5000);
-    return;
-  }
+    if (clearChoicesButton) {
+        clearChoicesButton.addEventListener('click', () => {
+            if (factionIdInput) factionIdInput.value = '';
+            if (chkMostPopular) chkMostPopular.checked = false;
+            selected.clear();
+            renderSelectedStats();
+            updateDropdownOptions();
+            if (statDropdownsParentContainer) {
+                statDropdownsParentContainer.querySelectorAll('.stats-dropdown').forEach(sel => sel.value = "");
+            }
+            const statsErrorDiv = document.getElementById('statsError');
+            if(statsErrorDiv) statsErrorDiv.textContent = '';
+            showMainError(''); // Clear any main errors
+        });
+    }
 
-  try {
-    // Spinner is already shown from the Firestore fetch above, no need to show again unless hidden by previous errors
-    const personalStatsCheckList = [
-      'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Items Looted', 'Job Points Used', 'Stat Trains Received', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Trades Made', 'Points Bought', 'Points Sold', 'Bazaar Customers', 'Bazaar Sales (#)', 'Bazaar Profit ($)', 'Criminal Record (Total)', 'Times Jailed', 'People Busted', 'Failed Busts', 'Arrests Made', 'Medical Items Used', 'Times Hospitalized', 'Drugs Used (Times)', 'Times Overdosed', 'Times Rehabbed', 'Boosters Used', 'Candy Used', 'Alcohol Used', 'Energy Drinks Used', 'Nerve Refills Used', 'Daily Login Streak', 'Best Active Streak', 'User Activity', 'Awards', 'Donator Days', 'Missions Completed', 'Contracts Completed', 'Mission Credits Earned', 'Job Points Used', 'Stat Trains Received', 'Travels Made', 'City Finds', 'Dump Finds', 'Items Dumped', 'Books Read', 'Viruses Coded', 'Races Won', 'Racing Skill', 'Total Bounties', 'Bounties Placed', 'Bounties Collected', 'Money Spent on Bounties', 'Money From Bounties Collected', 'Revives Made', 'Revives Received', 'Revive Skill',
-      'Businesses Owned', 'Properties Owned'
-    ];
-    const personalStatsNeeded = Array.from(selected).some(s => personalStatsCheckList.includes(s));
-    
-    // Use the fetched API key
-    const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${currentApiKey}`;
-    const factionResponse = await fetch(factionApiUrl);
-    if (!factionResponse.ok) {
-      const errorText = await factionResponse.text().catch(() => "Could not read error text");
-      throw new Error(`Torn API Error (Faction HTTP ${factionResponse.status}): ${factionResponse.statusText}. Response: ${errorText.substring(0, 100)}`);
-    }
-    const factionData = await factionResponse.json();
-    if (factionData.error) throw new Error(`Torn API Error (Faction): ${factionData.error.error}`);
-    if (!factionData || !factionData.members || Object.keys(factionData.members).length === 0) {
-      throw new Error('No members found for this faction or invalid Faction ID/API Key for faction access.');
-    }
-    
-    const members = factionData.members;
-    const modalFactionName = document.getElementById('modal-faction-name');
-    const modalMemberCount = document.getElementById('modal-member-count');
-    if (modalFactionName) modalFactionName.textContent = factionData.name || 'Unknown Faction';
-    if (modalMemberCount) modalMemberCount.textContent = Object.keys(members).length;
+    // --- Firebase Auth State Changed Listener (Core to Faction Peeper Page) ---
+    // This listener handles the visibility and data fetching for the Faction Peeper page content.
+    if (typeof auth !== 'undefined' && auth) {
+        auth.onAuthStateChanged(function(user) {
+            console.log("factionpeeper.js: Auth state changed. User:", user);
 
-    const displayHeaders = ["Name", "User ID"].concat(Array.from(selected));
-    const modalTableHeader = document.getElementById('modal-results-table-header');
-    if (modalTableHeader) modalTableHeader.innerHTML = '';
-    const tableHeaderRow = document.createElement('tr');
-    displayHeaders.forEach(headerText => {
-      const th = document.createElement('th');
-      th.textContent = headerText; tableHeaderRow.appendChild(th);
-    });
-    if (modalTableHeader) modalTableHeader.appendChild(tableHeaderRow);
+            if (user) {
+                console.log("factionpeeper.js: User is signed in:", user.uid);
+                // No need to control mainHomepageContent here, as this is factionpeeper page.
+                
+                if (fetchDataButton) {
+                    fetchDataButton.disabled = false; // Enable button on login
+                    if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = ''; // Clear API error message
 
-    const factionMembersIds = Object.keys(members);
-    const userProcessingPromises = factionMembersIds.map(async (memberId) => {
-      let combinedData = { member_id_for_table: memberId }; 
-      let overallStatus = true;
-      let errors = [];
-      const primarySelections = 'basic,profile'; 
-      // Use the fetched API key here
-      const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${currentApiKey}`;
-      
-      try {
-        const response1 = await fetch(primaryDataUrl);
-        if (!response1.ok) {
-          errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status})`);
-          overallStatus = false;
-        } else {
-          const data1 = await response1.json();
-          if (data1.error) {
-            errors.push(`Primary API (basic,profile): ${data1.error.error}`);
-            overallStatus = false; 
-          } else {
-            combinedData = { ...combinedData, ...data1 };
-          }
-        }
-      } catch (e) {
-        errors.push(`Primary Network Err (basic,profile): ${e.message.substring(0, 50)}`);
-        overallStatus = false;
-      }
+                    // Remove any old 'sign in' listener before adding the functional one
+                    const oldListener = fetchDataButton._authClickListener; // _authClickListener is a custom property for listener ref
+                    if (oldListener) {
+                        fetchDataButton.removeEventListener('click', oldListener);
+                    }
+                    const newListener = () => fetchData(user); // Define the new functional listener
+                    fetchDataButton.addEventListener('click', newListener);
+                    fetchDataButton._authClickListener = newListener; // Store ref to the new listener
+                }
 
-      if (personalStatsNeeded && overallStatus) { 
-        const personalStatsSelection = 'personalstats';
-        // Use the fetched API key here
-        const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${currentApiKey}`;
-        try {
-          const response2 = await fetch(personalStatsDataUrl);
-          if (!response2.ok) {
-            errors.push(`PersonalStats Fetch (HTTP ${response2.status})`);
-          } else {
-            const data2 = await response2.json();
-            
-            // --- UNCOMMENTED LOG for data2 structure ---
-            console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
-            
-            if (data2.error) {
-              errors.push(`PersonalStats API: ${data2.error.error}`);
-            } else {
-              // This assumes data2 is {"personalstats": {actual_stats...}}
-              // If data2 is flat {actual_stats...}, then data2.personalstats will be undefined.
-              // (data2.personalstats || data2) tries data2.personalstats first, then data2 itself if the first is falsy.
-              // For more safety if data2.personalstats might be an empty object but valid:
-              // combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
-              // If you are very sure the API always returns personalstats nested under "personalstats" key:
-              combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
-              // If you are very sure data2 IS the flat stats object:
-              // combinedData.personalstats = { ...(combinedData.personalstats || {}), ...data2 };
-            }
-          }
-        } catch (e) {
-          errors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
-        }
-      } else if (personalStatsNeeded && !overallStatus) {
-        errors.push("Skipped personalstats due to primary fetch error.");
-      }
-      
-      if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
-      if (!combinedData.name && members[memberId] && members[memberId].name) { 
-          combinedData.name = members[memberId].name;
-      }
+            } else {
+                console.log("factionpeeper.js: No user is signed in.");
+                // No main content visibility control for this page when logged out.
+                
+                if (fetchDataButton) {
+                    fetchDataButton.disabled = true; // Disable button when logged out
+                    if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Please sign in to fetch data.';
 
-      // --- UNCOMMENTED LOG for final combinedData.personalstats before getValueForStat ---
-      if (personalStatsNeeded) {
-         console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
-      }
-      return { memberId, data: combinedData, status: !combinedData.error };
-    });
+                    // Remove old listener (if enabled for logged in user)
+                    const oldListener = fetchDataButton._authClickListener;
+                    if (oldListener) {
+                        fetchDataButton.removeEventListener('click', oldListener);
+                    }
+                    // Add a listener that prompts for login
+                    fetchDataButton.addEventListener('click', () => showMainError('Please sign in to fetch data.'));
+                    fetchDataButton._authClickListener = null; // Clear stored ref as it's not a functional listener
+                }
+            }
+        });
+    } else {
+        console.warn("factionpeeper.js: Firebase auth object is not available. Fetch data button disabled.");
+        // If Firebase Auth itself isn't loaded at all, disable button and show error
+        if (fetchDataButton) {
+            fetchDataButton.disabled = true;
+            if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Firebase is not loaded. Cannot check login status.';
+            fetchDataButton.addEventListener('click', () => showMainError('Firebase is not ready. Cannot fetch data.'));
+        }
+    }
 
-    const userResponses = await Promise.allSettled(userProcessingPromises);
-    const modalTableBody = document.getElementById('modal-results-table-body');
-    if (modalTableBody) modalTableBody.innerHTML = ''; 
-
-    for (const promiseResult of userResponses) {
-      let userData;
-      let currentMemberIdFromPromise; 
-
-      if (promiseResult.status === 'fulfilled') {
-        currentMemberIdFromPromise = promiseResult.value.memberId;
-        userData = promiseResult.value.data;
-      } else { 
-        const errorRow = document.createElement('tr');
-        const failedMemberId = promiseResult.reason?.memberId || 'Unknown ID'; 
-        errorRow.insertCell().textContent = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Request Error)`;
-        errorRow.insertCell().textContent = failedMemberId;
-        const msgCell = errorRow.insertCell();
-        msgCell.textContent = `Error: Request processing failed. ${promiseResult.reason?.message || 'Unknown Issue'}`;
-        msgCell.colSpan = selected.size > 0 ? selected.size : 1; 
-        msgCell.style.color = 'red';
-        if (modalTableBody) modalTableBody.appendChild(errorRow);
-        continue; 
-      }
-
-      const memberName = userData.name || `User ${currentMemberIdFromPromise}`;
-      const memberIdForTable = userData.member_id_for_table || currentMemberIdFromPromise || 'N/A';
-
-      const tr = document.createElement('tr');
-      tr.insertCell().textContent = memberName;
-      tr.insertCell().textContent = memberIdForTable;
-
-      if (userData.error) {
-        const errorCell = tr.insertCell();
-        errorCell.textContent = `Error: ${userData.error.error || 'Unknown data fetch issue'}`;
-        errorCell.style.color = 'red';
-        errorCell.colSpan = selected.size > 0 ? selected.size : 1; 
-      } else {
-        Array.from(selected).forEach(statDisplayName => {
-          const td = tr.insertCell();
-          td.textContent = getValueForStat(statDisplayName, userData);
-        });
-      }
-      if (modalTableBody) modalTableBody.appendChild(tr);
-    }
-    hideLoadingSpinner();
-    showResultsModal();
-  } catch (error) {
-    console.error("Overall Fetch Error:", error);
-    hideLoadingSpinner();
-    // Centralized error display function
-    showMainError(`Error: ${error.message}`);
-  }
-} 
-
-// Removed the direct fetchDataButton.addEventListener here.
-// It will now be added inside onAuthStateChanged or after user state is known.
-
-// Added this helper function to simplify error message display
-function showMainError(message) {
-    // ADDED THIS CHECK
-    if (!message || message.trim() === '') {
-        const existingMainInputError = document.querySelector('.main-input-error-feedback');
-        if (existingMainInputError) {
-            existingMainInputError.remove();
-        }
-        return; // Exit if message is empty
-    }
-    // END ADDITION
-
-  const existingMainInputError = document.querySelector('.main-input-error-feedback');
-  if (existingMainInputError) {
-    existingMainInputError.remove();
-  }
-  const mainPageStatus = document.createElement('div');
-  mainPageStatus.textContent = message;
-  mainPageStatus.className = 'main-input-error-feedback';
-  mainPageStatus.style.textAlign = 'center';
-  mainPageStatus.style.padding = '10px';
-  mainPageStatus.style.backgroundColor = 'rgba(255,0,0,0.1)';
-  mainPageStatus.style.border = '1px solid red';
-  mainPageStatus.style.borderRadius = '5px';
-  mainPageStatus.style.marginTop = '15px';
-  const containerDiv = document.querySelector('.faction-peeper-tool-container');
-  if (containerDiv) {
-      const buttonsContainer = containerDiv.querySelector('.action-buttons-container');
-      if (buttonsContainer && buttonsContainer.parentNode === containerDiv) {
-          buttonsContainer.insertAdjacentElement('afterend', mainPageStatus);
-      } else {
-          containerDiv.appendChild(mainPageStatus);
-      }
-  }
-  setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000);
-}
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-  const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-
-  if (usefulLinksBtn && usefulLinksDropdown) {
-    usefulLinksBtn.addEventListener('click', function(event) {
-      event.stopPropagation();
-      usefulLinksDropdown.classList.toggle('show');
-    });
-  }
-
-  window.addEventListener('click', function(event) {
-    if (usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) {
-      if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
-        usefulLinksDropdown.classList.remove('show');
-      }
-    }
-  });
-
-  const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-  const signUpButtonHeader = document.getElementById('signUpButtonHeader');
-  const homeButtonFooter = document.getElementById('homeButtonFooter');
-  const logoutButtonHeader = document.getElementById('logoutButtonHeader');
-  const fetchDataButton = document.getElementById('fetchData'); // Get the button reference here
-  const apiKeyErrorDiv = document.getElementById('apiKeyError'); // Get reference to the API key error div
-
-  // --- Initial Setup for Login Status Feedback ---
-  // The problematic lines are removed from here.
-  if (fetchDataButton) {
-      fetchDataButton.disabled = true; // Still disable button until login status is known
-  }
-
-  if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-  if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-  if (homeButtonFooter) homeButtonFooter.style.display = 'none';
-  if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-
-
-  if (typeof auth !== 'undefined' && auth) {
-    // This listener is crucial for handling the asynchronous Firebase login state
-    auth.onAuthStateChanged(function(user) {
-      const currentPagePath = window.location.pathname;
-      const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase() || 'index.html'; 
-      const indexPages = ['index.html', 'home.html', '']; 
-      const isThisPageIndexPage = indexPages.includes(pageName);
-
-      if (user) { 
-        console.log("User is signed in:", user.uid); // Confirm user is logged in
-        if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-        if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-        if (homeButtonFooter) homeButtonFooter.style.display = 'inline'; 
-
-        if (isThisPageIndexPage && logoutButtonHeader) {
-          logoutButtonHeader.style.display = 'none'; 
-        } else if (logoutButtonHeader) {
-          logoutButtonHeader.style.display = 'inline-flex';
-        }
-
-        // Enable the fetchData button and set its listener with the user object
-        if (fetchDataButton) {
-            fetchDataButton.disabled = false; // Enable the button
-            if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = ''; // Clear the message here
-            else showMainError(''); // Clear fallback message too
-            
-            // It's good practice to remove any old listeners before adding new ones
-            // This prevents the handler from being attached multiple times if onAuthStateChanged fires again.
-            // We need a named function reference to remove it correctly.
-            const existingListener = fetchDataButton._authClickListener; // Check if we stored a reference
-            if (existingListener) {
-                fetchDataButton.removeEventListener('click', existingListener);
-            }
-            const newListener = () => fetchData(user);
-            fetchDataButton.addEventListener('click', newListener);
-            fetchDataButton._authClickListener = newListener; // Store reference for future removal
-        }
-
-      } else { 
-        console.log("No user is signed in."); // Confirm no user is logged in
-        if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-        if (signUpButtonHeader) {
-          if (!isThisPageIndexPage) {
-            signUpButtonHeader.style.display = 'inline-flex';
-          } else {
-            signUpButtonHeader.style.display = 'none'; 
-          }
-        }
-        if (homeButtonFooter) homeButtonFooter.style.display = 'none';
-        if (logoutButtonHeader) logoutButtonHeader.style.display = 'none'; 
-
-        const allowedNonAuthPages = ['index.html', 'home.html', 'faq.html', 'terms.html', 'signup.html', 'report.html', 'about.html', ''];
-        if (!allowedNonAuthPages.includes(pageName)) {
-            // This is where you might redirect if a non-logged-in user is on an auth-required page
-          // window.location.href = 'home.html'; 
-        }
-        // If no user, disable fetchData button and show login prompt
-        if (fetchDataButton) {
-            fetchDataButton.disabled = true; // Disable the button
-            if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Please sign in to fetch data.';
-            else showMainError('Please sign in to fetch data.');
-            
-            // Remove previous listener
-            const existingListener = fetchDataButton._authClickListener;
-            if (existingListener) {
-                fetchDataButton.removeEventListener('click', existingListener);
-            }
-            // Add a new listener that just shows an error (or prompts for login)
-            fetchDataButton.addEventListener('click', () => showMainError('Please sign in to fetch data.')); 
-        }
-      }
-    });
-    if (logoutButtonHeader) {
-      logoutButtonHeader.onclick = function() {
-        auth.signOut().then(() => {
-          console.log('User signed out');
-          window.location.href = 'home.html'; 
-        }).catch((error) => {
-          console.error('Sign out error', error);
-        });
-      };
-    }
-  } else { 
-    console.warn("Firebase auth object is not available when DOMContentLoaded. Header/footer UI might not reflect auth state correctly.");
-    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-    if (signUpButtonHeader) {
-        const currentPagePath = window.location.pathname;
-        const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase() || 'index.html';
-        const indexPages = ['index.html', 'home.html', ''];
-        if (!indexPages.includes(pageName)) {
-            signUpButtonHeader.style.display = 'inline-flex'; 
-        } else {
-            signUpButtonHeader.style.display = 'none';
-        }
-    }
-    if (homeButtonFooter) homeButtonFooter.style.display = 'none';
-    if (logoutButtonHeader) {
-        logoutButtonHeader.style.display = 'none';
-        logoutButtonHeader.onclick = function() { alert('Logout functionality (Firebase) not ready or auth not loaded.'); };
-    }
-    // If Firebase Auth itself isn't loaded, disable button and show error
-    if (fetchDataButton) {
-        fetchDataButton.disabled = true;
-        if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Firebase is not loaded. Cannot check login status.';
-        else showMainError('Firebase is not ready. Cannot fetch data.');
-        fetchDataButton.addEventListener('click', () => showMainError('Firebase is not ready. Cannot fetch data.'));
-    }
-  }
+    console.log("factionpeeper.js: All initial setup and listeners complete.");
 });

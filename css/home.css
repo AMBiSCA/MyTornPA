@@ -195,3 +195,93 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     #personalStatsModalBody p strong { min-width: 100px; /* Reduced from 110px */ } 
     #personalStatsModalBody p { font-size: 0.85em; /* Reduced from 0.9em */ }
 }
+/* Contact Us Floating Action Button (FAB) Styles */
+#contactFabContainer {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1050; /* Ensure it's above most other content */
+}
+
+.fab-dropdown-container { /* Wrapper for positioning dropdown relative to FAB */
+    position: relative; 
+}
+
+.btn-fab {
+    background-color: #00a8ff; /* Your primary accent blue */
+    color: white;
+    border: none;
+    border-radius: 50%; /* Circular button */
+    width: 56px;  /* Standard FAB size */
+    height: 56px; /* Standard FAB size */
+    font-size: 24px; /* Icon size */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    padding: 0;
+    line-height: 1; /* For better vertical centering of text icon */
+}
+
+.btn-fab:hover {
+    background-color: #007ecc; /* Slightly darker blue on hover */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.btn-fab:active {
+    transform: translateY(0px); /* Remove lift on active */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-fab .fab-icon {
+    display: block;
+}
+
+/* Optional: If you want text below the icon on the FAB itself (uncomment HTML span too) */
+/*
+.btn-fab .fab-text {
+    font-size: 9px; 
+    display: block; 
+    margin-top: 1px;
+    line-height: 1.1;
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+*/
+
+/* Dropdown content for the FAB */
+.fab-dropdown-content {
+    display: none; /* Hidden by default */
+    position: absolute;
+    bottom: 65px; /* Position above the FAB (56px height + ~9px margin) */
+    right: 0;
+    background-color: #1e1e1e; /* Consistent dark background */
+    min-width: 230px; /* Adjust as needed */
+    box-shadow: 0px -4px 15px rgba(0,0,0,0.4); /* Shadow upwards */
+    z-index: -1; /* Behind the button initially, JS will handle display */
+    border-radius: 8px;
+    border: 1px solid #00a8ff; /* Theme border */
+    overflow: hidden; /* Respect border-radius for links */
+}
+
+.fab-dropdown-content a {
+    color: #d0d0d0;
+    padding: 12px 18px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.95rem; /* Slightly larger for readability */
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.fab-dropdown-content a:hover {
+    background-color: #333333;
+    color: #00c0ff;
+}
