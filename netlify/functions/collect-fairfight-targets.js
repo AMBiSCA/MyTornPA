@@ -19,7 +19,9 @@ const TORN_API_KEY = process.env.TORN_API_KEY;
 const MAX_TORN_ID = 3000000;
 const PLAYERS_TO_PROCESS_PER_RUN = 9;
 const CONCURRENT_API_CALLS = 3;
-const DELAY_BETWEEN_BATCHES_MS = 2000;
+// --- MODIFIED DELAY TO BE EVEN LONGER ---
+const DELAY_BETWEEN_BATCHES_MS = 4000; // Increased delay to 4 seconds (was 2 seconds)
+// --- END MODIFIED DELAY ---
 
 const MIN_LEVEL_FILTER = 1;
 const MAX_DAYS_INACTIVE_FILTER = 9999;
@@ -90,47 +92,44 @@ exports.handler = async (event, context) => {
                 }
 
                 if (!playerData.player_id || playerData.player_id.toString() === "0" || !playerData.name || !playerData.level || !playerData.last_action || !playerData.last_action.timestamp) {
-                    console.log(`Skipping ${playerId}: Missing basic data (ID, name, level, last_action).`); // ADDED LOG
+                    console.log(`Skipping ${playerId}: Missing basic data (ID, name, level, last_action).`);
                     return null;
                 }
                 if (playerData.level < MIN_LEVEL_FILTER) {
-                    console.log(`Skipping ${playerId}: Level (${playerData.level}) below MIN_LEVEL_FILTER (${MIN_LEVEL_FILTER}).`); // ADDED LOG
+                    console.log(`Skipping ${playerId}: Level (${playerData.level}) below MIN_LEVEL_FILTER (${MIN_LEVEL_FILTER}).`);
                     return null;
                 }
                 const ageDays = (Date.now() / 1000 - playerData.last_action.timestamp) / (24 * 60 * 60);
                 if (ageDays > MAX_DAYS_INACTIVE_FILTER) {
-                    console.log(`Skipping ${playerId}: Inactivity (${ageDays} days) beyond MAX_DAYS_INACTIVE_FILTER (${MAX_DAYS_INACTIVE_FILTER}).`); // ADDED LOG
+                    console.log(`Skipping ${playerId}: Inactivity (${ageDays} days) beyond MAX_DAYS_INACTIVE_FILTER (${MAX_DAYS_INACTIVE_FILTER}).`);
                     return null;
                 }
                 
                 const { level, strength, defense, speed, dexterity } = playerData;
                 
                 if (strength === 0 || defense === 0 || speed === 0 || dexterity === 0) {
-                    console.log(`Skipping ${playerId}: Zero battle stats (str:${strength}, def:${defense}, spd:${speed}, dex:${dexterity}).`); // ADDED LOG
+                    console.log(`Skipping ${playerId}: Zero battle stats (str:${strength}, def:${defense}, spd:${speed}, dex:${dexterity}).`);
                     return null;
                 }
 
                 const totalBS = strength + defense + speed + dexterity;
                 let bs_estimate_human = formatNumber(totalBS);
 
-                // level_diff is used in get_ff_score function. For FF calculation, it's relative to the target's level.
-                // For collector, simply use the actual level in the formula or 0 if MIN_LEVEL_FILTER is 1
-                const level_diff_for_ff = level - MIN_LEVEL_FILTER; // Can be 0 or small for level 1 targets
+                const level_diff_for_ff = level - MIN_LEVEL_FILTER;
 
                 const def_eff = (defense + speed) / (dexterity + strength);
                 const str_eff = (strength + dexterity) / (defense + speed);
 
                 let fairFightScore = 0;
-                // Only calculate FF if str_eff is not zero to avoid division by zero
                 if (!isNaN(def_eff) && !isNaN(str_eff) && str_eff !== 0) {
                     fairFightScore = get_ff_score(level_diff_for_ff, def_eff, str_eff);
                 } else {
-                    console.log(`Skipping ${playerId}: Invalid effective stats for FF calculation (def_eff:${def_eff}, str_eff:${str_eff}).`); // ADDED LOG
+                    console.log(`Skipping ${playerId}: Invalid effective stats for FF calculation (def_eff:${def_eff}, str_eff:${str_eff}).`);
                     return null;
                 }
                 
                 if (fairFightScore < COLLECTOR_MIN_FF || fairFightScore > COLLECTOR_MAX_FF) {
-                    console.log(`Skipping ${playerId}: FF score (${fairFightScore.toFixed(2)}) outside collector's range (${COLLECTOR_MIN_FF}-${COLLECTOR_MAX_FF}).`); // ADDED LOG
+                    console.log(`Skipping ${playerId}: FF score (${fairFightScore.toFixed(2)}) outside collector's range (${COLLECTOR_MIN_FF}-${COLLECTOR_MAX_FF}).`);
                     return null;
                 }
 
