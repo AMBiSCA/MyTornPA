@@ -15,8 +15,9 @@
   "author": "Your Name/Team Name",
   "license": "ISC",
   "dependencies": {
-    "html2canvas": "^1.4.1",
     "axios": "^1.1.2",
-    "firebase-admin": "^11.11.0"
+    "firebase-admin": "^11.11.1",
+    "html2canvas": "^1.4.1",
+    "node-fetch": "^3.3.2"
   }
 }

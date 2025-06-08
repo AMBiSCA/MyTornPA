@@ -432,7 +432,7 @@ async function handleIndividualFFCheck(user, tornApiKey) {
 
             if (modalSummary) {
                 modalSummary.innerHTML = `Player: <span>${data.player_name || 'N/A'} [${playerId}]</span> | 
-                                         FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
+                                            FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
             }
 
             // Populate table with detailed FF stats
@@ -518,8 +518,8 @@ async function handleFactionFFCheck(user, tornApiKey) {
         } else {
             if (modalSummary) {
                 modalSummary.innerHTML = `Faction: <span>${data.faction_name || factionId}</span> | 
-                                         Total Members: <span>${data.members.length}</span> | 
-                                         Fair Fight data for members below.`;
+                                            Total Members: <span>${data.members.length}</span> | 
+                                            Fair Fight data for members below.`;
             }
 
             const headers = ["Name", "ID", "Fair Fight", "Difficulty", "Est. Stats", "Last Updated", "Torn Profile"];
@@ -622,31 +622,14 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
     let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
 
     try {
-        // Construct the function URL with query parameters
-        const params = new URLSearchParams({
-            apiKey: tornApiKey,
-            userLevel: userLevel,
-            numTargets: 10,
-            selfId: currentUserId,
-            // --- MODIFIED CRITERIA HERE ---
-            minFairFight: 1.0, // Broadened range
-            maxFairFight: 5.0, // Broadened range
-            maxDaysInactive: 3650 // Increased significantly (10 years)
-            // --- END MODIFIED CRITERIA ---
-        });
-        const functionUrl = `/.netlify/functions/generate-random-targets?${params.toString()}`;
+        // Corrected function URL
+        const functionUrl = `/.netlify/functions/generate-random-targets?apiKey=${tornApiKey}&userLevel=${userLevel}&selfId=${currentUserId}&numTargets=10&minFairFight=2.5&maxFairFight=4.0&maxDaysInactive=365`;
         
-        const response = await fetch(functionUrl, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
+        const response = await fetch(functionUrl);
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || `Netlify Function Error: ${response.status} - ${response.statusText}`);
+            throw new Error(data.error || `Netlify Function Error: ${response.status}`);
         }
         if (data.error) {
             throw new Error(data.error);
@@ -697,6 +680,7 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
                 tr.insertCell().textContent = difficulty;
                 tr.insertCell().textContent = target.fair_fight_data.bs_estimate_human || "N/A";
                 
+                // Format last active time nicely
                 const lastActionTimestamp = target.last_action.timestamp;
                 const nowSeconds = Math.floor(Date.now() / 1000);
                 const ageSeconds = nowSeconds - lastActionTimestamp;
@@ -728,7 +712,8 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
 
     } catch (error) {
         console.error("Generate Random Targets Error:", error);
-        displayErrorInModal(`Error generating targets: ${error.message.substring(0,200)}`);
+        // Ensure displayErrorInModal is called here, using correct function name
+        displayErrorInModal(`Error generating targets: ${error.message.substring(0,200)}`); // Truncate long error messages
     } finally {
         clearTimeout(loadingTimeoutId);
         hideLoadingSpinner();
