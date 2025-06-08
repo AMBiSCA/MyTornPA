@@ -133,7 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             if (generateRandomTargetsBtn) {
                                 generateRandomTargetsBtn.disabled = false;
-                                generateRandomTargetsBtn.onclick = () => handleGenerateRandomTargets(user, currentUserTornApiKey, currentUserLevel, currentUserId);
+                                // The onclick is set here with a function wrapper to ensure values are captured correctly
+                                generateRandomTargetsBtn.onclick = () => handleGenerateRandomTargets(user, currentUserTornApiKey, currentUserLevel, user.uid);
                             }
                         } else {
                             const message = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid key.';
@@ -291,6 +292,20 @@ function showMainError(message) {
     setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000);
 }
 
+// NEW: Function to display error messages directly in the modal (used when a modal is open)
+function displayErrorInModal(message) {
+    const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
+    const tableHeader = document.getElementById('modal-results-table-header');
+    const tableBody = document.getElementById('modal-results-table-body');
+    const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
+
+    if (modalTitle) modalTitle.textContent = 'Error';
+    if (tableHeader) tableHeader.innerHTML = '';
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="color: #ff4d4d; text-align: center; font-weight: bold;">' + message + '</td></tr>';
+    if (modalSummary) modalSummary.innerHTML = ''; // Clear any summary
+    showResultsModal();
+}
+
 
 function showLoadingSpinner() {
     const overlay = document.getElementById('loadingOverlay');
@@ -359,7 +374,7 @@ async function handleIndividualFFCheck(user, tornApiKey) {
     let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
 
     try {
-        // Call your Netlify Function, passing necessary parameters
+        // CORRECTED LINE for individual check: This should call your original fetch-fairfight-data for a single player
         const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=player&id=${playerId}&apiKey=${tornApiKey}`;
         const response = await fetch(functionUrl);
         const data = await response.json();
@@ -607,7 +622,7 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
     let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
 
     try {
-        // Pass your current level and ID to the Netlify function for dynamic filtering
+        // Corrected function URL
         const functionUrl = `/.netlify/functions/generate-random-targets?apiKey=${tornApiKey}&userLevel=${userLevel}&selfId=${currentUserId}&numTargets=10&minFairFight=2.5&maxFairFight=4.0&maxDaysInactive=365`;
         
         const response = await fetch(functionUrl);
@@ -636,7 +651,7 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
             displayErrorInModal('No suitable targets found after many attempts. Try adjusting criteria.');
         } else {
             if (modalSummary) {
-                modalSummary.innerHTML = `Found <span>${data.targets.length}</span> potential targets based on your preferences (Level ${userLevel}).`;
+                modalSummary.innerHTML = `Found <span>${data.targets.length}</span> potential targets based on your preferences (Your Level: ${userLevel}).`;
             }
 
             const headers = ["Name", "ID", "Level", "Fair Fight", "Difficulty", "Est. Stats", "Last Active", "Torn Profile"];
@@ -697,8 +712,8 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
 
     } catch (error) {
         console.error("Generate Random Targets Error:", error);
-        if(randomTargetsStatusDiv) randomTargetsStatusDiv.textContent = `Error: ${error.message.substring(0,150)}`;
-        displayErrorInModal(`Error generating targets: ${error.message}`);
+        // Ensure displayErrorInModal is called here, using correct function name
+        displayErrorInModal(`Error generating targets: ${error.message.substring(0,200)}`); // Truncate long error messages
     } finally {
         clearTimeout(loadingTimeoutId);
         hideLoadingSpinner();
