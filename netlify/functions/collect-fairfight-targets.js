@@ -17,11 +17,11 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const TORN_API_KEY = process.env.TORN_API_KEY;
 const MAX_TORN_ID = 3000000;
-const PLAYERS_TO_PROCESS_PER_RUN = 9;
+// --- MODIFIED PLAYERS_TO_PROCESS_PER_RUN ---
+const PLAYERS_TO_PROCESS_PER_RUN = 6; // Reduced to guarantee completion within 10-second timeout
+// --- END MODIFIED PLAYERS_TO_PROCESS_PER_RUN ---
 const CONCURRENT_API_CALLS = 3;
-// --- MODIFIED DELAY TO BE EVEN LONGER ---
-const DELAY_BETWEEN_BATCHES_MS = 4000; // Increased delay to 4 seconds (was 2 seconds)
-// --- END MODIFIED DELAY ---
+const DELAY_BETWEEN_BATCHES_MS = 4000; // 4 seconds delay
 
 const MIN_LEVEL_FILTER = 1;
 const MAX_DAYS_INACTIVE_FILTER = 9999;
