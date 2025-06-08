@@ -14,7 +14,6 @@
 
   console.log("DEBUG FFGEN: Received apiKey for function:", apiKey ? '*****' + apiKey.substring(apiKey.length - 4) : 'undefined/null');
 
-
   if (!apiKey) {
   return {
   statusCode: 400,
@@ -34,55 +33,85 @@
   };
   }
 
-  const maxTornId = 3000000;
-  const desiredTargetsCount = parseInt(numTargets) || 10;
+  const maxTornId = 3000000; // Approximate current highest Torn ID. Can be adjusted.
+  const desiredTargetsCount = parseInt(numTargets) || 10; // Default to 10 targets
   const currentUserLevel = parseInt(userLevel);
 
+  // Dynamic Level Range based on user's level
   const minTargetLevel = Math.max(15, currentUserLevel - 20);
 
   const minFF = parseFloat(minFairFight) || 2.5;
   const maxFF = parseFloat(maxFairFight) || 4.0;
   const maxDaysIn = parseInt(maxDaysInactive) || 365;
 
-  console.log(`Generating targets for user level ${currentUserLevel}. Criteria: FF <span class="math-inline">\{minFF\}\-</span>{maxFF}, Max Inactive ${maxDaysIn} days, Min Target Level ${minTargetLevel}.`);
+  console.log(`Generating targets for user level ${currentUserLevel}. Criteria: FF ${minFF}-${maxFF}, Max Inactive ${maxDaysIn} days, Min Target Level ${minTargetLevel}.`);
 
   const foundTargets = [];
-  // ADJUSTED: Reduce maxAttempts significantly for testing
-  const maxAttempts = desiredTargetsCount * 5; // Was * 20. Try a lower multiplier.
-
   const attemptedIds = new Set();
+  let totalAttempts = 0;
 
-  for (let attempts = 0; attempts < maxAttempts && foundTargets.length < desiredTargetsCount; attempts++) {
+  // IMPORTANT: CONCURRENCY SETTINGS
+  // How many Torn API calls to make at the same time in a batch
+  const CONCURRENCY_LIMIT = 5; // Start with 5-10. Too high can hit Torn's rate limits.
+  // How many batches to attempt before giving up.
+  // We need to fetch more random IDs than desired targets because many will be invalid or not meet criteria.
+  const MAX_BATCHES = 30; // Max number of batches. (e.g., 30 batches * 5 concurrent = 150 potential Torn API calls)
+
+  const tornApiRequestQueue = [];
+
+  for (let batchNum = 0; batchNum < MAX_BATCHES && foundTargets.length < desiredTargetsCount; batchNum++) {
+  const batchPromises = [];
+  const idsInCurrentBatch = new Set(); // To ensure unique IDs within a batch
+
+  // Generate unique random IDs for the current batch
+  while (idsInCurrentBatch.size < CONCURRENCY_LIMIT) {
   const randomPlayerId = Math.floor(Math.random() * maxTornId) + 1;
+  totalAttempts++;
 
-  if (attemptedIds.has(randomPlayerId)) {
-  continue;
+  if (attemptedIds.has(randomPlayerId) || randomPlayerId.toString() === selfId) {
+  continue; // Skip if already attempted or is self
   }
   attemptedIds.add(randomPlayerId);
+  idsInCurrentBatch.add(randomPlayerId);
 
-  if (randomPlayerId.toString() === selfId) {
-  continue;
+  // Push the API call promise to the batchPromises array
+  const tornApiUrl = `https://api.torn.com/user/${randomPlayerId}?selections=basic&key=${apiKey}`;
+  batchPromises.push(axios.get(tornApiUrl).then(response => ({ playerId: randomPlayerId, data: response.data }))
+  .catch(error => {
+  // Catch individual API call errors without failing the whole batch
+  if (error.response && error.response.status === 429) {
+  console.warn(`Torn API rate limit hit during batch ${batchNum}. Retrying this batch later or waiting.`);
+  // This approach doesn't retry effectively within the loop, but logs it.
+  // For actual retry, you'd need a more sophisticated queue system.
+  }
+  console.error(`Error fetching Torn basic data for ${randomPlayerId}:`, error.message.substring(0, 100));
+  return { playerId: randomPlayerId, error: error.message }; // Return error to process later
+  }));
   }
 
-  try {
-  const tornApiUrl = `https://api.torn.com/user/<span class="math-inline">\{randomPlayerId\}?selections\=basic&key\=</span>{apiKey}`;
-  const tornApiResponse = await axios.get(tornApiUrl);
-  const playerData = tornApiResponse.data;
+  // Wait for all API calls in the current batch to complete
+  const batchResults = await Promise.all(batchPromises);
+
+  // Process results from the batch
+  for (const result of batchResults) {
+  if (foundTargets.length >= desiredTargetsCount) break; // Stop if we've found enough targets
+
+  if (result.error) {
+  continue; // Skip if there was an error fetching data for this player
+  }
+
+  const playerData = result.data;
+  const randomPlayerId = result.playerId;
 
   if (playerData.error) {
-  console.error(`Torn API returned an error for ID ${randomPlayerId}:`, JSON.stringify(playerData.error));
-
+  console.error(`Torn API returned an error for ID ${randomPlayerId} in batch:`, JSON.stringify(playerData.error));
   if (playerData.error.code === 2) {
   return {
   statusCode: 401,
   body: JSON.stringify({ error: `Torn API Key error: ${playerData.error.message || 'Unknown error code 2. Check console logs.'}. Please check your API key.` }),
   };
   }
-  if (playerData.error.code === 5 || playerData.error.code === 6) {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  continue;
-  }
-  continue;
+  continue; // Skip if Torn API returned an error for this player
   }
 
   if (!playerData.name || !playerData.level || playerData.player_id.toString() === selfId) {
@@ -97,12 +126,14 @@
   continue;
   }
 
-  const fairFightFunctionUrl = `<span class="math-inline">\{process\.env\.URL\}/\.netlify/functions/fetch\-fairfight\-data?type\=player&id\=</span>{randomPlayerId}&apiKey=${apiKey}`;
-  const ffResponse = await axios.get(fairFightFunctionUrl);
+  // Now fetch Fair Fight data for this eligible player
+  try {
+  const fairFightFunctionUrl = `${process.env.URL}/.netlify/functions/fetch-fairfight-data?type=player&id=${randomPlayerId}&apiKey=${apiKey}`;
+  const ffResponse = await axios.get(fairFightFunctionUrl); // This is still sequential for FF data
   const ffData = ffResponse.data;
 
   if (ffData.error || !ffData.fair_fight) {
-  continue;
+  continue; // Skip if Fair Fight data couldn't be fetched or is missing
   }
 
   if (ffData.fair_fight >= minFF && ffData.fair_fight <= maxFF) {
@@ -114,12 +145,10 @@
   fair_fight_data: ffData,
   });
   }
-
-  } catch (error) {
-  if (error.response && error.response.status === 429) {
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  } catch (ffError) {
+  console.error(`Error fetching Fair Fight data for ${randomPlayerId}:`, ffError.message.substring(0, 100));
+  continue; // Skip this player if FF data fetch fails
   }
-  continue;
   }
   }
 
