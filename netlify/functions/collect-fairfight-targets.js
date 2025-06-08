@@ -17,7 +17,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const TORN_API_KEY = process.env.TORN_API_KEY;
 const MAX_TORN_ID = 3000000;
-const PLAYERS_TO_PROCESS_PER_RUN = 50; // Keep this number of attempts per run
+const PLAYERS_TO_PROCESS_PER_RUN = 9; // Keep this number of attempts per run
 // --- MODIFIED CONCURRENCY AND DELAY ---
 const CONCURRENT_API_CALLS = 3; // Reduced from 5 to 3
 const DELAY_BETWEEN_BATCHES_MS = 2000; // Increased delay to 2 seconds (was 500ms)
