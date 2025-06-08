@@ -24,15 +24,14 @@
             <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
-            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
-                <button class="btn header-btn" id="headerEditProfileBtn">
-                    <span class="btn-text">Profile:</span>
-                    <span class="btn-icon">⚙️</span>
+              <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+                <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+                    <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
                 </button>
                 <div class="dropdown" id="usefulLinksDropdownContainer">
                     <button class="btn header-btn" id="usefulLinksBtn">
                         <span class="btn-text">Useful Links:</span>
-                        <span class="btn-icon">🔗</span>
+                        <span class="btn-icon">🔗 🔽</span>
                     </button>
                     <div class="dropdown-content" id="usefulLinksDropdown">
                         <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
@@ -47,12 +46,12 @@
                         <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
                     </div>
                 </div>
-                <div class="dropdown" id="headerContactUsContainer">
-                    <button class="btn header-btn" id="headerContactUsBtn">
+                <div class="dropdown" id="contactUsDropdownContainer">
+                    <button class="btn header-btn" id="contactUsBtn">
                         <span class="btn-text">Contact:</span>
-                        <span class="btn-icon">💬</span>
+                        <span class="btn-icon">💬 🔽</span>
                     </button>
-                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
+                    <div class="dropdown-content header-contact-dropdown-content" id="contactUsDropdown">
                         <a href="#">Live Chat</a>
                         <a href="#">Discord</a>
                         <a href="#">Email</a>
@@ -282,7 +281,7 @@
                 <button class="faction-info-tab-button" id="battleStatsTabBtn" data-target="factionBattleStatsContent">Battle Stats</button>
             </div>
             <div id="generalInfoContent" class="faction-info-modal-body-custom active">
-         </div>
+           </div>
             <div id="factionBattleStatsContent">
                 <p class="chat-system-message">Loading battle stats...</p>
                 <table>

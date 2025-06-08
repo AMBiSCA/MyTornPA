@@ -170,6 +170,12 @@ header {
     text-decoration: underline; color: #00e0ff; transform: translateY(-1px);
 }
 
+/* Added style for the Register button to ensure boldness */
+#signUpButtonHeader {
+    font-weight: bold; /* Ensures the text "Register:" is bold */
+}
+
+
 /* Dropdown Styles (Common to all pages) */
 .dropdown { position: relative; display: inline-block; }
 

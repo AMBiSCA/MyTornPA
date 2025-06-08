@@ -141,7 +141,7 @@
 .action-btn.download-btn:hover { background-color: #0086d1; }
 
 
-/* Inline status messages (e.g., "Fetching..." or "Error:...") */
+/* Inline status messages (e.g., "Fetching...") */
 .results-inline-status {
     font-size: 0.9rem;
     margin-top: 10px;
