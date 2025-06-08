@@ -50,7 +50,8 @@ exports.handler = async (event, context) => {
     let totalAttempts = 0;
 
     const CONCURRENCY_LIMIT = 5;
-    const MAX_BATCHES = 30;
+    // INCREASED MAX_BATCHES: Give it more attempts to find targets
+    const MAX_BATCHES = 100; // Increased from 30 to 100 (this means up to 500 Torn API calls total)
 
     for (let batchNum = 0; batchNum < MAX_BATCHES && foundTargets.length < desiredTargetsCount; batchNum++) {
         const batchPromises = [];
@@ -71,6 +72,7 @@ exports.handler = async (event, context) => {
                 .catch(error => {
                     if (error.response && error.response.status === 429) {
                         console.warn(`Torn API rate limit hit during batch ${batchNum}. Retrying this batch later or waiting.`);
+                        // For a better solution for 429, you might need to implement a delay or a retry queue.
                     }
                     console.error(`Error fetching Torn basic data for ${randomPlayerId}:`, error.message.substring(0, 100));
                     return { playerId: randomPlayerId, error: error.message };
@@ -100,9 +102,7 @@ exports.handler = async (event, context) => {
                 continue;
             }
 
-            // ADDED CHECK HERE: Ensure playerData.last_action exists before accessing timestamp
             if (!playerData.last_action || !playerData.last_action.timestamp) {
-                // console.log(`Player ID ${randomPlayerId} has missing last_action data. Skipping.`);
                 continue;
             }
 
