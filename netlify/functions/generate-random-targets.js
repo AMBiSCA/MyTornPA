@@ -1,152 +1,122 @@
-// netlify/functions/generate-random-targets.js
+const admin = require('firebase-admin');
 
-const axios = require('axios');
+// Initialize Firebase Admin SDK if it hasn't been already
+if (!admin.apps.length) {
+    try {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+    } catch (error) {
+        console.error("Firebase Admin initialization error:", error);
+        throw new Error("Failed to initialize Firebase Admin SDK.");
+    }
+}
+
+const db = admin.firestore();
 
 exports.handler = async (event, context) => {
     if (event.httpMethod !== 'GET') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: 'Method Not Allowed' }),
-        };
+        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
-    const { apiKey, userLevel, selfId, numTargets, minFairFight, maxFairFight, maxDaysInactive } = event.queryStringParameters;
+    const { userLevel, selfId, numTargets, minFairFight, maxFairFight, maxDaysInactive } = event.queryStringParameters;
 
-    console.log("DEBUG FFGEN: Received apiKey for function:", apiKey ? '*****' + apiKey.substring(apiKey.length - 4) : 'undefined/null');
-
-    if (!apiKey) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Torn API Key is required.' }),
-        };
-    }
     if (!userLevel) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'User level is required for target generation.' }),
-        };
+        return { statusCode: 400, body: JSON.stringify({ error: 'User level is required for target generation.' }) };
     }
     if (!selfId) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Your Player ID (selfId) is required to exclude yourself.' }),
-        };
+        return { statusCode: 400, body: JSON.stringify({ error: 'Your Player ID (selfId) is required to exclude yourself.' }) };
     }
 
-    const maxTornId = 3000000;
     const desiredTargetsCount = parseInt(numTargets) || 10;
     const currentUserLevel = parseInt(userLevel);
 
-    const minTargetLevel = Math.max(15, currentUserLevel - 20);
+    // Dynamic Level Range based on user's level
+    const minTargetLevel = Math.max(15, currentUserLevel - 20); // Still use this for specific filtering
 
     const minFF = parseFloat(minFairFight) || 2.5;
     const maxFF = parseFloat(maxFairFight) || 4.0;
     const maxDaysIn = parseInt(maxDaysInactive) || 365;
 
-    console.log(`Generating targets for user level ${currentUserLevel}. Criteria: FF ${minFF}-${maxFF}, Max Inactive ${maxDaysIn} days, Min Target Level ${minTargetLevel}.`);
+    console.log(`Live generator for user level ${currentUserLevel}. Criteria: FF ${minFF}-${maxFF}, Max Inactive ${maxDaysIn} days, Min Target Level ${minTargetLevel}.`);
 
     const foundTargets = [];
-    const attemptedIds = new Set();
-    let totalAttempts = 0;
+    const processedIds = new Set(); // To avoid duplicate targets in the result
 
-    const CONCURRENCY_LIMIT = 5;
-    // INCREASED MAX_BATCHES: Give it more attempts to find targets
-    const MAX_BATCHES = 100; // Increased from 30 to 100 (this means up to 500 Torn API calls total)
+    try {
+        // Step 1: Fetch a pool of pre-collected targets from Firestore
+        // We'll fetch more than needed, then filter locally for speed.
+        // Order by timestampCollected descending to get newer targets first (optional)
+        // Limit to a larger pool, e.g., 200, to ensure enough candidates for filtering.
+        const targetsRef = db.collection('fairFightTargets');
+        const snapshot = await targetsRef
+                                .orderBy('timestampCollected', 'desc') // Get newer targets first
+                                .limit(500) // Fetch a larger pool to find targets quickly
+                                .get();
 
-    for (let batchNum = 0; batchNum < MAX_BATCHES && foundTargets.length < desiredTargetsCount; batchNum++) {
-        const batchPromises = [];
-        const idsInCurrentBatch = new Set();
-
-        while (idsInCurrentBatch.size < CONCURRENCY_LIMIT) {
-            const randomPlayerId = Math.floor(Math.random() * maxTornId) + 1;
-            totalAttempts++;
-
-            if (attemptedIds.has(randomPlayerId) || randomPlayerId.toString() === selfId) {
-                continue;
-            }
-            attemptedIds.add(randomPlayerId);
-            idsInCurrentBatch.add(randomPlayerId);
-
-            const tornApiUrl = `https://api.torn.com/user/${randomPlayerId}?selections=basic&key=${apiKey}`;
-            batchPromises.push(axios.get(tornApiUrl).then(response => ({ playerId: randomPlayerId, data: response.data }))
-                .catch(error => {
-                    if (error.response && error.response.status === 429) {
-                        console.warn(`Torn API rate limit hit during batch ${batchNum}. Retrying this batch later or waiting.`);
-                        // For a better solution for 429, you might need to implement a delay or a retry queue.
-                    }
-                    console.error(`Error fetching Torn basic data for ${randomPlayerId}:`, error.message.substring(0, 100));
-                    return { playerId: randomPlayerId, error: error.message };
-                }));
+        if (snapshot.empty) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ error: 'No pre-collected targets found in the database. Please wait for the background collector to run.' }),
+            };
         }
 
-        const batchResults = await Promise.all(batchPromises);
+        const potentialTargets = [];
+        snapshot.forEach(doc => {
+            potentialTargets.push(doc.data());
+        });
 
-        for (const result of batchResults) {
-            if (foundTargets.length >= desiredTargetsCount) break;
+        // Step 2: Apply specific user criteria to the fetched pool
+        // Shuffle the potential targets for randomness
+        potentialTargets.sort(() => Math.random() - 0.5); 
 
-            if (result.error) {
-                continue;
+        for (const target of potentialTargets) {
+            if (foundTargets.length >= desiredTargetsCount) break; // Found enough targets
+
+            if (target.playerId.toString() === selfId || processedIds.has(target.playerId)) {
+                continue; // Skip self and already processed IDs
             }
 
-            const playerData = result.data;
-            const randomPlayerId = result.playerId;
+            // Apply all filters: level, last active, Fair Fight score
+            const ageDays = (Math.floor(Date.now() / 1000) - target.lastActiveTimestamp) / (24 * 60 * 60);
 
-            if (playerData.error) {
-                console.error(`Torn API returned an error for ID ${randomPlayerId} in batch:`, JSON.stringify(playerData.error));
-                if (playerData.error.code === 2) {
-                    return {
-                        statusCode: 401,
-                        body: JSON.stringify({ error: `Torn API Key error: ${playerData.error.message || 'Unknown error code 2. Check console logs.'}. Please check your API key.` }),
-                    };
-                }
-                continue;
+            if (
+                target.playerLevel < minTargetLevel ||
+                ageDays > maxDaysIn ||
+                target.fairFightScore < minFF ||
+                target.fairFightScore > maxFF
+            ) {
+                continue; // Doesn't meet user's specific criteria
             }
 
-            if (!playerData.last_action || !playerData.last_action.timestamp) {
-                continue;
-            }
-
-            if (!playerData.name || !playerData.level || playerData.player_id.toString() === selfId) {
-                continue;
-            }
-
-            const lastActionTimestamp = playerData.last_action.timestamp;
-            const nowSeconds = Math.floor(Date.now() / 1000);
-            const ageDays = (nowSeconds - lastActionTimestamp) / (24 * 60 * 60);
-
-            if (playerData.level < minTargetLevel || ageDays > maxDaysIn) {
-                continue;
-            }
-
-            try {
-                const fairFightFunctionUrl = `${process.env.URL}/.netlify/functions/fetch-fairfight-data?type=player&id=${randomPlayerId}&apiKey=${apiKey}`;
-                const ffResponse = await axios.get(fairFightFunctionUrl);
-                const ffData = ffResponse.data;
-
-                if (ffData.error || !ffData.fair_fight) {
-                    continue;
-                }
-
-                if (ffData.fair_fight >= minFF && ffData.fair_fight <= maxFF) {
-                    foundTargets.push({
-                        id: randomPlayerId,
-                        name: playerData.name,
-                        level: playerData.level,
-                        last_action: playerData.last_action,
-                        fair_fight_data: ffData,
-                    });
-                }
-            } catch (ffError) {
-                console.error(`Error fetching Fair Fight data for ${randomPlayerId}:`, ffError.message.substring(0, 100));
-                continue;
-            }
+            foundTargets.push({
+                id: target.playerId,
+                name: target.playerName,
+                level: target.playerLevel,
+                last_action: { timestamp: target.lastActiveTimestamp }, // Re-map to expected structure
+                fair_fight_data: {
+                    fair_fight: target.fairFightScore,
+                    difficulty: target.fairFightDifficulty,
+                    bs_estimate_human: target.estimatedBattleStatsHuman,
+                    last_updated: target.timestampCollected // Use collector's timestamp or source timestamp
+                },
+            });
+            processedIds.add(target.playerId);
         }
+
+    } catch (error) {
+        console.error("Live Target Generator Error:", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: `Failed to generate targets from database: ${error.message}` }),
+        };
     }
 
     if (foundTargets.length === 0) {
         return {
-            statusCode: 404,
-            body: JSON.stringify({ error: 'No targets found matching criteria after many attempts. Try adjusting filters or a larger range.' }),
+            statusCode: 404, // Return 404 if no targets found after filtering
+            body: JSON.stringify({ error: 'No targets found matching your exact criteria from the pre-collected pool. Try adjusting filters or wait for more data to be collected.' }),
         };
     }
 
