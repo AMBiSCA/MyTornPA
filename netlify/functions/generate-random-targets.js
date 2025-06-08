@@ -12,6 +12,10 @@
 
   const { apiKey, userLevel, selfId, numTargets, minFairFight, maxFairFight, maxDaysInactive } = event.queryStringParameters;
 
+  // DEBUG FFGEN: Add a log here to see the incoming API key (be careful with sensitive data in logs in production)
+  console.log("DEBUG FFGEN: Received apiKey for function:", apiKey ? '*****' + apiKey.substring(apiKey.length - 4) : 'undefined/null');
+
+
   if (!apiKey) {
   return {
   statusCode: 400,
@@ -41,47 +45,47 @@
   const maxFF = parseFloat(maxFairFight) || 4.0;
   const maxDaysIn = parseInt(maxDaysInactive) || 365;
 
-  console.log(`Generating targets for user level ${currentUserLevel}. Criteria: FF <span class="math-inline">\{minFF\}\-</span>{maxFF}, Max Inactive ${maxDaysIn} days, Min Target Level ${minTargetLevel}.`);
+  console.log(`Generating targets for user level ${currentUserLevel}. Criteria: FF ${minFF}-${maxFF}, Max Inactive ${maxDaysIn} days, Min Target Level ${minTargetLevel}.`);
 
   const foundTargets = [];
-  let attempts = 0;
   const maxAttempts = desiredTargetsCount * 20;
 
-  // Use a Set to track attempted IDs for faster lookup
   const attemptedIds = new Set();
 
-  // Replace while loop with a for loop for better control and readability
   for (let attempts = 0; attempts < maxAttempts && foundTargets.length < desiredTargetsCount; attempts++) {
   const randomPlayerId = Math.floor(Math.random() * maxTornId) + 1;
 
-  // Skip if already attempted
   if (attemptedIds.has(randomPlayerId)) {
   continue;
   }
   attemptedIds.add(randomPlayerId);
 
-  // Skip if random ID is selfId
   if (randomPlayerId.toString() === selfId) {
   continue;
   }
 
   try {
-  const tornApiUrl = `https://api.torn.com/user/<span class="math-inline">\{randomPlayerId\}?selections\=basic&key\=</span>{apiKey}`;
+  // 1. Fetch basic player data from Torn API
+  const tornApiUrl = `https://api.torn.com/user/${randomPlayerId}?selections=basic&key=${apiKey}`;
   const tornApiResponse = await axios.get(tornApiUrl);
   const playerData = tornApiResponse.data;
 
+  // Check for API errors directly from Torn (e.g., invalid ID, too many requests)
   if (playerData.error) {
-  if (playerData.error.code === 2) {
+  // IMPORTANT: Log the full error object from Torn API here
+  console.error(`Torn API returned an error for ID ${randomPlayerId}:`, JSON.stringify(playerData.error));
+
+  if (playerData.error.code === 2) { // Invalid key error, stop trying
   return {
   statusCode: 401,
-  body: JSON.stringify({ error: `Torn API Key error: ${playerData.error.message}. Please check your API key.` }),
+  body: JSON.stringify({ error: `Torn API Key error: ${playerData.error.message || 'Unknown error code 2. Check console logs.'}. Please check your API key.` }),
   };
   }
-  if (playerData.error.code === 5 || playerData.error.code === 6) {
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  if (playerData.error.code === 5 || playerData.error.code === 6) { // Too many requests, wait and retry
+  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait a bit
   continue;
   }
-  continue;
+  continue; // Skip this player if other errors
   }
 
   if (!playerData.name || !playerData.level || playerData.player_id.toString() === selfId) {
@@ -96,27 +100,33 @@
   continue;
   }
 
-  const fairFightFunctionUrl = `<span class="math-inline">\{process\.env\.URL\}/\.netlify/functions/fetch\-fairfight\-data?type\=player&id\=</span>{randomPlayerId}&apiKey=${apiKey}`;
+  // 2. Fetch Fair Fight data using your EXISTING Netlify Function
+  // Important: Use process.env.URL to reference your own Netlify site's base URL
+  const fairFightFunctionUrl = `${process.env.URL}/.netlify/functions/fetch-fairfight-data?type=player&id=${randomPlayerId}&apiKey=${apiKey}`;
   const ffResponse = await axios.get(fairFightFunctionUrl);
   const ffData = ffResponse.data;
 
   if (ffData.error || !ffData.fair_fight) {
-  continue;
+  // console.log(`Fair Fight Function Error for ID ${randomPlayerId}:`, ffData.error || "No FF data found.");
+  continue; // Skip if Fair Fight data couldn't be fetched or is missing
   }
 
+  // Apply Fair Fight Score filtering
   if (ffData.fair_fight >= minFF && ffData.fair_fight <= maxFF) {
   foundTargets.push({
   id: randomPlayerId,
   name: playerData.name,
   level: playerData.level,
-  last_action: playerData.last_action,
-  fair_fight_data: ffData,
+  last_action: playerData.last_action, // Keep original last_action for display
+  fair_fight_data: ffData, // Contains fair_fight, difficulty, bs_estimate_human, etc.
   });
   }
 
   } catch (error) {
-  if (error.response && error.response.status === 429) {
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // console.error(`Error processing player ID ${randomPlayerId} (attempt ${attempts}):`, error.message);
+  // Ignore errors for individual players and continue, especially for 404s (non-existent IDs)
+  if (error.response && error.response.status === 429) { // Too many requests to your FF function or Torn API
+  await new Promise(resolve => setTimeout(resolve, 2000)); // Wait longer
   }
   continue;
   }
