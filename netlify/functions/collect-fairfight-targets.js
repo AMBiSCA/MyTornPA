@@ -17,21 +17,21 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const TORN_API_KEY = process.env.TORN_API_KEY;
 const MAX_TORN_ID = 3000000;
-const PLAYERS_TO_PROCESS_PER_RUN = 50;
-const CONCURRENT_API_CALLS = 5;
+const PLAYERS_TO_PROCESS_PER_RUN = 50; // Keep this number of attempts per run
+// --- MODIFIED CONCURRENCY AND DELAY ---
+const CONCURRENT_API_CALLS = 3; // Reduced from 5 to 3
+const DELAY_BETWEEN_BATCHES_MS = 2000; // Increased delay to 2 seconds (was 500ms)
+// --- END MODIFIED CONCURRENCY AND DELAY ---
 
-// --- MODIFIED COLLECTOR FILTERS: Made much broader ---
-const MIN_LEVEL_FILTER = 1; // Almost all players (was 15)
-const MAX_DAYS_INACTIVE_FILTER = 9999; // Essentially no inactivity filter for collector (was 365)
-// We'll save a very wide range of FF scores for the collector
-const COLLECTOR_MIN_FF = 0.0; // Collect almost any FF score
-const COLLECTOR_MAX_FF = 10.0; // Beyond normal range, ensuring wide collection
-// --- END MODIFIED COLLECTOR FILTERS ---
+const MIN_LEVEL_FILTER = 1;
+const MAX_DAYS_INACTIVE_FILTER = 9999;
+const COLLECTOR_MIN_FF = 0.0;
+const COLLECTOR_MAX_FF = 10.0;
 
 function get_ff_score(level_diff, def_eff, str_eff) {
     const ff_val = level_diff * (def_eff / str_eff);
     if (isNaN(ff_val) || !isFinite(ff_val)) return 0;
-    return Math.max(0, Math.min(6, ff_val)); // Clamp between 0 and 6
+    return Math.max(0, Math.min(6, ff_val));
 }
 
 function get_difficulty_text(ff) {
@@ -50,6 +50,7 @@ function formatNumber(num) {
     if (Math.abs(number) >= 1e3) return (number / 1e3).toFixed(0) + 'k';
     return number.toLocaleString();
 }
+
 
 exports.handler = async (event, context) => {
     if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
@@ -91,23 +92,19 @@ exports.handler = async (event, context) => {
                 }
 
                 if (!playerData.player_id || playerData.player_id.toString() === "0" || !playerData.name || !playerData.level || !playerData.last_action || !playerData.last_action.timestamp) {
-                    // console.log(`Skipping ${playerData.name || playerId} due to missing basic data.`);
                     return null;
                 }
                 if (playerData.level < MIN_LEVEL_FILTER) {
-                    // console.log(`Skipping ${playerData.name || playerId} due to level (${playerData.level}) below MIN_LEVEL_FILTER (${MIN_LEVEL_FILTER}).`);
                     return null;
                 }
                 const ageDays = (Date.now() / 1000 - playerData.last_action.timestamp) / (24 * 60 * 60);
                 if (ageDays > MAX_DAYS_INACTIVE_FILTER) {
-                    // console.log(`Skipping ${playerData.name || playerId} due to inactivity (${ageDays} days) beyond MAX_DAYS_INACTIVE_FILTER (${MAX_DAYS_INACTIVE_FILTER}).`);
                     return null;
                 }
                 
                 const { level, strength, defense, speed, dexterity } = playerData;
                 
                 if (strength === 0 || defense === 0 || speed === 0 || dexterity === 0) {
-                     // console.log(`Skipping ${playerData.name || playerId} due to zero battle stats.`);
                     return null;
                 }
 
@@ -122,16 +119,12 @@ exports.handler = async (event, context) => {
                 if (!isNaN(def_eff) && !isNaN(str_eff) && str_eff !== 0) {
                     fairFightScore = get_ff_score(level_diff, def_eff, str_eff);
                 } else {
-                    // console.log(`Skipping ${playerData.name || playerId} due to invalid effective stats for FF calculation.`);
                     return null;
                 }
                 
-                // --- MODIFIED FF SCORE FILTER: Now using COLLECTOR_MIN_FF and COLLECTOR_MAX_FF ---
                 if (fairFightScore < COLLECTOR_MIN_FF || fairFightScore > COLLECTOR_MAX_FF) {
-                    // console.log(`Skipping ${playerData.name || playerId} due to FF score (${fairFightScore.toFixed(2)}) outside collector's range (${COLLECTOR_MIN_FF}-${COLLECTOR_MAX_FF}).`);
                     return null;
                 }
-                // --- END MODIFIED FF SCORE FILTER ---
 
                 return {
                     playerId: playerId,
@@ -167,7 +160,9 @@ exports.handler = async (event, context) => {
             console.log(`Collector: Saved ${currentBatchSaves} players to Firestore batch.`);
         }
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // --- MODIFIED DELAY HERE ---
+        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS)); // Wait 2 seconds
+        // --- END MODIFIED DELAY ---
     }
 
     console.log(`Collector finished. Processed ${playersProcessed} players, saved ${playersSaved} eligible targets. Total duration: ${Date.now() - startTime}ms`);
