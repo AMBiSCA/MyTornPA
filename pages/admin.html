@@ -9,18 +9,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/home.css">
-</head>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/home.css"> </head>
 <body>
     <header>
         <div class="header-left">
-            <a href="index.html" id="headerLogoLink" style="text-decoration: none;">
+            <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
                 <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
             </a>
         </div>
         <div class="header-center">
-            <img src="images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
 
@@ -77,6 +76,9 @@
             <label for="factionId">Faction ID:</label>
             <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
             <br><br>
+            <label for="adminApiKey">Your Torn API Key:</label>
+            <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
+            <br><br>
             <button onclick="scanFaction()">Scan Faction</button>
             <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
                 <p>Results will appear here.</p>
@@ -97,58 +99,49 @@
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
 
-    <script src="js/firebase-init.js"></script>
-    <script src="js/globalheader.js"></script>
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
 
     <script>
         // --- Your Estimated Battle Stats Formula ---
+        // This is a placeholder. You need to provide the actual calculation
+        // based on your game knowledge of Torn.
         function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
-            const numericLevel = Number(level) || 0;
-            const numericAge = Number(age) || 0;
-            const numericXanaxUsed = Number(xanaxUsed) || 0;
-            const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+            // Example: (Highly simplified and likely inaccurate for Torn)
+            const baseStats = (level * 100) + (age * 5);
+            const xanaxBonus = xanaxUsed * 5000;
+            const refillBonus = energyRefillsUsed * 2000;
 
-            let estimatedTotalStats = 0;
-            estimatedTotalStats += numericLevel * 1000;
-            estimatedTotalStats += numericAge * 50;
-            estimatedTotalStats += numericXanaxUsed * 20000;
-            estimatedTotalStats += numericEnergyRefillsUsed * 5000;
-
-            const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
-            const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
+            const estimatedTotal = baseStats + xanaxBonus + refillBonus;
 
             return {
-                strength: individualStatEstimate,
-                defense: individualStatEstimate,
-                speed: individualStatEstimate,
-                dexterity: individualStatEstimate,
-                totalEstimatedStats: finalTotalEstimatedStats
+                strength: estimatedTotal / 4, // Placeholder
+                defense: estimatedTotal / 4,  // Placeholder
+                speed: estimatedTotal / 4,    // Placeholder
+                dexterity: estimatedTotal / 4, // Placeholder
+                totalEstimatedStats: estimatedTotal
             };
         }
+        // ------------------------------------------
 
         async function scanFaction() {
             const factionId = document.getElementById("factionId").value.trim();
-            // --- CHANGES START HERE ---
-            // No API key from input anymore
-            // const apiKey = document.getElementById("adminApiKey").value.trim(); // REMOVED
+            const apiKey = document.getElementById("adminApiKey").value.trim(); // Your own API key for scanning
 
-            if (!factionId) { // Only check factionId now
-                alert("Please enter Faction ID.");
+            if (!factionId || !apiKey) {
+                alert("Please enter both Faction ID and your API key for scanning.");
                 return;
             }
-            // --- CHANGES END HERE ---
 
             document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
 
             try {
-                // --- CHANGES START HERE ---
-                // No apiKey sent in the body anymore
+                // CORRECTED: changed "scanFaction" to "scanfaction" (lowercase f)
                 const res = await fetch("/.netlify/functions/scanfaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ factionId }), // Only send factionId
+                    body: JSON.stringify({ factionId, apiKey }),
                 });
-                // --- CHANGES END HERE ---
 
                 const data = await res.json();
 
@@ -168,33 +161,38 @@
             }
         }
 
+        // The dropdown script block from your original index.html (moved here for consistency)
         document.addEventListener('DOMContentLoaded', () => {
             const contactBtn = document.getElementById('headerContactUsBtn');
             const contactDropdown = document.getElementById('headerContactUsDropdown');
             const usefulLinksBtn = document.getElementById('usefulLinksBtn');
             const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
 
+
+            // Hide dropdowns initially
             if (contactDropdown) contactDropdown.style.display = 'none';
             if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
 
             if (contactBtn) {
                 contactBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Prevent document click from closing it immediately
                     const isVisible = contactDropdown.style.display === 'block';
                     contactDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
                 });
             }
 
             if (usefulLinksBtn) {
                 usefulLinksBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Prevent document click from closing it immediately
                     const isVisible = usefulLinksDropdown.style.display === 'block';
                     usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (contactDropdown) contactDropdown.style.display = 'none';
+                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown
                 });
             }
 
+
+            // Hide dropdown if clicked outside
             window.addEventListener('click', (e) => {
                 if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
                     contactDropdown.style.display = 'none';
