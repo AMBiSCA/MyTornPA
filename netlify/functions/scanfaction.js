@@ -87,7 +87,6 @@ exports.handler = async (event, context) => {
         // Adjust this delay based on Torn's API limits (e.g., 600-700ms per request for 100 req/min)
         await new Promise(resolve => setTimeout(resolve, 700)); // Wait 0.7 seconds between user API calls
 
-        // Corrected Fetch URL syntax: using backticks (`) for template literals
         const userRes = await fetch(`https://api.torn.com/user/?selections=basic,personalstats&key=${apiKey}&ID=${memberId}`);
         const userData = await userRes.json();
 
@@ -111,6 +110,7 @@ exports.handler = async (event, context) => {
           tornId: memberId,
           name: name,
           level: level,
+          // Corrected: age will now be saved as is, and if undefined, Firestore will ignore it.
           age: age,
           xanaxUsed: xanaxUsed,
           energyRefillsUsed: energyRefillsUsed,
@@ -120,7 +120,7 @@ exports.handler = async (event, context) => {
           dexterity: estimatedStats.dexterity,
           totalStats: estimatedStats.totalEstimatedStats,
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true }); // Use merge: true to update existing fields without overwriting the whole document
+        }, { merge: true, ignoreUndefinedProperties: true }); // <--- ADDED THIS HERE
 
         processedMembers.push(name || memberId);
 
@@ -136,7 +136,7 @@ exports.handler = async (event, context) => {
         success: true,
         message: `Successfully processed ${processedMembers.length} members.`,
         processed: processedMembers,
-        errors: errors.length > 0 ? errors : undefined // Only include errors array if there were errors
+        errors: errors.length > 0 ? errors : undefined
       }),
     };
 
