@@ -22,8 +22,6 @@ const db = admin.firestore();
 // For higher accuracy, you would need more detailed game data or a community-vetted model.
 function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
     // --- Robustness: Ensure inputs are numbers, default to 0 if not valid ---
-    // Number() converts null, undefined, and non-numeric strings to 0 or NaN.
-    // The || 0 ensures NaN becomes 0.
     const numericLevel = Number(level) || 0;
     const numericAge = Number(age) || 0;
     const numericXanaxUsed = Number(xanaxUsed) || 0;
@@ -31,19 +29,11 @@ function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
 
     let estimatedTotalStats = 0;
 
-    // Level contributes to overall base stats
     estimatedTotalStats += numericLevel * 1000;
-
-    // Age contributes to passive gains
     estimatedTotalStats += numericAge * 50;
-
-    // Xanax and Energy Refills are used for training, leading to significant stat gains.
     estimatedTotalStats += numericXanaxUsed * 20000;
     estimatedTotalStats += numericEnergyRefillsUsed * 5000;
 
-    // --- Robustness: Ensure outputs are numbers ---
-    // Math.round can return NaN if input is NaN.
-    // We add || 0 to ensure the final result is always a number.
     const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
     const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
 
@@ -58,24 +48,31 @@ function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
 // ------------------------------------------
 
 exports.handler = async (event, context) => {
-  // Allow only POST requests for this function
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method Not Allowed" }) };
   }
 
-  // Parse the request body from the frontend
-  const { factionId, apiKey } = JSON.parse(event.body);
+  // --- CHANGES START HERE ---
+  // Parse the request body from the frontend - only factionId is expected now
+  const { factionId } = JSON.parse(event.body);
 
-  if (!factionId || !apiKey) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Faction ID and API Key are required." }) };
+  // Get the API key directly from Netlify Environment Variables
+  const API_KEY_FOR_TORN = process.env.TORN_API_KEY;
+
+  if (!factionId) { // Only check factionId, as API_KEY_FOR_TORN comes from env
+    return { statusCode: 400, body: JSON.stringify({ error: "Faction ID is required." }) };
   }
+  if (!API_KEY_FOR_TORN) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Server API Key not configured." }) };
+  }
+  // --- CHANGES END HERE ---
 
   const processedMembers = [];
   const errors = [];
 
   try {
-    // 1. Fetch Faction Members from Torn API
-    const factionRes = await fetch(`https://api.torn.com/faction/?selections=basic&key=${apiKey}&ID=${factionId}`);
+    // 1. Fetch Faction Members from Torn API - use the environment variable API_KEY_FOR_TORN
+    const factionRes = await fetch(`https://api.torn.com/faction/?selections=basic&key=${API_KEY_FOR_TORN}&ID=${factionId}`);
     const factionData = await factionRes.json();
 
     if (factionData.error) {
@@ -92,14 +89,13 @@ exports.handler = async (event, context) => {
     // 2. Iterate through members, collect data, and save to Firestore
     for (const memberId of memberIds) {
       try {
-        // IMPORTANT: Add a delay to avoid hitting Torn API rate limits!
-        // Adjust this delay based on Torn's API limits (e.g., 600-700ms per request for 100 req/min)
-        await new Promise(resolve => setTimeout(resolve, 700)); // Wait 0.7 seconds between user API calls
+        await new Promise(resolve => setTimeout(resolve, 700));
 
-        const userRes = await fetch(`https://api.torn.com/user/?selections=basic,personalstats&key=${apiKey}&ID=${memberId}`);
+        // Use the environment variable API_KEY_FOR_TORN for user data fetches too
+        const userRes = await fetch(`https://api.torn.com/user/?selections=basic,personalstats&key=${API_KEY_FOR_TORN}&ID=${memberId}`);
         const userData = await userRes.json();
 
-        // --- NEW DEBUGGING LOGS (Optional, remove after debugging) ---
+        // --- DEBUGGING LOGS (Optional, remove after debugging) ---
         console.log(`DEBUG: Fetched data for member ${memberId}:`, JSON.stringify(userData, null, 2));
         console.log(`DEBUG: Member ${memberId} age:`, userData.age);
         console.log(`DEBUG: Member ${memberId} xanaxUsed:`, userData.personalstats ? userData.personalstats.xanax : 'N/A');
@@ -113,21 +109,19 @@ exports.handler = async (event, context) => {
           continue;
         }
 
-        const { name, level, age } = userData; // age here could still be null or non-numeric string
+        const { name, level, age } = userData;
         const personalStats = userData.personalstats || {};
 
         const xanaxUsed = personalStats.xanax || 0;
-        const energyRefillsUsed = personalStats.energydrink || 0; // Assuming 'energydrink' is the field name
+        const energyRefillsUsed = personalStats.energydrink || 0;
 
-        // 3. Estimate Battle Stats using your custom formula
         const estimatedStats = estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed);
 
-        // 4. Save/Update to Firestore
         await db.collection("userProfiles").doc(String(memberId)).set({
           tornId: memberId,
           name: name,
           level: level,
-          age: age, // Still store original age, let ignoreUndefinedProperties handle 'undefined'
+          age: age,
           xanaxUsed: xanaxUsed,
           energyRefillsUsed: energyRefillsUsed,
           strength: estimatedStats.strength,
