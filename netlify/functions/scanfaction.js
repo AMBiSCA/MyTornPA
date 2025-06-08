@@ -6,7 +6,7 @@ const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 
 // Initialize Firebase Admin SDK (using environment variable for service account key)
-// Make sure FIREBASE_SERVICE_ACCOUNT is set in your Netlify site settings.
+// Make sure FIREBASE_SERVICE_ACCOUNT_KEY is set in your Netlify site settings.
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
 if (!admin.apps.length) { // Prevents re-initializing if running locally or in dev server
@@ -21,29 +21,38 @@ const db = admin.firestore();
 // It is an APPROXIMATION and NOT a precise formula.
 // For higher accuracy, you would need more detailed game data or a community-vetted model.
 function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
+    // --- Robustness: Ensure inputs are numbers, default to 0 if not valid ---
+    // Number() converts null, undefined, and non-numeric strings to 0 or NaN.
+    // The || 0 ensures NaN becomes 0.
+    const numericLevel = Number(level) || 0;
+    const numericAge = Number(age) || 0;
+    const numericXanaxUsed = Number(xanaxUsed) || 0;
+    const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+
     let estimatedTotalStats = 0;
 
     // Level contributes to overall base stats
-    estimatedTotalStats += level * 1000; // Rough linear contribution from level
+    estimatedTotalStats += numericLevel * 1000;
 
     // Age contributes to passive gains
-    estimatedTotalStats += age * 50; // Passive gains over time
+    estimatedTotalStats += numericAge * 50;
 
     // Xanax and Energy Refills are used for training, leading to significant stat gains.
-    // These are general estimations for total gains.
-    estimatedTotalStats += xanaxUsed * 20000; // Each xanax is a happy jump possibility for high gains
-    estimatedTotalStats += energyRefillsUsed * 5000; // Energy refills directly used for training
+    estimatedTotalStats += numericXanaxUsed * 20000;
+    estimatedTotalStats += numericEnergyRefillsUsed * 5000;
 
-    // Distribute total estimated stats somewhat evenly across the four main battle stats.
-    // In reality, players train specific stats, but without that data, even distribution is a common simplification.
-    const individualStatEstimate = Math.round(estimatedTotalStats / 4);
+    // --- Robustness: Ensure outputs are numbers ---
+    // Math.round can return NaN if input is NaN.
+    // We add || 0 to ensure the final result is always a number.
+    const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
+    const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
 
     return {
         strength: individualStatEstimate,
         defense: individualStatEstimate,
         speed: individualStatEstimate,
         dexterity: individualStatEstimate,
-        totalEstimatedStats: Math.round(estimatedTotalStats) // Round the final total
+        totalEstimatedStats: finalTotalEstimatedStats
     };
 }
 // ------------------------------------------
@@ -90,13 +99,21 @@ exports.handler = async (event, context) => {
         const userRes = await fetch(`https://api.torn.com/user/?selections=basic,personalstats&key=${apiKey}&ID=${memberId}`);
         const userData = await userRes.json();
 
+        // --- NEW DEBUGGING LOGS (Optional, remove after debugging) ---
+        console.log(`DEBUG: Fetched data for member ${memberId}:`, JSON.stringify(userData, null, 2));
+        console.log(`DEBUG: Member ${memberId} age:`, userData.age);
+        console.log(`DEBUG: Member ${memberId} xanaxUsed:`, userData.personalstats ? userData.personalstats.xanax : 'N/A');
+        console.log(`DEBUG: Member ${memberId} energyRefillsUsed:`, userData.personalstats ? userData.personalstats.energydrink : 'N/A');
+        // --- END DEBUGGING LOGS ---
+
+
         if (userData.error) {
           console.warn(`Error fetching data for user ${memberId}:`, userData.error);
           errors.push(`User ${memberId}: ${userData.error.error || "Unknown error"}`);
-          continue; // Skip to next member if there's an error for this one
+          continue;
         }
 
-        const { name, level, age } = userData;
+        const { name, level, age } = userData; // age here could still be null or non-numeric string
         const personalStats = userData.personalstats || {};
 
         const xanaxUsed = personalStats.xanax || 0;
@@ -110,8 +127,7 @@ exports.handler = async (event, context) => {
           tornId: memberId,
           name: name,
           level: level,
-          // Corrected: age will now be saved as is, and if undefined, Firestore will ignore it.
-          age: age,
+          age: age, // Still store original age, let ignoreUndefinedProperties handle 'undefined'
           xanaxUsed: xanaxUsed,
           energyRefillsUsed: energyRefillsUsed,
           strength: estimatedStats.strength,
@@ -120,7 +136,7 @@ exports.handler = async (event, context) => {
           dexterity: estimatedStats.dexterity,
           totalStats: estimatedStats.totalEstimatedStats,
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true, ignoreUndefinedProperties: true }); // <--- ADDED THIS HERE
+        }, { merge: true, ignoreUndefinedProperties: true });
 
         processedMembers.push(name || memberId);
 
