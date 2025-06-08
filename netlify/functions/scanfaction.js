@@ -7,7 +7,7 @@ const fetch = require("node-fetch");
 
 // Initialize Firebase Admin SDK (using environment variable for service account key)
 // Make sure FIREBASE_SERVICE_ACCOUNT is set in your Netlify site settings.
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
 if (!admin.apps.length) { // Prevents re-initializing if running locally or in dev server
   admin.initializeApp({
