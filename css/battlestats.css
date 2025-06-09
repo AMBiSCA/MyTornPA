@@ -358,19 +358,10 @@ header {
 }
 .modal-overlay.visible {visibility: visible;opacity: 1;}
 .modal-content {
-    background-color: #282828;
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(0, 168, 255, 0.7);
-    padding: 25px 30px;
-    width: 95%; /* Allow it to take up more width on smaller screens */
-    max-width: 1300px; /* Increase max-width slightly for wider screens */
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    transform: scale(0.95) translateY(20px);
-    opacity: 0;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-}
+  background-color: #222;border-radius: 12px;box-shadow: 0 0 25px rgba(0, 168, 255, 0.6);
+  padding: 30px;width: 90%;max-width: 1000px;max-height: 90vh;overflow-y: auto;position: relative;
+  transform: translateY(20px);opacity: 0;transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  display: flex; flex-direction: column; margin-top: 70px;
 .modal-overlay.visible .modal-content {transform: scale(1) translateY(0);opacity: 1;}
 .modal-close-btn {
     position: absolute;top: 12px;right: 12px;background: none;border: none;
