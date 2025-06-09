@@ -1,336 +1,500 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // --- Common Header/Footer UI script (depends on 'auth' and 'db' from firebase-init.js) ---
-    const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+/* --- Root Variables for Theming (Aligned with your provided home.css) --- */
+:root {
+    --primary-bg-color: rgba(19, 19, 20, 0.75); /* Dark background for main containers (from .styled-container) */
+    --secondary-bg-color: #2c2f33; /* Slightly lighter dark for sub-containers (from .dash-item) */
+    --tertiary-bg-color: rgba(0,0,0,0.35); /* Even lighter dark for inner boxes (from .quick-stats-inner-box) */
+    --page-bg-color: #1e1e1e; /* Overall page background (from mypa.css body, but similar to home.css intent) */
 
-    if (usefulLinksBtn && usefulLinksDropdown) {
-        usefulLinksBtn.addEventListener('click', function(event) {
-            event.stopPropagation(); 
-            usefulLinksDropdown.classList.toggle('show');
-        });
+    --primary-text-color: #f0f0f0; /* Light text for main content */
+    --secondary-text-color: #b0b0b0; /* Lighter grey text for labels, info */
+    --accent-blue-color: #00a8ff; /* Primary accent blue (from borders, tornTimeContainer, welcome) */
+    --light-blue-color: #8ab4f8; /* Lighter blue for section titles */
+    --link-color: #00a8ff; /* Links color, using accent blue */
+    --api-key-warning-color: #FFC04D; /* Yellow for API key message */
+
+    --danger-color: #ff6b6b; /* Red for errors/danger */
+
+    --border-color-primary: #00a8ff; /* Primary border color (blue glow) */
+    --border-color-secondary: #383c42; /* Secondary border color (darker grey) */
+
+    --box-shadow-primary: 0 0 10px 3px rgba(0, 168, 255, 0.35); /* Blue glow shadow */
+    --box-shadow-secondary: 0 2px 8px rgba(0,0,0,0.3); /* General dark shadow */
+
+    --spacing-xs: 5px;
+    --spacing-sm: 8px;
+    --spacing-md: 10px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+}
+
+/* --- General Body and HTML Elements --- */
+body {
+    font-family: 'Arial', sans-serif; /* Consistent with your usage */
+    margin: 0;
+    padding: 0;
+    background-color: var(--page-bg-color);
+    color: var(--primary-text-color);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure footer sticks to bottom */
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Verdana', sans-serif; /* Consistent with your usage */
+    color: var(--primary-text-color);
+    margin-top: 0;
+    margin-bottom: var(--spacing-sm); /* Tighter spacing */
+}
+
+h1 { font-size: 2.2em; }
+h2 { font-size: 1.8em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.2em; }
+
+p {
+    margin-bottom: 1em;
+    color: var(--secondary-text-color); /* Default paragraph text color */
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #00c0ff; /* Lighter shade of blue on hover */
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    margin-bottom: var(--spacing-xs);
+}
+
+/* --- Header Styles (from mypa.html, adapted for consistency) --- */
+header {
+    background-color: var(--secondary-bg-color); /* Assuming similar dark background */
+    color: var(--primary-text-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px var(--box-shadow-secondary);
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-color-secondary);
+}
+
+.header-left, .header-center, .header-right-controls {
+    display: flex;
+    align-items: center;
+}
+
+.header-left h1 {
+    font-size: 1.8em;
+    margin: 0;
+    padding-right: var(--spacing-md);
+    white-space: nowrap;
+}
+
+.header-left .tagline {
+    font-size: 0.6em;
+    opacity: 0.8;
+    display: block;
+    margin-top: -5px;
+}
+
+#headerMainLogo {
+    height: 50px;
+    width: auto;
+    margin: 0 var(--spacing-xl);
+}
+
+.header-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.btn.header-btn {
+    background-color: #4CAF50; /* Example green for buttons */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn.header-btn:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: translateY(-2px);
+}
+
+.btn-text {
+    white-space: nowrap;
+}
+
+.btn-icon {
+    font-size: 1.1em;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--secondary-bg-color);
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px var(--box-shadow-secondary);
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+    right: 0;
+    top: 100%;
+    margin-top: var(--spacing-xs);
+}
+
+.dropdown-content a {
+    color: var(--primary-text-color);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: var(--tertiary-bg-color);
+    color: var(--accent-blue-color);
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+/* --- Main Content Area Layout (from mypa.html, adapted for consistency) --- */
+.main-content-wrapper {
+    flex-grow: 1;
+    padding: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.page-specific-content-area {
+    width: 100%;
+    max-width: 900px;
+    padding: var(--spacing-xl);
+    background-color: var(--primary-bg-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px var(--box-shadow-dark);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-color-primary); /* Page border with blue glow */
+    box-shadow: var(--box-shadow-primary);
+}
+
+.page-specific-content-area h2 {
+    text-align: center;
+    color: var(--light-blue-color); /* Using the blue from home.css titles */
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--accent-blue-color); /* Stronger blue border */
+}
+
+.page-specific-content-area p {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    color: var(--secondary-text-color);
+}
+
+/* --- General Styled Container (from home.css, applied to sections) --- */
+.styled-container {
+    border: 1px solid var(--border-color-secondary);
+    background-color: var(--primary-bg-color);
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-lg); /* Tighter spacing */
+    box-shadow: var(--box-shadow-secondary);
+}
+
+/* --- Battle Stat Gains Tracker Section (Existing elements, styled to match home.css) --- */
+.stat-display-section {
+    background-color: var(--tertiary-bg-color); /* Darker background, like quick-stats-inner-box */
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+    border: 1px solid var(--border-color-secondary);
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.stat-display-section h3 {
+    color: var(--light-blue-color); /* Consistency with section titles */
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--accent-blue-color);
+}
+
+.stat-display-section p {
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--secondary-text-color);
+}
+
+.stat-display-section ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-display-section li {
+    background-color: var(--secondary-bg-color); /* Match dash-item background */
+    padding: var(--spacing-sm) var(--spacing-md); /* Match dash-item padding */
+    margin-bottom: var(--spacing-sm); /* Tighter spacing */
+    border-radius: 6px; /* Match dash-item border-radius */
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em; /* Match dash-item font size */
+    color: var(--primary-text-color);
+    border: 1px solid var(--border-color-secondary); /* Match dash-item border */
+}
+
+/* Dashboard grid for quick stats (from home.css) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+    gap: var(--spacing-sm); /* Tighter gap */
+    margin-bottom: var(--spacing-md); /* Tighter margin */
+}
+.dash-item {
+    background-color:var(--secondary-bg-color);
+    padding:var(--spacing-sm) var(--spacing-md);
+    border-radius:6px;
+    font-size:0.85em;
+    display:flex; justify-content:space-between; align-items:center;
+    border:1px solid var(--border-color-secondary);
+    min-height:34px; box-sizing: border-box;
+}
+.dash-item-label {
+    font-weight:bold;
+    margin-right:var(--spacing-xs);
+    color:inherit;
+    flex-shrink: 0;
+}
+.dash-item span.value {
+    margin-left:auto;
+    padding-left:var(--spacing-xs);
+    text-align:right;
+    color: var(--accent-blue-color); /* Match home.css value color */
+}
+
+.error-message-centered {
+    color: var(--danger-color);
+    text-align: center;
+    margin-top: var(--spacing-xs);
+    min-height: 1em;
+    font-size: 0.9em;
+}
+
+/* --- New styles for Gym Gain Estimator box (Adapted to new theme) --- */
+
+#gymGainEstimator {
+    /* Already has .styled-container and .stat-display-section for base styling */
+    margin-top: var(--spacing-xl); /* Space it out from the previous section */
+}
+
+#gymGainEstimator h3 {
+    text-align: center;
+    color: var(--light-blue-color); /* Consistent with other section titles */
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.6em;
+    font-weight: bold;
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--accent-blue-color);
+}
+
+#gymEstimatorInfo,
+#gymEstimatorError {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.95em;
+    color: var(--secondary-text-color);
+}
+
+#gymEstimatorError {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+/* Gym stats grid, mimicking dashboard-grid but within its own container */
+.gym-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg); /* Slightly more gap for these prominent stats */
+    padding: var(--spacing-lg);
+    background-color: var(--tertiary-bg-color); /* Consistent inner box background */
+    border-radius: 8px;
+    margin-top: var(--spacing-lg);
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3); /* Inner shadow for depth */
+    border: 1px solid var(--border-color-secondary);
+}
+
+/* Individual gym stat item */
+.gym-stat-item {
+    background-color: var(--secondary-bg-color); /* Consistent item background */
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px var(--box-shadow-light);
+    border: 1px solid var(--border-color-secondary);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.gym-stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px var(--box-shadow-dark);
+}
+
+.gym-stat-label {
+    font-weight: bold;
+    color: var(--secondary-text-color);
+    font-size: 0.95em;
+    flex-grow: 1;
+    text-align: left;
+    margin-right: var(--spacing-md);
+    white-space: nowrap;
+}
+
+.gym-stat-value {
+    font-weight: bold;
+    color: var(--primary-text-color); /* Default value color */
+    font-size: 1.1em;
+    text-align: right;
+    min-width: 60px;
+    transition: color 0.3s ease-in-out, font-weight 0.3s ease-in-out;
+}
+
+/* --- Footer Styles (from mypa.html, adapted for consistency) --- */
+.footer {
+    background-color: var(--secondary-bg-color);
+    color: var(--secondary-text-color);
+    padding: var(--spacing-xl);
+    text-align: center;
+    font-size: 0.9em;
+    box-shadow: 0 -2px 5px var(--box-shadow-dark);
+    border-top: 1px solid var(--border-color-secondary);
+    margin-top: auto;
+}
+
+.footer-links {
+    margin-bottom: var(--spacing-md);
+}
+
+.footer-links a {
+    color: var(--link-color);
+    text-decoration: none;
+    margin: 0 var(--spacing-sm);
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #00c0ff;
+}
+
+/* --- Responsive Adjustments (from home.css and general good practice) --- */
+@media (max-width: 960px) {
+    .main-content-wrapper {
+        padding: var(--spacing-lg);
     }
-
-    window.addEventListener('click', function(event) {
-        if (usefulLinksBtn && usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) {
-            if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
-                usefulLinksDropdown.classList.remove('show');
-            }
-        }
-    });
-
-    const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-    const signUpButtonHeader = document.getElementById('signUpButtonHeader');
-    const homeButtonFooter = document.getElementById('homeButtonFooter'); 
-    const logoutButtonHeader = document.getElementById('logoutButtonHeader');
-
-    // Initial UI state before auth check
-    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-    if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-    if (homeButtonFooter) homeButtonFooter.style.display = 'none';
-    if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-
-
-    // --- Battle Stat Gains Tracker JavaScript Elements ---
-    // (Declared here so they are in scope for auth checks too if needed for enabling/disabling)
-    const lastRecordedTimestampEl = document.getElementById('lastRecordedTimestamp');
-    const lastStatsListEl = document.getElementById('lastStatsList');
-    const lastStrengthEl = document.getElementById('lastStrength');
-    const lastSpeedEl = document.getElementById('lastSpeed');
-    const lastDefenseEl = document.getElementById('lastDefense');
-    const lastDexterityEl = document.getElementById('lastDexterity');
-    const refreshStatsButton = document.getElementById('refreshStatsButton');
-    const gainsMessageEl = document.getElementById('gainsMessage');
-    const gainsStatsListEl = document.getElementById('gainsStatsList');
-    const gainStrengthEl = document.getElementById('gainStrength');
-    const gainSpeedEl = document.getElementById('gainSpeed');
-    const gainDefenseEl = document.getElementById('gainDefense');
-    const gainDexterityEl = document.getElementById('gainDexterity');
-    const statTrackerInterfaceExists = !!document.getElementById('statTrackerInterface');
-
-
-    if (typeof auth !== 'undefined' && auth && typeof db !== 'undefined') {
-        auth.onAuthStateChanged(function(user) {
-            const currentPagePath = window.location.pathname;
-            let pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
-            if (pageName === "" && currentPagePath.length > 1 && currentPagePath.endsWith('/')) { 
-                const pathParts = currentPagePath.substring(0, currentPagePath.length -1).split('/');
-                pageName = pathParts[pathParts.length -1].toLowerCase();
-            } else if (pageName === "" && currentPagePath === "/") {
-                // Handles root path
-            }
-            
-            const nonAuthEntryPages = ['index.html', 'ranked.html', 'login.html']; 
-            let isThisNonAuthEntryPage = nonAuthEntryPages.includes(pageName) || (pageName === "" && currentPagePath === "/");
-
-            if (user) { // User is signed in
-                if (isThisNonAuthEntryPage) { 
-                    window.location.href = 'home.html'; 
-                    return; 
-                }
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = 'inline';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex'; 
-
-                // Stat Tracker Page Specific Logic for logged-in user
-                if (statTrackerInterfaceExists) {
-                    if(refreshStatsButton) refreshStatsButton.disabled = false;
-                    fetchLastRecordedStats(user.uid); // Load last stats on page load for logged-in user
-                }
-
-            } else { // No user signed in
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (signUpButtonHeader) {
-                    // Show sign-up button on non-entry pages if user is not logged in.
-                    // Hide it on entry pages (index, login, ranked) as those are for signing in/up.
-                    signUpButtonHeader.style.display = isThisNonAuthEntryPage ? 'none' : 'inline-flex';
-                }
-                if (homeButtonFooter) homeButtonFooter.style.display = 'none';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-                
-                // Define pages accessible without login
-                const allowedNonAuthPages = [...nonAuthEntryPages, 'travel.html', 'terms.html', 'faq.html', 'about.html', 'report.html', 'merits.html', 'item_watcher.html']; 
-                
-                // If current page is NOT in allowed list and user is not logged in, redirect to login.
-                // This means mypa.html (stat tracker) now requires login.
-                if (!allowedNonAuthPages.includes(pageName) && !(pageName === "" && currentPagePath === "/")) {
-                     window.location.href = 'login.html'; // Or your primary login page
-                     return;
-                }
-
-                // Stat Tracker Page Specific Logic for logged-out user
-                if (statTrackerInterfaceExists) {
-                    displayLastRecordedStats(null); // Clear displayed stats
-                    if(gainsMessageEl) gainsMessageEl.textContent = 'Please log in to track your stats.';
-                    if(gainsStatsListEl) gainsStatsListEl.style.display = 'none';
-                    if(refreshStatsButton) refreshStatsButton.disabled = true;
-                }
-            }
-        });
-
-        if (logoutButtonHeader) {
-            logoutButtonHeader.onclick = function() { 
-                auth.signOut().then(() => {
-                    console.log('User signed out');
-                    window.location.href = 'login.html'; 
-                }).catch((error) => {
-                    console.error('Sign out error', error);
-                });
-            };
-        }
-
-    } else {
-        console.warn("Firebase auth object and/or db object (from firebase-init.js) is not available. UI and functionality will be limited.");
-        // Fallback UI if Firebase isn't ready (e.g. redirect to an error page or show minimal public content)
-        if (statTrackerInterfaceExists) {
-            if(lastRecordedTimestampEl) lastRecordedTimestampEl.textContent = 'System not ready. Firebase might not be initialized.';
-            if(gainsMessageEl) gainsMessageEl.textContent = 'System not ready.';
-            if(refreshStatsButton) refreshStatsButton.disabled = true;
-        }
+    .page-specific-content-area {
+        padding: var(--spacing-lg);
+        max-width: 100%; /* Allow wider on slightly smaller screens */
     }
-
-    // --- Battle Stat Gains Tracker JavaScript Logic ---
-    const STAT_SNAPSHOT_COLLECTION = 'user_stat_snapshots';
-
-    async function getUserTornApiKey() {
-        // CRITICAL: Implement this function securely.
-        // This placeholder prompts the user, which is NOT secure or good UX for production.
-        // const apiKey = prompt("DEV ONLY: Enter Torn API Key (Limited Access Recommended)");
-        // if (apiKey) return apiKey;
-        
-        // EXAMPLE: Fetch from a user profile in Firestore (you'd need to set this up)
-        if (auth && auth.currentUser) {
-            try {
-                // Assume you have a 'user_profiles' collection where API keys are stored
-                const userProfileRef = db.collection('user_profiles').doc(auth.currentUser.uid);
-                const doc = await userProfileRef.get();
-                if (doc.exists && doc.data().tornApiKey) {
-                    return doc.data().tornApiKey;
-                } else {
-                    alert("Torn API key not found in your profile. Please add it in your settings.");
-                    console.warn("Torn API key not found for user:", auth.currentUser.uid);
-                    return null;
-                }
-            } catch (error) {
-                console.error("Error fetching API key from profile:", error);
-                alert("Could not retrieve your Torn API key due to an error.");
-                return null;
-            }
-        }
-        
-        console.error("getUserTornApiKey() needs a proper implementation.");
-        alert("API Key retrieval is not configured. This feature requires an API key.");
-        return null;
+    .dashboard-grid, .gym-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjust columns */
     }
+}
 
-    function displayLastRecordedStats(statsData) {
-        if (!statTrackerInterfaceExists) return; // Only run if on the right page
-
-        if (statsData && statsData.timestamp) {
-            const dateString = statsData.timestamp.toDate ? statsData.timestamp.toDate().toLocaleString() : 'N/A';
-            lastRecordedTimestampEl.textContent = `As of: ${dateString}`;
-            lastStrengthEl.textContent = `Strength: ${statsData.strength?.toLocaleString() || '---'}`;
-            lastSpeedEl.textContent = `Speed: ${statsData.speed?.toLocaleString() || '---'}`;
-            lastDefenseEl.textContent = `Defense: ${statsData.defense?.toLocaleString() || '---'}`;
-            lastDexterityEl.textContent = `Dexterity: ${statsData.dexterity?.toLocaleString() || '---'}`;
-        } else {
-            lastRecordedTimestampEl.textContent = 'No previous stats recorded. Click button to get a baseline.';
-            lastStrengthEl.textContent = `Strength: ---`;
-            lastSpeedEl.textContent = `Speed: ---`;
-            lastDefenseEl.textContent = `Defense: ---`;
-            lastDexterityEl.textContent = `Dexterity: ---`;
-        }
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
-
-    async function fetchLastRecordedStats(userId) {
-        if (!statTrackerInterfaceExists) return null;
-        if (!userId || typeof db === 'undefined') {
-            console.warn("fetchLastRecordedStats: User not logged in or Firestore (db) not initialized.");
-            displayLastRecordedStats(null);
-            return null;
-        }
-        try {
-            const docRef = db.collection(STAT_SNAPSHOT_COLLECTION).doc(userId);
-            const docSnap = await docRef.get();
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                displayLastRecordedStats(data);
-                return data;
-            } else {
-                displayLastRecordedStats(null);
-                return null;
-            }
-        } catch (error) {
-            console.error("Error fetching last recorded stats:", error);
-            if(lastRecordedTimestampEl) lastRecordedTimestampEl.textContent = 'Error loading previous stats.';
-            return null;
-        }
+    .header-left, .header-center, .header-right-controls {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: var(--spacing-md);
     }
-
-    function displayGains(gains, lastTimestamp) {
-        if (!statTrackerInterfaceExists) return;
-
-        if (!gains) {
-            gainsMessageEl.textContent = 'Current stats recorded as baseline. Check again later for gains!';
-            gainsStatsListEl.style.display = 'none';
-            return;
-        }
-
-        const dateString = lastTimestamp?.toDate ? lastTimestamp.toDate().toLocaleString() : 'a previous check';
-        gainsMessageEl.textContent = `Gains since ${dateString}:`;
-        
-        gainStrengthEl.textContent = `Strength: ${gains.strength >= 0 ? '+' : ''}${gains.strength?.toLocaleString() || 'N/A'}`;
-        gainSpeedEl.textContent = `Speed: ${gains.speed >= 0 ? '+' : ''}${gains.speed?.toLocaleString() || 'N/A'}`;
-        gainDefenseEl.textContent = `Defense: ${gains.defense >= 0 ? '+' : ''}${gains.defense?.toLocaleString() || 'N/A'}`;
-        gainDexterityEl.textContent = `Dexterity: ${gains.dexterity >= 0 ? '+' : ''}${gains.dexterity?.toLocaleString() || 'N/A'}`;
-        
-        gainsStatsListEl.style.display = 'block';
+    .header-left {
+        margin-bottom: 0;
     }
-
-    async function saveCurrentStats(userId, stats) {
-        if (!statTrackerInterfaceExists) return;
-        if (!userId || typeof db === 'undefined') {
-            console.error("saveCurrentStats: User not logged in or Firestore (db) not initialized.");
-            return;
-        }
-        try {
-            const statDataToSave = {
-                strength: stats.strength,
-                speed: stats.speed,
-                defense: stats.defense,
-                dexterity: stats.dexterity,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            await db.collection(STAT_SNAPSHOT_COLLECTION).doc(userId).set(statDataToSave);
-            console.log("Current stats saved as baseline for user:", userId);
-            // Re-fetch and display to get the accurate server timestamp and update UI
-            await fetchLastRecordedStats(userId);
-        } catch (error) {
-            console.error("Error saving current stats:", error);
-            alert("Could not save current stats. See console for details.");
-        }
+    .header-left h1 {
+        padding-right: 0;
+        margin-bottom: var(--spacing-xs);
     }
-
-    if (refreshStatsButton) {
-        refreshStatsButton.addEventListener('click', async () => {
-            if (!auth || !auth.currentUser) {
-                alert("Please log in to use this feature.");
-                return;
-            }
-            const userId = auth.currentUser.uid;
-
-            const apiKey = await getUserTornApiKey();
-            if (!apiKey) {
-                // getUserTornApiKey should ideally alert the user if key is missing.
-                return;
-            }
-
-            refreshStatsButton.disabled = true;
-            refreshStatsButton.textContent = 'Fetching...';
-            if(gainsMessageEl) gainsMessageEl.textContent = 'Fetching current stats from Torn...';
-            if(gainsStatsListEl) gainsStatsListEl.style.display = 'none';
-
-            try {
-                const response = await fetch(`https://api.torn.com/user/?selections=battlestats&key=${apiKey}`);
-                if (!response.ok) {
-                    let errorMsg = response.statusText;
-                    try {
-                        const errorData = await response.json();
-                        if (errorData && errorData.error && errorData.error.error) {
-                             errorMsg = `Code ${errorData.error.code}: ${errorData.error.error}`;
-                        }
-                    } catch (e) { /* ignore if response not json */ }
-                    throw new Error(`Torn API error: ${errorMsg}`);
-                }
-                const tornData = await response.json();
-
-                if (tornData.error) {
-                    throw new Error(`Torn API error: Code ${tornData.error.code} - ${tornData.error.error}`);
-                }
-                
-                if (!tornData.strength || typeof tornData.speed === 'undefined' || typeof tornData.defense === 'undefined' || typeof tornData.dexterity === 'undefined') {
-                     console.error("API Response:", tornData); // Log the response for debugging
-                    throw new Error('Battle stat data incomplete or not found in API response. Check API key permissions or Torn API changes.');
-                }
-
-                const currentStats = {
-                    strength: parseInt(tornData.strength, 10) || 0,
-                    speed: parseInt(tornData.speed, 10) || 0,
-                    defense: parseInt(tornData.defense, 10) || 0,
-                    dexterity: parseInt(tornData.dexterity, 10) || 0
-                };
-
-                const lastRecordedStats = await db.collection(STAT_SNAPSHOT_COLLECTION).doc(userId).get()
-                    .then(docSnap => docSnap.exists() ? docSnap.data() : null)
-                    .catch(err => { console.error("Error fetching last stats for calculation:", err); return null; });
-
-
-                if (lastRecordedStats) {
-                    const gains = {
-                        strength: currentStats.strength - (lastRecordedStats.strength || 0),
-                        speed: currentStats.speed - (lastRecordedStats.speed || 0),
-                        defense: currentStats.defense - (lastRecordedStats.defense || 0),
-                        dexterity: currentStats.dexterity - (lastRecordedStats.dexterity || 0)
-                    };
-                    displayGains(gains, lastRecordedStats.timestamp);
-                } else {
-                    displayGains(null); // No previous stats, so this is baseline
-                }
-
-                await saveCurrentStats(userId, currentStats);
-
-            } catch (error) {
-                console.error("Error refreshing stats:", error);
-                if(gainsMessageEl) gainsMessageEl.textContent = `Error: ${error.message}`;
-                if(gainsStatsListEl) gainsStatsListEl.style.display = 'none';
-                alert(`Could not fetch or process stats: ${error.message}`);
-            } finally {
-                if(refreshStatsButton) {
-                    refreshStatsButton.disabled = false;
-                    refreshStatsButton.textContent = 'Refresh Stats & Calculate Gains';
-                }
-            }
-        });
+    #headerMainLogo {
+        margin: var(--spacing-md) 0;
     }
-    // --- END of Battle Stat Gains Tracker JavaScript Logic ---
-});
+    .header-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: var(--spacing-xs);
+    }
+    .btn.header-btn, .header-text-link {
+        width: 100%;
+        margin-bottom: var(--spacing-xs);
+    }
+    .dropdown-content {
+        position: static;
+        width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    .dashboard-grid, .gym-stats-grid {
+        grid-template-columns: 1fr; /* Stack items on small screens */
+    }
+    .page-specific-content-area h2 {
+        font-size: 1.6em;
+    }
+    .stat-display-section h3 {
+        font-size: 1.3em;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: var(--spacing-md);
+    }
+    .header-left h1 {
+        font-size: 1.5em;
+    }
+    .btn.header-btn, .header-text-link {
+        font-size: 0.85em;
+        padding: 6px 10px;
+    }
+    .footer-links a {
+        margin: 0 var(--spacing-xs);
+    }
+    .main-content-wrapper {
+        padding: var(--spacing-xs);
+    }
+    .page-specific-content-area {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+}
