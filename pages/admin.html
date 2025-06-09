@@ -9,18 +9,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/home.css">
-</head>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/home.css"> </head>
 <body>
     <header>
         <div class="header-left">
-            <a href="index.html" id="headerLogoLink" style="text-decoration: none;">
+            <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
                 <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
             </a>
         </div>
         <div class="header-center">
-            <img src="images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
 
@@ -73,11 +72,14 @@
     <main class="homepage-content-wrapper" id="adminContent">
         <section class="welcome-block-area styled-container">
             <h2>Admin: Scan Faction Members</h2>
-            <p id="adminStatusMessage" style="text-align: center; color: orange;">Checking login status...</p>
+            <p>Use this tool to add players from specific factions to your target finding database.</p>
             <label for="factionId">Faction ID:</label>
             <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
             <br><br>
-            <button id="scanFactionBtn" disabled>Scan Faction</button>
+            <label for="adminApiKey">Your Torn API Key:</label>
+            <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
+            <br><br>
+            <button onclick="scanFaction()">Scan Faction</button>
             <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
                 <p>Results will appear here.</p>
             </div>
@@ -97,150 +99,51 @@
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
 
-    <script src="js/firebase-init.js"></script>
-    <script src="js/globalheader.js"></script>
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
 
     <script>
-        // --- Firebase Configuration (Client-side, for Firestore & Auth) ---
-        // REPLACE with your actual config. This should match firebase-init.js or home.js
-        const firebaseConfig = {
-            apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // Your Firebase Project API Key
-            authDomain: "mytorn-d03ae.firebaseapp.com",
-            projectId: "mytorn-d03ae",
-            storageBucket: "mytorn-d03ae.appspot.com",
-            messagingSenderId: "205970466308",
-            appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
-        };
-
-        let db = null;
-        let auth = null;
-        const adminStatusMessage = document.getElementById('adminStatusMessage');
-        const scanFactionBtn = document.getElementById('scanFactionBtn');
-
-        // Initialize Firebase if not already initialized by firebase-init.js
-        if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
-            if (!firebase.apps.length) {
-                try {
-                    firebase.initializeApp(firebaseConfig);
-                    console.log("admin.html: Firebase initialized.");
-                } catch (e) {
-                    console.error("admin.html: Error initializing Firebase:", e);
-                    if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase failed to initialize.';
-                    scanFactionBtn.disabled = true;
-                }
-            }
-            if (firebase.apps.length > 0) {
-                auth = firebase.auth();
-                db = firebase.firestore();
-            }
-        } else {
-            console.error("admin.html: Firebase SDK not fully loaded. Check firebase-init.js.");
-            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase SDK not loaded.';
-            scanFactionBtn.disabled = true;
-        }
-
-        // --- Firebase Auth State Changed Listener ---
-        let currentLoggedInUser = null; // Store user object globally for this page
-        if (auth) {
-            auth.onAuthStateChanged(async function(user) {
-                currentLoggedInUser = user; // Update the global user object
-                console.log('admin.html: Auth State Changed. User:', user ? user.uid : 'No user');
-
-                if (user) {
-                    if (adminStatusMessage) adminStatusMessage.textContent = 'Fetching API Key from profile...';
-                    try {
-                        const userDoc = await db.collection('userProfiles').doc(user.uid).get();
-                        if (userDoc.exists && userDoc.data().tornApiKey) {
-                            if (adminStatusMessage) adminStatusMessage.textContent = 'Ready to scan factions.';
-                            scanFactionBtn.disabled = false;
-                            // Attach the event listener here once API key is confirmed
-                            scanFactionBtn.onclick = () => callScanFactionBackend(userDoc.data().tornApiKey);
-                        } else {
-                            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Torn API Key not found in your profile.';
-                            scanFactionBtn.disabled = true;
-                            // Clear previous listener if any to prevent accidental calls
-                            scanFactionBtn.onclick = () => alert('API Key not set in profile. Please update your profile settings.');
-                        }
-                    } catch (error) {
-                        console.error("admin.html: Error fetching user profile:", error);
-                        if (adminStatusMessage) adminStatusMessage.textContent = `Error: Could not fetch profile (${error.message}).`;
-                        scanFactionBtn.disabled = true;
-                        scanFactionBtn.onclick = () => alert('Error fetching profile. Check console.');
-                    }
-                } else {
-                    if (adminStatusMessage) adminStatusMessage.textContent = 'Please sign in to access admin tools.';
-                    scanFactionBtn.disabled = true;
-                    // Redirect to home/login if not logged in and on admin page
-                    const currentPagePath = window.location.pathname.toLowerCase();
-                    if (!currentPagePath.includes('index.html') && !currentPagePath.includes('home.html')) { // Avoid redirecting from index/home if they are public
-                         // You might want to redirect to your login page here
-                         // window.location.href = '/index.html'; 
-                         console.warn("User not logged in on admin page. Consider redirecting.");
-                    }
-                }
-            });
-        } else {
-            console.error("admin.html: Firebase auth object not available.");
-            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase Auth not available.';
-            scanFactionBtn.disabled = true;
-        }
-
-
-        // --- Your Estimated Battle Stats Formula (Frontend version, not used by backend) ---
+        // --- Your Estimated Battle Stats Formula ---
         // This is a placeholder. You need to provide the actual calculation
         // based on your game knowledge of Torn.
         function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
-            const numericLevel = Number(level) || 0;
-            const numericAge = Number(age) || 0;
-            const numericXanaxUsed = Number(xanaxUsed) || 0;
-            const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+            // Example: (Highly simplified and likely inaccurate for Torn)
+            const baseStats = (level * 100) + (age * 5);
+            const xanaxBonus = xanaxUsed * 5000;
+            const refillBonus = energyRefillsUsed * 2000;
 
-            let estimatedTotalStats = 0;
-            estimatedTotalStats += numericLevel * 1000;
-            estimatedTotalStats += numericAge * 50;
-            estimatedTotalStats += numericXanaxUsed * 20000;
-            estimatedTotalStats += numericEnergyRefillsUsed * 5000;
-
-            const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
-            const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
+            const estimatedTotal = baseStats + xanaxBonus + refillBonus;
 
             return {
-                strength: individualStatEstimate,
-                defense: individualStatEstimate,
-                speed: individualStatEstimate,
-                dexterity: individualStatEstimate,
-                totalEstimatedStats: finalTotalEstimatedStats
+                strength: estimatedTotal / 4, // Placeholder
+                defense: estimatedTotal / 4,  // Placeholder
+                speed: estimatedTotal / 4,    // Placeholder
+                dexterity: estimatedTotal / 4, // Placeholder
+                totalEstimatedStats: estimatedTotal
             };
         }
         // ------------------------------------------
 
-        // This function now receives the API key from the auth listener
-        async function callScanFactionBackend(apiKey) {
-            const factionIdInput = document.getElementById("factionId");
-            const factionId = factionIdInput ? factionIdInput.value.trim() : '';
+        async function scanFaction() {
+            const factionId = document.getElementById("factionId").value.trim();
+            const apiKey = document.getElementById("adminApiKey").value.trim(); // Your own API key for scanning
 
-            if (!factionId) {
-                alert("Please enter Faction ID.");
-                return;
-            }
-            if (!apiKey) { // Double check apiKey just in case
-                alert("Internal error: API Key not available.");
+            if (!factionId || !apiKey) {
+                alert("Please enter both Faction ID and your API key for scanning.");
                 return;
             }
 
             document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
-            scanFactionBtn.disabled = true; // Disable button during scan
 
             try {
-                // Now passing the fetched API key to the backend
+                // CORRECTED: changed "scanFaction" to "scanfaction" (lowercase f)
                 const res = await fetch("/.netlify/functions/scanfaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ factionId, apiKey }), // Send factionId and API key
+                    body: JSON.stringify({ factionId, apiKey }),
                 });
 
                 const data = await res.json();
-                scanFactionBtn.disabled = false; // Re-enable button after response
 
                 if (res.ok && data.success) {
                     document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
@@ -252,41 +155,44 @@
                     alert(data.error || "Failed to scan faction.");
                 }
             } catch (err) {
-                scanFactionBtn.disabled = false; // Re-enable button on error
                 document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
                 alert("Error connecting to backend for scan.");
                 console.error(err);
             }
         }
 
-        // --- Header Dropdown Logic (Copied from previous globalheader.js integration) ---
+        // The dropdown script block from your original index.html (moved here for consistency)
         document.addEventListener('DOMContentLoaded', () => {
             const contactBtn = document.getElementById('headerContactUsBtn');
             const contactDropdown = document.getElementById('headerContactUsDropdown');
             const usefulLinksBtn = document.getElementById('usefulLinksBtn');
             const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
 
+
+            // Hide dropdowns initially
             if (contactDropdown) contactDropdown.style.display = 'none';
             if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
 
             if (contactBtn) {
                 contactBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Prevent document click from closing it immediately
                     const isVisible = contactDropdown.style.display === 'block';
                     contactDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
                 });
             }
 
             if (usefulLinksBtn) {
                 usefulLinksBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Prevent document click from closing it immediately
                     const isVisible = usefulLinksDropdown.style.display === 'block';
                     usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (contactDropdown) contactDropdown.style.display = 'none';
+                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown
                 });
             }
 
+
+            // Hide dropdown if clicked outside
             window.addEventListener('click', (e) => {
                 if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
                     contactDropdown.style.display = 'none';
@@ -296,6 +202,17 @@
                 }
             });
         });
+
+        // Basic admin password protection (client-side, easily bypassed but good for casual hiding)
+        // Uncomment and set your password if you want this
+        // const ADMIN_PASSWORD = "your_strong_admin_password"; // CHANGE THIS PASSWORD!
+        // window.onload = () => {
+        //     let enteredPassword = prompt("Enter admin password:");
+        //     if (enteredPassword !== ADMIN_PASSWORD) {
+        //         alert("Access Denied!");
+        //         window.location.href = "/"; // Redirect to main page
+        //     }
+        // };
     </script>
 </body>
 </html>
