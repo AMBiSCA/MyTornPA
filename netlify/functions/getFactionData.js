@@ -1,18 +1,11 @@
 // netlify/functions/getFactionData.js
 
-// Make sure 'fetch' is available. If not, you might need: const fetch = require('node-fetch');
-const admin = require('firebase-admin'); // Also needed here for future admin checks if any
+const admin = require('firebase-admin');
 
-// IMPORTANT: Initialize Firebase Admin SDK if needed for internal operations (e.g., logging to Firestore)
-// Only initialize if your getFactionData function also needs to interact with Firebase Admin SDK,
-// otherwise this block is not strictly necessary for just fetching data from Torn/TornStats.
-// However, it's good practice to have it consistent with setAdminClaim.
 try {
-  // --- MODIFICATION HERE: Decode from Base64 ---
   const encodedServiceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
   const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf8');
   const serviceAccount = JSON.parse(decodedServiceAccount);
-  // --- END MODIFICATION ---
 
   if (!admin.apps.length) {
     admin.initializeApp({
@@ -21,18 +14,22 @@ try {
   }
 } catch (error) {
   console.error('Failed to initialize Firebase Admin SDK in getFactionData. Check FIREBASE_ADMIN_SDK_CONFIG environment variable.', error);
-  // This function might still work if it doesn't use admin SDK features, but initialization is good for consistency.
 }
-
 
 // Helper to fetch API data and handle common errors
 async function fetchApi(url) {
     const response = await fetch(url);
     if (!response.ok) {
         let errorData;
-        try { errorData = await response.json(); } catch (e) { /* Not JSON */ }
-        const errorMessage = errorData?.error?.message || errorData?.error || `API Error ${response.status}`;
-        throw new Error(`${errorMessage.substring(0,150)}`);
+        let errorMessage;
+        try {
+            errorData = await response.json();
+            errorMessage = errorData?.error?.message || (typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData));
+        } catch (e) {
+            errorMessage = response.statusText || `API Error ${response.status}`;
+        }
+        const displayMessage = typeof errorMessage === 'string' ? errorMessage.substring(0, 150) : 'Unknown API Error';
+        throw new Error(`API Error (HTTP ${response.status}): ${displayMessage}`);
     }
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -45,8 +42,8 @@ async function fetchApi(url) {
     return response.json();
 }
 
-// Function to fetch Torn API data for a faction and its members
-async function fetchTornApiData(factionId, tornApiKey) {
+// Function to fetch ONLY basic faction data and member IDs from Torn API
+async function fetchBasicFactionData(factionId, tornApiKey) {
     const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${tornApiKey}`;
     const factionResponse = await fetchApi(factionApiUrl);
 
@@ -59,58 +56,15 @@ async function fetchTornApiData(factionId, tornApiKey) {
 
     const factionName = factionResponse.name || `Faction ${factionId}`;
     const members = factionResponse.members;
-    const factionMembersIds = Object.keys(members);
+    const factionMembers = Object.keys(members).map(memberId => ({
+        memberId: memberId,
+        memberName: members[memberId].name // Get member name from basic faction data
+    }));
 
-    const memberDataPromises = factionMembersIds.map(async (memberId) => {
-        let combinedData = { member_id_for_table: memberId };
-        const primarySelections = 'basic,profile';
-        const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${tornApiKey}`;
-
-        try {
-            const data1 = await fetchApi(primaryDataUrl);
-            if (data1.error) {
-                throw new Error(`Primary API (basic,profile): ${data1.error.error}`);
-            }
-            combinedData = { ...combinedData, ...data1 };
-        } catch (e) {
-            console.warn(`Error fetching primary data for ${memberId}: ${e.message}`);
-            combinedData.error_primary = e.message;
-        }
-
-        const personalStatsSelection = 'personalstats';
-        const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${tornApiKey}`;
-        try {
-            const data2 = await fetchApi(personalStatsDataUrl);
-            if (data2.error) {
-                throw new Error(`PersonalStats API: ${data2.error.error}`);
-            }
-            combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
-        } catch (e) {
-            console.warn(`Error fetching personal stats for ${memberId}: ${e.message}`);
-            combinedData.error_personalstats = e.message;
-        }
-
-        if (!combinedData.name && members[memberId] && members[memberId].name) {
-            combinedData.name = members[memberId].name;
-        }
-
-        return { memberId, tornData: combinedData };
-    });
-
-    const results = await Promise.allSettled(memberDataPromises);
-    const processedMembers = results.map(result => {
-        if (result.status === 'fulfilled') {
-            return result.value;
-        } else {
-            console.error(`Failed to fetch Torn data for a member:`, result.reason);
-            return { memberId: result.reason.memberId || 'N/A', tornData: { error: result.reason.message || 'Fetch failed' } };
-        }
-    });
-
-    return { factionId, factionName, members: processedMembers };
+    return { factionId, factionName, members: factionMembers };
 }
 
-// Function to fetch TornStats spy reports for individual members
+// Function to fetch TornStats spy reports for individual members (UNCHANGED)
 async function fetchTornStatsData(memberId, tornStatsApiKey) {
     try {
         const url = `https://www.tornstats.com/api/v2/${tornStatsApiKey}/spy/user/${memberId}`;
@@ -166,36 +120,40 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const { factionName, members: tornMembersData } = await fetchTornApiData(factionId, TORN_API_KEY);
+        // Step 1: Fetch basic faction data (members and names) from Torn API
+        const { factionName, members: factionMembersList } = await fetchBasicFactionData(factionId, TORN_API_KEY);
 
         let finalCombinedData = [];
 
         const BATCH_SIZE = 5;
-        const DELAY_BETWEEN_BATCHES = 300;
+        const DELAY_BETWEEN_BATCHES = 750; // Increased delay to 750ms to help with rate limits
 
-        for (let i = 0; i < tornMembersData.length; i += BATCH_SIZE) {
-            const batch = tornMembersData.slice(i, i + BATCH_SIZE);
+        // Step 2: Fetch battle stats for each member from TornStats and combine
+        for (let i = 0; i < factionMembersList.length; i += BATCH_SIZE) {
+            const batch = factionMembersList.slice(i, i + BATCH_SIZE);
             const batchPromises = batch.map(async (member) => {
                 const memberId = member.memberId;
+                const memberName = member.memberName; // Get name from basic faction fetch
                 const tornStatsData = await fetchTornStatsData(memberId, TORNSTATS_API_KEY);
+                
                 return {
                     memberId: memberId,
+                    memberName: memberName, // Include member name here
                     factionId: factionId,
                     factionName: factionName,
-                    tornData: member.tornData,
                     tornStatsData: tornStatsData,
-                    spyReportAvailable: !tornStatsData.error,
- 
+                    spyReportAvailable: !tornStatsData.error
                 };
             });
             const batchResults = await Promise.all(batchPromises);
             finalCombinedData.push(...batchResults);
 
-            if (i + BATCH_SIZE < tornMembersData.length) {
+            if (i + BATCH_SIZE < factionMembersList.length) {
                 await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
             }
         }
 
+        // Return the combined data
         return {
             statusCode: 200,
             body: JSON.stringify({
