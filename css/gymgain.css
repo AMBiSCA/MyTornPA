@@ -1,0 +1,119 @@
+/* Basic styling for the gym content */
+.gym-content-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: calc(100vh - 180px); /* Adjust based on header/footer height */
+    box-sizing: border-box;
+}
+
+.gym-section {
+    background-color: var(--container-bg-color); /* Using your global.css variable */
+    border: 1px solid var(--border-color); /* Using your global.css variable */
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 900px;
+    margin: 0 20px;
+    text-align: center;
+}
+
+.gym-section h2 {
+    color: var(--primary-text-color);
+    margin-bottom: 20px;
+}
+
+.gym-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.gym-action-card {
+    background-color: var(--item-bg-color); /* Using your global.css variable */
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid var(--secondary-border-color);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gym-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.gym-action-card h3 {
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+
+.gym-action-card p {
+    font-size: 0.9em;
+    color: var(--secondary-text-color);
+    margin-bottom: 15px;
+}
+
+.gym-action-card .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.gym-action-card .btn:hover {
+    background-color: var(--button-hover-bg-color);
+}
+
+.current-stats {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border-color);
+    text-align: left;
+}
+
+.current-stats h3 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--secondary-border-color);
+}
+.stat-item:last-child {
+    border-bottom: none;
+}
+.stat-item strong {
+    color: var(--primary-text-color);
+}
+.stat-item span {
+    color: var(--secondary-text-color);
+}
+
+.gym-message {
+    margin-top: 20px;
+    font-style: italic;
+    color: var(--secondary-text-color);
+}
+
+/* Added for consistent feedback/error messages */
+.feedback-message {
+    color: green;
+    margin-top: 20px;
+}
+
+.error-message {
+    color: red;
+    margin-top: 20px;
+}
