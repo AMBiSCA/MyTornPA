@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await firebase.auth().signInWithEmailAndPassword(email, password);
             // Login successful, redirect to admin dashboard
-            window.location.href = 'admin_dashboard.html';
+            // MODIFIED: Added leading slash to ensure absolute path from root
+            window.location.href = '/admin_dashboard.html';
         } catch (error) {
             // Handle login errors
             let errorMessage = "An unknown error occurred.";
