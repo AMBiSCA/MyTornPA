@@ -185,7 +185,7 @@ exports.handler = async (event, context) => {
                     tornData: member.tornData,
                     tornStatsData: tornStatsData,
                     spyReportAvailable: !tornStatsData.error,
-                    lastUpdated: Date.now()
+ 
                 };
             });
             const batchResults = await Promise.all(batchPromises);
