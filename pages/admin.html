@@ -102,48 +102,38 @@
 
     <script>
         // --- Firebase Configuration (Client-side, for Firestore & Auth) ---
-        // IMPORTANT: If 'firebase-init.js' properly initializes Firebase globally,
-        // you might not need this whole block, and can just rely on 'auth' and 'db'
-        // being available. But for robustness in case it's loaded differently,
-        // it's kept here. Ensure your Firebase Project API Key matches.
-        const firebaseConfig = {
-            apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // Your Firebase Project API Key
-            authDomain: "mytorn-d03ae.firebaseapp.com",
-            projectId: "mytorn-d03ae",
-            storageBucket: "mytorn-d03ae.appspot.com",
-            messagingSenderId: "205970466308",
-            appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
-        };
+        // REMOVED: const firebaseConfig = { ... };
+        // This is handled by '../js/firebase-init.js' which is loaded first.
 
         let db = null;
         let auth = null;
         const adminStatusMessage = document.getElementById('adminStatusMessage');
         const scanFactionBtn = document.getElementById('scanFactionBtn');
 
-        // Initialize Firebase if not already initialized by firebase-init.js
+        // Check if global 'auth' and 'db' are available from firebase-init.js
         if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
-            if (!firebase.apps.length) {
-                try {
-                    firebase.initializeApp(firebaseConfig);
-                    console.log("admin.html: Firebase initialized.");
-                } catch (e) {
-                    console.error("admin.html: Error initializing Firebase:", e);
-                    if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase failed to initialize.';
-                    scanFactionBtn.disabled = true;
-                }
-            }
+            // Check if Firebase app is already initialized by firebase-init.js
             if (firebase.apps.length > 0) {
                 auth = firebase.auth();
                 db = firebase.firestore();
+                console.log("admin.html: Firebase Auth and Firestore retrieved globally.");
+            } else {
+                 // Fallback if firebase-init.js didn't auto-initialize (shouldn't happen with standard init)
+                console.error("admin.html: Firebase app object found, but not initialized. This is unexpected.");
+                if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase not fully initialized.';
+                scanFactionBtn.disabled = true;
+                return;
             }
         } else {
-            console.error("admin.html: Firebase SDK not fully loaded. Check firebase-init.js.");
+            console.error("admin.html: Firebase SDK components not available globally. Check firebase-init.js.");
             if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase SDK not loaded.';
             scanFactionBtn.disabled = true;
+            return; // Exit if Firebase is not ready
         }
 
         // --- Firebase Auth State Changed Listener ---
         let currentLoggedInUser = null;
+        // The 'auth' object is now assumed to be globally available from firebase-init.js
         if (auth) {
             auth.onAuthStateChanged(async function(user) {
                 currentLoggedInUser = user;
@@ -161,7 +151,6 @@
                             if (tornApiKey && tornStatsApiKey) {
                                 if (adminStatusMessage) adminStatusMessage.textContent = 'Ready to scan factions.';
                                 scanFactionBtn.disabled = false;
-                                // Pass both keys to the backend call
                                 scanFactionBtn.onclick = () => callScanFactionBackend(tornApiKey, tornStatsApiKey);
                             } else {
                                 let message = '';
@@ -188,13 +177,13 @@
                     // You might want to redirect to your login page here if not logged in
                     // const currentPagePath = window.location.pathname.toLowerCase();
                     // if (!currentPagePath.includes('index.html') && !currentPagePath.includes('home.html')) {
-                    //      window.location.href = '../index.html'; 
+                    //      window.location.href = '../index.html';
                     // }
                     console.warn("User not logged in on admin page. Consider redirecting to login.");
                 }
             });
         } else {
-            console.error("admin.html: Firebase auth object not available.");
+            console.error("admin.html: Firebase auth object not available. This is critical.");
             if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase Auth not available.';
             scanFactionBtn.disabled = true;
         }
