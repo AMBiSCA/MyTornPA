@@ -359,10 +359,16 @@ header {
 .modal-overlay.visible {visibility: visible;opacity: 1;}
 .modal-content {
     background-color: #282828;
-    border-radius: 12px;box-shadow: 0 0 30px rgba(0, 168, 255, 0.7);
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0, 168, 255, 0.7);
     padding: 25px 30px;
-    width: 90%;max-width: 1000px;max-height: 90vh;overflow-y: auto;position: relative;
-    transform: scale(0.95) translateY(20px);opacity: 0;
+    width: 95%; /* Allow it to take up more width on smaller screens */
+    max-width: 1200x; /* Increase max-width slightly for wider screens */
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.95) translateY(20px);
+    opacity: 0;
     transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 .modal-overlay.visible .modal-content {transform: scale(1) translateY(0);opacity: 1;}
