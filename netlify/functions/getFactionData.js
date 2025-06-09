@@ -1,18 +1,11 @@
 // netlify/functions/getFactionData.js
 
-// Make sure 'fetch' is available. If not, you might need: const fetch = require('node-fetch');
-const admin = require('firebase-admin'); // Also needed here for future admin checks if any
+const admin = require('firebase-admin');
 
-// IMPORTANT: Initialize Firebase Admin SDK if needed for internal operations (e.g., logging to Firestore)
-// Only initialize if your getFactionData function also needs to interact with Firebase Admin SDK,
-// otherwise this block is not strictly necessary for just fetching data from Torn/TornStats.
-// However, it's good practice to have it consistent with setAdminClaim.
 try {
-  // --- MODIFICATION HERE: Decode from Base64 ---
   const encodedServiceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
   const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf8');
   const serviceAccount = JSON.parse(decodedServiceAccount);
-  // --- END MODIFICATION ---
 
   if (!admin.apps.length) {
     admin.initializeApp({
@@ -21,7 +14,6 @@ try {
   }
 } catch (error) {
   console.error('Failed to initialize Firebase Admin SDK in getFactionData. Check FIREBASE_ADMIN_SDK_CONFIG environment variable.', error);
-  // This function might still work if it doesn't use admin SDK features, but initialization is good for consistency.
 }
 
 
@@ -30,9 +22,17 @@ async function fetchApi(url) {
     const response = await fetch(url);
     if (!response.ok) {
         let errorData;
-        try { errorData = await response.json(); } catch (e) { /* Not JSON */ }
-        const errorMessage = errorData?.error?.message || errorData?.error || `API Error ${response.status}`;
-        throw new Error(`${errorMessage.substring(0,150)}`);
+        let errorMessage;
+        try {
+            errorData = await response.json();
+            // Try to get a specific message, otherwise default to full errorData
+            errorMessage = errorData?.error?.message || (typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData));
+        } catch (e) {
+            errorMessage = response.statusText || `API Error ${response.status}`; // Fallback if response isn't JSON
+        }
+        // Ensure errorMessage is a string before substring
+        const displayMessage = typeof errorMessage === 'string' ? errorMessage.substring(0, 150) : 'Unknown API Error';
+        throw new Error(`API Error (HTTP ${response.status}): ${displayMessage}`);
     }
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -171,7 +171,7 @@ exports.handler = async (event, context) => {
         let finalCombinedData = [];
 
         const BATCH_SIZE = 5;
-        const DELAY_BETWEEN_BATCHES = 300;
+        const DELAY_BETWEEN_BATCHES = 750; // Increased delay to 750ms to help with rate limits
 
         for (let i = 0; i < tornMembersData.length; i += BATCH_SIZE) {
             const batch = tornMembersData.slice(i, i + BATCH_SIZE);
@@ -184,8 +184,7 @@ exports.handler = async (event, context) => {
                     factionName: factionName,
                     tornData: member.tornData,
                     tornStatsData: tornStatsData,
-                    spyReportAvailable: !tornStatsData.error,
-                    lastUpdated: Date.now()
+                    spyReportAvailable: !tornStatsData.error
                 };
             });
             const batchResults = await Promise.all(batchPromises);
