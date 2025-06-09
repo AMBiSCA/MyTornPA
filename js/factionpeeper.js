@@ -205,65 +205,69 @@ if (clearSelectionsBtn) {
 
 const downloadDataBtn = document.getElementById('downloadDataBtn');
 if (downloadDataBtn) {
-  downloadDataBtn.addEventListener('click', () => {
-    // START: HTML2CANVAS SCREENSHOT LOGIC
-    const modalContent = document.querySelector('.modal-content'); // The full modal content area
-    const tableContainer = document.querySelector('.modal-table-container'); 
-    const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
+  downloadDataBtn.addEventListener('click', () => {
+    // START: HTML2CANVAS SCREENSHOT LOGIC
+    const modalContent = document.querySelector('.modal-content'); // The full modal content area
+    const tableContainer = document.querySelector('.modal-table-container'); 
+    const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
 
-    if (!modalContent || !tableContainer || !modalTableBody) {
-        console.error('Error: Required modal elements not found for screenshot.');
-        alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
-        return;
-    }
+    if (!modalContent || !tableContainer || !modalTableBody) {
+        console.error('Error: Required modal elements not found for screenshot.');
+        alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
+        return;
+    }
 
-    // Temporarily store original styles
-    const originalModalContentMaxHeight = modalContent.style.maxHeight;
-    const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
-    const originalModalTableContainerOverflow = tableContainer.style.overflowY;
-    const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
+    // Temporarily store original styles
+    const originalModalContentMaxHeight = modalContent.style.maxHeight;
+    const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
+    const originalModalTableContainerOverflow = tableContainer.style.overflowY;
+    const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
 
-    // Apply temporary styles to capture full content
-    modalContent.style.maxHeight = 'fit-content'; 
-    tableContainer.style.maxHeight = 'fit-content'; 
-    tableContainer.style.overflowY = 'visible'; 
-    tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
+    // Apply temporary styles to capture full content
+    modalContent.style.maxHeight = 'fit-content'; 
+    tableContainer.style.maxHeight = 'fit-content'; 
+    tableContainer.style.overflowY = 'visible'; 
+    tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
 
-    // Adding a small delay to allow reflow and repaint before capturing
-    setTimeout(() => {
-        html2canvas(tableContainer, { // Capture the entire table container
-            scale: 2, // Increase resolution for better quality
-            useCORS: true, // Important if you have images (like background) loaded from different origins
-            logging: false, // Turn off console logging from html2canvas
-            allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
-        }).then(function(canvas) {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png'); 
-            link.download = 'Faction_Members_Data.png'; 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log('Image download initiated.'); 
+    // Adding a small delay to allow reflow and repaint before capturing
+    setTimeout(() => {
+        html2canvas(tableContainer, { // CAPTURE THIS ELEMENT: Changed from modalContent to tableContainer
+            scale: 2, // Increase resolution for better quality
+            useCORS: true, // Important if you have images (like background) loaded from different origins
+            logging: false, // Turn off console logging from html2canvas
+            allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
+        }).then(function(canvas) {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png'); 
+            
+            // Determine filename based on modal title if possible
+            const modalTitleEl = document.querySelector('#resultsModalOverlay .modal-title');
+            const baseFileName = modalTitleEl ? modalTitleEl.textContent.replace(/[^a-zA-Z0-9]/g, '_') : 'Battle_Stats_Data';
+            link.download = `${baseFileName}.png`; 
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log('Image download initiated.'); 
 
-            // Restore original styles immediately after capture
-            modalContent.style.maxHeight = originalModalContentMaxHeight;
-            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-            tableContainer.style.overflowY = originalModalTableContainerOverflow;
-            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+            // Restore original styles immediately after capture
+            modalContent.style.maxHeight = originalModalContentMaxHeight;
+            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
+            tableContainer.style.overflowY = originalModalTableContainerOverflow;
+            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
 
-        }).catch(error => {
-            console.error('Error generating image:', error);
-            alert('Failed to generate image. Please try again.');
+        }).catch(error => {
+            console.error('Error generating image:', error);
+            alert('Failed to generate image. Please try again.');
 
-            // Ensure styles are restored even on error
-            modalContent.style.maxHeight = originalModalContentMaxHeight;
-            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-            tableContainer.style.overflowY = originalModalTableContainerOverflow;
-            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
-        });
-    }, 100); // Small delay to allow CSS changes to apply and browser to render
-    // END: HTML2CANVAS SCREENSHOT LOGIC
-  });
+            // Ensure styles are restored even on error
+            modalContent.style.maxHeight = originalModalContentMaxHeight;
+            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
+            tableContainer.style.overflowY = originalModalTableContainerOverflow;
+            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+        });
+    }, 100); // Small delay to allow CSS changes to apply and browser to render
+  });
 }
 
 function showLoadingSpinner() {
