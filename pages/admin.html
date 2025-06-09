@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTornPA - Admin Panel</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+
+            <div class="header-buttons" id="headerButtonsContainer">
+                <button class="btn header-btn" id="headerEditProfileBtn">
+                    <span class="btn-text">Profile:</span>
+                    <span class="btn-icon">⚙️</span>
+                </button>
+
+                <div class="dropdown" id="usefulLinksDropdownContainer">
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗 🔽</span>
+                    </button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
+
+                <div class="dropdown" id="headerContactUsContainer">
+                    <button class="btn header-btn" id="headerContactUsBtn">
+                        <span class="btn-text">Contact:</span>
+                        <span class="btn-icon">💬 🔽</span>
+                    </button>
+                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
+                        <a href="report.html">Report an Issue</a>
+                        <a href="#">Live Chat (Soon™)</a>
+                        <a href="FAQ.html">F.A.Q</a>
+                    </div>
+                </div>
+
+                <button class="btn header-btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span>
+                    <span class="btn-icon">🚪</span>
+                </button>
+            </div>
+
+        </div>
+    </header>
+
+    <main class="homepage-content-wrapper" id="adminContent">
+        <section class="welcome-block-area styled-container">
+            <h2>Admin: Scan Faction Members</h2>
+            <p id="adminStatusMessage" style="text-align: center; color: orange;">Checking login status...</p>
+            <label for="factionId">Faction ID:</label>
+            <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)" readonly>
+            <br><br>
+            <button id="scanFactionBtn" disabled>Scan Faction</button>
+            <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
+                <p>Results will appear here.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+
+    <script>
+        let db = null;
+        let auth = null;
+        const adminStatusMessage = document.getElementById('adminStatusMessage');
+        const scanFactionBtn = document.getElementById('scanFactionBtn');
+        const factionIdInput = document.getElementById('factionId');
+
+        if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
+            if (firebase.apps.length > 0) {
+                auth = firebase.auth();
+                db = firebase.firestore();
+                console.log("admin.html: Firebase Auth and Firestore retrieved globally.");
+            } else {
+                console.error("admin.html: Firebase app object found, but not initialized. This is unexpected.");
+                if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase not fully initialized.';
+                scanFactionBtn.disabled = true;
+            }
+        } else {
+            console.error("admin.html: Firebase SDK components not available globally. Check firebase-init.js.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase SDK not loaded.';
+            scanFactionBtn.disabled = true;
+        }
+
+        let currentLoggedInUser = null;
+        if (auth) {
+            auth.onAuthStateChanged(async function(user) {
+                currentLoggedInUser = user;
+                console.log('admin.html: Auth State Changed. User:', user ? user.uid : 'No user');
+
+                if (user) {
+                    if (adminStatusMessage) adminStatusMessage.textContent = 'Fetching profile data...';
+                    try {
+                        const userDoc = await db.collection('userProfiles').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const tornApiKey = userData.tornApiKey;
+                            const tornStatsApiKey = userData.tornStatsApiKey;
+                            const userFactionId = userData.factionId; // Corrected to match your Firestore field
+
+                            if (tornApiKey && tornStatsApiKey && userFactionId) {
+                                if (adminStatusMessage) adminStatusMessage.textContent = `Ready to scan faction ${userFactionId}.`;
+                                if (factionIdInput) factionIdInput.value = userFactionId;
+                                scanFactionBtn.disabled = false;
+                                scanFactionBtn.onclick = () => callScanFactionBackend(userFactionId, tornApiKey, tornStatsApiKey);
+                            } else {
+                                let message = '';
+                                if (!tornApiKey) message += 'Torn API Key missing. ';
+                                if (!tornStatsApiKey) message += 'TornStats API Key missing. ';
+                                if (!userFactionId) message += 'Your Faction ID is not set in your profile. ';
+                                if (adminStatusMessage) adminStatusMessage.textContent = `Error: ${message.trim()} Please update your profile settings.`;
+                                scanFactionBtn.disabled = true;
+                                scanFactionBtn.onclick = () => alert(message.trim());
+                                if (factionIdInput) factionIdInput.value = '';
+                            }
+                        } else {
+                            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: User profile not found in database. Please ensure your profile is set up.';
+                            scanFactionBtn.disabled = true;
+                            scanFactionBtn.onclick = () => alert('Profile not found.');
+                            if (factionIdInput) factionIdInput.value = '';
+                        }
+                    } catch (error) {
+                        console.error("admin.html: Error fetching user profile:", error);
+                        if (adminStatusMessage) adminStatusMessage.textContent = `Error: Could not fetch profile (${error.message}).`;
+                        scanFactionBtn.disabled = true;
+                        scanFactionBtn.onclick = () => alert('Error fetching profile. Check console.');
+                        if (factionIdInput) factionIdInput.value = '';
+                    }
+                } else {
+                    if (adminStatusMessage) adminStatusMessage.textContent = 'Please sign in to access admin tools.';
+                    scanFactionBtn.disabled = true;
+                    if (factionIdInput) factionIdInput.value = '';
+                    console.warn("User not logged in on admin page. Consider redirecting to login.");
+                }
+            });
+        } else {
+            console.error("admin.html: Firebase auth object not available. This is critical.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase Auth not available.';
+            scanFactionBtn.disabled = true;
+        }
+
+        function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
+            const numericLevel = Number(level) || 0;
+            const numericAge = Number(age) || 0;
+            const numericXanaxUsed = Number(xanaxUsed) || 0;
+            const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+
+            let estimatedTotalStats = 0;
+            estimatedTotalStats += numericLevel * 1000;
+            estimatedTotalStats += numericAge * 50;
+            estimatedTotalStats += numericXanaxUsed * 20000;
+            estimatedTotalStats += numericEnergyRefillsUsed * 5000;
+
+            const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
+            const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
+
+            return {
+                strength: individualStatEstimate,
+                defense: individualStatEstimate,
+                speed: individualStatEstimate,
+                dexterity: individualStatEstimate,
+                totalEstimatedStats: finalTotalEstimatedStats
+            };
+        }
+
+        async function callScanFactionBackend(factionId, tornApiKey, tornStatsApiKey) {
+            if (!factionId || isNaN(factionId)) {
+                alert("Internal error: Faction ID is missing or invalid.");
+                return;
+            }
+            if (!tornApiKey) {
+                alert("Internal error: Torn API Key not available.");
+                return;
+            }
+            if (!tornStatsApiKey) {
+                alert("Internal error: TornStats API Key not available.");
+                return;
+            }
+
+            document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
+            scanFactionBtn.disabled = true;
+
+            try {
+                const res = await fetch("/.netlify/functions/scanfaction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ factionId, tornApiKey, tornStatsApiKey }),
+                });
+
+                const data = await res.json();
+                scanFactionBtn.disabled = false;
+
+                if (res.ok && data.success) {
+                    document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
+                        <p>Processed: ${data.processed.join(', ')}</p>
+                        ${data.errors && data.errors.length > 0 ? `<p style="color: red;">Errors: ${data.errors.join('<br>')}</p>` : ''}`;
+                    alert("Faction scan complete!");
+                } else {
+                    document.getElementById("scanResults").innerHTML = `<p style="color: red;">Error: ${data.error || "Failed to scan faction."}</p>`;
+                    alert(data.error || "Failed to scan faction.");
+                }
+            } catch (err) {
+                scanFactionBtn.disabled = false;
+                document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
+                alert("Error connecting to backend for scan.");
+                console.error(err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contactBtn = document.getElementById('headerContactUsBtn');
+            const contactDropdown = document.getElementById('headerContactUsDropdown');
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+
+            if (contactDropdown) contactDropdown.style.display = 'none';
+            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+
+            if (contactBtn) {
+                contactBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = contactDropdown.style.display === 'block';
+                    contactDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+                });
+            }
+
+            if (usefulLinksBtn) {
+                usefulLinksBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = usefulLinksDropdown.style.display === 'block';
+                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (contactDropdown) contactDropdown.style.display = 'none';
+                });
+            }
+
+            window.addEventListener('click', (e) => {
+                if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+                    contactDropdown.style.display = 'none';
+                }
+                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
+                    usefulLinksDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
