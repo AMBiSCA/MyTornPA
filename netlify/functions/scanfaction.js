@@ -56,7 +56,6 @@ exports.handler = async (event, context) => {
   const errors = [];
 
   try {
-    // 1. Fetch Faction Members from Torn API
     const factionRes = await fetch(`https://api.torn.com/faction/?selections=basic&key=${apiKey}&ID=${factionId}`);
     const factionData = await factionRes.json();
 
@@ -71,18 +70,16 @@ exports.handler = async (event, context) => {
 
     const memberIds = Object.keys(factionData.members);
 
-    // --- REVISED MEMBER PROCESSING LOOP (Adapted from factionpeeper.js) ---
     const userProcessingPromises = memberIds.map(async (memberId) => {
-      let combinedData = { member_id_for_table: memberId }; // To mimic factionpeeper's structure
+      let combinedData = { member_id_for_table: memberId };
       let overallStatus = true;
-      let memberErrors = []; // Use a separate variable name to avoid conflict with outer 'errors'
+      let memberErrors = [];
 
-      // First call: basic, profile selections (for name, level, age, general profile data)
       const primarySelections = 'basic,profile';
       const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${apiKey}`;
 
       try {
-        await new Promise(resolve => setTimeout(resolve, 350)); // Shorter delay per call, more calls
+        await new Promise(resolve => setTimeout(resolve, 350));
         const response1 = await fetch(primaryDataUrl);
         if (!response1.ok) {
           memberErrors.push(`Primary Fetch (HTTP ${response1.status})`);
@@ -93,7 +90,7 @@ exports.handler = async (event, context) => {
             memberErrors.push(`Primary API: ${data1.error.error}`);
             overallStatus = false;
           } else {
-            combinedData = { ...combinedData, ...data1 }; // Merge basic and profile data
+            combinedData = { ...combinedData, ...data1 };
           }
         }
       } catch (e) {
@@ -101,28 +98,19 @@ exports.handler = async (event, context) => {
         overallStatus = false;
       }
 
-      // Second call: personalstats selection (for xanax, energy refills)
-      // Only make this call if the primary one was successful
-      if (overallStatus) { // Only fetch personalstats if primary fetch succeeded
+      if (overallStatus) {
         const personalStatsSelection = 'personalstats';
         const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${apiKey}`;
         try {
-          await new Promise(resolve => setTimeout(resolve, 350)); // Shorter delay per call, more calls
+          await new Promise(resolve => setTimeout(resolve, 350));
           const response2 = await fetch(personalStatsDataUrl);
           if (!response2.ok) {
             memberErrors.push(`PersonalStats Fetch (HTTP ${response2.status})`);
           } else {
             const data2 = await response2.json();
-
-            // --- DEBUGGING LOG (Optional, remove after debugging) ---
-            console.log(`DEBUG: User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
-            // --- END DEBUGGING LOG ---
-
             if (data2.error) {
               memberErrors.push(`PersonalStats API: ${data2.error.error}`);
             } else {
-              // factionpeeper.js: combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
-              // This correctly assumes personalstats comes nested under 'personalstats' key in response2.
               combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
             }
           }
@@ -133,18 +121,15 @@ exports.handler = async (event, context) => {
         memberErrors.push("Skipped personalstats due to primary fetch error.");
       }
       
-      // Add general user name if not present (from factionData)
       if (!combinedData.name && factionData.members[memberId] && factionData.members[memberId].name) {
           combinedData.name = factionData.members[memberId].name;
       }
 
-      // If there are errors, add them to combinedData.error for logging
       if (memberErrors.length > 0) combinedData.error = { error: memberErrors.join('; ') };
 
       return { memberId, data: combinedData, status: !combinedData.error };
     });
 
-    // Execute all promises concurrently (with internal delays)
     const userResponses = await Promise.allSettled(userProcessingPromises);
 
     for (const promiseResult of userResponses) {
@@ -153,29 +138,26 @@ exports.handler = async (event, context) => {
         const userData = promiseResult.value.data;
 
         if (userData.error) {
-            // Log errors from individual member processing
             console.warn(`Error for member ${memberId}:`, userData.error.error);
             errors.push(`User ${memberId}: ${userData.error.error}`);
-            continue; // Skip to next member if data is bad
+            continue;
         }
 
-        // --- DEBUGGING LOGS (Optional, remove after debugging) ---
         console.log(`DEBUG (Post-Fetch): Processing member ${memberId}:`, JSON.stringify(userData, null, 2));
-        // Corrected logs to match API fields and data types
         console.log(`DEBUG (Post-Fetch): Member ${memberId} age:`, userData.age);
         console.log(`DEBUG (Post-Fetch): Member ${memberId} xantaken (from personalstats):`, userData.personalstats ? userData.personalstats.xantaken : 'N/A');
         console.log(`DEBUG (Post-Fetch): Member ${memberId} energydrinkused (from personalstats):`, userData.personalstats ? userData.personalstats.energydrinkused : 'N/A');
-        // --- END DEBUGGING LOGS ---
 
-        const { name, level, age } = userData; // age should now be reliably present from 'basic,profile'
+        const { name, level, age } = userData;
         const personalStats = userData.personalstats || {};
 
-        const xanaxUsed = personalStats.xantaken || 0; // Use xantaken
-        const energyRefillsUsed = personalStats.energydrinkused || 0; // Use energydrinkused
+        const xanaxUsed = personalStats.xantaken || 0;
+        const energyRefillsUsed = personalStats.energydrinkused || 0;
 
         const estimatedStats = estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed);
 
-        await db.collection("userProfiles").doc(String(memberId)).set({
+        // --- CHANGE HERE: Use 'scannedPlayers' collection ---
+        await db.collection("scannedPlayers").doc(String(memberId)).set({
           tornId: memberId,
           name: name,
           level: level,
@@ -189,10 +171,11 @@ exports.handler = async (event, context) => {
           totalStats: estimatedStats.totalEstimatedStats,
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true, ignoreUndefinedProperties: true });
+        // --- END CHANGE ---
 
         processedMembers.push(name || memberId);
 
-      } else { // Handle promises that rejected (e.g., network errors before even getting data)
+      } else {
         const errorMessage = promiseResult.reason?.message || 'Unknown promise rejection reason';
         console.error(`Promise rejected for a member: ${errorMessage}`);
         errors.push(`Unhandled promise rejection: ${errorMessage}`);
