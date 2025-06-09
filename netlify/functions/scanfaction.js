@@ -9,7 +9,7 @@ const fetch = require("node-fetch");
 // Make sure FIREBASE_SERVICE_ACCOUNT_KEY is set in your Netlify site settings.
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
-if (!admin.apps.length) { // Prevents re-initializing if running locally or in dev server
+if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -17,18 +17,13 @@ if (!admin.apps.length) { // Prevents re-initializing if running locally or in d
 const db = admin.firestore();
 
 // --- Your Estimated Battle Stats Formula ---
-// This is a placeholder based on general Torn knowledge.
-// It is an APPROXIMATION and NOT a precise formula.
-// For higher accuracy, you would need more detailed game data or a community-vetted model.
 function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
-    // --- Robustness: Ensure inputs are numbers, default to 0 if not valid ---
     const numericLevel = Number(level) || 0;
     const numericAge = Number(age) || 0;
     const numericXanaxUsed = Number(xanaxUsed) || 0;
     const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
 
     let estimatedTotalStats = 0;
-
     estimatedTotalStats += numericLevel * 1000;
     estimatedTotalStats += numericAge * 50;
     estimatedTotalStats += numericXanaxUsed * 20000;
@@ -45,7 +40,6 @@ function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
         totalEstimatedStats: finalTotalEstimatedStats
     };
 }
-// ------------------------------------------
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
@@ -53,17 +47,11 @@ exports.handler = async (event, context) => {
   }
 
   // --- CHANGES START HERE ---
-  // Parse the request body from the frontend - only factionId is expected now
-  const { factionId } = JSON.parse(event.body);
+  // Expect apiKey to come from the frontend in the request body
+  const { factionId, apiKey } = JSON.parse(event.body);
 
-  // Get the API key directly from Netlify Environment Variables
-  const API_KEY_FOR_TORN = process.env.TORN_API_KEY;
-
-  if (!factionId) { // Only check factionId, as API_KEY_FOR_TORN comes from env
-    return { statusCode: 400, body: JSON.stringify({ error: "Faction ID is required." }) };
-  }
-  if (!API_KEY_FOR_TORN) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Server API Key not configured." }) };
+  if (!factionId || !apiKey) { // Now both are required from the frontend
+    return { statusCode: 400, body: JSON.stringify({ error: "Faction ID and API Key are required." }) };
   }
   // --- CHANGES END HERE ---
 
@@ -71,8 +59,8 @@ exports.handler = async (event, context) => {
   const errors = [];
 
   try {
-    // 1. Fetch Faction Members from Torn API - use the environment variable API_KEY_FOR_TORN
-    const factionRes = await fetch(`https://api.torn.com/faction/?selections=basic&key=${API_KEY_FOR_TORN}&ID=${factionId}`);
+    // Use the apiKey received from the frontend
+    const factionRes = await fetch(`https://api.torn.com/faction/?selections=basic&key=${apiKey}&ID=${factionId}`);
     const factionData = await factionRes.json();
 
     if (factionData.error) {
@@ -81,25 +69,24 @@ exports.handler = async (event, context) => {
     }
 
     if (!factionData.members) {
-        return { statusCode: 404, body: JSON.stringify({ error: "Faction not found or has no members." }) };
+        return { statusCode: 404, body: JSON.stringify({ error: "No members found for this faction or invalid Faction ID." }) };
     }
 
     const memberIds = Object.keys(factionData.members);
 
-    // 2. Iterate through members, collect data, and save to Firestore
     for (const memberId of memberIds) {
       try {
         await new Promise(resolve => setTimeout(resolve, 700));
 
-        // Use the environment variable API_KEY_FOR_TORN for user data fetches too
-        const userRes = await fetch(`https://api.torn.com/user/?selections=basic,personalstats&key=${API_KEY_FOR_TORN}&ID=${memberId}`);
+        // Use the apiKey received from the frontend
+        const userRes = await fetch(`https://api.torn.com/user/?selections=basic,personalstats&key=${apiKey}&ID=${memberId}`);
         const userData = await userRes.json();
 
         // --- DEBUGGING LOGS (Optional, remove after debugging) ---
         console.log(`DEBUG: Fetched data for member ${memberId}:`, JSON.stringify(userData, null, 2));
         console.log(`DEBUG: Member ${memberId} age:`, userData.age);
-        console.log(`DEBUG: Member ${memberId} xanaxUsed:`, userData.personalstats ? userData.personalstats.xanax : 'N/A');
-        console.log(`DEBUG: Member ${memberId} energyRefillsUsed:`, userData.personalstats ? userData.personalstats.energydrink : 'N/A');
+        console.log(`DEBUG: Member ${memberId} xantaken:`, userData.personalstats ? userData.personalstats.xantaken : 'N/A');
+        console.log(`DEBUG: Member ${memberId} energydrinkused:`, userData.personalstats ? userData.personalstats.energydrinkused : 'N/A');
         // --- END DEBUGGING LOGS ---
 
 
@@ -112,8 +99,8 @@ exports.handler = async (event, context) => {
         const { name, level, age } = userData;
         const personalStats = userData.personalstats || {};
 
-        const xanaxUsed = personalStats.xanax || 0;
-        const energyRefillsUsed = personalStats.energydrink || 0;
+        const xanaxUsed = personalStats.xantaken || 0;
+        const energyRefillsUsed = personalStats.energydrinkused || 0;
 
         const estimatedStats = estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed);
 
