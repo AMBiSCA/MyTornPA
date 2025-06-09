@@ -356,12 +356,14 @@ header {
 .action-btn.download-btn:hover {
   background-color: #0086d1; /* Slightly darker blue on hover */
 }
+
 .modal-overlay.visible {visibility: visible;opacity: 1;}
 .modal-content {
   background-color: #222;border-radius: 12px;box-shadow: 0 0 25px rgba(0, 168, 255, 0.6);
   padding: 30px;width: 90%;max-width: 1000px;max-height: 90vh;overflow-y: auto;position: relative;
   transform: translateY(20px);opacity: 0;transition: transform 0.3s ease-out, opacity 0.3s ease-out;
   display: flex; flex-direction: column; margin-top: 70px;
+}
 .modal-overlay.visible .modal-content {transform: scale(1) translateY(0);opacity: 1;}
 .modal-close-btn {
     position: absolute;top: 12px;right: 12px;background: none;border: none;
