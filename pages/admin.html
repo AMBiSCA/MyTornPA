@@ -9,18 +9,18 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
     <header>
         <div class="header-left">
-            <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
+            <a href="index.html" id="headerLogoLink" style="text-decoration: none;">
                 <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
             </a>
         </div>
         <div class="header-center">
-            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+            <img src="images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
 
@@ -97,51 +97,23 @@
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
 
-    <script src="../js/firebase-init.js"></script>
-    <script src="../js/globalheader.js"></script>
+    <script src="js/firebase-init.js"></script>
+    <script src="js/globalheader.js"></script>
 
     <script>
-        // --- Firebase Configuration (Client-side, for Firestore & Auth) ---
-        // IMPORTANT: Replace with your actual config if it differs from your global setup!
-        const firebaseConfig = {
-            apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // Your Firebase Project API Key
-            authDomain: "mytorn-d03ae.firebaseapp.com",
-            projectId: "mytorn-d03ae",
-            storageBucket: "mytorn-d03ae.appspot.com",
-            messagingSenderId: "205970466308",
-            appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
-        };
-
-        let db = null;
-        let auth = null;
+        // Removed the local firebaseConfig declaration and initialization.
+        // We will assume firebase-init.js has made 'auth' and 'db' globally available.
         const adminStatusMessage = document.getElementById('adminStatusMessage');
         const scanFactionBtn = document.getElementById('scanFactionBtn');
 
-        // Initialize Firebase if not already initialized by firebase-init.js
-        if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
-            if (!firebase.apps.length) {
-                try {
-                    firebase.initializeApp(firebaseConfig);
-                    console.log("admin.html: Firebase initialized.");
-                } catch (e) {
-                    console.error("admin.html: Error initializing Firebase:", e);
-                    if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase failed to initialize.';
-                    scanFactionBtn.disabled = true;
-                }
-            }
-            if (firebase.apps.length > 0) {
-                auth = firebase.auth();
-                db = firebase.firestore();
-            }
-        } else {
-            console.error("admin.html: Firebase SDK not fully loaded. Check firebase-init.js.");
-            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase SDK not loaded.';
+        // Check if global 'auth' and 'db' are available from firebase-init.js
+        if (typeof auth === 'undefined' || typeof db === 'undefined') {
+            console.error("admin.html: Firebase Auth or Firestore (db) not available globally from firebase-init.js.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase not fully loaded. Check console.';
             scanFactionBtn.disabled = true;
-        }
-
-        // --- Firebase Auth State Changed Listener ---
-        let currentLoggedInUser = null;
-        if (auth) {
+        } else {
+            // --- Firebase Auth State Changed Listener ---
+            let currentLoggedInUser = null;
             auth.onAuthStateChanged(async function(user) {
                 currentLoggedInUser = user;
                 console.log('admin.html: Auth State Changed. User:', user ? user.uid : 'No user');
@@ -158,7 +130,6 @@
                             if (tornApiKey && tornStatsApiKey) {
                                 if (adminStatusMessage) adminStatusMessage.textContent = 'Ready to scan factions.';
                                 scanFactionBtn.disabled = false;
-                                // Pass both keys to the backend call
                                 scanFactionBtn.onclick = () => callScanFactionBackend(tornApiKey, tornStatsApiKey);
                             } else {
                                 let message = '';
@@ -182,18 +153,9 @@
                 } else {
                     if (adminStatusMessage) adminStatusMessage.textContent = 'Please sign in to access admin tools.';
                     scanFactionBtn.disabled = true;
-                    // You might want to redirect to your login page here if not logged in
-                    // const currentPagePath = window.location.pathname.toLowerCase();
-                    // if (!currentPagePath.includes('index.html') && !currentPagePath.includes('home.html')) {
-                    //      window.location.href = '../index.html'; 
-                    // }
                     console.warn("User not logged in on admin page. Consider redirecting to login.");
                 }
             });
-        } else {
-            console.error("admin.html: Firebase auth object not available.");
-            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase Auth not available.';
-            scanFactionBtn.disabled = true;
         }
 
 
