@@ -10,8 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/home.css">
-</head>
+    <link rel="stylesheet" href="../css/home.css"> </head>
 <body>
     <header>
         <div class="header-left">
@@ -73,26 +72,14 @@
     <main class="homepage-content-wrapper" id="adminContent">
         <section class="welcome-block-area styled-container">
             <h2>Admin: Scan Faction Members</h2>
-            <p id="adminStatusMessage" style="text-align: center; color: orange;">Enter Faction ID and API Keys to scan.</p>
-            
+            <p>Use this tool to add players from specific factions to your target finding database.</p>
             <label for="factionId">Faction ID:</label>
             <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
             <br><br>
-
-            <label for="tornApiKey">Your Torn API Key:</label>
-            <input type="password" id="tornApiKey" placeholder="Your Torn API Key">
+            <label for="adminApiKey">Your Torn API Key:</label>
+            <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
             <br><br>
-
-            <label for="tornStatsApiKey">Your TornStats API Key:</label>
-            <input type="password" id="tornStatsApiKey" placeholder="Your TornStats API Key">
-            <br><br>
-
-            <div style="text-align: center; margin-bottom: 20px;">
-                <input type="checkbox" id="rememberMeCheckbox">
-                <label for="rememberMeCheckbox" style="font-size: 0.9em;">Remember Faction ID and API Keys (stored in browser)</label>
-            </div>
-            
-            <button id="scanFactionBtn">Scan Faction</button>
+            <button onclick="scanFaction()">Scan Faction</button>
             <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
                 <p>Results will appear here.</p>
             </div>
@@ -116,172 +103,47 @@
     <script src="../js/globalheader.js"></script>
 
     <script>
-        // --- Firebase initialization removed as it's now handled by firebase-init.js ---
-        let db = null; 
-        let auth = null; 
-        const adminStatusMessage = document.getElementById('adminStatusMessage');
-        const scanFactionBtn = document.getElementById('scanFactionBtn');
-        const factionIdInput = document.getElementById('factionId');
-        const tornApiKeyInput = document.getElementById('tornApiKey');
-        const tornStatsApiKeyInput = document.getElementById('tornStatsApiKey');
-        const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
-
-        // This ensures Firebase is loaded. If it's not, the message will remain.
-        if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore && firebase.apps.length > 0) {
-            auth = firebase.auth();
-            db = firebase.firestore();
-            console.log("admin.html: Firebase Auth and Firestore retrieved globally.");
-        } else {
-            console.warn("admin.html: Firebase SDK components not fully available. Login/Auth features might be limited.");
-            if (adminStatusMessage) adminStatusMessage.textContent = 'Firebase not loaded. Please refresh or check console.';
-            scanFactionBtn.disabled = true;
-        }
-
-        // --- Local Storage "Remember Me" Logic ---
-        const LOCAL_STORAGE_FACTION_ID = 'adminFactionId';
-        const LOCAL_STORAGE_TORN_API_KEY = 'adminTornApiKey';
-        const LOCAL_STORAGE_TORNSTATS_API_KEY = 'adminTornStatsApiKey';
-        const LOCAL_STORAGE_REMEMBER_ME = 'adminRememberMe';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedRememberMe = localStorage.getItem(LOCAL_STORAGE_REMEMBER_ME) === 'true';
-            if (rememberMeCheckbox) rememberMeCheckbox.checked = savedRememberMe;
-
-            if (savedRememberMe) {
-                if (factionIdInput) factionIdInput.value = localStorage.getItem(LOCAL_STORAGE_FACTION_ID) || '';
-                if (tornApiKeyInput) tornApiKeyInput.value = localStorage.getItem(LOCAL_STORAGE_TORN_API_KEY) || '';
-                if (tornStatsApiKeyInput) tornStatsApiKeyInput.value = localStorage.getItem(LOCAL_STORAGE_TORNSTATS_API_KEY) || '';
-            }
-
-            if (scanFactionBtn) {
-                scanFactionBtn.disabled = false; // Button is always enabled now as it doesn't depend on login
-                scanFactionBtn.onclick = callScanFactionBackend; // Call function directly from button click
-            }
-
-            if (rememberMeCheckbox) {
-                rememberMeCheckbox.addEventListener('change', () => {
-                    if (rememberMeCheckbox.checked) {
-                        localStorage.setItem(LOCAL_STORAGE_FACTION_ID, factionIdInput.value.trim());
-                        localStorage.setItem(LOCAL_STORAGE_TORN_API_KEY, tornApiKeyInput.value.trim());
-                        localStorage.setItem(LOCAL_STORAGE_TORNSTATS_API_KEY, tornStatsApiKeyInput.value.trim());
-                        localStorage.setItem(LOCAL_STORAGE_REMEMBER_ME, 'true');
-                    } else {
-                        localStorage.removeItem(LOCAL_STORAGE_FACTION_ID);
-                        localStorage.removeItem(LOCAL_STORAGE_TORN_API_KEY);
-                        localStorage.removeItem(LOCAL_STORAGE_TORNSTATS_API_KEY);
-                        localStorage.setItem(LOCAL_STORAGE_REMEMBER_ME, 'false');
-                    }
-                });
-            }
-
-            [factionIdInput, tornApiKeyInput, tornStatsApiKeyInput].forEach(input => {
-                if (input) {
-                    input.addEventListener('input', () => {
-                        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-                            localStorage.setItem(LOCAL_STORAGE_FACTION_ID, factionIdInput.value.trim());
-                            localStorage.setItem(LOCAL_STORAGE_TORN_API_KEY, tornApiKeyInput.value.trim());
-                            localStorage.setItem(LOCAL_STORAGE_TORNSTATS_API_KEY, tornStatsApiKeyInput.value.trim());
-                        }
-                    });
-                }
-            });
-            
-            // Initial status message for the page
-            if (adminStatusMessage) adminStatusMessage.textContent = 'Enter Faction ID and API Keys to scan.';
-
-            // --- Header Dropdown Logic (Copied from previous globalheader.js integration) ---
-            const contactBtn = document.getElementById('headerContactUsBtn');
-            const contactDropdown = document.getElementById('headerContactUsDropdown');
-            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-
-            if (contactDropdown) contactDropdown.style.display = 'none';
-            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
-
-            if (contactBtn) {
-                contactBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isVisible = contactDropdown.style.display === 'block';
-                    contactDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
-                });
-            }
-
-            if (usefulLinksBtn) {
-                usefulLinksBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isVisible = usefulLinksDropdown.style.display === 'block';
-                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (contactDropdown) contactDropdown.style.display = 'none';
-                });
-            }
-
-            window.addEventListener('click', (e) => {
-                if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
-                    contactDropdown.style.display = 'none';
-                }
-                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
-                    usefulLinksDropdown.style.display = 'none';
-                }
-            });
-        });
-
-        // --- Your Estimated Battle Stats Formula (Frontend version, not used by backend) ---
+        // --- Your Estimated Battle Stats Formula ---
+        // This is a placeholder. You need to provide the actual calculation
+        // based on your game knowledge of Torn.
         function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
-            const numericLevel = Number(level) || 0;
-            const numericAge = Number(age) || 0;
-            const numericXanaxUsed = Number(xanaxUsed) || 0;
-            const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+            // Example: (Highly simplified and likely inaccurate for Torn)
+            const baseStats = (level * 100) + (age * 5);
+            const xanaxBonus = xanaxUsed * 5000;
+            const refillBonus = energyRefillsUsed * 2000;
 
-            let estimatedTotalStats = 0;
-            estimatedTotalStats += numericLevel * 1000;
-            estimatedTotalStats += numericAge * 50;
-            estimatedTotalStats += numericXanaxUsed * 20000;
-            estimatedTotalStats += numericEnergyRefillsUsed * 5000;
-
-            const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
-            const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
+            const estimatedTotal = baseStats + xanaxBonus + refillBonus;
 
             return {
-                strength: individualStatEstimate,
-                defense: individualStatEstimate,
-                speed: individualStatEstimate,
-                dexterity: individualStatEstimate,
-                totalEstimatedStats: finalTotalEstimatedStats
+                strength: estimatedTotal / 4, // Placeholder
+                defense: estimatedTotal / 4,  // Placeholder
+                speed: estimatedTotal / 4,    // Placeholder
+                dexterity: estimatedTotal / 4, // Placeholder
+                totalEstimatedStats: estimatedTotal
             };
         }
+        // ------------------------------------------
 
-        // This function now gets API keys from input fields
-        async function callScanFactionBackend() { // No longer accepts parameters
-            const factionId = factionIdInput.value.trim();
-            const tornApiKey = tornApiKeyInput.value.trim();
-            const tornStatsApiKey = tornStatsApiKeyInput.value.trim();
+        async function scanFaction() {
+            const factionId = document.getElementById("factionId").value.trim();
+            const apiKey = document.getElementById("adminApiKey").value.trim(); // Your own API key for scanning
 
-            if (!factionId || isNaN(factionId)) { // Validate Faction ID
-                alert("Please enter a valid Faction ID (numeric)."); // More specific alert
-                return;
-            }
-            if (!tornApiKey) {
-                alert("Please enter your Torn API Key.");
-                return;
-            }
-            if (!tornStatsApiKey) {
-                alert("Please enter your TornStats API Key.");
+            if (!factionId || !apiKey) {
+                alert("Please enter both Faction ID and your API key for scanning.");
                 return;
             }
 
             document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
-            scanFactionBtn.disabled = true;
 
             try {
+                // CORRECTED: changed "scanFaction" to "scanfaction" (lowercase f)
                 const res = await fetch("/.netlify/functions/scanfaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ factionId, tornApiKey, tornStatsApiKey }),
+                    body: JSON.stringify({ factionId, apiKey }),
                 });
 
                 const data = await res.json();
-                scanFactionBtn.disabled = false;
 
                 if (res.ok && data.success) {
                     document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
@@ -293,15 +155,64 @@
                     alert(data.error || "Failed to scan faction.");
                 }
             } catch (err) {
-                scanFactionBtn.disabled = false;
                 document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
                 alert("Error connecting to backend for scan.");
                 console.error(err);
             }
         }
-        
-        // Removed header dropdown logic duplicates from here
-        // The DOMContentLoaded listener at the very top handles all dropdowns and general page setup.
+
+        // The dropdown script block from your original index.html (moved here for consistency)
+        document.addEventListener('DOMContentLoaded', () => {
+            const contactBtn = document.getElementById('headerContactUsBtn');
+            const contactDropdown = document.getElementById('headerContactUsDropdown');
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+
+
+            // Hide dropdowns initially
+            if (contactDropdown) contactDropdown.style.display = 'none';
+            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+
+            if (contactBtn) {
+                contactBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent document click from closing it immediately
+                    const isVisible = contactDropdown.style.display === 'block';
+                    contactDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
+                });
+            }
+
+            if (usefulLinksBtn) {
+                usefulLinksBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent document click from closing it immediately
+                    const isVisible = usefulLinksDropdown.style.display === 'block';
+                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown
+                });
+            }
+
+
+            // Hide dropdown if clicked outside
+            window.addEventListener('click', (e) => {
+                if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+                    contactDropdown.style.display = 'none';
+                }
+                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
+                    usefulLinksDropdown.style.display = 'none';
+                }
+            });
+        });
+
+        // Basic admin password protection (client-side, easily bypassed but good for casual hiding)
+        // Uncomment and set your password if you want this
+        // const ADMIN_PASSWORD = "your_strong_admin_password"; // CHANGE THIS PASSWORD!
+        // window.onload = () => {
+        //     let enteredPassword = prompt("Enter admin password:");
+        //     if (enteredPassword !== ADMIN_PASSWORD) {
+        //         alert("Access Denied!");
+        //         window.location.href = "/"; // Redirect to main page
+        //     }
+        // };
     </script>
 </body>
 </html>
