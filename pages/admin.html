@@ -72,15 +72,18 @@
 
     <main class="homepage-content-wrapper" id="adminContent">
         <section class="welcome-block-area styled-container">
-            <h2>Admin: Scan Faction Members</h2>
-            <p>Use this tool to add players from specific factions to your target finding database.</p>
+            <h2>Admin: Scan Faction Members & Update Battle Stats</h2>
+            <p>Use this tool to add players from specific factions to your target finding database and update their battle stats from TornStats.</p>
             <label for="factionId">Faction ID:</label>
             <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
             <br><br>
-            <label for="adminApiKey">Your API Key (Used for both Netlify Function & TornStats):</label>
-            <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
+            <label for="netlifyApiKey">Your Netlify Function API Key:</label>
+            <input type="password" id="netlifyApiKey" placeholder="Your API Key for Netlify Function (hidden)">
             <br><br>
-            <button onclick="scanFaction()">Scan Faction</button>
+            <label for="tornStatsApiKey">Your TornStats API Key:</label>
+            <input type="password" id="tornStatsApiKey" placeholder="Your TornStats API Key (hidden)">
+            <br><br>
+            <button onclick="scanFaction()">Scan Faction & Update Stats</button>
             <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
                 <p>Results will appear here.</p>
             </div>
@@ -157,11 +160,11 @@
 
         async function scanFaction() {
             const factionId = document.getElementById("factionId").value.trim();
-            // This API key will be used for both the Netlify function AND TornStats API
-            const apiKey = document.getElementById("adminApiKey").value.trim(); 
+            const netlifyApiKey = document.getElementById("netlifyApiKey").value.trim(); // API key for Netlify Function
+            const tornStatsApiKey = document.getElementById("tornStatsApiKey").value.trim(); // API key for TornStats
 
-            if (!factionId || !apiKey) {
-                alert("Please enter both Faction ID and your API key for scanning.");
+            if (!factionId || !netlifyApiKey || !tornStatsApiKey) {
+                alert("Please enter Faction ID, Netlify Function API Key, and TornStats API Key.");
                 return;
             }
 
@@ -173,7 +176,7 @@
                 const res = await fetch("/.netlify/functions/scanfaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ factionId, apiKey }),
+                    body: JSON.stringify({ factionId, apiKey: netlifyApiKey }), // Use netlifyApiKey here
                 });
 
                 const data = await res.json();
@@ -185,7 +188,8 @@
                     
                     if (data.processed && data.processed.length > 0) {
                         scanResultsDiv.innerHTML += "<p>Now fetching battle stats from TornStats and saving to database...</p>";
-                        await saveTornStatsForMembers(data.processed, apiKey, scanResultsDiv);
+                        // Step 2: Fetch and save battle stats for members
+                        await saveTornStatsForMembers(data.processed, tornStatsApiKey, scanResultsDiv); // Use tornStatsApiKey here
                         scanResultsDiv.innerHTML += `<p>All processing complete for Faction ID ${factionId}.</p>`;
                         alert("Faction scan and battle stats update complete!");
                     } else {
@@ -204,7 +208,7 @@
             }
         }
 
-        // --- NEW: Function to Fetch and Save Battle Stats for multiple members ---
+        // --- Function to Fetch and Save Battle Stats for multiple members ---
         async function saveTornStatsForMembers(memberIds, tornStatsApiKey, statusDiv) {
             const BATCH_SIZE = 5;
             const DELAY_BETWEEN_BATCHES = 300; // milliseconds to respect API limits
