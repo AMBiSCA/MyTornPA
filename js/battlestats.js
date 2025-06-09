@@ -100,7 +100,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showMainError(message);
     }
 });
-
+<div id="contactFabContainer">
+    <div class="dropdown fab-dropdown-container" id="contactUsFabDropdownContainer"> <button class="btn-fab dropdown-toggle" id="contactUsFabBtn" aria-label="Contact Us" title="Contact Us">
+            <span class="fab-icon">💬</span> </button>
+        <div class="dropdown-content fab-dropdown-content" id="contactUsFabDropdown" style="display: none;">
+            <a href="#" id="liveChatLinkFab">Live Chat</a> <a href="mailto:support@yourdomain.com">Email Support</a> <a href="FAQ.html">FAQ / Help Center</a> <a href="report.html">Report an Issue</a> <a href="YOUR_COMMUNITY_LINK_HERE" target="_blank" rel="noopener noreferrer">Community/Discord</a> <a href="feedback.html">Suggest a Feature</a> </div>
+    </div>
+</div>
+  
+}
 // Helper function to show a prominent error message (can be re-used from your existing common utils)
 function showMainError(message) {
     if (!message || message.trim() === '') {
@@ -534,7 +542,26 @@ function displayErrorInModal(message) {
                 });
             }, 100); // Small delay to allow CSS changes to apply and browser to render
         });
-    }
-    // END: Download Data Button Logic (html2canvas)
+   <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const contactBtn = document.getElementById('headerContactUsBtn');
+    const contactDropdown = document.getElementById('headerContactUsDropdown');
 
-}); // End of DOMContentLoaded
+    // Hide dropdown initially
+    contactDropdown.style.display = 'none';
+
+    contactBtn.addEventListener('click', () => {
+      const isVisible = contactDropdown.style.display === 'block';
+      contactDropdown.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Optional: Hide dropdown if clicked outside
+    window.addEventListener('click', (e) => {
+      if (!contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+        contactDropdown.style.display = 'none';
+      }
+    });
+  });
+</script>
+   
+   }
