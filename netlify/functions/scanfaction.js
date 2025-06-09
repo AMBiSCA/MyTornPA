@@ -9,7 +9,7 @@ const fetch = require("node-fetch");
 // Make sure FIREBASE_SERVICE_ACCOUNT_KEY is set in your Netlify site settings.
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
-if (!admin.apps.length) {
+if (!admin.apps.length) { // Prevents re-initializing if running locally or in dev server
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -156,8 +156,8 @@ exports.handler = async (event, context) => {
 
         const estimatedStats = estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed);
 
-        // --- CHANGE HERE: Use 'scannedPlayers' collection ---
-        await db.collection("scannedPlayers").doc(String(memberId)).set({
+        // --- CHANGE HERE: Use 'playerDatabase' collection ---
+        await db.collection("playerDatabase").doc(String(memberId)).set({
           tornId: memberId,
           name: name,
           level: level,
