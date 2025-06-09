@@ -116,27 +116,26 @@
     <script src="../js/globalheader.js"></script>
 
     <script>
-        // No longer need to fetch keys/factionId from Firestore for admin page
-        // Firebase initialization is still needed for header/footer (globalheader.js handles it)
-        let db = null; // Still declare for potential future use if needed
-        let auth = null; // Still declare for potential future use if needed
-
+        // --- Firebase initialization removed as it's now handled by firebase-init.js ---
+        let db = null; 
+        let auth = null; 
         const adminStatusMessage = document.getElementById('adminStatusMessage');
         const scanFactionBtn = document.getElementById('scanFactionBtn');
         const factionIdInput = document.getElementById('factionId');
-        const tornApiKeyInput = document.getElementById('tornApiKey'); // New input
-        const tornStatsApiKeyInput = document.getElementById('tornStatsApiKey'); // New input
-        const rememberMeCheckbox = document.getElementById('rememberMeCheckbox'); // New checkbox
+        const tornApiKeyInput = document.getElementById('tornApiKey');
+        const tornStatsApiKeyInput = document.getElementById('tornStatsApiKey');
+        const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
 
-        // Assuming firebase-init.js correctly makes 'auth' and 'db' available globally
+        // This ensures Firebase is loaded. If it's not, the message will remain.
         if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore && firebase.apps.length > 0) {
             auth = firebase.auth();
             db = firebase.firestore();
             console.log("admin.html: Firebase Auth and Firestore retrieved globally.");
         } else {
             console.warn("admin.html: Firebase SDK components not fully available. Login/Auth features might be limited.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Firebase not loaded. Please refresh or check console.';
+            scanFactionBtn.disabled = true;
         }
-
 
         // --- Local Storage "Remember Me" Logic ---
         const LOCAL_STORAGE_FACTION_ID = 'adminFactionId';
@@ -145,7 +144,6 @@
         const LOCAL_STORAGE_REMEMBER_ME = 'adminRememberMe';
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Load saved data on page load
             const savedRememberMe = localStorage.getItem(LOCAL_STORAGE_REMEMBER_ME) === 'true';
             if (rememberMeCheckbox) rememberMeCheckbox.checked = savedRememberMe;
 
@@ -155,13 +153,11 @@
                 if (tornStatsApiKeyInput) tornStatsApiKeyInput.value = localStorage.getItem(LOCAL_STORAGE_TORNSTATS_API_KEY) || '';
             }
 
-            // Set up event listener for the button
             if (scanFactionBtn) {
                 scanFactionBtn.disabled = false; // Button is always enabled now as it doesn't depend on login
                 scanFactionBtn.onclick = callScanFactionBackend; // Call function directly from button click
             }
 
-            // Save data when checkbox changes
             if (rememberMeCheckbox) {
                 rememberMeCheckbox.addEventListener('change', () => {
                     if (rememberMeCheckbox.checked) {
@@ -173,12 +169,11 @@
                         localStorage.removeItem(LOCAL_STORAGE_FACTION_ID);
                         localStorage.removeItem(LOCAL_STORAGE_TORN_API_KEY);
                         localStorage.removeItem(LOCAL_STORAGE_TORNSTATS_API_KEY);
-                        localStorage.setItem(LOCAL_STORAGE_REMEMBER_ME, 'false'); // Explicitly set to false
+                        localStorage.setItem(LOCAL_STORAGE_REMEMBER_ME, 'false');
                     }
                 });
             }
 
-            // Save data on input change if "remember me" is checked (for live updates)
             [factionIdInput, tornApiKeyInput, tornStatsApiKeyInput].forEach(input => {
                 if (input) {
                     input.addEventListener('input', () => {
@@ -190,12 +185,11 @@
                     });
                 }
             });
-
-            // Initial status message
+            
+            // Initial status message for the page
             if (adminStatusMessage) adminStatusMessage.textContent = 'Enter Faction ID and API Keys to scan.';
 
             // --- Header Dropdown Logic (Copied from previous globalheader.js integration) ---
-            // This entire block is from your previous globalheader.js, now inline for this page
             const contactBtn = document.getElementById('headerContactUsBtn');
             const contactDropdown = document.getElementById('headerContactUsDropdown');
             const usefulLinksBtn = document.getElementById('usefulLinksBtn');
@@ -263,8 +257,8 @@
             const tornApiKey = tornApiKeyInput.value.trim();
             const tornStatsApiKey = tornStatsApiKeyInput.value.trim();
 
-            if (!factionId || isNaN(factionId)) {
-                alert("Please enter a valid Faction ID.");
+            if (!factionId || isNaN(factionId)) { // Validate Faction ID
+                alert("Please enter a valid Faction ID (numeric)."); // More specific alert
                 return;
             }
             if (!tornApiKey) {
@@ -305,17 +299,9 @@
                 console.error(err);
             }
         }
-
-        // Basic admin password protection (client-side, easily bypassed but good for casual hiding)
-        // Uncomment and set your password if you want this
-        // const ADMIN_PASSWORD = "your_strong_admin_password"; // CHANGE THIS PASSWORD!
-        // window.onload = () => {
-        //     let enteredPassword = prompt("Enter admin password:");
-        //     if (enteredPassword !== ADMIN_PASSWORD) {
-        //         alert("Access Denied!");
-        //         window.location.href = "/"; // Redirect to main page
-        //     }
-        // };
+        
+        // Removed header dropdown logic duplicates from here
+        // The DOMContentLoaded listener at the very top handles all dropdowns and general page setup.
     </script>
 </body>
 </html>
