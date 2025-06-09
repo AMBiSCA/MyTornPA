@@ -75,7 +75,8 @@
             <h2>Admin: Scan Faction Members</h2>
             <p id="adminStatusMessage" style="text-align: center; color: orange;">Checking login status...</p>
             <label for="factionId">Faction ID:</label>
-            <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)" readonly> <br><br>
+            <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)" readonly>
+            <br><br>
             <button id="scanFactionBtn" disabled>Scan Faction</button>
             <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
                 <p>Results will appear here.</p>
@@ -83,7 +84,7 @@
         </section>
     </main>
 
-    <footer class="footer">
+    <footer>
         <div class="footer-links">
             <a href="home.html" id="homeButtonFooter">Home</a>
             <a href="FAQ.html">F.A.Q</a>
@@ -104,7 +105,7 @@
         let auth = null;
         const adminStatusMessage = document.getElementById('adminStatusMessage');
         const scanFactionBtn = document.getElementById('scanFactionBtn');
-        const factionIdInput = document.getElementById('factionId'); // Get reference to input field
+        const factionIdInput = document.getElementById('factionId');
 
         if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
             if (firebase.apps.length > 0) {
@@ -136,13 +137,13 @@
                             const userData = userDoc.data();
                             const tornApiKey = userData.tornApiKey;
                             const tornStatsApiKey = userData.tornStatsApiKey;
-                            const userFactionId = userData.factionId; // CORRECTED: Now fetching 'factionId'
+                            const userFactionId = userData.factionId; // Corrected to match your Firestore field
 
                             if (tornApiKey && tornStatsApiKey && userFactionId) {
                                 if (adminStatusMessage) adminStatusMessage.textContent = `Ready to scan faction ${userFactionId}.`;
-                                if (factionIdInput) factionIdInput.value = userFactionId; // Pre-fill Faction ID
+                                if (factionIdInput) factionIdInput.value = userFactionId;
                                 scanFactionBtn.disabled = false;
-                                scanFactionBtn.onclick = () => callScanFactionBackend(userFactionId, tornApiKey, tornStatsApiKey); // Pass inherited faction ID
+                                scanFactionBtn.onclick = () => callScanFactionBackend(userFactionId, tornApiKey, tornStatsApiKey);
                             } else {
                                 let message = '';
                                 if (!tornApiKey) message += 'Torn API Key missing. ';
@@ -151,7 +152,7 @@
                                 if (adminStatusMessage) adminStatusMessage.textContent = `Error: ${message.trim()} Please update your profile settings.`;
                                 scanFactionBtn.disabled = true;
                                 scanFactionBtn.onclick = () => alert(message.trim());
-                                if (factionIdInput) factionIdInput.value = ''; // Clear input if data is missing
+                                if (factionIdInput) factionIdInput.value = '';
                             }
                         } else {
                             if (adminStatusMessage) adminStatusMessage.textContent = 'Error: User profile not found in database. Please ensure your profile is set up.';
@@ -169,7 +170,7 @@
                 } else {
                     if (adminStatusMessage) adminStatusMessage.textContent = 'Please sign in to access admin tools.';
                     scanFactionBtn.disabled = true;
-                    if (factionIdInput) factionIdInput.value = ''; // Clear input if logged out
+                    if (factionIdInput) factionIdInput.value = '';
                     console.warn("User not logged in on admin page. Consider redirecting to login.");
                 }
             });
@@ -204,10 +205,6 @@
         }
 
         async function callScanFactionBackend(factionId, tornApiKey, tornStatsApiKey) {
-            // No need to get factionId from input anymore, it's passed
-            // const factionIdInput = document.getElementById("factionId");
-            // const factionId = factionIdInput ? factionIdInput.value.trim() : '';
-
             if (!factionId || isNaN(factionId)) {
                 alert("Internal error: Faction ID is missing or invalid.");
                 return;
