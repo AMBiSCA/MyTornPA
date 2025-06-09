@@ -1,252 +1,174 @@
-// --- Start Gym Gain Estimation Logic ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyTornPA - Stat Tracker</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/mypa.css"> 
+</head>
+<body>
 
-// This array must be identical to the one in the original script
-const Gymlist2 = [{Gym:"Premier Fitness",Energy:5,Str:2,Spe:2,Def:2,Dex:2},{Gym:"Average Joes",Energy:5,Str:2.4,Spe:2.4,Def:2.8,Dex:2.4},{Gym:"Woody's Workout",Energy:5,Str:2.8,Spe:3.2,Def:3,Dex:2.8},{Gym:"Beach Bods",Energy:5,Str:3.2,Spe:3.2,Def:3.2,Dex:"0"},{Gym:"Silver Gym",Energy:5,Str:3.4,Spe:3.6,Def:3.4,Dex:3.2},{Gym:"Pour Femme",Energy:5,Str:3.4,Spe:3.6,Def:3.6,Dex:3.8},{Gym:"Davies Den",Energy:5,Str:3.7,Spe:"0",Def:3.7,Dex:3.7},{Gym:"Global Gym",Energy:5,Str:4,Spe:4,Def:4,Dex:4},{Gym:"Knuckle Heads",Energy:10,Str:4.8,Spe:4.4,Def:4,Dex:4.2},{Gym:"Pioneer Fitness",Energy:10,Str:4.4,Spe:4.6,Def:4.8,Dex:4.4},{Gym:"Anabolic Anomalies",Energy:10,Str:5,Spe:4.6,Def:5.2,Dex:4.6},{Gym:"Core",Energy:10,Str:5,Spe:5.2,Def:5,Dex:5},{Gym:"Racing Fitness",Energy:10,Str:5,Spe:5.4,Def:4.8,Dex:5.2},{Gym:"Complete Cardio",Energy:10,Str:5.5,Spe:5.8,Def:5.5,Dex:5.2},{Gym:"Legs Bums and Tums",Energy:10,Str:"0",Spe:5.6,Def:5.6,Dex:5.8},{Gym:"Deep Burn",Energy:10,Str:6,Spe:6,Def:6,Dex:6},{Gym:"Apollo Gym",Energy:10,Str:6,Spe:6.2,Def:6.4,Dex:6.2},{Gym:"Gun Shop",Energy:10,Str:6.6,Spe:6.4,Def:6.2,Dex:6.2},{Gym:"Force Training",Energy:10,Str:6.4,Spe:6.6,Def:6.4,Dex:6.8},{Gym:"Cha Cha's",Energy:10,Str:6.4,Spe:6.4,Def:6.8,Dex:7},{Gym:"Atlas",Energy:10,Str:7,Spe:6.4,Def:6.4,Dex:6.6},{Gym:"Last Round",Energy:10,Str:6.8,Spe:6.6,Def:7,Dex:6.6},{Gym:"The Edge",Energy:10,Str:6.8,Spe:7,Def:7,Dex:6.8},{Gym:"George's",Energy:10,Str:7.3,Spe:7.3,Def:7.3,Dex:7.3},{Gym:"Balboas Gym",Energy:25,Str:"0",Spe:"0",Def:7.5,Dex:7.5},{Gym:"Frontline Fitness",Energy:25,Str:7.5,Spe:7.5,Def:"0",Dex:"0"},{Gym:"Gym 3000",Energy:50,Str:8,Spe:"0",Def:"0",Dex:"0"},{Gym:"Mr. Isoyamas",Energy:50,Str:"0",Spe:"0",Def:8,Dex:"0"},{Gym:"Total Rebound",Energy:50,Str:"0",Spe:8,Def:"0",Dex:"0"},{Gym:"Elites",Energy:50,Str:"0",Spe:"0",Def:"0",Dex:8},{Gym:"Sports Science Lab",Energy:25,Str:9,Spe:9,Def:9,Dex:9}];
+  <header>
+    <div class="header-left">
+    <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
+        <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+    </a>
+</div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        
+        <div class="header-buttons" id="headerButtonsContainer">
+            <button class="btn header-btn" id="headerEditProfileBtn">
+                <span class="btn-text">Profile:</span>
+                <span class="btn-icon">⚙️</span>
+            </button>
 
-function ROUND(num, places) {
-    return +(Math.round(num + "e+" + places) + "e-" + places);
-}
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+              <button class="btn header-btn" id="usefulLinksBtn">
+                  <span class="btn-text">Useful Links:</span>
+                  <span class="btn-icon">🔗 🔽</span>
+              </button>
+              <div class="dropdown-content" id="usefulLinksDropdown">
+                  <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                  <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                  <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                  <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                  <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                  <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                  <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                  <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                  <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                  <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+              </div>
+            </div>
 
-function calculateTotal(stat, happy, dots, energyP, perks, typ, trains) {
-    let S = stat;
-    // Apply special stat calculation for S > 5e7
-    if (S > 5e7) S = 5e7 + (S - 5e7) / (8.77635 * Math.log(S));
+            <div class="dropdown" id="headerContactUsContainer">
+                <button class="btn header-btn" id="headerContactUsBtn">
+                  <span class="btn-text">Contact:</span>
+                  <span class="btn-icon">💬 🔽</span>
+                </button>
+                <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
+                    <a href="report.html">Report an Issue</a>
+                    <a href="#">Live Chat (Soon™)</a>
+                    <a href="FAQ.html">F.A.Q</a>
+                </div>
+            </div>
 
-    let H = happy;
-    let [A, B, C] = {str:[1600,1700,700],spe:[1600,2000,1350],dex:[1800,1500,1000],def:[2100,-600,1500]}[typ];
-    
-    let total = 0;
-    for (let i = 0; i < trains; i++) {
-        S = stat + total; // Use the current total for the next iteration's stat
-        // Apply special stat calculation for S > 5e7 within the loop
-        if (S > 5e7) S = 5e7 + (S - 5e7) / (8.77635 * Math.log(S));
-        
-        total += (S * ROUND(1 + 0.07 * ROUND(Math.log(1 + H / 250), 4), 4) + 8 * H**1.05 + (1 - (H / 99999)**2) * A + B) * (1 / 200000) * dots * energyP * perks;
-        
-        let dH = ROUND(energyP / 2, 0); // Happy decrease per train
-        H -= dH;
-        if (H < 0) H = 0; // Happy cannot go below 0
-    }
-    return total; // Return only the total gain
-}
+            <button class="btn header-btn" id="logoutButtonHeader">
+                <span class="btn-text">Logout:</span>
+                <span class="btn-icon">🚪</span>
+            </button>
+        </div>
 
+    </div>
+  </header>
 
-async function getTornApiKey() {
-    // THIS IS A PLACEHOLDER. YOU NEED TO IMPLEMENT THIS.
-    // This function should return the user's Torn API key
-    // which you store after they complete the profile setup.
-    // Example:
-    const user = firebase.auth().currentUser;
-    if (user) {
-        const doc = await firebase.firestore().collection('users').doc(user.uid).get();
-        if (doc.exists) {
-            return doc.data().tornApiKey; // Assuming 'tornApiKey' is the field name
-        }
-    }
-    return null; // Or throw an error if key is mandatory
-}
+  <div class="main-content-wrapper">
+    <main class="page-specific-content-area">
+      
+      <h2>Battle Stat Gains Tracker</h2>
+      <p>See how your battle stats have changed since your last check. Your Torn API key will be used to fetch your current stats.</p>
 
-async function fetchAndDisplayGymGains() {
-    const gymEstimatorInfo = document.getElementById('gymEstimatorInfo');
-    const gymEstimatorError = document.getElementById('gymEstimatorError');
-    const gymGainStrength = document.getElementById('gymGainStrength');
-    const gymGainDefense = document.getElementById('gymGainDefense');
-    const gymGainSpeed = document.getElementById('gymGainSpeed');
-    const gymGainDexterity = document.getElementById('gymGainDexterity');
+      <div id="statTrackerInterface">
+          <div class="stat-display-section">
+              <h3>Last Recorded Stats:</h3>
+              <p id="lastRecordedTimestamp">Checking...</p>
+              <ul id="lastStatsList">
+                  <li id="lastStrength">Strength: ---</li>
+                  <li id="lastSpeed">Speed: ---</li>
+                  <li id="lastDefense">Defense: ---</li>
+                  <li id="lastDexterity">Dexterity: ---</li>
+              </ul>
+          </div>
 
-    // Reset display
-    gymEstimatorInfo.textContent = 'Using your current energy and active gym to estimate gains.';
-    gymEstimatorError.style.display = 'none';
-    gymEstimatorError.textContent = '';
-    gymGainStrength.textContent = '---';
-    gymGainDefense.textContent = '---';
-    gymGainSpeed.textContent = '---';
-    gymGainDexterity.textContent = '---';
+          <button id="refreshStatsButton" class="btn-header" style="margin: 20px auto; display: block;">Refresh Stats & Calculate Gains</button>
 
-    const apiKey = await getTornApiKey();
+          <div class="stat-display-section">
+              <h3>Gains Since Last Check:</h3>
+              <p id="gainsMessage">Click the button above to see your gains.</p>
+              <ul id="gainsStatsList" style="display: none;">
+                  <li id="gainStrength">Strength: ---</li>
+                  <li id="gainSpeed">Speed: ---</li>
+                  <li id="gainDefense">Defense: ---</li>
+                  <li id="gainDexterity">Dexterity: ---</li>
+              </ul>
+          </div>
+      </div>
 
-    if (!apiKey) {
-        gymEstimatorError.style.display = 'block';
-        gymEstimatorError.textContent = 'Torn API Key is required to calculate gym gains. Please set it in your profile.';
-        gymEstimatorInfo.textContent = '';
-        return;
-    }
+            <div id="gymGainEstimator" class="stat-display-section styled-container" style="margin-top: 30px;">
+        <h3>🏋️‍♂️ Gym Gain Estimation 🏋️‍♀️</h3>
+        <p id="gymEstimatorInfo">Using your current energy and active gym to estimate gains.</p>
+        <p id="gymEstimatorError" class="error-message-centered" style="display: none;"></p>
+        <div class="gym-stats-grid">
+            <div class="gym-stat-item">
+                <span class="gym-stat-label">Strength Gain:</span>
+                <span class="gym-stat-value" id="gymGainStrength">---</span>
+            </div>
+            <div class="gym-stat-item">
+                <span class="gym-stat-label">Defense Gain:</span>
+                <span class="gym-stat-value" id="gymGainDefense">---</span>
+            </div>
+            <div class="gym-stat-item">
+                <span class="gym-stat-label">Speed Gain:</span>
+                <span class="gym-stat-value" id="gymGainSpeed">---</span>
+            </div>
+            <div class="gym-stat-item">
+                <span class="gym-stat-label">Dexterity Gain:</span>
+                <span class="gym-stat-value" id="gymGainDexterity">---</span>
+            </div>
+        </div>
+        <button id="refreshGymGainButton" class="btn-header" style="margin: 20px auto; display: block;">Recalculate Gym Gains</button>
+      </div>
+          </main>
+  </div> 
+  
+  <footer class="footer">
+    <div class="footer-links">
+        <a href="home.html" id="homeButtonFooter">Home</a>
+        <a href="FAQ.html">F.A.Q</a>
+        <a href="Terms.html">Disclaimer & Terms</a>
+        <a href="report.html">Report an Issue</a>
+        <a href="about.html">About Us</a>
+        <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
 
-    try {
-        const urlStats = `https://api.torn.com/user/?selections=battlestats,gym,bars,perks&key=${apiKey}`;
-        const response = await fetch(urlStats);
-        const data = await response.json();
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/globalheader.js"></script>
+  <script src="../js/mypa.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const contactBtn = document.getElementById('headerContactUsBtn');
+    const contactDropdown = document.getElementById('headerContactUsDropdown');
 
-        if (data.hasOwnProperty("error")) {
-            handleApiError(data.error, gymEstimatorError);
-            return;
-        }
+    // Hide dropdown initially
+    if (contactDropdown) {
+      contactDropdown.style.display = 'none';
+    }
 
-        const strength = data.strength;
-        const defense = data.defense;
-        const speed = data.speed;
-        const dexterity = data.dexterity;
-        const happy = data.happy.current;
-        const energy = data.energy.current;
-        const gymNumber = data.active_gym - 1; // Adjust for 0-indexed array
+    if (contactBtn) {
+      contactBtn.addEventListener('click', () => {
+        const isVisible = contactDropdown.style.display === 'block';
+        contactDropdown.style.display = isVisible ? 'none' : 'block';
+      });
+    }
 
-        if (gymNumber < 0 || gymNumber >= Gymlist2.length) {
-            gymEstimatorError.style.display = 'block';
-            gymEstimatorError.textContent = 'Could not determine active gym or gym data is invalid.';
-            return;
-        }
-
-        const currentGym = Gymlist2[gymNumber];
-        const EnergyPerTrain = currentGym.Energy;
-        const trains = parseInt(energy / EnergyPerTrain);
-
-        if (trains === 0) {
-            gymEstimatorInfo.textContent = `You currently have ${energy} energy. Need ${EnergyPerTrain} energy for one train at ${currentGym.Gym}. Train more to gain!`;
-            return;
-        }
-
-        gymEstimatorInfo.textContent = `Estimating gains for ${energy} energy at ${currentGym.Gym} (${trains} trains)...`;
-
-        // Calculate modifiers
-        let modifierAll = 1, modifierStr = 1, modifierSpe = 1, modifierDef = 1, modifierDex = 1;
-        let n, string;
-
-        if (data.hasOwnProperty('property_perks')) {
-            for (let i = 0; i < data.property_perks.length; i++) {
-                string = data.property_perks[i];
-                if (string.includes('gym gains')) {
-                    n = parseFloat(string.match(/\d+/)[0]);
-                    modifierAll *= (n / 100) + 1;
-                }
-            }
-        }
-        if (data.hasOwnProperty('education_perks')) {
-            for (let i = 0; i < data.education_perks.length; i++) {
-                string = data.education_perks[i];
-                modifierAll *= (string.includes('1% gym gains')) ? 1.01 : 1;
-                modifierDex *= (string.includes('dexterity gym gains')) ? 1.01 : 1;
-                modifierDef *= (string.includes('defense gym gains')) ? 1.01 : 1;
-                modifierSpe *= (string.includes('speed gym gains')) ? 1.01 : 1;
-                modifierStr *= (string.includes('strength gym gains')) ? 1.01 : 1;
-            }
-        }
-        if (data.hasOwnProperty('company_perks')) {
-            for (let i = 0; i < data.company_perks.length; i++) {
-                string = data.company_perks[i];
-                modifierDex *= (string.includes('dexterity gym gains')) ? 1.1 : 1;
-                modifierDef *= (string.includes('defense gym gains')) ? 1.1 : 1;
-                modifierAll *= (string.includes('gym gains')) ? 1.03 : 1;
-            }
-        }
-        if (data.hasOwnProperty('book_perks')) {
-            for (let i = 0; i < data.book_perks.length; i++) {
-                string = data.book_perks[i];
-                modifierAll *= (string.includes('all gym gains')) ? 1.2 : 1;
-                modifierStr *= (string.includes('strength gym gains')) ? 1.3 : 1;
-                modifierDef *= (string.includes('defense gym gains')) ? 1.3 : 1;
-                modifierSpe *= (string.includes('speed gym gains')) ? 1.3 : 1;
-                modifierDex *= (string.includes('dexterity gym gains')) ? 1.3 : 1;
-            }
-        }
-        if (data.hasOwnProperty('faction_perks')) {
-            for (let i = 0; i < data.faction_perks.length; i++) {
-                string = data.faction_perks[i];
-                if (string.includes('gym gains')) {
-                    n = parseFloat(string.match(/\d+/)[0]);
-                    n = (n / 100) + 1;
-                    if (string.includes('strength')) {
-                        modifierStr *= n;
-                    } else if (string.includes('speed')) {
-                        modifierSpe *= n;
-                    } else if (string.includes('defense')) {
-                        modifierDef *= n;
-                    } else if (string.includes('dexterity')) {
-                        modifierDex *= n;
-                    }
-                }
-            }
-        }
-
-        modifierStr *= modifierAll;
-        modifierSpe *= modifierAll;
-        modifierDef *= modifierAll;
-        modifierDex *= modifierAll;
-
-        const gainSpe = calculateTotal(speed, happy, currentGym.Spe, EnergyPerTrain, modifierSpe, 'spe', trains);
-        const gainDef = calculateTotal(defense, happy, currentGym.Def, EnergyPerTrain, modifierDef, 'def', trains);
-        const gainDex = calculateTotal(dexterity, happy, currentGym.Dex, EnergyPerTrain, modifierDex, 'dex', trains);
-        const gainStr = calculateTotal(strength, happy, currentGym.Str, EnergyPerTrain, modifierStr, 'str', trains);
-
-        gymGainStrength.textContent = ROUND(gainStr, 2);
-        gymGainDefense.textContent = ROUND(gainDef, 2);
-        gymGainSpeed.textContent = ROUND(gainSpe, 2);
-        gymGainDexterity.textContent = ROUND(gainDex, 2);
-
-        // Highlight the largest gain(s)
-        const gains = [
-            { id: 'gymGainStrength', value: gainStr, dots: currentGym.Str },
-            { id: 'gymGainDefense', value: gainDef, dots: currentGym.Def },
-            { id: 'gymGainSpeed', value: gainSpe, dots: currentGym.Spe },
-            { id: 'gymGainDexterity', value: gainDex, dots: currentGym.Dex }
-        ];
-
-        let maxDotValue = 0;
-        gains.forEach(g => {
-            if (parseFloat(g.dots) > maxDotValue) {
-                maxDotValue = parseFloat(g.dots);
-            }
-        });
-
-        gains.forEach(g => {
-            const element = document.getElementById(g.id);
-            if (element && parseFloat(g.dots) === maxDotValue && maxDotValue > 0) { // Only highlight if there's actual gain potential
-                element.style.color = 'lightgreen';
-                element.style.fontWeight = 'bold';
-            } else if (element) {
-                 element.style.color = ''; // Reset if not the largest
-                 element.style.fontWeight = '';
-            }
-        });
-
-
-    } catch (error) {
-        console.error('Error fetching gym gain data:', error);
-        gymEstimatorError.style.display = 'block';
-        gymEstimatorError.textContent = 'Failed to fetch Torn data. Please try again later.';
-    }
-}
-
-function handleApiError(errorObj, errorDisplayElement) {
-    let message = `API Error (${errorObj.code}): ${errorObj.error}`;
-    switch (errorObj.code) {
-        case 2:
-            message = 'Incorrect Torn API Key. Please update it in your profile.';
-            break;
-        case 5:
-            message = 'Too many requests to Torn API. Please wait a few minutes.';
-            break;
-        case 14:
-            message = 'Daily Torn API read limit reached. Please wait until tomorrow.';
-            break;
-        default:
-            // Use generic message if unhandled
-            break;
-    }
-    errorDisplayElement.style.display = 'block';
-    errorDisplayElement.textContent = message;
-}
-
-// Event listener to trigger calculation on page load and button click
-document.addEventListener('DOMContentLoaded', () => {
-    // Assuming you have an authentication state change listener in firebase-init.js or globalheader.js
-    // You might want to call fetchAndDisplayGymGains after a user is confirmed logged in and API key is loaded.
-    // For now, it will run on DOMContentLoaded.
-    fetchAndDisplayGymGains();
-
-    const refreshGymGainButton = document.getElementById('refreshGymGainButton');
-    if (refreshGymGainButton) {
-        refreshGymGainButton.addEventListener('click', fetchAndDisplayGymGains);
-    }
-});
-
-// --- End Gym Gain Estimation Logic ---
+    // Optional: Hide dropdown if clicked outside
+    window.addEventListener('click', (e) => {
+      if (contactBtn && contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+        contactDropdown.style.display = 'none';
+      }
+    });
+  });
+</script>
+</body>
+</html>
