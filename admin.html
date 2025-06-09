@@ -10,7 +10,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/home.css"> </head>
+    <link rel="stylesheet" href="../css/home.css">
+</head>
 <body>
     <header>
         <div class="header-left">
@@ -72,14 +73,11 @@
     <main class="homepage-content-wrapper" id="adminContent">
         <section class="welcome-block-area styled-container">
             <h2>Admin: Scan Faction Members</h2>
-            <p>Use this tool to add players from specific factions to your target finding database.</p>
+            <p id="adminStatusMessage" style="text-align: center; color: orange;">Checking login status...</p>
             <label for="factionId">Faction ID:</label>
-            <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
+            <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)" readonly>
             <br><br>
-            <label for="adminApiKey">Your Torn API Key:</label>
-            <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
-            <br><br>
-            <button onclick="scanFaction()">Scan Faction</button>
+            <button id="scanFactionBtn" disabled>Scan Faction</button>
             <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
                 <p>Results will appear here.</p>
             </div>
@@ -103,47 +101,135 @@
     <script src="../js/globalheader.js"></script>
 
     <script>
-        // --- Your Estimated Battle Stats Formula ---
-        // This is a placeholder. You need to provide the actual calculation
-        // based on your game knowledge of Torn.
-        function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
-            // Example: (Highly simplified and likely inaccurate for Torn)
-            const baseStats = (level * 100) + (age * 5);
-            const xanaxBonus = xanaxUsed * 5000;
-            const refillBonus = energyRefillsUsed * 2000;
+        let db = null;
+        let auth = null;
+        const adminStatusMessage = document.getElementById('adminStatusMessage');
+        const scanFactionBtn = document.getElementById('scanFactionBtn');
+        const factionIdInput = document.getElementById('factionId');
 
-            const estimatedTotal = baseStats + xanaxBonus + refillBonus;
+        if (typeof firebase !== 'undefined' && firebase.app && firebase.auth && firebase.firestore) {
+            if (firebase.apps.length > 0) {
+                auth = firebase.auth();
+                db = firebase.firestore();
+                console.log("admin.html: Firebase Auth and Firestore retrieved globally.");
+            } else {
+                console.error("admin.html: Firebase app object found, but not initialized. This is unexpected.");
+                if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase not fully initialized.';
+                scanFactionBtn.disabled = true;
+            }
+        } else {
+            console.error("admin.html: Firebase SDK components not available globally. Check firebase-init.js.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase SDK not loaded.';
+            scanFactionBtn.disabled = true;
+        }
+
+        let currentLoggedInUser = null;
+        if (auth) {
+            auth.onAuthStateChanged(async function(user) {
+                currentLoggedInUser = user;
+                console.log('admin.html: Auth State Changed. User:', user ? user.uid : 'No user');
+
+                if (user) {
+                    if (adminStatusMessage) adminStatusMessage.textContent = 'Fetching profile data...';
+                    try {
+                        const userDoc = await db.collection('userProfiles').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const tornApiKey = userData.tornApiKey;
+                            const tornStatsApiKey = userData.tornStatsApiKey;
+                            const userFactionId = userData.factionId; // Corrected to match your Firestore field
+
+                            if (tornApiKey && tornStatsApiKey && userFactionId) {
+                                if (adminStatusMessage) adminStatusMessage.textContent = `Ready to scan faction ${userFactionId}.`;
+                                if (factionIdInput) factionIdInput.value = userFactionId;
+                                scanFactionBtn.disabled = false;
+                                scanFactionBtn.onclick = () => callScanFactionBackend(userFactionId, tornApiKey, tornStatsApiKey);
+                            } else {
+                                let message = '';
+                                if (!tornApiKey) message += 'Torn API Key missing. ';
+                                if (!tornStatsApiKey) message += 'TornStats API Key missing. ';
+                                if (!userFactionId) message += 'Your Faction ID is not set in your profile. ';
+                                if (adminStatusMessage) adminStatusMessage.textContent = `Error: ${message.trim()} Please update your profile settings.`;
+                                scanFactionBtn.disabled = true;
+                                scanFactionBtn.onclick = () => alert(message.trim());
+                                if (factionIdInput) factionIdInput.value = '';
+                            }
+                        } else {
+                            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: User profile not found in database. Please ensure your profile is set up.';
+                            scanFactionBtn.disabled = true;
+                            scanFactionBtn.onclick = () => alert('Profile not found.');
+                            if (factionIdInput) factionIdInput.value = '';
+                        }
+                    } catch (error) {
+                        console.error("admin.html: Error fetching user profile:", error);
+                        if (adminStatusMessage) adminStatusMessage.textContent = `Error: Could not fetch profile (${error.message}).`;
+                        scanFactionBtn.disabled = true;
+                        scanFactionBtn.onclick = () => alert('Error fetching profile. Check console.');
+                        if (factionIdInput) factionIdInput.value = '';
+                    }
+                } else {
+                    if (adminStatusMessage) adminStatusMessage.textContent = 'Please sign in to access admin tools.';
+                    scanFactionBtn.disabled = true;
+                    if (factionIdInput) factionIdInput.value = '';
+                    console.warn("User not logged in on admin page. Consider redirecting to login.");
+                }
+            });
+        } else {
+            console.error("admin.html: Firebase auth object not available. This is critical.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase Auth not available.';
+            scanFactionBtn.disabled = true;
+        }
+
+        function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
+            const numericLevel = Number(level) || 0;
+            const numericAge = Number(age) || 0;
+            const numericXanaxUsed = Number(xanaxUsed) || 0;
+            const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+
+            let estimatedTotalStats = 0;
+            estimatedTotalStats += numericLevel * 1000;
+            estimatedTotalStats += numericAge * 50;
+            estimatedTotalStats += numericXanaxUsed * 20000;
+            estimatedTotalStats += numericEnergyRefillsUsed * 5000;
+
+            const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
+            const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
 
             return {
-                strength: estimatedTotal / 4, // Placeholder
-                defense: estimatedTotal / 4,  // Placeholder
-                speed: estimatedTotal / 4,    // Placeholder
-                dexterity: estimatedTotal / 4, // Placeholder
-                totalEstimatedStats: estimatedTotal
+                strength: individualStatEstimate,
+                defense: individualStatEstimate,
+                speed: individualStatEstimate,
+                dexterity: individualStatEstimate,
+                totalEstimatedStats: finalTotalEstimatedStats
             };
         }
-        // ------------------------------------------
 
-        async function scanFaction() {
-            const factionId = document.getElementById("factionId").value.trim();
-            const apiKey = document.getElementById("adminApiKey").value.trim(); // Your own API key for scanning
-
-            if (!factionId || !apiKey) {
-                alert("Please enter both Faction ID and your API key for scanning.");
+        async function callScanFactionBackend(factionId, tornApiKey, tornStatsApiKey) {
+            if (!factionId || isNaN(factionId)) {
+                alert("Internal error: Faction ID is missing or invalid.");
+                return;
+            }
+            if (!tornApiKey) {
+                alert("Internal error: Torn API Key not available.");
+                return;
+            }
+            if (!tornStatsApiKey) {
+                alert("Internal error: TornStats API Key not available.");
                 return;
             }
 
             document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
+            scanFactionBtn.disabled = true;
 
             try {
-                // CORRECTED: changed "scanFaction" to "scanfaction" (lowercase f)
                 const res = await fetch("/.netlify/functions/scanfaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ factionId, apiKey }),
+                    body: JSON.stringify({ factionId, tornApiKey, tornStatsApiKey }),
                 });
 
                 const data = await res.json();
+                scanFactionBtn.disabled = false;
 
                 if (res.ok && data.success) {
                     document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
@@ -155,44 +241,40 @@
                     alert(data.error || "Failed to scan faction.");
                 }
             } catch (err) {
+                scanFactionBtn.disabled = false;
                 document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
                 alert("Error connecting to backend for scan.");
                 console.error(err);
             }
         }
 
-        // The dropdown script block from your original index.html (moved here for consistency)
         document.addEventListener('DOMContentLoaded', () => {
             const contactBtn = document.getElementById('headerContactUsBtn');
             const contactDropdown = document.getElementById('headerContactUsDropdown');
             const usefulLinksBtn = document.getElementById('usefulLinksBtn');
             const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
 
-
-            // Hide dropdowns initially
             if (contactDropdown) contactDropdown.style.display = 'none';
             if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
 
             if (contactBtn) {
                 contactBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent document click from closing it immediately
+                    e.stopPropagation();
                     const isVisible = contactDropdown.style.display === 'block';
                     contactDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
                 });
             }
 
             if (usefulLinksBtn) {
                 usefulLinksBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent document click from closing it immediately
+                    e.stopPropagation();
                     const isVisible = usefulLinksDropdown.style.display === 'block';
                     usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown
+                    if (contactDropdown) contactDropdown.style.display = 'none';
                 });
             }
 
-
-            // Hide dropdown if clicked outside
             window.addEventListener('click', (e) => {
                 if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
                     contactDropdown.style.display = 'none';
@@ -202,17 +284,6 @@
                 }
             });
         });
-
-        // Basic admin password protection (client-side, easily bypassed but good for casual hiding)
-        // Uncomment and set your password if you want this
-        // const ADMIN_PASSWORD = "your_strong_admin_password"; // CHANGE THIS PASSWORD!
-        // window.onload = () => {
-        //     let enteredPassword = prompt("Enter admin password:");
-        //     if (enteredPassword !== ADMIN_PASSWORD) {
-        //         alert("Access Denied!");
-        //         window.location.href = "/"; // Redirect to main page
-        //     }
-        // };
     </script>
 </body>
 </html>
