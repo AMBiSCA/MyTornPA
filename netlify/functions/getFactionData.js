@@ -1,11 +1,29 @@
-// This file will contain the server-side logic for your Netlify Function.
-// It will fetch data from Torn API and TornStats API.
+// netlify/functions/getFactionData.js
 
-// If you're using Node.js versions where 'fetch' isn't natively available,
-// you might need to install and import 'node-fetch':
-// npm install node-fetch@2 --save (for CommonJS, compatible with older Netlify Node versions)
-// Then: const fetch = require('node-fetch');
-// For newer Node.js versions (e.g., Node 18+ on Netlify), 'fetch' is often global.
+// Make sure 'fetch' is available. If not, you might need: const fetch = require('node-fetch');
+const admin = require('firebase-admin'); // Also needed here for future admin checks if any
+
+// IMPORTANT: Initialize Firebase Admin SDK if needed for internal operations (e.g., logging to Firestore)
+// Only initialize if your getFactionData function also needs to interact with Firebase Admin SDK,
+// otherwise this block is not strictly necessary for just fetching data from Torn/TornStats.
+// However, it's good practice to have it consistent with setAdminClaim.
+try {
+  // --- MODIFICATION HERE: Decode from Base64 ---
+  const encodedServiceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
+  const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf8');
+  const serviceAccount = JSON.parse(decodedServiceAccount);
+  // --- END MODIFICATION ---
+
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  }
+} catch (error) {
+  console.error('Failed to initialize Firebase Admin SDK in getFactionData. Check FIREBASE_ADMIN_SDK_CONFIG environment variable.', error);
+  // This function might still work if it doesn't use admin SDK features, but initialization is good for consistency.
+}
+
 
 // Helper to fetch API data and handle common errors
 async function fetchApi(url) {
@@ -28,7 +46,6 @@ async function fetchApi(url) {
 }
 
 // Function to fetch Torn API data for a faction and its members
-// This logic is adapted from your original 'factionpeeper.js'
 async function fetchTornApiData(factionId, tornApiKey) {
     const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${tornApiKey}`;
     const factionResponse = await fetchApi(factionApiUrl);
@@ -94,25 +111,23 @@ async function fetchTornApiData(factionId, tornApiKey) {
 }
 
 // Function to fetch TornStats spy reports for individual members
-// This logic is adapted from your original 'battlestats.js'
 async function fetchTornStatsData(memberId, tornStatsApiKey) {
     try {
         const url = `https://www.tornstats.com/api/v2/${tornStatsApiKey}/spy/user/${memberId}`;
         const data = await fetchApi(url);
 
-        if (!data.spy || data.spy.status === false || data.spy.total === undefined) { // Check for total to confirm valid spy data
+        if (!data.spy || data.spy.status === false || data.spy.total === undefined) {
             throw new Error(data.spy?.message || data.message || "No spy data available or key/ID invalid.");
         }
-        return data.spy; // Return the spy object
+        return data.spy;
     } catch (error) {
         console.warn(`Could not fetch TornStats data for ${memberId}: ${error.message}`);
-        return { error: error.message }; // Return error object
+        return { error: error.message };
     }
 }
 
 // Main handler for the Netlify Function
 exports.handler = async (event, context) => {
-    // Ensure it's a POST request and has a body
     if (event.httpMethod !== 'POST' || !event.body) {
         return {
             statusCode: 405,
@@ -138,9 +153,8 @@ exports.handler = async (event, context) => {
         };
     }
 
-    // Get API keys from Netlify Environment Variables
     const TORN_API_KEY = process.env.TORN_API_KEY;
-    const TORNSTATS_API_KEY = process.env.TORN_STATS_MASTER_API_KEY; // <-- UPDATED THIS LINE
+    const TORNSTATS_API_KEY = process.env.TORN_STATS_MASTER_API_KEY;
 
     if (!TORN_API_KEY || !TORNSTATS_API_KEY) {
         console.error('API keys are not set in Netlify environment variables.');
@@ -152,29 +166,26 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        // Step 1: Fetch basic faction and member data from Torn API
         const { factionName, members: tornMembersData } = await fetchTornApiData(factionId, TORN_API_KEY);
 
-        // Step 2: Fetch battle stats for each member from TornStats and combine
         let finalCombinedData = [];
 
-        const BATCH_SIZE = 5; // To avoid hitting API rate limits too hard (Netlify Functions also have limits)
-        const DELAY_BETWEEN_BATCHES = 300; // milliseconds
+        const BATCH_SIZE = 5;
+        const DELAY_BETWEEN_BATCHES = 300;
 
         for (let i = 0; i < tornMembersData.length; i += BATCH_SIZE) {
             const batch = tornMembersData.slice(i, i + BATCH_SIZE);
             const batchPromises = batch.map(async (member) => {
                 const memberId = member.memberId;
                 const tornStatsData = await fetchTornStatsData(memberId, TORNSTATS_API_KEY);
-                // Combine Torn API data with TornStats data for this member
                 return {
                     memberId: memberId,
                     factionId: factionId,
                     factionName: factionName,
                     tornData: member.tornData,
                     tornStatsData: tornStatsData,
-                    spyReportAvailable: !tornStatsData.error, // Flag if spy report was successful
-                    lastUpdated: Date.now() // Use server timestamp here, will be converted to Firestore Timestamp on save
+                    spyReportAvailable: !tornStatsData.error,
+                    lastUpdated: Date.now()
                 };
             });
             const batchResults = await Promise.all(batchPromises);
@@ -185,7 +196,6 @@ exports.handler = async (event, context) => {
             }
         }
 
-        // Return the combined data
         return {
             statusCode: 200,
             body: JSON.stringify({

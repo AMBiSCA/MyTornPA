@@ -3,11 +3,14 @@
 const admin = require('firebase-admin'); // Firebase Admin SDK
 
 // IMPORTANT: Initialize Firebase Admin SDK
-// This needs to be done once per function instance.
 // We'll parse the service account key from environment variables.
 // Make sure FIREBASE_ADMIN_SDK_CONFIG env var is set on Netlify.
 try {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_CONFIG);
+  // --- MODIFICATION HERE: Decode from Base64 ---
+  const encodedServiceAccount = process.env.FIREBASE_ADMIN_SDK_CONFIG;
+  const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf8');
+  const serviceAccount = JSON.parse(decodedServiceAccount);
+  // --- END MODIFICATION ---
 
   // Initialize only if not already initialized (Netlify might warm up functions)
   if (!admin.apps.length) {
@@ -16,7 +19,7 @@ try {
     });
   }
 } catch (error) {
-  console.error('Failed to initialize Firebase Admin SDK. Check FIREBASE_ADMIN_SDK_CONFIG environment variable.', error);
+  console.error('Failed to initialize Firebase Admin SDK. Check FIREBASE_ADMIN_SDK_CONFIG environment variable and its Base64 encoding.', error);
   // This error will prevent the function from running, which is good for security.
 }
 
