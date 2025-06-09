@@ -3,23 +3,18 @@
 <head>
     <title>MyTornPA - Battle Stats Peeper.</title>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/battlestats.css">
 	
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <link rel="stylesheet" href="../css/global.css"> 
-  <link rel="stylesheet" href="../css/battlestats.css">
-  </head>
-
+    </head>
 <body>
 
     <header>
-        <div class="header-left">
-            <a href="index.html" id="headerLogoLink" style="text-decoration: none;">
-                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-            </a>
-        </div>
+     <div class="header-left">
+    <a href="#" id="headerLogoLink" style="text-decoration: none;">
+        <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+    </a>
+</div>
         <div class="header-center">
             <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
@@ -31,12 +26,12 @@
             
             <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
                 <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
-                    <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
+                    <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
                 </button>
             
                 <div class="dropdown" id="usefulLinksDropdownContainer">
                     <button class="btn dropdown-toggle" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span><span class="btn-icon">🔗 🔽</span>
+                        <span class="btn-text">Useful Links</span><span class="btn-icon">🔗</span>
                     </button>
                     <div class="dropdown-content" id="usefulLinksDropdown">
                         <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
@@ -53,7 +48,7 @@
                 
                 <div class="dropdown" id="contactUsDropdownContainer">
                     <button class="btn dropdown-toggle" id="contactUsBtn">
-                        <span class="btn-text">Contact Us:</span><span class="btn-icon">💬 🔽</span>
+                        <span class="btn-text">Contact Us</span><span class="btn-icon">💬</span>
                     </button>
                     <div class="dropdown-content" id="contactUsDropdown">
                         <a href="pages/report.html">Report an Issue</a>
@@ -63,7 +58,7 @@
                 </div>
                 
                 <button class="btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+                    <span class="btn-text">Logout</span><span class="btn-icon">🚪</span>
                 </button>
             </div>
             
@@ -108,22 +103,25 @@
         </div>
 
         <div id="resultsModalOverlay" class="modal-overlay">
-            <div class="modal-content">
-                <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
-                <h3 class="modal-title">Spy Report</h3>
-                <div class="modal-summary">
-                </div>
-                <div class="modal-table-container">
-                    <table class="modal-table">
-                        <thead id="modal-results-table-header">
-                        </thead>
-                        <tbody id="modal-results-table-body">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal-content">
+        <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
+        <h3 class="modal-title">Spy Report</h3>
+        <div class="modal-summary">
+        </div>
+        <div class="modal-table-container">
+            <table class="modal-table">
+                <thead id="modal-results-table-header">
+                </thead>
+                <tbody id="modal-results-table-body">
+                </tbody>
+            </table>
+        </div>
+                <div class="modal-action-area">
+            <button id="downloadDataBtn" class="action-btn download-btn">Download Data!</button>
+        </div>
+    </div>
+</div>
+	
 
     <footer class="footer">
         <div class="footer-links">
@@ -138,29 +136,11 @@
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
 
-  <script src="../js/firebase-init.js"></script>
-  <script src="../js/globalheader.js"></script>
-  <script src="../js/home.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const contactBtn = document.getElementById('headerContactUsBtn');
-    const contactDropdown = document.getElementById('headerContactUsDropdown');
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/battlestats.js"></script>
 
-    // Hide dropdown initially
-    contactDropdown.style.display = 'none';
-
-    contactBtn.addEventListener('click', () => {
-      const isVisible = contactDropdown.style.display === 'block';
-      contactDropdown.style.display = isVisible ? 'none' : 'block';
-    });
-
-    // Optional: Hide dropdown if clicked outside
-    window.addEventListener('click', (e) => {
-      if (!contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
-        contactDropdown.style.display = 'none';
-      }
-    });
-  });
-</script>
 </body>
 </html>

@@ -263,7 +263,7 @@ header {
 .header-left .tagline {
     font-size: 0.8rem;
     color: #aaa;
-    font-weight: 400;
+    font-weight: bold;
     margin-left: 8px;
     display: inline-block;
     white-space: nowrap;
@@ -301,37 +301,6 @@ header {
 .btn-header:hover {
     background: #0086d1;
 }
-.action-buttons-container { /* This was in the factionpeeper.html CSS you sent */
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 25px auto;
-    flex-wrap: wrap;
-}
-/* IMPORTANT: .action-btn, .action-btn.fetch-btn, etc. are already defined earlier in this file.
-   These specific button styles below were likely copied from global.css or another file.
-   If you intend for .action-btn to be a global class, move this to global.css
-   and remove it from here to avoid duplication. */
-/*
-.action-btn {
-    padding: 10px 20px;
-    font-size: 1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    min-width: 150px;
-    text-align: center;
-}
-.action-btn.fetch-btn { background-color: #28a745; color: #000; }
-.action-btn.fetch-btn:hover { background-color: #218838; }
-.clear-btn { background-color: #f39c12; color: #000; }
-.clear-btn:hover { background-color: #e08e0b; }
-.download-btn { background-color: #00a8ff; color: #222; }
-.download-btn:hover { background-color: #0086d1; }
-*/
 
 .loading-overlay {
     position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.75);
@@ -352,6 +321,40 @@ header {
     display: flex;justify-content: center;align-items: center;z-index: 1500;
     visibility: hidden;opacity: 0;
     transition: visibility 0s, opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
+}
+
+/* Styles for the container holding action buttons (like fetch, clear, download) */
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: -15px auto; /* Top/bottom margin, auto left/right for centering */
+  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+/* General styles for all action buttons */
+.action-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 1px solid #000;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  min-width: 150px; /* Give buttons a minimum width */
+  text-align: center;
+}
+
+/* Specific styles for the download button */
+.action-btn.download-btn {
+  background-color: #00a8ff; /* Blue background */
+  color: #222; /* Dark text */
+}
+
+/* Hover effect for the download button */
+.action-btn.download-btn:hover {
+  background-color: #0086d1; /* Slightly darker blue on hover */
 }
 .modal-overlay.visible {visibility: visible;opacity: 1;}
 .modal-content {

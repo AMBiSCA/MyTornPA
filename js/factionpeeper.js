@@ -206,63 +206,63 @@ if (clearSelectionsBtn) {
 const downloadDataBtn = document.getElementById('downloadDataBtn');
 if (downloadDataBtn) {
   downloadDataBtn.addEventListener('click', () => {
-    // START: HTML2CANVAS SCREENSHOT LOGIC
-    const modalContent = document.querySelector('.modal-content'); // The full modal content area
-    const tableContainer = document.querySelector('.modal-table-container'); 
-    const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
+    // START: HTML2CANVAS SCREENSHOT LOGIC
+    const modalContent = document.querySelector('.modal-content'); // The full modal content area
+    const tableContainer = document.querySelector('.modal-table-container'); 
+    const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
 
-    if (!modalContent || !tableContainer || !modalTableBody) {
-        console.error('Error: Required modal elements not found for screenshot.');
-        alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
-        return;
-    }
+    if (!modalContent || !tableContainer || !modalTableBody) {
+        console.error('Error: Required modal elements not found for screenshot.');
+        alert('Could not find the table to download. Please ensure data is loaded and the results modal is open.');
+        return;
+    }
 
-    // Temporarily store original styles
-    const originalModalContentMaxHeight = modalContent.style.maxHeight;
-    const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
-    const originalModalTableContainerOverflow = tableContainer.style.overflowY;
-    const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
+    // Temporarily store original styles
+    const originalModalContentMaxHeight = modalContent.style.maxHeight;
+    const originalModalTableContainerMaxHeight = tableContainer.style.maxHeight;
+    const originalModalTableContainerOverflow = tableContainer.style.overflowY;
+    const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
 
-    // Apply temporary styles to capture full content
-    modalContent.style.maxHeight = 'fit-content'; 
-    tableContainer.style.maxHeight = 'fit-content'; 
-    tableContainer.style.overflowY = 'visible'; 
-    tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
+    // Apply temporary styles to capture full content
+    modalContent.style.maxHeight = 'fit-content'; 
+    tableContainer.style.maxHeight = 'fit-content'; 
+    tableContainer.style.overflowY = 'visible'; 
+    tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
 
-    // Adding a small delay to allow reflow and repaint before capturing
-    setTimeout(() => {
-        html2canvas(tableContainer, { // Capture the entire table container
-            scale: 2, // Increase resolution for better quality
-            useCORS: true, // Important if you have images (like background) loaded from different origins
-            logging: false, // Turn off console logging from html2canvas
-            allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
-        }).then(function(canvas) {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png'); 
-            link.download = 'Faction_Members_Data.png'; 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log('Image download initiated.'); 
+    // Adding a small delay to allow reflow and repaint before capturing
+    setTimeout(() => {
+        html2canvas(tableContainer, { // Capture the entire table container
+            scale: 2, // Increase resolution for better quality
+            useCORS: true, // Important if you have images (like background) loaded from different origins
+            logging: false, // Turn off console logging from html2canvas
+            allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
+        }).then(function(canvas) {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png'); 
+            link.download = 'Faction_Members_Data.png'; 
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log('Image download initiated.'); 
 
-            // Restore original styles immediately after capture
-            modalContent.style.maxHeight = originalModalContentMaxHeight;
-            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-            tableContainer.style.overflowY = originalModalTableContainerOverflow;
-            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+            // Restore original styles immediately after capture
+            modalContent.style.maxHeight = originalModalContentMaxHeight;
+            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
+            tableContainer.style.overflowY = originalModalTableContainerOverflow;
+            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
 
-        }).catch(error => {
-            console.error('Error generating image:', error);
-            alert('Failed to generate image. Please try again.');
+        }).catch(error => {
+            console.error('Error generating image:', error);
+            alert('Failed to generate image. Please try again.');
 
-            // Ensure styles are restored even on error
-            modalContent.style.maxHeight = originalModalContentMaxHeight;
-            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
-            tableContainer.style.overflowY = originalModalTableContainerOverflow;
-            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
-        });
-    }, 100); // Small delay to allow CSS changes to apply and browser to render
-    // END: HTML2CANVAS SCREENSHOT LOGIC
+            // Ensure styles are restored even on error
+            modalContent.style.maxHeight = originalModalContentMaxHeight;
+            tableContainer.style.maxHeight = originalModalTableContainerMaxHeight;
+            tableContainer.style.overflowY = originalModalTableContainerOverflow;
+            tableContainer.scrollTop = originalScrollTop; // Restore scroll position
+        });
+    }, 100); // Small delay to allow CSS changes to apply and browser to render
+    // END: HTML2CANVAS SCREENSHOT LOGIC
   });
 }
 
@@ -549,8 +549,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
   try {
     // Spinner is already shown from the Firestore fetch above, no need to show again unless hidden by previous errors
     const personalStatsCheckList = [
-      'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Items Looted', 'Job Points Used', 'Stat Trains Received', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Trades Made', 'Points Bought', 'Points Sold', 'Bazaar Customers', 'Bazaar Sales (#)', 'Bazaar Profit ($)', 'Criminal Record (Total)', 'Times Jailed', 'People Busted', 'Failed Busts', 'Arrests Made', 'Medical Items Used', 'Times Hospitalized', 'Drugs Used (Times)', 'Times Overdosed', 'Times Rehabbed', 'Boosters Used', 'Candy Used', 'Alcohol Used', 'Energy Drinks Used', 'Nerve Refills Used', 'Daily Login Streak', 'Best Active Streak', 'User Activity', 'Awards', 'Donator Days', 'Missions Completed', 'Contracts Completed', 'Mission Credits Earned', 'Job Points Used', 'Stat Trains Received', 'Travels Made', 'City Finds', 'Dump Finds', 'Items Dumped', 'Books Read', 'Viruses Coded', 'Races Won', 'Racing Skill', 'Total Bounties', 'Bounties Placed', 'Bounties Collected', 'Money Spent on Bounties', 'Money From Bounties Collected', 'Revives Made', 'Revives Received', 'Revive Skill',
-      'Businesses Owned', 'Properties Owned'
+      'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned'
     ];
     const personalStatsNeeded = Array.from(selected).some(s => personalStatsCheckList.includes(s));
     
@@ -754,20 +753,59 @@ function showMainError(message) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Corrected: Target the container for the Useful Links dropdown
   const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-  const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+  const usefulLinksDropdownContainer = document.getElementById('usefulLinksDropdownContainer'); // Changed from usefulLinksDropdown
 
-  if (usefulLinksBtn && usefulLinksDropdown) {
+  // This function helps close other dropdowns if they are open
+  function closeOtherDropdowns(currentDropdown, currentButton) {
+      const allDropdowns = document.querySelectorAll('.dropdown-content.show'); // This might also include the Useful Links dropdown if it uses .dropdown-content.show
+      allDropdowns.forEach(dropdown => {
+          // Check if the dropdown's parent container is not the currentDropdownContainer
+          if (dropdown.parentNode !== currentDropdown && dropdown.parentNode !== usefulLinksDropdownContainer) { // Added condition for usefulLinksDropdownContainer
+              dropdown.classList.remove('show');
+              // Remove 'active' class from its associated button if found
+              const associatedButton = dropdown.previousElementSibling; // Assuming button is always before dropdown
+              if (associatedButton && associatedButton.classList.contains('active')) {
+                  associatedButton.classList.remove('active');
+              }
+          }
+      });
+  }
+
+
+  if (usefulLinksBtn && usefulLinksDropdownContainer) { // Check for the container
     usefulLinksBtn.addEventListener('click', function(event) {
-      event.stopPropagation();
-      usefulLinksDropdown.classList.toggle('show');
+      event.stopPropagation(); 
+      const currentlyOpen = usefulLinksDropdownContainer.classList.contains('show'); // Check if the container is open
+      closeOtherDropdowns(usefulLinksDropdownContainer, usefulLinksBtn); // Close others
+      
+      if (!currentlyOpen) { // If it was not open, open it
+        usefulLinksDropdownContainer.classList.add('show'); // Toggle class on container
+        usefulLinksBtn.classList.add('active');
+      } else {
+        usefulLinksDropdownContainer.classList.remove('show'); // Toggle class on container
+        usefulLinksBtn.classList.remove('active');
+      }
     });
   }
 
   window.addEventListener('click', function(event) {
-    if (usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) {
-      if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
-        usefulLinksDropdown.classList.remove('show');
+    // This global listener should also check the container
+    if (usefulLinksDropdownContainer && usefulLinksDropdownContainer.classList.contains('show')) {
+      if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdownContainer.contains(event.target)) {
+        usefulLinksDropdownContainer.classList.remove('show');
+        usefulLinksBtn.classList.remove('active');
+      }
+    }
+
+    // Assuming contactUsBtn and contactUsDropdown are globally accessible or defined here
+    const contactUsBtn = document.getElementById('contactUsBtn');
+    const contactUsDropdown = document.getElementById('contactUsDropdown');
+    if (contactUsDropdown && contactUsDropdown.classList.contains('show')) {
+      if (!contactUsBtn.contains(event.target) && !contactUsDropdown.contains(event.target)) {
+        contactUsDropdown.classList.remove('show');
+        contactUsBtn.classList.remove('active');
       }
     }
   });
@@ -810,7 +848,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (logoutButtonHeader) {
           logoutButtonHeader.style.display = 'inline-flex';
         }
-
+// Add this inside your document.addEventListener('DOMContentLoaded', function() { ... }); block
+    const headerLogoLink = document.getElementById('headerLogoLink');
+   if (headerLogoLink) {
+    headerLogoLink.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the default link behavior (navigating to '#')
+        window.location.href = 'home.html'; // Redirect to home.html
+    });
+}
         // Enable the fetchData button and set its listener with the user object
         if (fetchDataButton) {
             fetchDataButton.disabled = false; // Enable the button

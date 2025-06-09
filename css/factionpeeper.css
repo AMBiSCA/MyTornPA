@@ -33,48 +33,6 @@ body::before {
     z-index: -1;
 }
 
-header {
-    width: 100%;
-    background: #222;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px;
-}
-.header-left {
-    flex: 1;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-}
-.header-left a {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-}
-.header-left h1 {
-    font-size: 1.6rem;
-    color: #00a8ff;
-    margin: 0;
-    user-select: none;
-    white-space: nowrap;
-}
-.header-left .tagline {
-    font-size: 0.8rem;
-    color: #aaa;
-    font-weight: 400;
-    margin-left: 8px;
-    display: inline-block;
-    white-space: nowrap;
-}
-
 
 .header-right-controls {
     flex: 1;
@@ -375,7 +333,7 @@ label[for="apiKey"] { /* Specific labels for Faction ID and API Key */
   background-color: #222;border-radius: 12px;box-shadow: 0 0 25px rgba(0, 168, 255, 0.6);
   padding: 30px;width: 90%;max-width: 1000px;max-height: 90vh;overflow-y: auto;position: relative;
   transform: translateY(20px);opacity: 0;transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-  display: flex; flex-direction: column; /* Helps manage content flow within modal */
+  display: flex; flex-direction: column; margin-top: 70px;
 }
 .modal-overlay.visible .modal-content {transform: translateY(0);opacity: 1;}
 .modal-close-btn {

@@ -1,9 +1,9 @@
-// Ensure these dependencies are installed:
+// Ensure these dependencies are installed in your mysite/netlify/functions/ directory:
 // npm install firebase-admin --prefix .
-// npm install node-fetch --prefix .
+// npm install node-fetch@2 --prefix . (IMPORTANT: Use version 2 for CommonJS compatibility)
 
 const admin = require("firebase-admin");
-const fetch = require("node-fetch");
+const fetch = require("node-fetch"); // This will now correctly load node-fetch@2
 
 // Initialize Firebase Admin SDK (using environment variable for service account key)
 // Make sure FIREBASE_SERVICE_ACCOUNT_KEY is set in your Netlify site settings.
@@ -16,8 +16,13 @@ if (!admin.apps.length) { // Prevents re-initializing if running locally or in d
 }
 const db = admin.firestore();
 
-// --- Your Estimated Battle Stats Formula ---
+// --- Your Estimated Battle Stats Formula (NOTE: This function is now UNUSED) ---
+// This function was originally designed to estimate stats if fetching directly from api.torn.com.
+// Since you are now fetching processed "spy" data from TornStats.com,
+// this estimation is no longer needed as TornStats provides battle stats directly.
+// You can remove this function entirely if you are only using TornStats.com for battle stats.
 function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
+    // Robustness: Ensure inputs are numbers, default to 0 if not valid
     const numericLevel = Number(level) || 0;
     const numericAge = Number(age) || 0;
     const numericXanaxUsed = Number(xanaxUsed) || 0;
@@ -40,160 +45,135 @@ function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
         totalEstimatedStats: finalTotalEstimatedStats
     };
 }
+// ---------------------------------------------------------------------------------
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method Not Allowed" }) };
   }
 
-  const { factionId, apiKey } = JSON.parse(event.body);
+  const { factionId } = JSON.parse(event.body);
+  // Get the TornStats.com API key directly from Netlify Environment Variables
+  // Make sure TORN_STATS_MASTER_API_KEY is set in your Netlify site settings.
+  const TORN_STATS_API_KEY_FOR_BACKEND = process.env.TORN_STATS_MASTER_API_KEY;
 
-  if (!factionId || !apiKey) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Faction ID and API Key are required." }) };
+  if (!factionId) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Faction ID is required." }) };
+  }
+  if (!TORN_STATS_API_KEY_FOR_BACKEND) {
+    return { statusCode: 500, body: JSON.stringify({ error: "TornStats Master API Key not configured in Netlify environment variables (TORN_STATS_MASTER_API_KEY)." }) };
   }
 
   const processedMembers = [];
   const errors = [];
+  let totalMembersInFaction = 0; // To store the total number of members found
 
   try {
-    const factionRes = await fetch(`https://api.torn.com/faction/?selections=basic&key=${apiKey}&ID=${factionId}`);
-    const factionData = await factionRes.json();
+    // 1. Fetch Faction Members from TornStats.com API
+    const factionListUrl = `https://www.tornstats.com/api/v2/${TORN_STATS_API_KEY_FOR_BACKEND}/spy/faction/${factionId}`;
+    const factionListData = await fetch(factionListUrl).then(res => res.json());
 
-    if (factionData.error) {
-      console.error("Torn API Faction Error:", factionData.error);
-      return { statusCode: 400, body: JSON.stringify({ error: factionData.error.error || "Failed to fetch faction data." }) };
+    if (!factionListData.status || !factionListData.faction || !factionListData.faction.members || Object.keys(factionListData.faction.members).length === 0) {
+        const errorMessage = factionListData.message || "No members found or invalid Faction ID/TornStats API Key.";
+        console.error("TornStats Faction API Error:", errorMessage);
+        return { statusCode: 404, body: JSON.stringify({ error: `Error with faction data from TornStats: ${errorMessage}` }) };
     }
 
-    if (!factionData.members) {
-        return { statusCode: 404, body: JSON.stringify({ error: "No members found for this faction or invalid Faction ID." }) };
-    }
+    const factionName = factionListData.faction.name || `Faction ${factionId}`;
+    const members = factionListData.faction.members; // Members object directly from TornStats
+    const memberIds = Object.keys(members);
+    totalMembersInFaction = memberIds.length;
 
-    const memberIds = Object.keys(factionData.members);
+    // Define batching for TornStats API (it also has limits)
+    const BATCH_SIZE = 5; // Process 5 members concurrently
+    const DELAY_BETWEEN_BATCHES = 300; // milliseconds between batches
 
-    const userProcessingPromises = memberIds.map(async (memberId) => {
-      let combinedData = { member_id_for_table: memberId };
-      let overallStatus = true;
-      let memberErrors = [];
+    // 2. Iterate through members and collect data from TornStats.com (spy/user endpoint)
+    for (let i = 0; i < totalMembersInFaction; i += BATCH_SIZE) {
+        const batchMemberIds = memberIds.slice(i, i + BATCH_SIZE);
 
-      const primarySelections = 'basic,profile';
-      const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${apiKey}`;
-
-      try {
-        await new Promise(resolve => setTimeout(resolve, 350));
-        const response1 = await fetch(primaryDataUrl);
-        if (!response1.ok) {
-          memberErrors.push(`Primary Fetch (HTTP ${response1.status})`);
-          overallStatus = false;
-        } else {
-          const data1 = await response1.json();
-          if (data1.error) {
-            memberErrors.push(`Primary API: ${data1.error.error}`);
-            overallStatus = false;
-          } else {
-            combinedData = { ...combinedData, ...data1 };
-          }
-        }
-      } catch (e) {
-        memberErrors.push(`Primary Network Err: ${e.message.substring(0, 50)}`);
-        overallStatus = false;
-      }
-
-      if (overallStatus) {
-        const personalStatsSelection = 'personalstats';
-        const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${apiKey}`;
-        try {
-          await new Promise(resolve => setTimeout(resolve, 350));
-          const response2 = await fetch(personalStatsDataUrl);
-          if (!response2.ok) {
-            memberErrors.push(`PersonalStats Fetch (HTTP ${response2.status})`);
-          } else {
-            const data2 = await response2.json();
-            if (data2.error) {
-              memberErrors.push(`PersonalStats API: ${data2.error.error}`);
-            } else {
-              combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
+        const batchPromises = batchMemberIds.map(async (memberId) => {
+            // Small delay between individual member fetches within a batch to avoid bursting limits
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const memberUrl = `https://www.tornstats.com/api/v2/${TORN_STATS_API_KEY_FOR_BACKEND}/spy/user/${memberId}`;
+            try {
+                const memberData = await fetch(memberUrl).then(res => res.json());
+                return { status_internal: 'fulfilled', memberId: memberId, data: memberData };
+            } catch (error) {
+                return { status_internal: 'rejected', memberId: memberId, reason: error };
             }
-          }
-        } catch (e) {
-          memberErrors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
+        });
+
+        const batchResults = await Promise.allSettled(batchPromises);
+
+        for (const result of batchResults) {
+            if (result.status === 'fulfilled' && result.value.status_internal === 'fulfilled') {
+                const { memberId, data: memberData } = result.value;
+                // Check if spy data from TornStats is actually good (status: true, total exists)
+                if (memberData.spy && memberData.spy.status === true && memberData.spy.total !== undefined) {
+                    const spy = memberData.spy; // This is the actual spy report from TornStats.com
+
+                    // --- DEBUGGING LOGS (Leave for now, remove once confirmed working) ---
+                    console.log(`DEBUG: Processed member ${memberId} (${spy.player_name}):`, JSON.stringify(spy, null, 2));
+                    console.log(`DEBUG: Member ${memberId} age:`, spy.age);
+                    console.log(`DEBUG: Member ${memberId} strength:`, spy.strength);
+                    console.log(`DEBUG: Member ${memberId} totalStats:`, spy.total);
+                    // --- END DEBUGGING LOGS ---
+
+                    // 3. Save directly retrieved spy data to Firestore
+                    await db.collection("userProfiles").doc(String(memberId)).set({
+                      tornId: memberId,
+                      name: spy.player_name || members[memberId]?.name || `User ${memberId}`,
+                      level: spy.level || members[memberId]?.level,
+                      age: spy.age, // TornStats spy data should provide age directly
+                      strength: spy.strength,
+                      defense: spy.defense,
+                      speed: spy.speed,
+                      dexterity: spy.dexterity,
+                      totalStats: spy.total,
+                      // xanaxUsed and energyRefillsUsed are typically NOT in TornStats spy data.
+                      // If these are needed, you would need a separate fetch to api.torn.com's personalstats
+                      // for each member, which doubles API calls and rate limit challenges.
+                      // For now, they are omitted as spy data is the focus.
+                      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+                    }, { merge: true, ignoreUndefinedProperties: true }); // Crucial for undefined values
+
+                    processedMembers.push(spy.player_name || memberId);
+
+                } else {
+                    // Log specific error if TornStats spy data is not valid for this member
+                    errors.push(`Member ${memberId}: No valid spy data from TornStats - ${memberData.spy?.message || memberData.message || "Unknown reason"}`);
+                    console.warn(`WARN: Member ${memberId} returned no valid spy data:`, memberData);
+                }
+            } else { // Handle promises that were rejected (e.g., network error for TornStats API)
+                const memberId = result.value?.memberId || (result.reason?.memberId || "Unknown ID");
+                const errorReason = result.value?.reason || result.reason;
+                errors.push(`Member ${memberId}: Fetch failed to TornStats - ${String(errorReason).substring(0, 50)}`);
+                console.error(`ERROR: Failed to fetch from TornStats for member ${memberId}:`, errorReason);
+            }
         }
-      } else {
-        memberErrors.push("Skipped personalstats due to primary fetch error.");
-      }
-      
-      if (!combinedData.name && factionData.members[memberId] && factionData.members[memberId].name) {
-          combinedData.name = factionData.members[memberId].name;
-      }
 
-      if (memberErrors.length > 0) combinedData.error = { error: memberErrors.join('; ') };
-
-      return { memberId, data: combinedData, status: !combinedData.error };
-    });
-
-    const userResponses = await Promise.allSettled(userProcessingPromises);
-
-    for (const promiseResult of userResponses) {
-      if (promiseResult.status === 'fulfilled') {
-        const memberId = promiseResult.value.memberId;
-        const userData = promiseResult.value.data;
-
-        if (userData.error) {
-            console.warn(`Error for member ${memberId}:`, userData.error.error);
-            errors.push(`User ${memberId}: ${userData.error.error}`);
-            continue;
+        // Delay between batches if there are more batches to process
+        if (i + BATCH_SIZE < totalMembersInFaction) {
+            await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
         }
-
-        console.log(`DEBUG (Post-Fetch): Processing member ${memberId}:`, JSON.stringify(userData, null, 2));
-        console.log(`DEBUG (Post-Fetch): Member ${memberId} age:`, userData.age);
-        console.log(`DEBUG (Post-Fetch): Member ${memberId} xantaken (from personalstats):`, userData.personalstats ? userData.personalstats.xantaken : 'N/A');
-        console.log(`DEBUG (Post-Fetch): Member ${memberId} energydrinkused (from personalstats):`, userData.personalstats ? userData.personalstats.energydrinkused : 'N/A');
-
-        const { name, level, age } = userData;
-        const personalStats = userData.personalstats || {};
-
-        const xanaxUsed = personalStats.xantaken || 0;
-        const energyRefillsUsed = personalStats.energydrinkused || 0;
-
-        const estimatedStats = estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed);
-
-        // --- CHANGE HERE: Use 'playerDatabase' collection ---
-        await db.collection("playerDatabase").doc(String(memberId)).set({
-          tornId: memberId,
-          name: name,
-          level: level,
-          age: age,
-          xanaxUsed: xanaxUsed,
-          energyRefillsUsed: energyRefillsUsed,
-          strength: estimatedStats.strength,
-          defense: estimatedStats.defense,
-          speed: estimatedStats.speed,
-          dexterity: estimatedStats.dexterity,
-          totalStats: estimatedStats.totalEstimatedStats,
-          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true, ignoreUndefinedProperties: true });
-        // --- END CHANGE ---
-
-        processedMembers.push(name || memberId);
-
-      } else {
-        const errorMessage = promiseResult.reason?.message || 'Unknown promise rejection reason';
-        console.error(`Promise rejected for a member: ${errorMessage}`);
-        errors.push(`Unhandled promise rejection: ${errorMessage}`);
-      }
     }
 
+    // Final successful response
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        message: `Successfully processed ${processedMembers.length} members.`,
-        processed: processedMembers,
-        errors: errors.length > 0 ? errors : undefined
+        message: `Scan of faction ${factionName} complete.`,
+        totalMembers: totalMembersInFaction, // Total members processed/attempted
+        totalFetched: processedMembers.length, // Number of members successfully fetched and saved
+        processed: processedMembers, // List of names/IDs successfully processed
+        errors: errors.length > 0 ? errors : undefined // List of errors encountered
       }),
     };
 
-  } catch (mainError) {
-    console.error("Error in scanFaction Netlify Function (Outer Catch):", mainError);
+  } catch (mainError) { // Catch for any errors outside the member loop (e.g., initial faction fetch failure)
+    console.error("Error in scanfaction Netlify Function (Outer Catch):", mainError);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Internal server error during faction scan: " + mainError.message }),
