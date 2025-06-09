@@ -130,20 +130,38 @@
                 console.log('admin.html: Auth State Changed. User:', user ? user.uid : 'No user');
 
                 if (user) {
-                    if (adminStatusMessage) adminStatusMessage.textContent = 'Fetching profile data...';
+                    // --- DEBUG LOGS ADDED HERE ---
+                    console.log("admin.html: User found, attempting to fetch profile data...");
+                    if (adminStatusMessage) adminStatusMessage.textContent = 'Fetching profile data...'; // This message *should* update
+                    // --- END DEBUG LOGS ---
                     try {
                         const userDoc = await db.collection('userProfiles').doc(user.uid).get();
+
+                        // --- DEBUG LOGS ADDED HERE ---
+                        console.log("admin.html: User profile document exists?", userDoc.exists);
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            console.log("admin.html: User profile data:", JSON.stringify(userData, null, 2));
+                            console.log("admin.html: tornApiKey:", userData.tornApiKey);
+                            console.log("admin.html: tornStatsApiKey:", userData.tornStatsApiKey);
+                            console.log("admin.html: factionId (from profile):", userData.factionId);
+                        }
+                        // --- END DEBUG LOGS ---
+
                         if (userDoc.exists) {
                             const userData = userDoc.data();
                             const tornApiKey = userData.tornApiKey;
                             const tornStatsApiKey = userData.tornStatsApiKey;
-                            const userFactionId = userData.factionId; // Corrected to match your Firestore field
+                            const userFactionId = userData.factionId; 
 
                             if (tornApiKey && tornStatsApiKey && userFactionId) {
                                 if (adminStatusMessage) adminStatusMessage.textContent = `Ready to scan faction ${userFactionId}.`;
                                 if (factionIdInput) factionIdInput.value = userFactionId;
                                 scanFactionBtn.disabled = false;
                                 scanFactionBtn.onclick = () => callScanFactionBackend(userFactionId, tornApiKey, tornStatsApiKey);
+                                // --- DEBUG LOGS ADDED HERE ---
+                                console.log("admin.html: All keys and faction ID present. Button enabled.");
+                                // --- END DEBUG LOGS ---
                             } else {
                                 let message = '';
                                 if (!tornApiKey) message += 'Torn API Key missing. ';
@@ -153,12 +171,18 @@
                                 scanFactionBtn.disabled = true;
                                 scanFactionBtn.onclick = () => alert(message.trim());
                                 if (factionIdInput) factionIdInput.value = '';
+                                // --- DEBUG LOGS ADDED HERE ---
+                                console.log("admin.html: Missing keys or faction ID in profile. Message:", message.trim());
+                                // --- END DEBUG LOGS ---
                             }
                         } else {
                             if (adminStatusMessage) adminStatusMessage.textContent = 'Error: User profile not found in database. Please ensure your profile is set up.';
                             scanFactionBtn.disabled = true;
                             scanFactionBtn.onclick = () => alert('Profile not found.');
                             if (factionIdInput) factionIdInput.value = '';
+                            // --- DEBUG LOGS ADDED HERE ---
+                            console.log("admin.html: User profile document does NOT exist.");
+                            // --- END DEBUG LOGS ---
                         }
                     } catch (error) {
                         console.error("admin.html: Error fetching user profile:", error);
@@ -166,7 +190,127 @@
                         scanFactionBtn.disabled = true;
                         scanFactionBtn.onclick = () => alert('Error fetching profile. Check console.');
                         if (factionIdInput) factionIdInput.value = '';
+                        // --- DEBUG LOGS ADDED HERE ---
+                        console.log("admin.html: Error during Firestore profile fetch.");
+                        // --- END DEBUG LOGS ---
                     }
                 } else {
                     if (adminStatusMessage) adminStatusMessage.textContent = 'Please sign in to access admin tools.';
-                    scanFactionBtn.
+                    scanFactionBtn.disabled = true;
+                    if (factionIdInput) factionIdInput.value = '';
+                    console.warn("User not logged in on admin page. Consider redirecting to login.");
+                }
+            });
+        } else {
+            console.error("admin.html: Firebase auth object not available. This is critical.");
+            if (adminStatusMessage) adminStatusMessage.textContent = 'Error: Firebase Auth not available.';
+            scanFactionBtn.disabled = true;
+        }
+
+        function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
+            const numericLevel = Number(level) || 0;
+            const numericAge = Number(age) || 0;
+            const numericXanaxUsed = Number(xanaxUsed) || 0;
+            const numericEnergyRefillsUsed = Number(energyRefillsUsed) || 0;
+
+            let estimatedTotalStats = 0;
+            estimatedTotalStats += numericLevel * 1000;
+            estimatedTotalStats += numericAge * 50;
+            estimatedTotalStats += numericXanaxUsed * 20000;
+            estimatedTotalStats += numericEnergyRefillsUsed * 5000;
+
+            const individualStatEstimate = Math.round(estimatedTotalStats / 4) || 0;
+            const finalTotalEstimatedStats = Math.round(estimatedTotalStats) || 0;
+
+            return {
+                strength: individualStatEstimate,
+                defense: individualStatEstimate,
+                speed: individualStatEstimate,
+                dexterity: individualStatEstimate,
+                totalEstimatedStats: finalTotalEstimatedStats
+            };
+        }
+
+        async function callScanFactionBackend(factionId, tornApiKey, tornStatsApiKey) {
+            if (!factionId || isNaN(factionId)) {
+                alert("Internal error: Faction ID is missing or invalid.");
+                return;
+            }
+            if (!tornApiKey) {
+                alert("Internal error: Torn API Key not available.");
+                return;
+            }
+            if (!tornStatsApiKey) {
+                alert("Internal error: TornStats API Key not available.");
+                return;
+            }
+
+            document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
+            scanFactionBtn.disabled = true;
+
+            try {
+                const res = await fetch("/.netlify/functions/scanfaction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ factionId, tornApiKey, tornStatsApiKey }),
+                });
+
+                const data = await res.json();
+                scanFactionBtn.disabled = false;
+
+                if (res.ok && data.success) {
+                    document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
+                        <p>Processed: ${data.processed.join(', ')}</p>
+                        ${data.errors && data.errors.length > 0 ? `<p style="color: red;">Errors: ${data.errors.join('<br>')}</p>` : ''}`;
+                    alert("Faction scan complete!");
+                } else {
+                    document.getElementById("scanResults").innerHTML = `<p style="color: red;">Error: ${data.error || "Failed to scan faction."}</p>`;
+                    alert(data.error || "Failed to scan faction.");
+                }
+            } catch (err) {
+                scanFactionBtn.disabled = false;
+                document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
+                alert("Error connecting to backend for scan.");
+                console.error(err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contactBtn = document.getElementById('headerContactUsBtn');
+            const contactDropdown = document.getElementById('headerContactUsDropdown');
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+
+            if (contactDropdown) contactDropdown.style.display = 'none';
+            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+
+            if (contactBtn) {
+                contactBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = contactDropdown.style.display === 'block';
+                    contactDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+                });
+            }
+
+            if (usefulLinksBtn) {
+                usefulLinksBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = usefulLinksDropdown.style.display === 'block';
+                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (contactDropdown) contactDropdown.style.display = 'none';
+                });
+            }
+
+            window.addEventListener('click', (e) => {
+                if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+                    contactDropdown.style.display = 'none';
+                }
+                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
+                    usefulLinksDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
