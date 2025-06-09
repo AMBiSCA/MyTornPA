@@ -1,218 +1,591 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTornPA - Admin Panel</title>
+ <html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyTornPA - Admin Panel</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/home.css"> </head>
-<body>
-    <header>
-        <div class="header-left">
-            <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
-                <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
-            </a>
-        </div>
-        <div class="header-center">
-            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
-        </div>
-        <div class="header-right-controls">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <style>
+  /* Modal Styles */
+  .modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  }
 
-            <div class="header-buttons" id="headerButtonsContainer">
-                <button class="btn header-btn" id="headerEditProfileBtn">
-                    <span class="btn-text">Profile:</span>
-                    <span class="btn-icon">⚙️</span>
-                </button>
+  .modal-overlay.visible {
+  display: flex;
+  }
 
-                <div class="dropdown" id="usefulLinksDropdownContainer">
-                    <button class="btn header-btn" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span>
-                        <span class="btn-icon">🔗 🔽</span>
-                    </button>
-                    <div class="dropdown-content" id="usefulLinksDropdown">
-                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                    </div>
-                </div>
+  .modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 80%;
+  max-height: 80%;
+  overflow: auto;
+  }
 
-                <div class="dropdown" id="headerContactUsContainer">
-                    <button class="btn header-btn" id="headerContactUsBtn">
-                        <span class="btn-text">Contact:</span>
-                        <span class="btn-icon">💬 🔽</span>
-                    </button>
-                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
-                        <a href="report.html">Report an Issue</a>
-                        <a href="#">Live Chat (Soon™)</a>
-                        <a href="FAQ.html">F.A.Q</a>
-                    </div>
-                </div>
+  /* Table Styles */
+  .modal-table-container {
+  max-height: 400px; /* Adjust as needed */
+  overflow-y: auto;
+  }
 
-                <button class="btn header-btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span>
-                    <span class="btn-icon">🚪</span>
-                </button>
-            </div>
+  .modal-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  }
 
-        </div>
-    </header>
+  .modal-table-container th,
+  .modal-table-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  }
 
-    <main class="homepage-content-wrapper" id="adminContent">
-        <section class="welcome-block-area styled-container">
-            <h2>Admin: Scan Faction Members</h2>
-            <p>Use this tool to add players from specific factions to your target finding database.</p>
-            <label for="factionId">Faction ID:</label>
-            <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
-            <br><br>
-            <label for="adminApiKey">Your Torn API Key:</label>
-            <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
-            <br><br>
-            <button onclick="scanFaction()">Scan Faction</button>
-            <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
-                <p>Results will appear here.</p>
-            </div>
-        </section>
-    </main>
+  .modal-table-container th {
+  background-color: #f2f2f2;
+  }
 
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="home.html" id="homeButtonFooter">Home</a>
-            <a href="FAQ.html">F.A.Q</a>
-            <a href="Terms.html">Disclaimer & Terms</a>
-            <a href="report.html">Report an Issue</a>
-            <a href="about.html">About Us</a>
-            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-        </div>
-        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-    </footer>
+  /* Loading Spinner */
+  #loadingOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  }
 
-    <script src="../js/firebase-init.js"></script>
-    <script src="../js/globalheader.js"></script>
+  #loadingOverlay.visible {
+  display: flex;
+  }
 
-    <script>
-        // --- Your Estimated Battle Stats Formula ---
-        // This is a placeholder. You need to provide the actual calculation
-        // based on your game knowledge of Torn.
-        function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
-            // Example: (Highly simplified and likely inaccurate for Torn)
-            const baseStats = (level * 100) + (age * 5);
-            const xanaxBonus = xanaxUsed * 5000;
-            const refillBonus = energyRefillsUsed * 2000;
+  .spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #f1f1f1;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+  }
 
-            const estimatedTotal = baseStats + xanaxBonus + refillBonus;
+  @keyframes spin {
+  0% {
+  transform: rotate(0deg);
+  }
 
-            return {
-                strength: estimatedTotal / 4, // Placeholder
-                defense: estimatedTotal / 4,  // Placeholder
-                speed: estimatedTotal / 4,    // Placeholder
-                dexterity: estimatedTotal / 4, // Placeholder
-                totalEstimatedStats: estimatedTotal
-            };
-        }
-        // ------------------------------------------
+  100% {
+  transform: rotate(360deg);
+  }
+  }
+  </style>
+ </head>
+ <body>
+  <header>
+  <div class="header-left">
+  <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
+  <h1>MyTornPA.📝<span class="tagline">Your Personal Assistant!</span></h1>
+  </a>
+  </div>
+  <div class="header-center">
+  <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+  </div>
+  <div class="header-right-controls">
 
-        async function scanFaction() {
-            const factionId = document.getElementById("factionId").value.trim();
-            const apiKey = document.getElementById("adminApiKey").value.trim(); // Your own API key for scanning
+  <div class="header-buttons" id="headerButtonsContainer">
+  <button class="btn header-btn" id="headerEditProfileBtn">
+  <span class="btn-text">Profile:</span>
+  <span class="btn-icon">⚙️</span>
+  </button>
 
-            if (!factionId || !apiKey) {
-                alert("Please enter both Faction ID and your API key for scanning.");
-                return;
-            }
+  <div class="dropdown" id="usefulLinksDropdownContainer">
+  <button class="btn header-btn" id="usefulLinksBtn">
+  <span class="btn-text">Useful Links:</span>
+  <span class="btn-icon">🔗 🔽</span>
+  </button>
+  <div class="dropdown-content" id="usefulLinksDropdown">
+  <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+  <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+  <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+  <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+  <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+  <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+  <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+  <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+  <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+  <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+  </div>
+  </div>
 
-            document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
+  <div class="dropdown" id="headerContactUsContainer">
+  <button class="btn header-btn" id="headerContactUsBtn">
+  <span class="btn-text">Contact:</span>
+  <span class="btn-icon">💬 🔽</span>
+  </button>
+  <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
+  <a href="report.html">Report an Issue</a>
+  <a href="#">Live Chat (Soon™)</a>
+  <a href="FAQ.html">F.A.Q</a>
+  </div>
+  </div>
 
-            try {
-                // CORRECTED: changed "scanFaction" to "scanfaction" (lowercase f)
-                const res = await fetch("/.netlify/functions/scanfaction", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ factionId, apiKey }),
-                });
+  <button class="btn header-btn" id="logoutButtonHeader">
+  <span class="btn-text">Logout:</span>
+  <span class="btn-icon">🚪</span>
+  </button>
+  </div>
 
-                const data = await res.json();
+  </div>
+  </header>
 
-                if (res.ok && data.success) {
-                    document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
-                        <p>Processed: ${data.processed.join(', ')}</p>
-                        ${data.errors && data.errors.length > 0 ? `<p style="color: red;">Errors: ${data.errors.join('<br>')}</p>` : ''}`;
-                    alert("Faction scan complete!");
-                } else {
-                    document.getElementById("scanResults").innerHTML = `<p style="color: red;">Error: ${data.error || "Failed to scan faction."}</p>`;
-                    alert(data.error || "Failed to scan faction.");
-                }
-            } catch (err) {
-                document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
-                alert("Error connecting to backend for scan.");
-                console.error(err);
-            }
-        }
+  <main class="homepage-content-wrapper" id="adminContent">
+  <section class="welcome-block-area styled-container">
+  <h2>Admin: Scan Faction Members</h2>
+  <p>Use this tool to add players from specific factions to your target finding database.</p>
+  <label for="factionId">Faction ID:</label>
+  <input type="text" id="factionId" placeholder="Enter Faction ID (e.g., 12345)">
+  <br><br>
+  <label for="adminApiKey">Your Torn API Key:</label>
+  <input type="password" id="adminApiKey" placeholder="Your API Key (hidden)">
+  <br><br>
+  <button onclick="scanFaction()">Scan Faction</button>
+  <div id="scanResults" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
+  <p>Results will appear here.</p>
+  </div>
+  </section>
+  </main>
 
-        // The dropdown script block from your original index.html (moved here for consistency)
-        document.addEventListener('DOMContentLoaded', () => {
-            const contactBtn = document.getElementById('headerContactUsBtn');
-            const contactDropdown = document.getElementById('headerContactUsDropdown');
-            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+  <footer class="footer">
+  <div class="footer-links">
+  <a href="home.html" id="homeButtonFooter">Home</a>
+  <a href="FAQ.html">F.A.Q</a>
+  <a href="Terms.html">Disclaimer & Terms</a>
+  <a href="report.html">Report an Issue</a>
+  <a href="about.html">About Us</a>
+  <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+  <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+  </div>
+  <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <div id="loadingOverlay">
+  <div class="spinner"></div>
+  </div>
+
+  <div class="modal-overlay" id="resultsModalOverlay">
+  <div class="modal-content">
+  <h2 class="modal-title">Spy Report</h2>
+  <div class="modal-summary"></div>
+  <div class="modal-table-container">
+  <table id="modal-results-table">
+  <thead id="modal-results-table-header"></thead>
+  <tbody id="modal-results-table-body"></tbody>
+  </table>
+  </div>
+  <button onclick="closeResultsModal()">Close</button>
+  </div>
+  </div>
+
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/globalheader.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <script>
+  // --- Your Estimated Battle Stats Formula ---
+  // This is a placeholder. You need to provide the actual calculation
+  // based on your game knowledge of Torn.
+  function estimateBattleStats(level, age, xanaxUsed, energyRefillsUsed) {
+  // Example: (Highly simplified and likely inaccurate for Torn)
+  const baseStats = (level * 100) + (age * 5);
+  const xanaxBonus = xanaxUsed * 5000;
+  const refillBonus = energyRefillsUsed * 2000;
+
+  const estimatedTotal = baseStats + xanaxBonus + refillBonus;
+
+  return {
+  strength: estimatedTotal / 4, // Placeholder
+  defense: estimatedTotal / 4, // Placeholder
+  speed: estimatedTotal / 4, // Placeholder
+  dexterity: estimatedTotal / 4, // Placeholder
+  totalEstimatedStats: estimatedTotal
+  };
+  }
+  // ------------------------------------------
+
+  function formatBattleStat(num) {
+  if (num === "N/A" || num === null || num === undefined || isNaN(Number(num))) return "N/A";
+  const number = Number(num);
+  if (Math.abs(number) >= 1e9) return (number / 1e9).toFixed(2) + 'b';
+  if (Math.abs(number) >= 1e6) return (number / 1e6).toFixed(2) + 'm';
+  if (Math.abs(number) >= 1e3) return (number / 1e3).toFixed(0) + 'k';
+  return number.toLocaleString();
+  }
+
+  async function fetchApi(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+  let errorData;
+  try {
+  errorData = await response.json();
+  } catch (e) {
+  /* Not JSON */
+  }
+  const errorMessage = errorData?.error?.message || errorData?.error || `API Error ${response.status}`;
+  throw new Error(`${errorMessage.substring(0,150)}`);
+  }
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+  const responseText = await response.text();
+  try {
+  return JSON.parse(responseText);
+  } catch (e) {
+  console.warn("Non-JSON response or parse error:", responseText.substring(0, 200));
+  throw new Error(`Received unexpected response format. Content: ${responseText.substring(0,100)}`);
+  }
+  }
+  return response.json();
+  }
+
+  function showLoadingSpinner() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.add('visible');
+  }
+
+  function hideLoadingSpinner() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.remove('visible');
+  }
+
+  function showResultsModal() {
+  const overlay = document.getElementById('resultsModalOverlay');
+  if (overlay) overlay.classList.add('visible');
+  }
+
+  function closeResultsModal() {
+  const overlay = document.getElementById('resultsModalOverlay');
+  if (overlay) overlay.classList.remove('visible');
+  const tableHeader = document.getElementById('modal-results-table-header');
+  const tableBody = document.getElementById('modal-results-table-body');
+  const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
+  const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
+  if (tableHeader) tableHeader.innerHTML = '';
+  if (tableBody) tableBody.innerHTML = '';
+  if (modalTitle) modalTitle.textContent = 'Spy Report';
+  if (modalSummary) modalSummary.innerHTML = '';
+  }
+
+  function displayErrorInModal(message) {
+  const tableBody = document.getElementById('modal-results-table-body');
+  const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
+
+  if (tableBody && tableBody.childElementCount === 0) {
+  tableBody.innerHTML = '';
+  const tr = document.createElement('tr');
+  const td = document.createElement('td');
+  const headerRow = document.getElementById('modal-results-table-header').querySelector('tr');
+  const colSpan = headerRow ? headerRow.childElementCount : 1;
+  td.colSpan = colSpan > 0 ? colSpan : 1;
+  td.textContent = message;
+  td.style.textAlign = 'center';
+  td.style.color = '#ffcc00';
+  td.style.padding = '20px';
+  tr.appendChild(td);
+  tableBody.appendChild(tr);
+  } else if (modalSummary) {
+  const existingNotice = modalSummary.querySelector('.modal-notice-message');
+  if (existingNotice) existingNotice.remove();
+
+  const noticeDiv = document.createElement('div');
+  noticeDiv.className = 'modal-notice-message';
+  noticeDiv.style.color = '#ffcc00';
+  noticeDiv.style.marginTop = '10px';
+  noticeDiv.style.fontSize = '0.9em';
+  noticeDiv.textContent = `Notice: ${message.substring(0,120)}`;
+  modalSummary.appendChild(noticeDiv);
+  }
+  }
+
+  async function scanFaction() {
+  const factionId = document.getElementById("factionId").value.trim();
+  const apiKey = document.getElementById("adminApiKey").value.trim(); // Your own API key for scanning
+
+  if (!factionId || !apiKey) {
+  alert("Please enter both Faction ID and your API key for scanning.");
+  return;
+  }
+
+  document.getElementById("scanResults").innerHTML = "<p>Scanning faction... This may take a while for large factions due to API limits. Do not close this page.</p>";
+  showLoadingSpinner();
+
+  try {
+  const res = await fetch("/.netlify/functions/scanfaction", {
+  method: "POST",
+  headers: {
+  "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+  factionId,
+  apiKey
+  }),
+  });
+
+  const data = await res.json();
+
+  if (res.ok && data.success) {
+  document.getElementById("scanResults").innerHTML = `<p>${data.message}</p>
+  <p>Processed: ${data.processed.length > 0 ? data.processed.join(', ') : 'No new members processed.'}</p>
+  ${data.errors && data.errors.length > 0 ? `<p style="color: red;">Errors from Netlify function: ${data.errors.join('<br>')}</p>` : ''}`;
+  alert("Faction scan complete! Now fetching member stats and saving to database...");
+
+  // Fetch and display battle stats for each member AND save to Firebase
+  if (data.processed && data.processed.length > 0) {
+  await fetchAndDisplayFactionStats(data.processed, apiKey);
+  } else {
+  alert("No new members to fetch stats for or save to database.");
+  }
+
+  } else {
+  document.getElementById("scanResults").innerHTML = `<p style="color: red;">Error: ${data.error || "Failed to scan faction."}</p>`;
+  alert(data.error || "Failed to scan faction.");
+  }
+  } catch (err) {
+  document.getElementById("scanResults").innerHTML = "<p style='color: red;'>Error connecting to backend for scan.</p>";
+  alert("Error connecting to backend for scan.");
+  console.error(err);
+  } finally {
+  hideLoadingSpinner();
+  }
+  }
+
+  async function fetchAndDisplayFactionStats(memberIds, tornStatsApiKey) {
+  showLoadingSpinner();
+  const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
+  const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
+  const tableHeader = document.getElementById('modal-results-table-header');
+  const tableBody = document.getElementById('modal-results-table-body');
+
+  if (modalTitle) modalTitle.textContent = 'Faction Spy Report & Database Update';
+  if (tableHeader) tableHeader.innerHTML = '';
+  if (tableBody) tableBody.innerHTML = '';
+
+  const headers = ["Name", "ID", "Strength", "Defense", "Speed", "Dexterity", "Total", "DB Status"];
+  const headerRow = document.createElement('tr');
+  headers.forEach(h => {
+  const th = document.createElement('th');
+  th.textContent = h;
+  headerRow.appendChild(th);
+  });
+  if (tableHeader) tableHeader.appendChild(headerRow);
+  showResultsModal();
+
+  const BATCH_SIZE = 5;
+  const DELAY_BETWEEN_BATCHES = 300; // ms
+  let processedCount = 0;
+  let successfulFetches = 0;
+  let successfulSaves = 0;
+
+  if (modalSummary) {
+  modalSummary.innerHTML = `Total Members to Process: <span>${memberIds.length}</span> |
+  Processed: <span id="modal-processed-count">0</span> |
+  Fetched: <span id="modal-successful-fetches">0</span> |
+  Saved to DB: <span id="modal-successful-saves">0</span>`;
+  }
+
+  for (let i = 0; i < memberIds.length; i += BATCH_SIZE) {
+  const batchMemberIds = memberIds.slice(i, i + BATCH_SIZE);
+  const batchPromises = batchMemberIds.map(memberId => {
+  const url = `https://www.tornstats.com/api/v2/<span class="math-inline">\{tornStatsApiKey\}/spy/user/</span>{memberId}`;
+  return fetchApi(url)
+  .then(data => ({
+  status_internal: 'fulfilled',
+  memberId: memberId,
+  data: data
+  }))
+  .catch(error => ({
+  status_internal: 'rejected',
+  memberId: memberId,
+  reason: error
+  }));
+  });
+
+  const batchResults = await Promise.allSettled(batchPromises);
+
+  for (const result of batchResults) {
+  processedCount++;
+  const processedCountSpan = document.getElementById('modal-processed-count');
+  if (processedCountSpan) processedCountSpan.textContent = processedCount;
+
+  let memberName = `User ${result.value?.memberId || result.reason?.memberId || 'N/A'}`;
+  let memberId = result.value?.memberId || result.reason?.memberId || 'N/A';
+  let strength = "N/A";
+  let defense = "N/A";
+  let speed = "N/A";
+  let dexterity = "N/A";
+  let totalStats = "N/A";
+  let dbStatus = "Skipped"; // Default status
+
+  if (result.status === 'fulfilled' && result.value.status_internal === 'fulfilled') {
+  const {
+  memberId: currentMemberId,
+  data: memberData
+  } = result.value;
+  memberId = currentMemberId;
+
+  if (memberData.spy && memberData.spy.status !== false && memberData.spy.total !== undefined) {
+  successfulFetches++;
+  const spy = memberData.spy;
+  memberName = spy.player_name || memberName;
+  strength = formatBattleStat(spy.strength);
+  defense = formatBattleStat(spy.defense);
+  speed = formatBattleStat(spy.speed);
+  dexterity = formatBattleStat(spy.dexterity);
+  totalStats = formatBattleStat(spy.total);
+
+  // Save to Firebase
+  if (typeof db !== 'undefined') {
+  try {
+  const playerData = {
+  id: parseInt(memberId), // Ensure ID is a number
+  name: memberName,
+  battle_stats: {
+  strength: spy.strength,
+  defense: spy.defense,
+  speed: spy.speed,
+  dexterity: spy.dexterity,
+  total: spy.total,
+  last_updated: firebase.firestore.FieldValue.serverTimestamp()
+  }
+  };
+  // You might want to store faction name as well if available
+  if (spy.player_faction) playerData.faction_name = spy.player_faction;
+
+  await db.collection('playerDatabase').doc(String(memberId)).set(playerData, {
+  merge: true
+  });
+  dbStatus = "Saved";
+  successfulSaves++;
+  } catch (dbError) {
+  console.error(`Error saving ${memberId} to Firestore:`, dbError);
+  dbStatus = `DB Error: ${dbError.message.substring(0, 30)}`;
+  }
+  } else {
+  dbStatus = "Firebase DB Not Init";
+  }
+  } else {
+  dbStatus = `No Spy Data: ${memberData.spy?.message || memberData.message || "Unknown"}`;
+  }
+  } else {
+  const errorReason = result.value?.reason || result.reason;
+  dbStatus = `Fetch Error: ${String(errorReason).substring(0, 30)}`;
+  }
+
+  const tr = document.createElement('tr');
+  tr.insertCell().textContent = memberName;
+  tr.insertCell().textContent = memberId;
+  tr.insertCell().textContent = strength;
+  tr.insertCell().textContent = defense;
+  tr.insertCell().textContent = speed;
+  tr.insertCell().textContent = dexterity;
+  tr.insertCell().textContent = totalStats;
+  tr.insertCell().textContent = dbStatus; // Display DB status
+
+  if (tableBody) tableBody.appendChild(tr);
+
+  const fetchedCountSpan = document.getElementById('modal-successful-fetches');
+  if (fetchedCountSpan) fetchedCountSpan.textContent = successfulFetches;
+  const savesCountSpan = document.getElementById('modal-successful-saves');
+  if (savesCountSpan) savesCountSpan.textContent = successfulSaves;
+  }
 
 
-            // Hide dropdowns initially
-            if (contactDropdown) contactDropdown.style.display = 'none';
-            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+  if (i + BATCH_SIZE < memberIds.length) {
+  await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
+  }
+  }
 
-            if (contactBtn) {
-                contactBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent document click from closing it immediately
-                    const isVisible = contactDropdown.style.display === 'block';
-                    contactDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
-                });
-            }
-
-            if (usefulLinksBtn) {
-                usefulLinksBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent document click from closing it immediately
-                    const isVisible = usefulLinksDropdown.style.display === 'block';
-                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown
-                });
-            }
+  hideLoadingSpinner();
+  if (modalSummary) {
+  modalSummary.innerHTML += `<br>Finished processing. Fetched ${successfulFetches} stats and saved ${successfulSaves} to database.`;
+  }
+  if (successfulFetches === 0 && memberIds.length > 0) {
+  displayErrorInModal(`Processed ${memberIds.length} members, but no spy data was successfully retrieved. Check API key permissions or member privacy settings.`);
+  } else if (tableBody && tableBody.childElementCount === 0 && memberIds.length > 0) {
+  displayErrorInModal(`No data could be displayed for members despite processing.`);
+  }
+  }
 
 
-            // Hide dropdown if clicked outside
-            window.addEventListener('click', (e) => {
-                if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
-                    contactDropdown.style.display = 'none';
-                }
-                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
-                    usefulLinksDropdown.style.display = 'none';
-                }
-            });
-        });
+  // The dropdown script block from your original index.html (moved here for consistency)
+  document.addEventListener('DOMContentLoaded', () => {
+  const contactBtn = document.getElementById('headerContactUsBtn');
+  const contactDropdown = document.getElementById('headerContactUsDropdown');
+  const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+  const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
 
-        // Basic admin password protection (client-side, easily bypassed but good for casual hiding)
-        // Uncomment and set your password if you want this
-        // const ADMIN_PASSWORD = "your_strong_admin_password"; // CHANGE THIS PASSWORD!
-        // window.onload = () => {
-        //     let enteredPassword = prompt("Enter admin password:");
-        //     if (enteredPassword !== ADMIN_PASSWORD) {
-        //         alert("Access Denied!");
-        //         window.location.href = "/"; // Redirect to main page
-        //     }
-        // };
-    </script>
-</body>
-</html>
+
+  // Hide dropdowns initially
+  if (contactDropdown) contactDropdown.style.display = 'none';
+  if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+
+  if (contactBtn) {
+  contactBtn.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent document click from closing it immediately
+  const isVisible = contactDropdown.style.display === 'block';
+  contactDropdown.style.display = isVisible ? 'none' : 'block';
+  if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
+  });
+  }
+
+  if (usefulLinksBtn) {
+  usefulLinksBtn.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent document click from closing it immediately
+  const isVisible = usefulLinksDropdown.style.display === 'block';
+  usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
+  if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown
+  });
+  }
+
+
+  // Hide dropdown if clicked outside
+  window.addEventListener('click', (e) => {
+  if (contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+  contactDropdown.style.display = 'none';
+  }
+  if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
+  usefulLinksDropdown.style.display = 'none';
+  }
+  });
+  });
+
+  // Basic admin password protection (client-side, easily bypassed but good for casual hiding)
+  // Uncomment and set your password if you want this
+  // const ADMIN_PASSWORD = "your_strong_admin_password"; // CHANGE THIS PASSWORD!
+  // window.onload = () => {
+  // let enteredPassword = prompt("Enter admin password:");
+  // if (enteredPassword !== ADMIN_PASSWORD) {
+  // alert("Access Denied!");
+  // window.location.href = "/"; // Redirect to main page
+  // }
+  // };
+  </script>
+ </body>
+ </html>
