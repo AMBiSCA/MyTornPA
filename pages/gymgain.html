@@ -4,32 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyTornPA - GymGain</title>
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+    
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/home.css">
-    <link rel="stylesheet" href="../css/gymgain.css"> </head>
+    <link rel="stylesheet" href="../css/gymgain.css">
+</head>
 <body>
     <header>
         <div class="header-left">
-            <a href="#" id="headerLogoLink" style="text-decoration: none;">
-                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-            </a>
-        </div>
+    <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
+        <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+    </a>
+</div>
+    </div>
         <div class="header-center">
             <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
-
-            <div class="header-buttons" id="headerButtonsContainer">
-                <button class="btn header-btn" id="headerEditProfileBtn">
-                    <span class="btn-text">Profile:</span>
-                    <span class="btn-icon">⚙️</span>
-                </button>
-
+                <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <button class="btn header-btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+            <span class="btn-text">Home:</span>
+            <span class="btn-icon">🏠</span>
+            </button>
                 <div class="dropdown" id="usefulLinksDropdownContainer">
                     <button class="btn header-btn" id="usefulLinksBtn">
                         <span class="btn-text">Useful Links:</span>
@@ -48,7 +44,6 @@
                         <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
                     </div>
                 </div>
-
                 <div class="dropdown" id="headerContactUsContainer">
                     <button class="btn header-btn" id="headerContactUsBtn">
                         <span class="btn-text">Contact:</span>
@@ -60,76 +55,116 @@
                         <a href="FAQ.html">F.A.Q</a>
                     </div>
                 </div>
-
                 <button class="btn header-btn" id="logoutButtonHeader">
                     <span class="btn-text">Logout:</span>
                     <span class="btn-icon">🚪</span>
                 </button>
             </div>
-
         </div>
     </header>
 
-    <div class="gym-content-wrapper">
-        <div class="gym-section styled-container">
-            <h2 id="gymWelcomeMessage">Welcome to the MyTornPA Gym!</h2>
-            <p class="gym-message">Train hard to boost your in-game battle stats!</p>
-
-            <div class="current-stats">
-                <h3>Your Current In-Game Stats</h3>
-                <div class="stat-item"><strong>Strength:</strong> <span id="strengthStat">--</span></div>
-                <div class="stat-item"><strong>Defense:</strong> <span id="defenseStat">--</span></div>
-                <div class="stat-item"><strong>Speed:</strong> <span id="speedStat">--</span></div>
-                <div class="stat-item"><strong>Dexterity:</strong> <span id="dexterityStat">--</span></div>
-                <div class="stat-item"><strong>Available Energy:</strong> <span id="availableEnergy">--/100</span></div>
+    <div class="body-content-wrapper">
+        <div class="gym-main-content styled-container">
+            <div class="gym-section">
+                <h2 id="gymWelcomeMessage" class="underlined-heading">📚 Your Current In-Game Stats Information. 📚</h2> 
+                <div class="current-stats">
+                    <div class="stat-item"><strong>Strength💪:</strong> <span id="strengthStat">--</span></div>
+                    <div class="stat-item"><strong>Defense🛡️:</strong> <span id="defenseStat">--</span></div>
+                    <div class="stat-item"><strong>Speed⚡:</strong> <span id="speedStat">--</span></div>
+                    <div class="stat-item"><strong>Dexterity🎯:</strong> <span id="dexterityStat">--</span></div>
+                    <div class="stat-item"><strong>Energy🔋:</strong> <span id="availableEnergy">--/--</span></div>
+                </div>
+                <div class="gain-summary-box styled-container">
+                    <h3 class="underlined-heading">📋📊 Estimated Gains Summary. 📊📋</h3>
+                    <div class="gain-summary-grid">
+                        <div class="gain-summary-item">
+                            <strong>One Train (<span id="perTrainEnergyValue">--</span> E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="perTrainGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="perTrainGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="perTrainGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="perTrainGainDex">--</span></span>
+                            </div>
+                        </div>
+                        <div class="gain-summary-item">
+                            <strong>One Xanax (250 E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="xanaxGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="xanaxGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="xanaxGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="xanaxGainDex">--</span></span>
+                            </div>
+                        </div>
+                        <div class="gain-summary-item">
+                            <strong>Max Energy (<span id="maxEnergyValue">--</span> E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="maxEnergyGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="maxEnergyGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="maxEnergyGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="maxEnergyGainDex">--</span></span>
+                            </div>
+                        </div>
+                        <div class="gain-summary-item">
+                            <strong>Est. Happy Jump (1150 E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="happyJumpGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="happyJumpGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="happyJumpGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="happyJumpGainDex">--</span></span>
+                            </div>
+                        </div>
+                           <p class="gain-disclaimer" style="text-align: center; margin-top: 15px; color: #FFA500 !important;">(Note: Does not include perk multipliers due to API key limitations.)</p>
+                    </div>
+                </div>
+                <div class="torn-gym-link-container">
+                    <a href="https://www.torn.com/gym.php" target="_blank" rel="noopener noreferrer" class="btn torn-gym-btn header-btn">
+                        <span class="btn-text">Go to Torn Gym!</span>
+                        <span class="btn-icon">🔗</span>
+                    </a>
+                </div>
+                <p id="gymFeedback" class="feedback-message"></p>
+                <p id="gymError" class="error-message"></p>
             </div>
+        </div>
+        <div class="gym-sidebar-right styled-container">
+            <div id="statProgressionContainer" class="stat-progression-box styled-container">
+                <h3 class="underlined-heading">📈 Stat Progression. 📈</h3>
+                <div id="statProgressionGraph" class="graph-placeholder">
+                    <canvas id="statChart"></canvas>
+                </div>
+              <div class="progression-options" style="position: relative;"> <a href="#" class="btn btn-small" data-time-filter="7">Last 7 Days</a>
+    <a href="#" class="btn btn-small" data-time-filter="30">Last 30 Days</a>
+    <a href="#" class="btn btn-small" data-time-filter="all">All Time</a>
+    <button id="logStatsBtn" class="btn btn-small" style="background-color: #28a745; border-color: #28a745;">Log Stats</button>
 
-            <div class="gym-action-grid">
-                <div class="gym-action-card" data-training-type="strength">
-                    <h3>💪 Strength Training</h3>
-                    <p>Focus on lifting heavy to increase your raw power. Costs 5 energy per session.</p>
-                    <button class="btn train-btn" data-energy-cost="5">Train Strength</button>
-                </div>
-                <div class="gym-action-card" data-training-type="defense">
-                    <h3>🛡️ Defense Training</h3>
-                    <p>Build your resilience and ability to withstand attacks. Costs 5 energy per session.</p>
-                    <button class="btn train-btn" data-energy-cost="5">Train Defense</button>
-                </div>
-                <div class="gym-action-card" data-training-type="speed">
-                    <h3>⚡ Speed Training</h3>
-                    <p>Improve your quickness and agility in combat. Costs 5 energy per session.</p>
-                    <button class="btn train-btn" data-energy-cost="5">Train Speed</button>
-                </div>
-                <div class="gym-action-card" data-training-type="dexterity">
-                    <h3>🎯 Dexterity Training</h3>
-                    <p>Enhance your precision and evasion skills. Costs 5 energy per session.</p>
-                    <button class="btn train-btn" data-energy-cost="5">Train Dexterity</button>
-                </div>
-                <div class="gym-action-card" data-training-type="full-body">
-                    <h3>🏋️ Full Body Workout</h3>
-                    <p>A balanced workout to slightly boost all stats. Costs 10 energy per session.</p>
-                    <button class="btn train-btn" data-energy-cost="10">Full Workout</button>
-                </div>
-                <div class="gym-action-card" data-training-type="rest">
-                    <h3>😴 Rest & Recover</h3>
-                    <p>Restore some energy and prepare for your next session. Costs 0 energy.</p>
-                    <button class="btn train-btn" data-energy-cost="0">Rest Here</button>
+    <div id="logConfirmationModal" class="log-popup-dropdown" style="display:none;"> 
+        <div class="modal-content"> <span class="modal-close-btn" id="closeLogModalBtn">&times;</span>
+            <div id="logConfirmationBody">
+            </div>
+        </div>
+    </div>
+</div>
+                <div class="stat-toggle-options" style="text-align: center; margin-top: 10px;">
+                    <button class="btn btn-small" data-stat-toggle="0">Strength</button>
+                    <button class="btn btn-small" data-stat-toggle="1">Defense</button>
+                    <button class="btn btn-small" data-stat-toggle="2">Speed</button>
+                    <button class="btn btn-small" data-stat-toggle="3">Dexterity</button>
+                    <button class="btn btn-small" data-stat-toggle="all">Show All</button>
                 </div>
             </div>
-            <p id="gymFeedback" class="feedback-message"></p>
-            <p id="gymError" class="error-message"></p>
+            <div id="gymProgressionContainer" class="gym-progression-box styled-container">
+                <h3 class="underlined-heading">🏆 Gym Progression. 🏆</h3>
+                <div class="progression-details">
+                    <p><strong>Current Gym:</strong> <span id="currentGymName">--</span></p>
+                    <p><strong>Next Gym:</strong> <span id="nextGymName">--</span></p>
+                    <p><strong>Req. Total Stats:</strong> <span id="nextGymReqStats">--</span></p>
+                    <p><strong>Stats Remaining:</strong> <span id="statsRemaining">--</span></p>
+                    <p><strong>Est. Energy to Next:</strong> <span id="eToNextGymDetailed">--</span></p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="personalStatsModal" class="modal-overlay" style="display:none;">
-        <div class="modal-content-box">
-            <span class="modal-close-button" id="closePersonalStatsDialogBtn">&times;</span>
-            <h3>Your Personal Stats</h3>
-            <div id="personalStatsModalBody">
-                <p>Loading stats...</p>
-            </div>
-        </div>
-    </div>
 
     <footer class="footer">
         <div class="footer-links">
@@ -144,6 +179,11 @@
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
     <script src="../js/gymgain.js"></script>

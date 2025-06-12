@@ -1,300 +1,321 @@
+// activitywatch.js - FINAL STABLE VERSION
+
 document.addEventListener('DOMContentLoaded', function() {
-    const intervalSelect = document.getElementById('interval');
-    const currentIntervalDisplay = document.getElementById('currentInterval');
-    const fetchActivityBtn = document.getElementById('fetchActivity');
-    const stopActivityBtn = document.getElementById('stopActivity');
-    const clearDataBtn = document.getElementById('clearData');
-    const activityLogsDiv = document.getElementById('activityLogs');
+    // --- DOM Elements ---
+    const myFactionIDInput = document.getElementById('myFactionID');
+    const enemyFactionIDInput = document.getElementById('enemyFactionID');
+    const activityIntervalSelect = document.getElementById('activityInterval');
+    const statusDisplay = document.getElementById('statusDisplay');
+    const lastRefreshTimeDisplay = document.getElementById('lastRefreshTime');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const clearDataButton = document.getElementById('clearDataButton');
+    const factionNameDisplay = document.getElementById('factionNameDisplay');
+    const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
+    const compareUser1Select = document.getElementById('compareUser1');
+    const compareUser2Select = document.getElementById('compareUser2');
+    const stopTimerHoursSelect = document.getElementById('stopTimerHours');
+    const countdownTimerDisplay = document.getElementById('countdownTimer');
 
-    // New buttons for charts
-    const trackOverallBtn = document.getElementById('trackOverall');
-    const trackIndividualBtn = document.getElementById('trackIndividual');
+    // --- Chart Canvases ---
+    const rawActivityChartCanvas = document.getElementById('rawActivityChart');
+    const myFactionIndividualsChartCanvas = document.getElementById('myFactionIndividualsChart');
+    const activityDifferenceChartCanvas = document.getElementById('activityDifferenceChart');
+    const enemyFactionIndividualsChartCanvas = document.getElementById('enemyFactionIndividualsChart');
 
-    // Chart containers
-    const overallChartsContainer = document.getElementById('overallCharts');
-    const individualChartsContainer = document.getElementById('individualCharts');
+    // --- Chart Instances ---
+    let rawActivityChartInstance = null;
+    let myFactionIndividualsChartInstance = null;
+    let activityDifferenceChartInstance = null;
+    let enemyFactionIndividualsChartInstance = null;
 
-    // Update current interval display when selection changes
-    if (intervalSelect && currentIntervalDisplay) {
-        intervalSelect.addEventListener('change', function() {
-            currentIntervalDisplay.textContent = this.value + " minutes";
-        });
-        // Initialize display
-        currentIntervalDisplay.textContent = intervalSelect.value + " minutes";
+    // --- Global Variables ---
+    let fetchInterval = null;
+    let tornApiKey = null;
+    let autoStopInterval = null;
+
+    // --- Data Storage ---
+    const LOCAL_STORAGE_KEY = 'factionActivityData';
+    let historicalData = [];
+
+    // --- Auto-Stop Timer Functions ---
+    function startAutoStopTimer(hours) {
+        if (autoStopInterval) clearInterval(autoStopInterval);
+        const endTime = Date.now() + hours * 60 * 60 * 1000;
+
+        function updateCountdown() {
+            const remainingMs = endTime - Date.now();
+            if (remainingMs <= 0) {
+                countdownTimerDisplay.textContent = '0 hours and 0 minutes';
+                if (fetchInterval) {
+                    stopButton.click();
+                }
+                clearInterval(autoStopInterval);
+            } else {
+                const h = Math.floor(remainingMs / (1000 * 60 * 60));
+                const m = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                countdownTimerDisplay.textContent = `${h} hours and ${m} minutes`;
+            }
+        }
+        autoStopInterval = setInterval(updateCountdown, 1000);
+        updateCountdown();
     }
 
-    // Function to toggle chart container visibility
-    function toggleChartVisibility(container, initFunction = null) {
-        if (container.classList.contains('show')) {
-            container.classList.remove('show');
+    function stopAutoStopTimer() {
+        if (autoStopInterval) {
+            clearInterval(autoStopInterval);
+            autoStopInterval = null;
+        }
+        countdownTimerDisplay.textContent = '0 hours and 0 minutes';
+        if (stopTimerHoursSelect.options.length > 0) {
+            const defaultOption = Array.from(stopTimerHoursSelect.options).find(opt => opt.value === "");
+            stopTimerHoursSelect.value = defaultOption ? "" : stopTimerHoursSelect.options[0].value;
+        }
+    }
+
+    // --- Event Listeners ---
+    startButton.addEventListener('click', () => {
+        const intervalMinutes = parseInt(activityIntervalSelect.value, 10);
+        if (isNaN(intervalMinutes) || intervalMinutes < 1) {
+            updateStatus("Ready.", 'warning', "Please select a valid activity interval.");
+            return;
+        }
+        if (!tornApiKey) {
+            updateStatus("Ready.", 'error', "Torn API Key not available.");
+            return;
+        }
+        if (fetchInterval) clearInterval(fetchInterval);
+        fetchAndProcessFactionActivity();
+        fetchInterval = setInterval(fetchAndProcessFactionActivity, intervalMinutes * 60 * 1000);
+        
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        myFactionIDInput.readOnly = true;
+        enemyFactionIDInput.readOnly = true;
+        activityIntervalSelect.disabled = true;
+        stopTimerHoursSelect.disabled = true;
+
+        const stopAfterHours = parseInt(stopTimerHoursSelect.value, 10);
+        if (!isNaN(stopAfterHours) && stopAfterHours > 0) {
+            startAutoStopTimer(stopAfterHours);
+        }
+    });
+
+    stopButton.addEventListener('click', () => {
+        if (fetchInterval) {
+            clearInterval(fetchInterval);
+            fetchInterval = null;
+        }
+        stopAutoStopTimer();
+        updateStatus("Stopped.", 'info', "Tracking stopped.");
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        myFactionIDInput.readOnly = false;
+        enemyFactionIDInput.readOnly = false;
+        activityIntervalSelect.disabled = false;
+        stopTimerHoursSelect.disabled = false;
+    });
+
+    clearDataButton.addEventListener('click', () => {
+        if (confirm("Are you sure you want to clear all historical data? This cannot be undone.")) {
+            if (fetchInterval) {
+                stopButton.click();
+            }
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            historicalData = [];
+            destroyCharts();
+            updateStatus("Ready.", 'info', "All historical data cleared.");
+            factionNameDisplay.textContent = '';
+            totalMembersMyFactionDisplay.textContent = '';
+            populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
+        }
+    });
+
+    compareUser1Select.addEventListener('change', updateIndividualCharts);
+    compareUser2Select.addEventListener('change', updateIndividualCharts);
+
+    // --- Initialization on Load ---
+    function init() {
+        const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedData) {
+            historicalData = JSON.parse(storedData);
+            updateCharts();
+            if (historicalData.length > 0) {
+                const lastRecord = historicalData[historicalData.length - 1];
+                populateIndividualComparisonDropdowns(lastRecord.myFaction.individuals, lastRecord.enemyFaction.individuals, lastRecord.myFaction.name, lastRecord.enemyFaction.name);
+            }
         } else {
-            // Hide other chart containers if they are open
-            if (container === overallChartsContainer) {
-                individualChartsContainer.classList.remove('show');
-            } else if (container === individualChartsContainer) {
-                overallChartsContainer.classList.remove('show');
-            }
-            container.classList.add('show');
-            // If an initialization function is provided, call it
-            if (initFunction && typeof initFunction === 'function') {
-                initFunction();
-            }
+            populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
+            destroyCharts(); // Ensure charts are cleared if no data
+        }
+
+        startButton.disabled = true;
+        stopButton.disabled = true;
+        clearDataButton.disabled = false;
+        myFactionIDInput.readOnly = false;
+        enemyFactionIDInput.readOnly = false;
+        activityIntervalSelect.disabled = false;
+        stopTimerHoursSelect.disabled = false;
+
+        if (lastRefreshTimeDisplay.textContent.includes('17:47') && historicalData.length === 0) {
+            lastRefreshTimeDisplay.textContent = formatTimestamp(new Date());
         }
     }
 
-    // Button event listeners
-    if (fetchActivityBtn) {
-        fetchActivityBtn.addEventListener('click', () => {
-            const myFaction = document.getElementById('myFaction') ? document.getElementById('myFaction').value : '';
-            const enemyFaction = document.getElementById('enemyFaction') ? document.getElementById('enemyFaction').value : '';
-            const intervalMinutes = intervalSelect ? intervalSelect.value : '30';
-
-            logActivity(`Starting activity tracking with My Faction: ${myFaction}, Enemy: ${enemyFaction}, Interval: ${intervalMinutes} mins.`);
-            // TODO: Implement actual call to Firebase Function to start scheduled tracking
-            // This would send myFaction, enemyFaction, and intervalMinutes to your Firebase backend.
-        });
-    }
-
-    if (stopActivityBtn) {
-        stopActivityBtn.addEventListener('click', () => {
-            logActivity("Stopping faction activity tracking...");
-            // TODO: Implement actual call to Firebase Function to stop scheduled tracking
-        });
-    }
-
-    if (clearDataBtn) {
-        clearDataBtn.addEventListener('click', () => {
-            if (activityLogsDiv) {
-                activityLogsDiv.innerHTML = "";
+    // --- Firebase Auth State Listener ---
+    if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
+        auth.onAuthStateChanged(async function(user) {
+            if (user) {
+                try {
+                    const userDocRef = db.collection('userProfiles').doc(user.uid);
+                    const userDoc = await userDocRef.get();
+                    if (userDoc.exists && userDoc.data().tornApiKey) {
+                        tornApiKey = userDoc.data().tornApiKey;
+                        startButton.disabled = false;
+                        updateStatus("Ready.", 'info', "API Key loaded. Ready to start.");
+                    } else {
+                        tornApiKey = null;
+                        startButton.disabled = true;
+                        updateStatus("Ready.", 'warning', "Torn API Key not set in profile.");
+                    }
+                } catch (error) {
+                    tornApiKey = null;
+                    startButton.disabled = true;
+                    updateStatus("Ready.", 'error', "Error fetching API Key.");
+                }
+            } else {
+                tornApiKey = null;
+                startButton.disabled = true;
+                stopButton.disabled = true;
+                updateStatus("Ready.", 'info', "Please sign in.");
             }
-            logActivity("Cleared activity data.", true); // Log to console only
-            // TODO: Implement actual call to Firebase Function to clear data in Firebase
         });
+    } else {
+        startButton.disabled = true;
+        updateStatus("Ready.", 'error', "Firebase not loaded.");
+    }
+    
+    // --- Data and Charting Functions ---
+    function updateStatus(displayMessage, statusType = 'info', consoleMessage = '') {
+        statusDisplay.textContent = displayMessage;
+        let bgColor = '#444'; let textColor = '#eee';
+        switch (statusType) {
+            case 'success': bgColor = '#28a745'; textColor = 'white'; break;
+            case 'warning': bgColor = '#ffc107'; textColor = 'black'; break;
+            case 'error': bgColor = '#dc3545'; textColor = 'white'; break;
+            case 'info': default: bgColor = '#00a8ff'; textColor = 'white'; break;
+        }
+        statusDisplay.style.backgroundColor = bgColor;
+        statusDisplay.style.color = textColor;
+        console.log(`[Status: ${statusType.toUpperCase()}] ${consoleMessage || displayMessage}`);
     }
 
-    // New chart toggle buttons
-    if (trackOverallBtn) {
-        trackOverallBtn.addEventListener('click', () => {
-            toggleChartVisibility(overallChartsContainer, initOverallCharts);
-        });
+    function convertLastActionToMinutes(relative) { if (!relative) return 0; const p = relative.split(' '); const v = parseFloat(p[0]); const u = p[1]; if (isNaN(v)) return 0; if (u.includes("minute")) return v; if (u.includes("hour")) return v * 60; if (u.includes("day")) return v * 1440; return 0; }
+    function formatTimestamp(date) { const h = String(date.getHours()).padStart(2, '0'); const m = String(date.getMinutes()).padStart(2, '0'); const d = date.getDate(); const mo = date.getMonth() + 1; const y = String(date.getFullYear() % 100).padStart(2, '0'); return `${h}:${m} ${d}/${mo}/${y}`; }
+    async function fetchTornApi(url) { try { const r = await fetch(url); if (!r.ok) { let e; try { e = await r.json(); } catch (err) {} const m = e?.error?.error || e?.error?.message || `API Error ${r.status}`; throw new Error(m); } return r.json(); } catch (err) { console.error("fetchTornApi error:", err); throw err; } }
+    
+    function processFactionDataFromTornApi(id, resp) {
+        const d = { factionName: "Unknown", members: [] };
+        if (resp.error) throw new Error(`API Error for ${id}: ${resp.error.error}`);
+        d.factionName = resp.name || `Faction ${id}`;
+        if (resp.members) {
+            Object.entries(resp.members).forEach(([mId, m]) => {
+                const mins = convertLastActionToMinutes(m.last_action?.relative);
+                d.members.push({ id: mId, name: m.name, minutesAgo: mins, active: mins <= 15 ? 1 : 0, display: `${m.name} [${mId}]` });
+            });
+        }
+        return d;
     }
 
-    if (trackIndividualBtn) {
-        trackIndividualBtn.addEventListener('click', () => {
-            toggleChartVisibility(individualChartsContainer, initIndividualCharts);
-        });
-    }
-
-    // Function to log messages to the activity log div
-    function logActivity(message, consoleOnly = false) {
-        console.log(message);
-        if (!consoleOnly && activityLogsDiv) {
-            const logEntry = document.createElement('p');
-            const timestamp = new Date().toLocaleTimeString();
-            logEntry.textContent = `[${timestamp}] ${message}`;
-            activityLogsDiv.appendChild(logEntry);
-            activityLogsDiv.scrollTop = activityLogsDiv.scrollHeight; // Auto-scroll to bottom
+    async function fetchAndProcessFactionActivity() {
+        updateStatus("Running.", 'info', "Fetching data...");
+        try {
+            const myFid = myFactionIDInput.value.trim();
+            const enFid = enemyFactionIDInput.value.trim();
+            const myUrl = `https://api.torn.com/faction/${myFid}?selections=basic&key=${tornApiKey}`;
+            const myResp = await fetchTornApi(myUrl);
+            const myData = processFactionDataFromTornApi(myFid, myResp);
+            const enUrl = `https://api.torn.com/faction/${enFid}?selections=basic&key=${tornApiKey}`;
+            const enResp = await fetchTornApi(enUrl);
+            const enData = processFactionDataFromTornApi(enFid, enResp);
+            const now = new Date();
+            lastRefreshTimeDisplay.textContent = formatTimestamp(now);
+            const myActive = myData.members.filter(m => m.active === 1).length;
+            const enActive = enData.members.filter(m => m.active === 1).length;
+            factionNameDisplay.textContent = `${myData.factionName} | ${enData.factionName}`;
+            totalMembersMyFactionDisplay.textContent = `${myData.members.length} | ${enData.members.length}`;
+            const rec = { timestamp: now.getTime(), formattedTime: formatTimestamp(now), myFaction: { id: myFid, name: myData.factionName, totalMembers: myData.members.length, activeMembers: myActive, individuals: myData.members, }, enemyFaction: { id: enFid, name: enData.factionName, totalMembers: enData.members.length, activeMembers: enActive, individuals: enData.members, }, activityDifference: myActive - enActive };
+            historicalData.push(rec);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(historicalData));
+            updateStatus("Running.", 'success', "Data refreshed.");
+            updateCharts();
+            populateIndividualComparisonDropdowns(myData.members, enData.members, myData.factionName, enData.factionName);
+        } catch (e) {
+            console.error("Error in fetch/process:", e);
+            updateStatus("Error.", 'error', e.message);
+            stopButton.click(); // Centralize stop logic on error
         }
     }
 
-    // Placeholder for initializing Overall Charts
-    let overallChart1Instance = null; // To store Chart.js instance for updates
-    let overallChart2Instance = null;
-
-    function initOverallCharts() {
-        console.log("Initializing Overall Activity Charts...");
-        // Destroy existing chart instances if they exist
-        if (overallChart1Instance) overallChart1Instance.destroy();
-        if (overallChart2Instance) overallChart2Instance.destroy();
-
-        const ctx1 = document.getElementById('overallChart1').getContext('2d');
-        overallChart1Instance = new Chart(ctx1, {
-            type: 'line', // Example chart type
-            data: {
-                labels: ['Time 1', 'Time 2', 'Time 3'], // Placeholder labels
-                datasets: [
-                    {
-                        label: 'My Faction Active',
-                        data: [10, 12, 15], // Placeholder data
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Enemy Faction Active',
-                        data: [8, 10, 11], // Placeholder data
-                        borderColor: 'rgb(255, 99, 132)',
-                        tension: 0.1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // Allows flexible sizing
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#eee' } }
-                }
-            }
-        });
-
-        const ctx2 = document.getElementById('overallChart2').getContext('2d');
-        overallChart2Instance = new Chart(ctx2, {
-            type: 'bar', // Another example chart type
-            data: {
-                labels: ['My Faction', 'Enemy Faction'],
-                datasets: [
-                    {
-                        label: 'Online Status (Current)',
-                        data: [15, 11], // Placeholder data
-                        backgroundColor: ['rgb(75, 192, 192, 0.5)', 'rgb(255, 99, 132, 0.5)'],
-                        borderColor: ['rgb(75, 192, 192)', 'rgb(255, 99, 132)'],
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#eee' } }
-                }
-            }
-        });
-        // TODO: Fetch real data from Firebase and update charts
+    function initializeChart(c, t, d, o) { if (c) return new Chart(c.getContext('2d'), { type: t, data: d, options: o }); return null; }
+    function getChartOptions(t) { return { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: t, color: '#00a8ff', font: { size: 16 } }, legend: { labels: { color: '#eee' } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#eee' } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#eee' } } } }; }
+    
+    function destroyCharts() {
+        if (rawActivityChartInstance) rawActivityChartInstance.destroy();
+        if (myFactionIndividualsChartInstance) myFactionIndividualsChartInstance.destroy();
+        if (activityDifferenceChartInstance) activityDifferenceChartInstance.destroy();
+        if (enemyFactionIndividualsChartInstance) enemyFactionIndividualsChartInstance.destroy();
+        rawActivityChartInstance = myFactionIndividualsChartInstance = activityDifferenceChartInstance = enemyFactionIndividualsChartInstance = null;
     }
 
-    // Placeholder for initializing Individual Charts
-    let individualChart1Instance = null;
-    let individualChart2Instance = null;
-
-    function initIndividualCharts() {
-        console.log("Initializing Individual Activity Charts...");
-        // Destroy existing chart instances if they exist
-        if (individualChart1Instance) individualChart1Instance.destroy();
-        if (individualChart2Instance) individualChart2Instance.destroy();
-
-        // TODO: Populate faction1Users and faction2Users dropdowns from Firebase data
-        const faction1UsersSelect = document.getElementById('faction1Users');
-        const faction2UsersSelect = document.getElementById('faction2Users');
-
-        // Example: Add placeholder options
-        faction1UsersSelect.innerHTML = '<option value="">Select My Faction User</option><option value="user1">User One</option><option value="user2">User Two</option>';
-        faction2UsersSelect.innerHTML = '<option value="">Select Enemy Faction User</option><option value="enemy1">Enemy User One</option><option value="enemy2">Enemy User Two</option>';
-
-
-        const ctx3 = document.getElementById('individualChart1').getContext('2d');
-        individualChart1Instance = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: ['Time A', 'Time B', 'Time C'],
-                datasets: [{
-                    label: 'Selected My Faction Member Activity',
-                    data: [5, 7, 6],
-                    borderColor: 'rgb(0, 168, 255)', // Blue
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#eee' } }
-                }
-            }
-        });
-
-        const ctx4 = document.getElementById('individualChart2').getContext('2d');
-        individualChart2Instance = new Chart(ctx4, {
-            type: 'bar',
-            data: {
-                labels: ['Online (1)', 'Offline (0)'],
-                datasets: [{
-                    label: 'User Status Distribution',
-                    data: [1, 0], // Placeholder: 1 if online, 0 if offline
-                    backgroundColor: ['rgba(0, 168, 255, 0.5)', 'rgba(200, 200, 200, 0.5)'],
-                    borderColor: ['rgb(0, 168, 255)', 'rgb(200, 200, 200)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: '#eee' }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#eee' } }
-                }
-            }
-        });
-
-        // Add event listeners for dropdown changes to update charts
-        faction1UsersSelect.addEventListener('change', updateIndividualCharts);
-        faction2UsersSelect.addEventListener('change', updateIndividualCharts);
-
-        // TODO: Fetch real data from Firebase and update charts
+    function updateCharts() {
+        if (historicalData.length === 0) { destroyCharts(); return; }
+        const l = historicalData.map(r => r.formattedTime);
+        const my = historicalData.map(r => r.myFaction.activeMembers);
+        const en = historicalData.map(r => r.enemyFaction.activeMembers);
+        const d = historicalData.map(r => r.activityDifference);
+        destroyCharts();
+        rawActivityChartInstance = initializeChart(rawActivityChartCanvas, 'line', { labels: l, datasets: [{ label: 'My Faction', data: my, borderColor: '#00a8ff', backgroundColor: 'rgba(0,168,255,0.2)', tension: 0.3, fill: true }, { label: 'Enemy Faction', data: en, borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,0.2)', tension: 0.3, fill: true }] }, getChartOptions('Raw Activity Data'));
+        activityDifferenceChartInstance = initializeChart(activityDifferenceChartCanvas, 'bar', { labels: l, datasets: [{ label: 'Difference', data: d, backgroundColor: d.map(v => v >= 0 ? 'rgba(40,167,69,0.5)' : 'rgba(255,99,132,0.5)'), borderColor: d.map(v => v >= 0 ? '#28a745' : '#ff6384') }] }, getChartOptions('Activity Difference'));
+        myFactionIndividualsChartInstance = initializeChart(myFactionIndividualsChartCanvas, 'bar', {}, getChartOptions('My Faction Individuals'));
+        enemyFactionIndividualsChartInstance = initializeChart(enemyFactionIndividualsChartCanvas, 'bar', {}, getChartOptions('Enemy Faction Individuals'));
+        updateIndividualCharts();
     }
 
+    function populateIndividualComparisonDropdowns(myM, enM, myN, enN) {
+        compareUser1Select.innerHTML = ''; compareUser2Select.innerHTML = '';
+        const o1 = document.createElement('option'); o1.value = ''; o1.textContent = `${myN || 'My Faction'} Member`; compareUser1Select.appendChild(o1);
+        const o2 = document.createElement('option'); o2.value = ''; o2.textContent = `${enN || 'Enemy Faction'} Member`; compareUser2Select.appendChild(o2);
+        if (myM) myM.sort((a,b) => a.name.localeCompare(b.name)).forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.display; compareUser1Select.appendChild(o); });
+        if (enM) enM.sort((a,b) => a.name.localeCompare(b.name)).forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.display; compareUser2Select.appendChild(o); });
+    }
+    
     function updateIndividualCharts() {
-        console.log("Updating Individual Activity Charts based on selection...");
-        const selectedMyUser = document.getElementById('faction1Users').value;
-        const selectedEnemyUser = document.getElementById('faction2Users').value;
-
-        // In a real application, you would fetch data for the selected user(s)
-        // from Firebase and then update the chart instances.
-        console.log(`Selected My Faction User: ${selectedMyUser}`);
-        console.log(`Selected Enemy Faction User: ${selectedEnemyUser}`);
-
-        // Example: Update chart titles/data based on selection (placeholder)
-        if (selectedMyUser) {
-            individualChart1Instance.data.datasets[0].label = `${selectedMyUser} Activity`;
-            individualChart1Instance.update();
+        const myId = compareUser1Select.value;
+        const enId = compareUser2Select.value;
+        const l = historicalData.map(r => r.formattedTime);
+        if (myFactionIndividualsChartInstance) {
+            myFactionIndividualsChartInstance.data.labels = l;
+            myFactionIndividualsChartInstance.data.datasets = [];
+            if (myId) {
+                const d = historicalData.map(r => r.myFaction.individuals.find(m => m.id === myId)?.active ?? 0);
+                myFactionIndividualsChartInstance.data.datasets.push({ label: 'Activity', data: d, type: 'bar', backgroundColor: d.map(s => s === 1 ? 'rgba(75,192,192,0.5)' : 'rgba(150,150,150,0.5)') });
+            }
+            myFactionIndividualsChartInstance.options.plugins.title.text = myId ? compareUser1Select.options[compareUser1Select.selectedIndex].textContent : 'My Faction Individuals';
+            myFactionIndividualsChartInstance.update();
         }
-        // Similar logic for individualChart2Instance
+        if (enemyFactionIndividualsChartInstance) {
+            enemyFactionIndividualsChartInstance.data.labels = l;
+            enemyFactionIndividualsChartInstance.data.datasets = [];
+            if (enId) {
+                const d = historicalData.map(r => r.enemyFaction.individuals.find(m => m.id === enId)?.active ?? 0);
+                enemyFactionIndividualsChartInstance.data.datasets.push({ label: 'Activity', data: d, type: 'bar', backgroundColor: d.map(s => s === 1 ? 'rgba(255,159,64,0.5)' : 'rgba(150,150,150,0.5)') });
+            }
+            enemyFactionIndividualsChartInstance.options.plugins.title.text = enId ? compareUser2Select.options[compareUser2Select.selectedIndex].textContent : 'Enemy Faction Individuals';
+            enemyFactionIndividualsChartInstance.update();
+        }
     }
 
-    // Initialize Firebase (Assuming firebase-init.js handles the actual initialization)
-    // You typically don't need to do anything here if firebase-init.js sets up the app.
-    // However, if you need to access specific Firebase services (like Firestore) here,
-    // you would get references after Firebase is initialized.
+    // Call init to start the script
+    init();
 });

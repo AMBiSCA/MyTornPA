@@ -32,123 +32,141 @@
                 </button>
 
                <div class="dropdown" id="usefulLinksDropdownContainer">
-                 <button class="btn header-btn" id="usefulLinksBtn">
-                     <span class="btn-text">Useful Links:</span>
-                     <span class="btn-icon">🔗 🔽</span>
-                 </button>
-                 <div class="dropdown-content" id="usefulLinksDropdown">
-                     <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                     <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                     <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                     <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                     <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                     <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                     <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                     <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                     <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                     <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                 </div>
-               </div>
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗 🔽</span>
+                    </button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
 
-                 <div class="dropdown" id="contactUsDropdownContainer">
-                     <button class="btn dropdown-toggle" id="contactUsBtn">
-                         <span class="btn-text">Contact Us:</span><span class="btn-icon">💬 🔽</span>
-                     </button>
-                     <div class="dropdown-content" id="contactUsDropdown">
-                         <a href="report.html">Report an Issue</a>
-                         <a href="#">Live Chat (Soon™)</a>
-                         <a href="FAQ.html">F.A.Q</a>
-                     </div>
-                 </div>
+                <div class="dropdown" id="contactUsDropdownContainer">
+                    <button class="btn dropdown-toggle" id="contactUsBtn">
+                        <span class="btn-text">Contact Us:</span><span class="btn-icon">💬 🔽</span>
+                    </button>
+                    <div class="dropdown-content" id="contactUsDropdown">
+                        <a href="report.html">Report an Issue</a>
+                        <a href="#">Live Chat (Soon™)</a>
+                        <a href="FAQ.html">F.A.Q</a>
+                    </div>
+                </div>
 
-                     <button class="btn" id="logoutButtonHeader">
-                         <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
-                     </button>
-                 </div>
+                <button class="btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+                </button>
+            </div>
 
-                 <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
-             </div>
-         </header>
+            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+        </div>
+    </header>
 
-         <div class="main-content-wrapper">
-             <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
-             <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+    <div class="main-content-wrapper">
+        <div id="activityPeeperContainer">
+            <div id="topControlPanel">
+                <div class="control-grid-item" id="myFactionIDGroup">
+                    <label for="myFactionID">My Faction ID:</label>
+                    <input type="text" id="myFactionID" value="49028" readonly />
+                </div>
+                <div class="control-grid-item" id="enemyFactionIDGroup">
+                    <label for="enemyFactionID">Enemy Faction ID:</label>
+                    <input type="text" id="enemyFactionID" value="52018" />
+                </div>
+                <div class="control-grid-item" id="activityIntervalGroup">
+                    <label for="activityInterval">Refresh Rate (minutes):</label>
+                    <select id="activityInterval">
+                        <option value="15">15</option>
+                        <option value="30" selected>30</option>
+                    </select>
+                </div>
+                <div class="control-grid-item" id="statusGroup">
+                    <label>Status:</label>
+                    <span id="statusDisplay">Ready.</span>
+                </div>
 
-             <div class="activity-peeper-tool-container">
-                 <h2 class="script-title">Faction Activity Peeper.</h2>
-                 <div class="input-group">
-                     <div class="input-field">
-                         <label for="myFaction">My Faction:</label>
-                         <input type="text" id="myFaction" placeholder="Enter your faction name or ID" />
-                     </div>
-                     <div class="input-field">
-                         <label for="enemyFaction">Enemy Faction:</label>
-                         <input type="text" id="enemyFaction" placeholder="Enter the enemy faction name or ID" />
-                     </div>
-                 </div>
+                <div class="control-grid-item" id="factionNameGroup">
+                    <label>Faction Name:</label>
+                    <span id="factionNameDisplay"></span>
+                </div>
+                <div class="control-grid-item" id="totalMembersGroup">
+                    <label>Total Members:</label>
+                    <span id="totalMembersMyFaction"></span>
+                </div>
+                <div class="control-grid-item" id="actionButtonsGroup">
+                    <button id="startButton" class="action-btn start-btn">Start</button>
+                    <button id="stopButton" class="action-btn stop-btn">Stop</button>
+                    <button id="clearDataButton" class="action-btn clear-btn">Clear Data</button>
+                </div>
+                <div class="control-grid-item" id="lastRefreshGroup">
+                    <label>Last cycle refresh:</label>
+                    <span id="lastRefreshTime">17:47 20/5/25</span>
+                </div>
+                
+                <div class="control-grid-item" id="stopTimerGroup">
+                    <label for="stopTimerHours">Stop Running In: (hours)</label>
+                    <select id="stopTimerHours">
+                        <option value="6">6</option>
+                        <option value="12">12</option>
+                        <option value="24">24</option>
+                    </select>
+                    <div id="countdownDisplay" style="margin-top: 10px;">
+                        <label style="color: #00a8ff; font-weight: bold;">Hours Until Finished:</label>
+                        <span id="countdownTimer" style="color: #fff; font-weight: bold;">0 hours and 0 minutes</span>
+                    </div>
+                </div>
+                <div class="control-grid-item" id="compareIndividualsGroup">
+                    <label>Compare individual members below:</label>
+                    <select id="compareUser1"></select>
+                    <select id="compareUser2"></select>
+                </div>
+            </div>
 
-                 <div class="interval-selector">
-                     <label for="interval">Update Interval:</label>
-                     <select id="interval">
-                         <option value="15">15 minutes</option>
-                         <option value="30" selected>30 minutes</option>
-                     </select>
-                     <p>Current Interval: <span id="currentInterval">30 minutes</span></p>
-                 </div>
+            <div id="chartsGridArea">
+                <div class="chart-panel">
+                    <canvas id="rawActivityChart"></canvas>
+                </div>
+                <div class="chart-panel">
+                    <canvas id="myFactionIndividualsChart"></canvas>
+                </div>
+                <div class="chart-panel">                    
+                    <canvas id="activityDifferenceChart"></canvas>
+                </div>
+                <div class="chart-panel">
+                    <canvas id="enemyFactionIndividualsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                 <div class="action-buttons">
-                     <button id="fetchActivity" class="fetch-btn">Start Activity</button>
-                     <button id="stopActivity" class="fetch-btn">Stop Activity</button>
-                     <button id="clearData" class="fetch-btn">Clear Data</button>
-                 </div>
-                 <div id="activityLogs">
-                 </div>
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
 
-                 <div class="new-buttons">
-                     <button id="trackOverall" class="fetch-btn">Track Overall Activity</button>
-                     <button id="trackIndividual" class="fetch-btn">Track Individual Activity</button>
-                 </div>
-
-                 <div id="overallCharts" class="chart-container collapsible">
-                     <h3>Overall Activity</h3>
-                     <canvas id="overallChart1"></canvas>
-                     <canvas id="overallChart2"></canvas>
-                 </div>
-
-                 <div id="individualCharts" class="chart-container collapsible">
-                     <h3>Individual Activity</h3>
-                     <div class="input-group">
-                         <div class="input-field">
-                             <label for="faction1Users">My Faction Users:</label>
-                             <select id="faction1Users"></select>
-                         </div>
-                         <div class="input-field">
-                             <label for="faction2Users">Enemy Faction Users:</label>
-                             <select id="faction2Users"></select>
-                         </div>
-                     </div>
-                     <canvas id="individualChart1"></canvas>
-                     <canvas id="individualChart2"></canvas>
-                 </div>
-
-             </div>
-         </div>
-
-         <footer class="footer">
-             <div class="footer-links">
-                 <a href="home.html" id="homeButtonFooter">Home</a>
-                 <a href="FAQ.html">F.A.Q</a>
-                 <a href="Terms.html">Disclaimer & Terms</a>
-                 <a href="report.html">Report an Issue</a>
-                 <a href="about.html">About Us</a>
-                 <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-                 <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-             </div>
-             <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-         </footer>
-
-         <script src="../js/globalheader.js"></script>
-
-         <script src="../js/activitywatch.js"></script>
-     </body>
-     </html>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+    
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/activitywatch.js"></script>
+</body>
+</html>
