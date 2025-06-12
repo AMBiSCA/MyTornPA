@@ -289,11 +289,15 @@ ul li:last-child { border-bottom: none; }
 
 .modal-overlay {
     position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.85);
-    display: flex;justify-content: center;align-items: center;z-index: 1500;
-    visibility: hidden;opacity: 0;
-    transition: visibility 0s, opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
+    display: none; /* Changed from visibility for easier control with JS */
+    justify-content: center;align-items: center;z-index: 1500;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
 }
-.modal-overlay.visible {visibility: visible;opacity: 1;}
+.modal-overlay.visible {
+    display: flex; /* Use flex to show */
+    opacity: 1;
+}
 .modal-content {
     background-color: var(--modal-content-bg, #282828); color: var(--text-color-light, #eee);
     padding: 25px 30px; border-radius: var(--modal-border-radius, 12px);
@@ -437,7 +441,7 @@ ul li:last-child { border-bottom: none; }
 
 #activityIntervalGroup { grid-column: 1; grid-row: 3; align-items: flex-start; max-width: 165px; margin-top: -7px; }
 #statusGroup { grid-column: 1; grid-row: 4; align-items: flex-start; display: flex;         
- flex-direction: row;align-items: center;gap: 5px; margin-top: -8px;  } 
+ flex-direction: row;align-items: center;gap: 5px; margin-top: -5px;  } 
 #lastRefreshGroup { grid-column: 2; grid-row: 4; align-items: center; margin-left: -160px; margin-top: -45px;  } 
 #statusDisplay {
     background-color: transparent !important; 
@@ -532,32 +536,24 @@ ul li:last-child { border-bottom: none; }
     height: auto;
 }
 
+.chart-panel {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s ease-in-out;
+}
+
+.chart-panel:hover {
+    transform: scale(1.2);
+    z-index: 10;
+}
+
 .chart-panel h3 {
     color: #00a8ff;
     margin-bottom: 10px;
     text-align: center;
     font-size: 1.1em;
-	padding-top: 5px; 
+    padding-top: 5px;
     margin-top: -15px;
-    transition: transform 0.2s ease-in-out;
-    position: relative;
-    z-index: 1;
-}
-
-.chart-panel:hover {
-    transform: translate(-50%, -50%) scale(1.5);
-    position: fixed;
-    top: 50%;       
-    left: 50%;      
-    transform: translate(-50%, -50%) scale(1.1);
-    z-index: 10;
-}
-
-.chart-panel canvas {
-    width: 100% !important;
-    height: 100% !important;
-    flex-grow: 1;
-    min-height: 0;
 }
 
 @media (max-width: 1200px) {
@@ -571,6 +567,106 @@ ul li:last-child { border-bottom: none; }
         padding-bottom: 15px;
         margin-bottom: 15px;
     }
+	/* Styles for the new report options within the modal */
+/* activitywatch.css */
+
+/* Styles for the new report options within the modal */
+.custom-report-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    text-align: left; /* Align labels to the left */
+}
+
+.report-dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.report-dropdown-group label {
+    font-weight: bold;
+    color: #00a8ff; /* Blue text for labels */
+    font-size: 0.95em;
+}
+
+.report-dropdown-group select {
+    background-color: #1a1a1a; /* Black background */
+    border: 1px solid #007acc; /* Blue border */
+    border-radius: 4px;
+    padding: 8px 12px; /* Sufficient padding */
+    color: #eee; /* White text */
+    font-size: 1em; /* Good font size */
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* Crucial for custom styling and removing default white appearance */
+    appearance: none; 
+    -webkit-appearance: none;
+    
+    /* Custom white/light arrow icon */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.report-dropdown-group select:focus {
+    border-color: #00a8ff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+}
+
+.small-text {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.report-dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.report-dropdown-group label {
+    font-weight: bold;
+    color: #00a8ff;
+    font-size: 0.95em;
+}
+
+.report-dropdown-group select {
+    background-color: #1a1a1a;
+    border: 1px solid #007acc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #eee;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    appearance: none; /* Remove default browser styling */
+    -webkit-appearance: none;
+    /* Custom arrow icon for select dropdowns */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.report-dropdown-group select:focus {
+    border-color: #00a8ff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+}
+
+.small-text {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 15px;
+    text-align: center;
+}
     .control-grid-item {
         grid-column: 1 / -1 !important;
         grid-row: auto !important;

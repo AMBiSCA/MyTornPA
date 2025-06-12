@@ -137,7 +137,7 @@
                 <div class="chart-panel">
                     <canvas id="myFactionIndividualsChart"></canvas>
                 </div>
-                <div class="chart-panel">                    
+                <div class="chart-panel">              
                     <canvas id="activityDifferenceChart"></canvas>
                 </div>
                 <div class="chart-panel">
@@ -147,6 +147,48 @@
         </div>
     </div>
 
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="reportModalCloseBtn" class="modal-close-btn">&times;</button>
+            <h2>Session Complete</h2>
+            <p>Your tracking session has finished. You can download a report of the collected data or clear it permanently from your browser.</p>
+            
+            <div class="modal-actions">
+                <button id="downloadReportBtn" class="action-btn start-btn">Download Report.</button>
+                <button id="confirmClearBtn" class="action-btn clear-btn">Clear Data.</button>
+            </div>
+
+            <div class="modal-options">
+                <input type="checkbox" id="skipConfirmCheckbox">
+                <label for="skipConfirmCheckbox">Don't ask for confirmation before clearing data?</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportOptionsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="reportOptionsModalCloseBtn" class="modal-close-btn">&times;</button>
+            <h2>Generate Custom Report</h2>
+            <p>Select members to include in a focused activity report and optional chart image download.</p>
+
+            <div class="custom-report-options">
+                <div class="report-dropdown-group">
+                    <label for="reportMyFactionMemberSelect">My Faction Member:</label>
+                    <select id="reportMyFactionMemberSelect"></select>
+                </div>
+                <div class="report-dropdown-group">
+                    <label for="reportEnemyFactionMemberSelect">Enemy Faction Member:</label>
+                    <select id="reportEnemyFactionMemberSelect"></select>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="generateCustomReportBtn" class="action-btn start-btn">Generate & Download Report</button>
+                <button id="compareTwoIndividualsBtn" class="action-btn">Compare Two Individuals</button>
+            </div>
+            <p class="small-text">Note: Browsers might require confirmation for multiple file downloads.</p>
+        </div>
+    </div>
     <footer class="footer">
         <div class="footer-links">
             <a href="home.html" id="homeButtonFooter">Home</a>
