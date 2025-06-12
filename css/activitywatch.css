@@ -338,6 +338,61 @@ ul li:last-child { border-bottom: none; }
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
 
+/* --- START: CORRECTLY PLACED GLOBAL STYLES FOR NEW REPORT OPTIONS MODAL --- */
+.custom-report-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.report-dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.report-dropdown-group label {
+    font-weight: bold;
+    color: #00a8ff;
+    font-size: 0.95em;
+}
+
+.report-dropdown-group select {
+    background-color: #1a1a1a;
+    border: 1px solid #007acc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #eee;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    
+    appearance: none; 
+    -webkit-appearance: none;
+    
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.report-dropdown-group select:focus {
+    border-color: #00a8ff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+}
+
+.small-text {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 15px;
+    text-align: center;
+}
+/* --- END: CORRECTLY PLACED GLOBAL STYLES FOR NEW REPORT OPTIONS MODAL --- */
+
+
 @media (max-width: 768px) {
     body { padding-top: 0; padding-bottom: 0; }
     header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
@@ -426,7 +481,7 @@ ul li:last-child { border-bottom: none; }
 }
 
 #myFactionIDGroup { grid-column: 1; grid-row: 1; align-items: flex-start; max-width: 108px; }
-#factionNameGroup { grid-column: 2; grid-row: 1; align-items: center; margin-left: -160px; margin-top: -5px;  }
+#factionNameGroup { grid-column: 2; grid-row: 1; align-items: center; margin-left: -160px; margin-top: -5px; }
 #compareIndividualsGroup { 
     grid-column: 3; 
     grid-row: 3 / span 2;
@@ -435,14 +490,14 @@ ul li:last-child { border-bottom: none; }
 	margin-top: -25px;
 }
 
-#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -7px;  }
-#totalMembersGroup { grid-column: 2; grid-row: 2; align-items: center; margin-left: -160px; margin-top: -18px;  }
+#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -7px; }
+#totalMembersGroup { grid-column: 2; grid-row: 2; align-items: center; margin-left: -160px; margin-top: -18px; }
 #actionButtonsGroup { grid-column: 2; grid-row: 3; align-items: center; margin-left: -160px; margin-top: -24px; }
 
 #activityIntervalGroup { grid-column: 1; grid-row: 3; align-items: flex-start; max-width: 165px; margin-top: -7px; }
-#statusGroup { grid-column: 1; grid-row: 4; align-items: flex-start; display: flex;         
- flex-direction: row;align-items: center;gap: 5px; margin-top: -5px;  } 
-#lastRefreshGroup { grid-column: 2; grid-row: 4; align-items: center; margin-left: -160px; margin-top: -45px;  } 
+#statusGroup { grid-column: 1; grid-row: 4; align-items: flex-start; display: flex;           
+ flex-direction: row;align-items: center;gap: 5px; margin-top: -5px; } 
+#lastRefreshGroup { grid-column: 2; grid-row: 4; align-items: center; margin-left: -160px; margin-top: -45px; } 
 #statusDisplay {
     background-color: transparent !important; 
     
@@ -567,106 +622,9 @@ ul li:last-child { border-bottom: none; }
         padding-bottom: 15px;
         margin-bottom: 15px;
     }
-	/* Styles for the new report options within the modal */
-/* activitywatch.css */
-
-/* Styles for the new report options within the modal */
-.custom-report-options {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
-    text-align: left; /* Align labels to the left */
-}
-
-.report-dropdown-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.report-dropdown-group label {
-    font-weight: bold;
-    color: #00a8ff; /* Blue text for labels */
-    font-size: 0.95em;
-}
-
-.report-dropdown-group select {
-    background-color: #1a1a1a; /* Black background */
-    border: 1px solid #007acc; /* Blue border */
-    border-radius: 4px;
-    padding: 8px 12px; /* Sufficient padding */
-    color: #eee; /* White text */
-    font-size: 1em; /* Good font size */
-    width: 100%;
-    box-sizing: border-box;
     
-    /* Crucial for custom styling and removing default white appearance */
-    appearance: none; 
-    -webkit-appearance: none;
-    
-    /* Custom white/light arrow icon */
-    background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px;
-}
+    /* REMOVED: Styles for the new report options within the modal (now global) */
 
-.report-dropdown-group select:focus {
-    border-color: #00a8ff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
-}
-
-.small-text {
-    font-size: 0.8em;
-    color: #aaa;
-    margin-top: 15px;
-    text-align: center;
-}
-
-.report-dropdown-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.report-dropdown-group label {
-    font-weight: bold;
-    color: #00a8ff;
-    font-size: 0.95em;
-}
-
-.report-dropdown-group select {
-    background-color: #1a1a1a;
-    border: 1px solid #007acc;
-    border-radius: 4px;
-    padding: 8px 12px;
-    color: #eee;
-    font-size: 1em;
-    width: 100%;
-    box-sizing: border-box;
-    appearance: none; /* Remove default browser styling */
-    -webkit-appearance: none;
-    /* Custom arrow icon for select dropdowns */
-    background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px;
-}
-
-.report-dropdown-group select:focus {
-    border-color: #00a8ff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
-}
-
-.small-text {
-    font-size: 0.8em;
-    color: #aaa;
-    margin-top: 15px;
-    text-align: center;
-}
     .control-grid-item {
         grid-column: 1 / -1 !important;
         grid-row: auto !important;
@@ -699,14 +657,22 @@ ul li:last-child { border-bottom: none; }
 }
 
 @media (max-width: 768px) {
+    body { padding-top: 0; padding-bottom: 0; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; }
+    .header-left h1 { font-size: 1.4rem; }
+    .tagline { font-size: 0.7rem; }
+    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+
     .main-content-wrapper {
-        padding-top: 80px;
-        padding-bottom: 80px;
-        width: 98%;
+        padding-top: 10px;
+        padding-bottom: 10px;
         height: auto;
-    }
-    #activityPeeperContainer {
-        padding: 10px;
+        min-height: unset;
     }
 }
 
