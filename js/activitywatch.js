@@ -721,7 +721,23 @@ document.addEventListener('DOMContentLoaded', function() {
             reportContent += `\n`;
         }
 
-       
+        // Add summary for selected Enemy Faction Member
+        if (selectedEnemyMember) {
+            reportContent += `--- ${selectedEnemyMember.name}'s Hourly Activity ---\n`;
+            const enemyMemberHourlyData = memberHourlyActivity[selectedEnemyMemberId] || {};
+            const sortedHours = Object.keys(enemyMemberHourlyData).sort((a, b) => parseInt(a) - parseInt(b));
+            if (sortedHours.length === 0) {
+                reportContent += "  No activity recorded for this member.\n";
+            } else {
+                sortedHours.forEach(hourKey => {
+                    const data = enemyMemberHourlyData[hourKey];
+                    const hourDisplay = `${String(hourKey).padStart(2, '0')}:00 - ${String(parseInt(hourKey) + 1).padStart(2, '0')}:00`;
+                    reportContent += `  Hour ${hourDisplay}: Active in ${data.activeCount} of ${data.totalIntervals} intervals.\n`;
+                });
+            }
+            reportContent += `\n`;
+        }
+
         // --- 2. Trigger Download ---
         closeReportOptionsModal(); // Close the new report options modal
         closeReportModal(); // Also close the "Session Complete" modal if still open
