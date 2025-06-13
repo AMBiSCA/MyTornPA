@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const lastRefreshTimeDisplay = document.getElementById('lastRefreshTime');
     const startButton = document.getElementById('startButton');
     const stopButton = document.getElementById('stopButton');
-	console.log("Attempting to attach event listener to clearDataButton.");
+    // Removed: console.log("Attempting to attach event listener to clearDataButton."); (Debug statement)
     const clearDataButton = document.getElementById('clearDataButton');
     const factionNameDisplay = document.getElementById('factionNameDisplay');
     const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
@@ -26,12 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadReportBtn = document.getElementById('downloadReportBtn');
     const confirmClearBtn = document.getElementById('confirmClearBtn');
     const skipConfirmCheckbox = document.getElementById('skipConfirmCheckbox');
-	const reportOptionsModal = document.getElementById('reportOptionsModal');
+    const reportOptionsModal = document.getElementById('reportOptionsModal');
     const reportOptionsModalCloseBtn = document.getElementById('reportOptionsModalCloseBtn');
     const reportMyFactionMemberSelect = document.getElementById('reportMyFactionMemberSelect');
     const reportEnemyFactionMemberSelect = document.getElementById('reportEnemyFactionMemberSelect');
     const generateCustomReportBtn = document.getElementById('generateCustomReportBtn');
-	const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
+    const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
 
 
     // --- 2. Global Variables & State ---
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = date.getDate();
         const mo = date.getMonth() + 1;
         const y = String(date.getFullYear() % 100).padStart(2, '0');
-        return `${h}:${m} ${d}/${mo}/${y}`;
+        return `<span class="math-inline">\{h\}\:</span>{m} <span class="math-inline">\{d\}/</span>{mo}/${y}`;
     }
 
     async function fetchTornApi(url) {
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resp.members) {
             Object.entries(resp.members).forEach(([mId, m]) => {
                 const mins = convertLastActionToMinutes(m.last_action?.relative);
-                d.members.push({ id: mId, name: m.name, minutesAgo: mins, active: mins <= 15 ? 1 : 0, display: `${m.name} [${mId}]` });
+                d.members.push({ id: mId, name: m.name, minutesAgo: mins, active: mins <= 15 ? 1 : 0, display: `<span class="math-inline">\{m\.name\} \[</span>{mId}]` });
             });
         }
         return d;
@@ -242,10 +242,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const myFid = myFactionIDInput.value.trim();
             const enFid = enemyFactionIDInput.value.trim();
-            const myUrl = `https://api.torn.com/faction/${myFid}?selections=basic&key=${tornApiKey}`;
+            const myUrl = `https://api.torn.com/faction/<span class="math-inline">\{myFid\}?selections\=basic&key\=</span>{tornApiKey}`;
             const myResp = await fetchTornApi(myUrl);
             const myData = processFactionDataFromTornApi(myFid, myResp);
-            const enUrl = `https://api.torn.com/faction/${enFid}?selections=basic&key=${tornApiKey}`;
+            const enUrl = `https://api.torn.com/faction/<span class="math-inline">\{enFid\}?selections\=basic&key\=</span>{tornApiKey}`;
             const enResp = await fetchTornApi(enUrl);
             const enData = processFactionDataFromTornApi(enFid, enResp);
             const now = new Date();
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         activityIntervalSelect.disabled = false;
         stopTimerHoursSelect.disabled = false;
     }
-	// Helper function to populate member dropdowns in the new report modal
+    // Helper function to populate member dropdowns in the new report modal
     function populateReportMemberDropdowns() {
         reportMyFactionMemberSelect.innerHTML = '<option value="">-- Select My Faction Member --</option>';
         reportEnemyFactionMemberSelect.innerHTML = '<option value="">-- Select Enemy Faction Member --</option>';
@@ -404,19 +404,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function openReportModal() {
         console.log("openReportModal function called!");
-        console.log("Report Modal element:", reportModal); 
+        console.log("Report Modal element:", reportModal);
         
-        reportModal.classList.add('visible'); 
+        reportModal.classList.add('visible');
         
     }
 
     function closeReportModal() {
-        reportModal.classList.remove('visible'); 
+        reportModal.classList.remove('visible');
         
     }
 
-    // ... (your existing code) ...
-function handleDownloadReport() {
+    // Removed: function handleDownloadReport() (This function is no longer needed as its logic is in generateAndDownloadCustomReport)
+
+    // This is the new function that generates and downloads the custom report and optional image
+    async function generateAndDownloadCustomReport() {
+        const selectedMyMemberId = reportMyFactionMemberSelect.value;
+        const selectedEnemyMemberId = reportEnemyFactionMemberSelect.value;
+        
         // --- 1. Initial Checks ---
         if (historicalData.length < 2) { // Need at least 2 points to calculate duration
             alert("You must record data for a minimum of one hour to gain a realistic report.");
@@ -431,317 +436,10 @@ function handleDownloadReport() {
             alert("You must record data for a minimum of one hour to gain a realistic report.");
             return; // Stop the function here
         }
-
-        // --- 2. Report Header ---
-        let reportContent = `Faction Activity Comprehensive Report\n`;
-        reportContent += `Generated: ${new Date().toLocaleString()}\n\n`;
-
-        const myFactionName = historicalData[0].myFaction.name;
-        const enemyFactionName = historicalData[0].enemyFaction.name;
-        
-        // Get total members from the latest record for sizing top/bottom lists
-        const latestRecord = historicalData[historicalData.length - 1];
-        const myFactionTotalMembers = latestRecord.myFaction.totalMembers;
-        const enemyFactionTotalMembers = latestRecord.enemyFaction.totalMembers;
-
-        reportContent += `My Faction ID: ${latestRecord.myFaction.id} (Name: ${myFactionName}, Total Members: ${myFactionTotalMembers})\n`;
-        reportContent += `Enemy Faction ID: ${latestRecord.enemyFaction.id} (Name: ${enemyFactionName}, Total Members: ${enemyFactionTotalMembers})\n\n`;
-
-        reportContent += `--- Hourly Activity Summary ---\n\n`;
-
-        // --- 3. Hourly Summary Aggregation & Report Section ---
-        const hourlySummary = {};
-
-        historicalData.forEach(record => {
-            const date = new Date(record.timestamp);
-            const hourKey = date.getHours(); // Get the hour (0-23)
-
-            if (!hourlySummary[hourKey]) {
-                hourlySummary[hourKey] = {
-                    myWins: 0,
-                    enemyWins: 0,
-                    ties: 0,
-                    totalIntervals: 0,
-                    myTotalActive: 0,
-                    enemyTotalActive: 0
-                };
-            }
-
-            if (record.activityDifference > 0) {
-                hourlySummary[hourKey].myWins++;
-            } else if (record.activityDifference < 0) {
-                hourlySummary[hourKey].enemyWins++;
-            } else {
-                hourlySummary[hourKey].ties++;
-            }
-            hourlySummary[hourKey].totalIntervals++;
-            hourlySummary[hourKey].myTotalActive += record.myFaction.activeMembers;
-            hourlySummary[hourKey].enemyTotalActive += record.enemyFaction.activeMembers;
-        });
-
-        const sortedHours = Object.keys(hourlySummary).sort((a, b) => parseInt(a) - parseInt(b));
-
-        sortedHours.forEach(hourKey => {
-            const summary = hourlySummary[hourKey];
-            const hourDisplay = `${String(hourKey).padStart(2, '0')}:00 - ${String(parseInt(hourKey) + 1).padStart(2, '0')}:00`;
-            
-            reportContent += `Hour: ${hourDisplay}\n`;
-            reportContent += `  Intervals Tracked: ${summary.totalIntervals}\n`;
-            
-            let dominantFaction = "Equal Activity";
-            if (summary.myWins > summary.enemyWins) {
-                dominantFaction = myFactionName;
-            } else if (summary.enemyWins > summary.myWins) {
-                dominantFaction = enemyFactionName;
-            }
-
-            reportContent += `  Dominant Faction this hour (by interval wins): ${dominantFaction}\n`;
-            reportContent += `  Interval Wins: ${myFactionName} (${summary.myWins}), ${enemyFactionName} (${summary.enemyWins}), Ties (${summary.ties})\n`;
-            
-            const avgMyActive = (summary.myTotalActive / summary.totalIntervals).toFixed(1);
-            const avgEnemyActive = (summary.enemyTotalActive / summary.totalIntervals).toFixed(1);
-            reportContent += `  Average Active Members per Interval: ${myFactionName} (${avgMyActive}), ${enemyFactionName} (${avgEnemyActive})\n`;
-
-            reportContent += `------------------------------------\n\n`;
-        });
-
-        // --- 4. Individual Member Activity Aggregation & Top/Bottom Lists ---
-        reportContent += `\n--- Individual Member Activity Breakdown ---\n\n`;
-
-        function aggregateIndividualActivity(factionData) {
-            const memberActivity = {}; // { userId: { name: "...", activeCount: 0, totalIntervalsTracked: 0 } }
-            
-            historicalData.forEach(record => {
-                const factionRecords = (factionData === 'myFaction') ? record.myFaction.individuals : record.enemyFaction.individuals;
-                factionRecords.forEach(member => {
-                    if (!memberActivity[member.id]) {
-                        memberActivity[member.id] = { name: member.name, activeCount: 0, totalIntervalsTracked: 0 };
-                    }
-                    if (member.active === 1) { // If member was active in this interval
-                        memberActivity[member.id].activeCount++;
-                    }
-                    memberActivity[member.id].totalIntervalsTracked++; // Track all intervals member was observed in
-                });
-            });
-            return Object.values(memberActivity);
-        }
-
-        function getTopBottomMembers(members, totalFactionMembers, isTop) {
-            let limit;
-            if (totalFactionMembers <= 20) limit = 5;
-            else if (totalFactionMembers <= 50) limit = 10;
-            else limit = 25;
-
-            // Sort members: most active first
-            const sortedMembers = members.sort((a, b) => b.activeCount - a.activeCount);
-
-            if (isTop) {
-                return sortedMembers.slice(0, limit);
-            } else {
-                // For least active, sort by activeCount (ascending) then by intervals tracked (ascending)
-                const leastActiveSorted = members.sort((a, b) => {
-                    if (a.activeCount !== b.activeCount) return a.activeCount - b.activeCount;
-                    return a.totalIntervalsTracked - b.totalIntervalsTracked; // Tie-break: less observed intervals are less active
-                });
-                return leastActiveSorted.slice(0, limit);
-            }
-        }
-        
-        // Process My Faction
-        const myAggregatedMembers = aggregateIndividualActivity('myFaction');
-        const myTopActive = getTopBottomMembers(myAggregatedMembers, myFactionTotalMembers, true);
-        const myLeastActive = getTopBottomMembers(myAggregatedMembers, myFactionTotalMembers, false);
-
-        reportContent += `\n--- ${myFactionName} Members ---\n`;
-        reportContent += `Top ${myTopActive.length} Most Active (based on intervals active):\n`;
-        if (myTopActive.length === 0) {
-            reportContent += "  No active members found for this faction.\n";
-        } else {
-            myTopActive.forEach((m, i) => {
-                reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`;
-            });
-        }
-        
-        reportContent += `\nBottom ${myLeastActive.length} Least Active (based on intervals active):\n`;
-        if (myLeastActive.length === 0) {
-            reportContent += "  No members found for this faction.\n";
-        } else {
-            myLeastActive.forEach((m, i) => {
-                reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`;
-            });
-        }
+        // --- End Initial Checks ---
 
 
-        // Process Enemy Faction
-        const enemyAggregatedMembers = aggregateIndividualActivity('enemyFaction');
-        const enemyTopActive = getTopBottomMembers(enemyAggregatedMembers, enemyFactionTotalMembers, true);
-        const enemyLeastActive = getTopBottomMembers(enemyAggregatedMembers, enemyFactionTotalMembers, false);
-
-        reportContent += `\n--- ${enemyFactionName} Members ---\n`;
-        reportContent += `Top ${enemyTopActive.length} Most Active (based on intervals active):\n`;
-        if (enemyTopActive.length === 0) {
-            reportContent += "  No active members found for this faction.\n";
-        } else {
-            enemyTopActive.forEach((m, i) => {
-                reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`;
-            });
-        }
-
-        reportContent += `\nBottom ${enemyLeastActive.length} Least Active (based on intervals active):\n`;
-        if (enemyLeastActive.length === 0) {
-            reportContent += "  No members found for this faction.\n";
-        } else {
-            enemyLeastActive.forEach((m, i) => {
-                reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`;
-            });
-        }
-
-        // --- 5. File Generation ---
-        const blob = new Blob([reportContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'faction_activity_comprehensive_report.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-// ... (rest of your existing code) ...
-
-    // --- Initial Setup Function ---
-    function init() {
-        // Load historical data from local storage
-        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedData) {
-            try {
-                historicalData = JSON.parse(savedData);
-                // Ensure historicalData is an array, if parsing fails it might be null or not an array
-                if (!Array.isArray(historicalData)) {
-                    historicalData = [];
-                }
-            } catch (e) {
-                console.error("Error parsing historical data from localStorage:", e);
-                historicalData = []; // Clear corrupted data
-            }
-        }
-        updateCharts(); // Draw charts with loaded historical data
-        // Populate dropdowns with initial data if available (e.g., from last fetch in historicalData)
-        if (historicalData.length > 0) {
-            const lastRecord = historicalData[historicalData.length - 1];
-            populateIndividualComparisonDropdowns(
-                lastRecord.myFaction.individuals,
-                lastRecord.enemyFaction.individuals,
-                lastRecord.myFaction.name,
-                lastRecord.enemyFaction.name
-            );
-        }
-
-        // Set initial state of skip confirm checkbox
-        skipConfirmCheckbox.checked = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
-
-        // Initial status update (Firebase auth handles the rest)
-        updateStatus("Loading...", 'info', "Initializing application.");
-    }
-    // End New Function Definitions for Report Modal
-
-
-    if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-        auth.onAuthStateChanged(async function(user) {
-            if (user) {
-                try {
-                    const userDocRef = db.collection('userProfiles').doc(user.uid);
-                    const userDoc = await userDocRef.get();
-                    if (userDoc.exists && userDoc.data().tornApiKey) {
-                        tornApiKey = userDoc.data().tornApiKey;
-                        const sessionState = loadSessionState();
-                        if (sessionState && sessionState.isRunning && (!sessionState.autoStopTime || Date.now() < sessionState.autoStopTime)) {
-                            enterRunningState(sessionState);
-                        } else {
-                            enterStoppedState();
-                            updateStatus("Ready.", 'info', "API Key loaded.");
-                        }
-                    } else {
-                        tornApiKey = null;
-                        enterStoppedState();
-                        updateStatus("Ready.", 'warning', "Torn API Key not set in profile.");
-                    }
-                } catch (error) {
-                    tornApiKey = null;
-                    enterStoppedState();
-                    updateStatus("Ready.", 'error', "Error fetching API Key.");
-                }
-            } else {
-                tornApiKey = null;
-                enterStoppedState();
-                updateStatus("Ready.", 'info', "Please sign in.");
-            }
-        });
-    } else {
-        enterStoppedState();
-        updateStatus("Ready.", 'error', "Firebase not loaded.");
-    }
-
-    // Event Listeners for Page Controls
-    startButton.addEventListener('click', () => {
-        const intervalMinutes = parseInt(activityIntervalSelect.value, 10);
-        const stopAfterHours = parseInt(stopTimerHoursSelect.value, 10);
-        if (isNaN(intervalMinutes) || intervalMinutes < 1) {
-            updateStatus("Ready.", 'warning', "Please select a valid interval.");
-            return;
-        }
-        if (!tornApiKey) {
-            updateStatus("Ready.", 'error', "Torn API Key not available.");
-            return;
-        }
-        const sessionState = {
-            isRunning: true,
-            myFactionID: myFactionIDInput.value,
-            enemyFactionID: enemyFactionIDInput.value,
-            interval: intervalMinutes,
-            autoStopTime: (!isNaN(stopAfterHours) && stopAfterHours > 0) ? Date.now() + stopAfterHours * 60 * 60 * 1000 : null,
-            autoStopDuration: (!isNaN(stopAfterHours) && stopAfterHours > 0) ? stopAfterHours : null
-        };
-        saveSessionState(sessionState);
-        enterRunningState(sessionState);
-    });
-
-    stopButton.addEventListener('click', enterStoppedState);
-    
-    clearDataButton.addEventListener('click', openReportModal); // This listener will now call openReportModal
-
-    compareUser1Select.addEventListener('change', updateIndividualCharts);
-    compareUser2Select.addEventListener('change', updateIndividualCharts);
-
-    // Event Listeners for Report Modal
-    reportModalCloseBtn.addEventListener('click', closeReportModal);
-    
-    downloadReportBtn.addEventListener('click', openReportOptionsModal); 
-
-
-    // --- NEW LISTENERS FOR REPORT OPTIONS MODAL ---
-    reportOptionsModalCloseBtn.addEventListener('click', closeReportOptionsModal);
-
-    // This listener will trigger the actual report generation and download
-    generateCustomReportBtn.addEventListener('click', generateAndDownloadCustomReport);
-	compareTwoIndividualsBtn.addEventListener('click', generateAndDownloadIndividualComparisonReport);
-
-    // Listeners for dropdowns in the new report options modal to update charts behind
-    reportMyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart(true));
-    reportEnemyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart(false));
-
-    
-    skipConfirmCheckbox.addEventListener('change', (e) => {
-        localStorage.setItem(SKIP_CONFIRM_KEY, e.target.checked);
-	
-    });
-	// This is the new function that generates and downloads the custom report and optional image
-    async function generateAndDownloadCustomReport() {
-        const selectedMyMemberId = reportMyFactionMemberSelect.value;
-        const selectedEnemyMemberId = reportEnemyFactionMemberSelect.value;
-        
-        // --- 1. Report Content Generation ---
+        // --- 2. Report Content Generation ---
         let reportContent = `Faction Activity Custom Report\n`;
         reportContent += `Generated: ${new Date().toLocaleString()}\n\n`;
 
@@ -766,19 +464,166 @@ function handleDownloadReport() {
                 if (myMemberData || enemyMemberData) {
                     reportContent += `Timestamp: ${record.formattedTime}\n`;
                     if (myMemberData) {
-                        reportContent += `  ${myMemberData.name} [${myMemberData.id}]: ${myMemberData.minutesAgo} minutes ago (Active: ${myMemberData.active === 1 ? 'Yes' : 'No'})\n`;
+                        reportContent += `  <span class="math-inline">\{myMemberData\.name\} \[</span>{myMemberData.id}]: ${myMemberData.minutesAgo} minutes ago (Active: ${myMemberData.active === 1 ? 'Yes' : 'No'})\n`;
                     }
                     if (enemyMemberData) {
-                        reportContent += `  ${enemyMemberData.name} [${enemyMemberData.id}]: ${enemyMemberData.minutesAgo} minutes ago (Active: ${enemyMemberData.active === 1 ? 'Yes' : 'No'})\n`;
+                        reportContent += `  <span class="math-inline">\{enemyMemberData\.name\} \[</span>{enemyMemberData.id}]: ${enemyMemberData.minutesAgo} minutes ago (Active: ${enemyMemberData.active === 1 ? 'Yes' : 'No'})\n`;
                     }
                     reportContent += `------------------------------------\n\n`;
                 }
             });
 
             if (!selectedMyMemberId && !selectedEnemyMemberId) {
-                 reportContent += "  No specific members selected for focused report.\n";
+                 reportContent += "  No specific members selected for focused report.\n"; // This case shouldn't be reached if the outer if is true.
             }
-			  // This function generates and downloads a text report comparing two selected individuals
+
+        } else { // This else block handles the comprehensive report when no specific members are selected
+            // --- Include Hourly Summary (if no specific members are selected) ---
+            reportContent += `--- Hourly Activity Summary ---\n\n`;
+            const hourlySummary = {};
+            historicalData.forEach(record => {
+                 const date = new Date(record.timestamp);
+                 const hourKey = date.getHours(); 
+                 if (!hourlySummary[hourKey]) {
+                     hourlySummary[hourKey] = { myWins: 0, enemyWins: 0, ties: 0, totalIntervals: 0, myTotalActive: 0, enemyTotalActive: 0 };
+                 }
+                 if (record.activityDifference > 0) hourlySummary[hourKey].myWins++;
+                 else if (record.activityDifference < 0) hourlySummary[hourKey].enemyWins++;
+                 else hourlySummary[hourKey].ties++;
+                 hourlySummary[hourKey].totalIntervals++;
+                 hourlySummary[hourKey].myTotalActive += record.myFaction.activeMembers;
+                 hourlySummary[hourKey].enemyTotalActive += record.enemyFaction.activeMembers;
+            });
+            const sortedHours = Object.keys(hourlySummary).sort((a, b) => parseInt(a) - parseInt(b));
+            sortedHours.forEach(hourKey => {
+                 const summary = hourlySummary[hourKey];
+                 const hourDisplay = `${String(hourKey).padStart(2, '0')}:00 - ${String(parseInt(hourKey) + 1).padStart(2, '0')}:00`;
+                 reportContent += `Hour: ${hourDisplay}\n`;
+                 reportContent += `  Intervals Tracked: ${summary.totalIntervals}\n`;
+                 let dominantFaction = "Equal Activity";
+                 if (summary.myWins > summary.enemyWins) dominantFaction = myFactionName;
+                 else if (summary.enemyWins > summary.myWins) dominantFaction = enemyFactionName;
+                 reportContent += `  Dominant Faction this hour (by interval wins): ${dominantFaction}\n`;
+                 reportContent += `  Interval Wins: <span class="math-inline">\{myFactionName\} \(</span>{summary.myWins}), <span class="math-inline">\{enemyFactionName\} \(</span>{summary.enemyWins}), Ties (${summary.ties})\n`;
+                 const avgMyActive = (summary.myTotalActive / summary.totalIntervals).toFixed(1);
+                 const avgEnemyActive = (summary.myTotalActive / summary.totalIntervals).toFixed(1); // FIX: this should be enemyTotalActive
+                 reportContent += `  Average Active Members per Interval: <span class="math-inline">\{myFactionName\} \(</span>{avgMyActive}), <span class="math-inline">\{enemyFactionName\} \(</span>{avgEnemyActive})\n`;
+                 reportContent += `------------------------------------\n\n`;
+            });
+
+            // --- Include Top/Bottom Lists (if no specific members are selected) ---
+            reportContent += `\n--- Individual Member Activity Breakdown (Overall) ---\n\n`;
+
+            function aggregateIndividualActivity(factionData) {
+                const memberActivity = {};
+                historicalData.forEach(record => {
+                    const factionRecords = (factionData === 'myFaction') ? record.myFaction.individuals : record.enemyFaction.individuals;
+                    factionRecords.forEach(member => {
+                        if (!memberActivity[member.id]) {
+                            memberActivity[member.id] = { name: member.name, activeCount: 0, totalIntervalsTracked: 0 };
+                        }
+                        if (member.active === 1) { memberActivity[member.id].activeCount++; }
+                        memberActivity[member.id].totalIntervalsTracked++;
+                    });
+                });
+                return Object.values(memberActivity);
+            }
+
+            function getTopBottomMembers(members, totalFactionMembers, isTop) {
+                let limit;
+                if (totalFactionMembers <= 20) limit = 5;
+                else if (totalFactionMembers <= 50) limit = 10;
+                else limit = 25;
+                const sortedMembers = members.sort((a, b) => b.activeCount - a.activeCount);
+                if (isTop) return sortedMembers.slice(0, limit);
+                else {
+                    const leastActiveSorted = members.sort((a, b) => {
+                        if (a.activeCount !== b.activeCount) return a.activeCount - b.activeCount;
+                        return a.totalIntervalsTracked - b.totalIntervalsTracked;
+                    });
+                    return leastActiveSorted.slice(0, limit);
+                }
+            }
+            
+            // Process My Faction
+            const myAggregatedMembers = aggregateIndividualActivity('myFaction');
+            const myTopActive = getTopBottomMembers(myAggregatedMembers, myFactionTotalMembers, true);
+            const myLeastActive = getTopBottomMembers(myAggregatedMembers, myFactionTotalMembers, false);
+
+            reportContent += `\n--- ${myFactionName} Members ---\n`;
+            reportContent += `Top ${myTopActive.length} Most Active (based on intervals active):\n`;
+            if (myTopActive.length === 0) reportContent += "  No active members found for this faction.\n";
+            else myTopActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
+            
+            reportContent += `\nBottom ${myLeastActive.length} Least Active (based on intervals active):\n`;
+            if (myLeastActive.length === 0) reportContent += "  No members found for this faction.\n";
+            else myLeastActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
+
+
+            // Process Enemy Faction
+            const enemyAggregatedMembers = aggregateIndividualActivity('enemyFaction');
+            const enemyTopActive = getTopBottomMembers(enemyAggregatedMembers, enemyFactionTotalMembers, true);
+            const enemyLeastActive = getTopBottomMembers(enemyAggregatedMembers, enemyFactionTotalMembers, false);
+
+            reportContent += `\n--- ${enemyFactionName} Members ---\n`;
+            reportContent += `Top ${enemyTopActive.length} Most Active (based on intervals active):\n`;
+            if (enemyTopActive.length === 0) reportContent += "  No active members found for this faction.\n";
+            else enemyTopActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
+
+            reportContent += `\nBottom ${enemyLeastActive.length} Least Active (based on intervals active):\n`;
+            if (enemyLeastActive.length === 0) reportContent += "  No members found for this faction.\n";
+            else enemyLeastActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
+        }
+
+
+        // --- 2. Chart Image Capture (if a specific member is selected) ---
+        let rawActivityChartImageData = null; // Renamed variable
+        
+        // Capture the Raw Activity Data chart
+        if (rawActivityChartCanvas) { // Check if the canvas element exists
+            // Ensure the rawActivityChartInstance is not null and has been rendered
+            if (rawActivityChartInstance) { 
+                rawActivityChartImageData = rawActivityChartCanvas.toDataURL('image/png');
+            } else {
+                console.warn("Raw Activity Chart instance is null, cannot capture image.");
+            }
+        }
+
+
+        // --- 3. Trigger Downloads ---
+        // Close the modal first for better UX
+        closeReportOptionsModal(); // Close the new report options modal
+        closeReportModal(); // Also close the "Session Complete" modal if still open
+
+        // Download Text Report
+        const textBlob = new Blob([reportContent], { type: 'text/plain' });
+        const textUrl = URL.createObjectURL(textBlob);
+        const textA = document.createElement('a');
+        textA.href = textUrl;
+        textA.download = 'faction_activity_custom_report.txt';
+        document.body.appendChild(textA);
+        textA.click();
+        document.body.removeChild(textA);
+        URL.revokeObjectURL(textUrl);
+
+        // Download Chart Image (if captured)
+        if (rawActivityChartImageData) {
+            // Give a tiny delay for browser to process first download, helps with prompts
+            await new Promise(resolve => setTimeout(resolve, 500)); 
+            const imgA = document.createElement('a');
+            imgA.href = rawActivityChartImageData;
+            imgA.download = `raw_activity_chart_${new Date().getFullYear()}_${new Date().getMonth()+1}_${new Date().getDate()}.png`; // Dynamic filename
+            document.body.appendChild(imgA);
+            imgA.click();
+            document.body.removeChild(imgA);
+            // No URL.revokeObjectURL needed for data URLs
+        }
+        
+        // Final status update
+        updateStatus("Report generated.", 'success', "Custom report and charts downloaded.");
+    }
+
+// This function generates and downloads a text report comparing two selected individuals
     async function generateAndDownloadIndividualComparisonReport() {
         const selectedMyMemberId = reportMyFactionMemberSelect.value;
         const selectedEnemyMemberId = reportEnemyFactionMemberSelect.value;
@@ -876,24 +721,7 @@ function handleDownloadReport() {
             reportContent += `\n`;
         }
 
-        // Add summary for selected Enemy Faction Member
-        if (selectedEnemyMember) {
-            reportContent += `--- ${selectedEnemyMember.name}'s Hourly Activity ---\n`;
-            const enemyMemberHourlyData = memberHourlyActivity[selectedEnemyMemberId] || {};
-            const sortedHours = Object.keys(enemyMemberHourlyData).sort((a, b) => parseInt(a) - parseInt(b));
-            if (sortedHours.length === 0) {
-                reportContent += "  No activity recorded for this member.\n";
-            } else {
-                sortedHours.forEach(hourKey => {
-                    const data = enemyMemberHourlyData[hourKey];
-                    const hourDisplay = `${String(hourKey).padStart(2, '0')}:00 - ${String(parseInt(hourKey) + 1).padStart(2, '0')}:00`;
-                    reportContent += `  Hour ${hourDisplay}: Active in ${data.activeCount} of ${data.totalIntervals} intervals.\n`;
-                });
-            }
-           
-		   reportContent += `\n`;
-        }
-
+       
         // --- 2. Trigger Download ---
         closeReportOptionsModal(); // Close the new report options modal
         closeReportModal(); // Also close the "Session Complete" modal if still open
@@ -913,163 +741,6 @@ function handleDownloadReport() {
         updateStatus("Individual comparison report generated.", 'success', "Individual comparison report downloaded.");
     }
 
-        } else {
-            // --- Include Hourly Summary (if no specific members are selected) ---
-            reportContent += `--- Hourly Activity Summary ---\n\n`;
-            const hourlySummary = {}; // Same aggregation logic as before
-            historicalData.forEach(record => { /* ... populate hourlySummary ... */
-                 const date = new Date(record.timestamp);
-                 const hourKey = date.getHours(); 
-                 if (!hourlySummary[hourKey]) {
-                     hourlySummary[hourKey] = { myWins: 0, enemyWins: 0, ties: 0, totalIntervals: 0, myTotalActive: 0, enemyTotalActive: 0 };
-                 }
-                 if (record.activityDifference > 0) hourlySummary[hourKey].myWins++;
-                 else if (record.activityDifference < 0) hourlySummary[hourKey].enemyWins++;
-                 else hourlySummary[hourKey].ties++;
-                 hourlySummary[hourKey].totalIntervals++;
-                 hourlySummary[hourKey].myTotalActive += record.myFaction.activeMembers;
-                 hourlySummary[hourKey].enemyTotalActive += record.enemyFaction.activeMembers;
-            });
-            const sortedHours = Object.keys(hourlySummary).sort((a, b) => parseInt(a) - parseInt(b));
-            sortedHours.forEach(hourKey => { /* ... format hourly summary ... */
-                 const summary = hourlySummary[hourKey];
-                 const hourDisplay = `${String(hourKey).padStart(2, '0')}:00 - ${String(parseInt(hourKey) + 1).padStart(2, '0')}:00`;
-                 reportContent += `Hour: ${hourDisplay}\n`;
-                 reportContent += `  Intervals Tracked: ${summary.totalIntervals}\n`;
-                 let dominantFaction = "Equal Activity";
-                 if (summary.myWins > summary.enemyWins) dominantFaction = myFactionName;
-                 else if (summary.enemyWins > summary.myWins) dominantFaction = enemyFactionName;
-                 reportContent += `  Dominant Faction this hour (by interval wins): ${dominantFaction}\n`;
-                 reportContent += `  Interval Wins: ${myFactionName} (${summary.myWins}), ${enemyFactionName} (${summary.enemyWins}), Ties (${summary.ties})\n`;
-                 const avgMyActive = (summary.myTotalActive / summary.totalIntervals).toFixed(1);
-                 const avgEnemyActive = (summary.enemyTotalActive / summary.totalIntervals).toFixed(1);
-                 reportContent += `  Average Active Members per Interval: ${myFactionName} (${avgMyActive}), ${enemyFactionName} (${avgEnemyActive})\n`;
-                 reportContent += `------------------------------------\n\n`;
-            });
-
-            // --- Include Top/Bottom Lists (if no specific members are selected) ---
-            reportContent += `\n--- Individual Member Activity Breakdown (Overall) ---\n\n`;
-
-            function aggregateIndividualActivity(factionData) { /* ... same as before ... */
-                const memberActivity = {};
-                historicalData.forEach(record => {
-                    const factionRecords = (factionData === 'myFaction') ? record.myFaction.individuals : record.enemyFaction.individuals;
-                    factionRecords.forEach(member => {
-                        if (!memberActivity[member.id]) {
-                            memberActivity[member.id] = { name: member.name, activeCount: 0, totalIntervalsTracked: 0 };
-                        }
-                        if (member.active === 1) { memberActivity[member.id].activeCount++; }
-                        memberActivity[member.id].totalIntervalsTracked++;
-                    });
-                });
-                return Object.values(memberActivity);
-            }
-
-            function getTopBottomMembers(members, totalFactionMembers, isTop) { /* ... same as before ... */
-                let limit;
-                if (totalFactionMembers <= 20) limit = 5;
-                else if (totalFactionMembers <= 50) limit = 10;
-                else limit = 25;
-                const sortedMembers = members.sort((a, b) => b.activeCount - a.activeCount);
-                if (isTop) return sortedMembers.slice(0, limit);
-                else {
-                    const leastActiveSorted = members.sort((a, b) => {
-                        if (a.activeCount !== b.activeCount) return a.activeCount - b.activeCount;
-                        return a.totalIntervalsTracked - b.totalIntervalsTracked;
-                    });
-                    return leastActiveSorted.slice(0, limit);
-                }
-            }
-            
-            // Process My Faction
-            const myAggregatedMembers = aggregateIndividualActivity('myFaction');
-            const myTopActive = getTopBottomMembers(myAggregatedMembers, myFactionTotalMembers, true);
-            const myLeastActive = getTopBottomMembers(myAggregatedMembers, myFactionTotalMembers, false);
-
-            reportContent += `\n--- ${myFactionName} Members ---\n`;
-            reportContent += `Top ${myTopActive.length} Most Active (based on intervals active):\n`;
-            if (myTopActive.length === 0) reportContent += "  No active members found for this faction.\n";
-            else myTopActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
-            
-            reportContent += `\nBottom ${myLeastActive.length} Least Active (based on intervals active):\n`;
-            if (myLeastActive.length === 0) reportContent += "  No members found for this faction.\n";
-            else myLeastActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
-
-
-            // Process Enemy Faction
-            const enemyAggregatedMembers = aggregateIndividualActivity('enemyFaction');
-            const enemyTopActive = getTopBottomMembers(enemyAggregatedMembers, enemyFactionTotalMembers, true);
-            const enemyLeastActive = getTopBottomMembers(enemyAggregatedMembers, enemyFactionTotalMembers, false);
-
-            reportContent += `\n--- ${enemyFactionName} Members ---\n`;
-            reportContent += `Top ${enemyTopActive.length} Most Active (based on intervals active):\n`;
-            if (enemyTopActive.length === 0) reportContent += "  No active members found for this faction.\n";
-            else enemyTopActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
-
-            reportContent += `\nBottom ${enemyLeastActive.length} Least Active (based on intervals active):\n`;
-            if (enemyLeastActive.length === 0) reportContent += "  No members found for this faction.\n";
-            else enemyLeastActive.forEach((m, i) => { reportContent += `  ${i + 1}. ${m.name} (Active in ${m.activeCount} of ${m.totalIntervalsTracked} intervals)\n`; });
-        }
-
-
-        // --- 2. Chart Image Capture (if a specific member is selected) ---
-        let myChartImageData = null;
-        let enemyChartImageData = null;
-
-        // Ensure charts are fully rendered before capturing, though updateCustomReportChart handles immediate updates
-        // For robustness, a small timeout might be considered in a complex app, but often not necessary for Chart.js
-        if (selectedMyMemberId && myFactionIndividualsChartCanvas) {
-            myChartImageData = myFactionIndividualsChartCanvas.toDataURL('image/png');
-        }
-        if (selectedEnemyMemberId && enemyFactionIndividualsChartCanvas) {
-            enemyChartImageData = enemyFactionIndividualsChartCanvas.toDataURL('image/png');
-        }
-
-
-        // --- 3. Trigger Downloads ---
-        // Close the modal first for better UX
-        closeReportOptionsModal(); // Close the new report options modal
-        closeReportModal(); // Also close the "Session Complete" modal if still open
-
-        // Download Text Report
-        const textBlob = new Blob([reportContent], { type: 'text/plain' });
-        const textUrl = URL.createObjectURL(textBlob);
-        const textA = document.createElement('a');
-        textA.href = textUrl;
-        textA.download = 'faction_activity_custom_report.txt';
-        document.body.appendChild(textA);
-        textA.click();
-        document.body.removeChild(textA);
-        URL.revokeObjectURL(textUrl);
-
-        // Download Chart Images (sequentially, might prompt user)
-        if (myChartImageData) {
-            // Give a tiny delay for browser to process first download, helps with prompts
-            await new Promise(resolve => setTimeout(resolve, 500)); 
-            const imgA = document.createElement('a');
-            imgA.href = myChartImageData;
-            imgA.download = `my_faction_member_${selectedMyMemberId}_chart.png`;
-            document.body.appendChild(imgA);
-            imgA.click();
-            document.body.removeChild(imgA);
-            // No URL.revokeObjectURL needed for data URLs
-        }
-
-        if (enemyChartImageData) {
-            await new Promise(resolve => setTimeout(resolve, 500)); 
-            const imgA = document.createElement('a');
-            imgA.href = enemyChartImageData;
-            imgA.download = `enemy_faction_member_${selectedEnemyMemberId}_chart.png`;
-            document.body.appendChild(imgA);
-            imgA.click();
-            document.body.removeChild(imgA);
-            // No URL.revokeObjectURL needed for data URLs
-        }
-        
-        // Final status update
-        updateStatus("Report generated.", 'success', "Custom report and charts downloaded.");
-    }
-
     confirmClearBtn.addEventListener('click', () => {
         const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
         if (skipConfirmation || confirm("Are you sure you want to clear all historical data? This cannot be undone.")) {
@@ -1079,13 +750,12 @@ function handleDownloadReport() {
             destroyCharts();
             updateStatus("Ready.", 'info', "All data cleared.");
             factionNameDisplay.textContent = '';
+            factionNameDisplay.textContent = ''; // FIX: Duplicate line
             totalMembersMyFactionDisplay.textContent = '';
             populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
             closeReportModal();
         }
     });
-	
-
     // Run Initial Setup
     init();
 });
