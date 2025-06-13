@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const lastRefreshTimeDisplay = document.getElementById('lastRefreshTime');
     const startButton = document.getElementById('startButton');
     const stopButton = document.getElementById('stopButton');
-    // Removed: console.log("Attempting to attach event listener to clearDataButton."); (Debug statement)
+    // Removed: console.log("Attempting to attach event listener to clearDataButton."); (Debug statement was here)
     const clearDataButton = document.getElementById('clearDataButton');
     const factionNameDisplay = document.getElementById('factionNameDisplay');
     const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
@@ -145,7 +145,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = date.getDate();
         const mo = date.getMonth() + 1;
         const y = String(date.getFullYear() % 100).padStart(2, '0');
-        return `<span class="math-inline">\{h\}\:</span>{m} <span class="math-inline">\{d\}/</span>{mo}/${y}`;
+        // FIX: Corrected string interpolation - Removed LaTeX/math-inline syntax
+        return `${h}:${m} ${d}/${mo}/${y}`;
     }
 
     async function fetchTornApi(url) {
@@ -171,7 +172,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resp.members) {
             Object.entries(resp.members).forEach(([mId, m]) => {
                 const mins = convertLastActionToMinutes(m.last_action?.relative);
-                d.members.push({ id: mId, name: m.name, minutesAgo: mins, active: mins <= 15 ? 1 : 0, display: `<span class="math-inline">\{m\.name\} \[</span>{mId}]` });
+                // FIX: Corrected string interpolation - Removed LaTeX/math-inline syntax
+                d.members.push({ id: mId, name: m.name, minutesAgo: mins, active: mins <= 15 ? 1 : 0, display: `${m.name} [${mId}]` });
             });
         }
         return d;
@@ -242,10 +244,12 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const myFid = myFactionIDInput.value.trim();
             const enFid = enemyFactionIDInput.value.trim();
-            const myUrl = `https://api.torn.com/faction/<span class="math-inline">\{myFid\}?selections\=basic&key\=</span>{tornApiKey}`;
+            // FIX: Corrected string interpolation for URL
+            const myUrl = `https://api.torn.com/faction/${myFid}?selections=basic&key=${tornApiKey}`;
             const myResp = await fetchTornApi(myUrl);
             const myData = processFactionDataFromTornApi(myFid, myResp);
-            const enUrl = `https://api.torn.com/faction/<span class="math-inline">\{enFid\}?selections\=basic&key\=</span>{tornApiKey}`;
+            // FIX: Corrected string interpolation for URL
+            const enUrl = `https://api.torn.com/faction/${enFid}?selections=basic&key=${tornApiKey}`;
             const enResp = await fetchTornApi(enUrl);
             const enData = processFactionDataFromTornApi(enFid, enResp);
             const now = new Date();
@@ -464,18 +468,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (myMemberData || enemyMemberData) {
                     reportContent += `Timestamp: ${record.formattedTime}\n`;
                     if (myMemberData) {
-                        reportContent += `  <span class="math-inline">\{myMemberData\.name\} \[</span>{myMemberData.id}]: ${myMemberData.minutesAgo} minutes ago (Active: ${myMemberData.active === 1 ? 'Yes' : 'No'})\n`;
+                        reportContent += `  ${myMemberData.name} [${myMemberData.id}]: ${myMemberData.minutesAgo} minutes ago (Active: ${myMemberData.active === 1 ? 'Yes' : 'No'})\n`;
                     }
                     if (enemyMemberData) {
-                        reportContent += `  <span class="math-inline">\{enemyMemberData\.name\} \[</span>{enemyMemberData.id}]: ${enemyMemberData.minutesAgo} minutes ago (Active: ${enemyMemberData.active === 1 ? 'Yes' : 'No'})\n`;
+                        reportContent += `  ${enemyMemberData.name} [${enemyMemberData.id}]: ${enemyMemberData.minutesAgo} minutes ago (Active: ${enemyMemberData.active === 1 ? 'Yes' : 'No'})\n`;
                     }
                     reportContent += `------------------------------------\n\n`;
                 }
             });
 
-            if (!selectedMyMemberId && !selectedEnemyMemberId) {
-                 reportContent += "  No specific members selected for focused report.\n"; // This case shouldn't be reached if the outer if is true.
-            }
+            // This 'if' block is not needed here as it's covered by the outer 'if (selectedMyMemberId || selectedEnemyMemberId)'
+            // if (!selectedMyMemberId && !selectedEnemyMemberId) {
+            //      reportContent += "  No specific members selected for focused report.\n";
+            // }
 
         } else { // This else block handles the comprehensive report when no specific members are selected
             // --- Include Hourly Summary (if no specific members are selected) ---
@@ -504,10 +509,13 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (summary.myWins > summary.enemyWins) dominantFaction = myFactionName;
                  else if (summary.enemyWins > summary.myWins) dominantFaction = enemyFactionName;
                  reportContent += `  Dominant Faction this hour (by interval wins): ${dominantFaction}\n`;
-                 reportContent += `  Interval Wins: <span class="math-inline">\{myFactionName\} \(</span>{summary.myWins}), <span class="math-inline">\{enemyFactionName\} \(</span>{summary.enemyWins}), Ties (${summary.ties})\n`;
+                 // FIX: Corrected string interpolation
+                 reportContent += `  Interval Wins: ${myFactionName} (${summary.myWins}), ${enemyFactionName} (${summary.enemyWins}), Ties (${summary.ties})\n`;
                  const avgMyActive = (summary.myTotalActive / summary.totalIntervals).toFixed(1);
-                 const avgEnemyActive = (summary.myTotalActive / summary.totalIntervals).toFixed(1); // FIX: this should be enemyTotalActive
-                 reportContent += `  Average Active Members per Interval: <span class="math-inline">\{myFactionName\} \(</span>{avgMyActive}), <span class="math-inline">\{enemyFactionName\} \(</span>{avgEnemyActive})\n`;
+                 // FIX: Corrected variable for avgEnemyActive
+                 const avgEnemyActive = (summary.enemyTotalActive / summary.totalIntervals).toFixed(1);
+                 // FIX: Corrected string interpolation
+                 reportContent += `  Average Active Members per Interval: ${myFactionName} (${avgMyActive}), ${enemyFactionName} (${avgEnemyActive})\n`;
                  reportContent += `------------------------------------\n\n`;
             });
 
@@ -735,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     reportContent += `  Hour ${hourDisplay}: Active in ${data.activeCount} of ${data.totalIntervals} intervals.\n`;
                 });
             }
-            reportContent += `\n`;
+            reportContent += `\n`; // This was the fix for 'reportContent +'
         }
 
         // --- 2. Trigger Download ---
@@ -766,7 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
             destroyCharts();
             updateStatus("Ready.", 'info', "All data cleared.");
             factionNameDisplay.textContent = '';
-            factionNameDisplay.textContent = ''; // FIX: Duplicate line
+            // FIX: Removed duplicate line
             totalMembersMyFactionDisplay.textContent = '';
             populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
             closeReportModal();
