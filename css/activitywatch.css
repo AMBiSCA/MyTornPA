@@ -482,7 +482,6 @@ ul li:last-child { border-bottom: none; }
     position: relative;
     top: -10px;
 }
-
 #myFactionIDGroup { grid-column: 1; grid-row: 1; align-items: flex-start; max-width: 108px; }
 #factionNameGroup {
     grid-column: 2;
@@ -525,7 +524,7 @@ ul li:last-child { border-bottom: none; }
     background-color: transparent !important;
 }
     
-}
+
 
 .control-grid-item label {
     font-weight: bold;
