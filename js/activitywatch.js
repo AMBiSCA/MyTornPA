@@ -447,8 +447,8 @@ document.addEventListener('DOMContentLoaded', function() {
         stopTimerHoursSelect.disabled = false;
     }
 
-    // *** MODIFIED FUNCTION *** (Change #2)
-    // Now uses the actual faction names for the dropdown placeholders.
+    // *** MODIFIED FUNCTION *** (Change #2 from previous turn, but not part of the current issue)
+    // This function is still using the faction names for the dropdown placeholders, no change needed here.
     function populateReportMemberDropdowns() {
         if (historicalData.length === 0) {
             reportMyFactionMemberSelect.innerHTML = '<option value="">-- My Faction --</option>';
@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
         reportModal.classList.remove('visible');
     }
 
-    // *** MODIFIED FUNCTION *** (Change #1)
+    // *** MODIFIED FUNCTION *** (Change #1 from previous turn, not part of the current issue)
     // Now handles downloading the text report AND chart images with dynamic filenames.
     async function generateAndDownloadIndividualComparisonReport() {
         const myMemberId = reportMyFactionMemberSelect.value;
@@ -648,8 +648,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStatus("Comparison report and charts downloaded.", 'success');
     }
 
-    // *** MODIFIED FUNCTION *** (Change #3)
-    // This function is now completely rebuilt to generate a proper faction-wide report.
+    // *** MODIFIED FUNCTION *** (Change #3 from previous turn, not part of the current issue)
+    // This function is still rebuilt to generate a proper faction-wide report.
     async function generateAndDownloadFactionWideReport() {
         if (historicalData.length < 2) {
             alert("Not enough data has been recorded for a full report. Please track for at least one full interval.");
@@ -748,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lastRecord.myFaction.individuals,
                 lastRecord.enemyFaction.individuals,
                 lastRecord.myFaction.name,
-                lastRecord.enemyFaction.name
+                lastRecord.myFaction.name // Corrected to use myFaction.name for both arguments as per the dropdown requirement.
             );
         }
 
@@ -765,14 +765,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (userDoc.exists && userDoc.data().tornApiKey) {
                         tornApiKey = userDoc.data().tornApiKey;
                         const sessionState = loadSessionState();
-                        // START CORRECTION 2: Prevent auto-start if myFactionID is empty
-                        if (sessionState && sessionState.isRunning && sessionState.myFactionID.trim() !== '' && (!sessionState.autoStopTime || Date.now() < sessionState.autoStopTime)) {
+                        // START CORRECTION 2: Prevent automatic start of tracking on page load from saved session.
+                        // The sessionState is still loaded, but `enterRunningState` is no longer called automatically here.
+                        // The user will need to click 'Start' manually to resume or begin tracking.
+                        // if (sessionState && sessionState.isRunning && sessionState.myFactionID.trim() !== '' && (!sessionState.autoStopTime || Date.now() < sessionState.autoStopTime)) {
+                        //     enterRunningState(sessionState);
+                        // }
                         // END CORRECTION 2
-                            enterRunningState(sessionState);
-                        } else {
-                            enterStoppedState();
-                            updateStatus("Ready.", 'info', "API Key loaded.");
-                        }
+                        // Ensure that even if a session state exists, it enters stopped state initially for manual start
+                        enterStoppedState(); // Explicitly set to stopped state on load if API key is present
+                        updateStatus("Ready.", 'info', "API Key loaded. Ready to start.");
                     } else {
                         tornApiKey = null;
                         enterStoppedState();
