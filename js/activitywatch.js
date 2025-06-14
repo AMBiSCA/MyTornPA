@@ -363,6 +363,15 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const myFid = myFactionIDInput.value.trim();
             const enFid = enemyFactionIDInput.value.trim();
+
+            // Add an explicit check here too, in case this function is called directly
+            // without going through the start button click listener.
+            if (myFid === '' && enFid === '') {
+                updateStatus("Error.", 'error', "Cannot fetch without Faction IDs.");
+                stopButton.click(); // Stop any running interval
+                return; // Exit the function
+            }
+
             const myUrl = `https://api.torn.com/faction/${myFid}?selections=basic&key=${tornApiKey}`;
             const myResp = await fetchTornApi(myUrl);
             const myData = processFactionDataFromTornApi(myFid, myResp);
@@ -409,14 +418,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function enterRunningState(sessionState) {
         if (fetchInterval) clearInterval(fetchInterval);
 
-        myFactionIDInput.value = sessionState.myFactionID;
-        enemyFactionIDInput.value = sessionState.enemyFactionID;
+        // These lines were commented out in a previous step to prevent pre-filling inputs from sessionState on load.
+        // myFactionIDInput.value = sessionState.myFactionID;
+        // enemyFactionIDInput.value = sessionState.enemyFactionID;
+
         activityIntervalSelect.value = sessionState.interval;
         if (sessionState.autoStopDuration) {
             stopTimerHoursSelect.value = sessionState.autoStopDuration;
         }
 
-        fetchAndProcessFactionActivity();
+        fetchAndProcessFactionActivity(); // This will now use the current (potentially empty) input values
         fetchInterval = setInterval(fetchAndProcessFactionActivity, sessionState.interval * 60 * 1000);
         if (sessionState.autoStopTime) {
             startAutoStopTimer(sessionState.autoStopTime);
@@ -436,7 +447,12 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchInterval = null;
 
         stopAutoStopTimer();
-        clearSessionState();
+        clearSessionState(); // This clears the session from localStorage
+
+        // START CORRECTION 3: Ensure input fields are cleared on stop/initial load
+        myFactionIDInput.value = '';
+        enemyFactionIDInput.value = '';
+        // END CORRECTION 3
 
         updateStatus("Stopped.", 'info', "Tracking stopped.");
         startButton.disabled = tornApiKey ? false : true;
@@ -765,13 +781,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (userDoc.exists && userDoc.data().tornApiKey) {
                         tornApiKey = userDoc.data().tornApiKey;
                         const sessionState = loadSessionState();
-                        // START CORRECTION 2: Prevent automatic start of tracking on page load from saved session.
+                        // START PREVIOUS CORRECTION: Prevent automatic start of tracking on page load from saved session.
                         // The sessionState is still loaded, but `enterRunningState` is no longer called automatically here.
                         // The user will need to click 'Start' manually to resume or begin tracking.
                         // if (sessionState && sessionState.isRunning && sessionState.myFactionID.trim() !== '' && (!sessionState.autoStopTime || Date.now() < sessionState.autoStopTime)) {
                         //     enterRunningState(sessionState);
                         // }
-                        // END CORRECTION 2
+                        // END PREVIOUS CORRECTION
                         // Ensure that even if a session state exists, it enters stopped state initially for manual start
                         enterStoppedState(); // Explicitly set to stopped state on load if API key is present
                         updateStatus("Ready.", 'info', "API Key loaded. Ready to start.");
@@ -798,6 +814,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event Listeners for Page Controls
     startButton.addEventListener('click', () => {
+        // START NEW CORRECTION: Validate Faction IDs before starting if inputs are empty
+        const myFactionIdValue = myFactionIDInput.value.trim();
+        const enemyFactionIdValue = enemyFactionIDInput.value.trim();
+
+        if (myFactionIdValue === '' && enemyFactionIdValue === '') {
+            updateStatus("Ready.", 'warning', "Please enter at least one Faction ID to start tracking.");
+            return; // Stop execution if both are empty
+        }
+        // END NEW CORRECTION
+
         const intervalMinutes = parseInt(activityIntervalSelect.value, 10);
         const stopAfterHours = parseInt(stopTimerHoursSelect.value, 10);
         if (isNaN(intervalMinutes) || intervalMinutes < 1) {
@@ -810,8 +836,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const sessionState = {
             isRunning: true,
-            myFactionID: myFactionIDInput.value,
-            enemyFactionID: enemyFactionIDInput.value,
+            myFactionID: myFactionIdValue, // Use the validated, potentially empty, values from inputs
+            enemyFactionID: enemyFactionIdValue, // Use the validated, potentially empty, values from inputs
             interval: intervalMinutes,
             autoStopTime: (!isNaN(stopAfterHours) && stopAfterHours > 0) ? Date.now() + stopAfterHours * 60 * 60 * 1000 : null,
             autoStopDuration: (!isNaN(stopAfterHours) && stopAfterHours > 0) ? stopAfterHours : null
@@ -850,7 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
         if (skipConfirmation || confirm("Are you sure you want to clear all historical data? This cannot be undone.")) {
             enterStoppedState();
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear all historical data from localStorage
             historicalData = [];
             destroyCharts();
             updateStatus("Ready.", 'info', "All data cleared.");
