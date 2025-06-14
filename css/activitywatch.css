@@ -493,7 +493,7 @@ ul li:last-child { border-bottom: none; }
 	margin-top: -25px;
 }
 
-#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -6px; margin-left: -160px; }
+#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -4px; margin-left: -162px; }
 #totalMembersGroup { grid-column: 2; grid-row: 2; align-items: center; margin-left: -160px; margin-top: -18px; }
 #actionButtonsGroup { grid-column: 2; grid-row: 3; align-items: center; margin-left: -160px; margin-top: -24px; }
 
