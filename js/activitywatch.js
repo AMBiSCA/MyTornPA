@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const reportOptionsModalCloseBtn = document.getElementById('reportOptionsModalCloseBtn');
     const reportMyFactionMemberSelect = document.getElementById('reportMyFactionMemberSelect');
     const reportEnemyFactionMemberSelect = document.getElementById('reportEnemyFactionMemberSelect');
-    const generateCustomReportBtn = document.getElementById('generateCustomReportBtn');
+    const generateCustomReportBtn = document.getElementById('generateCustomReportBtn'); // This is the "Generate & Download Report" button
     const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
 
 
@@ -443,11 +443,21 @@ document.addEventListener('DOMContentLoaded', function() {
         stopTimerHoursSelect.disabled = false;
     }
 
+    // *** MODIFIED FUNCTION *** (Change #2)
+    // Now uses the actual faction names for the dropdown placeholders.
     function populateReportMemberDropdowns() {
-        reportMyFactionMemberSelect.innerHTML = '<option value="">-- Select My Faction Member --</option>';
-        reportEnemyFactionMemberSelect.innerHTML = '<option value="">-- Select Enemy Faction Member --</option>';
+        if (historicalData.length === 0) {
+            reportMyFactionMemberSelect.innerHTML = '<option value="">-- My Faction --</option>';
+            reportEnemyFactionMemberSelect.innerHTML = '<option value="">-- Enemy Faction --</option>';
+            return;
+        }
 
-        if (historicalData.length === 0) return;
+        const latestRecord = historicalData[historicalData.length - 1];
+        const myFactionName = latestRecord.myFaction.name || 'My Faction';
+        const enemyFactionName = latestRecord.enemyFaction.name || 'Enemy Faction';
+
+        reportMyFactionMemberSelect.innerHTML = `<option value="">${myFactionName}</option>`;
+        reportEnemyFactionMemberSelect.innerHTML = `<option value="">${enemyFactionName}</option>`;
 
         const allMyMembers = {};
         const allEnemyMembers = {};
@@ -520,8 +530,8 @@ document.addEventListener('DOMContentLoaded', function() {
         reportModal.classList.remove('visible');
     }
 
-    // *** MODIFIED FUNCTION ***
-    // This now handles downloading the text report AND the chart images together.
+    // *** MODIFIED FUNCTION *** (Change #1)
+    // Now handles downloading the text report AND chart images with dynamic filenames.
     async function generateAndDownloadIndividualComparisonReport() {
         const myMemberId = reportMyFactionMemberSelect.value;
         const enemyMemberId = reportEnemyFactionMemberSelect.value;
@@ -531,13 +541,29 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Look up member details to get their names for filenames
+        const myMemberDetails = myMemberId ? historicalData.flatMap(r => r.myFaction.individuals).find(m => m.id === myMemberId) : null;
+        const enemyMemberDetails = enemyMemberId ? historicalData.flatMap(r => r.enemyFaction.individuals).find(m => m.id === enemyMemberId) : null;
+
+        const sanitize = (name) => name.replace(/[^a-z0-9_.-]/gi, '_');
+        const myName = myMemberDetails ? sanitize(myMemberDetails.name) : null;
+        const enemyName = enemyMemberDetails ? sanitize(enemyMemberDetails.name) : null;
+
+        // Determine the dynamic filename for the text report
+        let textReportFileName = "Individual_Report.txt";
+        if (myName && enemyName) {
+            textReportFileName = `${myName}_vs_${enemyName}_Report.txt`;
+        } else if (myName) {
+            textReportFileName = `${myName}_Report.txt`;
+        } else if (enemyName) {
+            textReportFileName = `${enemyName}_Report.txt`;
+        }
+
         // --- 1. Capture Chart Images ---
-        // The charts are already updated by the 'change' event, so we just capture them.
         let myChartImageData = null;
         if (myMemberId && myFactionIndividualsChartCanvas) {
             myChartImageData = myFactionIndividualsChartCanvas.toDataURL('image/png');
         }
-
         let enemyChartImageData = null;
         if (enemyMemberId && enemyFactionIndividualsChartCanvas) {
             enemyChartImageData = enemyFactionIndividualsChartCanvas.toDataURL('image/png');
@@ -545,23 +571,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- 2. Generate Text Report Content ---
         let reportContent = `Individual Member Comparison Report\nGenerated: ${new Date().toLocaleString()}\n\n`;
-        const addMemberDataToReport = (memberId, factionType) => {
-            if (!memberId) return;
-
+        const addMemberDataToReport = (memberDetails, factionType) => {
+            if (!memberDetails) return;
             const factionName = historicalData[0]?.[factionType].name || (factionType === 'myFaction' ? 'My Faction' : 'Enemy Faction');
-            const memberDetails = historicalData[0]?.[factionType].individuals.find(m => m.id === memberId);
+            reportContent += `--- ${factionName}: ${memberDetails.name} [${memberDetails.id}] ---\n`;
             
-            if (memberDetails) {
-                 reportContent += `--- ${factionName}: ${memberDetails.name} [${memberDetails.id}] ---\n`;
-            } else {
-                 reportContent += `--- ${factionName} Member [${memberId}] ---\n`;
-            }
-
             let totalActiveIntervals = 0;
             let totalIntervalsTracked = 0;
-
             historicalData.forEach(record => {
-                const member = record[factionType].individuals.find(m => m.id === memberId);
+                const member = record[factionType].individuals.find(m => m.id === memberDetails.id);
                 if (member) {
                     totalIntervalsTracked++;
                     if (member.active === 1) {
@@ -569,7 +587,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-
             if (totalIntervalsTracked > 0) {
                 const activityPercentage = ((totalActiveIntervals / totalIntervalsTracked) * 100).toFixed(1);
                 reportContent += `Activity: Active in ${totalActiveIntervals} of ${totalIntervalsTracked} tracked intervals (${activityPercentage}%).\n\n`;
@@ -577,41 +594,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 reportContent += "No activity data found for this member in the recorded session.\n\n";
             }
         };
-
-        addMemberDataToReport(myMemberId, 'myFaction');
-        addMemberDataToReport(enemyMemberId, 'enemyFaction');
+        addMemberDataToReport(myMemberDetails, 'myFaction');
+        addMemberDataToReport(enemyMemberDetails, 'enemyFaction');
         
         // --- 3. Trigger All Downloads ---
         closeReportOptionsModal();
 
-        // Download Text Report
         const blob = new Blob([reportContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'individual_comparison_report.txt';
+        a.download = textReportFileName; // Use dynamic filename
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        // Download My Faction Chart (if it exists)
-        if (myChartImageData) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Delay for browser
+        if (myChartImageData && myName) {
+            await new Promise(resolve => setTimeout(resolve, 500));
             const imgLink = document.createElement('a');
             imgLink.href = myChartImageData;
-            imgLink.download = `my_faction_member_${myMemberId}_chart.png`;
+            imgLink.download = `${myName}_Chart.png`; // Use dynamic filename
             document.body.appendChild(imgLink);
             imgLink.click();
             document.body.removeChild(imgLink);
         }
 
-        // Download Enemy Faction Chart (if it exists)
-        if (enemyChartImageData) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Delay for browser
+        if (enemyChartImageData && enemyName) {
+            await new Promise(resolve => setTimeout(resolve, 500));
             const imgLink = document.createElement('a');
             imgLink.href = enemyChartImageData;
-            imgLink.download = `enemy_faction_member_${enemyMemberId}_chart.png`;
+            imgLink.download = `${enemyName}_Chart.png`; // Use dynamic filename
             document.body.appendChild(imgLink);
             imgLink.click();
             document.body.removeChild(imgLink);
@@ -620,65 +633,84 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStatus("Comparison report and charts downloaded.", 'success');
     }
 
-    // This is the main, comprehensive report generator.
-    async function generateAndDownloadCustomReport() {
-        // This function generates the general, comprehensive report.
-        // For simplicity, we'll keep its chart downloading separate,
-        // but it could be merged if needed in the future.
-        const selectedMyMemberId = reportMyFactionMemberSelect.value;
-        const selectedEnemyMemberId = reportEnemyFactionMemberSelect.value;
-        
-        let reportContent = `Faction Activity Custom Report\nGenerated: ${new Date().toLocaleString()}\n\n`;
+    // *** MODIFIED FUNCTION *** (Change #3)
+    // This function is now completely rebuilt to generate a proper faction-wide report.
+    async function generateAndDownloadFactionWideReport() {
+        if (historicalData.length < 2) {
+            alert("Not enough data has been recorded for a full report. Please track for at least one full interval.");
+            return;
+        }
+
+        // --- 1. Capture Main Chart Images ---
+        const rawActivityChartImg = rawActivityChartCanvas ? rawActivityChartCanvas.toDataURL('image/png') : null;
+        const activityDifferenceChartImg = activityDifferenceChartCanvas ? activityDifferenceChartCanvas.toDataURL('image/png') : null;
+
+        // --- 2. Generate Comprehensive Text Report ---
+        let reportContent = `Faction Activity Report\nGenerated: ${new Date().toLocaleString()}\n\n`;
         const myFactionName = historicalData[0].myFaction.name;
         const enemyFactionName = historicalData[0].enemyFaction.name;
-        reportContent += `My Faction: ${myFactionName} | Enemy Faction: ${enemyFactionName}\n\n`;
-
-        // ... you can add the rest of your comprehensive report logic here ...
-        reportContent += "This is the comprehensive faction-wide report.\n";
-
-
-        let myChartImageData = null;
-        let enemyChartImageData = null;
-        if (selectedMyMemberId && myFactionIndividualsChartCanvas) {
-            myChartImageData = myFactionIndividualsChartCanvas.toDataURL('image/png');
-        }
-        if (selectedEnemyMemberId && enemyFactionIndividualsChartCanvas) {
-            enemyChartImageData = enemyFactionIndividualsChartCanvas.toDataURL('image/png');
-        }
-
-        closeReportOptionsModal();
-
-        const textBlob = new Blob([reportContent], { type: 'text/plain' });
-        const textUrl = URL.createObjectURL(textBlob);
-        const textA = document.createElement('a');
-        textA.href = textUrl;
-        textA.download = 'faction_activity_custom_report.txt';
-        document.body.appendChild(textA);
-        textA.click();
-        document.body.removeChild(textA);
-        URL.revokeObjectURL(textUrl);
-
-        if (myChartImageData) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            const imgA = document.createElement('a');
-            imgA.href = myChartImageData;
-            imgA.download = `my_faction_member_${selectedMyMemberId}_chart.png`;
-            document.body.appendChild(imgA);
-            imgA.click();
-            document.body.removeChild(imgA);
-        }
-
-        if (enemyChartImageData) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            const imgA = document.createElement('a');
-            imgA.href = enemyChartImageData;
-            imgA.download = `enemy_faction_member_${selectedEnemyMemberId}_chart.png`;
-            document.body.appendChild(imgA);
-            imgA.click();
-            document.body.removeChild(imgA);
-        }
+        const latestRecord = historicalData[historicalData.length - 1];
+        reportContent += `My Faction: ${myFactionName} (ID: ${latestRecord.myFaction.id}, Members: ${latestRecord.myFaction.totalMembers})\n`;
+        reportContent += `Enemy Faction: ${enemyFactionName} (ID: ${latestRecord.enemyFaction.id}, Members: ${latestRecord.enemyFaction.totalMembers})\n\n`;
         
-        updateStatus("Report generated.", 'success', "Custom report and charts downloaded.");
+        // ... (This is the detailed reporting logic from your original script) ...
+        reportContent += `--- Hourly Activity Summary ---\n`;
+        const hourlySummary = {};
+        historicalData.forEach(record => {
+            const hourKey = new Date(record.timestamp).getHours();
+            if (!hourlySummary[hourKey]) {
+                hourlySummary[hourKey] = { myWins: 0, enemyWins: 0, ties: 0, totalIntervals: 0, myTotalActive: 0, enemyTotalActive: 0 };
+            }
+            if (record.activityDifference > 0) hourlySummary[hourKey].myWins++;
+            else if (record.activityDifference < 0) hourlySummary[hourKey].enemyWins++;
+            else hourlySummary[hourKey].ties++;
+            hourlySummary[hourKey].totalIntervals++;
+            hourlySummary[hourKey].myTotalActive += record.myFaction.activeMembers;
+            hourlySummary[hourKey].enemyTotalActive += record.enemyFaction.activeMembers;
+        });
+
+        Object.keys(hourlySummary).sort((a,b) => a-b).forEach(hourKey => {
+            const summary = hourlySummary[hourKey];
+            const avgMy = (summary.myTotalActive / summary.totalIntervals).toFixed(1);
+            const avgEn = (summary.enemyTotalActive / summary.totalIntervals).toFixed(1);
+            reportContent += `\nHour ${hourKey}:00 - Wins: ${myFactionName} (${summary.myWins}) vs ${enemyFactionName} (${summary.enemyWins}), Ties (${summary.ties}). Avg Active: ${avgMy} vs ${avgEn}`;
+        });
+        reportContent += `\n\n--- End of Report ---\n`;
+
+        // --- 3. Trigger Downloads ---
+        closeReportOptionsModal();
+        
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Faction_Activity_Report_${myFactionName}_vs_${enemyFactionName}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        if (rawActivityChartImg) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const imgLink = document.createElement('a');
+            imgLink.href = rawActivityChartImg;
+            imgLink.download = 'Raw_Activity_Chart.png';
+            document.body.appendChild(imgLink);
+            imgLink.click();
+            document.body.removeChild(imgLink);
+        }
+
+        if (activityDifferenceChartImg) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const imgLink = document.createElement('a');
+            imgLink.href = activityDifferenceChartImg;
+            imgLink.download = 'Activity_Difference_Chart.png';
+            document.body.appendChild(imgLink);
+            imgLink.click();
+            document.body.removeChild(imgLink);
+        }
+
+        updateStatus("Faction-wide report and charts downloaded.", 'success');
     }
 
     function init() {
@@ -782,10 +814,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     reportOptionsModalCloseBtn.addEventListener('click', closeReportOptionsModal);
 
-    // Main button for the big report
-    generateCustomReportBtn.addEventListener('click', generateAndDownloadCustomReport);
+    // This button now calls the rebuilt faction-wide report function
+    generateCustomReportBtn.addEventListener('click', generateAndDownloadFactionWideReport);
     
-    // Button for the specific individual comparison with chart downloads
+    // This button calls the individual comparison function
     compareTwoIndividualsBtn.addEventListener('click', generateAndDownloadIndividualComparisonReport);
 
     reportMyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
