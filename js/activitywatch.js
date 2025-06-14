@@ -86,7 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
             textColor = '#FFD700';
         } else if (displayMessage === "Stopped.") {
             textColor = '#FF3333';
-        }
+        } else if (displayMessage === "Please enter both Faction IDs before starting!") { // START NEW CORRECTION: Specific color for this message
+            textColor = '#FF3333';
+        } // END NEW CORRECTION
         statusDisplay.style.backgroundColor = bgColor;
         statusDisplay.style.color = textColor;
         console.log(`[Status: ${statusType.toUpperCase()}] ${consoleMessage || displayMessage}`);
@@ -819,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const enemyFactionIdValue = enemyFactionIDInput.value.trim();
 
         if (myFactionIdValue === '' && enemyFactionIdValue === '') {
-            updateStatus("Ready.", 'warning', "Please enter at least one Faction ID to start tracking.");
+            updateStatus("Please enter both Faction IDs before starting!", 'info'); // Changed message and statusType
             return; // Stop execution if both are empty
         }
         // END NEW CORRECTION
