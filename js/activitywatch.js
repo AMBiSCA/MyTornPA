@@ -497,18 +497,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function openReportOptionsModal() {
-        if (historicalData.length === 0) {
-            alert("No data has been recorded yet. Please start tracking to generate a report.");
-            return;
-        }
-        populateReportMemberDropdowns();
-        compareUser1Select.value = reportMyFactionMemberSelect.value;
-        compareUser2Select.value = reportEnemyFactionMemberSelect.value;
-        updateIndividualCharts();
-        reportOptionsModal.classList.add('visible');
-        reportModal.classList.remove('visible');
+   function openReportModal() {
+    console.log("openReportModal function called!");
+    console.log("Report Modal element:", reportModal);
+
+    // The static title "Faction Activity Peeper." is now in the HTML <h2> tag.
+    // We only need to clear the dynamic fields.
+
+    // --- CORRECTED: Clear the dynamic content for Faction Name display ---
+    if (factionNameDisplay) {
+        factionNameDisplay.textContent = '';
     }
+
+    // Clear the dynamic content for Total Members
+    if (totalMembersMyFactionDisplay) {
+        totalMembersMyFactionDisplay.textContent = '';
+    }
+
+    // Clear the dynamic content for Last cycle refresh time
+    if (lastRefreshTimeDisplay) {
+        lastRefreshTimeDisplay.textContent = '';
+    }
+    
+    reportModal.classList.add('visible');
+}
 
     function closeReportOptionsModal() {
         reportOptionsModal.classList.remove('visible');

@@ -52,7 +52,7 @@
 
                 <div class="dropdown" id="contactUsDropdownContainer">
                     <button class="btn dropdown-toggle" id="contactUsBtn">
-                        <span class="btn-text">Contact Us:</span><span class="btn-icon">💬 🔽</span>
+                        <span class="btn-text">Contact:</span><span class="btn-icon">💬 🔽</span>
                     </button>
                     <div class="dropdown-content" id="contactUsDropdown">
                         <a href="report.html">Report an Issue</a>
@@ -75,11 +75,11 @@
             <div id="topControlPanel">
                 <div class="control-grid-item" id="myFactionIDGroup">
                     <label for="myFactionID">My Faction ID:</label>
-                    <input type="text" id="myFactionID" value="49028" readonly />
+                    <input type="text" id="myFactionID" value="" readonly />
                 </div>
                 <div class="control-grid-item" id="enemyFactionIDGroup">
                     <label for="enemyFactionID">Enemy Faction ID:</label>
-                    <input type="text" id="enemyFactionID" value="52018" />
+                    <input type="text" id="enemyFactionID" value="" />
                 </div>
                 <div class="control-grid-item" id="activityIntervalGroup">
                     <label for="activityInterval">Refresh Rate (minutes):</label>
@@ -92,11 +92,10 @@
                     <label>Status:</label>
                     <span id="statusDisplay">Ready.</span>
                 </div>
-
-                <div class="control-grid-item" id="factionNameGroup">
-                    <label>Faction Name:</label>
-                    <span id="factionNameDisplay"></span>
-                </div>
+                 <div class="control-grid-item" id="factionNameGroup">
+                 <h2 class="script-title" id="pageMainTitleDisplay" style="margin-bottom: 5px;">Faction Activity Peeper.</h2> 
+                 <span id="factionNameDisplay" style="font-weight: bold; color: #eee; font-size: 1.1em;"></span>
+                 </div>
                 <div class="control-grid-item" id="totalMembersGroup">
                     <label>Total Members:</label>
                     <span id="totalMembersMyFaction"></span>
@@ -104,11 +103,11 @@
                 <div class="control-grid-item" id="actionButtonsGroup">
                     <button id="startButton" class="action-btn start-btn">Start.</button>
                     <button id="stopButton" class="action-btn stop-btn">Stop.</button>
-                    <button id="clearDataButton" class="action-btn clear-btn">Clear/Download Data.</button>
+                    <button id="clearDataButton" class="action-btn clear-btn">Clear/Download.</button>
                 </div>
                 <div class="control-grid-item" id="lastRefreshGroup">
                     <label>Last cycle refresh:</label>
-                    <span id="lastRefreshTime">17:47 20/5/25</span>
+                    <span id="lastRefreshTime"></span>
                 </div>
                 
                 <div class="control-grid-item" id="stopTimerGroup">
@@ -119,7 +118,7 @@
                         <option value="24">24</option>
                     </select>
                     <div id="countdownDisplay" style="margin-top: 10px;">
-                        <label style="color: #00a8ff; font-weight: bold;">Hours Until Finished:</label>
+                        <label style="color: #00a8ff; font-weight: bold;">Analysis finished i:</label>
                         <span id="countdownTimer" style="color: #fff; font-weight: bold;">0 hours and 0 minutes</span>
                     </div>
                 </div>
@@ -150,7 +149,7 @@
     <div id="reportModal" class="modal-overlay">
         <div class="modal-content">
             <button id="reportModalCloseBtn" class="modal-close-btn">&times;</button>
-            <h2>Session Complete</h2>
+            <h2>Session Complete.</h2>
             <p>Your tracking session has finished. You can download a report of the collected data or clear it permanently from your browser.</p>
             
             <div class="modal-actions">
@@ -183,10 +182,10 @@
             </div>
 
             <div class="modal-actions">
-                <button id="generateCustomReportBtn" class="action-btn start-btn">Generate & Download Report</button>
-               <button id="compareTwoIndividualsBtn" class="action-btn clear-btn">Compare Two Individuals</button>
+                <button id="generateCustomReportBtn" class="action-btn start-btn">Generate & Download Report.</button>
+               <button id="compareTwoIndividualsBtn" class="action-btn clear-btn">Compare Two Individuals.</button>
             </div>
-            <p class="small-text">Note:multple individual Reports will be seperate downloads.</p>
+            <p class="small-text">Note: Multiple individual Reports will be seperate downloads.</p>
         </div>
     </div>
     <footer class="footer">

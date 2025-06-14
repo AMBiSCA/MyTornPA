@@ -1,4 +1,4 @@
-html, body {
+ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -304,8 +304,9 @@ ul li:last-child { border-bottom: none; }
     border: 1px solid var(--theme-accent-color, #00a8ff); box-shadow: 0 0 30px var(--modal-shadow-color, rgba(0, 168, 255, 0.7));
     width: 100%; max-width: 480px; position: relative; text-align: center; box-sizing: border-box; margin: auto;
 }
+
 .modal-content h2 {
-    color: var(--theme-accent-color); margin-top: 0; margin-bottom: 25px; font-size: 1.8rem; font-weight: 600;
+    color:#00a8ff; margin-top: 0; margin-bottom: 25px; font-size: 1.8rem; font-weight: 600;
 }
 .modal-content p {
     color: var(--text-color-normal); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; text-align: left;
@@ -384,14 +385,16 @@ ul li:last-child { border-bottom: none; }
     box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
 }
 
-.small-text {
-    font-size: 0.8em;
-    color: #aaa;
-    margin-top: 15px;
-    text-align: center;
-}
-/* --- END: CORRECTLY PLACED GLOBAL STYLES FOR NEW REPORT OPTIONS MODAL --- */
+.modal-content .small-text {
+    font-size: 0.8em;
+    color: #ff9900;
+    margin-top: 15px;
+    text-align: center;
+} 
 
+#reportOptionsModal .small-text {
+    color: #ff9900 !important;
+}
 
 @media (max-width: 768px) {
     body { padding-top: 0; padding-bottom: 0; }
@@ -539,8 +542,8 @@ ul li:last-child { border-bottom: none; }
 #totalMembersGroup label { text-align: left; flex-grow: 0; }
 #totalMembersGroup span { text-align: right; flex-grow: 0; }
 
-#factionNameGroup label { text-align: center; }
-#factionNameGroup #factionNameDisplay { text-align: center; margin-left: -29px; }
+#factionNameGroup label { text-align: center; margin-left: -6px;  }
+#factionNameGroup #factionNameDisplay { text-align: center; margin-left: -5px; }
 
 #actionButtonsGroup {
     flex-direction: row;
@@ -600,6 +603,7 @@ ul li:last-child { border-bottom: none; }
 .chart-panel:hover {
     transform: scale(1.2);
     z-index: 10;
+	overflow: hidden;
 }
 
 .chart-panel h3 {
@@ -674,6 +678,18 @@ ul li:last-child { border-bottom: none; }
         height: auto;
         min-height: unset;
     }
+}
+
+
+.script-title {
+  font-size: 2.2rem;  /* Size of the text */
+  font-weight: bold;  /* Makes it bold */
+  position: relative; /* Needed for z-index or other positioning if used */
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #00a8ff;     /* Blue color */
+  -webkit-text-stroke: 1px black; /* Black outline/stroke for text */
+  text-shadow: 0px 0px 5px #00a8ff, 0px 0px 4px #0077cc; /* Glow/shadow effect */
 }
 
 @media (max-width: 600px) {
