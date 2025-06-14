@@ -86,9 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
             textColor = '#FFD700';
         } else if (displayMessage === "Stopped.") {
             textColor = '#FF3333';
-        } else if (displayMessage === "Please enter both Faction IDs before starting!") { // START NEW CORRECTION: Specific color for this message
+        } else if (displayMessage === "Please enter both Faction IDs before starting!") {
             textColor = '#FF3333';
-        } // END NEW CORRECTION
+        }
         statusDisplay.style.backgroundColor = bgColor;
         statusDisplay.style.color = textColor;
         console.log(`[Status: ${statusType.toUpperCase()}] ${consoleMessage || displayMessage}`);
@@ -821,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const enemyFactionIdValue = enemyFactionIDInput.value.trim();
 
         if (myFactionIdValue === '' && enemyFactionIdValue === '') {
-            updateStatus("Please enter both Faction IDs before starting!", 'info'); // Changed message and statusType
+            updateStatus("Please enter both Faction IDs before starting!", 'info'); // Changed message and statusType to match 'Stopped.' appearance
             return; // Stop execution if both are empty
         }
         // END NEW CORRECTION
@@ -884,6 +884,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateStatus("Ready.", 'info', "All data cleared.");
             factionNameDisplay.textContent = '';
             totalMembersMyFactionDisplay.textContent = '';
+            // START NEW CORRECTION: Clear lastRefreshTimeDisplay on clear data
+            lastRefreshTimeDisplay.textContent = '';
+            // END NEW CORRECTION
             populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
             closeReportModal();
         }
