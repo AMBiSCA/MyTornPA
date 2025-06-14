@@ -484,7 +484,7 @@ ul li:last-child { border-bottom: none; }
 }
 
 #myFactionIDGroup { grid-column: 1; grid-row: 1; align-items: flex-start; max-width: 108px; }
-#factionNameGroup { grid-column: 2; grid-row: 1; align-items: center; margin-left: -160px; margin-top: -5px; }
+#factionNameGroup { grid-column: 2; grid-row: 1; align-items: center; margin-left: -160px; margin-top: -4px; }
 #compareIndividualsGroup { 
     grid-column: 3; 
     grid-row: 3 / span 2;
@@ -493,7 +493,7 @@ ul li:last-child { border-bottom: none; }
 	margin-top: -25px;
 }
 
-#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -7px; }
+#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -5px; }
 #totalMembersGroup { grid-column: 2; grid-row: 2; align-items: center; margin-left: -160px; margin-top: -18px; }
 #actionButtonsGroup { grid-column: 2; grid-row: 3; align-items: center; margin-left: -160px; margin-top: -24px; }
 
