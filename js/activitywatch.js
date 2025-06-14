@@ -454,10 +454,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         historicalData.forEach(record => {
             record.myFaction.individuals.forEach(member => {
-                allMyMembers[member.id] = { id: member.id, name: member.name, display: member.display };
+                allMyMembers[member.id] = {
+                    id: member.id,
+                    name: member.name,
+                    display: member.display
+                };
             });
             record.enemyFaction.individuals.forEach(member => {
-                allEnemyMembers[member.id] = { id: member.id, name: member.name, display: member.display };
+                allEnemyMembers[member.id] = {
+                    id: member.id,
+                    name: member.name,
+                    display: member.display
+                };
             });
         });
 
@@ -512,20 +520,33 @@ document.addEventListener('DOMContentLoaded', function() {
         reportModal.classList.remove('visible');
     }
 
-    // This is the simplified function specifically for the "Compare Two Individuals" button.
-    function generateAndDownloadIndividualComparisonReport() {
+    // *** MODIFIED FUNCTION ***
+    // This now handles downloading the text report AND the chart images together.
+    async function generateAndDownloadIndividualComparisonReport() {
         const myMemberId = reportMyFactionMemberSelect.value;
         const enemyMemberId = reportEnemyFactionMemberSelect.value;
 
-        // The validation now correctly checks if at least one dropdown has a selection.
         if (!myMemberId && !enemyMemberId) {
             alert("Please select at least one valid member to compare.");
             return;
         }
 
+        // --- 1. Capture Chart Images ---
+        // The charts are already updated by the 'change' event, so we just capture them.
+        let myChartImageData = null;
+        if (myMemberId && myFactionIndividualsChartCanvas) {
+            myChartImageData = myFactionIndividualsChartCanvas.toDataURL('image/png');
+        }
+
+        let enemyChartImageData = null;
+        if (enemyMemberId && enemyFactionIndividualsChartCanvas) {
+            enemyChartImageData = enemyFactionIndividualsChartCanvas.toDataURL('image/png');
+        }
+
+        // --- 2. Generate Text Report Content ---
         let reportContent = `Individual Member Comparison Report\nGenerated: ${new Date().toLocaleString()}\n\n`;
         const addMemberDataToReport = (memberId, factionType) => {
-            if (!memberId) return; // Skip if no member is selected for this faction
+            if (!memberId) return;
 
             const factionName = historicalData[0]?.[factionType].name || (factionType === 'myFaction' ? 'My Faction' : 'Enemy Faction');
             const memberDetails = historicalData[0]?.[factionType].individuals.find(m => m.id === memberId);
@@ -559,8 +580,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         addMemberDataToReport(myMemberId, 'myFaction');
         addMemberDataToReport(enemyMemberId, 'enemyFaction');
+        
+        // --- 3. Trigger All Downloads ---
+        closeReportOptionsModal();
 
-        // Trigger download
+        // Download Text Report
         const blob = new Blob([reportContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -571,31 +595,50 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        updateStatus("Comparison report generated.", 'success');
-        closeReportOptionsModal();
+        // Download My Faction Chart (if it exists)
+        if (myChartImageData) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // Delay for browser
+            const imgLink = document.createElement('a');
+            imgLink.href = myChartImageData;
+            imgLink.download = `my_faction_member_${myMemberId}_chart.png`;
+            document.body.appendChild(imgLink);
+            imgLink.click();
+            document.body.removeChild(imgLink);
+        }
+
+        // Download Enemy Faction Chart (if it exists)
+        if (enemyChartImageData) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // Delay for browser
+            const imgLink = document.createElement('a');
+            imgLink.href = enemyChartImageData;
+            imgLink.download = `enemy_faction_member_${enemyMemberId}_chart.png`;
+            document.body.appendChild(imgLink);
+            imgLink.click();
+            document.body.removeChild(imgLink);
+        }
+
+        updateStatus("Comparison report and charts downloaded.", 'success');
     }
 
     // This is the main, comprehensive report generator.
     async function generateAndDownloadCustomReport() {
+        // This function generates the general, comprehensive report.
+        // For simplicity, we'll keep its chart downloading separate,
+        // but it could be merged if needed in the future.
         const selectedMyMemberId = reportMyFactionMemberSelect.value;
         const selectedEnemyMemberId = reportEnemyFactionMemberSelect.value;
         
-        // This function will now generate a comprehensive report, including charts if members are selected.
-
-        // --- 1. Report Content Generation ---
         let reportContent = `Faction Activity Custom Report\nGenerated: ${new Date().toLocaleString()}\n\n`;
-        // ... (The rest of your comprehensive report generation logic remains here)
-        // ... it can still check for selectedMyMemberId and selectedEnemyMemberId to add focused sections.
-        
         const myFactionName = historicalData[0].myFaction.name;
         const enemyFactionName = historicalData[0].enemyFaction.name;
         reportContent += `My Faction: ${myFactionName} | Enemy Faction: ${enemyFactionName}\n\n`;
 
+        // ... you can add the rest of your comprehensive report logic here ...
+        reportContent += "This is the comprehensive faction-wide report.\n";
 
-        // --- 2. Chart Image Capture (if a specific member is selected) ---
+
         let myChartImageData = null;
         let enemyChartImageData = null;
-
         if (selectedMyMemberId && myFactionIndividualsChartCanvas) {
             myChartImageData = myFactionIndividualsChartCanvas.toDataURL('image/png');
         }
@@ -603,10 +646,8 @@ document.addEventListener('DOMContentLoaded', function() {
             enemyChartImageData = enemyFactionIndividualsChartCanvas.toDataURL('image/png');
         }
 
-        // --- 3. Trigger Downloads ---
         closeReportOptionsModal();
 
-        // Download Text Report
         const textBlob = new Blob([reportContent], { type: 'text/plain' });
         const textUrl = URL.createObjectURL(textBlob);
         const textA = document.createElement('a');
@@ -617,7 +658,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.removeChild(textA);
         URL.revokeObjectURL(textUrl);
 
-        // Download Chart Images
         if (myChartImageData) {
             await new Promise(resolve => setTimeout(resolve, 500));
             const imgA = document.createElement('a');
@@ -742,19 +782,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     reportOptionsModalCloseBtn.addEventListener('click', closeReportOptionsModal);
 
-    // Main button for the big report with charts
+    // Main button for the big report
     generateCustomReportBtn.addEventListener('click', generateAndDownloadCustomReport);
     
-    // Button for the simple text-only comparison
+    // Button for the specific individual comparison with chart downloads
     compareTwoIndividualsBtn.addEventListener('click', generateAndDownloadIndividualComparisonReport);
 
     reportMyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
     reportEnemyFactionMemberSelect.addEventListener('change', () => updateCustomReportChart());
-
     
     skipConfirmCheckbox.addEventListener('change', (e) => {
         localStorage.setItem(SKIP_CONFIRM_KEY, e.target.checked);
-    
     });
     
     confirmClearBtn.addEventListener('click', () => {
@@ -772,7 +810,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-
     // Run Initial Setup
     init();
 });
