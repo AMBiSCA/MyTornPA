@@ -204,11 +204,15 @@ document.addEventListener('DOMContentLoaded', function() {
         compareUser2Select.innerHTML = '';
         const o1 = document.createElement('option');
         o1.value = '';
-        o1.textContent = `-- ${myN || 'My Faction'} Member --`;
+        // START CORRECTION 1: Remove '--' from placeholder text
+        o1.textContent = `${myN || 'My Faction'} Member`;
+        // END CORRECTION 1
         compareUser1Select.appendChild(o1);
         const o2 = document.createElement('option');
         o2.value = '';
-        o2.textContent = `-- ${enN || 'Enemy Faction'} Member --`;
+        // START CORRECTION 1: Remove '--' from placeholder text
+        o2.textContent = `${enN || 'Enemy Faction'} Member`;
+        // END CORRECTION 1
         compareUser2Select.appendChild(o2);
         if (myM) myM.sort((a, b) => a.name.localeCompare(b.name)).forEach(m => {
             const o = document.createElement('option');
@@ -497,29 +501,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function openReportOptionsModal() {
+    function openReportOptionsModal() {
 
-        if (historicalData.length === 0) {
+        if (historicalData.length === 0) {
 
-            alert("No data has been recorded yet. Please start tracking to generate a report.");
+            alert("No data has been recorded yet. Please start tracking to generate a report.");
 
-            return;
+            return;
 
-        }
+        }
 
-        populateReportMemberDropdowns();
+        populateReportMemberDropdowns();
 
-        compareUser1Select.value = reportMyFactionMemberSelect.value;
+        compareUser1Select.value = reportMyFactionMemberSelect.value;
 
-        compareUser2Select.value = reportEnemyFactionMemberSelect.value;
+        compareUser2Select.value = reportEnemyFactionMemberSelect.value;
 
-        updateIndividualCharts();
+        updateIndividualCharts();
 
-        reportOptionsModal.classList.add('visible');
+        reportOptionsModal.classList.add('visible');
 
-        reportModal.classList.remove('visible');
+        reportModal.classList.remove('visible');
 
-    }
+    }
 
     function closeReportOptionsModal() {
         reportOptionsModal.classList.remove('visible');
@@ -761,7 +765,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (userDoc.exists && userDoc.data().tornApiKey) {
                         tornApiKey = userDoc.data().tornApiKey;
                         const sessionState = loadSessionState();
-                        if (sessionState && sessionState.isRunning && (!sessionState.autoStopTime || Date.now() < sessionState.autoStopTime)) {
+                        // START CORRECTION 2: Prevent auto-start if myFactionID is empty
+                        if (sessionState && sessionState.isRunning && sessionState.myFactionID.trim() !== '' && (!sessionState.autoStopTime || Date.now() < sessionState.autoStopTime)) {
+                        // END CORRECTION 2
                             enterRunningState(sessionState);
                         } else {
                             enterStoppedState();
