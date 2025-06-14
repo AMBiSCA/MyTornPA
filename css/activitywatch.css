@@ -484,25 +484,46 @@ ul li:last-child { border-bottom: none; }
 }
 
 #myFactionIDGroup { grid-column: 1; grid-row: 1; align-items: flex-start; max-width: 108px; }
-#factionNameGroup { grid-column: 2; grid-row: 1; align-items: center; margin-left: -161px; margin-top: -5px; }
-#compareIndividualsGroup { 
-    grid-column: 3; 
+#factionNameGroup {
+    grid-column: 2;
+    grid-row: 1;
+    align-items: center;
+    margin-left: -160px; /* Adjusted to match totalMembersGroup for better alignment */
+    margin-top: -5px;
+}
+#compareIndividualsGroup {
+    grid-column: 3;
     grid-row: 3 / span 2;
-    align-items: flex-end; 
-    justify-content: flex-end; 
-	margin-top: -25px;
+    align-items: flex-end;
+    justify-content: flex-end;
+    margin-top: -25px;
 }
 
 #enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -7px; }
-#totalMembersGroup { grid-column: 2; grid-row: 2; align-items: center; margin-left: -160px; margin-top: -18px; }
+#totalMembersGroup {
+    grid-column: 2;
+    grid-row: 2;
+    align-items: center;
+    margin-left: -160px; /* Standardized for better alignment with factionNameGroup */
+    margin-top: -18px;
+}
 #actionButtonsGroup { grid-column: 2; grid-row: 3; align-items: center; margin-left: -160px; margin-top: -24px; }
 
 #activityIntervalGroup { grid-column: 1; grid-row: 3; align-items: flex-start; max-width: 165px; margin-top: -7px; }
-#statusGroup { grid-column: 1; grid-row: 4; align-items: flex-start; display: flex;           
- flex-direction: row;align-items: center;gap: 5px; margin-top: -5px; } 
-#lastRefreshGroup { grid-column: 2; grid-row: 4; align-items: center; margin-left: -160px; margin-top: -45px; } 
+#statusGroup {
+    grid-column: 1;
+    grid-row: 4;
+    align-items: flex-start;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    margin-top: -5px;
+}
+#lastRefreshGroup { grid-column: 2; grid-row: 4; align-items: center; margin-left: -160px; margin-top: -45px; }
 #statusDisplay {
-    background-color: transparent !important; 
+    background-color: transparent !important;
+}
     
 }
 
