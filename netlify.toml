@@ -2,6 +2,6 @@
   command = "npm run build" # Keep this as your main site's build command
   publish = "public" # This now points to MySite/public
 
-[[functions]]
-  directory = "netlify-functions" # This now points to MySite/netlify-functions
+[functions]
+  directory = "netlify-functions"
   node_bundler = "esbuild"
