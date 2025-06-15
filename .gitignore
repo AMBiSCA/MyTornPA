@@ -70,3 +70,6 @@ node_modules/
 
 # Firebase service account credentials
 torn-importer/credentials.json
+
+# Netlify function Firebase service account credentials
+netlify-functions/credentials.json
