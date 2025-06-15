@@ -2,14 +2,18 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 
 // --- Firebase Admin SDK Initialization ---
-// Load service account credentials directly from the file for Netlify Functions.
-// This file MUST be committed alongside your function if your repo is private.
-// It is CRITICAL to keep your repository PRIVATE if using this method.
-const serviceAccount = require('./credentials.json'); // This line looks for credentials.json in the same directory as this file.
+// The private key is now reassembled from multiple environment variables
+const privateKey = process.env.FIRESTORE_PRIVATE_KEY_PART1 +
+                   process.env.FIRESTORE_PRIVATE_KEY_PART2 +
+                   process.env.FIRESTORE_PRIVATE_KEY_PART3; // Add more parts if you split it further
 
 if (admin.apps.length === 0) {
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+        credential: admin.credential.cert({
+            projectId: process.env.FIRESTORE_PROJECT_ID,
+            clientEmail: process.env.FIRESTORE_CLIENT_EMAIL,
+            privateKey: privateKey.replace(/\\n/g, '\n'), // Replace escaped newlines
+        }),
     });
 }
 const db = admin.firestore();
@@ -29,8 +33,7 @@ function getNumericOrDefault(sourceObject, key) {
  * Netlify Function handler to fetch TornStats spy reports for provided player IDs.
  * This function will be triggered by a POST request from your website.
  *
- * Netlify Functions handle CORS automatically if configured correctly in netlify.toml,
- * but explicit CORS headers can also be set if needed.
+ * Netlify Functions handle CORS automatically.
  */
 exports.handler = async (event, context) => { // Netlify functions use 'handler'
     // Only allow POST requests
@@ -73,7 +76,7 @@ exports.handler = async (event, context) => { // Netlify functions use 'handler'
             continue;
         }
 
-        // --- FIXED URL STRING HERE: No MathJax formatting ---
+        // --- CORRECTED URL STRING: Using backticks for template literals ---
         const url = `https://www.tornstats.com/api/v2/${TORNSTATS_API_KEY}/spy/user/${player_id}`;
 
         try {
@@ -102,7 +105,7 @@ exports.handler = async (event, context) => { // Netlify functions use 'handler'
 
                 await playerRef.set(dataToSave, { merge: true });
                 
-                // --- FIXED CONSOLE LOG STRING HERE: No MathJax formatting ---
+                // --- CORRECTED CONSOLE LOG STRING: Using backticks for template literals ---
                 console.log(`[SUCCESS] Saved data for: ${spy_data.player_name} (${player_id})`);
                 results.push({ id: player_id, status: 'success', name: spy_data.player_name });
             } else {
