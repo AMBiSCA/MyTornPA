@@ -2,19 +2,14 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 
 // --- Firebase Admin SDK Initialization ---
-// IMPORTANT: This needs to be initialized correctly in Netlify Functions.
-// We'll pass the service account credentials via Netlify Environment Variables.
-// Make sure you set FIRESTORE_PRIVATE_KEY, FIRESTORE_CLIENT_EMAIL, FIRESTORE_PROJECT_ID
-// in your Netlify site settings.
+// Load service account credentials directly from the file for Netlify Functions.
+// This file MUST be committed alongside your function if your repo is private.
+// It is CRITICAL to keep your repository PRIVATE if using this method.
+const serviceAccount = require('./credentials.json'); // This line looks for credentials.json in the same directory as this file.
+
 if (admin.apps.length === 0) {
-    // Netlify Functions don't have the auto-init like Cloud Functions.
-    // We initialize using environment variables for security.
     admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIRESTORE_PROJECT_ID,
-            clientEmail: process.env.FIRESTORE_CLIENT_EMAIL,
-            privateKey: process.env.FIRESTORE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Replace escaped newlines
-        }),
+        credential: admin.credential.cert(serviceAccount),
     });
 }
 const db = admin.firestore();
@@ -78,18 +73,14 @@ exports.handler = async (event, context) => { // Netlify functions use 'handler'
             continue;
         }
 
-        const url = `https://www.tornstats.com/api/v2/<span class="math-inline">\{TORNSTATS\_API\_KEY\}/spy/user/</span>{player_id}`;
+        // --- FIXED URL STRING HERE: No MathJax formatting ---
+        const url = `https://www.tornstats.com/api/v2/${TORNSTATS_API_KEY}/spy/user/${player_id}`;
 
         try {
             const response = await axios.get(url);
 
             if (response.status === 200 && response.data?.spy?.status === true) {
                 const spy_data = response.data.spy;
-                // Firestore collection 'players'
-                // IMPORTANT: Netlify functions often don't have a concept of 'FieldValue.serverTimestamp()' like Cloud Functions
-                // If you strictly need server timestamp, you might need to use new Date() and convert on frontend
-                // OR, check if your Firebase Admin SDK in Netlify Function supports it.
-                // For now, let's keep it, it usually works.
                 const playerRef = db.collection('players').doc(String(player_id)); 
 
                 const dataToSave = {
@@ -110,8 +101,9 @@ exports.handler = async (event, context) => { // Netlify functions use 'handler'
                 };
 
                 await playerRef.set(dataToSave, { merge: true });
-
-                console.log(`[SUCCESS] Saved data for: <span class="math-inline">\{spy\_data\.player\_name\} \(</span>{player_id})`);
+                
+                // --- FIXED CONSOLE LOG STRING HERE: No MathJax formatting ---
+                console.log(`[SUCCESS] Saved data for: ${spy_data.player_name} (${player_id})`);
                 results.push({ id: player_id, status: 'success', name: spy_data.player_name });
             } else {
                 console.log(`[INFO] Skipping player ${player_id}. Reason: TornStats spy status was not true or data was missing.`);
