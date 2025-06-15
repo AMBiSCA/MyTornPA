@@ -1,6 +1,6 @@
 [build]
-  command = "npm run build" # Keep this as your main site's build command
-  publish = "public" # This now points to MySite/public
+  command = "echo 'No build command needed for static site'" # <--- CHANGE THIS LINE
+  publish = "public"
 
 [functions]
   directory = "netlify-functions"
