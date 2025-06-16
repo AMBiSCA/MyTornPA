@@ -393,23 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Note: The Netlify function now *saves directly to Firebase*.
                     // The frontend is no longer responsible for saving, just for displaying the status.
-                    // If you still want to fetch Torn API data to display in the table, you'd need
-                    // to modify the Netlify function to return that data or make separate calls.
-                    // For now, renderDataTable will not receive the full combined data for display.
-                    // The table will remain empty or will need its own fetch logic.
-                    // Let's adjust for displaying the *saved* status, not the fetched table data
-                    // as your Netlify function now only saves the spy reports.
-                    // If you want the table to populate, the Netlify function would need to return
-                    // the full member data it received from Torn API *before* attempting to spy.
-                    // For now, let's just focus on the spy data status.
-
-                    // If you still want to display members, the Netlify function needs to return a list of Torn API members
-                    // AND their spy status (successful/failed) in an array.
-                    // For now, I'm assuming the primary goal is to get data into Firebase.
-                    // If you want a table of all members fetched from Torn API + their spy status,
-                    // the Netlify Function needs further modification to return that structured data.
-                    // As it stands, the Netlify function only returns the processing summary.
-                    dataDisplayArea.innerHTML = '<p style="color:#ffcc00; text-align:center;">Spy reports for this faction processed and saved to Firebase. Table display of full member data is not currently enabled for this tool\'s output.</p>';
+                    // The renderDataTable function here will NOT populate automatically as the Netlify function
+                    // does not return the detailed member data for display in a table.
+                    dataDisplayArea.innerHTML = '<p style="color:#ffcc00; text-align:center;">Spy reports for this faction processed and saved to Firebase. Table display of Torn API members + spy status is not currently enabled for this tool\'s output.</p>';
                     saveToFirebaseBtn.style.display = 'none'; // Keep save button hidden as saving happens on backend
 
                 } else {
