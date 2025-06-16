@@ -169,7 +169,7 @@ if (statDropdownsParentContainer) {
                         }
                     } else {
                         const statsErrorDiv = document.getElementById('statsError');
-                        if (statsErrorDiv) statsErrorDiv.textContent = `Cannot select more than ${maxSelection} stats.` ;
+                        if (statsErrorDiv) statsErrorDiv.textContent = `Cannot select more than ${maxSelection} stats.`;
                         setTimeout(() => {
                             if (statsErrorDiv && selected.size <= maxSelection) statsErrorDiv.textContent = selected.size === maxSelection ? `Maximum ${maxSelection} stats selected.` : '';
                         }, 3000);
@@ -667,7 +667,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
             // Introduce a delay after each user's data is fetched
             if (i < factionMembersIds.length - 1) { // Don't sleep after the very last request
-                await sleep(100); // Wait for 100 milliseconds
+                await sleep(200); // Increased delay to 200 milliseconds
             }
         }
 
