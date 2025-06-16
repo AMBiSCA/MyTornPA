@@ -291,6 +291,98 @@ function closeResultsModal() {
     if (tableHeader) tableHeader.innerHTML = '';
 }
 
+/**
+ * Maps the user-friendly stat display name to the actual Torn API 'personalstats' field name.
+ * This is crucial for requesting only specific stats.
+ */
+function getApiPersonalStatFieldName(statDisplayName) {
+    const statMap = {
+        'Respect': 'respectforfaction',
+        'Xanax Taken': 'xantaken',
+        'Total War Hits': 'rankedwarhits',
+        'Refills': 'refills',
+        'Total War Assists': 'attacksassisted',
+        'Attacks Won': 'attackswon',
+        'Attacks Lost': 'attackslost',
+        'Attacks Draw': 'attacksdraw',
+        'Defends Won': 'defendswon',
+        'Defends Lost': 'defendslost',
+        'Total Attack Hits': 'attackhits',
+        'Attack Damage Dealt': 'attackdamage',
+        'Best Single Hit Damage': 'bestdamage',
+        'Critical Hits': 'attackcriticalhits',
+        'One-Hit Kills': 'onehitkills',
+        'Best Kill Streak': 'bestkillstreak',
+        'ELO Rating': 'elo',
+        'Stealth Attacks': 'attacksstealthed',
+        'Highest Level Beaten': 'highestbeaten',
+        'Unarmed Fights Won': 'unarmoredwon',
+        'Times You Ran Away': 'yourunaway',
+        'Opponent Ran Away': 'theyrunaway',
+        'Money Mugged': 'moneymugged',
+        'Largest Mug': 'largestmug',
+        'Bazaar Profit ($)': 'bazaarprofit',
+        'Bazaar Sales (#)': 'bazaarsales',
+        'Bazaar Customers': 'bazaarcustomers',
+        'Points Bought': 'pointsbought',
+        'Points Sold': 'pointssold',
+        'Items Bought (Market/Shops)': 'itemsbought',
+        'City Items Bought': 'cityitemsbought',
+        'Items Bought Abroad': 'itemsboughtabroad',
+        'Items Sent': 'itemssent',
+        'Items Looted': 'itemslooted',
+        'Items Dumped': 'itemsdumped',
+        'Trades Made': 'trades',
+        'Criminal Record (Total)': 'criminaloffenses',
+        'Times Jailed': 'jailed',
+        'People Busted': 'peoplebusted',
+        'Failed Busts': 'failedbusts',
+        'Arrests Made': 'arrestsmade',
+        'Medical Items Used': 'medicalitemsused',
+        'Times Hospitalized': 'hospital',
+        'Drugs Used (Times)': 'drugsused',
+        'Times Overdosed': 'overdosed',
+        'Times Rehabbed': 'rehabs',
+        'Boosters Used': 'boostersused',
+        'Energy Drinks Used': 'energydrinkused',
+        'Alcohol Used': 'alcoholused',
+        'Candy Used': 'candyused',
+        'Nerve Refills Used': 'nerverefills',
+        'Daily Login Streak': 'activestreak',
+        'Best Active Streak': 'bestactivestreak',
+        'User Activity': 'useractivity',
+        'Awards': 'awards',
+        'Donator Days': 'daysbeendonator',
+        'Missions Completed': 'missionscompleted',
+        'Contracts Completed': 'contractscompleted',
+        'Mission Credits Earned': 'missioncreditsearned',
+        'Job Points Used': 'jobpointsused',
+        'Stat Trains Received': 'trainsreceived',
+        'Travels Made': 'traveltimes',
+        'City Finds': 'cityfinds',
+        'Dump Finds': 'dumpfinds',
+        'Items Dumped': 'itemsdumped',
+        'Books Read': 'booksread',
+        'Viruses Coded': 'virusescoded',
+        'Races Won': 'raceswon',
+        'Racing Skill': 'racingskill',
+        'Total Bounties': 'bountiesreceived',
+        'Bounties Placed': 'bountiesplaced',
+        'Bounties Collected': 'bountiescollected',
+        'Money Spent on Bounties': 'totalbountyspent',
+        'Money From Bounties Collected': 'totalbountyreward',
+        'Revives Made': 'revives',
+        'Revives Received': 'revivesreceived',
+        'Revive Skill': 'reviveskill',
+        'Networth': 'networth',
+        'Businesses Owned': 'companiesowned',
+        'Properties Owned': 'propertiesowned'
+        // Add other mappings here as needed
+    };
+    return statMap[statDisplayName];
+}
+
+
 function getValueForStat(statDisplayName, userData) {
     let value = 'N/A';
     const lastActionObject = userData.last_action || {};
@@ -557,10 +649,28 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
     try {
         // Spinner is already shown from the Firestore fetch above, no need to show again unless hidden by previous errors
-        const personalStatsCheckList = [
-            'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned'
-        ];
-        const personalStatsNeeded = Array.from(selected).some(s => personalStatsCheckList.includes(s));
+
+        // Determine which personalstats are needed based on user selection
+        const personalStatsSelections = [];
+        const basicProfileSelections = ['basic', 'profile']; // Always need these for name, level, age, last action, status
+        
+        Array.from(selected).forEach(statDisplayName => {
+            // Check if the stat is part of basic/profile already
+            if (statDisplayName === 'Level' || statDisplayName === 'Age' || statDisplayName === 'Last Action' || statDisplayName === 'Status') {
+                // These are covered by 'basic' or 'profile' selections
+                // We don't add them to personalStatsSelections
+            } else {
+                const apiFieldName = getApiPersonalStatFieldName(statDisplayName);
+                if (apiFieldName) {
+                    personalStatsSelections.push(apiFieldName);
+                }
+            }
+        });
+
+        const primarySelectionsString = basicProfileSelections.join(',');
+        const personalStatsSelectionString = personalStatsSelections.join(',');
+        const needsPersonalStatsCall = personalStatsSelections.length > 0;
+
 
         // Use the fetched API key
         const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${currentApiKey}`;
@@ -599,7 +709,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
         // BATCH PROCESSING CONFIGURATION
         const batchSize = 5; // Number of users to fetch concurrently in each batch
-        const delayBetweenBatchesMs = 1500; // Delay in milliseconds between batches (increased to 1.5 seconds)
+        const delayBetweenBatchesMs = 1500; // Delay in milliseconds between batches
 
         for (let i = 0; i < factionMembersIds.length; i += batchSize) {
             const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
@@ -609,13 +719,12 @@ async function fetchData(user) { // <--- Added 'user' parameter
                 let combinedData = { member_id_for_table: memberId };
                 let overallStatus = true;
                 let errors = [];
-                const primarySelections = 'basic,profile';
-                const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${currentApiKey}`;
 
+                // --- Fetch Basic/Profile Data ---
+                const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelectionsString}&key=${currentApiKey}`;
                 try {
                     const response1 = await fetch(primaryDataUrl);
                     if (!response1.ok) {
-                        // Log the specific error from Torn API if available
                         const errorData = await response1.json().catch(() => ({}));
                         errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status}): ${errorData.error?.error || response1.statusText}`);
                         overallStatus = false;
@@ -633,39 +742,46 @@ async function fetchData(user) { // <--- Added 'user' parameter
                     overallStatus = false;
                 }
 
-                if (personalStatsNeeded && overallStatus) {
-                    const personalStatsSelection = 'personalstats';
-                    const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${currentApiKey}`;
+                // --- Fetch Specific Personalstats Data (if needed and primary fetch was successful) ---
+                if (needsPersonalStatsCall && overallStatus) {
+                    const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=personalstats&stats=${personalStatsSelectionString}&key=${currentApiKey}`;
                     try {
                         const response2 = await fetch(personalStatsDataUrl);
                         if (!response2.ok) {
-                             // Log the specific error from Torn API if available
                             const errorData = await response2.json().catch(() => ({}));
                             errors.push(`PersonalStats Fetch (HTTP ${response2.status}): ${errorData.error?.error || response2.statusText}`);
                         } else {
                             const data2 = await response2.json();
-                            console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
+                            // console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2)); // Keep for debugging if needed
                             if (data2.error) {
                                 errors.push(`PersonalStats API: ${data2.error.error}`);
                             } else {
-                                combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
+                                // Torn API returns specific personal stats directly under the user object, not nested under "personalstats" if specific fields are requested.
+                                // We need to create a `personalstats` object from these flattened results.
+                                combinedData.personalstats = { ...(combinedData.personalstats || {}) }; // Initialize if not exists
+                                for (const key in data2) {
+                                    // Check if the key is one of the requested personal stats (which should be the case)
+                                    // And avoid overwriting 'name', 'level', etc. if they accidentally overlap
+                                    if (personalStatsSelections.includes(key)) {
+                                        combinedData.personalstats[key] = data2[key];
+                                    }
+                                }
                             }
                         }
                     } catch (e) {
                         errors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
                     }
-                } else if (personalStatsNeeded && !overallStatus) {
+                } else if (needsPersonalStatsCall && !overallStatus) {
                     errors.push("Skipped personalstats due to primary fetch error.");
                 }
 
                 if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
+                // Ensure name is available even if primary fetch failed but initial faction data has it
                 if (!combinedData.name && members[memberId] && members[memberId].name) {
                     combinedData.name = members[memberId].name;
                 }
 
-                if (personalStatsNeeded) {
-                    console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
-                }
+                // console.log(`User ${memberId} - combinedData (final for getValueForStat):`, JSON.stringify(combinedData)); // Keep for debugging if needed
                 return { memberId, data: combinedData, status: !combinedData.error };
             });
 
@@ -677,7 +793,6 @@ async function fetchData(user) { // <--- Added 'user' parameter
                 } else {
                     // Handle rejected promises from the batch
                     console.error("Batch promise rejected:", result.reason);
-                    // Provide a more informative error message for the table if a promise rejects
                     const failedMemberId = result.reason?.memberId || 'Unknown ID';
                     allUserResults.push({ memberId: failedMemberId, data: { error: { error: `Request rejected for User ${failedMemberId}: ${result.reason?.message || 'Unknown error'}` } }, status: false });
                 }
@@ -690,7 +805,6 @@ async function fetchData(user) { // <--- Added 'user' parameter
         }
 
         // Now populate the table with collected results
-        // Sort results by member ID or name for consistent display, especially if some requests failed
         allUserResults.sort((a, b) => {
             const nameA = (a.data.name || members[a.memberId]?.name || `User ${a.memberId}`).toLowerCase();
             const nameB = (b.data.name || members[b.memberId]?.name || `User ${b.memberId}`).toLowerCase();
@@ -708,7 +822,6 @@ async function fetchData(user) { // <--- Added 'user' parameter
             } else {
                 const errorRow = document.createElement('tr');
                 const failedMemberId = userResult.memberId || 'Unknown ID';
-                // Try to get the name from the initial faction data if the user data fetch failed
                 const memberName = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Failed Fetch)`;
                 errorRow.insertCell().textContent = memberName;
                 errorRow.insertCell().textContent = failedMemberId;
@@ -978,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // If Firebase Auth itself isn't loaded, disable button and show error
         if (fetchDataButton) {
             fetchDataButton.disabled = true;
-            if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Firebase is not loaded. Cannot check login status.';
+            if (apiKeyErrorDiv) apiKeyApiErrorDiv.textContent = 'Firebase is not loaded. Cannot check login status.';
             else showMainError('Firebase is not ready. Cannot fetch data.');
             fetchDataButton.addEventListener('click', () => showMainError('Firebase is not ready. Cannot fetch data.'));
         }
