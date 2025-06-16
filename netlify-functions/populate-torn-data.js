@@ -198,7 +198,7 @@ async function fetchAndSave(factionName, idsToProcess) {
         }
 
         // Pause for 1 second to be respectful to the TornStats API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
     console.log("\nData fetching process complete.");
     return { success: true, processedSummary: processedSummary };
