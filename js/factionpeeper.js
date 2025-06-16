@@ -599,7 +599,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
         // BATCH PROCESSING CONFIGURATION
         const batchSize = 5; // Number of users to fetch concurrently in each batch
-        const delayBetweenBatchesMs = 500; // Delay in milliseconds between batches
+        const delayBetweenBatchesMs = 1000; // Delay in milliseconds between batches (increased to 1 second)
 
         for (let i = 0; i < factionMembersIds.length; i += batchSize) {
             const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
@@ -615,7 +615,9 @@ async function fetchData(user) { // <--- Added 'user' parameter
                 try {
                     const response1 = await fetch(primaryDataUrl);
                     if (!response1.ok) {
-                        errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status})`);
+                        // Log the specific error from Torn API if available
+                        const errorData = await response1.json().catch(() => ({}));
+                        errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status}): ${errorData.error?.error || response1.statusText}`);
                         overallStatus = false;
                     } else {
                         const data1 = await response1.json();
@@ -637,7 +639,9 @@ async function fetchData(user) { // <--- Added 'user' parameter
                     try {
                         const response2 = await fetch(personalStatsDataUrl);
                         if (!response2.ok) {
-                            errors.push(`PersonalStats Fetch (HTTP ${response2.status})`);
+                             // Log the specific error from Torn API if available
+                            const errorData = await response2.json().catch(() => ({}));
+                            errors.push(`PersonalStats Fetch (HTTP ${response2.status}): ${errorData.error?.error || response2.statusText}`);
                         } else {
                             const data2 = await response2.json();
                             console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
@@ -673,8 +677,9 @@ async function fetchData(user) { // <--- Added 'user' parameter
                 } else {
                     // Handle rejected promises from the batch
                     console.error("Batch promise rejected:", result.reason);
-                    // You might want to push a placeholder or error object here for proper table display
-                    allUserResults.push({ memberId: result.reason?.memberId || 'Unknown ID', data: { error: { error: `Request rejected: ${result.reason?.message || 'Unknown error'}` } }, status: false });
+                    // Provide a more informative error message for the table if a promise rejects
+                    const failedMemberId = result.reason?.memberId || 'Unknown ID';
+                    allUserResults.push({ memberId: failedMemberId, data: { error: { error: `Request rejected for User ${failedMemberId}: ${result.reason?.message || 'Unknown error'}` } }, status: false });
                 }
             });
 
@@ -685,6 +690,14 @@ async function fetchData(user) { // <--- Added 'user' parameter
         }
 
         // Now populate the table with collected results
+        // Sort results by member ID or name for consistent display, especially if some requests failed
+        allUserResults.sort((a, b) => {
+            const nameA = (a.data.name || members[a.memberId]?.name || `User ${a.memberId}`).toLowerCase();
+            const nameB = (b.data.name || members[b.memberId]?.name || `User ${b.memberId}`).toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+
+
         for (const userResult of allUserResults) {
             let userData;
             let currentMemberIdFromPromise;
@@ -695,10 +708,12 @@ async function fetchData(user) { // <--- Added 'user' parameter
             } else {
                 const errorRow = document.createElement('tr');
                 const failedMemberId = userResult.memberId || 'Unknown ID';
-                errorRow.insertCell().textContent = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Request Error)`;
+                // Try to get the name from the initial faction data if the user data fetch failed
+                const memberName = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Failed Fetch)`;
+                errorRow.insertCell().textContent = memberName;
                 errorRow.insertCell().textContent = failedMemberId;
                 const msgCell = errorRow.insertCell();
-                msgCell.textContent = `Error: Request processing failed. ${userResult.data.error?.error || 'Unknown Issue'}`; // Use the error message from data
+                msgCell.textContent = `Error: ${userResult.data.error?.error || 'Unknown Issue'}`; // Use the error message from data
                 msgCell.colSpan = selected.size > 0 ? selected.size : 1;
                 msgCell.style.color = 'red';
                 if (modalTableBody) modalTableBody.appendChild(errorRow);
@@ -928,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         fetchDataButton.removeEventListener('click', existingListener);
                     }
                     // Add a new listener that just shows an error (or prompts for login)
-                    fetchDataButton.addEventListener('click', () => showMainError('Please sign in to fetch data.'));
+                    fetchDataButton.addEventListener('click', () => showMainError('Firebase is not ready. Cannot fetch data.'));
                 }
             }
         });
