@@ -667,7 +667,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
             // Introduce a delay after each user's data is fetched
             if (i < factionMembersIds.length - 1) { // Don't sleep after the very last request
-                await sleep(200); // Increased delay to 200 milliseconds
+                await sleep(500); // Increased delay to 500 milliseconds
             }
         }
 
