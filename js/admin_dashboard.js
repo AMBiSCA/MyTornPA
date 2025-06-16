@@ -5,8 +5,13 @@ let currentFactionMembers = []; // Stores all member IDs for the current faction
 let currentFactionName = "";
 let currentFactionId = "";
 let currentBatchStartIndex = 0;
-const BATCH_SIZE = 5; // Process 5 players per batch invocation <--- CORRECTED THIS LINE
+const BATCH_SIZE = 5; // Process 5 players per batch invocation
 let totalMembersToProcess = 0;
+
+// New global variables for overall batch processing summary
+let totalProcessedSuccess = 0;
+let totalProcessedSkipped = 0;
+let totalProcessedErrors = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logoutButtonHeader');
@@ -26,9 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Helper for updates box ---
+    // Modified to include the temporary prefix stripping workaround
     function updateStatus(message, isError = false) {
         const timestamp = new Date().toLocaleTimeString();
-        updatesBox.innerHTML += `<p style="color:<span class="math-inline">\{isError ? '\#ff4d4d' \: '\#eee'\};"\><strong\>\[</span>{timestamp}]</strong> ${message}</p>`;
+        let cleanedMessage = message;
+        // Temporary workaround: try to remove the specific error prefix if it's there
+        const problematicPrefix = '[error: #8d4d | "Error"] ~ '; // Note the space at the end
+        if (cleanedMessage.startsWith(problematicPrefix)) {
+            cleanedMessage = cleanedMessage.substring(problematicPrefix.length);
+        }
+
+        updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${cleanedMessage}</p>`;
         updatesBox.scrollTop = updatesBox.scrollHeight; // Scroll to bottom
     }
     function clearStatus() {
@@ -122,17 +135,35 @@ document.addEventListener('DOMContentLoaded', () => {
         currentFactionId = "";
         currentBatchStartIndex = 0;
         totalMembersToProcess = 0;
+        totalProcessedSuccess = 0; // Reset new totals
+        totalProcessedSkipped = 0; // Reset new totals
+        totalProcessedErrors = 0;   // Reset new totals
         clearStatus();
         dataDisplayArea.innerHTML = '';
         saveToFirebaseBtn.style.display = 'none'; // Ensure save button is hidden
     }
 
     /**
+     * Displays the final consolidated status message after all batches.
+     */
+    function displayFinalBatchStatus() {
+        let finalMessage = `Status: Finished.`;
+        finalMessage += ` Found ${totalMembersToProcess} members for ${currentFactionName}.`;
+        finalMessage += ` Successfully processed ${totalProcessedSuccess} spy reports.`;
+        if (totalProcessedSkipped > 0) finalMessage += ` Skipped ${totalProcessedSkipped} members (no spy report / invalid).`;
+        if (totalProcessedErrors > 0) finalMessage += ` Failed to retrieve ${totalProcessedErrors} members (API errors).`;
+        finalMessage += ` Check Netlify logs for detailed progress.`;
+        
+        updateStatus(finalMessage, false);
+    }
+
+
+    /**
      * Recursively processes batches of players.
      */
     async function processNextBatch() {
         if (currentBatchStartIndex >= totalMembersToProcess) {
-            updateStatus(`Batch processing complete for ${currentFactionName} (ID: ${currentFactionId}). All ${totalMembersToProcess} members attempted.`, false);
+            displayFinalBatchStatus(); // Show final status once all done
             console.log("Batch processing finished.");
             fetchFactionDataBtn.disabled = false; // Re-enable button
             return;
@@ -142,7 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const batchNumber = Math.floor(currentBatchStartIndex / BATCH_SIZE) + 1;
         const totalBatches = Math.ceil(totalMembersToProcess / BATCH_SIZE);
 
-        updateStatus(`Processing batch ${batchNumber} of ${totalBatches} for ${currentFactionName} (ID: ${currentFactionId}). Players in this batch: ${currentBatch.length}. Total processed so far: ${currentBatchStartIndex}.`, false);
+        // Simplified status: just "Status: Running" during processing
+        updateStatus(`Status: Running. Processing batch ${batchNumber}/${totalBatches}.`, false);
         fetchFactionDataBtn.disabled = true; // Keep button disabled during processing
 
         try {
@@ -166,9 +198,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (result.success) {
-                currentBatchStartIndex = result.nextStartIndex;
-                updateStatus(`Batch ${batchNumber} processed. Success: ${result.processedSummary.successCount}, Skipped: ${result.processedSummary.skippedCount}, Errors: ${result.processedSummary.errorCount}. Remaining: ${totalMembersToProcess - currentBatchStartIndex}.`, false);
+                // Accumulate totals across batches
+                totalProcessedSuccess += result.processedSummary.successCount;
+                totalProcessedSkipped += result.processedSummary.skippedCount;
+                totalProcessedErrors += result.processedSummary.errorCount;
 
+                currentBatchStartIndex = result.nextStartIndex;
+                
                 // If not complete, call next batch after a small delay to respect Netlify/TornStats limits
                 if (!result.isComplete) {
                     setTimeout(processNextBatch, 500); // Small delay between batches (e.g., 500ms)
@@ -210,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            updateStatus(`Step 1/2: Fetching all members for Faction ID: ${currentFactionId} from Torn API...`);
+            updateStatus(`Status: Running. Fetching members for Faction ID: ${currentFactionId} from Torn API...`, false);
             fetchFactionDataBtn.disabled = true; // Disable button immediately
 
             try {
@@ -233,10 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalMembersToProcess = result.totalMembers;
                     currentBatchStartIndex = 0; // Reset for start of new batch process
 
-                    updateStatus(`Step 1/2 Complete: Found ${totalMembersToProcess} members for ${currentFactionName}. Starting batch processing (Step 2/2)...`, false);
+                    updateStatus(`Status: Running. Found ${totalMembersToProcess} members for ${currentFactionName}. Starting batch processing...`, false);
                     setTimeout(processNextBatch, 500); // Start processing first batch after slight delay
                 } else {
-                    updateStatus(`Step 1/2 Complete: No members found for Faction ID ${currentFactionId}. Check faction ID.`, true);
+                    updateStatus(`Status: Finished. No members found for Faction ID ${currentFactionId}. Check faction ID.`, true); // Indicate finished with error for no members
                     fetchFactionDataBtn.disabled = false; // Re-enable button
                 }
 
