@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Helper for updates box ---
-    // Modified to include the temporary prefix stripping workaround
+    // Modified to include the temporary prefix stripping workaround AND clear default message
     function updateStatus(message, isError = false) {
         const timestamp = new Date().toLocaleTimeString();
         let cleanedMessage = message;
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updatesBox.scrollTop = updatesBox.scrollHeight; // Scroll to bottom
     }
     function clearStatus() {
-        updatesBox.innerHTML = '<p>Status updates will appear here.</p>';
+        updatesBox.innerHTML = ''; // <--- CORRECTED: Clear the box completely, removing "Status updates will appear here."
     }
 
     // --- Helper for displaying prominent errors ---
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalProcessedSuccess = 0; // Reset new totals
         totalProcessedSkipped = 0; // Reset new totals
         totalProcessedErrors = 0;   // Reset new totals
-        clearStatus();
+        clearStatus(); // <--- This will now completely clear the updatesBox
         dataDisplayArea.innerHTML = '';
         saveToFirebaseBtn.style.display = 'none'; // Ensure save button is hidden
     }
@@ -148,11 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function displayFinalBatchStatus() {
         let finalMessage = `Status: Finished.`;
-        finalMessage += ` Found ${totalMembersToProcess} members for ${currentFactionName}.`;
+        // <--- CORRECTED: Use Faction ID and Name
+        finalMessage += ` Found ${totalMembersToProcess} members for ${currentFactionId} - ${currentFactionName}.`;
         finalMessage += ` Successfully processed ${totalProcessedSuccess} spy reports.`;
         if (totalProcessedSkipped > 0) finalMessage += ` Skipped ${totalProcessedSkipped} members (no spy report / invalid).`;
         if (totalProcessedErrors > 0) finalMessage += ` Failed to retrieve ${totalProcessedErrors} members (API errors).`;
-        finalMessage += `<br>Check Netlify logs for detailed progress.`;
+        // Removed: `Check Netlify logs for detailed progress.`
         
         updateStatus(finalMessage, false);
     }
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Only update status at the very beginning of the overall process.
         // No per-batch status updates are needed per user request.
-        // updateStatus(`Processing batch ${batchNumber} of ${totalBatches} for ${currentFactionName} (ID: ${currentFactionId}). Players in this batch: ${currentBatch.length}. Total processed so far: ${currentBatchStartIndex}.`, false);
+        // The initial "Status: Running" will persist from the initial fetch.
         
         fetchFactionDataBtn.disabled = true; // Keep button disabled during processing
 
