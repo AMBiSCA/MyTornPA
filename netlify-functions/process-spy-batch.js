@@ -47,11 +47,12 @@ function getNumericOrDefault(sourceObject, key) {
 /**
  * Fetches spy reports for a list of players (a batch) and saves them to Firebase.
  * @param {string} factionName - The name of the faction being processed (for logging).
+ * @param {number} currentFactionId - The ID of the current faction being processed. // NEW PARAMETER
  * @param {number[]} idsToProcessBatch - An array of player IDs for the current batch.
  * @returns {object} Summary of processed players in this batch.
  * @throws {Error} if TornStats API Key is missing.
  */
-async function fetchAndSaveBatch(factionName, idsToProcessBatch) {
+async function fetchAndSaveBatch(factionName, currentFactionId, idsToProcessBatch) { // ADDED currentFactionId
     if (!Array.isArray(idsToProcessBatch) || idsToProcessBatch.length === 0) {
         console.log(`\nNo valid player IDs in this batch for faction ${factionName}.`);
         return { success: false, message: "No player IDs in batch.", processedSummary: { successCount: 0, skippedCount: 0, errorCount: 0, errorDetails: [] } };
@@ -104,10 +105,11 @@ async function fetchAndSaveBatch(factionName, idsToProcessBatch) {
                     effective_defense: getNumericOrDefault(spy_data, 'effective_defense'),
                     effective_speed: getNumericOrDefault(spy_data, 'effective_speed'),
                     effective_dexterity: getNumericOrDefault(spy_data, 'effective_dexterity'),
-                    effective_total: getNumericOrDefault(spy_data, 'effective_total')
-                }, { merge: true });
+                    effective_total: getNumericOrDefault(spy_data, 'effective_total'),
+                    faction_id: parseInt(currentFactionId) // <--- ADDED THIS LINE: Saving the faction ID
+                }, { merge: true }); // Use merge: true to avoid overwriting other fields if they exist
 
-                console.log(`[SUCCESS] process-spy-batch: Saved data for: ${spy_data.player_name} (${player_id})`);
+                console.log(`[SUCCESS] process-spy-batch: Saved data for: ${spy_data.player_name} (${player_id}) in faction ${currentFactionId}`); // Added faction ID to log
                 processedSummary.successCount++;
             } else {
                 const reason = `TornStats spy status was not true or data was missing. Response: ${JSON.stringify(response.data)}`;
@@ -140,7 +142,7 @@ async function fetchAndSaveBatch(factionName, idsToProcessBatch) {
 }
 
 
-// Netlify Function Handler for Batch Processing
+// Netlify Function Handler
 exports.handler = async (event, context) => {
     if (event.httpMethod !== 'POST') {
         return {
@@ -160,6 +162,7 @@ exports.handler = async (event, context) => {
         };
     }
 
+    // Expecting factionId, factionName, memberIDs (full list), startIndex, batchSize
     const { factionId, factionName, memberIDs, startIndex, batchSize } = requestBody;
 
     if (!factionId || isNaN(factionId) || parseInt(factionId) <= 0 ||
@@ -176,7 +179,8 @@ exports.handler = async (event, context) => {
 
     try {
         const currentBatchIDs = memberIDs.slice(startIndex, startIndex + batchSize);
-        const result = await fetchAndSaveBatch(factionName, currentBatchIDs);
+        // Pass currentFactionId to fetchAndSaveBatch
+        const result = await fetchAndSaveBatch(factionName, factionId, currentBatchIDs); // Pass factionId to fetchAndSaveBatch
 
         const nextStartIndex = startIndex + currentBatchIDs.length;
         const isComplete = nextStartIndex >= memberIDs.length;
