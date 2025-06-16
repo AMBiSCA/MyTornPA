@@ -11,7 +11,7 @@ let totalMembersToProcess = 0;
 // New global variables for overall batch processing summary
 let totalProcessedSuccess = 0;
 let totalProcessedSkipped = 0;
-let totalProcessedErrors = 0;
+let totalProcessedErrors = 0;   // Reset new totals
 
 document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logoutButtonHeader');
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         finalMessage += ` Successfully processed ${totalProcessedSuccess} spy reports.`;
         if (totalProcessedSkipped > 0) finalMessage += ` Skipped ${totalProcessedSkipped} members (no spy report / invalid).`;
         if (totalProcessedErrors > 0) finalMessage += ` Failed to retrieve ${totalProcessedErrors} members (API errors).`;
-        finalMessage += ` Check Netlify logs for detailed progress.`;
+        finalMessage += `<br>Check Netlify logs for detailed progress.`;
         
         updateStatus(finalMessage, false);
     }
@@ -173,8 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const batchNumber = Math.floor(currentBatchStartIndex / BATCH_SIZE) + 1;
         const totalBatches = Math.ceil(totalMembersToProcess / BATCH_SIZE);
 
-        // Simplified status: just "Status: Running" during processing
-        updateStatus(`Status: Running. Processing batch ${batchNumber}/${totalBatches}.`, false);
+        // Only update status at the very beginning of the overall process.
+        // No per-batch status updates are needed per user request.
+        // updateStatus(`Processing batch ${batchNumber} of ${totalBatches} for ${currentFactionName} (ID: ${currentFactionId}). Players in this batch: ${currentBatch.length}. Total processed so far: ${currentBatchStartIndex}.`, false);
+        
         fetchFactionDataBtn.disabled = true; // Keep button disabled during processing
 
         try {
@@ -246,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            updateStatus(`Status: Running. Fetching members for Faction ID: ${currentFactionId} from Torn API...`, false);
+            // Simplified initial status: Just "Status: Running"
+            updateStatus(`Status: Running.`, false); 
             fetchFactionDataBtn.disabled = true; // Disable button immediately
 
             try {
@@ -269,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalMembersToProcess = result.totalMembers;
                     currentBatchStartIndex = 0; // Reset for start of new batch process
 
-                    updateStatus(`Status: Running. Found ${totalMembersToProcess} members for ${currentFactionName}. Starting batch processing...`, false);
+                    // No specific "Step 1/2 complete" message, just continue with "Running"
                     setTimeout(processNextBatch, 500); // Start processing first batch after slight delay
                 } else {
                     updateStatus(`Status: Finished. No members found for Faction ID ${currentFactionId}. Check faction ID.`, true); // Indicate finished with error for no members
