@@ -2,43 +2,34 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 
 // --- 1. Configuration: Retrieve from Netlify Environment Variables ---
-const TORNSTATS_API_KEY = process.env.TORN_STATS_MASTER_API_KEY;
+const TORNSTATS_API_KEY = process.env.TORN_STATS_MASTER_API_KEY; // Using your specified variable name
 const TORN_API_KEY = process.env.TORN_API_KEY;
 
-// Reconstruct Firebase Service Account from individual environment variables
-const FIREBASE_SERVICE_ACCOUNT = {
-    type: process.env.FIREBASE_TYPE,
-    project_id: process.env.FIREBASE_PROJECT_ID,
-    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-    private_key: process.env.FIREBASE_PRIVATE_KEY, // Removed the .replace() method
-    client_email: process.env.FIREBASE_CLIENT_EMAIL,
-    client_id: process.env.FIREBASE_CLIENT_ID,
-    auth_uri: process.env.FIREBASE_AUTH_URI,
-    token_uri: process.env.FIREBASE_TOKEN_URI,
-    auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-    client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
-    universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN
-};
+// --- Firebase Initialization (Modified for Base64 Credentials) ---
+// Retrieve the single base64 encoded string from Netlify Environment Variable
+const FIREBASE_CREDENTIALS_BASE64 = process.env.FIREBASE_CREDENTIALS_BASE64;
 
-
-// --- Firebase Initialization ---
 if (admin.apps.length === 0) {
     try {
-        if (!FIREBASE_SERVICE_ACCOUNT.private_key || !FIREBASE_SERVICE_ACCOUNT.client_email || !FIREBASE_SERVICE_ACCOUNT.project_id) {
-            console.error("Firebase Service Account Missing Components:", {
-                private_key: !!FIREBASE_SERVICE_ACCOUNT.private_key,
-                client_email: !!FIREBASE_SERVICE_ACCOUNT.client_email,
-                project_id: !!FIREBASE_SERVICE_ACCOUNT.project_id
-            });
-            throw new Error("Missing essential Firebase service account environment variables for initialization.");
+        if (!FIREBASE_CREDENTIALS_BASE64) {
+            const errorMsg = "CRITICAL: FIREBASE_CREDENTIALS_BASE64 environment variable is NOT SET. Cannot initialize Firebase Admin SDK.";
+            console.error(errorMsg);
+            throw new Error(errorMsg); // Propagate error
         }
+
+        // Decode the base64 string back to JSON
+        // Buffer is a Node.js global available in Netlify Functions
+        const decodedCredentialsJson = Buffer.from(FIREBASE_CREDENTIALS_BASE64, 'base64').toString('utf8');
+        const serviceAccount = JSON.parse(decodedCredentialsJson);
+
         admin.initializeApp({
-            credential: admin.credential.cert(FIREBASE_SERVICE_ACCOUNT)
+            credential: admin.credential.cert(serviceAccount)
         });
-        console.log("Firebase Admin SDK initialized successfully in Netlify Function.");
+        console.log("Firebase Admin SDK initialized successfully in Netlify Function using Base64 credentials.");
     } catch (error) {
-        console.error("ERROR: Firebase initialization failed. Check environment variables and their values. Details:", error);
-        throw new Error("Firebase initialization failed due to invalid service account configuration.");
+        console.error("ERROR: Firebase initialization failed using Base64 credentials. Details:", error);
+        // Re-throw to stop function execution as database access is critical
+        throw new Error(`Firebase initialization failed due to invalid service account configuration from Base64: ${error.message}`);
     }
 }
 const db = admin.firestore();
@@ -61,11 +52,13 @@ function getNumericOrDefault(sourceObject, key) {
  * Fetches faction name and members for a given faction ID using the Torn API.
  * @param {number} factionID - The ID of the faction to fetch.
  * @returns {object} An object containing factionName and an array of member IDs.
+ * @throws {Error} if Torn API Key is missing or API call fails.
  */
 async function getFactionInfoAndMembers(factionID) {
     if (!TORN_API_KEY) {
-        console.error("[CRITICAL] TORN_API_KEY is not set. Cannot fetch faction members.");
-        return { factionName: 'Unknown Faction', memberIDs: [] };
+        const errorMsg = "[CRITICAL] TORN_API_KEY is not set. Cannot fetch faction members. Please configure it in Netlify Environment Variables.";
+        console.error(errorMsg);
+        throw new Error(errorMsg);
     }
 
     const url = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${TORN_API_KEY}`;
@@ -81,6 +74,7 @@ async function getFactionInfoAndMembers(factionID) {
                 if (Array.isArray(response.data.members)) {
                     memberIDs = response.data.members.map(member => member.id);
                 } else if (typeof response.data.members === 'object') {
+                    // Common Torn API pattern: members object where keys are IDs
                     memberIDs = Object.keys(response.data.members).map(Number).filter(id => !isNaN(id) && id > 0);
                 }
             }
@@ -88,8 +82,9 @@ async function getFactionInfoAndMembers(factionID) {
             console.log(`  [DEBUG] Found ${memberIDs.length} members for faction ${factionID} (${factionName}).`);
             return { factionName, memberIDs };
         } else {
-            console.log(`  [INFO] No data found for faction ${factionID}. Response structure might be unexpected.`);
-            return { factionName: `Faction ${factionID}`, memberIDs: [] };
+            const infoMsg = `  [INFO] No data found for faction ${factionID}. Response structure might be unexpected or faction is empty.`;
+            console.log(infoMsg);
+            return { factionName: `Faction ${factionID}`, memberIDs: [] }; // Return empty, not throw
         }
 
     } catch (error) {
@@ -105,7 +100,7 @@ async function getFactionInfoAndMembers(factionID) {
             errorMessage = `Request setup error for Torn API faction ${factionID}: ${error.message}`;
         }
         console.error(`  [CRITICAL] ${errorMessage}`);
-        throw new Error(errorMessage); // Re-throw to indicate failure
+        throw new Error(errorMessage); // Re-throw to indicate failure to the caller
     }
 }
 
@@ -115,6 +110,7 @@ async function getFactionInfoAndMembers(factionID) {
  * @param {string} factionName - The name of the faction being processed.
  * @param {number[]} idsToProcess - An array of player IDs to fetch and save.
  * @returns {object} Summary of processed players.
+ * @throws {Error} if TornStats API Key is missing or API call fails for critical reasons.
  */
 async function fetchAndSave(factionName, idsToProcess) {
     if (!Array.isArray(idsToProcess) || idsToProcess.length === 0) {
@@ -134,9 +130,10 @@ async function fetchAndSave(factionName, idsToProcess) {
     if (!TORNSTATS_API_KEY) {
         const reason = "TORNSTATS_API_KEY is not set. Cannot fetch spy reports. Please configure it in Netlify Environment Variables.";
         console.error(`[CRITICAL] ${reason}`);
-        processedSummary.errorCount = idsToProcess.length; // Count all as errors
+        // If API key is missing, all attempts will fail. Report as errors for clarity.
+        processedSummary.errorCount = idsToProcess.length;
         processedSummary.errorDetails.push({ id: "N/A", reason: reason });
-        return { success: false, message: reason, processedSummary: processedSummary };
+        throw new Error(reason); // Critical failure, stop processing
     }
 
 
@@ -147,6 +144,9 @@ async function fetchAndSave(factionName, idsToProcess) {
                continue;
         }
 
+        // Use a consistent collection name here. From your frontend code, you use 'playerdatabase'.
+        // Make sure this matches your Firestore security rules.
+        const playerRef = db.collection('playerdatabase').doc(String(player_id));
         const url = `https://www.tornstats.com/api/v2/${TORNSTATS_API_KEY}/spy/user/${player_id}`;
 
         try {
@@ -154,8 +154,7 @@ async function fetchAndSave(factionName, idsToProcess) {
 
             if (response.status === 200 && response.data?.spy?.status === true) {
                 const spy_data = response.data.spy;
-                const playerRef = db.collection('players').doc(String(player_id));
-
+                
                 await playerRef.set({
                     player_id: parseInt(player_id),
                     player_name: spy_data.player_name,
@@ -171,7 +170,7 @@ async function fetchAndSave(factionName, idsToProcess) {
                     effective_speed: getNumericOrDefault(spy_data, 'effective_speed'),
                     effective_dexterity: getNumericOrDefault(spy_data, 'effective_dexterity'),
                     effective_total: getNumericOrDefault(spy_data, 'effective_total')
-                }, { merge: true });
+                }, { merge: true }); // Use merge: true to avoid overwriting other fields if they exist
 
                 console.log(`  [SUCCESS] Saved data for: ${spy_data.player_name} (${player_id})`);
                 processedSummary.successCount++;
@@ -231,7 +230,7 @@ exports.handler = async (event, context) => {
     if (!factionId || isNaN(factionId) || parseInt(factionId) <= 0) {
         return {
             statusCode: 400,
-            body: JSON.stringify({ success: false, message: "Missing or invalid 'factionId' in request body." })
+            body: JSON.stringify({ success: false, message: "Missing or invalid 'factionId' in request body. Must be a positive integer." })
         };
     }
 
@@ -243,6 +242,7 @@ exports.handler = async (event, context) => {
         if (memberIDs.length === 0) {
             return {
                 statusCode: 200,
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     success: true,
                     message: `No members found for Faction ${factionId} (${factionName}).`,
@@ -264,12 +264,13 @@ exports.handler = async (event, context) => {
                 success: result.success,
                 message: result.message || `Processed ${result.processedSummary.successCount} members for Faction ${factionName}.`,
                 factionName: factionName,
-                totalMembersFound: memberIDs.length,
-                processedSummary: result.processedSummary
+                totalMembersFound: memberIDs.length, // Total members found from Torn API (before spy attempts)
+                processedSummary: result.processedSummary // Detailed spy processing summary
             })
         };
     } catch (error) {
         console.error("Error in Netlify Function 'populate-torn-data':", error);
+        // Return a 500 with a more detailed message if possible, but avoid sensitive data
         return {
             statusCode: 500,
             headers: {
@@ -278,7 +279,7 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({
                 success: false,
                 message: "Internal server error during data population.",
-                details: error.message
+                details: error.message // Include error details for debugging
             })
         };
     }
