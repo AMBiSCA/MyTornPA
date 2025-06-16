@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const factionIdInput = document.getElementById('factionIdInput');
     const factionIdError = document.getElementById('factionIdError');
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
-    const saveToFirebaseBtn = document.getElementById('saveToFirebaseBtn');
+    const saveToFirebaseBtn = document.getElementById('saveToFirebaseBtn'); // This button is for a separate save functionality now, as the Netlify function saves directly
     const updatesBox = document.getElementById('updatesBox');
     const adminToolContainer = document.querySelector('.admin-tool-container'); // Get the main container
     const dataDisplayArea = document.createElement('div'); // New div for the table
@@ -294,24 +294,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Page Protection ---
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            console.log("Admin is logged in:", user.email);
-            // Optional: Further check if this specific user is allowed admin access via custom claims here
-            // This is client-side, Firestore rules provide the ultimate server-side protection for writes.
-        } else {
-            console.log("No admin logged in. Redirecting to login page...");
-            window.location.href = '/admin_login.html'; // Ensure redirect to root login
-        }
-    });
+    // Ensure firebase and firebase.auth are defined from the loaded SDKs in HTML
+    if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                console.log("Admin is logged in:", user.email);
+            } else {
+                console.log("No admin logged in. Redirecting to login page...");
+                window.location.href = '/admin_login.html'; // Ensure redirect to root login
+            }
+        });
+    } else {
+        console.error("Firebase Auth SDK not loaded. Cannot protect page.");
+        showMainError("Firebase authentication not available. Please check your internet connection or console for errors.");
+    }
 
     // --- Logout Functionality ---
     if (logoutButton) {
         logoutButton.addEventListener('click', async () => {
             try {
-                await firebase.auth().signOut();
-                updateStatus("Logged out successfully. Redirecting...", false);
-                window.location.href = '/admin_login.html'; // Ensure redirect to root login
+                if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
+                    await firebase.auth().signOut();
+                    updateStatus("Logged out successfully. Redirecting...", false);
+                    window.location.href = '/admin_login.html'; // Ensure redirect to root login
+                } else {
+                    updateStatus("Firebase Auth SDK not available for logout.", true);
+                    console.error("Firebase Auth SDK not loaded. Cannot perform logout.");
+                }
             } catch (error) {
                 console.error("Logout error:", error);
                 updateStatus(`Failed to log out: ${error.message}`, true);
@@ -322,21 +331,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Fetch All Data (via Netlify Function) Button Logic ---
     if (fetchFactionDataBtn) { // Ensure button exists before attaching listener
         fetchFactionDataBtn.addEventListener('click', async () => {
-            console.log("Fetch Faction Data button clicked!"); // LOG FOR DEBUGGING
+            console.log("Fetch Faction Data button clicked!");
             clearStatus(); // Clear previous messages
             dataDisplayArea.innerHTML = ''; // Clear previous data display
-            saveToFirebaseBtn.style.display = 'none'; // Hide save button
+            saveToFirebaseBtn.style.display = 'none'; // Hide save button initially
             combinedFactionMembersData = []; // Reset global data
 
             const factionId = factionIdInput.value.trim();
-            if (!factionId) {
-                factionIdError.textContent = 'Faction ID cannot be empty.';
-                updateStatus('Please enter a Faction ID.', true);
+            if (!factionId || isNaN(parseInt(factionId, 10))) { // Validate that it's a number
+                factionIdError.textContent = 'Please enter a valid numeric Faction ID.';
+                updateStatus('Invalid Faction ID entered.', true);
                 return;
             } else {
                 factionIdError.textContent = '';
             }
 
+            // Authentication check (using the main Firebase Auth listener)
             let currentAuthenticatedUser = firebase.auth().currentUser;
             if (!currentAuthenticatedUser) {
                 updateStatus("Not authenticated. Please log in again.", true);
@@ -344,15 +354,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            updateStatus(`Initiating data fetch for Faction ID: ${factionId} via Netlify Function...`);
+            updateStatus(`Initiating data fetch for Faction ID: ${factionId} (${currentAuthenticatedUser.email})...`);
+            // Disable button during fetch
+            fetchFactionDataBtn.disabled = true;
 
             try {
-                const netlifyFunctionUrl = '/.netlify/functions/getFactionData';
+                // Correct Netlify Function URL
+                const netlifyFunctionUrl = '/.netlify/functions/populate-torn-data'; // This is the correct name of your deployed Netlify Function
 
                 const response = await fetch(netlifyFunctionUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ factionId: factionId })
+                    body: JSON.stringify({ factionId: parseInt(factionId, 10) }) // Send the Faction ID from the input
                 });
 
                 if (!response.ok) {
@@ -362,31 +375,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const result = await response.json();
 
-                if (result.error) {
-                    throw new Error(`Netlify Function reported error: ${result.error}`);
-                }
+                if (result.success) { // Our Netlify Function returns { success: true, ... }
+                    const totalMembers = result.totalMembersFound;
+                    const processedSuccess = result.processedSummary.successCount;
+                    const processedSkipped = result.processedSummary.skippedCount;
+                    const processedErrors = result.processedSummary.errorCount;
+                    const factionName = result.factionName || `Faction ${factionId}`;
 
-                if (result.members && result.members.length > 0) {
-                    combinedFactionMembersData = result.members;
-                    updateStatus(`Successfully fetched data for ${result.factionName || 'Faction ' + result.factionId}. Found ${result.members.length} members.`, false);
-                    renderDataTable(combinedFactionMembersData);
-                    saveToFirebaseBtn.style.display = 'block';
+                    let finalMessage = `Successfully processed data for ${factionName} (ID: ${factionId}). Found ${totalMembers} members.`;
+                    finalMessage += `<br>Saved ${processedSuccess} spy reports to Firebase.`;
+                    if (processedSkipped > 0) finalMessage += ` Skipped ${processedSkipped} members (no spy report / invalid).`;
+                    if (processedErrors > 0) finalMessage += ` Failed to retrieve ${processedErrors} members (API errors).`;
+                    finalMessage += `<br>Check Netlify logs for detailed progress.`;
+
+                    updateStatus(finalMessage, false);
+                    console.log("Netlify Function Result:", result);
+
+                    // Note: The Netlify function now *saves directly to Firebase*.
+                    // The frontend is no longer responsible for saving, just for displaying the status.
+                    // If you still want to fetch Torn API data to display in the table, you'd need
+                    // to modify the Netlify function to return that data or make separate calls.
+                    // For now, renderDataTable will not receive the full combined data for display.
+                    // The table will remain empty or will need its own fetch logic.
+                    // Let's adjust for displaying the *saved* status, not the fetched table data
+                    // as your Netlify function now only saves the spy reports.
+                    // If you want the table to populate, the Netlify function would need to return
+                    // the full member data it received from Torn API *before* attempting to spy.
+                    // For now, let's just focus on the spy data status.
+
+                    // If you still want to display members, the Netlify function needs to return a list of Torn API members
+                    // AND their spy status (successful/failed) in an array.
+                    // For now, I'm assuming the primary goal is to get data into Firebase.
+                    // If you want a table of all members fetched from Torn API + their spy status,
+                    // the Netlify Function needs further modification to return that structured data.
+                    // As it stands, the Netlify function only returns the processing summary.
+                    dataDisplayArea.innerHTML = '<p style="color:#ffcc00; text-align:center;">Spy reports for this faction processed and saved to Firebase. Table display of full member data is not currently enabled for this tool\'s output.</p>';
+                    saveToFirebaseBtn.style.display = 'none'; // Keep save button hidden as saving happens on backend
+
                 } else {
-                    updateStatus('Netlify Function returned no member data. Check faction ID or API keys on Netlify.', true);
-                    console.error("Netlify Function result:", result);
+                    // Netlify Function itself indicated a failure
+                    console.error('Netlify Function reported failure:', result);
+                    updateStatus(`Netlify Function reported an issue: ${result.message || 'Unknown error'}. Check Netlify logs.`, true);
                 }
 
             } catch (error) {
+                // Catch network errors or errors thrown from the fetch operation
                 updateStatus(`Error during Netlify Function call: ${error.message}`, true);
                 console.error("Netlify Function call error:", error);
                 showMainError(`Failed to fetch data: ${error.message}`);
                 dataDisplayArea.innerHTML = '';
+            } finally {
+                // Re-enable button
+                fetchFactionDataBtn.disabled = false;
             }
         });
     } // End if (fetchFactionDataBtn)
 
     // --- Save to Firebase Button Logic ---
-    if (saveToFirebaseBtn) { // Ensure button exists before attaching listener
+    // (Keeping this section as is for completeness, but note it's not part of the primary
+    // "Fetch Faction Data" flow since the Netlify function now saves directly.)
+    if (saveToFirebaseBtn) {
         saveToFirebaseBtn.addEventListener('click', async () => {
             if (combinedFactionMembersData.length === 0) {
                 updateStatus("No data to save.", true);
@@ -394,7 +442,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             updateStatus("Saving data to Firebase 'playerdatabase' collection...", false);
-            saveToFirebaseBtn.disabled = true; // Disable button to prevent double-click
+            saveToFirebaseBtn.disabled = true;
+
+            // Ensure db is defined from the loaded Firebase SDKs in HTML
+            if (typeof db === 'undefined') {
+                updateStatus("Firebase Firestore SDK not loaded. Cannot save data.", true);
+                console.error("Firebase Firestore SDK not loaded. Please check your HTML script includes.");
+                saveToFirebaseBtn.disabled = false;
+                return;
+            }
 
             try {
                 const batch = db.batch();
@@ -404,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const memberId = String(memberRecord.memberId);
                     const docRef = db.collection("playerdatabase").doc(memberId);
                     
-                    // Add/update server timestamp right before saving to Firestore
                     const recordToSave = {
                         ...memberRecord,
                         lastSaved: firebase.firestore.FieldValue.serverTimestamp()
@@ -417,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await batch.commit();
                 updateStatus(`Successfully saved ${savedCount} member records to 'playerdatabase'!`, false);
                 console.log(`Successfully saved ${savedCount} member records to Firebase.`);
-                combinedFactionMembersData = []; // Clear data after saving
+                combinedFactionMembersData = [];
                 saveToFirebaseBtn.style.display = 'none';
                 factionIdInput.value = '';
                 dataDisplayArea.innerHTML = '';
