@@ -288,36 +288,95 @@ async function handleIndividualCheck(user, tornStatsApiKey) {
     }
 }
 
-// NOTE: Modified to accept user and tornStatsApiKey
-async function handleFactionCheck(user, tornStatsApiKey) { 
+async function handleFactionCheck(user, tornStatsApiKey) { // tornStatsApiKey is passed, but we'll re-fetch both keys securely from Firestore
     clearAllInputErrors();
     const targetFactionId = document.getElementById('factionId').value.trim();
     const factionStatsResultsDiv = document.getElementById('factionStatsResults');
-    const tornStatsApiKeyError = document.getElementById('tornStatsApiKeyError'); 
-
+    const tornStatsApiKeyError = document.getElementById('tornStatsApiKeyError'); // For general API key errors
 
     let isValid = true;
-    // Check if TornStats API key was provided
-    if (!tornStatsApiKey) {
-        const message = 'TornStats API Key not available. Please sign in or set your key in profile.';
-        if(tornStatsApiKeyError) tornStatsApiKeyError.textContent = message;
+    let tornApiKey; // To hold the Torn.com API key
+
+    // Ensure user is authenticated and keys are available
+    if (!user) {
+        showMainError('User not authenticated. Please log in.');
+        return;
+    }
+
+    try {
+        // Fetch both API keys from Firestore (securely on client, but better on backend if possible)
+        const userDocRef = db.collection('userProfiles').doc(user.uid);
+        const userDoc = await userDocRef.get();
+
+        if (!userDoc.exists) {
+            const message = 'User profile not found in database. Cannot fetch API keys.';
+            if (tornStatsApiKeyError) tornStatsApiKeyError.textContent = message;
+            showMainError(message);
+            return;
+        }
+
+        const userData = userDoc.data();
+        tornApiKey = userData.tornApiKey; // Assuming this key exists in your Firestore userProfile
+        // tornStatsApiKey is already passed as an argument, but ensure it's not empty
+        tornStatsApiKey = userData.tornStatsApiKey; // Fetch again for robustness if arg was bad
+
+        if (!tornApiKey) {
+            const message = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid key and ensure "Faction" permission is enabled.';
+            if (tornStatsApiKeyError) tornStatsApiKeyError.textContent = message;
+            showMainError(message);
+            isValid = false;
+        }
+        if (!tornStatsApiKey) {
+            const message = 'Your TornStats API Key is not set in your profile. Please update your profile settings with a valid key.';
+            if (tornStatsApiKeyError) tornStatsApiKeyError.textContent = message;
+            showMainError(message);
+            isValid = false;
+        }
+
+    } catch (error) {
+        console.error("Error fetching API keys from Firestore:", error);
+        const message = `Failed to retrieve API keys from profile: ${error.message}`;
+        if (tornStatsApiKeyError) tornStatsApiKeyError.textContent = message;
         showMainError(message);
         isValid = false;
     }
+
 
     if (!targetFactionId || isNaN(targetFactionId)) {
         document.getElementById('factionIdError').textContent = 'Valid Target Faction ID is required.';
         isValid = false;
     }
+
     if (!isValid) return;
+
     if(factionStatsResultsDiv) factionStatsResultsDiv.textContent = 'Fetching faction members...';
     let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
 
-    try {
-        const factionListUrl = `https://www.tornstats.com/api/v2/${tornStatsApiKey}/spy/faction/${targetFactionId}`; 
-        const factionListData = await fetchApi(factionListUrl);
-        if(factionStatsResultsDiv) factionStatsResultsDiv.textContent = ''; 
+    const BATCH_SIZE = 5;
+    const DELAY_BETWEEN_BATCHES = 1000; // 1 second delay between batches
 
+    try {
+        // --- Step 1: Get Faction Members from TORN API (more reliable for roster) ---
+        const tornApiUrl = `https://api.torn.com/faction/${targetFactionId}?selections=basic&key=${tornApiKey}`;
+        const tornFactionData = await fetchApi(tornApiUrl); // Using your existing fetchApi helper
+
+        if (tornFactionData.error) {
+            const errorMessage = tornFactionData.error.error;
+            throw new Error(`Torn API Faction Error: ${errorMessage}. Check your Torn.com API key and 'Faction' permission.`);
+        }
+        if (!tornFactionData.members || Object.keys(tornFactionData.members).length === 0) {
+            throw new Error(`No members found for Faction ID ${targetFactionId}. Check faction ID or its privacy.`);
+        }
+
+        const factionName = tornFactionData.name || `Faction ${targetFactionId}`;
+        const memberIds = Object.keys(tornFactionData.members);
+        const totalMembers = memberIds.length;
+        let processedCount = 0;
+        let successfulRetrievals = 0;
+        let errorCount = 0;
+        let skippedCount = 0; // For TornStats specific issues
+
+        // Prepare modal display
         const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
         const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
         const tableHeader = document.getElementById('modal-results-table-header');
@@ -327,111 +386,109 @@ async function handleFactionCheck(user, tornStatsApiKey) {
         if (tableHeader) tableHeader.innerHTML = '';
         if (tableBody) tableBody.innerHTML = '';
 
-        if (!factionListData.status || !factionListData.faction || !factionListData.faction.members || Object.keys(factionListData.faction.members).length === 0) {
-            const errorMessage = factionListData.message || "No members found or invalid Faction ID/API Key.";
-            if (modalSummary) modalSummary.innerHTML = `Faction: <span>${targetFactionId}</span> | Status: <span style="color: #ff4d4d;">${errorMessage}</span>`;
-            displayErrorInModal(`Error with faction data: ${errorMessage} (Faction ID: ${targetFactionId})`);
-            showResultsModal();
-            return;
-        }
-
-        const factionName = factionListData.faction.name || `Faction ${targetFactionId}`;
-        const members = factionListData.faction.members;
-        const memberIds = Object.keys(members);
-        const totalMembers = memberIds.length;
-        let processedCount = 0; // Still needed for the progress calculation in factionStatsResultsDiv
-        let successfulRetrievals = 0;
-
         if (modalSummary) {
-            modalSummary.innerHTML = `Faction: <span>${factionName}</span> | Total Members: <span>${totalMembers}</span> | Successful: <span id="modal-successful-count">0</span>`;
+            modalSummary.innerHTML = `Faction: <span>${factionName}</span> | Total Members: <span>${totalMembers}</span> | Successful: <span id="modal-successful-count">0</span> | Skipped: <span id="modal-skipped-count">0</span> | Failed: <span id="modal-failed-count">0</span>`;
         }
         const headers = ["Name", "ID", "Strength", "Defense", "Speed", "Dexterity", "Total"];
         const headerRow = document.createElement('tr');
         headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
         if (tableHeader) tableHeader.appendChild(headerRow);
-        showResultsModal(); 
+        showResultsModal();
 
         if(factionStatsResultsDiv) factionStatsResultsDiv.textContent = `Processing stats for ${totalMembers} members... (0%)`;
-        
-        const BATCH_SIZE = 5; 
-        const DELAY_BETWEEN_BATCHES = 300; 
 
+
+        // --- Step 2: Process Individual Spy Data in Batches from TornStats V2 ---
         for (let i = 0; i < totalMembers; i += BATCH_SIZE) {
             const batchMemberIds = memberIds.slice(i, i + BATCH_SIZE);
-            
-            const batchPromises = batchMemberIds.map(memberId => {
-                const memberUrl = `https://www.tornstats.com/api/v2/${tornStatsApiKey}/spy/user/${memberId}`; 
-                return fetchApi(memberUrl)
-                    .then(data => ({ status_internal: 'fulfilled', memberId: memberId, data: data })) 
-                    .catch(error => ({ status_internal: 'rejected', memberId: memberId, reason: error }));
+
+            const batchPromises = batchMemberIds.map(async (memberId) => {
+                const memberUrl = `https://www.tornstats.com/api/v2/${tornStatsApiKey}/spy/user/${memberId}`;
+                try {
+                    const data = await fetchApi(memberUrl); // Using your existing fetchApi helper
+
+                    if (!data.spy || data.spy.status === false || data.spy.total === undefined) {
+                        const message = data.message || data.spy?.message || "No spy data";
+                        console.warn(`Skipped spy data for user ${memberId}: ${message}`);
+                        skippedCount++;
+                        return { status: 'skipped', memberId: memberId, name: tornFactionData.members[memberId]?.name, message: message };
+                    }
+                    successfulRetrievals++;
+                    return { status: 'success', memberId: memberId, data: data.spy };
+
+                } catch (error) {
+                    console.error(`Error fetching spy data for user ${memberId}:`, error);
+                    errorCount++;
+                    return { status: 'error', memberId: memberId, name: tornFactionData.members[memberId]?.name, message: error.message };
+                }
             });
 
             const batchResults = await Promise.allSettled(batchPromises);
 
             for (const result of batchResults) {
-                processedCount++; // Still increment processedCount for the external progress bar
+                processedCount++;
                 const percentComplete = totalMembers > 0 ? Math.round((processedCount / totalMembers) * 100) : 0;
                 if(factionStatsResultsDiv) factionStatsResultsDiv.innerHTML = `Processing stats for ${totalMembers} members... (${percentComplete}%)`;
 
-                // Removed the update for 'modal-processed-count' as it's no longer displayed in the modal summary
+                const successfulCountSpan = document.getElementById('modal-successful-count');
+                if(successfulCountSpan) successfulCountSpan.textContent = successfulRetrievals;
+                const skippedCountSpan = document.getElementById('modal-skipped-count');
+                if(skippedCountSpan) skippedCountSpan.textContent = skippedCount;
+                const failedCountSpan = document.getElementById('modal-failed-count');
+                if(failedCountSpan) failedCountSpan.textContent = errorCount;
 
-                if (result.status === 'fulfilled' && result.value.status_internal === 'fulfilled') {
-                    const { memberId, data: memberData } = result.value;
-                    if (memberData.spy && memberData.spy.status !== false && memberData.spy.total !== undefined) {
-                        successfulRetrievals++;
-                        const spy = memberData.spy;
-                        const tr = document.createElement('tr');
-                        tr.insertCell().textContent = spy.player_name || members[memberId]?.name || 'N/A';
-                        tr.insertCell().textContent = memberId;
-                        tr.insertCell().textContent = formatBattleStat(spy.strength);
-                        tr.insertCell().textContent = formatBattleStat(spy.defense);
-                        tr.insertCell().textContent = formatBattleStat(spy.speed);
-                        tr.insertCell().textContent = formatBattleStat(spy.dexterity);
-                        tr.insertCell().textContent = formatBattleStat(spy.total);
-                        if (tableBody) tableBody.appendChild(tr);
-                    } else {
-                        const tr = document.createElement('tr');
-                        tr.insertCell().textContent = members[memberId]?.name || `User ${memberId}`;
-                        tr.insertCell().textContent = memberId;
-                        const noDataCell = tr.insertCell();
-                        noDataCell.textContent = memberData.spy?.message || memberData.message || "No spy data";
-                        noDataCell.colSpan = headers.length - 2;
-                        noDataCell.style.color = "#aaa";
-                        if (tableBody) tableBody.appendChild(tr);
-                    }
-                } else { 
-                    const memberId = result.value?.memberId || (result.reason?.memberId || batchMemberIds[batchResults.indexOf(result)] || "Unknown ID");
-                    const errorReason = result.value?.reason || result.reason;
+                if (result.status === 'fulfilled') {
+                    const { status, memberId, name, data, message } = result.value;
                     const tr = document.createElement('tr');
-                    tr.insertCell().textContent = members[memberId]?.name || `User ${memberId}`;
+                    tr.insertCell().textContent = name || tornFactionData.members[memberId]?.name || `User ${memberId}`;
+                    tr.insertCell().textContent = memberId;
+
+                    if (status === 'success' && data) {
+                        tr.insertCell().textContent = formatBattleStat(data.strength);
+                        tr.insertCell().textContent = formatBattleStat(data.defense);
+                        tr.insertCell().textContent = formatBattleStat(data.speed);
+                        tr.insertCell().textContent = formatBattleStat(data.dexterity);
+                        tr.insertCell().textContent = formatBattleStat(data.total);
+                    } else {
+                        const statusCell = tr.insertCell();
+                        statusCell.textContent = message || (status === 'skipped' ? 'No spy data' : 'Error fetching');
+                        statusCell.colSpan = headers.length - 2;
+                        statusCell.style.color = (status === 'skipped' ? '#ffcc00' : '#ff4d4d'); // Yellow for skipped, red for error
+                    }
+                    if (tableBody) tableBody.appendChild(tr);
+
+                } else { // result.status === 'rejected' due to network error or other unhandled fetch issue
+                    const memberId = result.reason?.memberId || 'Unknown ID';
+                    const name = tornFactionData.members[memberId]?.name || `User ${memberId}`;
+                    const tr = document.createElement('tr');
+                    tr.insertCell().textContent = name;
                     tr.insertCell().textContent = memberId;
                     const errorCell = tr.insertCell();
-                    errorCell.textContent = `Error: ${String(errorReason).substring(0,50)}`;
+                    errorCell.textContent = `Fetch Error: ${result.reason.message || 'Unknown'}`;
                     errorCell.colSpan = headers.length - 2;
                     errorCell.style.color = "#ff4d4d";
                     if (tableBody) tableBody.appendChild(tr);
-                    console.error(`Error fetching stats for member ${memberId}:`, errorReason);
+                    console.error(`Unhandled error for member ${memberId}:`, result.reason);
                 }
-                const successfulCountSpan = document.getElementById('modal-successful-count');
-                if(successfulCountSpan) successfulCountSpan.textContent = successfulRetrievals;
             }
 
-            if (i + BATCH_SIZE < totalMembers) { 
-                await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES)); 
+            // Add a delay before the next batch, unless it's the last batch
+            if (i + BATCH_SIZE < totalMembers) {
+                await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
             }
         }
 
-        if(factionStatsResultsDiv) factionStatsResultsDiv.textContent = `Processed ${totalMembers} members. View results in modal.`;
-         if (successfulRetrievals === 0 && totalMembers > 0) {
+        if(factionStatsResultsDiv) factionStatsResultsDiv.textContent = `Processed ${totalMembers} members for ${factionName}. View results in modal.`;
+        if (successfulRetrievals === 0 && totalMembers > 0) {
             displayErrorInModal(`Processed ${totalMembers} members for ${factionName}, but no spy data was successfully retrieved. Check API key permissions or member privacy settings.`);
-        } else if (tableBody && tableBody.childElementCount === 0 && totalMembers > 0) { 
+        } else if (tableBody && tableBody.childElementCount === 0 && totalMembers > 0) {
             displayErrorInModal(`No data could be displayed for faction ${factionName} despite processing members.`);
         }
 
     } catch (error) {
-        console.error("Faction Check Error (Outer):", error); 
+        console.error("Faction Check Error (Outer):", error);
         if(factionStatsResultsDiv) factionStatsResultsDiv.textContent = `Error: ${error.message.substring(0,100)}`;
-        displayErrorInModal(`Error fetching faction spy data: ${error.message}`);
+        displayErrorInModal(`Error fetching faction data: ${error.message}`);
     } finally {
         clearTimeout(loadingTimeoutId);
         hideLoadingSpinner();
