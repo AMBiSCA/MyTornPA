@@ -597,77 +597,90 @@ async function fetchData(user) { // <--- Added 'user' parameter
         const modalTableBody = document.getElementById('modal-results-table-body');
         if (modalTableBody) modalTableBody.innerHTML = ''; // Clear table body before populating
 
-        // Iterate sequentially with delay
-        for (let i = 0; i < factionMembersIds.length; i++) {
-            const memberId = factionMembersIds[i];
-            let combinedData = { member_id_for_table: memberId };
-            let overallStatus = true;
-            let errors = [];
-            const primarySelections = 'basic,profile';
-            // Use the fetched API key here
-            const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${currentApiKey}`;
+        // BATCH PROCESSING CONFIGURATION
+        const batchSize = 5; // Number of users to fetch concurrently in each batch
+        const delayBetweenBatchesMs = 500; // Delay in milliseconds between batches
 
-            try {
-                const response1 = await fetch(primaryDataUrl);
-                if (!response1.ok) {
-                    errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status})`);
-                    overallStatus = false;
-                } else {
-                    const data1 = await response1.json();
-                    if (data1.error) {
-                        errors.push(`Primary API (basic,profile): ${data1.error.error}`);
+        for (let i = 0; i < factionMembersIds.length; i += batchSize) {
+            const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
+
+            // Create an array of promises for the current batch
+            const batchPromises = batchMemberIds.map(async (memberId) => {
+                let combinedData = { member_id_for_table: memberId };
+                let overallStatus = true;
+                let errors = [];
+                const primarySelections = 'basic,profile';
+                const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${currentApiKey}`;
+
+                try {
+                    const response1 = await fetch(primaryDataUrl);
+                    if (!response1.ok) {
+                        errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status})`);
                         overallStatus = false;
                     } else {
-                        combinedData = { ...combinedData, ...data1 };
-                    }
-                }
-            } catch (e) {
-                errors.push(`Primary Network Err (basic,profile): ${e.message.substring(0, 50)}`);
-                overallStatus = false;
-            }
-
-            if (personalStatsNeeded && overallStatus) {
-                const personalStatsSelection = 'personalstats';
-                // Use the fetched API key here
-                const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${currentApiKey}`;
-                try {
-                    const response2 = await fetch(personalStatsDataUrl);
-                    if (!response2.ok) {
-                        errors.push(`PersonalStats Fetch (HTTP ${response2.status})`);
-                    } else {
-                        const data2 = await response2.json();
-
-                        // --- UNCOMMENTED LOG for data2 structure ---
-                        console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
-
-                        if (data2.error) {
-                            errors.push(`PersonalStats API: ${data2.error.error}`);
+                        const data1 = await response1.json();
+                        if (data1.error) {
+                            errors.push(`Primary API (basic,profile): ${data1.error.error}`);
+                            overallStatus = false;
                         } else {
-                            combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
+                            combinedData = { ...combinedData, ...data1 };
                         }
                     }
                 } catch (e) {
-                    errors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
+                    errors.push(`Primary Network Err (basic,profile): ${e.message.substring(0, 50)}`);
+                    overallStatus = false;
                 }
-            } else if (personalStatsNeeded && !overallStatus) {
-                errors.push("Skipped personalstats due to primary fetch error.");
-            }
 
-            if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
-            if (!combinedData.name && members[memberId] && members[memberId].name) {
-                combinedData.name = members[memberId].name;
-            }
+                if (personalStatsNeeded && overallStatus) {
+                    const personalStatsSelection = 'personalstats';
+                    const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${currentApiKey}`;
+                    try {
+                        const response2 = await fetch(personalStatsDataUrl);
+                        if (!response2.ok) {
+                            errors.push(`PersonalStats Fetch (HTTP ${response2.status})`);
+                        } else {
+                            const data2 = await response2.json();
+                            console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
+                            if (data2.error) {
+                                errors.push(`PersonalStats API: ${data2.error.error}`);
+                            } else {
+                                combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
+                            }
+                        }
+                    } catch (e) {
+                        errors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
+                    }
+                } else if (personalStatsNeeded && !overallStatus) {
+                    errors.push("Skipped personalstats due to primary fetch error.");
+                }
 
-            // --- UNCOMMENTED LOG for final combinedData.personalstats before getValueForStat ---
-            if (personalStatsNeeded) {
-                console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
-            }
+                if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
+                if (!combinedData.name && members[memberId] && members[memberId].name) {
+                    combinedData.name = members[memberId].name;
+                }
 
-            allUserResults.push({ memberId, data: combinedData, status: !combinedData.error });
+                if (personalStatsNeeded) {
+                    console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
+                }
+                return { memberId, data: combinedData, status: !combinedData.error };
+            });
 
-            // Introduce a delay after each user's data is fetched
-            if (i < factionMembersIds.length - 1) { // Don't sleep after the very last request
-                await sleep(500); // Increased delay to 500 milliseconds
+            // Wait for all promises in the current batch to settle
+            const batchResults = await Promise.allSettled(batchPromises);
+            batchResults.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    allUserResults.push(result.value);
+                } else {
+                    // Handle rejected promises from the batch
+                    console.error("Batch promise rejected:", result.reason);
+                    // You might want to push a placeholder or error object here for proper table display
+                    allUserResults.push({ memberId: result.reason?.memberId || 'Unknown ID', data: { error: { error: `Request rejected: ${result.reason?.message || 'Unknown error'}` } }, status: false });
+                }
+            });
+
+            // Introduce a delay after each batch, if it's not the last batch
+            if (i + batchSize < factionMembersIds.length) {
+                await sleep(delayBetweenBatchesMs);
             }
         }
 
