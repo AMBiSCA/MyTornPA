@@ -5,7 +5,7 @@ let currentFactionMembers = []; // Stores all member IDs for the current faction
 let currentFactionName = "";
 let currentFactionId = "";
 let currentBatchStartIndex = 0;
-const BATCH_SIZE = 10; // Process 10 players per batch invocation
+const BATCH_SIZE = 5; // Process 5 players per batch invocation <--- CORRECTED THIS LINE
 let totalMembersToProcess = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper for updates box ---
     function updateStatus(message, isError = false) {
         const timestamp = new Date().toLocaleTimeString();
-        updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${message}</p>`;
+        updatesBox.innerHTML += `<p style="color:<span class="math-inline">\{isError ? '\#ff4d4d' \: '\#eee'\};"\><strong\>\[</span>{timestamp}]</strong> ${message}</p>`;
         updatesBox.scrollTop = updatesBox.scrollHeight; // Scroll to bottom
     }
     function clearStatus() {
