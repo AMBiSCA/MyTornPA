@@ -599,7 +599,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
         // BATCH PROCESSING CONFIGURATION
         const batchSize = 5; // Number of users to fetch concurrently in each batch
-        const delayBetweenBatchesMs = 1000; // Delay in milliseconds between batches (increased to 1 second)
+        const delayBetweenBatchesMs = 1500; // Delay in milliseconds between batches (increased to 1.5 seconds)
 
         for (let i = 0; i < factionMembersIds.length; i += batchSize) {
             const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
