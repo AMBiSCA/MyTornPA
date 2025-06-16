@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cleanedMessage = cleanedMessage.substring(problematicPrefix.length);
         }
 
-        updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${cleanedMessage}</p>`;
+        updatesBox.innerHTML += `<p style="color:<span class="math-inline">\{isError ? '\#ff4d4d' \: '\#eee'\};"\><strong\>\[</span>{timestamp}]</strong> ${cleanedMessage}</p>`;
         updatesBox.scrollTop = updatesBox.scrollHeight;
     }
     function clearStatus() {
@@ -134,18 +134,26 @@ document.addEventListener('DOMContentLoaded', () => {
         totalProcessedSuccess = 0;
         totalProcessedSkipped = 0;
         totalProcessedErrors = 0;
-        totalFactionsProcessed = 0; // Reset for overall count
-        totalFactionsToAttempt = 0; // Reset for overall count
+        totalFactionsProcessed = 0; 
+        totalFactionsToAttempt = 0; 
         clearStatus();
         dataDisplayArea.innerHTML = '';
         saveToFirebaseBtn.style.display = 'none';
     }
 
     /**
-     * Displays the overall final status message after the entire multi-faction process.
+     * Displays the overall final status message after the entire multi-faction process or single faction.
      */
     function displayOverallFinalStatus() {
-        updateStatus(`Status: Finished. Refresh a total of ${totalFactionsToAttempt} Factions.`, false);
+        let finalMessage = `Status: Finished.`;
+        if (totalFactionsToAttempt > 1) { // More than 1 faction processed overall
+            finalMessage += ` Refresh a total of ${totalFactionsToAttempt} Factions.`;
+        } else { // Single faction processed
+            finalMessage += ` Found ${totalMembersToProcess} members. Successfully processed ${totalProcessedSuccess} spy reports.`;
+            if (totalProcessedSkipped > 0) finalMessage += ` Skipped ${totalProcessedSkipped}.`;
+            if (totalProcessedErrors > 0) finalMessage += ` Failed ${totalProcessedErrors}.`;
+        }
+        updateStatus(finalMessage, false);
         console.log(`Overall batch processing finished. Total factions attempted: ${totalFactionsToAttempt}.`);
     }
 
@@ -158,11 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentBatchStartIndex >= totalMembersToProcess) {
             console.log("Batch processing finished for current faction.");
             totalFactionsProcessed++; // Increment the count of successfully processed factions
-            return; // Indicate completion of this faction's batches
+            return; 
         }
 
         const currentBatch = currentFactionMembers.slice(currentBatchStartIndex, currentBatchStartIndex + BATCH_SIZE);
-        // No per-batch status updates are needed per user request.
         
         try {
             const response = await fetch('/.netlify/functions/process-spy-batch', {
@@ -201,12 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            updateStatus(`Status: Running. Error during processing. Check console for details.`, true); // Generic error message for display
+            updateStatus(`Status: Running. Error during processing. Check console for details.`, true); 
             console.error(`Batch processing error for Faction ${currentFactionId}: ${error.message}. Process stopped for this faction.`, error);
             showMainError(`Failed to process: ${error.message}`);
-            // Don't disable buttons here, let the orchestrator handle.
-            totalFactionsProcessed++; // Count this faction as attempted, even with error
-            throw error; // Propagate error to stop current faction's processing
+            totalFactionsProcessed++; 
+            throw error;
         }
     }
 
@@ -234,11 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             updateStatus(`Status: Running.`, false); 
-            fetchFactionDataBtn.disabled = true; // Disable single fetch button
+            fetchFactionDataBtn.disabled = true;
             refreshDatabaseFactionsBtn.disabled = true; // Disable the other button too
 
             try {
-                const response = await fetch('/.netlify/functions/get-faction-members', { // Call the new initial function
+                const response = await fetch('/.netlify/functions/get-faction-members', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
@@ -259,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalFactionsToAttempt = 1; // For a single faction run
 
                     await new Promise(resolve => setTimeout(resolve, 500));
-                    await processNextBatch(); // This will complete all batches for this single faction
+                    await processNextBatch(); 
 
                     displayOverallFinalStatus(); // Display final status after single faction is done
                     fetchFactionDataBtn.disabled = false;
@@ -273,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 totalFactionsToAttempt = 1; // For a single faction run
-                updateStatus(`Status: Running. Error fetching members list. Check console for details.`, true); // Generic error message for display
+                updateStatus(`Status: Running. Error fetching members list. Check console for details.`, true); 
                 console.error("Initial member list fetch error:", error);
                 showMainError(`Failed to fetch faction members: ${error.message}`);
                 fetchFactionDataBtn.disabled = false;
@@ -294,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchFactionDataBtn.disabled = true;
             refreshDatabaseFactionsBtn.disabled = true;
 
-            resetBatchProcessState(); // Clear any previous status/state
+            resetBatchProcessState(); 
 
             updateStatus("Status: Running.", false); // Initial running status for multi-faction run
 
@@ -340,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 totalFactionsToAttempt = 0; // Assume 0 if initial fetch fails
-                updateStatus(`Error fetching database faction IDs: ${error.message}. Process stopped.`, true);
+                updateStatus(`Status: Running. Error fetching database faction IDs. Check console for details.`, true); // Generic error message for display
                 console.error("Error fetching database faction IDs:", error);
                 showMainError(`Failed to fetch database faction IDs: ${error.message}`);
                 fetchFactionDataBtn.disabled = false;
@@ -405,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 processNextDbFaction(); // Recursively call for the next faction
                 
             } else {
-                updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true); // Brief error, but still running overall
+                updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true); // Brief internal info, but still running overall
                 console.warn(`No members found for database Faction ID ${currentFactionId}.`);
                 currentDbFactionIndex++;
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -413,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            updateStatus(`Status: Running. Error processing database Faction ID ${currentFactionId}. Skipping.`, true); // Brief error, but still running overall
+            updateStatus(`Status: Running. Error processing database Faction ID ${currentFactionId}. Skipping.`, true); // Brief internal info, but still running overall
             console.error(`Error processing database faction ${currentFactionId}:`, error);
             currentDbFactionIndex++;
             await new Promise(resolve => setTimeout(resolve, 2000));
