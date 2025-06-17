@@ -119,7 +119,7 @@ exports.handler = async (event, context) => {
                 return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin TornStats API Key not set in profile (needed for target stats).' }) };
             }
 
-            const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`; // Use personalstats for self
+     const selfStatsUrl = `https://api.torn.com/user/?selections=basic,battlestats&key=${adminTornApiKey}`;
             const selfStatsResponse = await axios.get(selfStatsUrl);
             const selfData = selfStatsResponse.data;
 
