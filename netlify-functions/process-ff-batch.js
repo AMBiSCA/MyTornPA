@@ -83,7 +83,7 @@ exports.handler = async (event, context) => {
         }
 
         // Fetch admin's own battle stats and level from Torn API using their key
-        const selfStatsUrl = `https://api.torn.com/user/?selections=basic,battlestats&key=${adminTornApiKey}`;
+        const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`; // --- CHANGED TO PERSONALSTATS ---
         const selfStatsResponse = await axios.get(selfStatsUrl);
         const selfData = selfStatsResponse.data;
 
@@ -91,7 +91,7 @@ exports.handler = async (event, context) => {
             console.error("Admin self stats Torn API Error:", selfData.error.error);
             return {
                 statusCode: 403,
-                body: JSON.stringify({ success: false, message: `Failed to fetch admin's own stats from Torn API: ${selfData.error.error}. Check admin's Torn API key permissions (Basic, Battlestats).` }),
+                body: JSON.stringify({ success: false, message: `Failed to fetch admin's own stats from Torn API: ${selfData.error.error}. Check admin's Torn API key permissions (Personal Stats, Battlestats).` }),
             };
         }
 
@@ -105,7 +105,7 @@ exports.handler = async (event, context) => {
         if (!adminLevel || adminTotalStats === 0) {
              return {
                 statusCode: 403,
-                body: JSON.stringify({ success: false, message: 'Could not retrieve admin\'s own battle stats or level. Ensure Torn API key has "Basic" and "Battle Stats" selections enabled.' }),
+                body: JSON.stringify({ success: false, message: 'Could not retrieve admin\'s own battle stats or level. Ensure Torn API key has "Personal Stats" and "Battle Stats" selections enabled.' }),
             };
         }
 
@@ -123,7 +123,7 @@ exports.handler = async (event, context) => {
         const batchPromises = currentBatch.map(async (memberId) => {
             try {
                 // Fetch target player's basic info & battle stats from Torn API
-                const playerUrl = `https://api.torn.com/user/${memberId}?selections=basic,battlestats&key=${adminTornApiKey}`;
+                const playerUrl = `https://api.torn.com/user/${memberId}?selections=basic,battlestats&key=${adminTornApiKey}`; // Basic is usually sufficient for target data
                 const playerResponse = await axios.get(playerUrl);
                 const playerData = playerResponse.data;
 

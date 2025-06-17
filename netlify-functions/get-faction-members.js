@@ -23,8 +23,16 @@ const db = admin.firestore(); // Firestore instance
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); // Common helper
 
 // Fair Fight Calculation (Included for consistency, though not directly used in this function)
-function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) { /* ... same code as in process-ff-batch.js ... */ }
-function get_difficulty_text(ff) { /* ... same code as in process-ff-batch.js ... */ }
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) { 
+    if (!attackerLevel || !defenderLevel || !attackerTotalStats || !defenderTotalStats || defenderTotalStats === 0) { return null; }
+    const attackerBSS = attackerTotalStats; const defenderBSS = defenderTotalStats; const bssRatio = defenderBSS / attackerBSS; let ffScore;
+    if (bssRatio >= 0.75) { ffScore = 3.0; } else if (bssRatio >= 0.50) { ffScore = 2.0 + ((bssRatio - 0.50) / 0.25) * 1.0; } else if (bssRatio >= 0.25) { ffScore = 1.0 + ((bssRatio - 0.25) / 0.25) * 1.0; } else { ffScore = 1.0; }
+    return Math.max(1.0, Math.min(3.0, parseFloat(ffScore.toFixed(2))));
+}
+function get_difficulty_text(ff) { 
+    if (ff === null) return "N/A";
+    if (ff >= 2.75) return "Extremely easy"; else if (ff >= 2.0) return "Easy"; else if (ff >= 1.5) return "Moderately difficult"; else if (ff > 1) return "Difficult"; else return "Extremely difficult";
+}
 
 
 exports.handler = async (event, context) => {
@@ -106,7 +114,7 @@ exports.handler = async (event, context) => {
 
     try {
         // Use the admin's Torn API key to get faction members from Torn API.
-        const tornApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${adminTornApiKey}`;
+        const tornApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${adminTornApiKey}`; // Use basic for faction roster
         const tornApiResponse = await axios.get(tornApiUrl);
         const tornData = tornApiResponse.data;
 
@@ -150,16 +158,3 @@ exports.handler = async (event, context) => {
         };
     }
 };
-
-// --- Fair Fight Calculation and Difficulty Text (Repeated for code consistency, put at the bottom) ---
-// This ensures that if this function were ever to need these, they are defined.
-function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) {
-    if (!attackerLevel || !defenderLevel || !attackerTotalStats || !defenderTotalStats || defenderTotalStats === 0) { return null; }
-    const attackerBSS = attackerTotalStats; const defenderBSS = defenderTotalStats; const bssRatio = defenderBSS / attackerBSS; let ffScore;
-    if (bssRatio >= 0.75) { ffScore = 3.0; } else if (bssRatio >= 0.50) { ffScore = 2.0 + ((bssRatio - 0.50) / 0.25) * 1.0; } else if (bssRatio >= 0.25) { ffScore = 1.0 + ((bssRatio - 0.25) / 0.25) * 1.0; } else { ffScore = 1.0; }
-    return Math.max(1.0, Math.min(3.0, parseFloat(ffScore.toFixed(2))));
-}
-function get_difficulty_text(ff) {
-    if (ff === null) return "N/A";
-    if (ff >= 2.75) return "Extremely easy"; else if (ff >= 2.0) return "Easy"; else if (ff >= 1.5) return "Moderately difficult"; else if (ff > 1) return "Difficult"; else return "Extremely difficult";
-}
