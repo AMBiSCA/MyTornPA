@@ -719,3 +719,175 @@ async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentU
         hideLoadingSpinner();
     }
 }
+// ... (rest of fairfight.js code above) ...
+
+// Handles individual player FF data check
+async function handleIndividualFFCheck(user, tornApiKey) {
+    clearAllInputErrors();
+    const playerId = document.getElementById('playerId').value.trim();
+    const individualFFResultsDiv = document.getElementById('individualFFResults');
+
+    let isValid = true;
+    if (!playerId || isNaN(playerId)) {
+        document.getElementById('playerIdError').textContent = 'Valid Player ID is required.';
+        isValid = false;
+    }
+    // tornApiKey validation might be done by backend now, but keep check for UI feedback
+    if (!tornApiKey) { // Check if the tornApiKey argument itself is valid for frontend decision
+        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = 'Torn API Key not available. Please sign in or set your key in profile.';
+        showMainError('Torn API Key not available. Please sign in or set your key in profile.');
+        isValid = false;
+    }
+
+    if (!isValid) return;
+    if(individualFFResultsDiv) individualFFResultsDiv.textContent = 'Fetching Fair Fight data...';
+    let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
+
+    // --- GET FIREBASE ID TOKEN ---
+    let idToken;
+    try {
+        idToken = await user.getIdToken();
+        console.log("DEBUG FF: Firebase ID Token obtained for handleIndividualFFCheck."); // <--- ADD THIS DEBUG LOG
+        console.log("DEBUG FF: idToken (first 10 chars):", idToken ? idToken.substring(0,10) + '...' : 'null/undefined'); // <--- ADD THIS DEBUG LOG
+    } catch (error) {
+        console.error("Error getting Firebase ID Token for handleIndividualFFCheck:", error);
+        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = "Authentication error. Please log in again.";
+        showMainError("Authentication token error. Please re-authenticate.");
+        return;
+    }
+    // --- END GET FIREBASE ID TOKEN ---
+
+    try {
+        // Call your Netlify Function for individual FF data
+        const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=player&id=${playerId}`;
+        const response = await fetch(functionUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            }
+        });
+        const data = await response.json();
+
+        // ... (rest of handleIndividualFFCheck code) ...
+    } finally {
+        clearTimeout(loadingTimeoutId);
+        hideLoadingSpinner();
+    }
+}
+
+
+// Handles faction-wide FF data check
+async function handleFactionFFCheck(user, tornApiKey) {
+    clearAllInputErrors();
+    const factionId = document.getElementById('factionId').value.trim();
+    const factionFFResultsDiv = document.getElementById('factionFFResults');
+
+    let isValid = true;
+    if (!factionId || isNaN(factionId)) {
+        document.getElementById('factionIdError').textContent = 'Valid Faction ID is required.';
+        isValid = false;
+    }
+    // tornApiKey validation might be done by backend now, but keep check for UI feedback
+    if (!tornApiKey) { // Check if the tornApiKey argument itself is valid for frontend decision
+        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = 'Torn API Key not available. Please sign in or set your key in profile.';
+        showMainError('Torn API Key not available. Please sign in or set your key in profile.');
+        isValid = false;
+    }
+
+    if (!isValid) return;
+    if(factionFFResultsDiv) factionFFResultsDiv.textContent = 'Fetching faction members and Fair Fight data...';
+    let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
+
+    // --- GET FIREBASE ID TOKEN ---
+    let idToken;
+    try {
+        idToken = await user.getIdToken();
+        console.log("DEBUG FF: Firebase ID Token obtained for handleFactionFFCheck."); // <--- ADD THIS DEBUG LOG
+        console.log("DEBUG FF: idToken (first 10 chars):", idToken ? idToken.substring(0,10) + '...' : 'null/undefined'); // <--- ADD THIS DEBUG LOG
+    } catch (error) {
+        console.error("Error getting Firebase ID Token for handleFactionFFCheck:", error);
+        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = "Authentication error. Please log in again.";
+        showMainError("Authentication token error. Please re-authenticate.");
+        return;
+    }
+    // --- END GET FIREBASE ID TOKEN ---
+
+    try {
+        // Call your Netlify Function for faction data
+        const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}`;
+        const response = await fetch(functionUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            }
+        });
+        const data = await response.json();
+
+        // ... (rest of handleFactionFFCheck code) ...
+    } finally {
+        clearTimeout(loadingTimeoutId);
+        hideLoadingSpinner();
+    }
+}
+
+// --- New Function: Handle Generating Random Targets ---
+async function handleGenerateRandomTargets(user, tornApiKey, userLevel, currentUserId) {
+    clearAllInputErrors(); // Clear all existing error messages
+    const randomTargetsStatusDiv = document.getElementById('randomTargetsStatus');
+
+    if (!tornApiKey) {
+        const message = 'Torn API Key not available. Please sign in or set your key in profile.';
+        if (randomTargetsStatusDiv) randomTargetsStatusDiv.textContent = message;
+        showMainError(message);
+        return;
+    }
+    if (!userLevel) {
+        const message = 'Your Torn level could not be determined. Please ensure your profile is updated or check your API key.';
+        if (randomTargetsStatusDiv) randomTargetsStatusDiv.textContent = message;
+        showMainError(message);
+        return;
+    }
+    if (!currentUserId) {
+        const message = 'Your user ID is not available. Please sign in again.';
+        if (randomTargetsStatusDiv) randomTargetsStatusDiv.textContent = message;
+        showMainError(message);
+        return;
+    }
+
+    if (randomTargetsStatusDiv) randomTargetsStatusDiv.textContent = 'Generating random targets, please wait...';
+    let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
+
+    // --- GET FIREBASE ID TOKEN ---
+    let idToken;
+    try {
+        idToken = await user.getIdToken();
+        console.log("DEBUG FF: Firebase ID Token obtained for handleGenerateRandomTargets."); // <--- ADD THIS DEBUG LOG
+        console.log("DEBUG FF: idToken (first 10 chars):", idToken ? idToken.substring(0,10) + '...' : 'null/undefined'); // <--- ADD THIS DEBUG LOG
+    } catch (error) {
+        console.error("Error getting Firebase ID Token for handleGenerateRandomTargets:", error);
+        if (randomTargetsStatusDiv) randomTargetsStatusDiv.textContent = "Authentication error. Please log in again.";
+        showMainError("Authentication token error. Please re-authenticate.");
+        return;
+    }
+    // --- END GET FIREBASE ID TOKEN ---
+
+    try {
+        // Call Netlify Function
+        const functionUrl = `/.netlify/functions/generate-random-targets?userLevel=${userLevel}&selfId=${currentUserId}&numTargets=10&minFairFight=2.5&maxFairFight=4.0&maxDaysInactive=365`; // apiKey removed from URL query
+        const response = await fetch(functionUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            }
+        });
+        const data = await response.json();
+
+        // ... (rest of handleGenerateRandomTargets code) ...
+    } finally {
+        clearTimeout(loadingTimeoutId);
+        hideLoadingSpinner();
+    }
+}
