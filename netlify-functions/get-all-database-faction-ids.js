@@ -21,8 +21,16 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Fair Fight Calculation (Included for consistency, though not directly used in this function)
-function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) { /* ... same code as in process-ff-batch.js ... */ }
-function get_difficulty_text(ff) { /* ... same code as in process-ff-batch.js ... */ }
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) {
+    if (!attackerLevel || !defenderLevel || !attackerTotalStats || !defenderTotalStats || defenderTotalStats === 0) { return null; }
+    const attackerBSS = attackerTotalStats; const defenderBSS = defenderTotalStats; let ffScore;
+    if (bssRatio >= 0.75) { ffScore = 3.0; } else if (bssRatio >= 0.50) { ffScore = 2.0 + ((bssRatio - 0.50) / 0.25) * 1.0; } else if (bssRatio >= 0.25) { ffScore = 1.0 + ((bssRatio - 0.25) / 0.25) * 1.0; } else { ffScore = 1.0; }
+    return Math.max(1.0, Math.min(3.0, parseFloat(ffScore.toFixed(2))));
+}
+function get_difficulty_text(ff) {
+    if (ff === null) return "N/A";
+    if (ff >= 2.75) return "Extremely easy"; else if (ff >= 2.0) return "Easy"; else if (ff >= 1.5) return "Moderately difficult"; else if (ff > 1) return "Difficult"; else return "Extremely difficult";
+}
 
 
 exports.handler = async (event, context) => {
@@ -47,7 +55,8 @@ exports.handler = async (event, context) => {
 
     try {
         // Assume you have a collection 'monitoredFactions' where you store Faction IDs you want to process.
-        // This collection would be populated by the admin manually or via other admin tools.
+        // Or, you could pull unique faction IDs from your 'adminCuratedFFTargets' if you prefer.
+        // For this example, we'll assume a 'monitoredFactions' collection.
         const factionsSnapshot = await db.collection('monitoredFactions').get(); // <-- Collection to fetch faction IDs from
 
         const factionIds = [];
@@ -79,3 +88,16 @@ exports.handler = async (event, context) => {
         };
     }
 };
+
+// --- Fair Fight Calculation and Difficulty Text (Repeated for code consistency, put at the bottom) ---
+// This ensures that if this function were ever to need these, they are defined.
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) {
+    if (!attackerLevel || !defenderLevel || !attackerTotalStats || !defenderTotalStats || defenderTotalStats === 0) { return null; }
+    const attackerBSS = attackerTotalStats; const defenderBSS = defenderTotalStats; let ffScore;
+    if (bssRatio >= 0.75) { ffScore = 3.0; } else if (bssRatio >= 0.50) { ffScore = 2.0 + ((bssRatio - 0.50) / 0.25) * 1.0; } else if (bssRatio >= 0.25) { ffScore = 1.0 + ((bssRatio - 0.25) / 0.25) * 1.0; } else { ffScore = 1.0; }
+    return Math.max(1.0, Math.min(3.0, parseFloat(ffScore.toFixed(2))));
+}
+function get_difficulty_text(ff) {
+    if (ff === null) return "N/A";
+    if (ff >= 2.75) return "Extremely easy"; else if (ff >= 2.0) return "Easy"; else if (ff >= 1.5) return "Moderately difficult"; else if (ff > 1) return "Difficult"; else return "Extremely difficult";
+}

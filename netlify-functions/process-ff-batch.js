@@ -82,7 +82,7 @@ exports.handler = async (event, context) => {
             return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin Torn API Key not set in profile.' }) };
         }
 
-        // Fetch admin's own battle stats and level from Torn API using their key
+        // Fetch admin's own battle stats and level from Torn API
         const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`; // --- CHANGED TO PERSONALSTATS ---
         const selfStatsResponse = await axios.get(selfStatsUrl);
         const selfData = selfStatsResponse.data;
@@ -96,7 +96,6 @@ exports.handler = async (event, context) => {
         }
 
         adminLevel = selfData.level;
-        // Summing battle stats for total BSS
         adminTotalStats = (selfData.battle_stats?.strength || 0) +
                           (selfData.battle_stats?.defense || 0) +
                           (selfData.battle_stats?.speed || 0) +
@@ -129,7 +128,7 @@ exports.handler = async (event, context) => {
 
                 // Check if player data is valid for FF calculation
                 if (playerData.error || !playerData.level || !playerData.battle_stats || playerData.battle_stats.total === 0) {
-                    console.warn(`Skipped player ${memberId}: No Torn API data or battle stats - ${playerData.error?.error || 'N/A'}`);
+                    console.warn(`Skipped player ${memberId}: Torn API data incomplete or no battle stats - ${playerData.error?.error || 'N/A'}`);
                     skippedCount++;
                     return null; // Skip this player if data is insufficient
                 }
