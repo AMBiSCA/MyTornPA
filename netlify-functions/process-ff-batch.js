@@ -63,12 +63,13 @@ exports.handler = async (event, context) => {
         return { statusCode: 400, body: JSON.stringify({ success: false, message: 'Missing or invalid batch parameters.' }) };
     }
 
-    let adminTornApiKey;
+    let adminTornApiKey;      // Admin's Torn.com API key (still needed for admin's own stats)
+    let adminTornStatsApiKey; // Admin's TornStats.com API key (NEEDED for target stats from TornStats)
     let adminLevel;
     let adminTotalStats = 0; // Admin's total battle stats, crucial for FF calculation
 
     try {
-        // Fetch the admin user's own API key and battle stats from Firestore
+        // Fetch the admin user's own API keys from Firestore
         const adminDocRef = db.collection('userProfiles').doc(adminUserId);
         const adminDoc = await adminDocRef.get();
 
@@ -76,14 +77,18 @@ exports.handler = async (event, context) => {
             return { statusCode: 404, body: JSON.stringify({ success: false, message: 'Admin user profile not found.' }) };
         }
         const adminData = adminDoc.data();
-        adminTornApiKey = adminData.tornApiKey;
+        adminTornApiKey = adminData.tornApiKey; // Get the admin's Torn API key
+        adminTornStatsApiKey = adminData.tornStatsApiKey; // Get the admin's TornStats API key (NEW: needed here)
 
         if (!adminTornApiKey) {
-            return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin Torn API Key not set in profile.' }) };
+            return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin Torn API Key not set in profile (needed for own stats).' }) };
+        }
+        if (!adminTornStatsApiKey) { // Admin TornStats key is now required for target stats
+            return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin TornStats API Key not set in profile (needed for target stats).' }) };
         }
 
-        // Fetch admin's own battle stats and level from Torn API
-        const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`; // --- CHANGED TO PERSONALSTATS ---
+        // Fetch admin's own battle stats and level from Torn API (still from Torn.com, needed for FF calculation)
+        const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`;
         const selfStatsResponse = await axios.get(selfStatsUrl);
         const selfData = selfStatsResponse.data;
 
@@ -109,7 +114,7 @@ exports.handler = async (event, context) => {
         }
 
     } catch (error) {
-        console.error("Error fetching admin's API key or stats:", error);
+        console.error("Error fetching admin's API keys or stats:", error);
         return { statusCode: 500, body: JSON.stringify({ success: false, message: `Failed to retrieve admin data: ${error.message}` }) };
     }
 
@@ -121,59 +126,67 @@ exports.handler = async (event, context) => {
     try {
         const batchPromises = currentBatch.map(async (memberId) => {
             try {
-                // Fetch target player's basic info & battle stats from Torn API
-                const playerUrl = `https://api.torn.com/user/${memberId}?selections=basic,battlestats&key=${adminTornApiKey}`; // Basic is usually sufficient for target data
+                // --- NEW: Fetch target player data from TornStats API ---
+                const playerUrl = `https://www.tornstats.com/api/v2/${adminTornStatsApiKey}/spy/user/${memberId}`; // Use admin's TornStats key
                 const playerResponse = await axios.get(playerUrl);
                 const playerData = playerResponse.data;
 
-                // Check if player data is valid for FF calculation
-                if (playerData.error || !playerData.level || !playerData.battle_stats || playerData.battle_stats.total === 0) {
-                    console.warn(`Skipped player ${memberId}: Torn API data incomplete or no battle stats - ${playerData.error?.error || 'N/A'}`);
+                // Check if TornStats returned valid spy data
+                if (playerData.status === false || !playerData.spy || playerData.spy.total === undefined) {
+                    console.warn(`Skipped player ${memberId}: TornStats returned no spy data - ${playerData.message || playerData.spy?.message || 'N/A'}`);
                     skippedCount++;
-                    return null; // Skip this player if data is insufficient
+                    return null; // Skip this player if no spy data is available
                 }
 
-                const targetLevel = playerData.level;
-                const targetTotalStats = (playerData.battle_stats.strength || 0) +
-                                         (playerData.battle_stats.defense || 0) +
-                                         (playerData.battle_stats.speed || 0) +
-                                         (playerData.battle_stats.dexterity || 0);
+                // Get target details from TornStats response
+                const targetLevel = playerData.spy.level;
+                const targetTotalStats = playerData.spy.total; // TornStats provides total directly
 
-                // Calculate Fair Fight score using the admin's stats vs. target's stats
+                // OPTIONAL: Fetch basic info from Torn API to get name and last_action.
+                // This is optional if the Torn API is problematic, but good for data completeness.
+                // If this is causing 403s, you can remove this try/catch block and use TornStats name only.
+                let tornApiBasicData = {};
+                try {
+                    const tornBasicUrl = `https://api.torn.com/user/${memberId}?selections=basic&key=${adminTornApiKey}`;
+                    const tornBasicResponse = await axios.get(tornBasicUrl);
+                    tornApiBasicData = tornBasicResponse.data;
+                } catch (tornBasicError) {
+                    console.warn(`Could not fetch basic info from Torn API for ${memberId}: ${tornBasicError.message}. Using TornStats name and no last_action.`);
+                }
+                
+                // Calculate Fair Fight score using the admin's stats vs. target's stats from TornStats
                 const adminFFScore = calculateFairFight(adminLevel, adminTotalStats, targetLevel, targetTotalStats);
 
                 // Prepare data object to be saved to Firestore
                 const ffDataToSave = {
                     id: memberId,
-                    name: playerData.name,
+                    name: tornApiBasicData.name || playerData.spy.player_name || `User ${memberId}`, // Prefer Torn API name, then TornStats name
                     level: targetLevel,
-                    totalStats: targetTotalStats, // Store target's total stats
+                    totalStats: targetTotalStats, // Store target's total stats from TornStats
                     adminFFScore: adminFFScore,
                     adminFFDifficulty: get_difficulty_text(adminFFScore),
-                    lastActiveTimestamp: playerData.last_action.timestamp, // Unix timestamp in seconds
+                    lastActiveTimestamp: tornApiBasicData.last_action?.timestamp || null, // From Torn API, if available
                     lastFetchedTimestamp: admin.firestore.FieldValue.serverTimestamp(), // Firestore server timestamp
                 };
 
                 // Save to Firestore: 'adminCuratedFFTargets' collection, document ID is the player's ID
                 await db.collection('adminCuratedFFTargets').doc(memberId.toString()).set(ffDataToSave, { merge: true });
                 successCount++;
-                return ffDataToSave; // Return the saved data for logging/tracking
+                return ffDataToSave;
 
             } catch (memberError) {
-                console.error(`Error processing FF data for member ${memberId}:`, memberError.message);
+                console.error(`Error processing FF data for member ${memberId} from TornStats:`, memberError.message);
                 errorCount++;
-                return null; // Indicate failure for this specific member
+                return null;
             }
         });
 
-        await Promise.allSettled(batchPromises); // Wait for all promises in the batch to resolve/reject
+        await Promise.allSettled(batchPromises);
 
-        // Add a delay between batches to respect Torn API rate limits
-        await sleep(1000); // 1-second delay for each batch, adjust as needed (Torn API is 100/min or 5/sec for personal key)
+        await sleep(1000); // 1-second delay for each batch
 
-        // Determine next starting point for the frontend
         const nextStartIndex = startIndex + batchSize;
-        const isComplete = nextStartIndex >= memberIDs.length; // Check if all members have been processed
+        const isComplete = nextStartIndex >= memberIDs.length;
 
         return {
             statusCode: 200,
