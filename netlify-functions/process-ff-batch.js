@@ -57,65 +57,96 @@ exports.handler = async (event, context) => {
     const adminUserId = decodedToken.uid; // The authenticated admin user's UID
     // --- END AUTHENTICATION ---
 
-    const { factionId, memberIDs, startIndex, batchSize } = JSON.parse(event.body);
+    // --- MODIFIED: Destructure adminManualStats from body ---
+    const { factionId, memberIDs, startIndex, batchSize, adminManualStats } = JSON.parse(event.body);
 
     if (!memberIDs || !Array.isArray(memberIDs) || typeof startIndex !== 'number' || typeof batchSize !== 'number') {
         return { statusCode: 400, body: JSON.stringify({ success: false, message: 'Missing or invalid batch parameters.' }) };
     }
 
-    let adminTornApiKey;      // Admin's Torn.com API key (still needed for admin's own stats)
-    let adminTornStatsApiKey; // Admin's TornStats.com API key (NEEDED for target stats from TornStats)
+    let adminTornApiKey;      // Admin's Torn.com API key (still needed if not using manual stats)
+    let adminTornStatsApiKey; // Admin's TornStats.com API key
     let adminLevel;
     let adminTotalStats = 0; // Admin's total battle stats, crucial for FF calculation
 
-    try {
-        // Fetch the admin user's own API keys from Firestore
-        const adminDocRef = db.collection('userProfiles').doc(adminUserId);
-        const adminDoc = await adminDocRef.get();
+    // --- MODIFIED: Logic to use manual stats if provided and valid, otherwise fetch from Torn API ---
+    if (adminManualStats && 
+        typeof adminManualStats.level === 'number' && adminManualStats.level > 0 &&
+        typeof adminManualStats.strength === 'number' && adminManualStats.strength >= 0 &&
+        typeof adminManualStats.defense === 'number' && adminManualStats.defense >= 0 &&
+        typeof adminManualStats.speed === 'number' && adminManualStats.speed >= 0 &&
+        typeof adminManualStats.dexterity === 'number' && adminManualStats.dexterity >= 0) {
 
-        if (!adminDoc.exists) {
-            return { statusCode: 404, body: JSON.stringify({ success: false, message: 'Admin user profile not found.' }) };
-        }
-        const adminData = adminDoc.data();
-        adminTornApiKey = adminData.tornApiKey; // Get the admin's Torn API key
-        adminTornStatsApiKey = adminData.tornStatsApiKey; // Get the admin's TornStats API key (NEW: needed here)
-
-        if (!adminTornApiKey) {
-            return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin Torn API Key not set in profile (needed for own stats).' }) };
-        }
-        if (!adminTornStatsApiKey) { // Admin TornStats key is now required for target stats
-            return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin TornStats API Key not set in profile (needed for target stats).' }) };
-        }
-
-        // Fetch admin's own battle stats and level from Torn API (still from Torn.com, needed for FF calculation)
-        const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`;
-        const selfStatsResponse = await axios.get(selfStatsUrl);
-        const selfData = selfStatsResponse.data;
-
-        if (selfData.error) {
-            console.error("Admin self stats Torn API Error:", selfData.error.error);
-            return {
-                statusCode: 403,
-                body: JSON.stringify({ success: false, message: `Failed to fetch admin's own stats from Torn API: ${selfData.error.error}. Check admin's Torn API key permissions (Personal Stats, Battlestats).` }),
-            };
+        console.log("Using manual admin stats provided.");
+        adminLevel = adminManualStats.level;
+        adminTotalStats = adminManualStats.strength + adminManualStats.defense + adminManualStats.speed + adminManualStats.dexterity;
+        
+        // Fetch only adminTornStatsApiKey if manual stats are used
+        try {
+            const adminDocRef = db.collection('userProfiles').doc(adminUserId);
+            const adminDoc = await adminDocRef.get();
+            if (!adminDoc.exists) {
+                return { statusCode: 404, body: JSON.stringify({ success: false, message: 'Admin user profile not found.' }) };
+            }
+            const adminData = adminDoc.data();
+            adminTornStatsApiKey = adminData.tornStatsApiKey;
+            if (!adminTornStatsApiKey) {
+                return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin TornStats API Key not set in profile (needed for target stats).' }) };
+            }
+        } catch (error) {
+            console.error("Error fetching admin's TornStats API key (when manual stats used):", error);
+            return { statusCode: 500, body: JSON.stringify({ success: false, message: `Failed to retrieve admin TornStats API key: ${error.message}` }) };
         }
 
-        adminLevel = selfData.level;
-        adminTotalStats = (selfData.battle_stats?.strength || 0) +
-                          (selfData.battle_stats?.defense || 0) +
-                          (selfData.battle_stats?.speed || 0) +
-                          (selfData.battle_stats?.dexterity || 0);
+    } else {
+        console.log("Manual admin stats not provided or invalid. Attempting to fetch from Torn API.");
+        // --- Original logic to fetch admin's own stats from Torn API ---
+        try {
+            // Fetch the admin user's own API keys from Firestore
+            const adminDocRef = db.collection('userProfiles').doc(adminUserId);
+            const adminDoc = await adminDocRef.get();
+            if (!adminDoc.exists) {
+                return { statusCode: 404, body: JSON.stringify({ success: false, message: 'Admin user profile not found.' }) };
+            }
+            const adminData = adminDoc.data();
+            adminTornApiKey = adminData.tornApiKey;
+            adminTornStatsApiKey = adminData.tornStatsApiKey; // Get TornStats key even if Torn API is used for self
 
-        if (!adminLevel || adminTotalStats === 0) {
-             return {
-                statusCode: 403,
-                body: JSON.stringify({ success: false, message: 'Could not retrieve admin\'s own battle stats or level. Ensure Torn API key has "Personal Stats" and "Battle Stats" selections enabled.' }),
-            };
+            if (!adminTornApiKey) {
+                return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin Torn API Key not set in profile (needed for own stats).' }) };
+            }
+            if (!adminTornStatsApiKey) {
+                return { statusCode: 403, body: JSON.stringify({ success: false, message: 'Admin TornStats API Key not set in profile (needed for target stats).' }) };
+            }
+
+            const selfStatsUrl = `https://api.torn.com/user/?selections=personalstats,battlestats&key=${adminTornApiKey}`; // Use personalstats for self
+            const selfStatsResponse = await axios.get(selfStatsUrl);
+            const selfData = selfStatsResponse.data;
+
+            if (selfData.error) {
+                console.error("Admin self stats Torn API Error:", selfData.error.error);
+                return {
+                    statusCode: 403,
+                    body: JSON.stringify({ success: false, message: `Failed to fetch admin's own stats from Torn API: ${selfData.error.error}. Check admin's Torn API key permissions (Personal Stats, Battlestats).` }),
+                };
+            }
+            adminLevel = selfData.level;
+            adminTotalStats = (selfData.battle_stats?.strength || 0) +
+                              (selfData.battle_stats?.defense || 0) +
+                              (selfData.battle_stats?.speed || 0) +
+                              (selfData.battle_stats?.dexterity || 0);
+
+            if (!adminLevel || adminTotalStats === 0) {
+                 return {
+                    statusCode: 403,
+                    body: JSON.stringify({ success: false, message: 'Could not retrieve admin\'s own battle stats or level. Ensure Torn API key has "Personal Stats" and "Battle Stats" selections enabled.' }),
+                };
+            }
+
+        } catch (error) {
+            console.error("Error fetching admin's API keys or stats (fallback):", error);
+            return { statusCode: 500, body: JSON.stringify({ success: false, message: `Failed to retrieve admin data: ${error.message}` }) };
         }
-
-    } catch (error) {
-        console.error("Error fetching admin's API keys or stats:", error);
-        return { statusCode: 500, body: JSON.stringify({ success: false, message: `Failed to retrieve admin data: ${error.message}` }) };
     }
 
     const currentBatch = memberIDs.slice(startIndex, startIndex + batchSize);
@@ -126,8 +157,8 @@ exports.handler = async (event, context) => {
     try {
         const batchPromises = currentBatch.map(async (memberId) => {
             try {
-                // --- NEW: Fetch target player data from TornStats API ---
-                const playerUrl = `https://www.tornstats.com/api/v2/${adminTornStatsApiKey}/spy/user/${memberId}`; // Use admin's TornStats key
+                // Fetch target player data from TornStats API (as decided to avoid Torn API issues for targets)
+                const playerUrl = `https://www.tornstats.com/api/v2/${adminTornStatsApiKey}/spy/user/${memberId}`;
                 const playerResponse = await axios.get(playerUrl);
                 const playerData = playerResponse.data;
 
@@ -135,16 +166,14 @@ exports.handler = async (event, context) => {
                 if (playerData.status === false || !playerData.spy || playerData.spy.total === undefined) {
                     console.warn(`Skipped player ${memberId}: TornStats returned no spy data - ${playerData.message || playerData.spy?.message || 'N/A'}`);
                     skippedCount++;
-                    return null; // Skip this player if no spy data is available
+                    return null;
                 }
 
-                // Get target details from TornStats response
                 const targetLevel = playerData.spy.level;
-                const targetTotalStats = playerData.spy.total; // TornStats provides total directly
+                const targetTotalStats = playerData.spy.total;
 
-                // OPTIONAL: Fetch basic info from Torn API to get name and last_action.
-                // This is optional if the Torn API is problematic, but good for data completeness.
-                // If this is causing 403s, you can remove this try/catch block and use TornStats name only.
+                // OPTIONAL: Fetch basic info (name, last_action) from Torn API.
+                // This is separate from battle stats. If this part fails, FF calculation proceeds with TornStats name.
                 let tornApiBasicData = {};
                 try {
                     const tornBasicUrl = `https://api.torn.com/user/${memberId}?selections=basic&key=${adminTornApiKey}`;
@@ -154,22 +183,21 @@ exports.handler = async (event, context) => {
                     console.warn(`Could not fetch basic info from Torn API for ${memberId}: ${tornBasicError.message}. Using TornStats name and no last_action.`);
                 }
                 
-                // Calculate Fair Fight score using the admin's stats vs. target's stats from TornStats
+                // Calculate Fair Fight score using the admin's (manual or fetched) stats vs. target's stats from TornStats
                 const adminFFScore = calculateFairFight(adminLevel, adminTotalStats, targetLevel, targetTotalStats);
 
                 // Prepare data object to be saved to Firestore
                 const ffDataToSave = {
                     id: memberId,
-                    name: tornApiBasicData.name || playerData.spy.player_name || `User ${memberId}`, // Prefer Torn API name, then TornStats name
+                    name: tornApiBasicData.name || playerData.spy.player_name || `User ${memberId}`,
                     level: targetLevel,
-                    totalStats: targetTotalStats, // Store target's total stats from TornStats
+                    totalStats: targetTotalStats,
                     adminFFScore: adminFFScore,
                     adminFFDifficulty: get_difficulty_text(adminFFScore),
-                    lastActiveTimestamp: tornApiBasicData.last_action?.timestamp || null, // From Torn API, if available
-                    lastFetchedTimestamp: admin.firestore.FieldValue.serverTimestamp(), // Firestore server timestamp
+                    lastActiveTimestamp: tornApiBasicData.last_action?.timestamp || null,
+                    lastFetchedTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                 };
 
-                // Save to Firestore: 'adminCuratedFFTargets' collection, document ID is the player's ID
                 await db.collection('adminCuratedFFTargets').doc(memberId.toString()).set(ffDataToSave, { merge: true });
                 successCount++;
                 return ffDataToSave;
