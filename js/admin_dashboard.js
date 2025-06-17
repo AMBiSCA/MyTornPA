@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Call the new process-ff-batch Netlify Function
-            const response = await fetch('/.netlify/functions/process-ff-batch', {
+            const response = await fetch('/.netlify/functions/process-ff-batch', { // <-- CALLS NEW FF BATCH FUNCTION
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
