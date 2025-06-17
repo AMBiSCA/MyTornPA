@@ -161,26 +161,32 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Recursively processes batches of players for a single faction, fetching and saving FF data.
      * This function calls the new process-ff-batch Netlify Function.
+     * @param {string} idToken The Firebase ID Token of the authenticated user.
      */
-    async function processNextBatch() {
+    async function processNextBatch(idToken) { // --- MODIFIED: Accepts idToken ---
         if (currentBatchStartIndex >= totalMembersToProcess) {
             console.log("Batch processing finished for current faction.");
             totalFactionsProcessed++; // Increment the count of successfully processed factions
             return;
         }
 
+        // Slice the current batch of member IDs to send to the backend
         const currentBatchMemberIds = currentFactionMembers.slice(currentBatchStartIndex, currentBatchStartIndex + BATCH_SIZE);
 
         try {
-            const response = await fetch('/.netlify/functions/process-ff-batch', { // <-- CALLS NEW FF BATCH FUNCTION
+            // Call the new process-ff-batch Netlify Function
+            const response = await fetch('/.netlify/functions/process-ff-batch', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}` // --- ADDED AUTHORIZATION HEADER ---
+                },
                 body: JSON.stringify({
                     factionId: currentFactionId,
                     factionName: currentFactionName,
-                    memberIDs: currentBatchMemberIds, // Pass only the current batch member IDs
-                    startIndex: currentBatchStartIndex, // Backend needs to know this for progress tracking (optional)
-                    batchSize: BATCH_SIZE // Backend needs to know this for progress tracking (optional)
+                    memberIDs: currentBatchMemberIds, // Pass only the current batch of member IDs
+                    startIndex: currentBatchStartIndex, // Optional: backend can use for logging
+                    batchSize: BATCH_SIZE // Optional: backend can use for logging
                 })
             });
 
@@ -199,9 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentBatchStartIndex = result.nextStartIndex;
 
                 if (!result.isComplete) {
-                    setTimeout(processNextBatch, 500); // Short delay before next batch
+                    setTimeout(() => processNextBatch(idToken), 500); // --- MODIFIED: Pass idToken to recursive call ---
                 } else {
-                    return processNextBatch(); // Recursively call to handle completion or next faction
+                    return processNextBatch(idToken); // --- MODIFIED: Pass idToken to recursive call ---
                 }
             } else {
                 throw new Error(`Batch FF function reported failure: ${result.message || 'Unknown issue'}`);
@@ -211,8 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateStatus(`Status: Running. Error during Fair Fight processing. Check console for details.`, true);
             console.error(`Batch FF processing error for Faction ${currentFactionId}: ${error.message}. Process stopped for this faction.`, error);
             showMainError(`Failed to process Fair Fight: ${error.message}`);
-            totalFactionsProcessed++;
-            throw error;
+            totalFactionsProcessed++; // Count this faction as attempted even if it errored
+            throw error; // Re-throw to stop the current chain if a fatal error occurs for this faction
         }
     }
 
@@ -238,16 +244,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // --- GET FIREBASE ID TOKEN ---
+            let idToken;
+            try {
+                idToken = await currentAuthenticatedUser.getIdToken();
+                console.log("Firebase ID Token obtained for fetchFactionDataBtn.");
+            } catch (error) {
+                console.error("Error getting Firebase ID Token for fetchFactionDataBtn:", error);
+                updateStatus("Failed to get authentication token. Please log in again.", true);
+                showMainError("Authentication token error. Please re-authenticate.");
+                return;
+            }
+            // --- END GET FIREBASE ID TOKEN ---
+
             updateStatus(`Status: Running. Fetching members for Faction ID ${currentFactionId}...`, false);
             fetchFactionDataBtn.disabled = true;
             refreshDatabaseFactionsBtn.disabled = true;
 
             try {
                 // This calls a backend function to get the member IDs for the faction.
-                // It does NOT do the FF calculation or saving.
-                const response = await fetch('/.netlify/functions/get-faction-members', { // Existing function to get member list
+                const response = await fetch('/.netlify/functions/get-faction-members', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}` // --- ADDED AUTHORIZATION HEADER ---
+                    },
                     body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
                 });
 
@@ -266,8 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalFactionsToAttempt = 1; // For a single faction run
 
                     updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
-                    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
-                    await processNextBatch(); // Start the FF batch processing and saving
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay before starting FF batch processing
+                    await processNextBatch(idToken); // --- MODIFIED: Pass idToken ---
 
                     displayOverallFinalStatus(); // Display final status after single faction is done
                     fetchFactionDataBtn.disabled = false;
@@ -314,11 +335,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // --- GET FIREBASE ID TOKEN FOR OVERALL REFRESH ---
+            let overallIdToken;
+            try {
+                overallIdToken = await currentAuthenticatedUser.getIdToken();
+                console.log("Firebase ID Token obtained for refreshDatabaseFactionsBtn.");
+            } catch (error) {
+                console.error("Error getting Firebase ID Token for refreshDatabaseFactionsBtn:", error);
+                updateStatus("Failed to get authentication token. Please log in again.", true);
+                showMainError("Authentication token error. Please re-authenticate.");
+                fetchFactionDataBtn.disabled = false;
+                refreshDatabaseFactionsBtn.disabled = false;
+                return;
+            }
+            // --- END GET FIREBASE ID TOKEN ---
+
             try {
                 // This fetches a list of Faction IDs from your database (e.g., from a collection of monitored factions)
                 const response = await fetch('/.netlify/functions/get-all-database-faction-ids', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${overallIdToken}` // --- ADDED AUTHORIZATION HEADER ---
+                    },
                     body: JSON.stringify({}) // Might send user.uid or admin-specific info if needed
                 });
 
@@ -337,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateStatus(`Status: Running. Found ${totalFactionsToAttempt} factions to refresh.`, false);
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay
 
-                    await processNextDbFaction(); // Start processing the list of factions from DB
+                    await processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
 
                 } else {
                     totalFactionsToAttempt = 0; // No factions found
@@ -360,8 +399,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Processes the next faction from the list fetched from the database.
      * Orchestrates calling get-faction-members and processNextBatch for each.
+     * @param {string} overallIdToken The Firebase ID Token for the multi-faction refresh.
      */
-    async function processNextDbFaction() {
+    async function processNextDbFaction(overallIdToken) { // --- MODIFIED: Accepts idToken ---
         if (currentDbFactionIndex >= allDbFactionsToProcess.length) {
             displayOverallFinalStatus(); // Show overall final status
             console.log("All database factions processed.");
@@ -370,8 +410,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        resetBatchProcessState(); // Reset state for each new faction (but keep totalFactionsToAttempt for overall counter)
-        currentFactionId = allDbFactionsToProcess[currentDbFactionIndex];
+        // Reset batch process state for each new faction being processed
+        resetBatchProcessState(); // This resets totals for the *current* faction processing, but totalFactionsToAttempt remains for overall run
+        currentFactionId = allDbFactionsToProcess[currentDbFactionIndex]; // Set the new current faction ID
 
         updateStatus(`Status: Running. Fetching members for Faction ID ${currentFactionId} (${currentDbFactionIndex + 1}/${totalFactionsToAttempt})...`, false);
 
@@ -388,7 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get member list for the current faction from Torn API
             const response = await fetch('/.netlify/functions/get-faction-members', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${overallIdToken}` // --- ADDED AUTHORIZATION HEADER ---
+                },
                 body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
             });
 
@@ -407,19 +451,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
                 await new Promise(resolve => setTimeout(resolve, 500));
-                await processNextBatch(); // This will complete all batches for THIS faction
+                await processNextBatch(overallIdToken); // --- MODIFIED: Pass idToken ---
 
                 // After processing all batches for this faction (success or internal error for this faction):
                 currentDbFactionIndex++; // Move to the next faction in the list
                 await new Promise(resolve => setTimeout(resolve, 2000)); // Delay before starting next faction's process
-                processNextDbFaction(); // Recursively call for the next faction
+                processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
 
             } else {
                 updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true);
                 console.warn(`No members found for database Faction ID ${currentFactionId}.`);
                 currentDbFactionIndex++;
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                processNextDbFaction();
+                processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
             }
 
         } catch (error) {
@@ -427,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(`Error processing database faction ${currentFactionId}:`, error);
             currentDbFactionIndex++;
             await new Promise(resolve => setTimeout(resolve, 2000));
-            processNextDbFaction();
+            processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
         }
     }
 

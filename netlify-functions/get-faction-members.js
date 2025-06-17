@@ -1,38 +1,35 @@
 // netlify/functions/get-faction-members.js
 
-const admin = require('firebase-admin'); // Firebase Admin SDK is needed if you fetch API keys from Firestore
+const admin = require('firebase-admin');
 const axios = require('axios');
 
-// Initialize Firebase Admin SDK if not already initialized
-// This block handles the connection to Firestore using the base64-encoded credentials.
+// Initialize Firebase Admin SDK
 if (!admin.apps.length) {
     try {
         const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
-
         if (!serviceAccountBase64) {
             throw new Error("FIREBASE_CREDENTIALS_BASE64 environment variable is not set.");
         }
-
-        // Decode the base64 string and parse it as JSON
         const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
-
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
-            // databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com", // Optional, if using Realtime DB
         });
     } catch (error) {
         console.error("Firebase Admin SDK initialization error:", error);
         throw new Error("Failed to initialize Firebase Admin SDK: " + error.message);
     }
 }
-
 const db = admin.firestore(); // Firestore instance
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms)); // Common helper
+
+// Fair Fight Calculation (Included for consistency, though not directly used in this function)
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) { /* ... same code as in process-ff-batch.js ... */ }
+function get_difficulty_text(ff) { /* ... same code as in process-ff-batch.js ... */ }
+
 
 exports.handler = async (event, context) => {
     // --- DEBUGGING CONSOLE LOGS ---
     console.log("get-faction-members function triggered.");
-    console.log("Client Context:", context.clientContext);
-    console.log("User object from context:", context.clientContext.user);
     // --- END DEBUGGING LOGS ---
 
     if (event.httpMethod !== 'POST') {
@@ -41,6 +38,21 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({ success: false, message: 'Method Not Allowed' }),
         };
     }
+
+    // --- AUTHENTICATION: VERIFY FIREBASE ID TOKEN ---
+    const idToken = event.headers.authorization?.split('Bearer ')[1];
+    if (!idToken) {
+        return { statusCode: 401, body: JSON.stringify({ success: false, message: 'Authentication token missing.' }) };
+    }
+    let decodedToken;
+    try {
+        decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+        console.error("Firebase ID Token verification failed:", error);
+        return { statusCode: 401, body: JSON.stringify({ success: false, message: 'Authentication token invalid or expired.' }) };
+    }
+    const adminUserId = decodedToken.uid; // The authenticated admin user's UID
+    // --- END AUTHENTICATION ---
 
     let factionId;
     try {
@@ -57,21 +69,11 @@ exports.handler = async (event, context) => {
         };
     }
 
-    // Authenticate user
-    const user = context.clientContext.user;
-    if (!user) {
-        return {
-            statusCode: 401,
-            body: JSON.stringify({ success: false, message: 'Authentication required.' }),
-        };
-    }
-
-    let adminTornApiKey; // Assuming this function will also fetch the admin's API key
-                          // to make the Torn API call to get faction members.
+    let adminTornApiKey;
 
     try {
-        // Fetch the admin's own Torn API key from Firestore.
-        const adminDocRef = db.collection('userProfiles').doc(user.uid);
+        // Fetch the admin's Torn API key from Firestore based on their authenticated UID.
+        const adminDocRef = db.collection('userProfiles').doc(adminUserId);
         const adminDoc = await adminDocRef.get();
 
         if (!adminDoc.exists) {
@@ -81,7 +83,7 @@ exports.handler = async (event, context) => {
             };
         }
         const adminData = adminDoc.data();
-        adminTornApiKey = adminData.tornApiKey; // Get the admin's Torn API key
+        adminTornApiKey = adminData.tornApiKey;
 
         if (!adminTornApiKey) {
             return {
@@ -148,3 +150,16 @@ exports.handler = async (event, context) => {
         };
     }
 };
+
+// --- Fair Fight Calculation and Difficulty Text (Repeated for code consistency, put at the bottom) ---
+// This ensures that if this function were ever to need these, they are defined.
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) {
+    if (!attackerLevel || !defenderLevel || !attackerTotalStats || !defenderTotalStats || defenderTotalStats === 0) { return null; }
+    const attackerBSS = attackerTotalStats; const defenderBSS = defenderTotalStats; const bssRatio = defenderBSS / attackerBSS; let ffScore;
+    if (bssRatio >= 0.75) { ffScore = 3.0; } else if (bssRatio >= 0.50) { ffScore = 2.0 + ((bssRatio - 0.50) / 0.25) * 1.0; } else if (bssRatio >= 0.25) { ffScore = 1.0 + ((bssRatio - 0.25) / 0.25) * 1.0; } else { ffScore = 1.0; }
+    return Math.max(1.0, Math.min(3.0, parseFloat(ffScore.toFixed(2))));
+}
+function get_difficulty_text(ff) {
+    if (ff === null) return "N/A";
+    if (ff >= 2.75) return "Extremely easy"; else if (ff >= 2.0) return "Easy"; else if (ff >= 1.5) return "Moderately difficult"; else if (ff > 1) return "Difficult"; else return "Extremely difficult";
+}

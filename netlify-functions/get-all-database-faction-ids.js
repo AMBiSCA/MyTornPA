@@ -1,95 +1,95 @@
+// netlify/functions/get-all-database-faction-ids.js
+
 const admin = require('firebase-admin');
 
-// --- Firebase Initialization (from previous steps, ensures credentials are loaded) ---
-const FIREBASE_CREDENTIALS_BASE64 = process.env.FIREBASE_CREDENTIALS_BASE64;
-
-if (admin.apps.length === 0) {
+// Initialize Firebase Admin SDK
+if (!admin.apps.length) {
     try {
-        if (!FIREBASE_CREDENTIALS_BASE64) {
-            const errorMsg = "CRITICAL: FIREBASE_CREDENTIALS_BASE64 environment variable is NOT SET. Cannot initialize Firebase Admin SDK.";
-            console.error(errorMsg);
-            throw new Error(errorMsg);
+        const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+        if (!serviceAccountBase64) {
+            throw new Error("FIREBASE_CREDENTIALS_BASE64 environment variable is not set.");
         }
-
-        const decodedCredentialsJson = Buffer.from(FIREBASE_CREDENTIALS_BASE64, 'base64').toString('utf8');
-        const serviceAccount = JSON.parse(decodedCredentialsJson);
-
+        const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
+            credential: admin.credential.cert(serviceAccount),
         });
-        console.log("Firebase Admin SDK initialized successfully for get-all-database-faction-ids.");
     } catch (error) {
-        console.error("ERROR: Firebase initialization failed for get-all-database-faction-ids. Details:", error);
-        throw new Error(`Firebase initialization failed for get-all-database-faction-ids: ${error.message}`);
+        console.error("Firebase Admin SDK initialization error:", error);
+        throw new Error("Failed to initialize Firebase Admin SDK: " + error.message);
     }
 }
 const db = admin.firestore();
-// --- End Firebase Initialization ---
+
+// Fair Fight Calculation (Included for consistency, though not directly used in this function)
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) { /* ... same code as in process-ff-batch.js ... */ }
+function get_difficulty_text(ff) { /* ... same code as in process-ff-batch.js ... */ }
 
 
-// Netlify Function Handler
 exports.handler = async (event, context) => {
     if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ message: 'Method Not Allowed. Only POST requests are allowed.' })
-        };
+        return { statusCode: 405, body: JSON.stringify({ success: false, message: 'Method Not Allowed' }) };
     }
 
-    console.log("[get-all-database-faction-ids] Function triggered to fetch unique faction IDs from database.");
+    // --- AUTHENTICATION: VERIFY FIREBASE ID TOKEN ---
+    const idToken = event.headers.authorization?.split('Bearer ')[1];
+    if (!idToken) {
+        return { statusCode: 401, body: JSON.stringify({ success: false, message: 'Authentication token missing.' }) };
+    }
+    let decodedToken;
+    try {
+        decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+        console.error("Firebase ID Token verification failed:", error);
+        return { statusCode: 401, body: JSON.stringify({ success: false, message: 'Authentication token invalid or expired.' }) };
+    }
+    const adminUserId = decodedToken.uid; // The authenticated admin user's UID
+    // --- END AUTHENTICATION ---
 
     try {
-        const factionIds = new Set(); // Use a Set to store unique IDs
+        // Assume you have a collection 'monitoredFactions' where you store Faction IDs you want to process.
+        // Or, you could pull unique faction IDs from your 'adminCuratedFFTargets' if you prefer.
+        // For this example, we'll assume a 'monitoredFactions' collection.
+        const factionsSnapshot = await db.collection('monitoredFactions').get(); // <-- Collection to fetch faction IDs from
 
-        // Query the 'playerdatabase' collection
-        const collectionRef = db.collection('playerdatabase');
-        
-        let lastDoc = null; // For pagination
-        let querySnapshot;
-
-        // Loop to fetch documents in batches until all are retrieved
-        do {
-            let query = collectionRef.orderBy(admin.firestore.FieldPath.documentId()).limit(1000); // Order by document ID for efficient pagination
-            if (lastDoc) {
-                query = query.startAfter(lastDoc);
+        const factionIds = [];
+        factionsSnapshot.forEach(doc => {
+            // Assuming each document in 'monitoredFactions' has an 'id' field for the faction ID.
+            // Or, if the document ID itself is the faction ID, use doc.id
+            const factionData = doc.data();
+            if (factionData.id) {
+                factionIds.push(factionData.id);
+            } else if (doc.id && !isNaN(parseInt(doc.id))) { // If document ID is the faction ID
+                factionIds.push(parseInt(doc.id));
             }
-            querySnapshot = await query.get();
+        });
 
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
-                // We are now looking for 'faction_id' which was added in process-spy-batch.js
-                if (data.faction_id && !isNaN(data.faction_id)) { 
-                    factionIds.add(data.faction_id); // Add unique factionId
-                }
-            });
-
-            lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1]; // Get last doc for next batch
-        } while (querySnapshot.size > 0); // Continue if the last query returned any documents
-
-        const uniqueFactionIds = Array.from(factionIds).sort((a, b) => a - b); // Convert Set to Array and sort
-
-        console.log(`[get-all-database-faction-ids] Found ${uniqueFactionIds.length} unique faction IDs in database.`);
+        if (factionIds.length === 0) {
+            console.warn("No faction IDs found in 'monitoredFactions' collection.");
+        }
 
         return {
             statusCode: 200,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                success: true,
-                factionIds: uniqueFactionIds,
-                count: uniqueFactionIds.length
-            })
+            body: JSON.stringify({ success: true, factionIds: factionIds }),
         };
 
     } catch (error) {
-        console.error("[get-all-database-faction-ids] Error fetching unique faction IDs:", error);
+        console.error("Error fetching database faction IDs:", error);
         return {
             statusCode: 500,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                success: false,
-                message: "Internal server error retrieving database faction IDs.",
-                details: error.message
-            })
+            body: JSON.stringify({ success: false, message: `Failed to fetch database faction IDs: ${error.message}` }),
         };
     }
 };
+
+// --- Fair Fight Calculation and Difficulty Text (Repeated for code consistency, put at the bottom) ---
+// This ensures that if this function were ever to need these, they are defined.
+function calculateFairFight(attackerLevel, attackerTotalStats, defenderLevel, defenderTotalStats) {
+    if (!attackerLevel || !defenderLevel || !attackerTotalStats || !defenderTotalStats || defenderTotalStats === 0) { return null; }
+    const attackerBSS = attackerTotalStats; const defenderBSS = defenderTotalStats; const bssRatio = defenderBSS / attackerBSS; let ffScore;
+    if (bssRatio >= 0.75) { ffScore = 3.0; } else if (bssRatio >= 0.50) { ffScore = 2.0 + ((bssRatio - 0.50) / 0.25) * 1.0; } else if (bssRatio >= 0.25) { ffScore = 1.0 + ((bssRatio - 0.25) / 0.25) * 1.0; } else { ffScore = 1.0; }
+    return Math.max(1.0, Math.min(3.0, parseFloat(ffScore.toFixed(2))));
+}
+function get_difficulty_text(ff) {
+    if (ff === null) return "N/A";
+    if (ff >= 2.75) return "Extremely easy"; else if (ff >= 2.0) return "Easy"; else if (ff >= 1.5) return "Moderately difficult"; else if (ff > 1) return "Difficult"; else return "Extremely difficult";
+}
