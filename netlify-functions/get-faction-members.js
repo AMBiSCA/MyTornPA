@@ -1,117 +1,150 @@
+// netlify/functions/get-faction-members.js
+
+const admin = require('firebase-admin'); // Firebase Admin SDK is needed if you fetch API keys from Firestore
 const axios = require('axios');
 
-// Retrieve Torn API Key from Netlify Environment Variables
-const TORN_API_KEY = process.env.TORN_API_KEY;
-
-/**
- * Fetches faction name and all member IDs for a given faction ID using the Torn API.
- * @param {number} factionID - The ID of the faction to fetch.
- * @returns {object} An object containing factionName and an array of member IDs.
- * @throws {Error} if Torn API Key is missing or API call fails.
- */
-async function getFactionInfoAndMembers(factionID) {
-    if (!TORN_API_KEY) {
-        const errorMsg = "[CRITICAL] TORN_API_KEY is not set. Cannot fetch faction members. Please configure it in Netlify Environment Variables.";
-        console.error(errorMsg);
-        throw new Error(errorMsg);
-    }
-
-    const url = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${TORN_API_KEY}`;
-    console.log(`[DEBUG] get-faction-members: Attempting to fetch from Torn API: ${url}`);
+// Initialize Firebase Admin SDK if not already initialized
+// This block handles the connection to Firestore using the base64-encoded credentials.
+if (!admin.apps.length) {
     try {
-        const response = await axios.get(url);
+        const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
 
-        if (response.data) {
-            const factionName = response.data.name || `Faction ${factionID}`;
-            let memberIDs = [];
-
-            if (response.data.members) {
-                if (Array.isArray(response.data.members)) {
-                    memberIDs = response.data.members.map(member => member.id);
-                } else if (typeof response.data.members === 'object') {
-                    memberIDs = Object.keys(response.data.members).map(Number).filter(id => !isNaN(id) && id > 0);
-                }
-            }
-
-            console.log(`[DEBUG] get-faction-members: Found ${memberIDs.length} members for faction ${factionID} (${factionName}).`);
-            return { factionName, memberIDs };
-        } else {
-            const infoMsg = `[INFO] get-faction-members: No data found for faction ${factionID}. Response structure might be unexpected or faction is empty.`;
-            console.log(infoMsg);
-            return { factionName: `Faction ${factionID}`, memberIDs: [] };
+        if (!serviceAccountBase64) {
+            throw new Error("FIREBASE_CREDENTIALS_BASE64 environment variable is not set.");
         }
 
+        // Decode the base64 string and parse it as JSON
+        const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
+
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            // databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com", // Optional, if using Realtime DB
+        });
     } catch (error) {
-        let errorMessage = error.message;
-        if (error.response) {
-            errorMessage = `Error fetching faction ${factionID} from Torn API (Status: ${error.response.status}): ${error.message}`;
-            if (error.response.data && error.response.data.error) {
-                errorMessage += ` Torn API Error Details: Code ${error.response.data.error.code} - ${error.response.data.error.error}`;
-            }
-        } else if (error.request) {
-            errorMessage = `No response received for Torn API faction ${factionID} request: ${error.message}`;
-        } else {
-            errorMessage = `Request setup error for Torn API faction ${factionID}: ${error.message}`;
-        }
-        console.error(`[CRITICAL] get-faction-members: ${errorMessage}`);
-        throw new Error(errorMessage);
+        console.error("Firebase Admin SDK initialization error:", error);
+        throw new Error("Failed to initialize Firebase Admin SDK: " + error.message);
     }
 }
 
-// Netlify Function Handler
+const db = admin.firestore(); // Firestore instance
+
 exports.handler = async (event, context) => {
+    // --- DEBUGGING CONSOLE LOGS ---
+    console.log("get-faction-members function triggered.");
+    console.log("Client Context:", context.clientContext);
+    console.log("User object from context:", context.clientContext.user);
+    // --- END DEBUGGING LOGS ---
+
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
-            body: JSON.stringify({ message: 'Method Not Allowed. Only POST requests are allowed.' })
+            body: JSON.stringify({ success: false, message: 'Method Not Allowed' }),
         };
     }
 
-    let requestBody;
+    let factionId;
     try {
-        requestBody = JSON.parse(event.body);
-    } catch (e) {
-        console.error("Error parsing request body:", e);
+        const body = JSON.parse(event.body);
+        factionId = body.factionId;
+        if (!factionId || isNaN(parseInt(factionId))) {
+            throw new Error('Valid Faction ID is required.');
+        }
+    } catch (error) {
+        console.error("Invalid request body:", error.message);
         return {
             statusCode: 400,
-            body: JSON.stringify({ success: false, message: "Invalid JSON in request body." })
+            body: JSON.stringify({ success: false, message: `Invalid request: ${error.message}` }),
         };
     }
 
-    const factionId = requestBody.factionId;
-
-    if (!factionId || isNaN(factionId) || parseInt(factionId) <= 0) {
+    // Authenticate user
+    const user = context.clientContext.user;
+    if (!user) {
         return {
-            statusCode: 400,
-            body: JSON.stringify({ success: false, message: "Missing or invalid 'factionId' in request body. Must be a positive integer." })
+            statusCode: 401,
+            body: JSON.stringify({ success: false, message: 'Authentication required.' }),
         };
     }
 
-    console.log(`[get-faction-members] Function triggered for Faction ID: ${factionId}.`);
+    let adminTornApiKey; // Assuming this function will also fetch the admin's API key
+                          // to make the Torn API call to get faction members.
 
     try {
-        const { factionName, memberIDs } = await getFactionInfoAndMembers(parseInt(factionId));
+        // Fetch the admin's own Torn API key from Firestore.
+        const adminDocRef = db.collection('userProfiles').doc(user.uid);
+        const adminDoc = await adminDocRef.get();
+
+        if (!adminDoc.exists) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ success: false, message: 'Admin user profile not found.' }),
+            };
+        }
+        const adminData = adminDoc.data();
+        adminTornApiKey = adminData.tornApiKey; // Get the admin's Torn API key
+
+        if (!adminTornApiKey) {
+            return {
+                statusCode: 403,
+                body: JSON.stringify({ success: false, message: 'Admin Torn API Key not set in profile.' }),
+            };
+        }
+
+    } catch (error) {
+        console.error("Error fetching admin's API key from Firestore:", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ success: false, message: `Failed to retrieve admin API key: ${error.message}` }),
+        };
+    }
+
+    let factionMembers = [];
+    let factionName = 'Unknown Faction';
+    let totalMembers = 0;
+
+    try {
+        // Use the admin's Torn API key to get faction members from Torn API.
+        const tornApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${adminTornApiKey}`;
+        const tornApiResponse = await axios.get(tornApiUrl);
+        const tornData = tornApiResponse.data;
+
+        if (tornData.error) {
+            console.error("Torn API Faction Error:", tornData.error.error);
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ success: false, message: `Torn API Error: ${tornData.error.error}. Check admin's Torn API key and 'Faction' permission.` }),
+            };
+        }
+        if (!tornData.members || Object.keys(tornData.members).length === 0) {
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ success: true, message: `No members found for Faction ID ${factionId}.`, memberIDs: [] }),
+            };
+        }
+
+        factionName = tornData.name || `Faction ${factionId}`;
+        factionMembers = Object.keys(tornData.members); // Get array of member IDs
+        totalMembers = factionMembers.length;
+
+        console.log(`Successfully fetched ${totalMembers} members for faction ${factionName} [${factionId}].`);
 
         return {
             statusCode: 200,
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 success: true,
+                message: `Successfully fetched members for faction ${factionName}.`,
                 factionName: factionName,
-                memberIDs: memberIDs, // Return the full list of member IDs
-                totalMembers: memberIDs.length
-            })
+                factionId: factionId,
+                totalMembers: totalMembers,
+                memberIDs: factionMembers,
+            }),
         };
+
     } catch (error) {
-        console.error(`[get-faction-members] Error: ${error.message}`);
+        console.error("Error fetching faction members from Torn API:", error.message);
         return {
             statusCode: 500,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                success: false,
-                message: "Internal server error during faction member retrieval.",
-                details: error.message
-            })
+            body: JSON.stringify({ success: false, message: `Failed to fetch faction members from Torn API: ${error.message}.` }),
         };
     }
 };
