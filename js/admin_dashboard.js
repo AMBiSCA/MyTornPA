@@ -34,6 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
         adminToolContainer.appendChild(dataDisplayArea);
     }
 
+    // --- Manual Stats Input Elements ---
+    const adminStrengthInput = document.getElementById('adminStrengthInput');
+    const adminDefenseInput = document.getElementById('adminDefenseInput');
+    const adminSpeedInput = document.getElementById('adminSpeedInput');
+    const adminDexterityInput = document.getElementById('adminDexterityInput');
+    const adminLevelInput = document.getElementById('adminLevelInput');
+    const manualStatsError = document.getElementById('manualStatsError');
+
+
     // --- Helper for updates box ---
     function updateStatus(message, isError = false) {
         const timestamp = new Date().toLocaleTimeString();
@@ -75,15 +84,56 @@ document.addEventListener('DOMContentLoaded', () => {
         mainPageStatus.style.marginTop = '15px';
 
         if (adminToolContainer) {
-            const inputGroup = adminToolContainer.querySelector('.input-group');
-            if (inputGroup) {
-                inputGroup.insertAdjacentElement('afterend', mainPageStatus);
+            // Target the area after the stats-container or main elements
+            const statsContainer = adminToolContainer.querySelector('.stats-container');
+            if (statsContainer && statsContainer.parentNode) {
+                statsContainer.parentNode.insertBefore(mainPageStatus, statsContainer.nextSibling);
             } else {
                 adminToolContainer.appendChild(mainPageStatus);
             }
         }
         setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000);
     }
+
+    // --- Number Parsing Helper (for 'k', 'm', 'b' notations) ---
+    function parseNumberInput(inputString) {
+        if (!inputString) return 0;
+        let value = String(inputString).toLowerCase().trim();
+        const multiplierMap = { 'k': 1e3, 'm': 1e6, 'b': 1e9 };
+
+        for (const suffix in multiplierMap) {
+            if (value.endsWith(suffix)) {
+                return parseFloat(value.slice(0, -suffix.length)) * multiplierMap[suffix];
+            }
+        }
+        return parseFloat(value); // If no suffix, parse as regular float
+    }
+
+    // --- Local Storage Functions for Manual Stats ---
+    function saveManualStats() {
+        localStorage.setItem('adminStrengthInput', adminStrengthInput.value);
+        localStorage.setItem('adminDefenseInput', adminDefenseInput.value);
+        localStorage.setItem('adminSpeedInput', adminSpeedInput.value);
+        localStorage.setItem('adminDexterityInput', adminDexterityInput.value);
+        localStorage.setItem('adminLevelInput', adminLevelInput.value);
+    }
+
+    function loadManualStats() {
+        adminStrengthInput.value = localStorage.getItem('adminStrengthInput') || '';
+        adminDefenseInput.value = localStorage.getItem('adminDefenseInput') || '';
+        adminSpeedInput.value = localStorage.getItem('adminSpeedInput') || '';
+        adminDexterityInput.value = localStorage.getItem('adminDexterityInput') || '';
+        adminLevelInput.value = localStorage.getItem('adminLevelInput') || '';
+    }
+
+    // Load saved stats when the page loads
+    loadManualStats();
+
+    // Attach input listeners to save changes immediately
+    const manualStatInputs = [adminStrengthInput, adminDefenseInput, adminSpeedInput, adminDexterityInput, adminLevelInput];
+    manualStatInputs.forEach(input => {
+        input.addEventListener('input', saveManualStats);
+    });
 
     // --- Page Protection (Firebase Auth) ---
     if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
@@ -162,8 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
      * Recursively processes batches of players for a single faction, fetching and saving FF data.
      * This function calls the new process-ff-batch Netlify Function.
      * @param {string} idToken The Firebase ID Token of the authenticated user.
+     * @param {object} adminManualStats Object containing parsed manual admin stats (strength, defense, etc., and level).
      */
-    async function processNextBatch(idToken) { // --- MODIFIED: Accepts idToken ---
+    async function processNextBatch(idToken, adminManualStats) { // --- MODIFIED: Accepts idToken AND adminManualStats ---
         if (currentBatchStartIndex >= totalMembersToProcess) {
             console.log("Batch processing finished for current faction.");
             totalFactionsProcessed++; // Increment the count of successfully processed factions
@@ -175,18 +226,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Call the new process-ff-batch Netlify Function
-            const response = await fetch('/.netlify/functions/process-ff-batch', { // <-- CALLS NEW FF BATCH FUNCTION
+            const response = await fetch('/.netlify/functions/process-ff-batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}` // --- ADDED AUTHORIZATION HEADER ---
+                    'Authorization': `Bearer ${idToken}`
                 },
                 body: JSON.stringify({
                     factionId: currentFactionId,
                     factionName: currentFactionName,
-                    memberIDs: currentBatchMemberIds, // Pass only the current batch of member IDs
-                    startIndex: currentBatchStartIndex, // Optional: backend can use for logging
-                    batchSize: BATCH_SIZE // Optional: backend can use for logging
+                    memberIDs: currentBatchMemberIds,
+                    startIndex: currentBatchStartIndex,
+                    batchSize: BATCH_SIZE,
+                    adminManualStats: adminManualStats // --- PASS MANUAL STATS TO BACKEND ---
                 })
             });
 
@@ -205,9 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentBatchStartIndex = result.nextStartIndex;
 
                 if (!result.isComplete) {
-                    setTimeout(() => processNextBatch(idToken), 500); // --- MODIFIED: Pass idToken to recursive call ---
+                    setTimeout(() => processNextBatch(idToken, adminManualStats), 500); // --- MODIFIED: Pass idToken AND adminManualStats ---
                 } else {
-                    return processNextBatch(idToken); // --- MODIFIED: Pass idToken to recursive call ---
+                    return processNextBatch(idToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
                 }
             } else {
                 throw new Error(`Batch FF function reported failure: ${result.message || 'Unknown issue'}`);
@@ -217,8 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateStatus(`Status: Running. Error during Fair Fight processing. Check console for details.`, true);
             console.error(`Batch FF processing error for Faction ${currentFactionId}: ${error.message}. Process stopped for this faction.`, error);
             showMainError(`Failed to process Fair Fight: ${error.message}`);
-            totalFactionsProcessed++; // Count this faction as attempted even if it errored
-            throw error; // Re-throw to stop the current chain if a fatal error occurs for this faction
+            totalFactionsProcessed++;
+            throw error;
         }
     }
 
@@ -236,6 +288,23 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 factionIdError.textContent = '';
             }
+
+            // --- VALIDATE AND GET MANUAL ADMIN STATS ---
+            const strength = parseNumberInput(adminStrengthInput.value);
+            const defense = parseNumberInput(adminDefenseInput.value);
+            const speed = parseNumberInput(adminSpeedInput.value);
+            const dexterity = parseNumberInput(adminDexterityInput.value);
+            const level = parseInt(adminLevelInput.value);
+
+            if (isNaN(strength) || isNaN(defense) || isNaN(speed) || isNaN(dexterity) || isNaN(level) || level <= 0) {
+                manualStatsError.textContent = 'Please enter valid numbers for all admin stats and level.';
+                updateStatus('Invalid admin stats provided.', true);
+                return;
+            } else {
+                manualStatsError.textContent = '';
+            }
+            const adminManualStats = { strength, defense, speed, dexterity, level };
+            // --- END VALIDATE AND GET MANUAL ADMIN STATS ---
 
             let currentAuthenticatedUser = firebase.auth().currentUser;
             if (!currentAuthenticatedUser) {
@@ -267,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}` // --- ADDED AUTHORIZATION HEADER ---
+                        'Authorization': `Bearer ${idToken}`
                     },
                     body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
                 });
@@ -287,8 +356,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalFactionsToAttempt = 1; // For a single faction run
 
                     updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
-                    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay before starting FF batch processing
-                    await processNextBatch(idToken); // --- MODIFIED: Pass idToken ---
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await processNextBatch(idToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
 
                     displayOverallFinalStatus(); // Display final status after single faction is done
                     fetchFactionDataBtn.disabled = false;
@@ -324,6 +393,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             resetBatchProcessState();
 
+            // --- VALIDATE AND GET MANUAL ADMIN STATS ---
+            const strength = parseNumberInput(adminStrengthInput.value);
+            const defense = parseNumberInput(adminDefenseInput.value);
+            const speed = parseNumberInput(adminSpeedInput.value);
+            const dexterity = parseNumberInput(adminDexterityInput.value);
+            const level = parseInt(adminLevelInput.value);
+
+            if (isNaN(strength) || isNaN(defense) || isNaN(speed) || isNaN(dexterity) || isNaN(level) || level <= 0) {
+                manualStatsError.textContent = 'Please enter valid numbers for all admin stats and level.';
+                updateStatus('Invalid admin stats provided.', true);
+                return;
+            } else {
+                manualStatsError.textContent = '';
+            }
+            const adminManualStats = { strength, defense, speed, dexterity, level };
+            // --- END VALIDATE AND GET MANUAL ADMIN STATS ---
+
+
             updateStatus("Status: Running. Fetching faction IDs from database...", false);
 
             let currentAuthenticatedUser = firebase.auth().currentUser;
@@ -356,9 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${overallIdToken}` // --- ADDED AUTHORIZATION HEADER ---
+                        'Authorization': `Bearer ${overallIdToken}`
                     },
-                    body: JSON.stringify({}) // Might send user.uid or admin-specific info if needed
+                    body: JSON.stringify({})
                 });
 
                 if (!response.ok) {
@@ -376,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateStatus(`Status: Running. Found ${totalFactionsToAttempt} factions to refresh.`, false);
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay
 
-                    await processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
+                    await processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
 
                 } else {
                     totalFactionsToAttempt = 0; // No factions found
@@ -400,8 +487,9 @@ document.addEventListener('DOMContentLoaded', () => {
      * Processes the next faction from the list fetched from the database.
      * Orchestrates calling get-faction-members and processNextBatch for each.
      * @param {string} overallIdToken The Firebase ID Token for the multi-faction refresh.
+     * @param {object} adminManualStats Object containing parsed manual admin stats.
      */
-    async function processNextDbFaction(overallIdToken) { // --- MODIFIED: Accepts idToken ---
+    async function processNextDbFaction(overallIdToken, adminManualStats) { // --- MODIFIED: Accepts idToken AND adminManualStats ---
         if (currentDbFactionIndex >= allDbFactionsToProcess.length) {
             displayOverallFinalStatus(); // Show overall final status
             console.log("All database factions processed.");
@@ -431,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${overallIdToken}` // --- ADDED AUTHORIZATION HEADER ---
+                    'Authorization': `Bearer ${overallIdToken}`
                 },
                 body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
             });
@@ -451,19 +539,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
                 await new Promise(resolve => setTimeout(resolve, 500));
-                await processNextBatch(overallIdToken); // --- MODIFIED: Pass idToken ---
+                await processNextBatch(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
 
                 // After processing all batches for this faction (success or internal error for this faction):
                 currentDbFactionIndex++; // Move to the next faction in the list
                 await new Promise(resolve => setTimeout(resolve, 2000)); // Delay before starting next faction's process
-                processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
+                processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
 
             } else {
                 updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true);
                 console.warn(`No members found for database Faction ID ${currentFactionId}.`);
                 currentDbFactionIndex++;
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
+                processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
             }
 
         } catch (error) {
@@ -471,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(`Error processing database faction ${currentFactionId}:`, error);
             currentDbFactionIndex++;
             await new Promise(resolve => setTimeout(resolve, 2000));
-            processNextDbFaction(overallIdToken); // --- MODIFIED: Pass idToken ---
+            processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
         }
     }
 
