@@ -1,9 +1,11 @@
+// mysite/js/admin_dashboard.js
+
 // Global state variables for batch processing
 let currentFactionMembers = []; // Stores all member IDs for the current faction
 let currentFactionName = "";
 let currentFactionId = "";
 let currentBatchStartIndex = 0;
-const BATCH_SIZE = 5; // Process 5 players per batch invocation
+const BATCH_SIZE = 5; // Process 5 players per batch invocation (for API calls)
 let totalMembersToProcess = 0;
 
 // Global variables for overall batch processing summary
@@ -11,18 +13,18 @@ let totalProcessedSuccess = 0;
 let totalProcessedSkipped = 0;
 let totalProcessedErrors = 0;
 
-// New global variable for overall faction count (for the "Refresh a total of X Factions" message)
-let totalFactionsProcessed = 0; 
+// Global variable for overall faction count
+let totalFactionsProcessed = 0;
 let totalFactionsToAttempt = 0; // To show total count in final message
 
 document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logoutButtonHeader');
-    const factionIdInput = document.getElementById('factionIdInput'); 
-    const factionIdError = document.getElementById('factionIdError'); 
+    const factionIdInput = document.getElementById('factionIdInput');
+    const factionIdError = document.getElementById('factionIdError');
 
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
-    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn'); 
-    const saveToFirebaseBtn = document.getElementById('saveToFirebaseBtn'); 
+    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
+    const saveToFirebaseBtn = document.getElementById('saveToFirebaseBtn'); // This remains deprecated
     const updatesBox = document.getElementById('updatesBox');
     const adminToolContainer = document.querySelector('.admin-tool-container');
     const dataDisplayArea = document.createElement('div');
@@ -31,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adminToolContainer) {
         adminToolContainer.appendChild(dataDisplayArea);
     }
-
 
     // --- Helper for updates box ---
     function updateStatus(message, isError = false) {
@@ -42,9 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
             cleanedMessage = cleanedMessage.substring(problematicPrefix.length);
         }
 
-        updatesBox.innerHTML += `<p style="color:<span class="math-inline">\{isError ? '\#ff4d4d' \: '\#eee'\};"\><strong\>\[</span>{timestamp}]</strong> ${cleanedMessage}</p>`;
+        updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${cleanedMessage}</p>`;
         updatesBox.scrollTop = updatesBox.scrollHeight;
     }
+
     function clearStatus() {
         updatesBox.innerHTML = '';
     }
@@ -71,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainPageStatus.style.border = '1px solid red';
         mainPageStatus.style.borderRadius = '5px';
         mainPageStatus.style.marginTop = '15px';
-        
+
         if (adminToolContainer) {
             const inputGroup = adminToolContainer.querySelector('.input-group');
             if (inputGroup) {
@@ -83,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000);
     }
 
-    // --- Page Protection ---
+    // --- Page Protection (Firebase Auth) ---
     if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
@@ -117,9 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     // ==========================================================
-    // Batch Processing Functions
+    // Batch Processing Functions for Fair Fight Data
     // ==========================================================
 
     /**
@@ -134,11 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
         totalProcessedSuccess = 0;
         totalProcessedSkipped = 0;
         totalProcessedErrors = 0;
-        totalFactionsProcessed = 0; 
-        totalFactionsToAttempt = 0; 
+        totalFactionsProcessed = 0;
+        totalFactionsToAttempt = 0;
         clearStatus();
         dataDisplayArea.innerHTML = '';
-        saveToFirebaseBtn.style.display = 'none';
+        if (saveToFirebaseBtn) saveToFirebaseBtn.style.display = 'none';
     }
 
     /**
@@ -147,46 +148,45 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayOverallFinalStatus() {
         let finalMessage = `Status: Finished.`;
         if (totalFactionsToAttempt > 1) { // More than 1 faction processed overall
-            finalMessage += ` Refresh a total of ${totalFactionsToAttempt} Factions.`;
+            finalMessage += ` Refreshed a total of ${totalFactionsProcessed} / ${totalFactionsToAttempt} Factions.`;
         } else { // Single faction processed
-            finalMessage += ` Found ${totalMembersToProcess} members. Successfully processed ${totalProcessedSuccess} spy reports.`;
+            finalMessage += ` Found ${totalMembersToProcess} members. Successfully processed ${totalProcessedSuccess} Fair Fight reports.`;
             if (totalProcessedSkipped > 0) finalMessage += ` Skipped ${totalProcessedSkipped}.`;
             if (totalProcessedErrors > 0) finalMessage += ` Failed ${totalProcessedErrors}.`;
         }
         updateStatus(finalMessage, false);
-        console.log(`Overall batch processing finished. Total factions attempted: ${totalFactionsToAttempt}.`);
+        console.log(`Overall batch processing finished. Total factions attempted: ${totalFactionsToAttempt}, processed: ${totalFactionsProcessed}.`);
     }
 
-
     /**
-     * Recursively processes batches of players for a single faction.
-     * This function is awaited by the orchestrating multi-faction processes.
+     * Recursively processes batches of players for a single faction, fetching and saving FF data.
+     * This function calls the new process-ff-batch Netlify Function.
      */
     async function processNextBatch() {
         if (currentBatchStartIndex >= totalMembersToProcess) {
             console.log("Batch processing finished for current faction.");
             totalFactionsProcessed++; // Increment the count of successfully processed factions
-            return; 
+            return;
         }
 
-        const currentBatch = currentFactionMembers.slice(currentBatchStartIndex, currentBatchStartIndex + BATCH_SIZE);
-        
+        const currentBatchMemberIds = currentFactionMembers.slice(currentBatchStartIndex, currentBatchStartIndex + BATCH_SIZE);
+
         try {
-            const response = await fetch('/.netlify/functions/process-spy-batch', {
+            const response = await fetch('/.netlify/functions/process-ff-batch', { // <-- CALLS NEW FF BATCH FUNCTION
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     factionId: currentFactionId,
                     factionName: currentFactionName,
-                    memberIDs: currentFactionMembers,
-                    startIndex: currentBatchStartIndex,
-                    batchSize: BATCH_SIZE
+                    memberIDs: currentBatchMemberIds, // Pass only the current batch member IDs
+                    startIndex: currentBatchStartIndex, // Backend needs to know this for progress tracking (optional)
+                    batchSize: BATCH_SIZE // Backend needs to know this for progress tracking (optional)
                 })
             });
 
             if (!response.ok) {
                 const errorBody = await response.json().catch(() => ({ message: response.statusText }));
-                throw new Error(`Batch Function Error (${response.status}): ${errorBody.message || 'Unknown error'}`);
+                throw new Error(`Batch FF Function Error (${response.status}): ${errorBody.message || 'Unknown error'}`);
             }
 
             const result = await response.json();
@@ -197,30 +197,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalProcessedErrors += result.processedSummary.errorCount;
 
                 currentBatchStartIndex = result.nextStartIndex;
-                
+
                 if (!result.isComplete) {
-                    setTimeout(processNextBatch, 500);
+                    setTimeout(processNextBatch, 500); // Short delay before next batch
                 } else {
-                    return processNextBatch();
+                    return processNextBatch(); // Recursively call to handle completion or next faction
                 }
             } else {
-                throw new Error(`Batch function reported failure: ${result.message || 'Unknown issue'}`);
+                throw new Error(`Batch FF function reported failure: ${result.message || 'Unknown issue'}`);
             }
 
         } catch (error) {
-            updateStatus(`Status: Running. Error during processing. Check console for details.`, true); 
-            console.error(`Batch processing error for Faction ${currentFactionId}: ${error.message}. Process stopped for this faction.`, error);
-            showMainError(`Failed to process: ${error.message}`);
-            totalFactionsProcessed++; 
+            updateStatus(`Status: Running. Error during Fair Fight processing. Check console for details.`, true);
+            console.error(`Batch FF processing error for Faction ${currentFactionId}: ${error.message}. Process stopped for this faction.`, error);
+            showMainError(`Failed to process Fair Fight: ${error.message}`);
+            totalFactionsProcessed++;
             throw error;
         }
     }
 
-
     // --- Single Faction Data Fetch (via input field) ---
     if (fetchFactionDataBtn) {
         fetchFactionDataBtn.addEventListener('click', async () => {
-            console.log("Fetch Faction Data button clicked - initiating batch process for single faction!");
+            console.log("Fetch Faction Data button clicked - initiating Fair Fight batch process for single faction!");
             resetBatchProcessState();
 
             currentFactionId = factionIdInput.value.trim();
@@ -239,12 +238,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            updateStatus(`Status: Running.`, false); 
+            updateStatus(`Status: Running. Fetching members for Faction ID ${currentFactionId}...`, false);
             fetchFactionDataBtn.disabled = true;
-            refreshDatabaseFactionsBtn.disabled = true; // Disable the other button too
+            refreshDatabaseFactionsBtn.disabled = true;
 
             try {
-                const response = await fetch('/.netlify/functions/get-faction-members', { 
+                // This calls a backend function to get the member IDs for the faction.
+                // It does NOT do the FF calculation or saving.
+                const response = await fetch('/.netlify/functions/get-faction-members', { // Existing function to get member list
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
@@ -264,8 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentBatchStartIndex = 0;
                     totalFactionsToAttempt = 1; // For a single faction run
 
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    await processNextBatch(); 
+                    updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+                    await processNextBatch(); // Start the FF batch processing and saving
 
                     displayOverallFinalStatus(); // Display final status after single faction is done
                     fetchFactionDataBtn.disabled = false;
@@ -279,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 totalFactionsToAttempt = 1; // For a single faction run
-                updateStatus(`Status: Running. Error fetching members list. Check console for details.`, true); 
+                updateStatus(`Status: Error. Failed to fetch members list. Check console for details.`, true);
                 console.error("Initial member list fetch error:", error);
                 showMainError(`Failed to fetch faction members: ${error.message}`);
                 fetchFactionDataBtn.disabled = false;
@@ -288,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     // --- Refresh All Database Factions Logic ---
     let currentDbFactionIndex = 0;
     let allDbFactionsToProcess = [];
@@ -296,13 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refreshDatabaseFactionsBtn) {
         refreshDatabaseFactionsBtn.addEventListener('click', async () => {
             console.log("Refresh All Database Factions button clicked - initiating fetch of unique faction IDs from database.");
-            
+
             fetchFactionDataBtn.disabled = true;
             refreshDatabaseFactionsBtn.disabled = true;
 
-            resetBatchProcessState(); 
+            resetBatchProcessState();
 
-            updateStatus("Status: Running.", false); // Initial running status for multi-faction run
+            updateStatus("Status: Running. Fetching faction IDs from database...", false);
 
             let currentAuthenticatedUser = firebase.auth().currentUser;
             if (!currentAuthenticatedUser) {
@@ -314,10 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
+                // This fetches a list of Faction IDs from your database (e.g., from a collection of monitored factions)
                 const response = await fetch('/.netlify/functions/get-all-database-faction-ids', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
+                    body: JSON.stringify({}) // Might send user.uid or admin-specific info if needed
                 });
 
                 if (!response.ok) {
@@ -332,8 +334,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentDbFactionIndex = 0;
                     totalFactionsToAttempt = allDbFactionsToProcess.length; // Set total here
 
-                    // Continue with "Status: Running"
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    updateStatus(`Status: Running. Found ${totalFactionsToAttempt} factions to refresh.`, false);
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay
 
                     await processNextDbFaction(); // Start processing the list of factions from DB
 
@@ -346,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 totalFactionsToAttempt = 0; // Assume 0 if initial fetch fails
-                updateStatus(`Status: Running. Error fetching database faction IDs. Check console for details.`, true); // Generic error message for display
+                updateStatus(`Status: Error. Failed to fetch database faction IDs. Check console for details.`, true);
                 console.error("Error fetching database faction IDs:", error);
                 showMainError(`Failed to fetch database faction IDs: ${error.message}`);
                 fetchFactionDataBtn.disabled = false;
@@ -357,6 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Processes the next faction from the list fetched from the database.
+     * Orchestrates calling get-faction-members and processNextBatch for each.
      */
     async function processNextDbFaction() {
         if (currentDbFactionIndex >= allDbFactionsToProcess.length) {
@@ -367,10 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        resetBatchProcessState(); // Reset state for each new faction (but keep totalFactionsToAttempt)
+        resetBatchProcessState(); // Reset state for each new faction (but keep totalFactionsToAttempt for overall counter)
         currentFactionId = allDbFactionsToProcess[currentDbFactionIndex];
 
-        // Status is already "Running." No change needed per faction.
+        updateStatus(`Status: Running. Fetching members for Faction ID ${currentFactionId} (${currentDbFactionIndex + 1}/${totalFactionsToAttempt})...`, false);
 
         let currentAuthenticatedUser = firebase.auth().currentUser;
         if (!currentAuthenticatedUser) {
@@ -382,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // Get member list for the current faction from Torn API
             const response = await fetch('/.netlify/functions/get-faction-members', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -401,17 +405,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalMembersToProcess = result.totalMembers;
                 currentBatchStartIndex = 0;
 
-                // Start batch processing for this faction (will just keep "Status: Running" on screen)
+                updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await processNextBatch(); // This will complete all batches for THIS faction
-                
-                // After processing all batches for this faction (success or internal error):
+
+                // After processing all batches for this faction (success or internal error for this faction):
                 currentDbFactionIndex++; // Move to the next faction in the list
                 await new Promise(resolve => setTimeout(resolve, 2000)); // Delay before starting next faction's process
                 processNextDbFaction(); // Recursively call for the next faction
-                
+
             } else {
-                updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true); // Brief internal info, but still running overall
+                updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true);
                 console.warn(`No members found for database Faction ID ${currentFactionId}.`);
                 currentDbFactionIndex++;
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -419,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            updateStatus(`Status: Running. Error processing database Faction ID ${currentFactionId}. Skipping.`, true); // Brief internal info, but still running overall
+            updateStatus(`Status: Running. Error processing database Faction ID ${currentFactionId}. Skipping.`, true);
             console.error(`Error processing database faction ${currentFactionId}:`, error);
             currentDbFactionIndex++;
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -427,13 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
-    // --- Save to Firebase Button Logic ---
+    // --- Save to Firebase Button Logic (Deprecated for automatic batch saving) ---
     if (saveToFirebaseBtn) {
         saveToFirebaseBtn.addEventListener('click', async () => {
-            updateStatus("This 'Save to Firebase' button is deprecated in the new batch processing flow. Data is saved automatically per batch.", true);
+            updateStatus("This 'Save to Firebase' button is deprecated in the new batch processing flow. Fair Fight data is saved automatically per batch.", true);
             console.warn("Manual 'Save to Firebase' button clicked, but it's deprecated for this tool.");
-            saveToFirebaseBtn.disabled = false;
+            if (saveToFirebaseBtn) saveToFirebaseBtn.disabled = false; // Ensure it's re-enabled if disabled
         });
     }
 });
