@@ -1,17 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>MyTornPA - Admin Dashboard</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/admin.css"> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MyTornPA</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    </head>
-<body>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/factionpeeper.css">
+    <style>
+        /* Specific styles for the simplified admin dashboard */
+        body {
+            background-color: #1a1a1a; /* Dark background */
+            color: #eee;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
+        .main-content-wrapper {
+            position: relative;
+            z-index: 1; /* Ensure content is above background images */
+            padding-top: 20px;
+            padding-bottom: 50px; /* Space for footer */
+        }
+        .image-glow, .image-glow-flipped {
+            position: fixed; /* Fixed position relative to viewport */
+            bottom: 0;
+            z-index: 0; /* Behind content */
+            opacity: 0.2; /* Subtle glow */
+            pointer-events: none; /* Do not block mouse events */
+        }
+        .image-glow {
+            left: 0;
+            transform: translateX(-50%);
+        }
+        .image-glow-flipped {
+            right: 0;
+            transform: translateX(50%) scaleX(-1);
+        }
+
+        .admin-tool-container {
+            background-color: #2a2a2a; /* Darker background for the box */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px; /* Adjust width as needed */
+            margin: 40px auto; /* Center the box */
+            text-align: center;
+        }
+        .admin-tool-container h2 {
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        /* Common input/button styles (might be in global.css too) */
+        .input-group {
+            margin-bottom: 20px;
+            display: flex; /* Flexbox for layout */
+            flex-direction: column; /* Stack items vertically */
+            align-items: center; /* Center items */
+            gap: 10px; /* Space between items */
+        }
+        .input-group .input-field {
+            width: 100%; /* Take full width of parent flex item */
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 0.9em;
+        }
+        .input-group input[type="text"],
+        .input-group input[type="number"] {
+            width: calc(100% - 20px); /* Full width minus padding */
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #333;
+            color: #eee;
+            font-size: 1em;
+        }
+        .admin-tool-container button {
+            background-color: #007bff; /* Blue for fetch */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-top: 5px; /* Spacing for stacked buttons */
+            width: 100%; /* Buttons take full width in this layout */
+            max-width: 300px; /* Max width for buttons */
+        }
+        .admin-tool-container button:hover {
+            background-color: #0056b3;
+        }
+        .admin-tool-container .save-to-firebase-button { /* Deprecated but kept for reference */
+            background-color: #28a745; /* Green for save */
+        }
+        .admin-tool-container .save-to-firebase-button:hover {
+            background-color: #218838;
+        }
+        .admin-tool-container .error-message {
+            color: #ff4d4d; /* Red for errors */
+            margin-top: 5px;
+            font-size: 0.9em;
+            text-align: left; /* Align error message with input */
+            width: calc(100% - 20px); /* Match input width */
+        }
+        #updatesBox {
+            background-color: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            color: #eee;
+            min-height: 100px; /* Give it some space */
+            overflow-y: auto; /* Scroll if content overflows */
+            font-size: 0.9em;
+        }
+        #updatesBox p {
+            margin: 0;
+            padding: 2px 0;
+        }
+
+        /* Styles for the new manual stats input section */
+        .manual-stats-section {
+            background-color: #3a3a3a; /* Slightly lighter background */
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 30px; /* Space from above content */
+            text-align: left;
+        }
+        .manual-stats-section h3 {
+            color: #ddd;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .manual-stats-section .stat-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .manual-stats-section .stat-input-group label {
+            flex: 0 0 100px; /* Fixed width for labels */
+            color: #ccc;
+            font-size: 1em;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .manual-stats-section .stat-input-group input {
+            flex-grow: 1; /* Input takes remaining space */
+            width: auto; /* Override general input width */
+            max-width: 200px; /* Limit max width of inputs */
+        }
+        .manual-stats-section #manualStatsError {
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
     <header>
         <div class="header-left">
             <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
@@ -22,23 +176,20 @@
             <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
-            <div class="header-user-display" id="logged-in-user-display" style="display: none;">
-            </div>
-
-            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
-            
             <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
                 <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
                     <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
                 </button>
-                
+
                 <div class="dropdown" id="usefulLinksDropdownContainer">
-                    <button class="btn dropdown-toggle" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span><span class="btn-icon">🔗 🔽</span>
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗 🔽</span>
                     </button>
                     <div class="dropdown-content" id="usefulLinksDropdown">
-                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
-                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
                         <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
                         <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
                         <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
@@ -48,24 +199,24 @@
                         <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
                     </div>
                 </div>
-                
-                <div class="dropdown" id="contactUsDropdownContainer">
-                    <button class="btn dropdown-toggle" id="contactUsBtn">
-                        <span class="btn-text">Contact Us:</span><span class="btn-icon">💬 🔽</span>
+
+                <div class="dropdown" id="headerContactUsContainer">
+                    <button class="btn header-btn" id="headerContactUsBtn">
+                        <span class="btn-text">Contact:</span>
+                        <span class="btn-icon">💬 🔽</span>
                     </button>
-                    <div class="dropdown-content" id="contactUsDropdown">
+                    <div class="dropdown-content header-contact-dropdown-content" id="headerContactUsDropdown">
                         <a href="report.html">Report an Issue</a>
                         <a href="#">Live Chat (Soon™)</a>
                         <a href="FAQ.html">F.A.Q</a>
                     </div>
                 </div>
-                
-                <button class="btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+
+                <button class="btn header-btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span>
+                    <span class="btn-icon">🚪</span>
                 </button>
             </div>
-            
-            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
         </div>
     </header>
 
@@ -75,9 +226,8 @@
 
         <div class="admin-tool-container">
             <h2 class="script-title">Admin Faction Data Tool</h2>
-            
-            <div id="fairFightApiKeyError" class="error-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;"></div>
-            
+            <div id="fairFightApiKeyError" class="error-message" style="text-align: center; margin-bottom: 20px;"></div>
+
             <div class="stats-container">
                 <div class="faction-data-tool-box">
                     <h3>Process Faction Fair Fight:</h3>
@@ -86,7 +236,6 @@
                     <div id="factionIdError" class="error-message"></div>
                     <button id="fetchFactionDataBtn" class="fetch-btn">Fetch Faction Data</button>
                     <button id="refreshDatabaseFactionsBtn" class="fetch-btn" style="margin-top: 10px;">Refresh All Database Factions</button>
-                    <div id="updatesBox" class="updates-log"></div>
                 </div>
 
                 <div class="manual-stats-input-box">
@@ -116,7 +265,9 @@
                 </div>
                 </div>
             
-            <div id="fetchedFactionDataTableContainer" style="margin-top:20px;"></div>
+            <div id="updatesBox" class="updates-log">
+                <p>Status updates will appear here.</p>
+            </div>
             
             <button id="saveToFirebaseBtn" class="fetch-btn" style="display: none;">Save to Firebase</button>
             
@@ -124,8 +275,7 @@
                 <p>Please Note: Fair Fight data relies on external services. Ensure your own stats are up-to-date.</p>
             </div>
         </div>
-
-        </div>
+    </div>
 
     <footer class="footer">
         <div class="footer-links">
@@ -144,5 +294,46 @@
     <script src="../js/globalheader.js"></script>
     <script src="../js/admin_dashboard.js"></script>
 
+    <script>
+        // Inline script from your template for dropdowns
+        document.addEventListener('DOMContentLoaded', () => {
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+            const headerContactUsBtn = document.getElementById('headerContactUsBtn');
+            const headerContactUsDropdown = document.getElementById('headerContactUsDropdown');
+
+            // Hide dropdowns initially
+            if(usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
+            if(headerContactUsDropdown) headerContactUsDropdown.style.display = 'none';
+
+            if(usefulLinksBtn && usefulLinksDropdown) {
+                usefulLinksBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = usefulLinksDropdown.style.display === 'block';
+                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
+                    if(headerContactUsDropdown) headerContactUsDropdown.style.display = 'none'; // Close other dropdown
+                });
+            }
+
+            if(headerContactUsBtn && headerContactUsDropdown) {
+                headerContactUsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = headerContactUsDropdown.style.display === 'block';
+                    headerContactUsDropdown.style.display = isVisible ? 'none' : 'block';
+                    if(usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
+                });
+            }
+
+            // Hide dropdowns if clicked outside
+            window.addEventListener('click', (e) => {
+                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
+                    usefulLinksDropdown.style.display = 'none';
+                }
+                if (headerContactUsDropdown && !headerContactUsBtn.contains(e.target) && !headerContactUsDropdown.contains(e.target)) {
+                    headerContactUsDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
