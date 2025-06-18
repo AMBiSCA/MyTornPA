@@ -347,10 +347,16 @@ ul li:last-child { border-bottom: none; }
     color: var(--btn-close-hover-color, #00e0ff);
 }
 
-.header-btn .btn-icon::after {
-    content: '\25BC'; /* This inserts the new arrow icon */
-    font-size: 1rem; /* This makes the new icon visible */
-    /* ... other styles ... */
+#usefulLinksBtn .btn-icon::after,
+#headerContactUsBtn .btn-icon::after {
+    content: '\25BC'; /* Unicode for a solid black down-pointing triangle (▼) */
+    font-size: 1rem;
+    color: #eee;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
 }
 
 #firebaseui-auth-container {
