@@ -1,4 +1,4 @@
-// Function location: netlify/functions/fetch-fairfight-data.js
+// Function location: netlify/functions/fetch-fairfight-data.js --- KEY DEBUGGING VERSION ---
 const fetch = require('node-fetch');
 
 // Helper function to handle API calls and JSON parsing
@@ -13,6 +13,9 @@ async function fetchJson(url) {
 
 exports.handler = async function(event, context) {
     const { type, id, apiKey } = event.queryStringParameters;
+
+    // THIS IS THE DEBUG LINE ADDED FOR THE SERVER
+    console.log("DEBUG: Function received this API Key:", apiKey);
 
     if (!type || !id || !apiKey) {
         return {
@@ -43,7 +46,7 @@ exports.handler = async function(event, context) {
             const responseData = {
                 ...yataData,
                 player_name: tornData.name,
-                level: tornData.level || null // Use null as a fallback
+                level: tornData.level || null 
             };
 
             return {
