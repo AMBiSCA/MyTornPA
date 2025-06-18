@@ -2,144 +2,144 @@
 
 /* Base HTML & Body Styles */
 html, body {
-    height: 100%; /* CHANGED: Use 100% instead of 100vh for more flexible height */
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scrollbar from overflow */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #eee; /* Default text color for the whole site */
+    height: 100%; /* CHANGED: Use 100% instead of 100vh for more flexible height */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scrollbar from overflow */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee; /* Default text color for the whole site */
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 0;
-    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradient background */
-    padding-top: 70px; /* Space for fixed header */
-    padding-bottom: 70px; /* Space for fixed footer */
-    min-height: 100vh; /* Ensure body takes full viewport height */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradient background */
+    padding-top: 70px; /* Space for fixed header */
+    padding-bottom: 70px; /* Space for fixed footer */
+    min-height: 100vh; /* Ensure body takes full viewport height */
 
-    /* --- IMPORTANT FIX: Allow overall page scrolling --- */
-    overflow-y: auto; /* CHANGED: Allow vertical scrollbar to appear for the whole page */
+    /* --- IMPORTANT FIX: Allow overall page scrolling --- */
+    overflow-y: auto; /* CHANGED: Allow vertical scrollbar to appear for the whole page */
 }
 
 /* Overall page background image with grayscale filter */
 body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: grayscale(100%);
-    opacity: 0.8;
-    z-index: -1;
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+    opacity: 0.8;
+    z-index: -1;
 }
 
 /* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) */
 /* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY */
 ::-webkit-scrollbar {
-    width: 10px; height: 10px;
+    width: 10px; height: 10px;
 }
 ::-webkit-scrollbar-track {
-    background: #2b2b2b; border-radius: 5px;
+    background: #2b2b2b; border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb {
-    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background-color: #00a8ff;
+    background-color: #00a8ff;
 }
 ::-webkit-scrollbar-corner {
-    background: #222;
+    background: #222;
 }
 
 
 /* HEADER Styles (ALL header styles are now here) */
 header {
-    width: 100%;
-    background: #222;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px;
-    border-bottom: 3px solid #00a8ff;
+    width: 100%;
+    background: #222;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    border-bottom: 3px solid #00a8ff;
 }
 .header-left {
-    flex: 1; display: flex; justify-content: flex-start; align-items: center;
+    flex: 1; display: flex; justify-content: flex-start; align-items: center;
 }
 .header-left a {
-    display: flex; align-items: center; text-decoration: none;
+    display: flex; align-items: center; text-decoration: none;
 }
 .header-left h1 {
-    font-size: 1.6rem; color: #00a8ff; margin: 0; user-select: none; white-space: nowrap;
+    font-size: 1.6rem; color: #00a8ff; margin: 0; user-select: none; white-space: nowrap;
 }
 .header-left .tagline {
-    font-size: 0.8rem; color: #aaa; font-weight: 400; margin-left: 8px; font-weight: bold; display: inline-block; white-space: nowrap;
+    font-size: 0.8rem; color: #aaa; font-weight: 400; margin-left: 8px; font-weight: bold; display: inline-block; white-space: nowrap;
 }
 .header-center {
-    flex-shrink: 0; display: flex; justify-content: center; align-items: center;
+    flex-shrink: 0; display: flex; justify-content: center; align-items: center;
 }
 #headerMainLogo {
-    max-height: 70px; width: auto; display: block; margin-top: -5px;
-    filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
+    max-height: 70px; width: auto; display: block; margin-top: -5px;
+    filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
 }
 .header-right-controls {
-    flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+    flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;
 }
 .header-buttons {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 10px;
 }
 
 /* Refactored: Base Button Style */
 .btn, .btn-header {
-    font-weight: bold; border-radius: 20px; /* Global 20px radius */
-    cursor: pointer; white-space: nowrap; text-decoration: none;
-    display: inline-flex; align-items: center;
-    font-size: 14px; /* Global font size */
-    line-height: 1.4; padding: 0 12px; /* Global padding */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
-    user-select: none;
-    -webkit-appearance: none; appearance: none;
-    background-image: none;
-    box-sizing: border-box;
-    outline: none; overflow: hidden; position: relative; z-index: 0;
-    text-align: center; text-transform: none;
-    vertical-align: middle; min-width: min-content;
-    margin: 8px 0; /* Default margin for all buttons */
+    font-weight: bold; border-radius: 20px; /* Global 20px radius */
+    cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center;
+    font-size: 14px; /* Global font size */
+    line-height: 1.4; padding: 0 12px; /* Global padding */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+    user-select: none;
+    -webkit-appearance: none; appearance: none;
+    background-image: none;
+    box-sizing: border-box;
+    outline: none; overflow: hidden; position: relative; z-index: 0;
+    text-align: center; text-transform: none;
+    vertical-align: middle; min-width: min-content;
+    margin: 8px 0; /* Default margin for all buttons */
 
-    /* Core "Little Button" appearance - removed !important */
-    background-color: #131314;
-    border: 1px solid #00a8ff;
-    color: #e3e3e3;
-    height: 40px;
+    /* Core "Little Button" appearance - removed !important */
+    background-color: #131314;
+    border: 1px solid #00a8ff;
+    color: #e3e3e3;
+    height: 40px;
 }
 
 /* Button Hover/Focus/Active States */
 .btn:not(:disabled):hover, .btn:not(:disabled):focus {
-    border-color: #4dc4ff; /* Lighter blue border on hover/focus */
-    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
-    transform: translateY(-1px); /* Slight lift on hover */
+    border-color: #4dc4ff; /* Lighter blue border on hover/focus */
+    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
+    transform: translateY(-1px); /* Slight lift on hover */
 }
 .btn::before { /* Overlay for hover/focus effects */
-    content: ""; position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%; background-color: white;
-    opacity: 0; border-radius: inherit; transition: opacity 0.218s;
-    pointer-events: none; z-index: -1;
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; background-color: white;
+    opacity: 0; border-radius: inherit; transition: opacity 0.218s;
+    pointer-events: none; z-index: -1;
 }
 .btn:not(:disabled):hover::before { opacity: 0.08; }
 .btn:not(:disabled):active, .btn:not(:disabled):focus { border-color: #00a8ff; }
@@ -147,10 +147,10 @@ header {
 
 /* Disabled Button State */
 .btn:disabled {
-    cursor: default;
-    background-color: rgba(19, 19, 20, 0.38);
-    border-color: rgba(0, 168, 255, 0.38);
-    color: rgba(227, 227, 227, 0.38);
+    cursor: default;
+    background-color: rgba(19, 19, 20, 0.38);
+    border-color: rgba(0, 168, 255, 0.38);
+    color: rgba(227, 227, 227, 0.38);
 }
 .btn:disabled::before { opacity: 0; }
 .btn:disabled .btn-text, .btn:disabled .btn-icon { opacity: 0.38; }
@@ -161,22 +161,22 @@ header {
 
 /* Specific Header Button Overrides */
 .btn-header {
-    margin: 0 4px; /* Adjust margin for header context */
-    box-shadow: none; /* No shadow by default for header buttons */
-    /* Height and padding from .btn base are usually sufficient */
+    margin: 0 4px; /* Adjust margin for header context */
+    box-shadow: none; /* No shadow by default for header buttons */
+    /* Height and padding from .btn base are usually sufficient */
 }
 .header-text-link { /* For text-based links in header */
-    font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
-    display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
-    color: #00a8ff; background: none; border: none; box-shadow: none;
+    font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
+    color: #00a8ff; background: none; border: none; box-shadow: none;
 }
 .header-text-link:hover {
-    text-decoration: underline; color: #00e0ff; transform: translateY(-1px);
+    text-decoration: underline; color: #00e0ff; transform: translateY(-1px);
 }
 
 /* Added style for the Register button to ensure boldness */
 #signUpButtonHeader {
-    font-weight: bold; /* Ensures the text "Register:" is bold */
+    font-weight: bold; /* Ensures the text "Register:" is bold */
 }
 
 
@@ -184,12 +184,12 @@ header {
 .dropdown { position: relative; display: inline-block; }
 
 .dropdown-content {
-    display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
-    border: 1px solid #00a8ff;
-    left: 0; /* Default alignment (left edge of parent) */
-    top: calc(100% + 5px); /* 5px below parent */
-    overflow-y: auto; max-height: 300px; padding: 0;
+    display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
+    border: 1px solid #00a8ff;
+    left: 0; /* Default alignment (left edge of parent) */
+    top: calc(100% + 5px); /* 5px below parent */
+    overflow-y: auto; max-height: 300px; padding: 0;
 }
 .header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-track { background: #2c2f33; border-radius: 0 8px 8px 0; }
@@ -198,83 +198,113 @@ header {
 .dropdown-content.show { display: block; } /* This is what your JS toggles */
 .dropdown.align-right .dropdown-content { left: auto; right: 0; } /* Overrides left:0 for right alignment */
 .dropdown-content a {
-    color: #d0d0d0; padding: 10px 15px; text-decoration: none; display: block;
-    font-size: 0.9rem; font-weight: bold; white-space: nowrap;
-    transition: background-color 0.2s ease, color 0.2s ease; position: relative; text-align: left;
+    color: #d0d0d0; padding: 10px 15px; text-decoration: none; display: block;
+    font-size: 0.9rem; font-weight: bold; white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease; position: relative; text-align: left;
 }
 #usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
 .dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
 
+/* Styling for dropdown arrows in header buttons */
+.header-btn .btn-icon {
+    font-size: 0;
+    line-height: 0;
+    position: relative;
+    width: 20px;
+    height: 1em;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+.header-btn .btn-icon::after {
+    content: '\25BC'; /* Unicode for a solid black down-pointing triangle (▼) */
+    font-size: 1rem;
+    color: #eee;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+}
+
+/* Optional: Rotate the arrow when the dropdown is active (button has .active class) */
+.header-btn.active .btn-icon::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
 
 /* Main Content Wrapper (Common to all pages) */
 .main-content-wrapper {
-    flex-grow: 1; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
-    position: relative; z-index: 1;
+    flex-grow: 1; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 1;
 }
 
 /* Background image glows (Common to all pages) */
 .image-glow {
-    position: fixed;
-    left: -3%;
-    bottom: 0;
-    filter: drop-shadow(0px 0px 12px #00a8ff);
-    max-width: 30%;
-    z-index: 0;
-    pointer-events: none;
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    max-width: 30%;
+    z-index: 0;
+    pointer-events: none;
 }
 .image-glow-flipped {
-    position: fixed;
-    right: -3%;
-    bottom: 0;
-    transform: scaleX(-1);
-    filter: drop-shadow(0px 0px 12px #00a8ff);
-    max-width: 30%;
-    z-index: 0;
-    pointer-events: none;
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    max-width: 30%;
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* FOOTER Styles (Common to all pages) */
 footer.footer {
-    flex-shrink: 0;
-    background-color: #222;
-    color: #999;
-    padding-top: 12px;
-    padding-bottom: 6px;
-    padding-left: 20px;
-    padding-right: 20px;
-    text-align: center;
-    font-size: 14px;
-    border-top: 2px solid #00a8ff;
-    width: 100%;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    user-select: none;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    flex-shrink: 0;
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    border-top: 2px solid #00a8ff;
+    width: 100%;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    user-select: none;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 footer.footer .footer-links {
-    margin-bottom: 4px;
+    margin-bottom: 4px;
 }
 footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 footer.footer > p {
-    margin-top: 0;
-    margin-bottom: 0;
-    line-height: 1.2;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
 }
 
 /* General Styles for common HTML elements inside main content sections */
 main { /* General main content area styling - might be used on home.html */
-    max-width: 1500px; margin: 20px auto; padding: 20px;
-    background-color: rgba(34, 34, 34, 0.85); border-radius: 12px; box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
-    width: 90%;
+    max-width: 1500px; margin: 20px auto; padding: 20px;
+    background-color: rgba(34, 34, 34, 0.85); border-radius: 12px; box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
+    width: 90%;
 }
 h2 { color: #007acc; margin-bottom: 20px; font-weight: 600; text-align: center; }
 ul { list-style: none; padding-left: 0; }
@@ -283,88 +313,88 @@ ul li:last-child { border-bottom: none; }
 
 /* General form input style - used on login/profile modals/pages */
 .custom-input {
-    width: 100%; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #555;
-    border-radius: 5px; background-color: #333; color: #fff; font-size: 16px;
-    box-sizing: border-box;
+    width: 100%; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #555;
+    border-radius: 5px; background-color: #333; color: #fff; font-size: 16px;
+    box-sizing: border-box;
 }
 .custom-input::placeholder { color: #aaa; opacity: 1; }
 .custom-input:focus { border-color: #00a8ff; outline: none; box-shadow: 0 0 5px rgba(0, 168, 255, 0.5); }
 
 /* General Modal & Spinner Styles (ALL modal styles are now here) */
 .loading-overlay {
-    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.75);
-    display: flex;justify-content: center;align-items: center;z-index: 2000;
-    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-    visibility: hidden;opacity: 0;transition: visibility 0s, opacity 0.3s ease-in-out;
+    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.75);
+    display: flex;justify-content: center;align-items: center;z-index: 2000;
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    visibility: hidden;opacity: 0;transition: visibility 0s, opacity 0.3s ease-in-out;
 }
 .loading-overlay.visible {visibility: visible;opacity: 1;}
 .spinner {
-    border: 8px solid #444; border-top: 8px solid #00a8ff;border-radius: 50%;
-    width: 60px;height: 60px;animation: spin 1s linear infinite;
+    border: 8px solid #444; border-top: 8px solid #00a8ff;border-radius: 50%;
+    width: 60px;height: 60px;animation: spin 1s linear infinite;
 }
 @keyframes spin {0% { transform: rotate(0deg); }100% { transform: rotate(360deg); }}
 
 .modal-overlay {
-    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.85);
-    display: flex;justify-content: center;align-items: center;z-index: 1500;
-    visibility: hidden;opacity: 0;
-    transition: visibility 0s, opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
+    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.85);
+    display: flex;justify-content: center;align-items: center;z-index: 1500;
+    visibility: hidden;opacity: 0;
+    transition: visibility 0s, opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
 }
 .modal-overlay.visible {visibility: visible;opacity: 1;}
 .modal-content {
-    background-color: var(--modal-content-bg, #282828); color: var(--text-color-light, #eee);
-    padding: 25px 30px; border-radius: var(--modal-border-radius, 12px);
-    border: 1px solid var(--theme-accent-color, #00a8ff); box-shadow: 0 0 30px var(--modal-shadow-color, rgba(0, 168, 255, 0.7));
-    width: 100%; max-width: 480px; position: relative; text-align: center; box-sizing: border-box; margin: auto;
+    background-color: var(--modal-content-bg, #282828); color: var(--text-color-light, #eee);
+    padding: 25px 30px; border-radius: var(--modal-border-radius, 12px);
+    border: 1px solid var(--theme-accent-color, #00a8ff); box-shadow: 0 0 30px var(--modal-shadow-color, rgba(0, 168, 255, 0.7));
+    width: 100%; max-width: 480px; position: relative; text-align: center; box-sizing: border-box; margin: auto;
 }
 .modal-content h2 {
-    color: var(--theme-accent-color); margin-top: 0; margin-bottom: 25px; font-size: 1.8rem; font-weight: 600;
+    color: var(--theme-accent-color); margin-top: 0; margin-bottom: 25px; font-size: 1.8rem; font-weight: 600;
 }
 .modal-content p {
-    color: var(--text-color-normal); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; text-align: left;
+    color: var(--text-color-normal); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; text-align: left;
 }
 .modal-content p:last-of-type {
-    margin-bottom: 25px;
+    margin-bottom: 25px;
 }
 .modal-content a {
-    color: var(--theme-accent-color); text-decoration: underline; font-weight: 500;
+    color: var(--theme-accent-color); text-decoration: underline; font-weight: 500;
 }
 .modal-content a:hover {
-    color: var(--theme-accent-hover-color);
+    color: var(--theme-accent-hover-color);
 }
 .modal-content .custom-input {
-    margin-bottom: 18px; text-align: left;
+    margin-bottom: 18px; text-align: left;
 }
 .modal-content .btn {
-    margin-top: 15px; width: 100%; padding-top: 10px; padding-bottom: 10px; font-size: 1rem;
+    margin-top: 15px; width: 100%; padding-top: 10px; padding-bottom: 10px; font-size: 1rem;
 }
 .modal-content .modal-close-btn {
-    position: absolute; top: 12px; right: 12px; background: none; border: none;
-    font-size: var(--btn-close-font-size, 1.8rem); color: var(--btn-close-color, #00a8ff);
-    cursor: pointer; line-height: 1;
+    position: absolute; top: 12px; right: 12px; background: none; border: none;
+    font-size: var(--btn-close-font-size, 1.8rem); color: var(--btn-close-color, #00a8ff);
+    cursor: pointer; line-height: 1;
 }
 .modal-content .modal-close-btn:hover {
-    color: var(--btn-close-hover-color, #00e0ff);
+    color: var(--btn-close-hover-color, #00e0ff);
 }
 
 #firebaseui-auth-container {
-    margin-top: 25px; margin-bottom: 15px; text-align: left;
+    margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
 
 /* Responsive Media Queries (General) */
 @media (max-width: 768px) {
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; }
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+    body { padding-top: 0; padding-bottom: 0; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; }
+    .header-left h1 { font-size: 1.4rem; }
+    .tagline { font-size: 0.7rem; }
+    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 }
 
 @media (max-width: 480px) {
-    /* Mobile specific adjustments within the media queries */
+    /* Mobile specific adjustments within the media queries */
 }
