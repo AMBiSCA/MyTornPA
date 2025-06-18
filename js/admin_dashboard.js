@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const querySnapshot = await db.collection('factionTargets').where('factionID', '==', factionIdNum).limit(1).get();
             if (!querySnapshot.empty) {
                 console.warn(`Faction ID ${factionIdNum} is already in the database. Skipping.`);
-                return { status: 'skipped', reason: 'already_in_db', message: `Faction ID ${factionIdNum} already exists.` };
+                return { status: 'skipped', reason: 'already_in_db', message: `Faction ID ${factionIdNum} is already in the database.` }; // MODIFIED LINE
             }
         } catch (dbError) {
             console.error(`Database check error for Faction ID ${factionIdNum}:`, dbError);
@@ -176,8 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // appendStatus(result.message);
             } else if (result.status === 'skipped') {
                 factionsSkipped++;
-                // Log skipped factions to console, but don't show on UI updatesBox
-                console.warn(`Skipped Faction ID ${id}: ${result.message}`);
+                // Check if the skip reason is 'already_in_db' and display a specific message
+                if (result.reason === 'already_in_db') {
+                    appendStatus(result.message, false); // Display as a regular status, not an error
+                } else {
+                    // Log other skipped factions to console, but don't show on UI updatesBox
+                    console.warn(`Skipped Faction ID ${id}: ${result.message}`);
+                }
             } else if (result.status === 'error') {
                 factionsFailed++;
                 factionsProcessed++; // Count as processed, but failed
