@@ -18,7 +18,7 @@ try {
 
 const db = admin.firestore();
 
-// Helper function to shuffle an array (we won't use this for sorting anymore, but keeping it if you need it elsewhere)
+// Helper function to shuffle an array (not used for this specific change, but kept)
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -55,16 +55,22 @@ exports.handler = async function(event, context) {
         console.log(`Found ${potentialTargets.length} potential targets.`);
 
 
-        // 2. Sort targets by Fair Fight score (descending) to prioritize higher FF within chosen difficulties
+        // 2. Sort targets by Fair Fight score (descending)
         potentialTargets.sort((a, b) => b.fairFightScore - a.fairFightScore);
         console.log(`Sorted ${potentialTargets.length} targets by Fair Fight score.`);
 
-        // 3. Select the top 6 targets from the sorted list
-        const selectedTargets = potentialTargets.slice(0, 6);
+        // 3. Select a slightly less strong set of targets
+        // Take up to 10 targets initially (to ensure we have enough for slicing)
+        const topNTargets = potentialTargets.slice(0, 10); // Get the top 10 strongest
+        
+        // Now select 6 targets, starting from the 3rd one (index 2)
+        // This skips the absolute strongest and aims for slightly easier ones
+        const selectedTargets = topNTargets.slice(2, 8); // Picks elements from index 2 up to (but not including) 8
+
         console.log(`Selected top ${selectedTargets.length} targets.`);
 
         if (selectedTargets.length === 0) {
-            return { statusCode: 200, body: JSON.stringify({ message: "No suitable targets found to recommend after sorting." }) };
+            return { statusCode: 200, body: JSON.stringify({ message: "No suitable targets found to recommend after sorting and filtering for optimal difficulty." }) };
         }
 
 
@@ -104,7 +110,6 @@ exports.handler = async function(event, context) {
                 difficulty: target.difficulty,
                 estimatedBattleStats: target.estimatedBattleStats,
                 status: status,
-                // CORRECTED: Changed user_id to user2ID
                 attackUrl: `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`
             };
         });
