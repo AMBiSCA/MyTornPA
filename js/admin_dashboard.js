@@ -1,9 +1,9 @@
-// mysite/js/admin_dashboard.js --- KEY DEBUGGING VERSION ---
+// mysite/js/admin_dashboard.js - FINAL PRODUCTION VERSION
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
-    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
+    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn'); // Assumed to exist, handled if not
     const factionIdInput = document.getElementById('factionIdInput');
     const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
@@ -90,15 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // THIS IS THE DEBUG LINE ADDED FOR THE BROWSER
-            console.log("DEBUG: About to send this API Key to the function:", tornApiKey);
-
             updateStatus(`Fetching data for Faction ID ${factionId}...`);
             fetchFactionDataBtn.disabled = true;
             if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
 
             try {
-                // Step 1: Call our existing Netlify function to get all member data
+                // Step 1: Call your working Netlify function
                 const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
                 const response = await fetch(functionUrl);
                 const data = await response.json();
@@ -122,15 +119,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 let successfulSaves = 0;
 
                 for (const member of members) {
+                    // Check for valid data returned from ffscouter
                     if (member.ff_data && member.ff_data.fair_fight) {
                         const targetRef = db.collection('factionTargets').doc(member.id.toString());
                         
                         const dataToSave = {
-                            playerID: member.id,
+                            playerID: parseInt(member.id),
                             playerName: member.name,
                             factionID: parseInt(factionId),
                             factionName: factionName,
-                            level: member.ff_data.level,
                             fairFightScore: member.ff_data.fair_fight,
                             difficulty: get_difficulty_text(member.ff_data.fair_fight),
                             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
@@ -162,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Helper function for displaying difficulty (copied from fairfight.js) ---
+    // --- Helper function for displaying difficulty ---
     function get_difficulty_text(ff) {
         if (ff <= 1) return "Extremely easy";
         else if (ff <= 2) return "Easy";
