@@ -271,6 +271,25 @@ function closeResultsModal() {
     if(modalSummary) modalSummary.innerHTML = ''; 
 }
 
+// *** NEW FUNCTION ADDED HERE ***
+function displayErrorInModal(message) {
+    const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
+    const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
+    const tableBody = document.getElementById('modal-results-table-body');
+    const tableHeader = document.getElementById('modal-results-table-header');
+
+    if (modalTitle) modalTitle.textContent = 'An Error Occurred';
+    if (tableHeader) tableHeader.innerHTML = ''; // Clear table header
+    if (tableBody) tableBody.innerHTML = '';   // Clear table body
+
+    // Display the error message in the summary area
+    if (modalSummary) {
+        modalSummary.innerHTML = `<span style="color: #ff4d4d; font-weight: bold;">${message}</span>`;
+    }
+
+    showResultsModal(); // Show the modal with the error message
+}
+
 // Function to clear all input errors (adapted from battlestats.js)
 function clearAllInputErrors() {
     const playerIdError = document.getElementById('playerIdError');
@@ -365,8 +384,8 @@ async function handleIndividualFFCheck(user, tornApiKey) {
             }
 
             if (modalSummary) {
-                modalSummary.innerHTML = `Player: <span>${data.player_name || 'N/A'} [${playerId}]</span> | 
-                                          FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
+                modalSummary.innerHTML = `Player: <span>${data.player_name || 'N/A'} [${playerId}]</span> | 
+                                        FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
             }
 
             // Populate table with detailed FF stats
@@ -452,8 +471,8 @@ async function handleFactionFFCheck(user, tornApiKey) {
         } else {
             if (modalSummary) {
                 modalSummary.innerHTML = `Faction: <span>${data.faction_name || factionId}</span> | 
-                                          Total Members: <span>${data.members.length}</span> | 
-                                          Fair Fight data for members below.`;
+                                        Total Members: <span>${data.members.length}</span> | 
+                                        Fair Fight data for members below.`;
             }
 
             const headers = ["Name", "ID", "Fair Fight", "Difficulty", "Est. Stats", "Last Updated"];
@@ -510,80 +529,4 @@ async function handleFactionFFCheck(user, tornApiKey) {
         clearTimeout(loadingTimeoutId);
         hideLoadingSpinner();
     }
-}
-
-
-// Helper function to show a prominent error message (can be re-used from your existing common utils)
-function showMainError(message) {
-    if (!message || message.trim() === '') {
-        const existingMainInputError = document.querySelector('.main-input-error-feedback');
-        if (existingMainInputError) {
-            existingMainInputError.remove();
-        }
-        return;
-    }
-    const existingMainInputError = document.querySelector('.main-input-error-feedback');
-    if (existingMainInputError) {
-        existingMainInputError.remove();
-    }
-    const mainPageStatus = document.createElement('div');
-    mainPageStatus.textContent = message;
-    mainPageStatus.className = 'main-input-error-feedback';
-    mainPageStatus.style.textAlign = 'center';
-    mainPageStatus.style.padding = '10px';
-    mainPageStatus.style.backgroundColor = 'rgba(255,0,0,0.1)';
-    mainPageStatus.style.border = '1px solid red';
-    mainPageStatus.style.borderRadius = '5px';
-    mainPageStatus.style.marginTop = '15px';
-    // Adjusted selector to peeper-tool-container for this page
-    const containerDiv = document.querySelector('.peeper-tool-container') || document.body;
-    if (containerDiv) {
-        const formContainer = document.querySelector('.stats-container');
-        if (formContainer && formContainer.parentNode) {
-            formContainer.parentNode.insertBefore(mainPageStatus, formContainer.nextSibling);
-        } else {
-            containerDiv.appendChild(mainPageStatus);
-        }
-    }
-    setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000);
-}
-
-
-function showLoadingSpinner() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.classList.add('visible');
-}
-function hideLoadingSpinner() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.classList.remove('visible');
-}
-function showResultsModal() {
-    const overlay = document.getElementById('resultsModalOverlay');
-    if (overlay) overlay.classList.add('visible');
-}
-
-// Global scope, not in DOMContentLoaded, to ensure it's accessible by onclick on the close button
-function closeResultsModal() {
-    const overlay = document.getElementById('resultsModalOverlay');
-    if (overlay) overlay.classList.remove('visible');
-    const tableHeader = document.getElementById('modal-results-table-header');
-    const tableBody = document.getElementById('modal-results-table-body');
-    const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
-    const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
-    if(tableHeader) tableHeader.innerHTML = '';
-    if(tableBody) tableBody.innerHTML = '';
-    if(modalTitle) modalTitle.textContent = 'Fair Fight Report'; // Default title for this modal
-    if(modalSummary) modalSummary.innerHTML = ''; 
-}
-
-// Function to clear all input errors (adapted from battlestats.js)
-function clearAllInputErrors() {
-    const playerIdError = document.getElementById('playerIdError');
-    if(playerIdError) playerIdError.textContent = '';
-    const factionIdError = document.getElementById('factionIdError');
-    if(factionIdError) factionIdError.textContent = '';
-    const individualFFResults = document.getElementById('individualFFResults');
-    if(individualFFResults) individualFFResults.textContent = '';
-    const factionFFResults = document.getElementById('factionFFResults');
-    if(factionFFResults) factionFFResults.textContent = '';
 }
