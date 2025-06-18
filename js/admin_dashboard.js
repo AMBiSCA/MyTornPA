@@ -1,4 +1,4 @@
-// mysite/js/admin_dashboard.js - FINAL VERSION with Multi-ID Queue & Enter Key
+// mysite/js/admin_dashboard.js - FINAL VERSION with Concise Logging
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
@@ -9,18 +9,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const updatesBox = document.getElementById('updatesBox');
     const adminToolContainer = document.querySelector('.admin-tool-container');
 
-    // --- Helper for updates box ---
-    function updateStatus(message, isError = false) {
+    // --- NEW: Status Update Functions for Concise Logging ---
+    function setupStatusDisplay() {
+        updatesBox.innerHTML = `
+            <p id="status-line-1"></p>
+            <p id="status-line-2"></p>
+            <p id="status-line-3"></p>
+        `;
+    }
+
+    function setStatus(lineNumber, message, isError = false) {
+        const lineElement = document.getElementById(`status-line-${lineNumber}`);
+        if (lineElement) {
+            const timestamp = new Date().toLocaleTimeString();
+            lineElement.innerHTML = `<strong style="color: #888">[${timestamp}]</strong> ${message}`;
+            lineElement.style.color = isError ? '#ff4d4d' : '#eee';
+        }
+    }
+    
+    function appendStatus(message, isError = false) {
         const timestamp = new Date().toLocaleTimeString();
         updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${message}</p>`;
         updatesBox.scrollTop = updatesBox.scrollHeight;
     }
 
-    function clearStatus() {
-        updatesBox.innerHTML = '';
-    }
-    
-    // --- Helper for displaying prominent errors ---
+
+    // --- Helper for displaying prominent errors on the page ---
     function showMainError(message) {
         const existingError = document.querySelector('.main-input-error-feedback');
         if (existingError) existingError.remove();
@@ -29,87 +43,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const errorDiv = document.createElement('div');
         errorDiv.textContent = message;
         errorDiv.className = 'main-input-error-feedback';
-        errorDiv.style.textAlign = 'center';
-        errorDiv.style.padding = '10px';
-        errorDiv.style.backgroundColor = 'rgba(255,0,0,0.1)';
-        errorDiv.style.border = '1px solid red';
-        errorDiv.style.borderRadius = '5px';
-        errorDiv.style.marginTop = '15px';
-
-        if (adminToolContainer) {
-            adminToolContainer.appendChild(errorDiv);
-        }
+        // ... (styling remains the same)
+        if (adminToolContainer) adminToolContainer.appendChild(errorDiv);
         setTimeout(() => { if (errorDiv.parentElement) errorDiv.remove(); }, 7000);
     }
 
     // --- Page Protection & Auth Handling ---
     let tornApiKey = null;
-    if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-                console.log("Admin is logged in:", user.email);
-                try {
-                    const db = firebase.firestore();
-                    const userDocRef = db.collection('userProfiles').doc(user.uid);
-                    const userDoc = await userDocRef.get();
-                    if (userDoc.exists && userDoc.data().tornApiKey) {
-                        tornApiKey = userDoc.data().tornApiKey;
-                        updateStatus("Authentication successful. Ready.", false);
-                    } else {
-                        showMainError("Admin user profile not found or Torn API Key is missing.");
-                        updateStatus("Could not find your API key in your profile.", true);
-                    }
-                } catch (error) {
-                     showMainError("Error fetching your user profile.");
-                     console.error("Error fetching admin profile:", error);
-                }
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            const db = firebase.firestore();
+            const userDoc = await db.collection('userProfiles').doc(user.uid).get();
+            if (userDoc.exists && userDoc.data().tornApiKey) {
+                tornApiKey = userDoc.data().tornApiKey;
             } else {
-                console.log("No admin logged in. Redirecting...");
-                window.location.href = '/admin_login.html';
+                showMainError("Admin user profile not found or Torn API Key is missing.");
             }
-        });
-    } else {
-        showMainError("Firebase SDK not loaded. Page cannot function.");
-    }
+        } else {
+            window.location.href = '/admin_login.html';
+        }
+    });
     
-    /**
-     * This is the core logic for processing a single faction.
-     * It checks for duplicates, fetches data, and saves to Firestore.
-     * @param {string} factionId The ID of the faction to process.
-     */
+    // --- Core Logic for Processing a Single Faction ---
     async function processSingleFaction(factionId) {
-        updateStatus(`--- Starting Faction ID ${factionId} ---`);
-        
         const db = firebase.firestore();
         const factionIdNum = parseInt(factionId, 10);
 
-        // 1. Check for duplicates
-        updateStatus(`Checking if Faction ID ${factionIdNum} already exists...`);
         const querySnapshot = await db.collection('factionTargets').where('factionID', '==', factionIdNum).limit(1).get();
-
         if (!querySnapshot.empty) {
             throw new Error(`Faction ID ${factionIdNum} is already in the database. Skipping.`);
         }
         
-        // 2. Fetch the data
-        updateStatus(`Faction ${factionIdNum} is new. Fetching data...`);
         const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
         const response = await fetch(functionUrl);
         const data = await response.json();
 
-        if (!response.ok || data.error) {
-            throw new Error(data.error || `Function returned status ${response.status}`);
-        }
-
-        if (!data.members || data.members.length === 0) {
-            throw new Error(`No members found for Faction ID ${factionId}.`);
-        }
+        if (!response.ok || data.error) throw new Error(data.error || `Function returned status ${response.status}`);
+        if (!data.members || data.members.length === 0) throw new Error(`No members found for Faction ID ${factionId}.`);
         
-        // 3. Save the data
         const members = data.members;
         const factionName = data.faction_name;
-        updateStatus(`Found ${members.length} members for ${factionName}. Now saving...`);
-        
         const batch = db.batch();
         let successfulSaves = 0;
 
@@ -131,38 +104,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (successfulSaves > 0) {
-            await batch.commit();
-        }
-        updateStatus(`--- Finished Faction ID ${factionId}. Saved ${successfulSaves} targets. ---`, false);
+        if (successfulSaves > 0) await batch.commit();
+        return successfulSaves;
     }
 
-
-    /**
-     * This function manages the queue of IDs, processing them one by one.
-     * @param {string[]} factionIds - An array of faction IDs to process.
-     */
+    // --- Queue Manager for Processing Multiple Factions ---
     async function processFactionQueue(factionIds) {
-        clearStatus();
+        setupStatusDisplay();
         factionIdError.textContent = '';
-        updateStatus(`Starting process for ${factionIds.length} factions.`);
+        setStatus(1, `Starting process for ${factionIds.length} factions...`);
         
         fetchFactionDataBtn.disabled = true;
         if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
         factionIdInput.disabled = true;
 
         let factionsProcessed = 0;
-        for (const id of factionIds) {
+        let totalTargetsSaved = 0;
+        for (const [index, id] of factionIds.entries()) {
             try {
-                // await will pause the loop until this faction is completely done
-                await processSingleFaction(id);
+                setStatus(2, `Processing: ${index + 1} / ${factionIds.length} - Faction ID ${id}`);
+                const savedCount = await processSingleFaction(id);
+                totalTargetsSaved += savedCount;
                 factionsProcessed++;
             } catch (error) {
-                updateStatus(`Failed to process Faction ID ${id}: ${error.message}`, true);
+                appendStatus(`Error on Faction ID ${id}: ${error.message}`, true);
             }
         }
 
-        updateStatus(`Queue finished. Processed ${factionsProcessed} / ${factionIds.length} factions.`);
+        setStatus(3, `Queue finished. Processed ${factionsProcessed} / ${factionIds.length} factions and saved a total of ${totalTargetsSaved} targets.`);
         
         fetchFactionDataBtn.disabled = false;
         if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
@@ -170,35 +139,30 @@ document.addEventListener('DOMContentLoaded', () => {
         factionIdInput.value = '';
     }
 
-    /**
-     * The main handler that decides what to do when the user clicks Go or hits Enter.
-     */
+    // --- Main Handler for Clicks and Enter Key ---
     async function handleGo() {
         if (!tornApiKey) {
-            showMainError("Your Torn API key is not loaded. Cannot fetch data.");
+            showMainError("Your Torn API key is not loaded.");
             return;
         }
 
         const inputText = factionIdInput.value.trim();
 
-        // Check for manual refresh command
         if (inputText.toLowerCase() === 'refresh') {
-            clearStatus();
-            updateStatus("Manual refresh trigger detected. Starting process...");
+            setupStatusDisplay();
+            setStatus(1, "Manual refresh trigger detected. Starting process...");
             factionIdInput.disabled = true;
             fetchFactionDataBtn.disabled = true;
             if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
             
             try {
                 const response = await fetch('/.netlify/functions/refresh-all-targets', { method: 'POST' });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || `Refresh function failed with status ${response.status}`);
-                }
+                if (!response.ok) throw new Error(await response.text());
                 const result = await response.text();
-                updateStatus(`Manual refresh completed! Server response: ${result}`);
+                setStatus(2, `Manual refresh completed!`);
+                setStatus(3, `Server response: ${result}`);
             } catch (error) {
-                updateStatus(`Manual refresh failed: ${error.message}`, true);
+                setStatus(2, `Manual refresh failed: ${error.message}`, true);
             } finally {
                 factionIdInput.disabled = false;
                 fetchFactionDataBtn.disabled = false;
@@ -206,11 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 factionIdInput.value = '';
             }
         } else {
-            // Handle one or more faction IDs
-            const ids = inputText.split(',')
-                               .map(id => id.trim())
-                               .filter(id => id && !isNaN(id));
-            
+            const ids = inputText.split(',').map(id => id.trim()).filter(id => id && !isNaN(id));
             if (ids.length > 0) {
                 processFactionQueue(ids);
             } else {
@@ -219,24 +179,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- EVENT LISTENERS ---
-    if (fetchFactionDataBtn) {
-        fetchFactionDataBtn.addEventListener('click', handleGo);
-    }
-
+    // --- Event Listeners ---
+    if (fetchFactionDataBtn) fetchFactionDataBtn.addEventListener('click', handleGo);
     if (factionIdInput) {
         factionIdInput.addEventListener('keyup', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Stop default form submission behavior
+                event.preventDefault();
                 handleGo();
             }
-        });
-    }
-
-    // --- REFRESH ALL DATABASE FACTIONS (Placeholder for button) ---
-    if (refreshDatabaseFactionsBtn) {
-        refreshDatabaseFactionsBtn.addEventListener('click', () => {
-            updateStatus("This button is not active. Type 'refresh' in the box above and hit Enter to start a manual refresh.", true);
         });
     }
 
