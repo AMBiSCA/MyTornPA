@@ -1,9 +1,9 @@
-// mysite/js/admin_dashboard.js --- DEBUGGING VERSION ---
+// mysite/js/admin_dashboard.js
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
-    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
+    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn'); // This will be null, but we'll handle it
     const factionIdInput = document.getElementById('factionIdInput');
     const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 console.log("Admin is logged in:", user.email);
+                // Fetch the admin's API key from their profile to use for all requests
                 try {
                     const db = firebase.firestore();
                     const userDocRef = db.collection('userProfiles').doc(user.uid);
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showMainError("Firebase SDK not loaded. Page cannot function.");
     }
     
-    // --- SINGLE FACTION FETCH & DEBUG LOGIC ---
+    // --- SINGLE FACTION FETCH & SAVE LOGIC ---
     if (fetchFactionDataBtn) {
         fetchFactionDataBtn.addEventListener('click', async () => {
             clearStatus();
@@ -91,9 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateStatus(`Fetching data for Faction ID ${factionId}...`);
             fetchFactionDataBtn.disabled = true;
+            // The refresh button doesn't exist in your HTML, so we check if it exists before disabling
             if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
 
             try {
+                // Step 1: Call our existing Netlify function to get all member data
                 const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
                 const response = await fetch(functionUrl);
                 const data = await response.json();
@@ -104,33 +107,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!data.members || data.members.length === 0) {
                     updateStatus(`No members found for Faction ID ${factionId}.`, true);
+                    fetchFactionDataBtn.disabled = false;
+                    if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
                     return;
                 }
                 
-                // --- DEBUG REPORTING LOGIC ---
+                // Step 2: If successful, automatically save to Firestore
                 const members = data.members;
-                let reportHTML = `<h3>Debug Report for ${data.faction_name} (${members.length} members)</h3>`;
+                const factionName = data.faction_name;
+                updateStatus(`Found ${members.length} members for ${factionName}. Now saving to database...`);
                 
+                const db = firebase.firestore();
+                const batch = db.batch(); // Use a batch for efficiency
+                let successfulSaves = 0;
+
                 for (const member of members) {
                     if (member.ff_data && member.ff_data.fair_fight) {
-                        // This is a successful member
-                        reportHTML += `<p style="color: lightgreen;">[SUCCESS] ${member.name} [${member.id}] | FF: ${member.ff_data.fair_fight.toFixed(2)} | Level: ${member.ff_data.level}</p>`;
-                    } else {
-                        // This is a failed member
-                        const errorMessage = member.ff_data?.message || "Unknown error";
-                        reportHTML += `<p style="color: #ff4d4d;">[FAILED] ${member.name} [${member.id}] | Reason: ${errorMessage}</p>`;
+                        const targetRef = db.collection('factionTargets').doc(member.id.toString());
+                        
+                        const dataToSave = {
+                            playerID: member.id,
+                            playerName: member.name,
+                            factionID: parseInt(factionId),
+                            factionName: factionName,
+                            level: member.ff_data.level,
+                            fairFightScore: member.ff_data.fair_fight,
+                            difficulty: get_difficulty_text(member.ff_data.fair_fight),
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        batch.set(targetRef, dataToSave, { merge: true });
+                        successfulSaves++;
                     }
                 }
-                
-                clearStatus();
-                updatesBox.innerHTML = reportHTML; // Display the full report
+
+                await batch.commit();
+                updateStatus(`Save complete. Successfully saved ${successfulSaves} targets to the database.`, false);
 
             } catch (error) {
-                console.error("Error during fetch & debug:", error);
+                console.error("Error during fetch & save:", error);
                 updateStatus(`An error occurred: ${error.message}`, true);
                 showMainError(error.message);
             } finally {
                 fetchFactionDataBtn.disabled = false;
+                // The refresh button doesn't exist in your HTML, so we check if it exists before enabling
                 if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
             }
         });
@@ -141,5 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshDatabaseFactionsBtn.addEventListener('click', () => {
             updateStatus("Refresh All functionality has not been implemented yet.", true);
         });
+    }
+
+    // --- Helper function for displaying difficulty (copied from fairfight.js) ---
+    function get_difficulty_text(ff) {
+        if (ff <= 1) return "Extremely easy";
+        else if (ff <= 2) return "Easy";
+        else if (ff <= 3.5) return "Moderately difficult";
+        else if (ff <= 4.5) return "Difficult";
+        else return "May be impossible";
     }
 });
