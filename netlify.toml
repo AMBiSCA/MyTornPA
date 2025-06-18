@@ -7,5 +7,5 @@
   node_bundler = "esbuild"
 
 
-#[functions."refresh-all-targets"]
- # schedule = "0 3 * * *"
+[functions."refresh-all-targets"]
+  schedule = "0 3 * * *"
