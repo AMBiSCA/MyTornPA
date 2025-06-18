@@ -89,17 +89,17 @@
 </head>
 <body>
     <header>
-          <div class="header-left">
-    <a href="#" id="headerLogoLink" style="text-decoration: none;">
-        <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-    </a>
-</div>
+        <div class="header-left">
+            <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
         <div class="header-center">
             <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
         </div>
         <div class="header-right-controls">
            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
-                <button class="btn" id="homeButtonHeader">
+                <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
                     <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
                 </button>
 
@@ -188,30 +188,30 @@
     <script>
         // Inline script from your template for dropdowns
         document.addEventListener('DOMContentLoaded', () => {
-            const usefulLinksBtn = document.getElementById('usefulLinksBtn'); // Added for useful links dropdown
-            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown'); // Added for useful links dropdown
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn'); 
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown'); 
             const contactBtn = document.getElementById('headerContactUsBtn');
             const contactDropdown = document.getElementById('headerContactUsDropdown');
 
             // Hide dropdowns initially
-            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Ensure it exists
-            if (contactDropdown) contactDropdown.style.display = 'none'; // Ensure it exists
+            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; 
+            if (contactDropdown) contactDropdown.style.display = 'none'; 
 
             if (usefulLinksBtn) {
                 usefulLinksBtn.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent click from immediately closing dropdown via window listener
+                    event.stopPropagation(); 
                     const isVisible = usefulLinksDropdown.style.display === 'block';
                     usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown if open
+                    if (contactDropdown) contactDropdown.style.display = 'none'; 
                 });
             }
 
             if (contactBtn) {
                 contactBtn.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent click from immediately closing dropdown via window listener
+                    event.stopPropagation(); 
                     const isVisible = contactDropdown.style.display === 'block';
                     contactDropdown.style.display = isVisible ? 'none' : 'block';
-                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown if open
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; 
                 });
             }
 
