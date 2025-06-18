@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MyTornPA - Fair Fight Scouter</title>
+    <title>MyTornPA - Target Finder</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     
@@ -28,7 +28,6 @@
         <div class="header-right-controls">
             <div class="header-user-display" id="logged-in-user-display" style="display: none;">
             </div>
-
             <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
             
             <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
@@ -78,34 +77,20 @@
         <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
 
         <div class="peeper-tool-container">
-            <h2 class="script-title">Fair Fight Scouter.</h2>
+            <h2 class="script-title">Personal Target Finder</h2>
             
-            <div id="fairFightApiKeyError" class="error-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;"></div>
+            <div id="targetFinderApiKeyError" class="error-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;"></div>
             
-            <div class="stats-container">
-                <div class="battle-stats-box">
-                    <h3>Individual Player Fair Fight:</h3>
-                    <p>Enter a player's Profile ID to check their Fair Fight score.</p>
-                    <input type="text" id="playerId" placeholder="Target Player ID:">
-                    <div id="playerIdError" class="error-message"></div>
-                    <button id="fetchIndividualFF" class="fetch-btn">Fetch Fair Fight Data!</button>
-                    <div id="individualFFResults" class="results-inline-status"></div>
-                </div>
-                <div class="faction-search-box">
-                    <h3>Faction Fair Fight Overview:</h3>
-                    <p>Enter a Faction ID to get Fair Fight data for its members.</p>
-                    <input type="text" id="factionId" placeholder="Target Faction ID:" />
-                    <div id="factionIdError" class="error-message"></div>
-                    <button id="fetchFactionFF" class="fetch-btn">Fetch Faction Data!</button>
-                    <div id="factionFFResults" class="results-inline-status"></div>
-                </div>
+            <div class="target-finder-container">
+                <p>Find personalized targets from the database based on your battle stats to maximize respect gain.</p>
+                <button id="fetchTargetsBtn" class="fetch-btn">Fetch My Targets</button>
+                <div id="targetFinderStatus" class="results-inline-status"></div>
             </div>
             
             <div class="note">
-                <p>Please Note: Fair Fight data relies on external services and user settings. Results may vary.</p>
+                <p>Please Note: Target suggestions are based on the data you have gathered with the admin tool. Keep your data fresh for the best results.</p>
             </div>
         </div>
-
         <div id="loadingOverlay" class="loading-overlay">
             <div class="spinner"></div>
         </div>
@@ -113,9 +98,8 @@
         <div id="resultsModalOverlay" class="modal-overlay">
             <div class="modal-content">
                 <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
-                <h3 class="modal-title">Fair Fight Report</h3>
-                <div class="modal-summary">
-                    </div>
+                <h3 class="modal-title">Recommended Targets</h3>
+                <div class="modal-summary"></div>
                 <div class="modal-table-container">
                     <table class="modal-table">
                         <thead id="modal-results-table-header">
@@ -146,7 +130,7 @@
 
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
-    <script src="../js/fairfight.js"></script>
+    <script src="../js/target-finder.js"></script>
 
 </body>
 </html>
