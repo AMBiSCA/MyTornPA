@@ -205,6 +205,11 @@ header {
 #usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
 .dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
 
+#usefulLinksDropdown,
+#headerContactUsDropdown {
+    left: auto; /* Overrides the default left: 0; positioning */
+    right: 0;   /* Aligns the right edge of the dropdown with the right edge of its positioned parent */
+}
 
 /* Main Content Wrapper (Common to all pages) */
 .main-content-wrapper {
