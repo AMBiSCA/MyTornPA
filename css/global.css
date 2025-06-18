@@ -192,7 +192,7 @@ header {
     overflow-y: auto; max-height: 300px; padding: 0;
 }
 .header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
-.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #2c2f33; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #00a8ff; border-radius: 0 8px 8px 0; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
 .dropdown-content.show { display: block; } /* This is what your JS toggles */
@@ -210,6 +210,7 @@ header {
     left: auto; /* Overrides the default left: 0; positioning */
     right: 0;   /* Aligns the right edge of the dropdown with the right edge of its positioned parent */
 }
+
 
 /* Main Content Wrapper (Common to all pages) */
 .main-content-wrapper {
