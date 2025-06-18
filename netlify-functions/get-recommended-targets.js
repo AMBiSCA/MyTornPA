@@ -33,7 +33,7 @@ exports.handler = async function(event, context) {
     }
 
     try {
-        const { apiKey, playerId } = JSON.parse(event.body); // playerId is also passed now, although not used in this specific function logic yet
+        const { apiKey, playerId } = JSON.parse(event.body); 
         if (!apiKey) {
             throw new Error("API key is required.");
         }
@@ -43,8 +43,6 @@ exports.handler = async function(event, context) {
         const potentialTargets = [];
         const querySnapshot = await db.collection('factionTargets')
                                       .where('difficulty', 'in', ['Easy', 'Moderately difficult'])
-                                     // Optional: Add an orderBy for better performance if filtering by difficulty is already an index
-                                     // .orderBy('fairFightScore', 'desc') // Can add this, but client-side sort is fine for smaller sets
                                       .get();
         
         if (querySnapshot.empty) {
@@ -62,8 +60,6 @@ exports.handler = async function(event, context) {
         console.log(`Sorted ${potentialTargets.length} targets by Fair Fight score.`);
 
         // 3. Select the top 6 targets from the sorted list
-        // We'll take up to 10 for a slightly larger pool to ensure variety, then pick 6 from that.
-        // Or simply take the top 6 directly. Let's aim for the top 6 for now.
         const selectedTargets = potentialTargets.slice(0, 6);
         console.log(`Selected top ${selectedTargets.length} targets.`);
 
@@ -108,7 +104,8 @@ exports.handler = async function(event, context) {
                 difficulty: target.difficulty,
                 estimatedBattleStats: target.estimatedBattleStats,
                 status: status,
-                attackUrl: `https://www.torn.com/loader.php?sid=attack&user_id=${target.playerID}`
+                // CORRECTED: Changed user_id to user2ID
+                attackUrl: `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`
             };
         });
         
