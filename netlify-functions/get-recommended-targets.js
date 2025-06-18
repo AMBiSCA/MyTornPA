@@ -18,15 +18,6 @@ try {
 
 const db = admin.firestore();
 
-// Helper function to shuffle an array (not used for this specific change, but kept)
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
 exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
@@ -37,59 +28,46 @@ exports.handler = async function(event, context) {
         if (!apiKey) {
             throw new Error("API key is required.");
         }
+        if (!playerId) { // Still useful for logging/identifying the user
+            console.warn("Player ID not provided, but API key is present. Proceeding without personalized stats.");
+        }
 
-        // 1. Query Firestore for potential targets
-        console.log("Querying database for potential targets...");
-        const potentialTargets = [];
-        const querySnapshot = await db.collection('factionTargets')
-                                      .where('difficulty', 'in', ['Easy', 'Moderately difficult'])
-                                      .get();
-        
-        if (querySnapshot.empty) {
-            return { statusCode: 200, body: JSON.stringify({ message: "No suitable targets found in the database. Try adding more factions with the admin tool." }) };
-        }
+        // --- Step 1: Query Firestore for potential targets (ONLY 'Easy' difficulty) ---
+        console.log("Querying database for potential targets (Difficulty: Easy)...");
+        const potentialTargets = [];
+        const querySnapshot = await db.collection('factionTargets')
+                                      .where('difficulty', '==', 'Easy') // Filter strictly for 'Easy' targets
+                                      .get();
+        
+        if (querySnapshot.empty) {
+            return { statusCode: 200, body: JSON.stringify({ message: "No 'Easy' targets found in the database. Try adding more factions with the admin tool or broaden your search criteria." }) };
+        }
         
         querySnapshot.forEach(doc => {
             potentialTargets.push(doc.data());
         });
-        console.log(`Found ${potentialTargets.length} potential targets.`);
+        console.log(`Found ${potentialTargets.length} potential 'Easy' targets.`);
 
 
-        // 2. Sort targets by Fair Fight score (descending)
-        potentialTargets.sort((a, b) => b.fairFightScore - a.fairFightScore);
-        console.log(`Sorted ${potentialTargets.length} targets by Fair Fight score.`);
+        // --- Step 2: Sort 'Easy' targets by Fair Fight score (DESCENDING - strongest of Easy first) ---
+        potentialTargets.sort((a, b) => b.fairFightScore - a.fairFightScore); // Sort by FF score DESCENDING
+        console.log(`Sorted ${potentialTargets.length} targets by Fair Fight score (strongest of Easy first).`);
 
-        // 3. Dynamic slicing to get slightly less strong targets
+        // --- Step 3: Select the top 6 targets (the strongest of the easy ones) ---
         const targetsToSelect = 6;
-        let startIndex = 0; // Default to start from the beginning
+        const selectedTargets = potentialTargets.slice(0, targetsToSelect); // Take the top 6 strongest Easy targets
 
-        // If there are enough targets, skip the absolute strongest ones
-        if (potentialTargets.length > targetsToSelect) {
-            // This logic attempts to find a good starting point.
-            // It tries to skip 25% of the initial pool, but at least 2 and at most 5,
-            // while ensuring we still have enough targets to select 'targetsToSelect' amount.
-            let skipCount = Math.floor(potentialTargets.length * 0.25);
-            if (skipCount < 2 && potentialTargets.length > 2) skipCount = 2; // Always skip at least 2 if possible
-            if (skipCount > 5) skipCount = 5; // Don't skip too many, max 5
-
-            startIndex = Math.min(skipCount, potentialTargets.length - targetsToSelect);
-            if (startIndex < 0) startIndex = 0; // Ensure startIndex isn't negative
-        }
-        const endIndex = startIndex + targetsToSelect;
-
-        const selectedTargets = potentialTargets.slice(startIndex, endIndex);
-
-        console.log(`Selected ${selectedTargets.length} targets from index ${startIndex} to ${endIndex-1}.`);
+        console.log(`Selected ${selectedTargets.length} targets.`);
 
         if (selectedTargets.length === 0) {
-            return { statusCode: 200, body: JSON.stringify({ message: "No suitable targets found to recommend after sorting and filtering for optimal difficulty." }) };
+            return { statusCode: 200, body: JSON.stringify({ message: "No suitable 'Easy' targets found to recommend after sorting." }) };
         }
 
 
-        // 4. Get real-time status for the selected targets
+        // --- Step 4: Get real-time status for the selected targets ---
         const targetIds = selectedTargets.map(t => t.playerID).join(',');
         console.log(`Fetching real-time status for IDs: ${targetIds}`);
-        const tornApiUrl = `https://api.torn.com/user/${targetIds}?selections=profile,basic&key=${apiKey}`;
+        const tornApiUrl = `https://api.torn.com/user/${targetIds}?selections=profile,basic&key=${apiKey}`; 
         
         const tornResponse = await fetch(tornApiUrl);
         if (!tornResponse.ok) throw new Error("Failed to fetch real-time status from Torn API.");
@@ -98,7 +76,7 @@ exports.handler = async function(event, context) {
         if (realTimeData.error) throw new Error(`Torn API Error: ${realTimeData.error.error}`);
 
 
-        // 5. Combine data and format the final response
+        // --- Step 5: Combine data and format the final response ---
         const finalTargets = selectedTargets.map(target => {
             const liveData = realTimeData[target.playerID];
             let status = { text: 'Okay', color: 'lightgreen' }; // Default status
@@ -110,9 +88,11 @@ exports.handler = async function(event, context) {
                     status = { text: 'In Jail', color: '#ffA500' };
                 } else if (liveData.status.description.includes("Traveling")) {
                      status = { text: 'Traveling', color: '#add8e6' };
-                } else if (liveData.last_action.status === "Offline") {
+                } else if (liveData.last_action.status === "Offline") { 
                     status = { text: 'Offline', color: '#aaaaaa' };
-                }
+                } else if (liveData.last_action.status.includes("idle") || liveData.last_action.status.includes("online")) {
+                    status = { text: 'Okay', color: 'lightgreen' };
+                }
             }
             
             return {
@@ -120,7 +100,7 @@ exports.handler = async function(event, context) {
                 playerName: target.playerName,
                 fairFightScore: target.fairFightScore.toFixed(2),
                 difficulty: target.difficulty,
-                estimatedBattleStats: target.estimatedBattleStats,
+                estimatedBattleStats: target.estimatedBattleStats, 
                 status: status,
                 attackUrl: `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`
             };
