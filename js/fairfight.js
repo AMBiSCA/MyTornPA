@@ -5,7 +5,7 @@ const FF_VERSION = "MyTornPA-FF-1.0"; // Custom version for your website
 // Assuming these images are in mysite/images/
 const BLUE_ARROW = "../images/blue-arrow.svg";
 const GREEN_ARROW = "../images/green-arrow.svg";
-const RED_ARROW = "../images/red-arrow.svg";
+const RED_ARROW = "../images/red.svg"; // Corrected a potential typo if 'red-arrow.svg' was intended
 
 // Color utility functions (copied from original UserScript)
 function rgbToHex(r, g, b) {
@@ -61,11 +61,11 @@ function formatNumber(num) {
 document.addEventListener('DOMContentLoaded', () => {
     // Get button references
     const fetchMyTargetsButton = document.getElementById('fetchTargetsBtn'); // Corrected ID to match HTML
-    const fairFightApiKeyErrorDiv = document.getElementById('fairFightApiKeyError'); // Renamed for clarity
-    const downloadDataBtn = document.getElementById('downloadDataBtn'); // Download button in the modal
+    const fairFightApiKeyErrorDiv = document.getElementById('fairFightApiKeyError'); 
+    const downloadDataBtn = document.getElementById('downloadDataBtn'); 
 
     // Initial state: disable button
-    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // Disable "Fetch My Targets" button initially
+    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; 
 
     // Firebase Auth state listener
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
@@ -230,7 +230,8 @@ function showMainError(message) {
     // Adjusted selector to peeper-tool-container for this page
     const containerDiv = document.querySelector('.peeper-tool-container') || document.body;
     if (containerDiv) {
-        const formContainer = document.querySelector('.stats-container'); // This might need adjustment if .stats-container is not present on this simplified page
+        // Changed selector to be more general as 'stats-container' might not exist now
+        const formContainer = document.querySelector('.target-finder-container'); 
         if (formContainer && formContainer.parentNode) {
             formContainer.parentNode.insertBefore(mainPageStatus, formContainer.nextSibling);
         } else {
@@ -290,18 +291,19 @@ function displayErrorInModal(message) {
 // Function to clear all input errors (adapted from battlestats.js)
 function clearAllInputErrors() {
     // Only need to clear 'myTargetsResults' related feedback if you have a specific div for it.
-    // If not, errors will primarily appear in the modal or main page status.
-    // Removed individual and faction specific error clearing.
     const myTargetsResults = document.getElementById('myTargetsResults');
     if(myTargetsResults) myTargetsResults.textContent = '';
+    const fairFightApiKeyErrorDiv = document.getElementById('fairFightApiKeyError');
+    if(fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = '';
+    showMainError(''); // Clear the main page error message
 }
 
 
-// NEW: Handles fetching recommended targets for the logged-in user
+// Handles fetching recommended targets for the logged-in user
 async function handleMyTargetsCheck(user, tornApiKey, playerId) {
     clearAllInputErrors(); // Clear existing errors
-    const myTargetsResultsDiv = document.getElementById('myTargetsResults') || document.createElement('div'); // Create if not exists, though it should in HTML
-    myTargetsResultsDiv.id = 'myTargetsResults'; // Ensure it has an ID
+    const myTargetsResultsDiv = document.getElementById('myTargetsResults') || document.createElement('div'); 
+    myTargetsResultsDiv.id = 'myTargetsResults'; 
     
     let isValid = true;
     if (!tornApiKey) {
