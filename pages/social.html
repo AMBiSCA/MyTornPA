@@ -322,7 +322,7 @@
         </div>
     </div>
 
-    <div id="leadershipPanelModal" class="modal-overlay">
+    <div id="leadershipPanelModal" class="modal-overlay" style="display: none;">
         <div class="modal-content-box">
             <span id="closeLeadershipPanelModalBtn" class="modal-close-btn">&times;</span>
             <div class="modal-header">
@@ -363,54 +363,54 @@
         </div>
     </div>
 
-    <div id="onTheHuntModal" class="modal-overlay">
-    <div class="modal-content-box">
-        <span id="closeOnTheHuntModalBtn" class="modal-close-btn">&times;</span>
-        <div class="modal-header">
-            <h2>TCP's Faction Scout - Current Factions recruiting.</h2>
-        </div>
-        <div id="onTheHuntModalBody">
-
-            <div class="faction-filters-container">
-               <div class="filter-group" id="respectFilterBlock">
-    <label for="filterMinRespectSlider">Max Respect: <span id="filterMinRespectValue" class="slider-value">0</span></label>
-    <input type="range" id="filterMinRespectSlider" class="filter-slider" min="0" max="20000000" value="20000000"> </div>
-
-    <div class="filter-group" id="membersFilterBlock">
-    <label for="filterMinMembersSlider">Max Members: <span id="filterMinMembersValue" class="slider-value">0</span></label>
-    <input type="range" id="filterMinMembersSlider" class="filter-slider" min="0" max="100" step="1" value="100"> </div>
-                
+    <div id="onTheHuntModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content-box">
+            <span id="closeOnTheHuntModalBtn" class="modal-close-btn">&times;</span>
+            <div class="modal-header">
+                <h2>TCP's Faction Scout - Current Factions recruiting.</h2>
             </div>
+            <div id="onTheHuntModalBody">
 
-            <div class="filter-group" id="tierFilterBlock">
-                <label class="filter-block-label">Faction Tier:</label>
-                <div class="checkbox-group-grid">
-                    <div><input type="checkbox" id="filterTierBronze" name="factionTier" value="Bronze" class="filter-checkbox"><label for="filterTierBronze" class="checkbox-label">Bronze</label></div>
-                    <div><input type="checkbox" id="filterTierSilver" name="factionTier" value="Silver" class="filter-checkbox"><label for="filterTierSilver" class="checkbox-label">Silver</label></div>
-                    <div><input type="checkbox" id="filterTierGold" name="factionTier" value="Gold" class="filter-checkbox"><label for="filterTierGold" class="checkbox-label">Gold</label></div>
-                    <div><input type="checkbox" id="filterTierPlatinum" name="factionTier" value="Platinum" class="filter-checkbox"><label for="filterTierPlatinum" class="checkbox-label">Platinum</label></div>
+                <div class="faction-filters-container">
+                   <div class="filter-group" id="respectFilterBlock">
+                        <label for="filterMinRespectSlider">Max Respect: <span id="filterMinRespectValue" class="slider-value">0</span></label>
+                        <input type="range" id="filterMinRespectSlider" class="filter-slider" min="0" max="20000000" value="20000000"> </div>
+
+                    <div class="filter-group" id="membersFilterBlock">
+                        <label for="filterMinMembersSlider">Max Members: <span id="filterMinMembersValue" class="slider-value">0</span></label>
+                        <input type="range" id="filterMinMembersSlider" class="filter-slider" min="0" max="100" step="1" value="100"> </div>
+                    
+                </div>
+
+                <div class="filter-group" id="tierFilterBlock">
+                    <label class="filter-block-label">Faction Tier:</label>
+                    <div class="checkbox-group-grid">
+                        <div><input type="checkbox" id="filterTierBronze" name="factionTier" value="Bronze" class="filter-checkbox"><label for="filterTierBronze" class="checkbox-label">Bronze</label></div>
+                        <div><input type="checkbox" id="filterTierSilver" name="factionTier" value="Silver" class="filter-checkbox"><label for="filterTierSilver" class="checkbox-label">Silver</label></div>
+                        <div><input type="checkbox" id="filterTierGold" name="factionTier" value="Gold" class="filter-checkbox"><label for="filterTierGold" class="checkbox-label">Gold</label></div>
+                        <div><input type="checkbox" id="filterTierPlatinum" name="factionTier" value="Platinum" class="filter-checkbox"><label for="filterTierPlatinum" class="checkbox-label">Platinum</label></div>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button id="applyFiltersBtn" class="btn btn-primary">Apply</button>
+                    <button id="resetFiltersBtn" class="btn btn-secondary">Reset</button>
                 </div>
             </div>
 
-            <div class="filter-actions">
-                <button id="applyFiltersBtn" class="btn btn-primary">Apply</button>
-                <button id="resetFiltersBtn" class="btn btn-secondary">Reset</button>
-            </div>
-        </div>
-
-        <div id="recruitingFactionsContainer">
-            <h4>Factions Who Are Recruiting</h4>
-            <ul id="recruitingFactionsList">
-                <li><p class="text-placeholder-final">Loading recruiting factions...</p></li>
-            </ul>
-            <div id="factionPaginationControls" class="faction-pagination-controls" style="display: none;">
-                <button id="prevFactionPageBtn" class="faction-page-arrow">&lt;</button>
-                <span id="factionPageInfo" class="faction-page-info">Page 1 of 1</span>
-                <button id="nextFactionPageBtn" class="faction-page-arrow">&gt;</button>
+            <div id="recruitingFactionsContainer">
+                <h4>Factions Who Are Recruiting</h4>
+                <ul id="recruitingFactionsList">
+                    <li><p class="text-placeholder-final">Loading recruiting factions...</p></li>
+                </ul>
+                <div id="factionPaginationControls" class="faction-pagination-controls" style="display: none;">
+                    <button id="prevFactionPageBtn" class="faction-page-arrow">&lt;</button>
+                    <span id="factionPageInfo" class="faction-page-info">Page 1 of 1</span>
+                    <button id="nextFactionPageBtn" class="faction-page-arrow">&gt;</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <footer class="footer">
         <div class="footer-links">
