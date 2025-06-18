@@ -346,11 +346,7 @@ ul li:last-child { border-bottom: none; }
 .modal-content .modal-close-btn:hover {
     color: var(--btn-close-hover-color, #00e0ff);
 }
-.header-btn .btn-icon {
-    font-size: 0; /* This makes the original content (the emoji) invisible */
-    line-height: 0; /* This collapses the space it takes up */
-    /* ... other styles ... */
-}
+
 .header-btn .btn-icon::after {
     content: '\25BC'; /* This inserts the new arrow icon */
     font-size: 1rem; /* This makes the new icon visible */
