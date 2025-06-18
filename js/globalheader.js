@@ -11,14 +11,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown'); // Actual content div
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
-    const loggedInUserDisplay = document.getElementById('loggedInUserDisplay'); // Assuming this ID from HTML
+    const loggedInUserDisplay = document.getElementById('loggedInUserDisplay'); 
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
-    const headerLogoLink = document.getElementById('headerLogoLink'); // NEW: Get reference to the logo link
+    const headerLogoLink = document.getElementById('headerLogoLink'); // Get reference to the logo link
 
     // --- Initial display of elements ---
     if (headerButtonsContainer) headerButtonsContainer.style.setProperty('display', 'none', 'important');
     if (signUpButtonHeader) signUpButtonHeader.style.setProperty('display', 'none', 'important');
-    if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important'); // Initially hide
+    if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important'); 
     if (logoutButtonHeader) logoutButtonHeader.style.setProperty('display', 'none', 'important');
     if (tornCityHomepageLink) tornCityHomepageLink.style.setProperty('display', 'none', 'important');
     if (loggedInUserDisplay) loggedInUserDisplay.style.setProperty('display', 'none', 'important');
@@ -131,19 +131,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (contactUsBtn) contactUsBtn.style.setProperty('display', 'inline-flex', 'important');
 
                 // Home button logic (in header): hide if current page is the conceptual "home" or "dashboard"
-                // Add dashboard.html to the condition for hiding the Home button
                 if (homeButtonHeader) {
                     if (isHomePage || pageName === 'social.html' || pageName === 'dashboard.html') { 
                         homeButtonHeader.style.setProperty('display', 'none', 'important');
                     } else {
                         homeButtonHeader.style.setProperty('display', 'inline-flex', 'important'); 
-                        // NEW: Attach click listener for Home button (using a named function to allow removal)
+                        // Attach click listener for Home button (using a named function to allow removal)
                         homeButtonHeader.removeEventListener('click', homeNavHandler); 
                         homeButtonHeader.addEventListener('click', homeNavHandler);
                     }
                 }
 
-                // NEW: Attach click listener for Header Logo link (using a named function)
+                // Attach click listener for Header Logo link
                 if (headerLogoLink) {
                     headerLogoLink.removeEventListener('click', logoNavHandler); 
                     headerLogoLink.addEventListener('click', logoNavHandler);
@@ -193,26 +192,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     console.log("globalheader.js: End of script.");
 
-    // --- NEW: Centralized Navigation Handlers (Defined outside auth state for reusability) ---
+    // --- Centralized Navigation Handlers (Using absolute paths for reliability) ---
+    // These paths are relative to the website's root (e.g., mysite.netlify.app/)
     function homeNavHandler() {
-        console.log("Navigating to home.html via Home button.");
-        // Adjust path based on where globalheader.js is relative to home.html
-        // If globalheader.js is in mysite/js/ and home.html is in mysite/, then ../home.html
-        window.location.href = '../home.html'; 
+        console.log("Navigating to /pages/home.html via Home button.");
+        window.location.href = '/pages/home.html'; 
     }
 
     function logoNavHandler() {
-        console.log("Navigating to home.html via Logo link.");
-        // Adjust path as needed, typically logo goes to main index or home.
-        // Assuming '../home.html' for consistency with the home button.
-        window.location.href = '../home.html'; 
+        console.log("Navigating to /pages/home.html via Logo link.");
+        window.location.href = '/pages/home.html'; 
     }
 
     function logoutHandler() {
         auth.signOut().then(() => {
             console.log("User signed out successfully.");
-            // Redirect to the index/login page after logout
-            window.location.href = '../index.html'; 
+            // Redirect to the index/login page (assuming index.html is at the root)
+            window.location.href = '/index.html'; 
         }).catch((error) => {
             console.error("Error signing out:", error);
             alert("Failed to log out. Please try again.");
