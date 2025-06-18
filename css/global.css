@@ -350,8 +350,8 @@ ul li:last-child { border-bottom: none; }
 #usefulLinksBtn .btn-icon::after,
 #headerContactUsBtn .btn-icon::after {
     content: '\25BC'; /* Unicode for a solid black down-pointing triangle (▼) */
-    font-size: 1rem;
-    color: #eee;
+    font-size: .8rem;
+    color: #00a8ff;
     position: absolute;
     right: 0;
     top: 50%;
