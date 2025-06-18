@@ -190,6 +190,21 @@
 .modal-table tbody td {padding: 10px 15px;border: 1px solid #444;color: #eee;font-size: 0.9rem;text-align: left;}
 .modal-table tbody tr:hover {background-color: #404040;}
 
+/* Add this new rule for the modal content */
+.modal-content { /* Adjust this selector if your modal content has a different class/ID */
+    width: 90%; /* Increase width, e.g., to 90% of the screen */
+    max-width: 1200px; /* Or set a fixed max-width like 1200px to ensure it doesn't get too wide on very large screens */
+    /* You might also need to adjust max-height if the table gets very long, but width is the primary concern here */
+}
+
+/* Also, ensure the modal table container doesn't restrict width too much */
+.modal-table-container {
+    /* Remove or increase any max-width property if it's present and too restrictive. */
+    /* The width of the modal-table itself should already be 100% of its container */
+    max-height: calc(90vh - 200px); /* Keep the max-height for vertical scrolling if needed */
+    overflow-x: hidden; /* Hide horizontal scroll on the table container itself */
+}
+
 /* Responsive Media Queries (Specific to tool containers) */
 @media (max-width: 768px) {
     .peeper-tool-container { width: 95%; margin: 20px auto; padding: 20px; }
