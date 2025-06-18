@@ -1,4 +1,4 @@
-// mysite/js/admin_dashboard.js - FINAL PRODUCTION VERSION
+// mysite/js/admin_dashboard.js - FINAL PRODUCTION VERSION + BATTLESTATS
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             factionID: parseInt(factionId),
                             factionName: factionName,
                             fairFightScore: member.ff_data.fair_fight,
+                            estimatedBattleStats: member.ff_data.bs_estimate_human || "N/A", // <-- ADDED THIS LINE
                             difficulty: get_difficulty_text(member.ff_data.fair_fight),
                             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                         };
