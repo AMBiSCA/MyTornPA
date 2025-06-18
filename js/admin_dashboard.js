@@ -1,6 +1,17 @@
-// mysite/js/admin_dashboard.js - FINAL VERSION with Concise Logging (Specific Summary Error) AND Target Count
+// mysite/js/admin_dashboard.js - FINAL VERSION with UID-BASED ADMIN ACCESS CONTROL
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Configuration: ALLOWED ADMIN UIDs ---
+    // IMPORTANT: Add the UIDs of users who should have access to this admin dashboard.
+    // You can find a user's UID in the Firebase Authentication console.
+    // To add more UIDs, simply add another comma-separated UID string in this array.
+    const ALLOWED_ADMIN_UIDS = [
+        "OxwatQjtUCPtLSBUrBqVseBpqeT2", // ADD YOUR FIRST ADMIN UID HERE
+        // "ANOTHER_ADMIN_UID_HERE",    // Example of how to add more
+        // "YET_ANOTHER_ADMIN_UID",
+    ];
+
+
     // --- UI Elements ---
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
     const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
@@ -8,9 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
     const adminToolContainer = document.querySelector('.admin-tool-container');
-    const totalTargetsCountSpan = document.getElementById('totalTargetsCount'); // NEW: Span to display count
+    const totalTargetsCountSpan = document.getElementById('totalTargetsCount'); 
 
-    // --- NEW: Status Update Functions for Concise Logging ---
+    // --- Status Update Functions for Concise Logging ---
     function setupStatusDisplay() {
         updatesBox.innerHTML = `
             <p id="status-line-1"></p>
@@ -35,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- Helper for displaying prominent errors on the page ---
+    // --- Helper for displaying prominent errors on the page (for non-admin users, this won't be seen) ---
     function showMainError(message) {
         const existingError = document.querySelector('.main-input-error-feedback');
         if (existingError) existingError.remove();
@@ -54,15 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { if (errorDiv.parentElement) errorDiv.remove(); }, 7000);
     }
 
-    // --- NEW: Function to update the total target count display ---
+    // --- Function to update the total target count display ---
     async function updateTargetCountDisplay() {
-        if (!totalTargetsCountSpan) return; // Exit if the span element doesn't exist
+        if (!totalTargetsCountSpan) return; 
         totalTargetsCountSpan.textContent = 'Counting...';
         
         try {
             const db = firebase.firestore();
             const snapshot = await db.collection('factionTargets').get();
-            totalTargetsCountSpan.textContent = snapshot.size; // Get the count of documents
+            totalTargetsCountSpan.textContent = snapshot.size; 
         } catch (error) {
             console.error("Error fetching target count:", error);
             totalTargetsCountSpan.textContent = 'Error';
@@ -73,17 +84,36 @@ document.addEventListener('DOMContentLoaded', () => {
     let tornApiKey = null;
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
-            const db = firebase.firestore();
-            const userDoc = await db.collection('userProfiles').doc(user.uid).get();
-            if (userDoc.exists && userDoc.data().tornApiKey) {
-                tornApiKey = userDoc.data().tornApiKey;
-                updateTargetCountDisplay(); // NEW: Update count on successful login
+            // User is logged in, now check if they are an allowed admin UID
+            if (ALLOWED_ADMIN_UIDS.includes(user.uid)) {
+                console.log("Admin Dashboard: User IS signed in and IS an allowed admin.", user.uid);
+                // User is authorized, proceed with dashboard initialization
+                const db = firebase.firestore();
+                try {
+                    const userDoc = await db.collection('userProfiles').doc(user.uid).get();
+                    if (userDoc.exists && userDoc.data().tornApiKey) {
+                        tornApiKey = userDoc.data().tornApiKey;
+                        updateTargetCountDisplay(); 
+                    } else {
+                        showMainError("Admin user profile not found or Torn API Key is missing. Admin features may be limited.");
+                        totalTargetsCountSpan.textContent = 'N/A';
+                    }
+                } catch (profileError) {
+                    console.error("Admin Dashboard: Error fetching user profile:", profileError);
+                    showMainError("Error loading admin profile data. Please try again.");
+                    totalTargetsCountSpan.textContent = 'Error';
+                }
             } else {
-                showMainError("Admin user profile not found or Torn API Key is missing.");
-                totalTargetsCountSpan.textContent = 'N/A';
+                // User is logged in but NOT an allowed admin
+                console.warn("Admin Dashboard: Unauthorized user logged in. Redirecting to home page.");
+                // Redirect unauthorized logged-in users to the main home page
+                window.location.href = '/pages/home.html'; 
             }
         } else {
-            window.location.href = '/admin_login.html';
+            // No user is signed in at all
+            console.log("Admin Dashboard: No user signed in. Redirecting to login page.");
+            // Redirect unauthenticated users to the main index/login page
+            window.location.href = '/index.html'; 
         }
     });
     
@@ -117,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Check for 'soft' errors returned by the Netlify function (status: "skipped" or "error")
-            // These are errors we want to suppress from UI display, except 'already_in_db'
             if (data.status === "skipped" || data.status === "error") {
                 console.warn(`Faction ID ${factionId} skipped due to API issue: ${data.message || 'Unknown reason'}`);
                 return { status: 'skipped', reason: 'api_soft_error', message: data.message || `API skipped for ID ${factionId}` };
@@ -147,8 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         estimatedBattleStats: member.ff_data.bs_estimate_human || "N/A",
                         difficulty: get_difficulty_text(member.ff_data.fair_fight),
                         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        // Ensure totalBattleStatsNumerical is saved if available from FFScouter and is numerical
-                        // totalBattleStatsNumerical: member.ff_data.total_bs_numerical || null 
                     };
                     batch.set(targetRef, dataToSave, { merge: true });
                     successfulSaves++;
@@ -191,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.status === 'success') {
                 totalTargetsSaved += result.savedCount;
                 factionsProcessed++;
-                // console.log(`SUCCESS: ${result.message}`); // Log successes to console for detail
             } else if (result.status === 'skipped') {
                 factionsSkipped++;
                 if (result.reason === 'already_in_db') {
@@ -219,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             appendStatus(`Some factions failed processing. See above for details.`);
         }
         
-        updateTargetCountDisplay(); // NEW: Update count after processing queue
+        updateTargetCountDisplay(); 
 
         fetchFactionDataBtn.disabled = false;
         if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
@@ -279,7 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper function for displaying difficulty ---
-    // This function is present here, but remember your Netlify function also calculates difficulty
     function get_difficulty_text(ff) {
         if (ff <= 1) return "Extremely easy";
         else if (ff <= 2) return "Easy";
