@@ -76,6 +76,15 @@
             min-height: 100px; /* Give it some space */
             overflow-y: auto; /* Scroll if content overflows */
         }
+        /* NEW: Styles for the database count display */
+        .database-count {
+            color: #aaddff; /* A nice blue color */
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        #totalTargetsCount {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -139,6 +148,8 @@
 
         <div class="admin-tool-container">
             <h2 class="script-title">Admin Faction Data Tool</h2>
+            <p class="database-count">Total Player Targets in DB: <span id="totalTargetsCount">Loading...</span></p>
+            
             <div class="input-group">
                 <div class="input-field">
                     <label for="factionIdInput">Faction ID:</label>
@@ -177,20 +188,39 @@
     <script>
         // Inline script from your template for dropdowns
         document.addEventListener('DOMContentLoaded', () => {
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn'); // Added for useful links dropdown
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown'); // Added for useful links dropdown
             const contactBtn = document.getElementById('headerContactUsBtn');
             const contactDropdown = document.getElementById('headerContactUsDropdown');
 
-            // Hide dropdown initially
-            contactDropdown.style.display = 'none';
+            // Hide dropdowns initially
+            if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Ensure it exists
+            if (contactDropdown) contactDropdown.style.display = 'none'; // Ensure it exists
 
-            contactBtn.addEventListener('click', () => {
-                const isVisible = contactDropdown.style.display === 'block';
-                contactDropdown.style.display = isVisible ? 'none' : 'block';
-            });
+            if (usefulLinksBtn) {
+                usefulLinksBtn.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent click from immediately closing dropdown via window listener
+                    const isVisible = usefulLinksDropdown.style.display === 'block';
+                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (contactDropdown) contactDropdown.style.display = 'none'; // Close other dropdown if open
+                });
+            }
 
-            // Optional: Hide dropdown if clicked outside
+            if (contactBtn) {
+                contactBtn.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent click from immediately closing dropdown via window listener
+                    const isVisible = contactDropdown.style.display === 'block';
+                    contactDropdown.style.display = isVisible ? 'none' : 'block';
+                    if (usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown if open
+                });
+            }
+
+            // Optional: Hide dropdowns if clicked outside
             window.addEventListener('click', (e) => {
-                if (!contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+                if (usefulLinksBtn && usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
+                    usefulLinksDropdown.style.display = 'none';
+                }
+                if (contactBtn && contactDropdown && !contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
                     contactDropdown.style.display = 'none';
                 }
             });

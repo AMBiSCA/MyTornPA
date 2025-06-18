@@ -1,4 +1,4 @@
-// mysite/js/admin_dashboard.js - FINAL VERSION with Concise Logging (Specific Summary Error)
+// mysite/js/admin_dashboard.js - FINAL VERSION with Concise Logging (Specific Summary Error) AND Target Count
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
     const adminToolContainer = document.querySelector('.admin-tool-container');
+    const totalTargetsCountSpan = document.getElementById('totalTargetsCount'); // NEW: Span to display count
 
     // --- NEW: Status Update Functions for Concise Logging ---
     function setupStatusDisplay() {
@@ -53,6 +54,21 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { if (errorDiv.parentElement) errorDiv.remove(); }, 7000);
     }
 
+    // --- NEW: Function to update the total target count display ---
+    async function updateTargetCountDisplay() {
+        if (!totalTargetsCountSpan) return; // Exit if the span element doesn't exist
+        totalTargetsCountSpan.textContent = 'Counting...';
+        
+        try {
+            const db = firebase.firestore();
+            const snapshot = await db.collection('factionTargets').get();
+            totalTargetsCountSpan.textContent = snapshot.size; // Get the count of documents
+        } catch (error) {
+            console.error("Error fetching target count:", error);
+            totalTargetsCountSpan.textContent = 'Error';
+        }
+    }
+
     // --- Page Protection & Auth Handling ---
     let tornApiKey = null;
     firebase.auth().onAuthStateChanged(async (user) => {
@@ -61,8 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const userDoc = await db.collection('userProfiles').doc(user.uid).get();
             if (userDoc.exists && userDoc.data().tornApiKey) {
                 tornApiKey = userDoc.data().tornApiKey;
+                updateTargetCountDisplay(); // NEW: Update count on successful login
             } else {
                 showMainError("Admin user profile not found or Torn API Key is missing.");
+                totalTargetsCountSpan.textContent = 'N/A';
             }
         } else {
             window.location.href = '/admin_login.html';
@@ -164,11 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalTargetsSaved = 0;
         let factionsSkipped = 0; 
         let factionsFailed = 0; 
-        let alreadyInDbIds = []; // NEW: Array to collect IDs already in DB
+        let alreadyInDbIds = []; 
 
         for (const [index, id] of factionIds.entries()) {
             setStatus(2, `Processing: ${index + 1} / ${factionIds.length} - Faction ID ${id}`);
-            const result = await processSingleFaction(id); // Get structured result
+            const result = await processSingleFaction(id); 
 
             if (result.status === 'success') {
                 totalTargetsSaved += result.savedCount;
@@ -176,18 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // console.log(`SUCCESS: ${result.message}`); // Log successes to console for detail
             } else if (result.status === 'skipped') {
                 factionsSkipped++;
-                // NEW: Handle 'already_in_db' specifically for end summary
                 if (result.reason === 'already_in_db') {
-                    alreadyInDbIds.push(id); // Collect ID for summary
+                    alreadyInDbIds.push(id); 
                 } else {
-                    // For all other skipped reasons (e.g., API soft errors),
-                    // log to console only, do not display on UI updatesBox.
                     console.warn(`Skipped Faction ID ${id} (${result.reason}): ${result.message}`);
                 }
             } else if (result.status === 'error') {
                 factionsFailed++;
-                factionsProcessed++; // Count as processed, but failed
-                // Only display genuinely failed (hard) errors on UI
+                factionsProcessed++; 
                 appendStatus(`Failed Faction ID ${id}: ${result.message}`, true); 
                 console.error(`ERROR: Faction ID ${id} failed: ${result.message}`);
             }
@@ -195,18 +209,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setStatus(3, `Queue finished. Processed ${factionsProcessed} / ${factionIds.length} factions. Saved ${totalTargetsSaved} targets.`);
         
-        // NEW: Display summary of Faction IDs already in DB at the very end, as a regular status message
         if (alreadyInDbIds.length > 0) {
             appendStatus(`The following ${alreadyInDbIds.length} Faction ID(s) were already in the database and skipped: ${alreadyInDbIds.join(', ')}.`);
         }
-        if (factionsSkipped > 0 && alreadyInDbIds.length === 0) {
-             // If there were other types of skips but no already-in-DB ones to report, give a general skip count
-             appendStatus(`Additionally, ${factionsSkipped} faction(s) were skipped due to API or data issues. Check browser console for details.`);
+        if (factionsSkipped > alreadyInDbIds.length) { 
+             appendStatus(`Additionally, ${factionsSkipped - alreadyInDbIds.length} faction(s) were skipped due to API or data issues. Check browser console for details.`);
         }
         if (factionsFailed > 0) {
             appendStatus(`Some factions failed processing. See above for details.`);
         }
-
+        
+        updateTargetCountDisplay(); // NEW: Update count after processing queue
 
         fetchFactionDataBtn.disabled = false;
         if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
