@@ -7,40 +7,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/factionpeeper.css">
     <style>
         /* Specific styles for the simplified admin dashboard */
-        body {
-            background-color: #1a1a1a; /* Dark background */
-            color: #eee;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .main-content-wrapper {
-            position: relative;
-            z-index: 1; /* Ensure content is above background images */
-            padding-top: 20px;
-            padding-bottom: 50px; /* Space for footer */
-        }
-        .image-glow, .image-glow-flipped {
-            position: fixed; /* Fixed position relative to viewport */
-            bottom: 0;
-            z-index: 0; /* Behind content */
-            opacity: 0.2; /* Subtle glow */
-            pointer-events: none; /* Do not block mouse events */
-        }
-        .image-glow {
-            left: 0;
-            transform: translateX(-50%);
-        }
-        .image-glow-flipped {
-            right: 0;
-            transform: translateX(50%) scaleX(-1);
-        }
-
         .admin-tool-container {
             background-color: #2a2a2a; /* Darker background for the box */
             padding: 30px;
@@ -55,33 +27,17 @@
             color: #ccc;
             margin-bottom: 20px;
         }
-        /* Common input/button styles (might be in global.css too) */
-        .input-group {
+        .admin-tool-container .input-group {
             margin-bottom: 20px;
-            display: flex; /* Flexbox for layout */
-            flex-direction: column; /* Stack items vertically */
-            align-items: center; /* Center items */
-            gap: 10px; /* Space between items */
         }
-        .input-group .input-field {
-            width: 100%; /* Take full width of parent flex item */
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #ccc;
-            font-size: 0.9em;
-        }
-        .input-group input[type="text"],
-        .input-group input[type="number"] {
-            width: calc(100% - 20px); /* Full width minus padding */
+        .admin-tool-container input[type="text"] {
+            width: calc(100% - 20px);
             padding: 10px;
+            margin-bottom: 10px;
             border: 1px solid #555;
             border-radius: 4px;
             background-color: #333;
             color: #eee;
-            font-size: 1em;
         }
         .admin-tool-container button {
             background-color: #007bff; /* Blue for fetch */
@@ -92,25 +48,22 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s ease;
-            margin-top: 5px; /* Spacing for stacked buttons */
-            width: 100%; /* Buttons take full width in this layout */
-            max-width: 300px; /* Max width for buttons */
+            margin: 5px; /* Spacing between buttons */
         }
         .admin-tool-container button:hover {
             background-color: #0056b3;
         }
-        .admin-tool-container .save-to-firebase-button { /* Deprecated but kept for reference */
+        .admin-tool-container .save-to-firebase-button {
             background-color: #28a745; /* Green for save */
         }
         .admin-tool-container .save-to-firebase-button:hover {
             background-color: #218838;
         }
-        .admin-tool-container .error-message {
-            color: #ff4d4d; /* Red for errors */
-            margin-top: 5px;
+        .admin-tool-container .error-message,
+        .admin-tool-container #saveStatus {
+            color: #ff4d4d; /* Red for errors, will be updated by JS */
+            margin-top: 10px;
             font-size: 0.9em;
-            text-align: left; /* Align error message with input */
-            width: calc(100% - 20px); /* Match input width */
         }
         #updatesBox {
             background-color: #333;
@@ -122,53 +75,13 @@
             color: #eee;
             min-height: 100px; /* Give it some space */
             overflow-y: auto; /* Scroll if content overflows */
-            font-size: 0.9em;
-        }
-        #updatesBox p {
-            margin: 0;
-            padding: 2px 0;
-        }
-
-        /* Styles for the new manual stats input section */
-        .manual-stats-section {
-            background-color: #3a3a3a; /* Slightly lighter background */
-            padding: 20px;
-            border-radius: 6px;
-            margin-top: 30px; /* Space from above content */
-            text-align: left;
-        }
-        .manual-stats-section h3 {
-            color: #ddd;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .manual-stats-section .stat-input-group {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .manual-stats-section .stat-input-group label {
-            flex: 0 0 100px; /* Fixed width for labels */
-            color: #ccc;
-            font-size: 1em;
-            text-align: right;
-            padding-right: 10px;
-        }
-        .manual-stats-section .stat-input-group input {
-            flex-grow: 1; /* Input takes remaining space */
-            width: auto; /* Override general input width */
-            max-width: 200px; /* Limit max width of inputs */
-        }
-        .manual-stats-section #manualStatsError {
-            text-align: center;
-            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="header-left">
-            <a href="../index.html" id="headerLogoLink" style="text-decoration: none;">
+            <a href="#" id="headerLogoLink" style="text-decoration: none;">
                 <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
             </a>
         </div>
@@ -226,53 +139,19 @@
 
         <div class="admin-tool-container">
             <h2 class="script-title">Admin Faction Data Tool</h2>
-            <div id="fairFightApiKeyError" class="error-message" style="text-align: center; margin-bottom: 20px;"></div>
-
-            <div class="stats-container">
-                <div class="faction-data-tool-box">
-                    <h3>Process Faction Fair Fight:</h3>
-                    <p>Enter a Faction ID to fetch members and process their Fair Fight data for your database.</p>
-                    <input type="text" id="factionIdInput" placeholder="Faction ID:">
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="factionIdInput">Faction ID:</label>
+                    <input type="text" id="factionIdInput" placeholder="Enter Faction ID" />
                     <div id="factionIdError" class="error-message"></div>
-                    <button id="fetchFactionDataBtn" class="fetch-btn">Fetch Faction Data</button>
-                    <button id="refreshDatabaseFactionsBtn" class="fetch-btn" style="margin-top: 10px;">Refresh All Database Factions</button>
                 </div>
 
-                <div class="manual-stats-input-box">
-                    <h3>Manually Set Your Admin Stats:</h3>
-                    <p>Use these for Fair Fight calculations. (Saved locally)</p>
-                    <div class="stat-input-group">
-                        <label for="adminStrengthInput">Strength:</label>
-                        <input type="text" id="adminStrengthInput" placeholder="e.g. 150m">
-                    </div>
-                    <div class="stat-input-group">
-                        <label for="adminDefenseInput">Defense:</label>
-                        <input type="text" id="adminDefenseInput" placeholder="e.g. 100m">
-                    </div>
-                    <div class="stat-input-group">
-                        <label for="adminSpeedInput">Speed:</label>
-                        <input type="text" id="adminSpeedInput" placeholder="e.g. 120m">
-                    </div>
-                    <div class="stat-input-group">
-                        <label for="adminDexterityInput">Dexterity:</label>
-                        <input type="text" id="adminDexterityInput" placeholder="e.g. 90m">
-                    </div>
-                    <div class="stat-input-group">
-                        <label for="adminLevelInput">Level:</label>
-                        <input type="number" id="adminLevelInput" placeholder="e.g. 100" min="1">
-                    </div>
-                    <div id="manualStatsError" class="error-message"></div>
-                </div>
-                </div>
-            
-            <div id="updatesBox" class="updates-log">
-                <p>Status updates will appear here.</p>
+                <button id="fetchFactionDataBtn" class="action-btn">Fetch Faction Data</button>
+                <button id="saveToFirebaseBtn" class="save-to-firebase-button" style="display: none;">Save to Firebase</button>
             </div>
-            
-            <button id="saveToFirebaseBtn" class="fetch-btn" style="display: none;">Save to Firebase</button>
-            
-            <div class="note">
-                <p>Please Note: Fair Fight data relies on external services. Ensure your own stats are up-to-date.</p>
+
+            <div id="updatesBox">
+                <p>Status updates will appear here.</p>
             </div>
         </div>
     </div>
@@ -292,45 +171,27 @@
 
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
+    <script src="../js/factionpeeper.js"></script>
     <script src="../js/admin_dashboard.js"></script>
 
     <script>
         // Inline script from your template for dropdowns
         document.addEventListener('DOMContentLoaded', () => {
-            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-            const headerContactUsBtn = document.getElementById('headerContactUsBtn');
-            const headerContactUsDropdown = document.getElementById('headerContactUsDropdown');
+            const contactBtn = document.getElementById('headerContactUsBtn');
+            const contactDropdown = document.getElementById('headerContactUsDropdown');
 
-            // Hide dropdowns initially
-            if(usefulLinksDropdown) usefulLinksDropdown.style.display = 'none';
-            if(headerContactUsDropdown) headerContactUsDropdown.style.display = 'none';
+            // Hide dropdown initially
+            contactDropdown.style.display = 'none';
 
-            if(usefulLinksBtn && usefulLinksDropdown) {
-                usefulLinksBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isVisible = usefulLinksDropdown.style.display === 'block';
-                    usefulLinksDropdown.style.display = isVisible ? 'none' : 'block';
-                    if(headerContactUsDropdown) headerContactUsDropdown.style.display = 'none'; // Close other dropdown
-                });
-            }
+            contactBtn.addEventListener('click', () => {
+                const isVisible = contactDropdown.style.display === 'block';
+                contactDropdown.style.display = isVisible ? 'none' : 'block';
+            });
 
-            if(headerContactUsBtn && headerContactUsDropdown) {
-                headerContactUsBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isVisible = headerContactUsDropdown.style.display === 'block';
-                    headerContactUsDropdown.style.display = isVisible ? 'none' : 'block';
-                    if(usefulLinksDropdown) usefulLinksDropdown.style.display = 'none'; // Close other dropdown
-                });
-            }
-
-            // Hide dropdowns if clicked outside
+            // Optional: Hide dropdown if clicked outside
             window.addEventListener('click', (e) => {
-                if (usefulLinksDropdown && !usefulLinksBtn.contains(e.target) && !usefulLinksDropdown.contains(e.target)) {
-                    usefulLinksDropdown.style.display = 'none';
-                }
-                if (headerContactUsDropdown && !headerContactUsBtn.contains(e.target) && !headerContactUsDropdown.contains(e.target)) {
-                    headerContactUsDropdown.style.display = 'none';
+                if (!contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+                    contactDropdown.style.display = 'none';
                 }
             });
         });

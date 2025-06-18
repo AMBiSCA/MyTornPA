@@ -1,574 +1,175 @@
 // mysite/js/admin_dashboard.js
 
-// Global state variables for batch processing
-let currentFactionMembers = []; // Stores all member IDs for the current faction
-let currentFactionName = "";
-let currentFactionId = "";
-let currentBatchStartIndex = 0;
-const BATCH_SIZE = 5; // Process 5 players per batch invocation (for API calls)
-let totalMembersToProcess = 0;
-
-// Global variables for overall batch processing summary
-let totalProcessedSuccess = 0;
-let totalProcessedSkipped = 0;
-let totalProcessedErrors = 0;
-
-// Global variable for overall faction count
-let totalFactionsProcessed = 0;
-let totalFactionsToAttempt = 0; // To show total count in final message
-
 document.addEventListener('DOMContentLoaded', () => {
-    const logoutButton = document.getElementById('logoutButtonHeader');
-    const factionIdInput = document.getElementById('factionIdInput');
-    const factionIdError = document.getElementById('factionIdError');
-
+    // --- UI Elements ---
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
     const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
-    const saveToFirebaseBtn = document.getElementById('saveToFirebaseBtn'); // This remains deprecated
+    const factionIdInput = document.getElementById('factionIdInput');
+    const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
     const adminToolContainer = document.querySelector('.admin-tool-container');
-    const dataDisplayArea = document.createElement('div');
-    dataDisplayArea.id = 'fetchedFactionDataTableContainer';
-    dataDisplayArea.style.marginTop = '20px';
-    if (adminToolContainer) {
-        adminToolContainer.appendChild(dataDisplayArea);
-    }
-
-    // --- Manual Stats Input Elements ---
-    const adminStrengthInput = document.getElementById('adminStrengthInput');
-    const adminDefenseInput = document.getElementById('adminDefenseInput');
-    const adminSpeedInput = document.getElementById('adminSpeedInput');
-    const adminDexterityInput = document.getElementById('adminDexterityInput');
-    const adminLevelInput = document.getElementById('adminLevelInput');
-    const manualStatsError = document.getElementById('manualStatsError');
-
 
     // --- Helper for updates box ---
     function updateStatus(message, isError = false) {
         const timestamp = new Date().toLocaleTimeString();
-        let cleanedMessage = message;
-        const problematicPrefix = '[error: #8d4d | "Error"] ~ ';
-        if (cleanedMessage.startsWith(problematicPrefix)) {
-            cleanedMessage = cleanedMessage.substring(problematicPrefix.length);
-        }
-
-        updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${cleanedMessage}</p>`;
+        updatesBox.innerHTML += `<p style="color:${isError ? '#ff4d4d' : '#eee'};"><strong>[${timestamp}]</strong> ${message}</p>`;
         updatesBox.scrollTop = updatesBox.scrollHeight;
     }
 
     function clearStatus() {
         updatesBox.innerHTML = '';
     }
-
+    
     // --- Helper for displaying prominent errors ---
     function showMainError(message) {
-        if (!message || message.trim() === '') {
-            const existingMainInputError = document.querySelector('.main-input-error-feedback');
-            if (existingMainInputError) {
-                existingMainInputError.remove();
-            }
-            return;
-        }
-        const existingMainInputError = document.querySelector('.main-input-error-feedback');
-        if (existingMainInputError) {
-            existingMainInputError.remove();
-        }
-        const mainPageStatus = document.createElement('div');
-        mainPageStatus.textContent = message;
-        mainPageStatus.className = 'main-input-error-feedback';
-        mainPageStatus.style.textAlign = 'center';
-        mainPageStatus.style.padding = '10px';
-        mainPageStatus.style.backgroundColor = 'rgba(255,0,0,0.1)';
-        mainPageStatus.style.border = '1px solid red';
-        mainPageStatus.style.borderRadius = '5px';
-        mainPageStatus.style.marginTop = '15px';
+        const existingError = document.querySelector('.main-input-error-feedback');
+        if (existingError) existingError.remove();
+        if (!message) return;
+
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = message;
+        errorDiv.className = 'main-input-error-feedback';
+        errorDiv.style.textAlign = 'center';
+        errorDiv.style.padding = '10px';
+        errorDiv.style.backgroundColor = 'rgba(255,0,0,0.1)';
+        errorDiv.style.border = '1px solid red';
+        errorDiv.style.borderRadius = '5px';
+        errorDiv.style.marginTop = '15px';
 
         if (adminToolContainer) {
-            // Target the area after the stats-container or main elements
-            const statsContainer = adminToolContainer.querySelector('.stats-container');
-            if (statsContainer && statsContainer.parentNode) {
-                statsContainer.parentNode.insertBefore(mainPageStatus, statsContainer.nextSibling);
-            } else {
-                adminToolContainer.appendChild(mainPageStatus);
-            }
+            adminToolContainer.appendChild(errorDiv);
         }
-        setTimeout(() => { if(mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000);
+        setTimeout(() => { if (errorDiv.parentElement) errorDiv.remove(); }, 7000);
     }
 
-    // --- Number Parsing Helper (for 'k', 'm', 'b' notations) ---
-    function parseNumberInput(inputString) {
-        if (!inputString) return 0;
-        let value = String(inputString).toLowerCase().trim();
-        const multiplierMap = { 'k': 1e3, 'm': 1e6, 'b': 1e9 };
-
-        for (const suffix in multiplierMap) {
-            if (value.endsWith(suffix)) {
-                return parseFloat(value.slice(0, -suffix.length)) * multiplierMap[suffix];
-            }
-        }
-        return parseFloat(value); // If no suffix, parse as regular float
-    }
-
-    // --- Local Storage Functions for Manual Stats ---
-    function saveManualStats() {
-        localStorage.setItem('adminStrengthInput', adminStrengthInput.value);
-        localStorage.setItem('adminDefenseInput', adminDefenseInput.value);
-        localStorage.setItem('adminSpeedInput', adminSpeedInput.value);
-        localStorage.setItem('adminDexterityInput', adminDexterityInput.value);
-        localStorage.setItem('adminLevelInput', adminLevelInput.value);
-    }
-
-    function loadManualStats() {
-        adminStrengthInput.value = localStorage.getItem('adminStrengthInput') || '';
-        adminDefenseInput.value = localStorage.getItem('adminDefenseInput') || '';
-        adminSpeedInput.value = localStorage.getItem('adminSpeedInput') || '';
-        adminDexterityInput.value = localStorage.getItem('adminDexterityInput') || '';
-        adminLevelInput.value = localStorage.getItem('adminLevelInput') || '';
-    }
-
-    // Load saved stats when the page loads
-    loadManualStats();
-
-    // Attach input listeners to save changes immediately
-    const manualStatInputs = [adminStrengthInput, adminDefenseInput, adminSpeedInput, adminDexterityInput, adminLevelInput];
-    manualStatInputs.forEach(input => {
-        input.addEventListener('input', saveManualStats);
-    });
-
-    // --- Page Protection (Firebase Auth) ---
+    // --- Page Protection & Auth Handling ---
+    let tornApiKey = null;
     if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
-        firebase.auth().onAuthStateChanged((user) => {
+        firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 console.log("Admin is logged in:", user.email);
+                // Fetch the admin's API key from their profile to use for all requests
+                try {
+                    const db = firebase.firestore();
+                    const userDocRef = db.collection('userProfiles').doc(user.uid);
+                    const userDoc = await userDocRef.get();
+                    if (userDoc.exists && userDoc.data().tornApiKey) {
+                        tornApiKey = userDoc.data().tornApiKey;
+                        updateStatus("Authentication successful. Ready to fetch data.", false);
+                    } else {
+                        showMainError("Admin user profile not found or Torn API Key is missing.");
+                        updateStatus("Could not find your API key in your profile.", true);
+                    }
+                } catch (error) {
+                     showMainError("Error fetching your user profile.");
+                     console.error("Error fetching admin profile:", error);
+                }
             } else {
-                console.log("No admin logged in. Redirecting to login page...");
+                console.log("No admin logged in. Redirecting...");
                 window.location.href = '/admin_login.html';
             }
         });
     } else {
-        console.error("Firebase Auth SDK not loaded. Cannot protect page.");
-        showMainError("Firebase authentication not available. Please check your internet connection or console for errors.");
+        showMainError("Firebase SDK not loaded. Page cannot function.");
     }
-
-    // --- Logout Functionality ---
-    if (logoutButton) {
-        logoutButton.addEventListener('click', async () => {
-            try {
-                if (typeof firebase !== 'undefined' && typeof firebase.auth !== 'undefined') {
-                    await firebase.auth().signOut();
-                    updateStatus("Logged out successfully. Redirecting...", false);
-                    window.location.href = '/admin_login.html';
-                } else {
-                    updateStatus("Firebase Auth SDK not available for logout.", true);
-                    console.error("Firebase Auth SDK not loaded. Cannot perform logout.");
-                }
-            } catch (error) {
-                console.error("Logout error:", error);
-                updateStatus(`Failed to log out: ${error.message}`, true);
-            }
-        });
-    }
-
-    // ==========================================================
-    // Batch Processing Functions for Fair Fight Data
-    // ==========================================================
-
-    /**
-     * Resets global state variables for a new batch processing run.
-     */
-    function resetBatchProcessState() {
-        currentFactionMembers = [];
-        currentFactionName = "";
-        currentFactionId = "";
-        currentBatchStartIndex = 0;
-        totalMembersToProcess = 0;
-        totalProcessedSuccess = 0;
-        totalProcessedSkipped = 0;
-        totalProcessedErrors = 0;
-        totalFactionsProcessed = 0;
-        totalFactionsToAttempt = 0;
-        clearStatus();
-        dataDisplayArea.innerHTML = '';
-        if (saveToFirebaseBtn) saveToFirebaseBtn.style.display = 'none';
-    }
-
-    /**
-     * Displays the overall final status message after the entire multi-faction process or single faction.
-     */
-    function displayOverallFinalStatus() {
-        let finalMessage = `Status: Finished.`;
-        if (totalFactionsToAttempt > 1) { // More than 1 faction processed overall
-            finalMessage += ` Refreshed a total of ${totalFactionsProcessed} / ${totalFactionsToAttempt} Factions.`;
-        } else { // Single faction processed
-            finalMessage += ` Found ${totalMembersToProcess} members. Successfully processed ${totalProcessedSuccess} Fair Fight reports.`;
-            if (totalProcessedSkipped > 0) finalMessage += ` Skipped ${totalProcessedSkipped}.`;
-            if (totalProcessedErrors > 0) finalMessage += ` Failed ${totalProcessedErrors}.`;
-        }
-        updateStatus(finalMessage, false);
-        console.log(`Overall batch processing finished. Total factions attempted: ${totalFactionsToAttempt}, processed: ${totalFactionsProcessed}.`);
-    }
-
-    /**
-     * Recursively processes batches of players for a single faction, fetching and saving FF data.
-     * This function calls the new process-ff-batch Netlify Function.
-     * @param {string} idToken The Firebase ID Token of the authenticated user.
-     * @param {object} adminManualStats Object containing parsed manual admin stats (strength, defense, etc., and level).
-     */
-    async function processNextBatch(idToken, adminManualStats) { // --- MODIFIED: Accepts idToken AND adminManualStats ---
-        if (currentBatchStartIndex >= totalMembersToProcess) {
-            console.log("Batch processing finished for current faction.");
-            totalFactionsProcessed++; // Increment the count of successfully processed factions
-            return;
-        }
-
-        // Slice the current batch of member IDs to send to the backend
-        const currentBatchMemberIds = currentFactionMembers.slice(currentBatchStartIndex, currentBatchStartIndex + BATCH_SIZE);
-
-        try {
-            // Call the new process-ff-batch Netlify Function
-            const response = await fetch('/.netlify/functions/process-ff-batch', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}`
-                },
-                body: JSON.stringify({
-                    factionId: currentFactionId,
-                    factionName: currentFactionName,
-                    memberIDs: currentBatchMemberIds,
-                    startIndex: currentBatchStartIndex,
-                    batchSize: BATCH_SIZE,
-                    adminManualStats: adminManualStats // --- PASS MANUAL STATS TO BACKEND ---
-                })
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({ message: response.statusText }));
-                throw new Error(`Batch FF Function Error (${response.status}): ${errorBody.message || 'Unknown error'}`);
-            }
-
-            const result = await response.json();
-
-            if (result.success) {
-                totalProcessedSuccess += result.processedSummary.successCount;
-                totalProcessedSkipped += result.processedSummary.skippedCount;
-                totalProcessedErrors += result.processedSummary.errorCount;
-
-                currentBatchStartIndex = result.nextStartIndex;
-
-                if (!result.isComplete) {
-                    setTimeout(() => processNextBatch(idToken, adminManualStats), 500); // --- MODIFIED: Pass idToken AND adminManualStats ---
-                } else {
-                    return processNextBatch(idToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-                }
-            } else {
-                throw new Error(`Batch FF function reported failure: ${result.message || 'Unknown issue'}`);
-            }
-
-        } catch (error) {
-            updateStatus(`Status: Running. Error during Fair Fight processing. Check console for details.`, true);
-            console.error(`Batch FF processing error for Faction ${currentFactionId}: ${error.message}. Process stopped for this faction.`, error);
-            showMainError(`Failed to process Fair Fight: ${error.message}`);
-            totalFactionsProcessed++;
-            throw error;
-        }
-    }
-
-    // --- Single Faction Data Fetch (via input field) ---
+    
+    // --- SINGLE FACTION FETCH & SAVE LOGIC ---
     if (fetchFactionDataBtn) {
         fetchFactionDataBtn.addEventListener('click', async () => {
-            console.log("Fetch Faction Data button clicked - initiating Fair Fight batch process for single faction!");
-            resetBatchProcessState();
-
-            currentFactionId = factionIdInput.value.trim();
-            if (!currentFactionId || isNaN(parseInt(currentFactionId, 10))) {
+            clearStatus();
+            factionIdError.textContent = '';
+            
+            const factionId = factionIdInput.value.trim();
+            if (!factionId || isNaN(factionId)) {
                 factionIdError.textContent = 'Please enter a valid numeric Faction ID.';
-                updateStatus('Invalid Faction ID entered.', true);
-                return;
-            } else {
-                factionIdError.textContent = '';
-            }
-
-            // --- VALIDATE AND GET MANUAL ADMIN STATS ---
-            const strength = parseNumberInput(adminStrengthInput.value);
-            const defense = parseNumberInput(adminDefenseInput.value);
-            const speed = parseNumberInput(adminSpeedInput.value);
-            const dexterity = parseNumberInput(adminDexterityInput.value);
-            const level = parseInt(adminLevelInput.value);
-
-            if (isNaN(strength) || isNaN(defense) || isNaN(speed) || isNaN(dexterity) || isNaN(level) || level <= 0) {
-                manualStatsError.textContent = 'Please enter valid numbers for all admin stats and level.';
-                updateStatus('Invalid admin stats provided.', true);
-                return;
-            } else {
-                manualStatsError.textContent = '';
-            }
-            const adminManualStats = { strength, defense, speed, dexterity, level };
-            // --- END VALIDATE AND GET MANUAL ADMIN STATS ---
-
-            let currentAuthenticatedUser = firebase.auth().currentUser;
-            if (!currentAuthenticatedUser) {
-                updateStatus("Not authenticated. Please log in again.", true);
-                showMainError("Authentication required to fetch data.");
                 return;
             }
 
-            // --- GET FIREBASE ID TOKEN ---
-            let idToken;
-            try {
-                idToken = await currentAuthenticatedUser.getIdToken();
-                console.log("Firebase ID Token obtained for fetchFactionDataBtn.");
-            } catch (error) {
-                console.error("Error getting Firebase ID Token for fetchFactionDataBtn:", error);
-                updateStatus("Failed to get authentication token. Please log in again.", true);
-                showMainError("Authentication token error. Please re-authenticate.");
+            if (!tornApiKey) {
+                showMainError("Your Torn API key is not loaded. Cannot fetch data.");
                 return;
             }
-            // --- END GET FIREBASE ID TOKEN ---
 
-            updateStatus(`Status: Running. Fetching members for Faction ID ${currentFactionId}...`, false);
+            updateStatus(`Fetching data for Faction ID ${factionId}...`);
             fetchFactionDataBtn.disabled = true;
             refreshDatabaseFactionsBtn.disabled = true;
 
             try {
-                // This calls a backend function to get the member IDs for the faction.
-                const response = await fetch('/.netlify/functions/get-faction-members', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}`
-                    },
-                    body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
-                });
+                // Step 1: Call our existing Netlify function to get all member data
+                const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
+                const response = await fetch(functionUrl);
+                const data = await response.json();
 
-                if (!response.ok) {
-                    const errorBody = await response.json().catch(() => ({ message: response.statusText }));
-                    throw new Error(`Get Members Function Error (${response.status}): ${errorBody.message || 'Unknown error'}`);
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `Function returned status ${response.status}`);
                 }
 
-                const result = await response.json();
-
-                if (result.success && result.memberIDs && result.memberIDs.length > 0) {
-                    currentFactionMembers = result.memberIDs;
-                    currentFactionName = result.factionName;
-                    totalMembersToProcess = result.totalMembers;
-                    currentBatchStartIndex = 0;
-                    totalFactionsToAttempt = 1; // For a single faction run
-
-                    updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    await processNextBatch(idToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-
-                    displayOverallFinalStatus(); // Display final status after single faction is done
+                if (!data.members || data.members.length === 0) {
+                    updateStatus(`No members found for Faction ID ${factionId}.`, true);
                     fetchFactionDataBtn.disabled = false;
                     refreshDatabaseFactionsBtn.disabled = false;
-                } else {
-                    totalFactionsToAttempt = 1; // For a single faction run
-                    updateStatus(`Status: Finished. No members found for Faction ID ${currentFactionId}. Check faction ID.`, true);
-                    fetchFactionDataBtn.disabled = false;
-                    refreshDatabaseFactionsBtn.disabled = false;
+                    return;
                 }
+                
+                // Step 2: If successful, automatically save to Firestore
+                const members = data.members;
+                const factionName = data.faction_name;
+                updateStatus(`Found ${members.length} members for ${factionName}. Now saving to database...`);
+                
+                const db = firebase.firestore();
+                const batch = db.batch(); // Use a batch for efficiency
+                let successfulSaves = 0;
+
+                for (const member of members) {
+                    if (member.ff_data && member.ff_data.fair_fight) {
+                        const targetRef = db.collection('factionTargets').doc(member.id.toString());
+                        
+                        const dataToSave = {
+                            playerID: member.id,
+                            playerName: member.name,
+                            factionID: parseInt(factionId),
+                            factionName: factionName,
+                            level: member.ff_data.level, // We will add this to the function output
+                            fairFightScore: member.ff_data.fair_fight,
+                            difficulty: get_difficulty_text(member.ff_data.fair_fight),
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Use server time
+                        };
+                        
+                        batch.set(targetRef, dataToSave, { merge: true }); // Use set with merge to create or update
+                        successfulSaves++;
+                    }
+                }
+
+                await batch.commit(); // Commit all the saves at once
+                updateStatus(`Save complete. Successfully saved ${successfulSaves} targets to the database.`, false);
 
             } catch (error) {
-                totalFactionsToAttempt = 1; // For a single faction run
-                updateStatus(`Status: Error. Failed to fetch members list. Check console for details.`, true);
-                console.error("Initial member list fetch error:", error);
-                showMainError(`Failed to fetch faction members: ${error.message}`);
+                console.error("Error during fetch & save:", error);
+                updateStatus(`An error occurred: ${error.message}`, true);
+                showMainError(error.message);
+            } finally {
                 fetchFactionDataBtn.disabled = false;
                 refreshDatabaseFactionsBtn.disabled = false;
             }
         });
     }
 
-    // --- Refresh All Database Factions Logic ---
-    let currentDbFactionIndex = 0;
-    let allDbFactionsToProcess = [];
-
+    // --- REFRESH ALL DATABASE FACTIONS (Placeholder) ---
     if (refreshDatabaseFactionsBtn) {
-        refreshDatabaseFactionsBtn.addEventListener('click', async () => {
-            console.log("Refresh All Database Factions button clicked - initiating fetch of unique faction IDs from database.");
-
-            fetchFactionDataBtn.disabled = true;
-            refreshDatabaseFactionsBtn.disabled = true;
-
-            resetBatchProcessState();
-
-            // --- VALIDATE AND GET MANUAL ADMIN STATS ---
-            const strength = parseNumberInput(adminStrengthInput.value);
-            const defense = parseNumberInput(adminDefenseInput.value);
-            const speed = parseNumberInput(adminSpeedInput.value);
-            const dexterity = parseNumberInput(adminDexterityInput.value);
-            const level = parseInt(adminLevelInput.value);
-
-            if (isNaN(strength) || isNaN(defense) || isNaN(speed) || isNaN(dexterity) || isNaN(level) || level <= 0) {
-                manualStatsError.textContent = 'Please enter valid numbers for all admin stats and level.';
-                updateStatus('Invalid admin stats provided.', true);
-                return;
-            } else {
-                manualStatsError.textContent = '';
-            }
-            const adminManualStats = { strength, defense, speed, dexterity, level };
-            // --- END VALIDATE AND GET MANUAL ADMIN STATS ---
-
-
-            updateStatus("Status: Running. Fetching faction IDs from database...", false);
-
-            let currentAuthenticatedUser = firebase.auth().currentUser;
-            if (!currentAuthenticatedUser) {
-                updateStatus("Not authenticated. Please log in again.", true);
-                showMainError("Authentication required to fetch data.");
-                fetchFactionDataBtn.disabled = false;
-                refreshDatabaseFactionsBtn.disabled = false;
-                return;
-            }
-
-            // --- GET FIREBASE ID TOKEN FOR OVERALL REFRESH ---
-            let overallIdToken;
-            try {
-                overallIdToken = await currentAuthenticatedUser.getIdToken();
-                console.log("Firebase ID Token obtained for refreshDatabaseFactionsBtn.");
-            } catch (error) {
-                console.error("Error getting Firebase ID Token for refreshDatabaseFactionsBtn:", error);
-                updateStatus("Failed to get authentication token. Please log in again.", true);
-                showMainError("Authentication token error. Please re-authenticate.");
-                fetchFactionDataBtn.disabled = false;
-                refreshDatabaseFactionsBtn.disabled = false;
-                return;
-            }
-            // --- END GET FIREBASE ID TOKEN ---
-
-            try {
-                // This fetches a list of Faction IDs from your database (e.g., from a collection of monitored factions)
-                const response = await fetch('/.netlify/functions/get-all-database-faction-ids', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${overallIdToken}`
-                    },
-                    body: JSON.stringify({})
-                });
-
-                if (!response.ok) {
-                    const errorBody = await response.json().catch(() => ({ message: response.statusText }));
-                    throw new Error(`Get DB Factions Function Error (${response.status}): ${errorBody.message || 'Unknown error'}`);
-                }
-
-                const result = await response.json();
-
-                if (result.success && result.factionIds && result.factionIds.length > 0) {
-                    allDbFactionsToProcess = result.factionIds;
-                    currentDbFactionIndex = 0;
-                    totalFactionsToAttempt = allDbFactionsToProcess.length; // Set total here
-
-                    updateStatus(`Status: Running. Found ${totalFactionsToAttempt} factions to refresh.`, false);
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay
-
-                    await processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-
-                } else {
-                    totalFactionsToAttempt = 0; // No factions found
-                    displayOverallFinalStatus(); // Display final status (0 factions processed)
-                    fetchFactionDataBtn.disabled = false;
-                    refreshDatabaseFactionsBtn.disabled = false;
-                }
-
-            } catch (error) {
-                totalFactionsToAttempt = 0; // Assume 0 if initial fetch fails
-                updateStatus(`Status: Error. Failed to fetch database faction IDs. Check console for details.`, true);
-                console.error("Error fetching database faction IDs:", error);
-                showMainError(`Failed to fetch database faction IDs: ${error.message}`);
-                fetchFactionDataBtn.disabled = false;
-                refreshDatabaseFactionsBtn.disabled = false;
-            }
+        refreshDatabaseFactionsBtn.addEventListener('click', () => {
+            updateStatus("Refresh All functionality has not been implemented yet.", true);
+            // We can add the logic here later to fetch all unique factionIDs 
+            // from the 'factionTargets' collection and then loop through them,
+            // calling the fetch & save process for each one.
         });
     }
 
-    /**
-     * Processes the next faction from the list fetched from the database.
-     * Orchestrates calling get-faction-members and processNextBatch for each.
-     * @param {string} overallIdToken The Firebase ID Token for the multi-faction refresh.
-     * @param {object} adminManualStats Object containing parsed manual admin stats.
-     */
-    async function processNextDbFaction(overallIdToken, adminManualStats) { // --- MODIFIED: Accepts idToken AND adminManualStats ---
-        if (currentDbFactionIndex >= allDbFactionsToProcess.length) {
-            displayOverallFinalStatus(); // Show overall final status
-            console.log("All database factions processed.");
-            fetchFactionDataBtn.disabled = false;
-            refreshDatabaseFactionsBtn.disabled = false;
-            return;
-        }
-
-        // Reset batch process state for each new faction being processed
-        resetBatchProcessState(); // This resets totals for the *current* faction processing, but totalFactionsToAttempt remains for overall run
-        currentFactionId = allDbFactionsToProcess[currentDbFactionIndex]; // Set the new current faction ID
-
-        updateStatus(`Status: Running. Fetching members for Faction ID ${currentFactionId} (${currentDbFactionIndex + 1}/${totalFactionsToAttempt})...`, false);
-
-        let currentAuthenticatedUser = firebase.auth().currentUser;
-        if (!currentAuthenticatedUser) {
-            updateStatus("Not authenticated. Please log in again.", true);
-            showMainError("Authentication required to fetch data.");
-            fetchFactionDataBtn.disabled = false;
-            refreshDatabaseFactionsBtn.disabled = false;
-            return;
-        }
-
-        try {
-            // Get member list for the current faction from Torn API
-            const response = await fetch('/.netlify/functions/get-faction-members', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${overallIdToken}`
-                },
-                body: JSON.stringify({ factionId: parseInt(currentFactionId, 10) })
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({ message: response.statusText }));
-                throw new Error(`Get Members Function Error (${response.status}): ${errorBody.message || 'Unknown error'} for Faction ID ${currentFactionId}`);
-            }
-
-            const result = await response.json();
-
-            if (result.success && result.memberIDs && result.memberIDs.length > 0) {
-                currentFactionMembers = result.memberIDs;
-                currentFactionName = result.factionName;
-                totalMembersToProcess = result.totalMembers;
-                currentBatchStartIndex = 0;
-
-                updateStatus(`Status: Running. Processing ${totalMembersToProcess} members for Faction ${currentFactionName} [${currentFactionId}]...`, false);
-                await new Promise(resolve => setTimeout(resolve, 500));
-                await processNextBatch(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-
-                // After processing all batches for this faction (success or internal error for this faction):
-                currentDbFactionIndex++; // Move to the next faction in the list
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Delay before starting next faction's process
-                processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-
-            } else {
-                updateStatus(`Status: Running. Error: No members found for database Faction ID ${currentFactionId}. Skipping.`, true);
-                console.warn(`No members found for database Faction ID ${currentFactionId}.`);
-                currentDbFactionIndex++;
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-            }
-
-        } catch (error) {
-            updateStatus(`Status: Running. Error processing database Faction ID ${currentFactionId}. Skipping.`, true);
-            console.error(`Error processing database faction ${currentFactionId}:`, error);
-            currentDbFactionIndex++;
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            processNextDbFaction(overallIdToken, adminManualStats); // --- MODIFIED: Pass idToken AND adminManualStats ---
-        }
-    }
-
-    // --- Save to Firebase Button Logic (Deprecated for automatic batch saving) ---
-    if (saveToFirebaseBtn) {
-        saveToFirebaseBtn.addEventListener('click', async () => {
-            updateStatus("This 'Save to Firebase' button is deprecated in the new batch processing flow. Fair Fight data is saved automatically per batch.", true);
-            console.warn("Manual 'Save to Firebase' button clicked, but it's deprecated for this tool.");
-            if (saveToFirebaseBtn) saveToFirebaseBtn.disabled = false; // Ensure it's re-enabled if disabled
-        });
+    // --- Helper function for displaying difficulty (copied from fairfight.js) ---
+    function get_difficulty_text(ff) {
+        if (ff <= 1) return "Extremely easy";
+        else if (ff <= 2) return "Easy";
+        else if (ff <= 3.5) return "Moderately difficult";
+        else if (ff <= 4.5) return "Difficult";
+        else return "May be impossible";
     }
 });
