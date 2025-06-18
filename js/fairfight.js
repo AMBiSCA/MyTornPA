@@ -59,17 +59,13 @@ function formatNumber(num) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Get button references (UPDATED IDs to match fairfight.html)
-    const fetchIndividualFFButton = document.getElementById('fetchIndividualFF');
-    const fetchFactionFFButton = document.getElementById('fetchFactionFF');
-    const fetchMyTargetsButton = document.getElementById('fetchMyTargets'); // NEW: Reference to the "Fetch My Targets" button
+    // Get button references
+    const fetchMyTargetsButton = document.getElementById('fetchMyTargets'); // Reference to the "Fetch My Targets" button
     const fairFightApiKeyErrorDiv = document.getElementById('fairFightApiKeyError'); // Renamed for clarity
     const downloadDataBtn = document.getElementById('downloadDataBtn'); // Download button in the modal
 
-    // Initial state: disable buttons
-    if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
-    if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
-    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW: Disable "Fetch My Targets" button initially
+    // Initial state: disable button
+    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // Disable "Fetch My Targets" button initially
 
     // Firebase Auth state listener
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
@@ -83,22 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (userDoc.exists) {
                         const userData = userDoc.data();
                         const tornApiKey = userData.tornApiKey; // Get Torn API key from user profile
-                        const playerId = userData.tornId; // NEW: Get logged-in user's Torn ID from profile
+                        const playerId = userData.tornId; // Get logged-in user's Torn ID from profile
 
 
                         console.log("DEBUG FAIRFIGHT: Value of tornApiKey retrieved from Firestore:", tornApiKey);
                         if (tornApiKey) {
                             if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = ''; // Clear any previous error messages
                             
-                            if (fetchIndividualFFButton) {
-                                fetchIndividualFFButton.disabled = false;
-                                fetchIndividualFFButton.onclick = () => handleIndividualFFCheck(user, tornApiKey);
-                            }
-                            if (fetchFactionFFButton) {
-                                fetchFactionFFButton.disabled = false;
-                                fetchFactionFFButton.onclick = () => handleFactionFFCheck(user, tornApiKey);
-                            }
-                            if (fetchMyTargetsButton) { // NEW: Enable "Fetch My Targets" button if API key and player ID exist
+                            if (fetchMyTargetsButton) { // Enable "Fetch My Targets" button if API key and player ID exist
                                 if (playerId) {
                                     fetchMyTargetsButton.disabled = false;
                                     fetchMyTargetsButton.onclick = () => handleMyTargetsCheck(user, tornApiKey, playerId);
@@ -114,41 +102,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             const message = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid key.';
                             if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
                             showMainError(message);
-                            if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
-                            if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
-                            if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW
+                            if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true;
                         }
                     } else {
                         const message = 'User profile not found in database. Please ensure your profile is set up.';
                         if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
                         showMainError(message);
-                        if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
-                        if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
-                        if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW
+                        if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true;
                     }
                 } catch (error) {
                     console.error("Error fetching Torn API Key/ID from profile on fairfight.js:", error);
                     const message = `Error fetching API Key/ID from profile: ${error.message}. Please try again.`;
                     if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
                     showMainError(message);
-                    if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
-                    if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
-                    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW
+                    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true;
                 }
             } else {
                 // User is signed out
                 console.log("No user is signed in on fairfight.js.");
                 if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = 'Please sign in to use this feature.';
                 
-                if (fetchIndividualFFButton) {
-                    fetchIndividualFFButton.disabled = true;
-                    fetchIndividualFFButton.onclick = () => showMainError('Please sign in to use this feature.');
-                }
-                if (fetchFactionFFButton) {
-                    fetchFactionFFButton.disabled = true;
-                    fetchFactionFFButton.onclick = () => showMainError('Please sign in to use this feature.');
-                }
-                if (fetchMyTargetsButton) { // NEW
+                if (fetchMyTargetsButton) {
                     fetchMyTargetsButton.disabled = true;
                     fetchMyTargetsButton.onclick = () => showMainError('Please sign in to use this feature.');
                 }
@@ -315,253 +289,19 @@ function displayErrorInModal(message) {
 
 // Function to clear all input errors (adapted from battlestats.js)
 function clearAllInputErrors() {
-    const playerIdError = document.getElementById('playerIdError');
-    if(playerIdError) playerIdError.textContent = '';
-    const factionIdError = document.getElementById('factionIdError');
-    if(factionIdError) factionIdError.textContent = '';
-    const individualFFResults = document.getElementById('individualFFResults');
-    if(individualFFResults) individualFFResults.textContent = '';
-    const factionFFResults = document.getElementById('factionFFResults');
-    if(factionFFResults) factionFFResults.textContent = '';
-    // No specific error div for "my targets" as it's triggered by user profile data
+    // Only need to clear 'myTargetsResults' related feedback if you have a specific div for it.
+    // If not, errors will primarily appear in the modal or main page status.
+    // Removed individual and faction specific error clearing.
+    const myTargetsResults = document.getElementById('myTargetsResults');
+    if(myTargetsResults) myTargetsResults.textContent = '';
 }
 
-
-// --- Main Handlers for Fetching Fair Fight Data ---
-
-// Handles individual player FF data check
-async function handleIndividualFFCheck(user, tornApiKey) {
-    clearAllInputErrors();
-    const playerId = document.getElementById('playerId').value.trim();
-    const individualFFResultsDiv = document.getElementById('individualFFResults');
-
-    let isValid = true;
-    if (!playerId || isNaN(playerId)) {
-        document.getElementById('playerIdError').textContent = 'Valid Player ID is required.';
-        isValid = false;
-    }
-    if (!tornApiKey) {
-        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = 'Torn API Key not available. Please sign in or set your key in profile.';
-        showMainError('Torn API Key not available. Please sign in or set your key in profile.');
-        isValid = false;
-    }
-
-    if (!isValid) return;
-    if(individualFFResultsDiv) individualFFResultsDiv.textContent = 'Fetching Fair Fight data...';
-    let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
-
-    try {
-        // Call your Netlify Function, passing necessary parameters
-        const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=player&id=${playerId}&apiKey=${tornApiKey}`;
-        const response = await fetch(functionUrl);
-        const data = await response.json();
-
-        if (!response.ok) { // Check if the function itself returned an error status
-            throw new Error(data.error || `Netlify Function Error: ${response.status}`);
-        }
-        if (data.error) { // Check for custom errors from the function's body
-            throw new Error(data.error);
-        }
-
-        if(individualFFResultsDiv) individualFFResultsDiv.textContent = '';
-
-        const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
-        const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
-        const tableHeader = document.getElementById('modal-results-table-header');
-        const tableBody = document.getElementById('modal-results-table-body');
-
-        if (modalTitle) modalTitle.textContent = 'Individual Fair Fight Report';
-        if (tableHeader) tableHeader.innerHTML = '';
-        if (tableBody) tableBody.innerHTML = '';
-
-        if (!data.fair_fight) { // No Fair Fight data returned for the player
-            if (modalSummary) modalSummary.innerHTML = `Player: <span>${playerId}</span> | Status: <span style="color: #ff4d4d;">No Fair Fight data available.</span>`;
-            displayErrorInModal(`No Fair Fight data for Player ID ${playerId}. It might be unspied or unavailable.`);
-        } else {
-            const ff_score = data.fair_fight;
-            const difficulty = get_difficulty_text(ff_score);
-            const background_colour = get_ff_colour(ff_score);
-            const text_colour = get_contrast_color(background_colour);
-            const last_updated_seconds = data.last_updated; // Unix timestamp in seconds
-            const last_updated_ms = last_updated_seconds * 1000;
-            const now_ms = Date.now();
-            const age_seconds = (now_ms - last_updated_ms) / 1000;
-
-            let fresh = "";
-            if (age_seconds < 24 * 60 * 60) {
-                fresh = ""; // Less than 1 day old, no "age" shown
-            } else if (age_seconds < 31 * 24 * 60 * 60) {
-                var days = Math.round(age_seconds / (24 * 60 * 60));
-                fresh = days === 1 ? "(1 day old)" : `(${days} days old)`;
-            } else if (age_seconds < 365 * 24 * 60 * 60) {
-                var months = Math.round(age_seconds / (31 * 24 * 60 * 60));
-                fresh = months === 1 ? "(1 month old)" : `(${months} months old)`;
-            } else {
-                var years = Math.round(age_seconds / (365 * 24 * 60 * 60));
-                fresh = years === 1 ? "(1 year old)" : `(${years} years old)`;
-            }
-
-            const ff_string = ff_score.toFixed(2);
-            let statDetails = "";
-            if (data.bs_estimate_human) {
-                statDetails = `<span style="font-size: 11px; font-weight: normal; margin-left: 8px; vertical-align: middle; color: #cccccc; font-style: italic;">Est. Stats: <span>${data.bs_estimate_human}</span></span>`;
-            }
-
-            if (modalSummary) {
-                modalSummary.innerHTML = `Player: <span>${data.player_name || 'N/A'} [${playerId}]</span> | 
-                                         FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
-            }
-
-            // Populate table with detailed FF stats
-            const headers = ["Stat", "Value"];
-            const headerRow = document.createElement('tr');
-            headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
-            if (tableHeader) tableHeader.appendChild(headerRow);
-
-            const statsToShow = [
-                { label: "Fair Fight Score", value: ff_string },
-                { label: "Difficulty", value: difficulty },
-                { label: "Last Updated", value: new Date(last_updated_ms).toLocaleString() },
-                { label: "Estimated Battle Stats", value: data.bs_estimate_human || "N/A" },
-            ];
-            statsToShow.forEach(s => { 
-                const tr = document.createElement('tr'); 
-                tr.insertCell().textContent = s.label; 
-                tr.insertCell().textContent = s.value; 
-                if (tableBody) tableBody.appendChild(tr); 
-            });
-        }
-        showResultsModal();
-
-    } catch (error) {
-        console.error("Individual Fair Fight Check Error:", error);
-        if(individualFFResultsDiv) individualFFResultsDiv.textContent = `Error: ${error.message.substring(0,100)}`;
-        displayErrorInModal(`Error fetching individual Fair Fight data: ${error.message}`);
-    } finally {
-        clearTimeout(loadingTimeoutId);
-        hideLoadingSpinner();
-    }
-}
-
-
-// Handles faction-wide FF data check
-async function handleFactionFFCheck(user, tornApiKey) {
-    clearAllInputErrors();
-    const factionId = document.getElementById('factionId').value.trim();
-    const factionFFResultsDiv = document.getElementById('factionFFResults');
-
-    let isValid = true;
-    if (!factionId || isNaN(factionId)) {
-        document.getElementById('factionIdError').textContent = 'Valid Faction ID is required.';
-        isValid = false;
-    }
-    if (!tornApiKey) {
-        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = 'Torn API Key not available. Please sign in or set your key in profile.';
-        showMainError('Torn API Key not available. Please sign in or set your key in profile.');
-        isValid = false;
-    }
-
-    if (!isValid) return;
-    if(factionFFResultsDiv) factionFFResultsDiv.textContent = 'Fetching faction members and Fair Fight data...';
-    let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
-
-    try {
-        // Call your Netlify Function for faction data
-        const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
-        const response = await fetch(functionUrl);
-        const data = await response.json();
-
-        if (!response.ok) { // Check if the function itself returned an error status
-            throw new Error(data.error || `Netlify Function Error: ${response.status}`);
-        }
-        if (data.error) { // Check for custom errors from the function's body
-            throw new Error(data.error);
-        }
-
-        if(factionFFResultsDiv) factionFFResultsDiv.textContent = '';
-
-        const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
-        const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
-        const tableHeader = document.getElementById('modal-results-table-header');
-        const tableBody = document.getElementById('modal-results-table-body');
-
-        if (modalTitle) modalTitle.textContent = `Faction Fair Fight Report: ${data.faction_name || 'N/A'}`;
-        if (tableHeader) tableHeader.innerHTML = '';
-        if (tableBody) tableBody.innerHTML = '';
-
-        if (!data.members || data.members.length === 0) {
-            if (modalSummary) modalSummary.innerHTML = `Faction: <span>${data.faction_name || factionId}</span> | Status: <span style="color: #ff4d4d;">No members found or no Fair Fight data available for them.</span>`;
-            displayErrorInModal(`No Fair Fight data for Faction ID ${factionId}. It might be empty or members are unspied.`);
-        } else {
-            if (modalSummary) {
-                modalSummary.innerHTML = `Faction: <span>${data.faction_name || factionId}</span> | 
-                                         Total Members: <span>${data.members.length}</span> | 
-                                         Fair Fight data for members below.`;
-            }
-
-            const headers = ["Name", "ID", "Fair Fight", "Difficulty", "Est. Stats", "Last Updated"];
-            const headerRow = document.createElement('tr');
-            headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
-            if (tableHeader) tableHeader.appendChild(headerRow);
-
-            data.members.forEach(member => {
-                const tr = document.createElement('tr');
-                tr.insertCell().textContent = member.name || member.id;
-                tr.insertCell().textContent = member.id;
-
-                if (member.ff_data && member.ff_data.fair_fight) {
-                    const ff_score = member.ff_data.fair_fight;
-                    const ff_string = ff_score.toFixed(2);
-                    const difficulty = get_difficulty_text(ff_score);
-                    const background_colour = get_ff_colour(ff_score);
-                    const text_colour = get_contrast_color(background_colour);
-                    const last_updated_ms = member.ff_data.last_updated * 1000;
-                    const age_seconds = (Date.now() - last_updated_ms) / 1000;
-
-                    let fresh = "";
-                    if (age_seconds < 24 * 60 * 60) { fresh = ""; } // Less than 1 day old
-                    else if (age_seconds < 31 * 24 * 60 * 60) { var days = Math.round(age_seconds / (24 * 60 * 60)); fresh = days === 1 ? "(1 day old)" : `(${days} days old)`; }
-                    else if (age_seconds < 365 * 24 * 60 * 60) { var months = Math.round(age_seconds / (31 * 24 * 60 * 60)); fresh = months === 1 ? "(1 month old)" : `(${months} months old)`; }
-                    else { var years = Math.round(age_seconds / (365 * 24 * 60 * 60)); fresh = years === 1 ? "(1 year old)" : `(${years} years old)`; }
-
-                    const ffCell = tr.insertCell();
-                    ffCell.style.backgroundColor = background_colour;
-                    ffCell.style.color = text_colour;
-                    ffCell.style.fontWeight = 'bold';
-                    ffCell.textContent = `${ff_string} ${fresh}`;
-                    
-                    tr.insertCell().textContent = difficulty;
-                    tr.insertCell().textContent = member.ff_data.bs_estimate_human || "N/A";
-                    tr.insertCell().textContent = new Date(last_updated_ms).toLocaleString();
-                } else {
-                    const noDataCell = tr.insertCell();
-                    noDataCell.textContent = member.ff_data?.message || "No FF data";
-                    noDataCell.colSpan = headers.length - 2; // Span across remaining columns
-                    noDataCell.style.color = "#aaa";
-                    noDataCell.style.fontStyle = "italic";
-                }
-                if (tableBody) tableBody.appendChild(tr);
-            });
-        }
-        showResultsModal();
-
-    } catch (error) {
-        console.error("Faction Fair Fight Check Error:", error);
-        if(factionFFResultsDiv) factionFFResultsDiv.textContent = `Error: ${error.message.substring(0,100)}`;
-        displayErrorInModal(`Error fetching faction Fair Fight data: ${error.message}`);
-    } finally {
-        clearTimeout(loadingTimeoutId);
-        hideLoadingSpinner();
-    }
-}
 
 // NEW: Handles fetching recommended targets for the logged-in user
 async function handleMyTargetsCheck(user, tornApiKey, playerId) {
-    clearAllInputErrors(); // Clear existing errors for individual/faction inputs
+    clearAllInputErrors(); // Clear existing errors
     const myTargetsResultsDiv = document.getElementById('myTargetsResults') || document.createElement('div'); // Create if not exists, though it should in HTML
     myTargetsResultsDiv.id = 'myTargetsResults'; // Ensure it has an ID
-    // You might want a dedicated display area for "My Targets" results or use the modal directly
-    // For now, we'll direct feedback to the modal
     
     let isValid = true;
     if (!tornApiKey) {
