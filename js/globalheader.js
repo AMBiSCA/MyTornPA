@@ -8,33 +8,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutButtonHeader = document.getElementById('logoutButtonHeader');
     const usefulLinksBtn = document.getElementById('usefulLinksBtn');
     const usefulLinksDropdown = document.getElementById('usefulLinksDropdown'); // Actual content div
-    // CORRECTED: Changed ID from 'headerContactUsBtn' to 'contactUsBtn' to match HTML
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown'); // Actual content div
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
     const loggedInUserDisplay = document.getElementById('loggedInUserDisplay'); // Assuming this ID from HTML
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
+    const headerLogoLink = document.getElementById('headerLogoLink'); // NEW: Get reference to the logo link
 
     // --- Initial display of elements ---
-    // Setting display properties with !important to force initial hide against any default CSS.
-    // This is crucial for *buttons* which are conditionally visible.
     if (headerButtonsContainer) headerButtonsContainer.style.setProperty('display', 'none', 'important');
     if (signUpButtonHeader) signUpButtonHeader.style.setProperty('display', 'none', 'important');
-    if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important');
+    if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important'); // Initially hide
     if (logoutButtonHeader) logoutButtonHeader.style.setProperty('display', 'none', 'important');
     if (tornCityHomepageLink) tornCityHomepageLink.style.setProperty('display', 'none', 'important');
     if (loggedInUserDisplay) loggedInUserDisplay.style.setProperty('display', 'none', 'important');
     if (headerEditProfileBtn) headerEditProfileBtn.style.setProperty('display', 'none', 'important');
 
-    // For dropdown BUTTONS: Explicitly hide them initially. Their visibility is managed by auth state.
     if (usefulLinksBtn) usefulLinksBtn.style.setProperty('display', 'none', 'important');
     if (contactUsBtn) contactUsBtn.style.setProperty('display', 'none', 'important');    
-
-    // For dropdown CONTENT (usefulLinksDropdown, contactUsDropdown):
-    // We DO NOT set inline display:none !important initially here.
-    // We rely on global.css .dropdown-content { display: none; } for initial hide.
-    // This is crucial so that removeProperty('display') can work when the 'show' class is added.
-
 
     // --- Dropdown Logic ---
     function closeOtherDropdowns(currentDropdownElement, currentButtonElement) {
@@ -42,8 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         allDropdownContents.forEach(dropdownContent => {
             if (dropdownContent !== currentDropdownElement) {
                 dropdownContent.classList.remove('show');
-                // IMPORTANT FIX: Remove inline display style to let CSS (display: none;) re-hide it
-                dropdownContent.style.removeProperty('display'); 
+                dropdownContent.style.removeProperty('display');  
                 const associatedButton = dropdownContent.previousElementSibling;
                 if (associatedButton && associatedButton.classList.contains('btn') && associatedButton.classList.contains('active')) {
                     associatedButton.classList.remove('active');
@@ -61,15 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!currentlyOpen) {
                 usefulLinksDropdown.classList.add('show');
                 usefulLinksBtn.classList.add('active');
-                // <<< CRITICAL FIX HERE (Confirmed present in this code) >>>
-                // When showing the dropdown, explicitly remove any inline 'display' property
-                // so that the '.show' class can apply its 'display: block;'.
-                usefulLinksDropdown.style.removeProperty('display'); 
+                usefulLinksDropdown.style.removeProperty('display');  
             } else {
                 usefulLinksDropdown.classList.remove('show');
                 usefulLinksBtn.classList.remove('active');
-                // When hiding, also remove inline 'display' to let global.css default 'display: none;' take over.
-                usefulLinksDropdown.style.removeProperty('display'); 
+                usefulLinksDropdown.style.removeProperty('display');  
             }
         });
     }
@@ -83,14 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!currentlyOpen) {
                 contactUsDropdown.classList.add('show');
                 contactUsBtn.classList.add('active');
-                // <<< CRITICAL FIX HERE (Confirmed present in this code) >>>
-                // When showing the dropdown, explicitly remove any inline 'display' property
-                // so that the '.show' class can apply its 'display: block;'.
-                contactUsDropdown.style.removeProperty('display'); 
+                contactUsDropdown.style.removeProperty('display');  
             } else {
                 contactUsDropdown.classList.remove('show');
                 contactUsBtn.classList.remove('active');
-                contactUsDropdown.style.removeProperty('display'); 
+                contactUsDropdown.style.removeProperty('display');  
             }
         });
     }
@@ -101,26 +84,26 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
                 usefulLinksDropdown.classList.remove('show');
                 usefulLinksBtn.classList.remove('active');
-                usefulLinksDropdown.style.removeProperty('display'); 
+                usefulLinksDropdown.style.removeProperty('display');  
             }
         }
         if (contactUsDropdown && contactUsDropdown.classList.contains('show')) {
             if (!contactUsBtn.contains(event.target) && !contactUsDropdown.contains(event.target)) {
                 contactUsDropdown.classList.remove('show');
                 contactUsBtn.classList.remove('active');
-                contactUsDropdown.style.removeProperty('display'); 
+                contactUsDropdown.style.removeProperty('display');  
             }
         }
     });
 
-    // --- Firebase Auth state listener (Controls header button visibility) ---
+    // --- Firebase Auth state listener (Controls header button visibility and NAVIGATION) ---
     if (typeof auth !== 'undefined') {
         auth.onAuthStateChanged(function(user) {
             console.log("globalheader.js: Auth state changed. User:", user);
 
             const currentPagePath = window.location.pathname;
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
-            const publicLandingPages = ['index.html', '']; 
+            const publicLandingPages = ['index.html', ''];  
             const isSignUpPage = (pageName === 'signup.html');
             const isHomePage = (pageName === 'home.html' || pageName === ''); 
 
@@ -148,28 +131,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (contactUsBtn) contactUsBtn.style.setProperty('display', 'inline-flex', 'important');
 
                 // Home button logic (in header): hide if current page is the conceptual "home" or "dashboard"
+                // Add dashboard.html to the condition for hiding the Home button
                 if (homeButtonHeader) {
-                    if (isHomePage || pageName === 'social.html') { 
+                    if (isHomePage || pageName === 'social.html' || pageName === 'dashboard.html') { 
                         homeButtonHeader.style.setProperty('display', 'none', 'important');
                     } else {
                         homeButtonHeader.style.setProperty('display', 'inline-flex', 'important'); 
+                        // NEW: Attach click listener for Home button (using a named function to allow removal)
+                        homeButtonHeader.removeEventListener('click', homeNavHandler); 
+                        homeButtonHeader.addEventListener('click', homeNavHandler);
                     }
+                }
+
+                // NEW: Attach click listener for Header Logo link (using a named function)
+                if (headerLogoLink) {
+                    headerLogoLink.removeEventListener('click', logoNavHandler); 
+                    headerLogoLink.addEventListener('click', logoNavHandler);
                 }
 
                 // --- ADDED LOGOUT FUNCTIONALITY ---
                 if (logoutButtonHeader) {
-                    logoutButtonHeader.addEventListener('click', function() {
-                        auth.signOut().then(() => {
-                            // Sign-out successful.
-                            console.log("User signed out successfully.");
-                            // Redirect to the index/login page after logout
-                            window.location.href = '../index.html';
-                        }).catch((error) => {
-                            // An error happened.
-                            console.error("Error signing out:", error);
-                            alert("Failed to log out. Please try again.");
-                        });
-                    });
+                    logoutButtonHeader.removeEventListener('click', logoutHandler); 
+                    logoutButtonHeader.addEventListener('click', logoutHandler);
                 }
 
             } else {
@@ -209,4 +192,30 @@ document.addEventListener('DOMContentLoaded', function() {
         if (contactUsBtn) contactUsBtn.style.setProperty('display', 'none', 'important');
     }
     console.log("globalheader.js: End of script.");
+
+    // --- NEW: Centralized Navigation Handlers (Defined outside auth state for reusability) ---
+    function homeNavHandler() {
+        console.log("Navigating to home.html via Home button.");
+        // Adjust path based on where globalheader.js is relative to home.html
+        // If globalheader.js is in mysite/js/ and home.html is in mysite/, then ../home.html
+        window.location.href = '../home.html'; 
+    }
+
+    function logoNavHandler() {
+        console.log("Navigating to home.html via Logo link.");
+        // Adjust path as needed, typically logo goes to main index or home.
+        // Assuming '../home.html' for consistency with the home button.
+        window.location.href = '../home.html'; 
+    }
+
+    function logoutHandler() {
+        auth.signOut().then(() => {
+            console.log("User signed out successfully.");
+            // Redirect to the index/login page after logout
+            window.location.href = '../index.html'; 
+        }).catch((error) => {
+            console.error("Error signing out:", error);
+            alert("Failed to log out. Please try again.");
+        });
+    }
 });
