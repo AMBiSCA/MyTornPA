@@ -59,15 +59,27 @@ exports.handler = async function(event, context) {
         potentialTargets.sort((a, b) => b.fairFightScore - a.fairFightScore);
         console.log(`Sorted ${potentialTargets.length} targets by Fair Fight score.`);
 
-        // 3. Select a slightly less strong set of targets
-        // Take up to 10 targets initially (to ensure we have enough for slicing)
-        const topNTargets = potentialTargets.slice(0, 10); // Get the top 10 strongest
-        
-        // Now select 6 targets, starting from the 3rd one (index 2)
-        // This skips the absolute strongest and aims for slightly easier ones
-        const selectedTargets = topNTargets.slice(2, 8); // Picks elements from index 2 up to (but not including) 8
+        // 3. Dynamic slicing to get slightly less strong targets
+        const targetsToSelect = 6;
+        let startIndex = 0; // Default to start from the beginning
 
-        console.log(`Selected top ${selectedTargets.length} targets.`);
+        // If there are enough targets, skip the absolute strongest ones
+        if (potentialTargets.length > targetsToSelect) {
+            // This logic attempts to find a good starting point.
+            // It tries to skip 25% of the initial pool, but at least 2 and at most 5,
+            // while ensuring we still have enough targets to select 'targetsToSelect' amount.
+            let skipCount = Math.floor(potentialTargets.length * 0.25);
+            if (skipCount < 2 && potentialTargets.length > 2) skipCount = 2; // Always skip at least 2 if possible
+            if (skipCount > 5) skipCount = 5; // Don't skip too many, max 5
+
+            startIndex = Math.min(skipCount, potentialTargets.length - targetsToSelect);
+            if (startIndex < 0) startIndex = 0; // Ensure startIndex isn't negative
+        }
+        const endIndex = startIndex + targetsToSelect;
+
+        const selectedTargets = potentialTargets.slice(startIndex, endIndex);
+
+        console.log(`Selected ${selectedTargets.length} targets from index ${startIndex} to ${endIndex-1}.`);
 
         if (selectedTargets.length === 0) {
             return { statusCode: 200, body: JSON.stringify({ message: "No suitable targets found to recommend after sorting and filtering for optimal difficulty." }) };
