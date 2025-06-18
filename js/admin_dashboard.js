@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
-    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
+    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn'); // This will be null, but we'll handle it
     const factionIdInput = document.getElementById('factionIdInput');
     const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
@@ -92,7 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateStatus(`Fetching data for Faction ID ${factionId}...`);
             fetchFactionDataBtn.disabled = true;
-            refreshDatabaseFactionsBtn.disabled = true;
+            // The refresh button doesn't exist in your HTML, so we check if it exists before disabling
+            if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
 
             try {
                 // Step 1: Call our existing Netlify function to get all member data
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data.members || data.members.length === 0) {
                     updateStatus(`No members found for Faction ID ${factionId}.`, true);
                     fetchFactionDataBtn.disabled = false;
-                    refreshDatabaseFactionsBtn.disabled = false;
+                    if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
                     return;
                 }
                 
@@ -129,18 +130,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             playerName: member.name,
                             factionID: parseInt(factionId),
                             factionName: factionName,
-                            level: member.ff_data.level, // We will add this to the function output
+                            level: member.ff_data.level,
                             fairFightScore: member.ff_data.fair_fight,
                             difficulty: get_difficulty_text(member.ff_data.fair_fight),
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Use server time
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                         };
                         
-                        batch.set(targetRef, dataToSave, { merge: true }); // Use set with merge to create or update
+                        batch.set(targetRef, dataToSave, { merge: true });
                         successfulSaves++;
                     }
                 }
 
-                await batch.commit(); // Commit all the saves at once
+                await batch.commit();
                 updateStatus(`Save complete. Successfully saved ${successfulSaves} targets to the database.`, false);
 
             } catch (error) {
@@ -149,7 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMainError(error.message);
             } finally {
                 fetchFactionDataBtn.disabled = false;
-                refreshDatabaseFactionsBtn.disabled = false;
+                // The refresh button doesn't exist in your HTML, so we check if it exists before enabling
+                if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
             }
         });
     }
@@ -158,9 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refreshDatabaseFactionsBtn) {
         refreshDatabaseFactionsBtn.addEventListener('click', () => {
             updateStatus("Refresh All functionality has not been implemented yet.", true);
-            // We can add the logic here later to fetch all unique factionIDs 
-            // from the 'factionTargets' collection and then loop through them,
-            // calling the fetch & save process for each one.
         });
     }
 
