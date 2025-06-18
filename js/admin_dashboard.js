@@ -1,9 +1,9 @@
-// mysite/js/admin_dashboard.js - FINAL PRODUCTION VERSION + BATTLESTATS
+// mysite/js/admin_dashboard.js - FINAL VERSION with Manual Refresh Trigger
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
     const fetchFactionDataBtn = document.getElementById('fetchFactionDataBtn');
-    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn'); // Assumed to exist, handled if not
+    const refreshDatabaseFactionsBtn = document.getElementById('refreshDatabaseFactionsBtn');
     const factionIdInput = document.getElementById('factionIdInput');
     const factionIdError = document.getElementById('factionIdError');
     const updatesBox = document.getElementById('updatesBox');
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const userDoc = await userDocRef.get();
                     if (userDoc.exists && userDoc.data().tornApiKey) {
                         tornApiKey = userDoc.data().tornApiKey;
-                        updateStatus("Authentication successful. Ready to fetch data.", false);
+                        updateStatus("Authentication successful. Ready.", false);
                     } else {
                         showMainError("Admin user profile not found or Torn API Key is missing.");
                         updateStatus("Could not find your API key in your profile.", true);
@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
 
             try {
-                // Step 1: Call your working Netlify function
                 const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
                 const response = await fetch(functionUrl);
                 const data = await response.json();
@@ -109,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                // Step 2: If successful, automatically save to Firestore
                 const members = data.members;
                 const factionName = data.faction_name;
                 updateStatus(`Found ${members.length} members for ${factionName}. Now saving to database...`);
@@ -119,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let successfulSaves = 0;
 
                 for (const member of members) {
-                    // Check for valid data returned from ffscouter
                     if (member.ff_data && member.ff_data.fair_fight) {
                         const targetRef = db.collection('factionTargets').doc(member.id.toString());
                         
@@ -129,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             factionID: parseInt(factionId),
                             factionName: factionName,
                             fairFightScore: member.ff_data.fair_fight,
-                            estimatedBattleStats: member.ff_data.bs_estimate_human || "N/A", // <-- ADDED THIS LINE
+                            estimatedBattleStats: member.ff_data.bs_estimate_human || "N/A",
                             difficulty: get_difficulty_text(member.ff_data.fair_fight),
                             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                         };
@@ -153,10 +150,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- REFRESH ALL DATABASE FACTIONS (Placeholder) ---
+    // --- MANUAL REFRESH TRIGGER ---
+    if (factionIdInput) {
+        factionIdInput.addEventListener('keyup', async (event) => {
+            if (event.key === 'Enter' && factionIdInput.value.toLowerCase() === 'refresh') {
+                event.preventDefault(); // Stop form submission
+                clearStatus();
+                updateStatus("Manual refresh trigger detected. Starting process...");
+                factionIdInput.disabled = true;
+                fetchFactionDataBtn.disabled = true;
+                if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = true;
+                
+                try {
+                    // Call the new function to trigger a run. Using POST is conventional for triggering actions.
+                    const response = await fetch('/.netlify/functions/refresh-all-targets', { method: 'POST' });
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || `Refresh function failed with status ${response.status}`);
+                    }
+                    const result = await response.text();
+                    updateStatus(`Manual refresh completed! Server response: ${result}`);
+                } catch (error) {
+                    updateStatus(`Manual refresh failed: ${error.message}`, true);
+                } finally {
+                    factionIdInput.disabled = false;
+                    fetchFactionDataBtn.disabled = false;
+                    if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
+                    factionIdInput.value = ''; // Clear the input
+                }
+            }
+        });
+    }
+
+    // --- REFRESH ALL DATABASE FACTIONS (Placeholder for button, now handled by manual trigger) ---
     if (refreshDatabaseFactionsBtn) {
         refreshDatabaseFactionsBtn.addEventListener('click', () => {
-            updateStatus("Refresh All functionality has not been implemented yet.", true);
+            updateStatus("This button is not active. Type 'refresh' in the box above and hit Enter to start a manual refresh.", true);
         });
     }
 
