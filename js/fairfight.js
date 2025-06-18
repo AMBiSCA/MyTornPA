@@ -3,7 +3,7 @@
 // Constants specific to Fair Fight display (copied from original UserScript, adapted)
 const FF_VERSION = "MyTornPA-FF-1.0"; // Custom version for your website
 // Assuming these images are in mysite/images/
-const BLUE_ARROW = "../images/blue-arrow.svg"; 
+const BLUE_ARROW = "../images/blue-arrow.svg";
 const GREEN_ARROW = "../images/green-arrow.svg";
 const RED_ARROW = "../images/red-arrow.svg";
 
@@ -62,12 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get button references (UPDATED IDs to match fairfight.html)
     const fetchIndividualFFButton = document.getElementById('fetchIndividualFF');
     const fetchFactionFFButton = document.getElementById('fetchFactionFF');
+    const fetchMyTargetsButton = document.getElementById('fetchMyTargets'); // NEW: Reference to the "Fetch My Targets" button
     const fairFightApiKeyErrorDiv = document.getElementById('fairFightApiKeyError'); // Renamed for clarity
     const downloadDataBtn = document.getElementById('downloadDataBtn'); // Download button in the modal
 
     // Initial state: disable buttons
     if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
     if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
+    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW: Disable "Fetch My Targets" button initially
 
     // Firebase Auth state listener
     if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
@@ -81,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (userDoc.exists) {
                         const userData = userDoc.data();
                         const tornApiKey = userData.tornApiKey; // Get Torn API key from user profile
+                        const playerId = userData.tornId; // NEW: Get logged-in user's Torn ID from profile
+
 
                         console.log("DEBUG FAIRFIGHT: Value of tornApiKey retrieved from Firestore:", tornApiKey);
                         if (tornApiKey) {
@@ -94,12 +98,25 @@ document.addEventListener('DOMContentLoaded', () => {
                                 fetchFactionFFButton.disabled = false;
                                 fetchFactionFFButton.onclick = () => handleFactionFFCheck(user, tornApiKey);
                             }
+                            if (fetchMyTargetsButton) { // NEW: Enable "Fetch My Targets" button if API key and player ID exist
+                                if (playerId) {
+                                    fetchMyTargetsButton.disabled = false;
+                                    fetchMyTargetsButton.onclick = () => handleMyTargetsCheck(user, tornApiKey, playerId);
+                                } else {
+                                    const message = 'Your Torn Player ID is not set in your profile. Cannot fetch recommended targets.';
+                                    if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
+                                    showMainError(message);
+                                    fetchMyTargetsButton.disabled = true;
+                                }
+                            }
+
                         } else {
                             const message = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid key.';
                             if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
                             showMainError(message);
                             if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
                             if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
+                            if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW
                         }
                     } else {
                         const message = 'User profile not found in database. Please ensure your profile is set up.';
@@ -107,14 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         showMainError(message);
                         if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
                         if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
+                        if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW
                     }
                 } catch (error) {
-                    console.error("Error fetching Torn API Key from profile on fairfight.js:", error);
-                    const message = `Error fetching API Key from profile: ${error.message}. Please try again.`;
+                    console.error("Error fetching Torn API Key/ID from profile on fairfight.js:", error);
+                    const message = `Error fetching API Key/ID from profile: ${error.message}. Please try again.`;
                     if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
                     showMainError(message);
                     if (fetchIndividualFFButton) fetchIndividualFFButton.disabled = true;
                     if (fetchFactionFFButton) fetchFactionFFButton.disabled = true;
+                    if (fetchMyTargetsButton) fetchMyTargetsButton.disabled = true; // NEW
                 }
             } else {
                 // User is signed out
@@ -129,6 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     fetchFactionFFButton.disabled = true;
                     fetchFactionFFButton.onclick = () => showMainError('Please sign in to use this feature.');
                 }
+                if (fetchMyTargetsButton) { // NEW
+                    fetchMyTargetsButton.disabled = true;
+                    fetchMyTargetsButton.onclick = () => showMainError('Please sign in to use this feature.');
+                }
             }
         });
     } else {
@@ -142,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (downloadDataBtn) {
         downloadDataBtn.addEventListener('click', () => {
             const modalContent = document.querySelector('.modal-content'); // The full modal content area
-            const tableContainer = document.querySelector('.modal-table-container'); 
+            const tableContainer = document.querySelector('.modal-table-container');
             const modalTableBody = document.getElementById('modal-results-table-body'); // The actual table body with rows
 
             if (!modalContent || !tableContainer || !modalTableBody) {
@@ -158,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalScrollTop = tableContainer.scrollTop; // Save current scroll position
 
             // Apply temporary styles to capture full content
-            modalContent.style.maxHeight = 'fit-content'; 
-            tableContainer.style.maxHeight = 'fit-content'; 
-            tableContainer.style.overflowY = 'visible'; 
+            modalContent.style.maxHeight = 'fit-content';
+            tableContainer.style.maxHeight = 'fit-content';
+            tableContainer.style.overflowY = 'visible';
             tableContainer.scrollTop = 0; // Scroll to the top to ensure the beginning of the table is captured
 
             // Adding a small delay to allow reflow and repaint before capturing
@@ -172,17 +195,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     allowTaint: true, // Allow images/backgrounds from same origin that might be "tainted" by canvas
                 }).then(function(canvas) {
                     const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png'); 
+                    link.href = canvas.toDataURL('image/png');
                     
                     // Determine filename based on modal title if possible
                     const modalTitleEl = document.querySelector('#resultsModalOverlay .modal-title');
                     const baseFileName = modalTitleEl ? modalTitleEl.textContent.replace(/[^a-zA-Z0-9]/g, '_') : 'Fair_Fight_Data';
-                    link.download = `${baseFileName}.png`; 
+                    link.download = `${baseFileName}.png`;
                     
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    console.log('Image download initiated.'); 
+                    console.log('Image download initiated.');
 
                     // Restore original styles immediately after capture
                     modalContent.style.maxHeight = originalModalContentMaxHeight;
@@ -268,7 +291,7 @@ function closeResultsModal() {
     if(tableHeader) tableHeader.innerHTML = '';
     if(tableBody) tableBody.innerHTML = '';
     if(modalTitle) modalTitle.textContent = 'Fair Fight Report'; // Default title for this modal
-    if(modalSummary) modalSummary.innerHTML = ''; 
+    if(modalSummary) modalSummary.innerHTML = '';
 }
 
 // *** NEW FUNCTION ADDED HERE ***
@@ -280,7 +303,7 @@ function displayErrorInModal(message) {
 
     if (modalTitle) modalTitle.textContent = 'An Error Occurred';
     if (tableHeader) tableHeader.innerHTML = ''; // Clear table header
-    if (tableBody) tableBody.innerHTML = '';   // Clear table body
+    if (tableBody) tableBody.innerHTML = '';    // Clear table body
 
     // Display the error message in the summary area
     if (modalSummary) {
@@ -300,6 +323,7 @@ function clearAllInputErrors() {
     if(individualFFResults) individualFFResults.textContent = '';
     const factionFFResults = document.getElementById('factionFFResults');
     if(factionFFResults) factionFFResults.textContent = '';
+    // No specific error div for "my targets" as it's triggered by user profile data
 }
 
 
@@ -385,7 +409,7 @@ async function handleIndividualFFCheck(user, tornApiKey) {
 
             if (modalSummary) {
                 modalSummary.innerHTML = `Player: <span>${data.player_name || 'N/A'} [${playerId}]</span> | 
-                                        FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
+                                         FairFight: <span style="background: ${background_colour}; color: ${text_colour}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
             }
 
             // Populate table with detailed FF stats
@@ -471,8 +495,8 @@ async function handleFactionFFCheck(user, tornApiKey) {
         } else {
             if (modalSummary) {
                 modalSummary.innerHTML = `Faction: <span>${data.faction_name || factionId}</span> | 
-                                        Total Members: <span>${data.members.length}</span> | 
-                                        Fair Fight data for members below.`;
+                                         Total Members: <span>${data.members.length}</span> | 
+                                         Fair Fight data for members below.`;
             }
 
             const headers = ["Name", "ID", "Fair Fight", "Difficulty", "Est. Stats", "Last Updated"];
@@ -525,6 +549,120 @@ async function handleFactionFFCheck(user, tornApiKey) {
         console.error("Faction Fair Fight Check Error:", error);
         if(factionFFResultsDiv) factionFFResultsDiv.textContent = `Error: ${error.message.substring(0,100)}`;
         displayErrorInModal(`Error fetching faction Fair Fight data: ${error.message}`);
+    } finally {
+        clearTimeout(loadingTimeoutId);
+        hideLoadingSpinner();
+    }
+}
+
+// NEW: Handles fetching recommended targets for the logged-in user
+async function handleMyTargetsCheck(user, tornApiKey, playerId) {
+    clearAllInputErrors(); // Clear existing errors for individual/faction inputs
+    const myTargetsResultsDiv = document.getElementById('myTargetsResults') || document.createElement('div'); // Create if not exists, though it should in HTML
+    myTargetsResultsDiv.id = 'myTargetsResults'; // Ensure it has an ID
+    // You might want a dedicated display area for "My Targets" results or use the modal directly
+    // For now, we'll direct feedback to the modal
+    
+    let isValid = true;
+    if (!tornApiKey) {
+        const message = 'Torn API Key not available. Please sign in or set your key in profile.';
+        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
+        showMainError(message);
+        isValid = false;
+    }
+    if (!playerId) {
+        const message = 'Your Torn Player ID is not set in your profile. Cannot fetch recommended targets.';
+        if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = message;
+        showMainError(message);
+        isValid = false;
+    }
+
+    if (!isValid) return;
+
+    // Provide initial feedback on the main page before opening modal
+    if(myTargetsResultsDiv) myTargetsResultsDiv.textContent = 'Fetching recommended targets...';
+    let loadingTimeoutId = setTimeout(() => { showLoadingSpinner(); }, 1000);
+
+    try {
+        // Call your Netlify Function for recommended targets using POST
+        const functionUrl = `/.netlify/functions/get-recommended-targets`;
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ apiKey: tornApiKey, playerId: playerId }) // Pass player ID if needed by your function
+        });
+        const data = await response.json();
+
+        if (!response.ok) { // Check if the function itself returned an error status
+            throw new Error(data.error || `Netlify Function Error: ${response.status}`);
+        }
+        if (data.error) { // Check for custom errors from the function's body
+            throw new Error(data.error);
+        }
+
+        if(myTargetsResultsDiv) myTargetsResultsDiv.textContent = ''; // Clear initial message
+
+        const modalTitle = document.querySelector('#resultsModalOverlay .modal-title');
+        const modalSummary = document.querySelector('#resultsModalOverlay .modal-summary');
+        const tableHeader = document.getElementById('modal-results-table-header');
+        const tableBody = document.getElementById('modal-results-table-body');
+
+        if (modalTitle) modalTitle.textContent = 'Recommended Targets';
+        if (tableHeader) tableHeader.innerHTML = '';
+        if (tableBody) tableBody.innerHTML = '';
+
+        if (!data.targets || data.targets.length === 0) {
+            if (modalSummary) modalSummary.innerHTML = `Player: <span>${playerId}</span> | Status: <span style="color: #ff4d4d;">${data.message || 'No recommended targets found.'}</span>`;
+            displayErrorInModal(data.message || `No recommended targets found for player ID ${playerId}.`);
+        } else {
+            if (modalSummary) {
+                modalSummary.innerHTML = `Player: <span>${data.playerName || 'You'} [${playerId}]</span> | 
+                                         Found <span>${data.targets.length}</span> Recommended Targets.`;
+            }
+
+            const headers = ["Name", "ID", "Fair Fight", "Difficulty", "Est. Stats", "Status", "Attack Link"];
+            const headerRow = document.createElement('tr');
+            headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
+            if (tableHeader) tableHeader.appendChild(headerRow);
+
+            data.targets.forEach(target => {
+                const tr = document.createElement('tr');
+                tr.insertCell().textContent = target.playerName || target.playerID;
+                tr.insertCell().textContent = target.playerID;
+
+                const ffCell = tr.insertCell();
+                ffCell.style.backgroundColor = get_ff_colour(parseFloat(target.fairFightScore));
+                ffCell.style.color = get_contrast_color(get_ff_colour(parseFloat(target.fairFightScore)));
+                ffCell.style.fontWeight = 'bold';
+                ffCell.textContent = target.fairFightScore;
+                
+                tr.insertCell().textContent = target.difficulty;
+                tr.insertCell().textContent = target.estimatedBattleStats || "N/A";
+
+                const statusCell = tr.insertCell();
+                statusCell.textContent = target.status.text;
+                statusCell.style.color = target.status.color;
+                statusCell.style.fontWeight = 'bold';
+
+                const attackLinkCell = tr.insertCell();
+                const attackLink = document.createElement('a');
+                attackLink.href = target.attackUrl;
+                attackLink.textContent = 'Attack';
+                attackLink.target = '_blank'; // Open in new tab
+                attackLinkCell.appendChild(attackLink);
+
+                if (tableBody) tableBody.appendChild(tr);
+            });
+        }
+        showResultsModal();
+
+    } catch (error) {
+        console.error("Recommended Targets Check Error:", error);
+        // Display error in the main results div and then in the modal
+        if(myTargetsResultsDiv) myTargetsResultsDiv.textContent = `Error: ${error.message.substring(0,100)}`;
+        displayErrorInModal(`Error fetching recommended targets: ${error.message}`);
     } finally {
         clearTimeout(loadingTimeoutId);
         hideLoadingSpinner();
