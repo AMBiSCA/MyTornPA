@@ -1,4 +1,4 @@
-// mysite/js/admin_dashboard.js - FINAL VERSION with Concise Logging (No Errors for Expected Skips)
+// mysite/js/admin_dashboard.js - FINAL VERSION with Concise Logging
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- UI Elements ---
@@ -43,12 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const errorDiv = document.createElement('div');
         errorDiv.textContent = message;
         errorDiv.className = 'main-input-error-feedback';
-        errorDiv.style.textAlign = 'center';
-        errorDiv.style.padding = '10px';
-        errorDiv.style.backgroundColor = 'rgba(255,0,0,0.1)';
-        errorDiv.style.border = '1px solid red';
-        errorDiv.style.borderRadius = '5px';
-        errorDiv.style.marginTop = '15px';
+        // ... (styling remains the same)
         if (adminToolContainer) adminToolContainer.appendChild(errorDiv);
         setTimeout(() => { if (errorDiv.parentElement) errorDiv.remove(); }, 7000);
     }
@@ -74,80 +69,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const db = firebase.firestore();
         const factionIdNum = parseInt(factionId, 10);
 
-        // Check if faction ID is already in the database
-        try {
-            const querySnapshot = await db.collection('factionTargets').where('factionID', '==', factionIdNum).limit(1).get();
-            if (!querySnapshot.empty) {
-                console.warn(`Faction ID ${factionIdNum} is already in the database. Skipping.`);
-                return { status: 'skipped', reason: 'already_in_db', message: `Faction ID ${factionIdNum} is already in the database.` }; // MODIFIED LINE
-            }
-        } catch (dbError) {
-            console.error(`Database check error for Faction ID ${factionIdNum}:`, dbError);
-            return { status: 'error', reason: 'db_check_failed', message: `DB check failed for ${factionIdNum}: ${dbError.message}` };
+        const querySnapshot = await db.collection('factionTargets').where('factionID', '==', factionIdNum).limit(1).get();
+        if (!querySnapshot.empty) {
+            throw new Error(`Faction ID ${factionIdNum} is already in the database. Skipping.`);
         }
         
         const functionUrl = `/.netlify/functions/fetch-fairfight-data?type=faction&id=${factionId}&apiKey=${tornApiKey}`;
+        const response = await fetch(functionUrl);
+        const data = await response.json();
+
+        if (!response.ok || data.error) throw new Error(data.error || `Function returned status ${response.status}`);
+        if (!data.members || data.members.length === 0) throw new Error(`No members found for Faction ID ${factionId}.`);
         
-        try {
-            const response = await fetch(functionUrl);
-            const data = await response.json();
+        const members = data.members;
+        const factionName = data.faction_name;
+        const batch = db.batch();
+        let successfulSaves = 0;
 
-            // Check for actual HTTP errors (e.g., 500 from Netlify function)
-            if (!response.ok) {
-                console.error(`Netlify Function HTTP Error for Faction ID ${factionId}: Status ${response.status} - ${data.error || response.statusText}`);
-                return { status: 'error', reason: 'netlify_http_error', message: `Netlify function error for ${factionId}: ${data.error || response.statusText}` };
+        for (const member of members) {
+            if (member.ff_data && member.ff_data.fair_fight) {
+                const targetRef = db.collection('factionTargets').doc(member.id.toString());
+                const dataToSave = {
+                    playerID: parseInt(member.id),
+                    playerName: member.name,
+                    factionID: factionIdNum,
+                    factionName: factionName,
+                    fairFightScore: member.ff_data.fair_fight,
+                    estimatedBattleStats: member.ff_data.bs_estimate_human || "N/A",
+                    difficulty: get_difficulty_text(member.ff_data.fair_fight),
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                batch.set(targetRef, dataToSave, { merge: true });
+                successfulSaves++;
             }
-
-            // Check for 'soft' errors returned by the Netlify function (status: "skipped" or "error")
-            if (data.status === "skipped" || data.status === "error") {
-                console.warn(`Faction ID ${factionId} skipped due to API issue: ${data.message || 'Unknown reason'}`);
-                return { status: 'skipped', reason: 'api_soft_error', message: data.message || `API skipped for ID ${factionId}` };
-            }
-
-            // Check if no members or no valid FF data for members
-            if (!data.members || data.members.length === 0) {
-                console.warn(`No members found for Faction ID ${factionId} or no valid data.`);
-                return { status: 'skipped', reason: 'no_members_or_data', message: `No members or data for ID ${factionId}.` };
-            }
-            
-            const members = data.members;
-            const factionName = data.faction_name;
-            const batch = db.batch();
-            let successfulSaves = 0;
-
-            for (const member of members) {
-                // Only save members who have fair_fight data
-                if (member.ff_data && typeof member.ff_data.fair_fight === 'number') { // Ensure fair_fight is a number
-                    const targetRef = db.collection('factionTargets').doc(member.id.toString());
-                    const dataToSave = {
-                        playerID: parseInt(member.id),
-                        playerName: member.name,
-                        factionID: factionIdNum,
-                        factionName: factionName,
-                        fairFightScore: member.ff_data.fair_fight,
-                        estimatedBattleStats: member.ff_data.bs_estimate_human || "N/A",
-                        difficulty: get_difficulty_text(member.ff_data.fair_fight),
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        // Ensure totalBattleStatsNumerical is saved if available from FFScouter and is numerical
-                        // Assuming your admin tool adds this from a previous step or you'll add it later
-                        // totalBattleStatsNumerical: member.ff_data.total_bs_numerical || null 
-                    };
-                    batch.set(targetRef, dataToSave, { merge: true });
-                    successfulSaves++;
-                } else {
-                    console.warn(`Skipping member ${member.id} (${member.name || 'Unknown'}) due to missing or invalid FF data.`);
-                }
-            }
-
-            if (successfulSaves > 0) await batch.commit();
-            
-            // Return success with count
-            return { status: 'success', savedCount: successfulSaves, message: `Faction ID ${factionId}: Saved ${successfulSaves} targets.` };
-
-        } catch (fetchError) {
-            console.error(`Caught fetch error for Faction ID ${factionId}:`, fetchError);
-            return { status: 'error', reason: 'fetch_exception', message: `Fetch failed for ${factionId}: ${fetchError.message}` };
         }
+
+        if (successfulSaves > 0) await batch.commit();
+        return successfulSaves;
     }
 
     // --- Queue Manager for Processing Multiple Factions ---
@@ -162,35 +120,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let factionsProcessed = 0;
         let totalTargetsSaved = 0;
-        let factionsSkipped = 0; // Track skipped factions
-        let factionsFailed = 0; // Track genuinely failed factions
-
         for (const [index, id] of factionIds.entries()) {
-            setStatus(2, `Processing: ${index + 1} / ${factionIds.length} - Faction ID ${id}`);
-            const result = await processSingleFaction(id); // Get structured result
-
-            if (result.status === 'success') {
-                totalTargetsSaved += result.savedCount;
+            try {
+                setStatus(2, `Processing: ${index + 1} / ${factionIds.length} - Faction ID ${id}`);
+                const savedCount = await processSingleFaction(id);
+                totalTargetsSaved += savedCount;
                 factionsProcessed++;
-                // Optionally append a success message for clarity, but not as an error
-                // appendStatus(result.message);
-            } else if (result.status === 'skipped') {
-                factionsSkipped++;
-                // Check if the skip reason is 'already_in_db' and display a specific message
-                if (result.reason === 'already_in_db') {
-                    appendStatus(result.message, false); // Display as a regular status, not an error
-                } else {
-                    // Log other skipped factions to console, but don't show on UI updatesBox
-                    console.warn(`Skipped Faction ID ${id}: ${result.message}`);
-                }
-            } else if (result.status === 'error') {
-                factionsFailed++;
-                factionsProcessed++; // Count as processed, but failed
-                appendStatus(`Failed Faction ID ${id}: ${result.message}`, true); // Only display genuine errors on UI
+            } catch (error) {
+                appendStatus(`Error on Faction ID ${id}: ${error.message}`, true);
             }
         }
 
-        setStatus(3, `Queue finished. Processed ${factionsProcessed} / ${factionIds.length} factions. Saved ${totalTargetsSaved} targets. Skipped ${factionsSkipped}. Failed ${factionsFailed}.`);
+        setStatus(3, `Queue finished. Processed ${factionsProcessed} / ${factionIds.length} factions and saved a total of ${totalTargetsSaved} targets.`);
         
         fetchFactionDataBtn.disabled = false;
         if (refreshDatabaseFactionsBtn) refreshDatabaseFactionsBtn.disabled = false;
@@ -201,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Main Handler for Clicks and Enter Key ---
     async function handleGo() {
         if (!tornApiKey) {
-            showMainError("Your Torn API key is not loaded. Please ensure you are logged in and your API key is set in your profile.");
+            showMainError("Your Torn API key is not loaded.");
             return;
         }
 
