@@ -347,17 +347,6 @@ ul li:last-child { border-bottom: none; }
     color: var(--btn-close-hover-color, #00e0ff);
 }
 
-#usefulLinksBtn .btn-icon::after,
-#headerContactUsBtn .btn-icon::after {
-    content: '\25BC'; /* Unicode for a solid black down-pointing triangle (▼) */
-    font-size: .8rem;
-    color: #00a8ff;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    transition: transform 0.3s ease;
-}
 
 #firebaseui-auth-container {
     margin-top: 25px; margin-bottom: 15px; text-align: left;
