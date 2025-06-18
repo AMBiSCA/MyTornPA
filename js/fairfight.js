@@ -79,10 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (userDoc.exists) {
                         const userData = userDoc.data();
                         const tornApiKey = userData.tornApiKey; // Get Torn API key from user profile
-                        const playerId = userData.tornId; // Get logged-in user's Torn ID from profile
-
+                        // CORRECTED: Use 'tornProfileId' as confirmed in Firestore
+                        const playerId = userData.tornProfileId; 
 
                         console.log("DEBUG FAIRFIGHT: Value of tornApiKey retrieved from Firestore:", tornApiKey);
+                        console.log("DEBUG FAIRFIGHT: Value of tornProfileId retrieved from Firestore:", playerId);
+
                         if (tornApiKey) {
                             if (fairFightApiKeyErrorDiv) fairFightApiKeyErrorDiv.textContent = ''; // Clear any previous error messages
                             
@@ -360,6 +362,7 @@ async function handleMyTargetsCheck(user, tornApiKey, playerId) {
             displayErrorInModal(data.message || `No recommended targets found for player ID ${playerId}.`);
         } else {
             if (modalSummary) {
+                // Ensure data.playerName is available from your Netlify function if you want to display it
                 modalSummary.innerHTML = `Player: <span>${data.playerName || 'You'} [${playerId}]</span> | 
                                          Found <span>${data.targets.length}</span> Recommended Targets.`;
             }
