@@ -112,7 +112,7 @@
     gap: 20px; /* Adds space between grid items (both rows and columns) */
     padding: 10px; /* Adds a little internal padding to the grid container itself */
     box-sizing: border-box; /* Ensures padding is included in the element's total width/height */
-    max-width: 1200px; /* ADJUSTED: Increased max-width for 3 columns. Adjust as needed. */
+    max-width: 1500px; /* ADJUSTED: Increased max-width for 3 columns. Adjust as needed. */
     margin: 0 auto;    /* ADDED: Center the grid container horizontally */
 }
 
@@ -550,7 +550,7 @@ select[multiple] {
 
     /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
     #leader-config-tab.active { /* IMPORTANT: Also add .active here */
-        grid-template-columns: 1fr; /* On smaller screens, stack into a single column */
+        grid-template-columns: 1fr; max-width: 600px; /* On smaller screens, stack into a single column */
     }
     /* --- END LEADER CONFIG TAB --- */
 }
