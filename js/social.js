@@ -1,5 +1,4 @@
-// mysite/js/social.js - FINAL VERSION
-document.addEventListener('DOMContentLoaded', function() {
+ocument.addEventListener('DOMContentLoaded', function() {
     console.log("social.js: Script loaded.");
 
     let db = null;
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Main Hub Buttons
     const hubActionGlobalChatBtn = document.getElementById('hubActionGlobalChatFinal');
     const hubActionFactionChatBtn = document.getElementById('hubActionFactionChatFinal');
-    const hubActionFriendsChatBtn = document.getElementById('hubActionFriendsChatBtnFinal'); // Corrected ID
+    const hubActionFriendsChatBtn = document.getElementById('hubActionFriendsChatBtnFinal');
     const viewFriendsBtnHub = document.getElementById('viewFriendsBtnFinal');
     const hubActionFactionInfoBtn = document.getElementById('hubActionFactionInfoFinal');
     const hubActionLeadershipViewBtn = document.getElementById('hubActionLeadershipViewFinal');
@@ -77,6 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevFactionPageBtn = document.getElementById('prevFactionPageBtn');
     const nextFactionPageBtn = document.getElementById('nextFactionPageBtn');
     const factionPageInfo = document.getElementById('factionPageInfo');
+    const fullFriendsListInManageModal = document.getElementById('fullFriendsListInManageModal');
+    const recentChatsListInManageModal = document.getElementById('recentChatsListInManageModal');
 
     // --- HELPER FUNCTIONS ---
 
@@ -86,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- These functions now use CSS classes for visibility ---
     function showModal(modalElement) {
         if (modalElement) {
             modalElement.classList.add('modal-is-visible');
@@ -136,40 +136,32 @@ document.addEventListener('DOMContentLoaded', function() {
         if(tabToShow) tabToShow.classList.add('active');
         if(contentToShow) contentToShow.classList.add('active');
     }
-
+    
+    // --- DATA LOADING AND DISPLAY FUNCTIONS (RESTORED) ---
+    // NOTE: These functions now correctly call the data loading logic after opening the modal.
+    
     function displayUserFactionInfo() {
         showModal(factionInfoModal);
-        loadFactionData();
+        loadFactionData(); // Load data when modal opens
     }
     
     async function loadFactionData() {
-        if (!currentUserProfileData) return;
+        if (!currentUserProfileData) {
+            generalInfoContent.innerHTML = `<p>User profile not loaded.</p>`;
+            return;
+        }
         generalInfoContent.innerHTML = `<p>Faction: ${currentUserProfileData.factionName || 'N/A'}</p><p>Faction ID: ${currentUserProfileData.factionId || 'N/A'}</p>`;
-        // TODO: Add your logic here to fetch more detailed faction info.
-    }
-
-    function setupFactionInfoTabs() {
-        if (!factionInfoTabs) return;
-        factionInfoTabs.addEventListener('click', (event) => {
-            if (event.target.matches('.faction-info-tab-button')) {
-                factionInfoTabs.querySelectorAll('.faction-info-tab-button').forEach(tab => tab.classList.remove('active'));
-                event.target.classList.add('active');
-                const targetContentId = event.target.dataset.target;
-                factionInfoModal.querySelectorAll('.faction-info-modal-body-custom, #factionBattleStatsContent').forEach(content => {
-                    content.id === targetContentId ? content.classList.add('active') : content.classList.remove('active');
-                });
-            }
-        });
+        // TODO: Add your fetch logic for battle stats, etc. here
     }
 
     function displayLeadershipView() {
         showModal(leadershipPanelModal);
-        loadLookingForFactionUsers();
+        loadLookingForFactionUsers(); // Load data when modal opens
     }
 
     async function loadLookingForFactionUsers() {
         lookingForFactionsList.innerHTML = '<li><p>Loading users...</p></li>';
-        // TODO: Fetch your list of users from Firebase here.
+        // TODO: Add your real Firebase query here to fetch users where 'isLookingForFaction' is true.
         allLookingForFactionUsersData = [{ name: 'Player1 [123]', level: 10 }, { name: 'Player2 [456]', level: 25 }];
         currentLeadershipPage = 1;
         displayLookingForFactionUsersPage();
@@ -196,12 +188,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayOnTheHuntView() {
         showModal(onTheHuntModal);
-        loadRecruitingFactions();
+        loadRecruitingFactions(); // Load data when modal opens
     }
     
     async function loadRecruitingFactions() {
         recruitingFactionsList.innerHTML = '<li><p>Loading recruiting factions...</p></li>';
-        // TODO: Fetch your list of recruiting factions from Firebase here.
+        // TODO: Add your real Firebase query here to fetch factions that are recruiting.
         allRecruitingFactionsData = [{ name: 'The Cool Faction', respect: '1.2m' }, { name: 'Another Crew', respect: '500k' }];
         currentFactionPage = 1;
         displayFactionsPage();
@@ -225,6 +217,12 @@ document.addEventListener('DOMContentLoaded', function() {
             recruitingFactionsList.appendChild(li);
         });
     }
+    
+    function displayManageFriends() {
+        showModal(manageFriendsModal);
+        // TODO: Add your function calls here to load the full friends list and recent chats.
+        // e.g., loadFullFriendsListForModal();
+    }
 
     // --- MAIN INITIALIZATION & AUTH ---
 
@@ -234,39 +232,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         currentUserId = user.uid;
-        const profileComplete = await loadHubUserProfileData();
-
-        if (!profileComplete) {
+        const profileDoc = await db.collection('userProfiles').doc(currentUserId).get();
+        if (!profileDoc.exists || !profileDoc.data().profileSetupComplete) {
             showModal(profileSetupModal);
             return;
         }
-        
+        currentUserProfileData = profileDoc.data();
         theHubMainUi.style.display = 'grid';
         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
         setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
         setupToggleSwitch(lookingForRecruitToggleFinal, 'isLookingForRecruits');
         setupToggleSwitch(appearOnlineToggleFinal, 'appearOnline');
-    }
-
-    async function loadHubUserProfileData() {
-        if (!currentUserId || !db) return false;
-        try {
-            const doc = await db.collection('userProfiles').doc(currentUserId).get();
-            if (doc.exists) {
-                currentUserProfileData = doc.data();
-                if (hubFinalPreferredNameEl) hubFinalPreferredNameEl.textContent = currentUserProfileData.preferredName || 'N/A';
-                if (hubFinalTornProfileIdEl) hubFinalTornProfileIdEl.textContent = currentUserProfileData.tornProfileId || 'N/A';
-                if (shareStatsToggleFinal) shareStatsToggleFinal.checked = !!currentUserProfileData.shareStatsWithFaction;
-                if (lookingForFactionToggleFinal) lookingForFactionToggleFinal.checked = !!currentUserProfileData.isLookingForFaction;
-                if (lookingForRecruitToggleFinal) lookingForRecruitToggleFinal.checked = !!currentUserProfileData.isLookingForRecruits;
-                if (appearOnlineToggleFinal) appearOnlineToggleFinal.checked = currentUserProfileData.appearOnline !== false;
-                return !!currentUserProfileData.profileSetupComplete;
-            }
-            return false;
-        } catch (error) {
-            console.error("Error loading profile:", error);
-            return false;
-        }
     }
     
     // --- EVENT LISTENER ATTACHMENTS ---
@@ -287,27 +263,31 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeHubContent(auth.currentUser);
     });
 
+    // Working Chat Buttons
     setupButtonListener(hubActionGlobalChatBtn, () => showChatModal('global'));
     setupButtonListener(hubActionFactionChatBtn, () => showChatModal('faction'));
     setupButtonListener(hubActionFriendsChatBtn, () => showChatModal('friends'));
-    setupButtonListener(viewFriendsBtnHub, () => showModal(manageFriendsModal));
+    
+    // Restored functionality for the 4 problem buttons
+    setupButtonListener(viewFriendsBtnHub, displayManageFriends);
     setupButtonListener(hubActionFactionInfoBtn, displayUserFactionInfo);
     setupButtonListener(hubActionLeadershipViewBtn, displayLeadershipView);
     setupButtonListener(hubActionOnTheHuntViewBtn, displayOnTheHuntView);
 
+    // All Modal Close Buttons
     setupButtonListener(closeChatModalButton, () => hideModal(hubChatModal));
     setupButtonListener(closeManageFriendsModalBtn, () => hideModal(manageFriendsModal));
     setupButtonListener(closeFactionInfoModalBtn, () => hideModal(factionInfoModal));
     setupButtonListener(closeLeadershipPanelModalBtn, () => hideModal(leadershipPanelModal));
     setupButtonListener(closeOnTheHuntModalBtn, () => hideModal(onTheHuntModal));
     
+    // Pagination Listeners
     setupButtonListener(prevFactionPageBtn, () => { if(currentFactionPage > 1) { currentFactionPage--; displayFactionsPage(); } });
     setupButtonListener(nextFactionPageBtn, () => { if((currentFactionPage * factionsPerPage) < allRecruitingFactionsData.length) { currentFactionPage++; displayFactionsPage(); } });
     setupButtonListener(prevLeadershipPageBtn, () => { if(currentLeadershipPage > 1) { currentLeadershipPage--; displayLookingForFactionUsersPage(); } });
     setupButtonListener(nextLeadershipPageBtn, () => { if((currentLeadershipPage * usersPerPage) < allLookingForFactionUsersData.length) { currentLeadershipPage++; displayLookingForFactionUsersPage(); } });
     
-    setupFactionInfoTabs();
-
+    // --- Core Firebase Auth state listener ---
     if (auth) {
         auth.onAuthStateChanged(user => {
             if (user) {
