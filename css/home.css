@@ -121,6 +121,10 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     background-color: rgba(0, 0, 0, 0.85); 
     z-index: 10000; display: none; 
     justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;
+
+}
+#personalStatsModal.visible {
+    display: flex; /* Or 'block', depending on your desired layout for centering */
 }
 .modal-profile-setup, #personalStatsModal .modal-content-box {
     background-color: #181a1b; 
