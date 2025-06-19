@@ -16,7 +16,7 @@
     box-sizing: border-box; /* Include padding/border in width */
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
-    gap: 0px; /* NEW: Reduced space between main sections */
+    gap: -5px; /* NEW: Reduced space between main sections */
     min-height: calc(100vh - 140px); /* Adjust min-height to fill viewport better, accounting for header/footer */
 }
 
