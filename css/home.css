@@ -171,9 +171,9 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 .form-group input[type="text"], .form-group input[type="password"] { width: 100%; padding: 10px 12px; /* Reduced from 12px 14px */ border-radius: 4px; border: 1px solid #3a3a3a; background-color: #2c2f33; color: #e0e0e0; box-sizing: border-box; font-size: 0.95em; }
 .form-group input[type="text"]:focus, .form-group input[type="password"]:focus { border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2); }
 .modal-error-message { color: #ff6b6b; font-size: 0.8em; /* Reduced from 0.85em */ margin-top: 5px; min-height: 1.2em; text-align: left;}
-.helper-text { font-size: 0.75em; /* Reduced from 0.8em */ color: #888; margin-top: 5px; display:block;}
+.helper-text { font-size: 0.75em; /* Reduced from 0.8em */ color: #fd7e14; margin-top: 5px; display:block;}
 
-.checkbox-group { text-align: left; }
+.checkbox-group { text-align: left; margin-bottom: 15px;  }
 .checkbox-label-inline { display: flex; align-items: center; font-size: 0.9em; margin-bottom: 5px; color: #ccc;}
 .checkbox-label-inline input[type="checkbox"] { margin-right: 8px; transform: scale(1.1); accent-color:#00a8ff;}
 
