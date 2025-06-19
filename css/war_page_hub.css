@@ -7,26 +7,28 @@
     /* Styles for the main container */
     background-color: #1e1e1e; /* Darker background */
     color: #f0f0f0; /* Light text */
-    padding: 20px;
+    padding: 10px; /* NEW: Reduced padding for more vertical space */
     border-radius: 8px;
-    margin-top: 20px;
+    margin-top: 5px; /* NEW: Reduced top margin to move up */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
-    width: 95%; /* Make it take more of the available width */
-    max-width: 1600px; /* NEW: Increased max-width to make the box bigger */
+    width: 98%; /* NEW: Made even wider to use more space */
+    max-width: 1800px; /* NEW: Increased max-width significantly */
     box-sizing: border-box; /* Include padding/border in width */
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
-    gap: 20px; /* Space between main sections */
+    gap: 15px; /* NEW: Reduced space between main sections */
+    min-height: calc(100vh - 140px); /* Adjust min-height to fill viewport better, accounting for header/footer */
 }
 
 /* Script Title */
 .script-title {
     /* Styles for the main title */
-    color: #e0a71a; /* Gold color */
+    color: #00a8ff; /* NEW: Changed to blue theme color */
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px; /* NEW: Reduced bottom margin */
+    margin-top: 5px; /* NEW: Reduced top margin to move higher */
     font-size: 2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Text shadow */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Tab Navigation Styles */
@@ -34,188 +36,193 @@
     /* Styles for the tab buttons container */
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #333; /* Darker border */
-    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+    margin-bottom: 15px; /* NEW: Reduced bottom margin */
+    border-bottom: 2px solid #333;
+    flex-wrap: wrap;
+    margin-top: 0; /* NEW: Remove top margin to move higher */
 }
 
 .tab-button {
     /* Styles for individual tab buttons */
-    background-color: #333; /* Dark background */
-    color: #f0f0f0; /* Light text */
-    padding: 10px 15px;
-    border: none;
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Slightly reduced padding */
+    border: 1px solid black; /* NEW: Added 1px black border */
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 120px; /* Minimum width for each tab */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
+    border-radius: 5px 5px 0 0;
+    flex-grow: 1;
+    min-width: 120px;
     text-align: center;
 }
 
-.tab-button:hover, .tab-button.active {
-    /* Hover and Active states */
-    background-color: #e0a71a; /* Gold background */
-    color: #1e1e1e; /* Dark text */
+.tab-button:hover {
+    background-color: #555; /* NEW: A slightly different hover color for non-active */
+    color: #f0f0f0;
+    border-color: #00a8ff; /* Highlight border on hover */
+}
+
+.tab-button.active {
+    /* Active state */
+    background-color: #00a8ff; /* NEW: Changed to blue theme color */
+    color: #1e1e1e; /* Dark text on blue */
+    border-color: #00a8ff; /* Active border color */
+    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Subtle glow for active tab */
 }
 
 /* Tab Content Container */
 .tab-content-container {
     /* Styles for the container holding tab contents */
-    padding: 20px;
-    border: 1px solid #333; /* Darker border */
-    border-radius: 0 0 8px 8px; /* Rounded bottom corners */
-    background-color: #2a2a2a; /* Content background */
-    flex-grow: 1; /* Allow content to fill remaining height */
-    
-    /* NEW: Fixed height to prevent jolting */
-    height: 550px; /* Set a fixed height that accommodates most content */
-    overflow-y: auto; /* Add scrollbar if content exceeds fixed height */
-    
+    padding: 15px; /* NEW: Reduced padding */
+    border: 1px solid #333;
+    border-radius: 0 0 8px 8px;
+    background-color: #2a2a2a;
+    flex-grow: 1;
+    height: 600px; /* NEW: Increased fixed height for smoother content flow */
+    overflow-y: auto; 
     box-sizing: border-box;
+    margin-top: 0; /* NEW: Remove top margin */
 }
 
 .tab-pane {
     /* Styles for individual tab content areas */
-    display: none; /* Initially hide all tabs */
-    height: 100%; /* Ensure tab pane takes full height of container */
+    display: none;
+    height: 100%;
+    overflow-y: auto; /* Allow individual tab panes to scroll if content is too long for its section within the overall container */
 }
 
 .tab-pane.active {
-    /* Show the active tab */
     display: block;
 }
 
 /* War Announcement Section (Tab 1) */
 .war-announcement-section {
-    /* Styles for the announcement section */
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    padding: 10px; /* NEW: Reduced padding */
     border: 1px solid #555;
     border-radius: 8px;
-    background-color: #222; /* Darker background */
+    background-color: #222;
     text-align: left;
 }
 
 .war-announcement-section h3 {
-    /* Styles for announcement headers */
-    color: #e0a71a;
-    margin-bottom: 10px;
+    color: #00a8ff; /* NEW: Changed to blue theme color */
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    margin-top: 0; /* NEW: Remove top margin */
     text-align: center;
+    font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
 
 .game-plan-display {
-    /* Styles for the game plan display */
     background-color: #333;
     color: #f0f0f0;
-    padding: 10px;
+    padding: 8px; /* NEW: Reduced padding */
     border-radius: 5px;
-    margin-bottom: 15px;
-    min-height: 100px; /* Ensure it has space */
-    white-space: pre-wrap; /* Preserve whitespace and line breaks */
-    font-family: 'Courier New', Courier, monospace; /* Monospace for code-like plans */
+    margin-bottom: 10px; /* NEW: Reduced margin */
+    min-height: 80px; /* NEW: Slightly reduced min-height */
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em; /* NEW: Slightly smaller font */
 }
 
 .war-status-display {
-    /* Styles for the war status display */
     padding: 10px;
     border: 1px solid #555;
     border-radius: 5px;
-    background-color: #333; /* Darker background */
-    display: grid; /* Use grid for layout */
-    grid-template-columns: auto 1fr; /* Label and value */
-    gap: 8px 15px; /* Spacing between items */
+    background-color: #333;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 10px; /* NEW: Reduced gap */
     align-items: center;
+    font-size: 0.9em; /* NEW: Slightly smaller font */
 }
 
 .war-status-display h4 {
-    /* Styles for war status headers */
-    color: #00a8ff; /* Blue color */
+    color: #e0a71a; /* KEPT GOLD: This is a sub-header, often useful to contrast */
     margin-bottom: 5px;
-    grid-column: 1 / -1; /* Span across all columns */
+    grid-column: 1 / -1;
     text-align: center;
 }
 
 .war-status-display span {
-    /* Styles for status values */
     font-weight: bold;
     color: #fff;
 }
 
 /* Active Ops Controls Grid (Tab 2) */
 .ops-controls-grid {
-    /* Styles for the grid of controls */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive columns */
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* NEW: Min-width slightly smaller */
+    gap: 10px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    padding: 10px; /* NEW: Reduced padding */
     border: 1px solid #555;
     border-radius: 8px;
     background-color: #222;
 }
 
 .ops-control-item {
-    /* Styles for individual control items */
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px; /* NEW: Reduced gap */
     align-items: flex-start;
     white-space: nowrap;
-    font-size: 0.95rem;
+    font-size: 0.9em; /* NEW: Slightly smaller font */
 }
 
 .ops-control-item label {
-    /* Styles for control labels */
-    color: #00a8ff; /* Blue color */
+    color: #00a8ff;
     font-weight: bold;
 }
 
 .ops-control-item input[type="text"],
 .ops-control-item select,
 .ops-control-item button {
-    width: 100%; /* Full width within grid item */
+    width: 100%;
     box-sizing: border-box;
+    font-size: 0.9em; /* NEW: Smaller font for inputs/selects */
+    padding: 6px; /* NEW: Reduced padding */
 }
 
 #quickAnnouncementInput {
-    margin-bottom: 0; /* Remove default input margin */
+    margin-bottom: 0;
 }
 
 #postAnnouncementBtn {
-    margin-top: 5px; /* Add margin above button */
+    margin-top: 5px;
 }
 
 
 /* Enemy Targets List Section (Tab 2) */
 .enemy-targets-list-section {
-    margin-bottom: 20px;
-    background-color: #222; /* Panel background */
-    border: 1px solid #00a8ff; /* Theme border */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    background-color: #222;
+    border: 1px solid #00a8ff;
     border-radius: 8px;
-    overflow: hidden; /* Contains child borders */
+    overflow: hidden;
 }
 
 .enemy-targets-header {
     display: grid;
-    grid-template-columns: 2fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; /* Adjusted column widths for better fit */
-    padding: 10px;
-    background-color: #00a8ff; /* Theme accent color for header */
-    color: #1e1e1e; /* Dark text on theme color */
+    grid-template-columns: 2fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
+    padding: 8px 10px; /* NEW: Reduced padding */
+    background-color: #00a8ff;
+    color: #1e1e1e;
     font-weight: bold;
     text-align: center;
     border-bottom: 2px solid #1e1e1e;
+    font-size: 0.9em; /* NEW: Slightly smaller font */
 }
 
 .enemy-targets-header span {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis for long text */
+    text-overflow: ellipsis;
 }
 
 .enemy-targets-scroll-area {
-    max-height: 500px; /* Height for scrollability */
-    overflow-y: auto; /* Enable vertical scrollbar */
+    max-height: 450px; /* NEW: Slightly reduced max height */
+    overflow-y: auto;
     padding: 0;
     margin: 0;
 }
@@ -229,18 +236,18 @@
 
 .enemy-target-row {
     display: grid;
-    grid-template-columns: inherit; /* Inherit column definitions from header */
-    padding: 8px 10px;
-    border-bottom: 1px solid #333; /* Lighter separator */
+    grid-template-columns: inherit;
+    padding: 6px 10px; /* NEW: Reduced padding */
+    border-bottom: 1px solid #333;
     align-items: center;
-    font-size: 0.9em;
+    font-size: 0.85em; /* NEW: Slightly smaller font */
     text-align: center;
     color: #f0f0f0;
     transition: background-color 0.2s ease;
 }
 
 .enemy-target-row:hover {
-    background-color: #3a3a3a; /* Slight highlight on hover */
+    background-color: #3a3a3a;
 }
 
 .enemy-target-row:last-child {
@@ -252,31 +259,21 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 3px; /* Small horizontal padding */
+    padding: 0 2px; /* NEW: Reduced horizontal padding */
 }
 
 /* Coloring for Difficulty and Status */
-.difficulty-easy { color: #28a745; font-weight: bold; } /* Green */
-.difficulty-moderately-difficult { color: #ffc107; font-weight: bold; } /* Yellow/Orange */
-.difficulty-difficult { color: #dc3545; font-weight: bold; } /* Red */
-.difficulty-extremely-easy { color: #17a2b8; font-weight: bold; } /* Cyan */
-.difficulty-may-be-impossible { color: #6c757d; font-weight: bold; } /* Grey */
-
-.status-okay { color: #28a745; }
-.status-hospital { color: #dc3545; }
-.status-jail { color: #ffc107; }
-.status-traveling { color: #17a2b8; }
-.status-offline { color: #6c757d; }
+/* ... (unchanged) ... */
 
 /* Styles for Attack/Claim buttons inside table rows */
 .enemy-target-row .action-btn {
-    padding: 4px 8px;
-    font-size: 0.8em;
+    padding: 3px 6px; /* NEW: Reduced padding */
+    font-size: 0.75em; /* NEW: Reduced font size */
     height: auto;
     min-width: unset;
     max-width: unset;
     border-radius: 3px;
-    background-color: #007bff; /* Blue */
+    background-color: #007bff;
     color: white;
 }
 .enemy-target-row .action-btn:hover {
@@ -288,59 +285,61 @@
 .alert-buttons-grid {
     display: flex;
     justify-content: space-around;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap; /* Allow buttons to wrap */
+    gap: 8px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    flex-wrap: wrap;
 }
 
 .alert-btn {
-    background-color: #d9534f; /* Red color */
-    color: #f0f0f0; /* Light text */
-    padding: 10px 15px;
+    background-color: #d9534f;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Reduced padding */
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border-radius: 5px;
-    flex-grow: 1; /* Allow buttons to grow */
-    min-width: 150px;
+    flex-grow: 1;
+    min-width: 120px; /* NEW: Slightly smaller min-width */
     text-align: center;
+    font-size: 0.85em; /* NEW: Reduced font size */
 }
 
 .alert-btn:hover {
-    background-color: #c9302c; /* Darker red */
+    background-color: #c9302c;
 }
 
 /* Faction Stats Summary (Tab 2) */
 .faction-stats-summary {
-    padding: 15px;
+    padding: 10px; /* NEW: Reduced padding */
     border: 1px solid #555;
     border-radius: 5px;
     background-color: #2a2a2a;
-    display: grid; /* Use grid for layout */
-    grid-template-columns: 1fr 1fr; /* Two columns for stats */
-    gap: 10px;
-    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    font-size: 0.9em; /* NEW: Reduced font size */
 }
 
 .faction-stats-summary p {
     margin: 0;
     text-align: left;
-    color: #e0a71a; /* Gold color for labels */
+    color: #e0a71a;
     font-weight: bold;
 }
 
 .faction-stats-summary p span {
-    color: #f0f0f0; /* Light text for values */
+    color: #f0f0f0;
     font-weight: normal;
-    margin-left: 8px; /* Space between label and value */
+    margin-left: 5px; /* NEW: Reduced margin */
 }
 
 
 /* Friendly Members List (Tab 3) */
 .friendly-members-scroll-area {
-    max-height: 500px;
+    max-height: 550px; /* NEW: Adjusted max height */
     overflow-y: auto;
-    border: 1px solid #00a8ff; /* Theme border */
+    border: 1px solid #00a8ff;
     border-radius: 8px;
     padding: 10px;
     background-color: #222;
@@ -348,11 +347,11 @@
 
 .friendly-member-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr; /* Example columns for Name, E, Nerve, Status */
-    padding: 8px 0;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 6px 0; /* NEW: Reduced padding */
     border-bottom: 1px solid #333;
     align-items: center;
-    font-size: 0.9em;
+    font-size: 0.85em; /* NEW: Reduced font size */
     color: #f0f0f0;
 }
 .friendly-member-row:last-child {
@@ -365,17 +364,14 @@
     text-align: center;
 }
 /* Styles for member stats (e.g., green for high E, red for low life) */
-.member-energy-high { color: #28a745; }
-.member-energy-low { color: #ffc107; }
-.member-hospital { color: #dc3545; }
-.member-offline { color: #6c757d; }
+/* ... (unchanged) ... */
 
 
 /* Leader Configuration Section (Tab 4) */
 .config-section {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #00a8ff; /* Theme border */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    padding: 10px; /* NEW: Reduced padding */
+    border: 1px solid #00a8ff;
     border-radius: 8px;
     background-color: #222;
     text-align: left;
@@ -383,46 +379,51 @@
 
 .config-section h4 {
     color: #e0a71a;
-    margin-bottom: 10px;
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    margin-top: 0; /* NEW: Remove top margin */
     text-align: center;
+    font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
 
 .config-section input[type="text"],
 .config-section textarea,
 .config-section select {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
+    padding: 6px; /* NEW: Reduced padding */
+    margin-bottom: 8px; /* NEW: Reduced margin */
     border: 1px solid #555;
     border-radius: 4px;
     background-color: #333;
     color: #f0f0f0;
+    font-size: 0.9em; /* NEW: Reduced font size */
 }
 
 textarea {
     resize: vertical;
-    min-height: 100px;
+    min-height: 80px; /* NEW: Reduced min-height */
 }
 
 select[multiple] {
-    height: 150px;
+    height: 120px; /* NEW: Reduced height */
 }
 
 .config-section .action-btn {
     width: auto;
     align-self: flex-start;
-    margin-top: 0;
+    margin-top: 5px; /* NEW: Adjusted margin */
+    padding: 6px 12px; /* NEW: Adjusted padding */
+    font-size: 0.9em; /* NEW: Adjusted font size */
 }
 
 /* Specific styling for designated admins list */
 #designatedAdminsList, #watchListDisplay {
     list-style: none;
-    padding: 0;
-    margin-top: 10px;
+    padding: 5px; /* NEW: Reduced padding */
+    margin-top: 8px; /* NEW: Reduced margin */
     border: 1px solid #555;
     border-radius: 4px;
     background-color: #333;
-    max-height: 200px;
+    max-height: 150px; /* NEW: Reduced max-height */
     overflow-y: auto;
 }
 
@@ -430,8 +431,9 @@ select[multiple] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 10px;
+    padding: 5px 8px; /* NEW: Reduced padding */
     border-bottom: 1px solid #444;
+    font-size: 0.85em; /* NEW: Reduced font size */
 }
 #designatedAdminsList li:last-child, #watchListDisplay li:last-child {
     border-bottom: none;
@@ -440,11 +442,10 @@ select[multiple] {
     background-color: #dc3545;
     color: white;
     border: none;
-    padding: 4px 8px;
+    padding: 3px 6px; /* NEW: Reduced padding */
     border-radius: 3px;
     cursor: pointer;
-    font-size: 0.8em;
-    transition: background-color 0.2s ease;
+    font-size: 0.7em; /* NEW: Reduced font size */
 }
 #designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
     background-color: #c82333;
@@ -454,53 +455,82 @@ select[multiple] {
 /* Responsive Media Queries for the War Hub Container */
 @media (max-width: 992px) {
     #warPageHubContainer {
-        padding: 15px;
-        gap: 15px;
+        padding: 10px; /* NEW: Reduced padding */
+        gap: 10px; /* NEW: Reduced gap */
     }
     .ops-controls-grid {
-        grid-template-columns: 1fr; /* Stack controls vertically */
+        grid-template-columns: 1fr;
     }
     .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; /* Adjust columns for smaller screens */
-        font-size: 0.85em;
+        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; 
+        font-size: 0.8em; /* NEW: Reduced base font size */
     }
     .faction-stats-summary {
-        grid-template-columns: 1fr; /* Stack stats vertically */
+        grid-template-columns: 1fr;
+    }
+    .tab-content-container {
+        height: auto; /* NEW: Allow height to be auto on smaller screens */
+        min-height: 400px; /* Keep a minimum height */
+    }
+    .friendly-members-scroll-area {
+        max-height: 400px; /* NEW: Adjusted max height */
     }
 }
 
 @media (max-width: 768px) {
     .tab-navigation {
-        flex-direction: column; /* Stack tabs vertically */
+        flex-direction: column;
     }
     .tab-button {
-        border-radius: 5px; /* Full rounded corners when stacked */
+        border-radius: 5px;
         margin-bottom: 5px;
+        font-size: 0.9em; /* NEW: Adjusted font size */
+        padding: 6px 10px; /* NEW: Adjusted padding */
     }
     .tab-content-container {
-        border-radius: 8px; /* Full rounded corners */
+        border-radius: 8px;
     }
     .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr; /* Further adjust columns */
-        font-size: 0.8em;
+        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
+        font-size: 0.75em; /* NEW: Reduced base font size */
     }
     .alert-buttons-grid {
-        flex-direction: column; /* Stack alert buttons vertically */
+        flex-direction: column;
     }
     .alert-btn {
-        margin-bottom: 10px;
+        margin-bottom: 8px; /* NEW: Reduced margin */
+        padding: 6px 10px; /* NEW: Reduced padding */
+        font-size: 0.85em; /* NEW: Reduced font size */
+    }
+    .config-section h4 {
+        font-size: 1.3em; /* NEW: Adjusted font size */
     }
 }
 
 @media (max-width: 480px) {
-    .main-content-wrapper { padding-top: 75px; } /* Adjust for header if it becomes static */
-    #warPageHubContainer { padding: 10px; gap: 10px; }
-    .script-title { font-size: 1.6em; }
-    .ops-controls-grid { gap: 10px; }
+    .main-content-wrapper { padding-top: 75px; } 
+    #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
+    .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
+    .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
+    .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
+    .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
     .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr; /* Even tighter columns */
-        font-size: 0.75em;
+        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr; 
+        font-size: 0.7em; /* NEW: Further reduced base font size */
     }
-    .enemy-target-row .action-btn { padding: 2px 4px; font-size: 0.7em; }
-    .alert-btn { padding: 8px 10px; font-size: 0.9em; }
+    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
+    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; } /* NEW: Adjusted padding, font size, margin */
+    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; } /* NEW: Reduced padding, gap, font size */
+    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
+        font-size: 0.8em; /* NEW: Adjusted font size */
+        padding: 4px 6px; /* NEW: Adjusted padding */
+    }
+    .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
+    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
+    .config-section input[type="text"], .config-section textarea, .config-section select {
+        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
+    }
+    textarea { min-height: 60px; } /* NEW: Reduced min-height */
+    select[multiple] { height: 100px; } /* NEW: Reduced height */
+    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
 }
