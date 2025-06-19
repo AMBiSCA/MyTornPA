@@ -10,7 +10,7 @@
     padding: 10px; /* NEW: Reduced padding for more vertical space */
     border-radius: 8px;
     margin-top: 15px; /* Top margin stays exactly as you like it */
-    margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
+    margin-bottom: 25px; /* Explicitly set bottom margin for space from footer */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
@@ -18,7 +18,8 @@
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
     gap: 0px; /* NEW: Reduced space between main sections */
-    min-height: calc(100vh - 200px); /* Adjusted: Decreased subtracted value to make container taller, moving its bottom edge down */
+    min-height: calc(100vh - 200px);
+	border: 1px solid #00a8ff;
 }
 /* Script Title */
 .script-title {
