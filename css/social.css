@@ -1787,3 +1787,7 @@ hr.hub-divider-final {
     border-color: #0d6efd;
     box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
 }
+
+.modal-is-visible {
+    display: flex !important;
+}
