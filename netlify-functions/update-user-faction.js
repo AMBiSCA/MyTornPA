@@ -8,9 +8,18 @@ const admin = require('firebase-admin'); // Firebase Admin SDK for server-side o
 // This check prevents re-initialization in warm Lambda environments
 if (!admin.apps.length) {
     try {
-        // Parse the Firebase Admin SDK configuration from environment variable
-        // It's crucial this is stored securely in Netlify environment variables
-        const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SDK_CONFIG);
+        // --- MODIFICATION STARTS HERE ---
+        // Read the Base64 encoded credentials from environment variable
+        const base64Credentials = process.env.FIREBASE_CREDENTIALS_BASE64;
+
+        if (!base64Credentials) {
+            throw new Error('FIREBASE_CREDENTIALS_BASE64 environment variable is not set.');
+        }
+
+        // Decode the Base64 string and parse it as JSON
+        const serviceAccount = JSON.parse(Buffer.from(base64Credentials, 'base64').toString('utf8'));
+        // --- MODIFICATION ENDS HERE ---
+
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
