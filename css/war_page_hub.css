@@ -18,7 +18,7 @@
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
     gap: 0px; /* NEW: Reduced space between main sections */
-    min-height: calc(100vh - 150px); /* Adjusted: Decreased subtracted value further to make container significantly taller */
+    min-height: calc(100vh - 170px); /* Adjusted: Increased subtracted value to make container slightly shorter */
 }
 /* Script Title */
 .script-title {
