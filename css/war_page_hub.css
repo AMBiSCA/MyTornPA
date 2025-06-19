@@ -1,7 +1,3 @@
-/* ==========================================================================
-   War Page Hub Specific Styles (war_page_hub.css)
-   ========================================================================== */
-
 /* Overall Container for the War Page Hub */
 #warPageHubContainer {
     /* Styles for the main container */
@@ -19,7 +15,7 @@
     flex-direction: column; /* Stack content vertically */
     gap: 0px; /* NEW: Reduced space between main sections */
     min-height: calc(100vh - 170px);
-	border: 3px solid black;
+    border: 3px solid black;
 }
 
 /* Script Title */
@@ -39,10 +35,9 @@
     display: flex;
     justify-content: space-around;
     margin-bottom: 0; /* NEW: Reduced bottom margin */
-    border-bottom: none;
+    border-bottom: none; /* REMOVED separating border */
     flex-wrap: wrap;
     margin-top: 0;
-
 }
 
 .tab-button {
@@ -57,9 +52,8 @@
     flex-grow: 1; /* Make buttons grow to fill space */
     min-width: 120px; /* Minimum width for each tab */
     text-align: center;
-	border-left: 2px solid black;
+    border-left: 2px solid black;
     border-right: 2px solid black;
-
 }
 
 .tab-button:hover {
@@ -84,23 +78,43 @@
     border-radius: 0 0 8px 8px;
     background-color: #333;
     flex-grow: 1;
-    height: 600px; /* NEW: Increased fixed height for smoother content flow */
-    overflow-y: auto; 
+    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
+    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
     box-sizing: border-box;
     margin-top: 0;
-    padding-top: 10px;/* NEW: Remove top margin */
+    padding-top: 0; /* IMPORTANT CHANGE: Removed gap at the top of content container */
 }
 
 .tab-pane {
     /* Styles for individual tab content areas */
     display: none;
-    height: 100%;
-    overflow-y: auto; /* Allow individual tab panes to scroll if content is too long for its section within the overall container */
+    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
+    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
 }
 
 .tab-pane.active {
     display: block;
 }
+
+/* --- ADDED/MODIFIED SECTIONS FOR LEADER CONFIG TAB --- */
+
+/* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
+#leader-config-tab {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Creates two equal-width columns for desktop */
+    gap: 20px; /* Adds space between grid items (both rows and columns) */
+    padding: 10px; /* Adds a little internal padding to the grid container itself */
+    box-sizing: border-box; /* Ensures padding is included in the element's total width/height */
+}
+
+/* Make the "Designate Tab 4 Admins" section stay in one column (no full width) */
+/* REMINDER: Add class="designate-admins-section" to that specific <div> in your HTML */
+.config-section.designate-admins-section {
+    grid-column: auto; /* Ensures it occupies a single column, overriding any potential previous span */
+}
+
+/* --- END ADDED/MODIFIED SECTIONS --- */
+
 
 /* War Announcement Section (Tab 1) */
 .war-announcement-section {
@@ -211,7 +225,6 @@
     font-size: 0.8em;
 }
 
-
 #quickAnnouncementInput {
     margin-bottom: 0;
 }
@@ -219,7 +232,6 @@
 #postAnnouncementBtn {
     margin-top: 5px;
 }
-
 
 /* Enemy Targets List Section (Tab 2) */
 .enemy-targets-list-section {
@@ -513,6 +525,12 @@ select[multiple] {
     .friendly-members-scroll-area {
         max-height: 400px; /* NEW: Adjusted max height */
     }
+
+    /* --- ADDED/MODIFIED SECTIONS FOR LEADER CONFIG TAB IN MEDIA QUERY --- */
+    #leader-config-tab {
+        grid-template-columns: 1fr; /* On smaller screens, stack into a single column */
+    }
+    /* --- END ADDED/MODIFIED SECTIONS --- */
 }
 
 @media (max-width: 768px) {
