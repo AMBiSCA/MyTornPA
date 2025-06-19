@@ -39,7 +39,11 @@
     margin-bottom: 0; /* NEW: Reduced bottom margin */
     border-bottom: 2px solid #333;
     flex-wrap: wrap;
-    margin-top: 0; /* NEW: Remove top margin to move higher */
+    margin-top: 0;
+	border-left: 1px solid #333;
+    border-right: 1px solid #333;
+}
+	/* NEW: Remove top margin to move higher */
 }
 
 .tab-button {
