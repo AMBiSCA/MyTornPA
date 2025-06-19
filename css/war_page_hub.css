@@ -9,7 +9,8 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* NEW: Reduced padding for more vertical space */
     border-radius: 8px;
-    margin-top: 5px; /* NEW: Reduced top margin to move up */
+    margin-top: 30px; /* Adjusted: Increased top margin to move down from header */
+    margin-bottom: 20px; /* Added: Creates space above the footer */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
@@ -17,7 +18,7 @@
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
     gap: 0px; /* NEW: Reduced space between main sections */
-    min-height: calc(100vh - 140px); /* Adjust min-height to fill viewport better, accounting for header/footer */
+    min-height: calc(100vh - 190px); /* Adjusted: Increased value to pull bottom up, accounting for new margins and header/footer */
 }
 
 /* Script Title */
@@ -78,7 +79,7 @@
 .tab-content-container {
     /* Styles for the container holding tab contents */
     padding: 15px; /* NEW: Reduced padding */
-    border: 1px solid #333;
+    border: 2px solid black;
     border-radius: 0 0 8px 8px;
     background-color: #333;
     flex-grow: 1;
