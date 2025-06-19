@@ -1,11 +1,10 @@
-// mysite/js/social.js - DEBUG VERSION
+// mysite/js/social.js - DEBUG VERSION 2 (with !important)
 document.addEventListener('DOMContentLoaded', function() {
     console.log("--- social.js script started ---");
 
     let db = null;
     let auth = null;
     let currentUserId = null;
-    let currentUserProfileData = null;
 
     try {
         auth = firebase.auth();
@@ -16,8 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- DOM Element Getters ---
     const theHubMainUi = document.getElementById('theHubMainUi');
-    const profileSetupModal = document.getElementById('profileSetupModal');
-    // ... (other getters are assumed to be correct based on working buttons)
 
     // --- Let's specifically check the buttons and modals in question ---
     const hubActionFactionInfoBtn = document.getElementById('hubActionFactionInfoFinal');
@@ -52,10 +49,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // THIS IS THE NEW "NUCLEAR OPTION" VERSION OF THE FUNCTION
     function showModal(modalElement) {
         if (modalElement) {
-            console.log(`DEBUG: showModal called for ->`, modalElement.id);
-            modalElement.style.display = 'flex';
+            console.log(`DEBUG: Forcing modal ${modalElement.id} to be visible with !important`);
+            
+            // This sets the style with high priority to override any conflicting CSS
+            modalElement.style.setProperty('display', 'flex', 'important');
         } else {
             console.error("DEBUG: showModal was called, but the modalElement was not found!");
         }
@@ -75,33 +75,29 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayUserFactionInfo() {
         console.log("DEBUG: displayUserFactionInfo() function was called.");
         showModal(factionInfoModal);
-        // loadFactionData(); // We can add this back later
     }
     
     function displayLeadershipView() {
         console.log("DEBUG: displayLeadershipView() function was called.");
         showModal(leadershipPanelModal);
-        // loadLookingForFactionUsers(); // We can add this back later
     }
     
     function displayOnTheHuntView() {
         console.log("DEBUG: displayOnTheHuntView() function was called.");
         showModal(onTheHuntModal);
-        // loadRecruitingFactions(); // We can add this back later
     }
 
 
     // --- MAIN INITIALIZATION ---
 
     async function initializeHubContent(user) {
-        // This function seems to be working, so we'll leave it as is for now
         if (!user) {
             if (theHubMainUi) theHubMainUi.style.display = 'none';
             return;
         }
         currentUserId = user.uid;
         // Assume profile is complete for now to simplify debugging
-        theHubMainUi.style.display = 'grid'; 
+        if (theHubMainUi) theHubMainUi.style.display = 'grid'; 
     }
     
     // --- EVENT LISTENER ATTACHMENTS ---
