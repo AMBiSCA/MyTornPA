@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cooldownIds.forEach(id => updateStatDisplay(id, 0, 0, true, 0));
         const errorEl = document.getElementById('quickStatsError'); if (errorEl) errorEl.textContent = '';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-        if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = true; togglePersonalStatsCheckbox.checked = false; }
+        if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = false; togglePersonalStatsCheckbox.checked = false; }
         if (personalStatsModal) personalStatsModal.style.display = 'none';
         if (shareFactionStatsToggleDashboard) { shareFactionStatsToggleDashboard.disabled = true; shareFactionStatsToggleDashboard.checked = false; }
         if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
