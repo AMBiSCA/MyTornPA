@@ -681,31 +681,36 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
             // --- NEW CODE STARTS HERE (Faction update on profile save) ---
             // Trigger Faction Update after Profile Save, using the potentially new API key
-            console.log('Profile saved. Triggering faction update...');
-            fetch('/.netlify/functions/update-user-faction', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    uid: user.uid,
-                    tornApiKey: profileDataToSave.tornApiKey, // Use the API key they just saved
-                }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Faction update after profile save successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
-            })
-            .catch(error => {
-                console.error('Faction update after profile save failed:', error.message);
-            });
+            // This 'if' condition ensures we only try to update faction if an API key is available
+            if (profileDataToSave.tornApiKey) {
+                console.log('Profile saved. Triggering faction update...');
+                fetch('/.netlify/functions/update-user-faction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        uid: user.uid,
+                        tornApiKey: profileDataToSave.tornApiKey, // Use the API key they just saved
+                    }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Faction update after profile save successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
+                })
+                .catch(error => {
+                    console.error('Faction update after profile save failed:', error.message);
+                });
+            } else {
+                console.log('No Torn API key provided on profile save, skipping faction update.');
+            }
             // --- NEW CODE ENDS HERE ---
 
         } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
