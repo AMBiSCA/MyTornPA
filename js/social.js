@@ -53,12 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const hubActionLeadershipViewBtn = document.getElementById('hubActionLeadershipViewFinal');
     const hubActionOnTheHuntViewBtn = document.getElementById('hubActionOnTheHuntViewFinal');
 
-    // Chat Modal Elements
+    // Modals & Close Buttons
     const hubChatModal = document.getElementById('hubChatModal');
     const closeChatModalButton = document.getElementById('closeChatModalBtn');
-    const chatTabsContainer = document.getElementById('chatTabsContainer');
-    
-    // Other Modals & their Close Buttons
     const manageFriendsModal = document.getElementById('manageFriendsModal');
     const closeManageFriendsModalBtn = document.getElementById('closeManageFriendsModalBtn');
     const factionInfoModal = document.getElementById('factionInfoModal');
@@ -68,29 +65,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const onTheHuntModal = document.getElementById('onTheHuntModal');
     const closeOnTheHuntModalBtn = document.getElementById('closeOnTheHuntModalBtn');
     
-    // Faction Info Modal specifics
+    // Modal-specific Elements
+    const chatTabsContainer = document.getElementById('chatTabsContainer');
     const factionInfoTabs = document.getElementById('factionInfoTabs');
     const generalInfoContent = document.getElementById('generalInfoContent');
-    const factionBattleStatsContent = document.getElementById('factionBattleStatsContent');
-
-    // Leadership View specifics
     const lookingForFactionsList = document.getElementById('lookingForFactionsList');
     const leadershipPaginationControls = document.getElementById('leadershipPaginationControls');
     const prevLeadershipPageBtn = document.getElementById('prevLeadershipPageBtn');
     const nextLeadershipPageBtn = document.getElementById('nextLeadershipPageBtn');
     const leadershipPageInfo = document.getElementById('leadershipPageInfo');
-    
-    // On The Hunt specifics
     const recruitingFactionsList = document.getElementById('recruitingFactionsList');
     const factionPaginationControls = document.getElementById('factionPaginationControls');
     const prevFactionPageBtn = document.getElementById('prevFactionPageBtn');
     const nextFactionPageBtn = document.getElementById('nextFactionPageBtn');
     const factionPageInfo = document.getElementById('factionPageInfo');
 
-
     // --- HELPER FUNCTIONS ---
 
-    function setupButtonListener(buttonEl, buttonName, callback) {
+    function setupButtonListener(buttonEl, callback) {
         if (buttonEl) {
             buttonEl.addEventListener('click', callback);
         }
@@ -104,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modalElement) modalElement.style.display = 'none';
     }
 
-    // --- PROFILE & TOGGLE FUNCTIONS ---
+    // --- PROFILE, TOGGLES, AND MODAL FUNCTIONS (Rebuilt) ---
 
     async function updateHubUserProfileSetting(settingKey, value) {
         if (!currentUserId || !db) return;
@@ -118,12 +110,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function setupToggleSwitch(checkboxElement, settingKey) {
         if (!checkboxElement) return;
+        const switchContainer = checkboxElement.parentElement;
+        if (switchContainer) {
+            switchContainer.addEventListener('click', (event) => {
+                event.preventDefault();
+                checkboxElement.checked = !checkboxElement.checked;
+                const changeEvent = new Event('change');
+                checkboxElement.dispatchEvent(changeEvent);
+            });
+        }
         checkboxElement.addEventListener('change', () => {
             updateHubUserProfileSetting(settingKey, checkboxElement.checked);
         });
     }
-
-    // --- CHAT FUNCTIONS ---
 
     function showChatModal(chatTypeToShow = 'global') {
         if (!hubChatModal || !chatTabsContainer) return;
@@ -139,11 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(contentToShow) contentToShow.classList.add('active');
     }
 
-    // --- FACTION INFO MODAL FUNCTIONS ---
-
     function displayUserFactionInfo() {
         showModal(factionInfoModal);
-        // Add logic to load faction data when the modal opens
         loadFactionData();
     }
     
@@ -163,13 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const targetContentId = event.target.dataset.target;
                 factionInfoModal.querySelectorAll('.faction-info-modal-body-custom, #factionBattleStatsContent').forEach(content => {
-                    content.style.display = content.id === targetContentId ? 'block' : 'none';
+                    content.id === targetContentId ? content.classList.add('active') : content.classList.remove('active');
                 });
             }
         });
     }
-
-    // --- LEADERSHIP VIEW FUNCTIONS ---
 
     function displayLeadershipView() {
         showModal(leadershipPanelModal);
@@ -179,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadLookingForFactionUsers() {
         lookingForFactionsList.innerHTML = '<li><p>Loading users...</p></li>';
         // TODO: Fetch your list of users looking for a faction from Firebase here.
-        // For now, using placeholder data.
         allLookingForFactionUsersData = [
             { name: 'Player1 [123]', level: 10 }, { name: 'Player2 [456]', level: 25 },
         ];
@@ -192,27 +185,21 @@ document.addEventListener('DOMContentLoaded', function() {
         lookingForFactionsList.innerHTML = '';
         const totalPages = Math.ceil(allLookingForFactionUsersData.length / usersPerPage);
         if (leadershipPageInfo) leadershipPageInfo.textContent = `Page ${currentLeadershipPage} of ${totalPages || 1}`;
-        if (leadershipPaginationControls) leadershipPaginationControls.style.display = totalPages > 1 ? 'block' : 'none';
+        if (leadershipPaginationControls) leadershipPaginationControls.style.display = totalPages > 1 ? 'flex' : 'none';
 
-        const startIndex = (currentLeadershipPage - 1) * usersPerPage;
-        const endIndex = startIndex + usersPerPage;
-        const pageUsers = allLookingForFactionUsersData.slice(startIndex, endIndex);
-
+        const pageUsers = allLookingForFactionUsersData.slice((currentLeadershipPage - 1) * usersPerPage, currentLeadershipPage * usersPerPage);
         if (pageUsers.length === 0) {
-            lookingForFactionsList.innerHTML = '<li><p>No users found matching criteria.</p></li>';
+            lookingForFactionsList.innerHTML = '<li><p>No users found.</p></li>';
             return;
         }
-
         pageUsers.forEach(user => {
             const li = document.createElement('li');
-            li.className = 'looking-for-faction-item'; // Use your existing class
+            li.className = 'looking-for-faction-item';
             li.innerHTML = `<h5>${user.name}</h5><p>Level: <strong>${user.level}</strong></p>`;
             lookingForFactionsList.appendChild(li);
         });
     }
 
-    // --- ON THE HUNT FUNCTIONS ---
-    
     function displayOnTheHuntView() {
         showModal(onTheHuntModal);
         loadRecruitingFactions();
@@ -233,20 +220,16 @@ document.addEventListener('DOMContentLoaded', function() {
         recruitingFactionsList.innerHTML = '';
         const totalPages = Math.ceil(allRecruitingFactionsData.length / factionsPerPage);
         if (factionPageInfo) factionPageInfo.textContent = `Page ${currentFactionPage} of ${totalPages || 1}`;
-        if (factionPaginationControls) factionPaginationControls.style.display = totalPages > 1 ? 'block' : 'none';
+        if (factionPaginationControls) factionPaginationControls.style.display = totalPages > 1 ? 'flex' : 'none';
 
-        const startIndex = (currentFactionPage - 1) * factionsPerPage;
-        const endIndex = startIndex + factionsPerPage;
-        const pageFactions = allRecruitingFactionsData.slice(startIndex, endIndex);
-
+        const pageFactions = allRecruitingFactionsData.slice((currentFactionPage - 1) * factionsPerPage, currentFactionPage * factionsPerPage);
         if (pageFactions.length === 0) {
-            recruitingFactionsList.innerHTML = '<li><p>No factions found matching criteria.</p></li>';
+            recruitingFactionsList.innerHTML = '<li><p>No factions found.</p></li>';
             return;
         }
-        
         pageFactions.forEach(faction => {
             const li = document.createElement('li');
-            li.className = 'recruiting-faction-item'; // Use your existing class
+            li.className = 'recruiting-faction-item';
             li.innerHTML = `<h5>${faction.name}</h5><p>Respect: <strong>${faction.respect}</strong></p>`;
             recruitingFactionsList.appendChild(li);
         });
@@ -268,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         showModal(theHubMainUi);
-        theHubMainUi.style.display = 'grid'; // Ensure it uses grid display
+        theHubMainUi.style.display = 'grid';
 
         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
         setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
@@ -299,10 +282,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- EVENT LISTENER ATTACHMENTS ---
     
-    // Profile Modal
-    setupButtonListener(skipProfileSetupBtn, "Skip Profile Setup", () => hideModal(profileSetupModal));
-    setupButtonListener(closeProfileModalBtn, "Close Profile Modal", () => hideModal(profileSetupModal));
-    setupButtonListener(saveProfileBtn, "Save Profile", async () => {
+    setupButtonListener(skipProfileSetupBtn, () => hideModal(profileSetupModal));
+    setupButtonListener(closeProfileModalBtn, () => hideModal(profileSetupModal));
+    setupButtonListener(saveProfileBtn, async () => {
         const name = preferredNameInput.value.trim();
         if (name.length === 0) return;
         await db.collection('userProfiles').doc(currentUserId).set({
@@ -316,29 +298,25 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeHubContent(auth.currentUser);
     });
 
-    // Main Hub Buttons
-    setupButtonListener(hubActionGlobalChatBtn, "Global Chat Button", () => showChatModal('global'));
-    setupButtonListener(hubActionFactionChatBtn, "Faction Chat Button", () => showChatModal('faction'));
-    setupButtonListener(hubActionFriendsChatBtn, "Friends Chat Button", () => showChatModal('friends'));
-    setupButtonListener(viewFriendsBtnHub, "Manage Friends Button", () => showModal(manageFriendsModal));
-    setupButtonListener(hubActionFactionInfoBtn, "Faction Info Button", displayUserFactionInfo);
-    setupButtonListener(hubActionLeadershipViewBtn, "Leadership View Button", displayLeadershipView);
-    setupButtonListener(hubActionOnTheHuntViewBtn, "On The Hunt View Button", displayOnTheHuntView);
+    setupButtonListener(hubActionGlobalChatBtn, () => showChatModal('global'));
+    setupButtonListener(hubActionFactionChatBtn, () => showChatModal('faction'));
+    setupButtonListener(hubActionFriendsChatBtn, () => showChatModal('friends'));
+    setupButtonListener(viewFriendsBtnHub, () => showModal(manageFriendsModal));
+    setupButtonListener(hubActionFactionInfoBtn, displayUserFactionInfo);
+    setupButtonListener(hubActionLeadershipViewBtn, displayLeadershipView);
+    setupButtonListener(hubActionOnTheHuntViewBtn, displayOnTheHuntView);
 
-    // Modal Close Buttons
-    setupButtonListener(closeChatModalButton, "Close Chat Modal", () => hideModal(hubChatModal));
-    setupButtonListener(closeManageFriendsModalBtn, "Close Manage Friends Modal", () => hideModal(manageFriendsModal));
-    setupButtonListener(closeFactionInfoModalBtn, "Close Faction Info Modal", () => hideModal(factionInfoModal));
-    setupButtonListener(closeLeadershipPanelModalBtn, "Close Leadership Panel Modal", () => hideModal(leadershipPanelModal));
-    setupButtonListener(closeOnTheHuntModalBtn, "Close On The Hunt Modal", () => hideModal(onTheHuntModal));
+    setupButtonListener(closeChatModalButton, () => hideModal(hubChatModal));
+    setupButtonListener(closeManageFriendsModalBtn, () => hideModal(manageFriendsModal));
+    setupButtonListener(closeFactionInfoModalBtn, () => hideModal(factionInfoModal));
+    setupButtonListener(closeLeadershipPanelModalBtn, () => hideModal(leadershipPanelModal));
+    setupButtonListener(closeOnTheHuntModalBtn, () => hideModal(onTheHuntModal));
     
-    // Pagination Buttons
-    setupButtonListener(prevFactionPageBtn, "Prev Faction Page", () => { if(currentFactionPage > 1) { currentFactionPage--; displayFactionsPage(); } });
-    setupButtonListener(nextFactionPageBtn, "Next Faction Page", () => { if((currentFactionPage * factionsPerPage) < allRecruitingFactionsData.length) { currentFactionPage++; displayFactionsPage(); } });
-    setupButtonListener(prevLeadershipPageBtn, "Prev Leadership Page", () => { if(currentLeadershipPage > 1) { currentLeadershipPage--; displayLookingForFactionUsersPage(); } });
-    setupButtonListener(nextLeadershipPageBtn, "Next Leadership Page", () => { if((currentLeadershipPage * usersPerPage) < allLookingForFactionUsersData.length) { currentLeadershipPage++; displayLookingForFactionUsersPage(); } });
+    setupButtonListener(prevFactionPageBtn, () => { if(currentFactionPage > 1) { currentFactionPage--; displayFactionsPage(); } });
+    setupButtonListener(nextFactionPageBtn, () => { if((currentFactionPage * factionsPerPage) < allRecruitingFactionsData.length) { currentFactionPage++; displayFactionsPage(); } });
+    setupButtonListener(prevLeadershipPageBtn, () => { if(currentLeadershipPage > 1) { currentLeadershipPage--; displayLookingForFactionUsersPage(); } });
+    setupButtonListener(nextLeadershipPageBtn, () => { if((currentLeadershipPage * usersPerPage) < allLookingForFactionUsersData.length) { currentLeadershipPage++; displayLookingForFactionUsersPage(); } });
     
-    // Setup tabs for Faction Info modal
     setupFactionInfoTabs();
 
     // --- Core Firebase Auth state listener ---
@@ -348,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 initializeHubContent(user);
             } else {
                 if (theHubMainUi) theHubMainUi.style.display = 'none';
-                // Potentially redirect to login page
+                // If you want to redirect on logout, uncomment the line below
                 // window.location.href = '/index.html';
             }
         });
