@@ -80,7 +80,7 @@
     padding: 15px; /* NEW: Reduced padding */
     border: 1px solid #333;
     border-radius: 0 0 8px 8px;
-    background-color: #2a2a2a;
+    background-color: #333;
     flex-grow: 1;
     height: 600px; /* NEW: Increased fixed height for smoother content flow */
     overflow-y: auto; 
