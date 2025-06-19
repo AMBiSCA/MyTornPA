@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (auth) {
+   if (auth) {
         auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
@@ -646,8 +646,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
                         const doc = await db.collection('userProfiles').doc(user.uid).get();
                         profile = doc.exists ? doc.data() : null;
+
+                        // Check if it's a brand new user from Firebase Auth perspective
+                        // Note: creationTime and lastSignInTime are typically in milliseconds.
+                        const isNewAuthUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
-                            userDisplayName = profile.preferredName; showSetup = false;
+                            userDisplayName = profile.preferredName;
+                            showSetup = false; // Profile is already complete in Firestore
                             if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
                             if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
                                 lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
@@ -657,17 +663,29 @@ document.addEventListener('DOMContentLoaded', function() {
                             } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
                             db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
                             if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                        } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                        } else if (isNewAuthUser) { // ONLY SHOW SETUP FOR BRAND NEW AUTH USERS
+                            // This path is for users just created in Firebase Auth
+                            userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User";
+                            showSetup = true; // Ensure setup is shown for truly new users
+                        } else {
+                            // This path is for existing Firebase Auth users who don't have
+                            // a completed profile in Firestore yet (e.g., first login after update)
+                            // We do NOT want to force the setup modal on them.
+                            userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User";
+                            showSetup = false; // DO NOT show setup modal automatically for existing users
+                        }
                     } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
                 } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
-                if (showSetup) {
+
+                // The change to `showSetup` above means this `if` block now only runs for truly new users
+                if (showSetup) { // This now correctly means 'if it's a brand new Firebase Auth user'
                     if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
                     if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
                     showProfileSetupModal(); clearQuickStats();
                     if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
                     if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
-                } else {
+                } else { // This block handles existing users (who have a completed profile or are not new auth users)
                     if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
                     else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                     if (profile && profile.tornApiKey) {
@@ -705,8 +723,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     } else { console.error("Firebase auth object not available for auth state listener."); }
-
-    if (logoutButtonHeader && auth) {
+    
+	if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
             auth.signOut().then(() => {
                 console.log('User signed out.');
