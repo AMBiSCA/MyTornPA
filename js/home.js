@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorEl = document.getElementById('quickStatsError'); if (errorEl) errorEl.textContent = '';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
         if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = true; togglePersonalStatsCheckbox.checked = false; }
-        if (personalStatsModal) personalStatsModal.style.display = 'none';
+        if (personalStatsModal) personalStatsModal.classList.remove('visible');
         if (shareFactionStatsToggleDashboard) { shareFactionStatsToggleDashboard.disabled = true; shareFactionStatsToggleDashboard.checked = false; }
         if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
         if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-        personalStatsModal.style.display = 'flex';
+        personalStatsModal.classList.add('visible');
 
         const selections = "profile,personalstats,battlestats,workstats";
         const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                            if (personalStatsModalBody) {
                                 personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
-                                personalStatsModal.style.display = 'flex';
+                                  personalStatsModal.classList.add('visible');
                             }
                             this.checked = false;
                         }
@@ -512,18 +512,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.checked = false;
                     });
                 }
-            } else {
-                if (personalStatsModal) personalStatsModal.style.display = 'none';
-            }
+          } else {
+                if (personalStatsModal) personalStatsModal.classList.remove('visible');
+            }
         });
     }
 
-    if (closePersonalStatsModalBtn && personalStatsModal) {
-        closePersonalStatsModalBtn.addEventListener('click', function() {
-            personalStatsModal.style.display = 'none';
-            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-        });
-    }
+   closePersonalStatsModalBtn.addEventListener('click', function() {
+            console.log("Personal Stats Modal close button clicked.");
+            personalStatsModal.classList.remove('visible');
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        });
 
     if (shareFactionStatsToggleDashboard && auth && db) {
         shareFactionStatsToggleDashboard.addEventListener('change', async function() {
@@ -536,8 +535,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
-    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.classList.add('visible'); }
+    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.classList.remove('visible'); if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
