@@ -684,30 +684,33 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             // This 'if' condition ensures we only try to update faction if an API key is available
             if (profileDataToSave.tornApiKey) {
                 console.log('Profile saved. Triggering faction update...');
-                fetch('/.netlify/functions/update-user-faction', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        uid: user.uid,
-                        tornApiKey: profileDataToSave.tornApiKey, // Use the API key they just saved
-                    }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(errorData => {
-                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Faction update after profile save successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
-                })
-                .catch(error => {
-                    console.error('Faction update after profile save failed:', error.message);
-                });
+                // ADDED DELAY: Wait 1 second before calling Netlify function to help with Torn API rate limits
+                setTimeout(() => {
+                    fetch('/.netlify/functions/update-user-faction', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            uid: user.uid,
+                            tornApiKey: profileDataToSave.tornApiKey, // Use the API key they just saved
+                        }),
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Faction update after profile save successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
+                    })
+                    .catch(error => {
+                        console.error('Faction update after profile save failed:', error.message);
+                    });
+                }, 1000); // 1-second delay
             } else {
                 console.log('No Torn API key provided on profile save, skipping faction update.');
             }
@@ -754,33 +757,36 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     // Trigger Faction Update on Login, if API key is present
                     if (profile.tornApiKey) {
                         console.log('User logged in with API key. Triggering faction update...');
-                        fetch('/.netlify/functions/update-user-faction', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                uid: user.uid,
-                                tornApiKey: profile.tornApiKey, // Use the API key from the fetched profile
-                            }),
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(errorData => {
-                                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                                });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('Faction update successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
-                            // Optionally, update a UI element here if you display faction info
-                            // on the home page itself without a full refresh.
-                        })
-                        .catch(error => {
-                            console.error('Faction update failed:', error.message);
-                            // Log the error but don't disrupt user experience, as it's a background update
-                        });
+                        // ADDED DELAY: Wait 1 second before calling Netlify function to help with Torn API rate limits
+                        setTimeout(() => {
+                            fetch('/.netlify/functions/update-user-faction', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    uid: user.uid,
+                                    tornApiKey: profile.tornApiKey, // Use the API key from the fetched profile
+                                }),
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.json().then(errorData => {
+                                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                                    });
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('Faction update successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
+                                // Optionally, update a UI element here if you display faction info
+                                // on the home page itself without a full refresh.
+                            })
+                            .catch(error => {
+                                console.error('Faction update failed:', error.message);
+                                // Log the error but don't disrupt user experience, as it's a background update
+                            });
+                        }, 1000); // 1-second delay
                     }
                     // --- END OF CODE ALREADY ADDED HERE ---
 

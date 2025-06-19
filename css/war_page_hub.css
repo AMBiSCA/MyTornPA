@@ -67,7 +67,11 @@
     border-radius: 0 0 8px 8px; /* Rounded bottom corners */
     background-color: #2a2a2a; /* Content background */
     flex-grow: 1; /* Allow content to fill remaining height */
-    min-height: 400px; /* Ensure content area has some minimum height */
+    
+    /* NEW: Fixed height to prevent jolting */
+    height: 550px; /* Set a fixed height that accommodates most content */
+    overflow-y: auto; /* Add scrollbar if content exceeds fixed height */
+    
     box-sizing: border-box;
 }
 
