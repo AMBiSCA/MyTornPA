@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayRandomTip() { if (tornTipPlaceholderEl) { const tip = uselessTornTips[Math.floor(Math.random() * uselessTornTips.length)]; tornTipPlaceholderEl.textContent = "Torn Tip: " + tip; tornTipPlaceholderEl.style.display = 'block'; } }
 
     // --- Torn Time ---
-    function updateTornTime() { if (tornTimePlaceholder) { const now = new Date(); tornTimePlaceholder.textContent = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')}`; } }
+    function updateTornTime() { if (tornTimePlaceholder) { const now = new Date(); tornTimePlaceholder.textContent = `<span class="math-inline">\{String\(now\.getUTCHours\(\)\)\.padStart\(2, '0'\)\}\:</span>{String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')}`; } }
     if (tornTimePlaceholder) { updateTornTime(); setInterval(updateTornTime, 1000); }
 
     // --- Cooldowns and Timers ---
@@ -113,16 +113,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const h = Math.floor(secs / 3600);
         const m = Math.floor((secs % 3600) / 60);
         const s = Math.floor(secs % 60);
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        return `<span class="math-inline">\{String\(h\)\.padStart\(2, '0'\)\}\:</span>{String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
     function formatTimeAgo(tsSecs) {
         if (!tsSecs || tsSecs <= 0) return "a while ago";
         const diff = Math.floor(Date.now() / 1000) - tsSecs;
         if (diff < 2) return "just now"; if (diff < 60) return `${diff} sec ago`;
-        const mins = Math.floor(diff / 60); if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
-        const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
-        const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
+        const mins = Math.floor(diff / 60); if (mins < 60) return `<span class="math-inline">\{mins\} min</span>{mins === 1 ? "" : "s"} ago`;
+        const hrs = Math.floor(mins / 60); if (hrs < 24) return `<span class="math-inline">\{hrs\} hour</span>{hrs === 1 ? "" : "s"} ago`;
+        const days = Math.floor(hrs / 24); return `<span class="math-inline">\{days\} day</span>{days === 1 ? "" : "s"} ago`;
     }
 
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 element.classList.add("stat-value-blue");
             }
         } else {
-            element.textContent = (current == null || max == null) ? "N/A" : `${current}/${max}`;
+            element.textContent = (current == null || max == null) ? "N/A" : `<span class="math-inline">\{current\}/</span>{max}`;
             if (element.textContent !== "N/A") {
                 if (elementId === "nerveStat") element.classList.add("stat-value-red");
                 else if (elementId === "energyStat") element.classList.add("stat-value-green");
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorEl = document.getElementById('quickStatsError'); if (errorEl) errorEl.textContent = '';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
         if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = true; togglePersonalStatsCheckbox.checked = false; }
-        if (personalStatsModal) personalStatsModal.classList.remove('visible');
+        if (personalStatsModal) personalStatsModal.classList.remove('visible'); // CORRECTED
         if (shareFactionStatsToggleDashboard) { shareFactionStatsToggleDashboard.disabled = true; shareFactionStatsToggleDashboard.checked = false; }
         if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
         if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
@@ -236,10 +236,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-        personalStatsModal.classList.add('visible');
+        personalStatsModal.classList.add('visible'); // CORRECTED
 
         const selections = "profile,personalstats,battlestats,workstats";
-        const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+        const apiUrl = `https://api.torn.com/user/?selections=<span class="math-inline">\{selections\}&key\=</span>{apiKey}&comment=MyTornPA_Modal`;
 
         function formatTcpAnniversaryDate(dateObject) {
             if (!dateObject) return 'N/A';
@@ -308,6 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Error fetching/displaying personal stats in modal:", error);
             personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
+            personalStatsModal.classList.add('visible'); // CORRECTED
         }
     }
 
@@ -355,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const selections = "bars,cooldowns,travel,profile";
-            const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_HomeDashboard`;
+            const apiUrl = `https://api.torn.com/user/?selections=<span class="math-inline">\{selections\}&key\=</span>{apiKey}&comment=MyTornPA_HomeDashboard`;
             console.log(`Fetching dashboard data (selections: ${selections}, key hidden)`);
 
             const response = await fetch(apiUrl);
@@ -445,12 +446,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
-            // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
-            // It safely checks for the nested faction object and uses the correct property names.
             const factionData = data?.profile?.faction || data?.faction || null;
             
             if (factionData) {
-                // These keys (faction_id, faction_name) now correctly match the API response.
                 const updatePayload = {
                     uid: user.uid,
                     faction_id: factionData.faction_id ?? null,
@@ -482,7 +480,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.warn("No faction data found in API response to update.");
             }
-            // --- *** END OF CORRECTED SECTION *** ---
 
         } catch (error) {
             console.error("Error in fetchAllRequiredData:", error);
@@ -501,9 +498,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (doc.exists && doc.data().tornApiKey) {
                             fetchDataForPersonalStatsModal(doc.data().tornApiKey, doc.data());
                         } else {
-                           if (personalStatsModalBody) {
+                            if (personalStatsModalBody) {
                                 personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
-                                  personalStatsModal.classList.add('visible');
+                                personalStatsModal.classList.add('visible'); // CORRECTED
                             }
                             this.checked = false;
                         }
@@ -512,17 +509,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.checked = false;
                     });
                 }
-          } else {
-                if (personalStatsModal) personalStatsModal.classList.remove('visible');
-            }
+            } else {
+                if (personalStatsModal) personalStatsModal.classList.remove('visible'); // CORRECTED
+            }
         });
     }
 
-   closePersonalStatsModalBtn.addEventListener('click', function() {
-            console.log("Personal Stats Modal close button clicked.");
-            personalStatsModal.classList.remove('visible');
-            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-        });
+    if (closePersonalStatsModalBtn && personalStatsModal) {
+        closePersonalStatsModalBtn.addEventListener('click', function() {
+            console.log("Personal Stats Modal close button clicked.");
+            personalStatsModal.classList.remove('visible'); // CORRECTED
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        });
+    }
 
     if (shareFactionStatsToggleDashboard && auth && db) {
         shareFactionStatsToggleDashboard.addEventListener('change', async function() {
@@ -535,8 +534,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.classList.add('visible'); }
-    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.classList.remove('visible'); if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; } // THIS LINE IS THE PROBLEM
+    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } } // THIS LINE IS THE PROBLEM
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
@@ -571,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const profileDataToSave = {
                 preferredName: preferredNameVal,
                 tornApiKey: profileSetupApiKeyInput.value.trim() || null,
-                tornProfileId: profileSetupProfileIdInput.value.trim() || null,
+                tornProfileId: profileSetupProfileIdIdInput.value.trim() || null,
                 tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
                 profileSetupComplete: true,
                 shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
