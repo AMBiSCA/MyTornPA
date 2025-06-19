@@ -36,7 +36,7 @@
     /* Styles for the tab buttons container */
     display: flex;
     justify-content: space-around;
-    margin-bottom: 15px; /* NEW: Reduced bottom margin */
+    margin-bottom: 0; /* NEW: Reduced bottom margin */
     border-bottom: 2px solid #333;
     flex-wrap: wrap;
     margin-top: 0; /* NEW: Remove top margin to move higher */
@@ -81,7 +81,8 @@
     height: 600px; /* NEW: Increased fixed height for smoother content flow */
     overflow-y: auto; 
     box-sizing: border-box;
-    margin-top: 0; /* NEW: Remove top margin */
+    margin-top: 0;
+    padding-top: 0;/* NEW: Remove top margin */
 }
 
 .tab-pane {
