@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     element.textContent = "No 😁";
                     element.classList.add("stat-value-ok");
                 } else {
-                    element.textContent = "OK �";
+                    element.textContent = "OK 😊";
                     element.classList.add("stat-value-ok");
                 }
             } else {
@@ -240,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const selections = "profile,personalstats,battlestats,workstats";
         const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
-        console.log("Fetching Personal Stats Modal data from API (key hidden for log)");
 
         function formatTcpAnniversaryDate(dateObject) {
             if (!dateObject) return 'N/A';
@@ -250,7 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (dateObject && typeof dateObject.toDate === 'function') {
                 jsDate = dateObject.toDate();
             } else {
-                console.warn("formatTcpAnniversaryDate: input was not a Date or convertible Firestore Timestamp. Value:", dateObject);
                 return 'N/A';
             }
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -260,7 +258,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(apiUrl);
             const data = await response.json();
-            console.log("Personal Stats Modal API Response (Torn Data):", data);
 
             if (!response.ok) throw new Error(`API Error ${response.status}: ${data?.error?.error || response.statusText}`);
             if (data.error) throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
@@ -272,11 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let xanaxDisplay = 'N/A';
             if (data.personalstats && data.personalstats.xantaken !== undefined) {
-                if (typeof data.personalstats.xantaken === 'number') {
-                    xanaxDisplay = data.personalstats.xantaken.toLocaleString();
-                } else {
-                    xanaxDisplay = data.personalstats.xantaken;
-                }
+                xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
             }
             htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
 
@@ -285,10 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             htmlContent += '<h4>Battle Stats</h4>';
             const bsObject = data.battlestats;
-            let battleStatsDisplayed = false;
-
-            if (bsObject && typeof bsObject.strength === 'number' && typeof bsObject.defense === 'number' && typeof bsObject.speed === 'number' && typeof bsObject.dexterity === 'number') {
-                console.log("Displaying Battle Stats from nested 'battlestats' object.");
+            if (bsObject && typeof bsObject.strength === 'number') {
                 const effStr = Math.floor(bsObject.strength * (1 + (bsObject.strength_modifier || 0) / 100));
                 const effDef = Math.floor(bsObject.defense * (1 + (bsObject.defense_modifier || 0) / 100));
                 const effSpd = Math.floor(bsObject.speed * (1 + (bsObject.speed_modifier || 0) / 100));
@@ -300,64 +290,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsObject.speed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.speed_modifier || 0}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsObject.dexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.dexterity_modifier || 0}%) Eff: ${effDex.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
-                battleStatsDisplayed = true;
-            }
-            else if (typeof data.strength === 'number' && typeof data.defense === 'number' && typeof data.speed === 'number' && typeof data.dexterity === 'number') {
-                console.log("Displaying Battle Stats from top-level individual fields as 'battlestats' object was missing/invalid.");
-                const strength_modifier = data.strength_modifier || 0;
-                const defense_modifier = data.defense_modifier || 0;
-                const speed_modifier = data.speed_modifier || 0;
-                const dexterity_modifier = data.dexterity_modifier || 0;
-
-                const effStr = Math.floor(data.strength * (1 + strength_modifier / 100));
-                const effDef = Math.floor(data.defense * (1 + defense_modifier / 100));
-                const effSpd = Math.floor(data.speed * (1 + speed_modifier / 100));
-                const effDex = Math.floor(data.dexterity * (1 + dexterity_modifier / 100));
-                const totalBs = data.total || (data.strength + data.defense + data.speed + data.dexterity);
-
-                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${data.strength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strength_modifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${data.defense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defense_modifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${data.speed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speed_modifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${data.dexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterity_modifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
-                battleStatsDisplayed = true;
-            }
-
-            if (!battleStatsDisplayed) {
-                htmlContent += '<p>Battle stats data not available or in unexpected format.</p>';
-                console.warn("fetchDataForPersonalStatsModal: Could not find usable battle stats in 'battlestats' object or as top-level fields.");
+            } else {
+                htmlContent += '<p>Battle stats data not available.</p>';
             }
 
             htmlContent += '<h4>Work Stats</h4>';
-            const wsObject = data.workstats;
-            let workStatsDisplayed = false;
-
-            if (wsObject && typeof wsObject.manual_labor === 'number' && typeof wsObject.intelligence === 'number' && typeof wsObject.endurance === 'number') {
-                console.log("Displaying Work Stats from nested 'workstats' object.");
+            const wsObject = data.workstats || data.job;
+            if (wsObject && typeof wsObject.manual_labor === 'number') {
                 htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${wsObject.manual_labor.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${wsObject.intelligence.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${wsObject.endurance.toLocaleString()}</span></p>`;
-                workStatsDisplayed = true;
-            }
-            else if (typeof data.manual_labor === 'number' && typeof data.intelligence === 'number' && typeof data.endurance === 'number') {
-                console.log("Displaying Work Stats from top-level individual fields as 'workstats' object was missing/invalid.");
-                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${data.manual_labor.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${data.intelligence.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${data.endurance.toLocaleString()}</span></p>`;
-                workStatsDisplayed = true;
-            }
-            else if (data.job && typeof data.job.manual_labor === 'number' && typeof data.job.intelligence === 'number' && typeof data.job.endurance === 'number') {
-                console.log("Displaying Work Stats from nested 'job' object.");
-                htmlContent += `<p><strong>Position:</strong> <span class="stat-value-api">${data.job.position || 'N/A'} at ${data.job.company_name || 'N/A'}</span></p>`;
-                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${data.job.manual_labor.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${data.job.intelligence.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${data.job.endurance.toLocaleString()}</span></p>`;
-                workStatsDisplayed = true;
-            }
-
-            if (!workStatsDisplayed) {
-                htmlContent += '<p>Work stats data not available or in unexpected format.</p>';
-                console.warn("fetchDataForPersonalStatsModal: Could not find usable work stats in 'workstats' object, as top-level fields, or in 'job' object.");
+            } else {
+                htmlContent += '<p>Work stats data not available.</p>';
             }
 
             personalStatsModalBody.innerHTML = htmlContent;
@@ -501,7 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
-
             // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
             // It safely checks for the nested faction object and uses the correct property names.
             const factionData = data?.profile?.faction || data?.faction || null;
@@ -537,7 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Faction update via Netlify function failed:', error.message);
                 });
             } else {
-                 console.warn("No faction data found in API response to update.");
+                console.warn("No faction data found in API response to update.");
             }
             // --- *** END OF CORRECTED SECTION *** ---
 
@@ -763,3 +706,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
+});
