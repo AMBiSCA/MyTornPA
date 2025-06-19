@@ -1,0 +1,492 @@
+/* ==========================================================================
+   War Page Hub Specific Styles (war_page_hub.css)
+   ========================================================================== */
+
+/* Overall Container for the War Page Hub */
+#warPageHubContainer {
+    /* Styles for the main container */
+    background-color: #1e1e1e; /* Darker background */
+    color: #f0f0f0; /* Light text */
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+    width: 90%; /* Ensure it doesn't take full width of body content wrapper */
+    max-width: 1200px; /* Limit overall width */
+    box-sizing: border-box; /* Include padding/border in width */
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack content vertically */
+    gap: 20px; /* Space between main sections */
+}
+
+/* Script Title */
+.script-title {
+    /* Styles for the main title */
+    color: #e0a71a; /* Gold color */
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Text shadow */
+}
+
+/* Tab Navigation Styles */
+.tab-navigation {
+    /* Styles for the tab buttons container */
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #333; /* Darker border */
+    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+}
+
+.tab-button {
+    /* Styles for individual tab buttons */
+    background-color: #333; /* Dark background */
+    color: #f0f0f0; /* Light text */
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 120px; /* Minimum width for each tab */
+    text-align: center;
+}
+
+.tab-button:hover, .tab-button.active {
+    /* Hover and Active states */
+    background-color: #e0a71a; /* Gold background */
+    color: #1e1e1e; /* Dark text */
+}
+
+/* Tab Content Container */
+.tab-content-container {
+    /* Styles for the container holding tab contents */
+    padding: 20px;
+    border: 1px solid #333; /* Darker border */
+    border-radius: 0 0 8px 8px; /* Rounded bottom corners */
+    background-color: #2a2a2a; /* Content background */
+    flex-grow: 1; /* Allow content to fill remaining height */
+    min-height: 400px; /* Ensure content area has some minimum height */
+    box-sizing: border-box;
+}
+
+.tab-pane {
+    /* Styles for individual tab content areas */
+    display: none; /* Initially hide all tabs */
+    height: 100%; /* Ensure tab pane takes full height of container */
+}
+
+.tab-pane.active {
+    /* Show the active tab */
+    display: block;
+}
+
+/* War Announcement Section (Tab 1) */
+.war-announcement-section {
+    /* Styles for the announcement section */
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222; /* Darker background */
+    text-align: left;
+}
+
+.war-announcement-section h3 {
+    /* Styles for announcement headers */
+    color: #e0a71a;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.game-plan-display {
+    /* Styles for the game plan display */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    min-height: 100px; /* Ensure it has space */
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+    font-family: 'Courier New', Courier, monospace; /* Monospace for code-like plans */
+}
+
+.war-status-display {
+    /* Styles for the war status display */
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333; /* Darker background */
+    display: grid; /* Use grid for layout */
+    grid-template-columns: auto 1fr; /* Label and value */
+    gap: 8px 15px; /* Spacing between items */
+    align-items: center;
+}
+
+.war-status-display h4 {
+    /* Styles for war status headers */
+    color: #00a8ff; /* Blue color */
+    margin-bottom: 5px;
+    grid-column: 1 / -1; /* Span across all columns */
+    text-align: center;
+}
+
+.war-status-display span {
+    /* Styles for status values */
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Active Ops Controls Grid (Tab 2) */
+.ops-controls-grid {
+    /* Styles for the grid of controls */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive columns */
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222;
+}
+
+.ops-control-item {
+    /* Styles for individual control items */
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.ops-control-item label {
+    /* Styles for control labels */
+    color: #00a8ff; /* Blue color */
+    font-weight: bold;
+}
+
+.ops-control-item input[type="text"],
+.ops-control-item select,
+.ops-control-item button {
+    width: 100%; /* Full width within grid item */
+    box-sizing: border-box;
+}
+
+#quickAnnouncementInput {
+    margin-bottom: 0; /* Remove default input margin */
+}
+
+#postAnnouncementBtn {
+    margin-top: 5px; /* Add margin above button */
+}
+
+
+/* Enemy Targets List Section (Tab 2) */
+.enemy-targets-list-section {
+    margin-bottom: 20px;
+    background-color: #222; /* Panel background */
+    border: 1px solid #00a8ff; /* Theme border */
+    border-radius: 8px;
+    overflow: hidden; /* Contains child borders */
+}
+
+.enemy-targets-header {
+    display: grid;
+    grid-template-columns: 2fr 0.8fr 1fr 1.2fr 1fr 0.8fr 0.8fr; /* Adjusted column widths for better fit */
+    padding: 10px;
+    background-color: #00a8ff; /* Theme accent color for header */
+    color: #1e1e1e; /* Dark text on theme color */
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #1e1e1e;
+}
+
+.enemy-targets-header span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis for long text */
+}
+
+.enemy-targets-scroll-area {
+    max-height: 500px; /* Height for scrollability */
+    overflow-y: auto; /* Enable vertical scrollbar */
+    padding: 0;
+    margin: 0;
+}
+
+/* Custom scrollbar for enemy list (inherits from global) */
+.enemy-targets-scroll-area::-webkit-scrollbar { width: 10px; }
+.enemy-targets-scroll-area::-webkit-scrollbar-track { background: #1a1a1a; }
+.enemy-targets-scroll-area::-webkit-scrollbar-thumb { background-color: #007acc; border-radius: 5px; border: 2px solid #1a1a1a; }
+.enemy-targets-scroll-area::-webkit-scrollbar-thumb:hover { background-color: #00a8ff; }
+
+
+.enemy-target-row {
+    display: grid;
+    grid-template-columns: inherit; /* Inherit column definitions from header */
+    padding: 8px 10px;
+    border-bottom: 1px solid #333; /* Lighter separator */
+    align-items: center;
+    font-size: 0.9em;
+    text-align: center;
+    color: #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.enemy-target-row:hover {
+    background-color: #3a3a3a; /* Slight highlight on hover */
+}
+
+.enemy-target-row:last-child {
+    border-bottom: none;
+}
+
+/* Specific styling for columns within target row */
+.enemy-target-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 3px; /* Small horizontal padding */
+}
+
+/* Coloring for Difficulty and Status */
+.difficulty-easy { color: #28a745; font-weight: bold; } /* Green */
+.difficulty-moderately-difficult { color: #ffc107; font-weight: bold; } /* Yellow/Orange */
+.difficulty-difficult { color: #dc3545; font-weight: bold; } /* Red */
+.difficulty-extremely-easy { color: #17a2b8; font-weight: bold; } /* Cyan */
+.difficulty-may-be-impossible { color: #6c757d; font-weight: bold; } /* Grey */
+
+.status-okay { color: #28a745; }
+.status-hospital { color: #dc3545; }
+.status-jail { color: #ffc107; }
+.status-traveling { color: #17a2b8; }
+.status-offline { color: #6c757d; }
+
+/* Styles for Attack/Claim buttons inside table rows */
+.enemy-target-row .action-btn {
+    padding: 4px 8px;
+    font-size: 0.8em;
+    height: auto;
+    min-width: unset;
+    max-width: unset;
+    border-radius: 3px;
+    background-color: #007bff; /* Blue */
+    color: white;
+}
+.enemy-target-row .action-btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* Alert Buttons Grid (Tab 2) */
+.alert-buttons-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+}
+
+.alert-btn {
+    background-color: #d9534f; /* Red color */
+    color: #f0f0f0; /* Light text */
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    flex-grow: 1; /* Allow buttons to grow */
+    min-width: 150px;
+    text-align: center;
+}
+
+.alert-btn:hover {
+    background-color: #c9302c; /* Darker red */
+}
+
+/* Faction Stats Summary (Tab 2) */
+.faction-stats-summary {
+    padding: 15px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    display: grid; /* Use grid for layout */
+    grid-template-columns: 1fr 1fr; /* Two columns for stats */
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.faction-stats-summary p {
+    margin: 0;
+    text-align: left;
+    color: #e0a71a; /* Gold color for labels */
+    font-weight: bold;
+}
+
+.faction-stats-summary p span {
+    color: #f0f0f0; /* Light text for values */
+    font-weight: normal;
+    margin-left: 8px; /* Space between label and value */
+}
+
+
+/* Friendly Members List (Tab 3) */
+.friendly-members-scroll-area {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #00a8ff; /* Theme border */
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #222;
+}
+
+.friendly-member-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr; /* Example columns for Name, E, Nerve, Status */
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+    align-items: center;
+    font-size: 0.9em;
+    color: #f0f0f0;
+}
+.friendly-member-row:last-child {
+    border-bottom: none;
+}
+.friendly-member-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+/* Styles for member stats (e.g., green for high E, red for low life) */
+.member-energy-high { color: #28a745; }
+.member-energy-low { color: #ffc107; }
+.member-hospital { color: #dc3545; }
+.member-offline { color: #6c757d; }
+
+
+/* Leader Configuration Section (Tab 4) */
+.config-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #00a8ff; /* Theme border */
+    border-radius: 8px;
+    background-color: #222;
+    text-align: left;
+}
+
+.config-section h4 {
+    color: #e0a71a;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.config-section input[type="text"],
+.config-section textarea,
+.config-section select {
+    margin-bottom: 10px;
+}
+
+.config-section .action-btn {
+    width: auto; /* Allow button to size to content */
+    align-self: flex-start; /* Align button to start if in flex column */
+    margin-top: 0; /* Adjust margin from base btn */
+}
+
+/* Specific styling for designated admins list */
+#designatedAdminsList, #watchListDisplay {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#designatedAdminsList li, #watchListDisplay li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #444;
+}
+#designatedAdminsList li:last-child, #watchListDisplay li:last-child {
+    border-bottom: none;
+}
+#designatedAdminsList .remove-btn, #watchListDisplay .remove-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s ease;
+}
+#designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
+    background-color: #c82333;
+}
+
+
+/* Responsive Media Queries for the War Hub Container */
+@media (max-width: 992px) {
+    #warPageHubContainer {
+        padding: 15px;
+        gap: 15px;
+    }
+    .ops-controls-grid {
+        grid-template-columns: 1fr; /* Stack controls vertically */
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.5fr 0.5fr 1fr 1fr 0.8fr 0.8fr 0.8fr; /* Adjust columns for smaller screens */
+        font-size: 0.85em;
+    }
+    .faction-stats-summary {
+        grid-template-columns: 1fr; /* Stack stats vertically */
+    }
+}
+
+@media (max-width: 768px) {
+    .tab-navigation {
+        flex-direction: column; /* Stack tabs vertically */
+    }
+    .tab-button {
+        border-radius: 5px; /* Full rounded corners when stacked */
+        margin-bottom: 5px;
+    }
+    .tab-content-container {
+        border-radius: 8px; /* Full rounded corners */
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr; /* Further adjust columns */
+        font-size: 0.8em;
+    }
+    .alert-buttons-grid {
+        flex-direction: column; /* Stack alert buttons vertically */
+    }
+    .alert-btn {
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    #warPageHubContainer {
+        padding: 10px;
+        gap: 10px;
+    }
+    .script-title {
+        font-size: 1.6em;
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr; /* Even tighter columns */
+        font-size: 0.75em;
+    }
+    .enemy-target-row .action-btn {
+        padding: 2px 4px;
+        font-size: 0.7em;
+    }
+}
