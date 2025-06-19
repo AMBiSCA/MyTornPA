@@ -138,6 +138,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 .modal-profile-setup .form-row .form-group { flex: 1; margin-bottom: 0; }
 #personalStatsModal .modal-content-box { max-width: 650px; }
 
+#personalStatsModal {
+    justify-content: center;
+    align-items: center;
+}
+
 .modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; /* Reduced from 10px */ color: #00a8ff; text-align: center; font-size: 1.4em;} /* Reduced font-size from 1.4em */
 .modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; /* Reduced from 20px */ font-weight: bold; }
 
