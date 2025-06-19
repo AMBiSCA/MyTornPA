@@ -18,8 +18,10 @@
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
     gap: 0px; /* NEW: Reduced space between main sections */
-    min-height: calc(100vh - 170px); /* Adjusted: Increased subtracted value to make container slightly shorter */
+    min-height: calc(100vh - 170px);
+	border: 3px solid black;
 }
+
 /* Script Title */
 .script-title {
     /* Styles for the main title */
