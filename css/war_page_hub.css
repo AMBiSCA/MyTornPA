@@ -38,7 +38,7 @@
     display: flex;
     justify-content: space-around;
     margin-bottom: 0; /* NEW: Reduced bottom margin */
-    border-bottom: 2px solid #333;
+    border-bottom: none;
     flex-wrap: wrap;
     margin-top: 0;
 
@@ -87,7 +87,7 @@
     overflow-y: auto; 
     box-sizing: border-box;
     margin-top: 0;
-    padding-top: 0px;/* NEW: Remove top margin */
+    padding-top: 10px;/* NEW: Remove top margin */
 }
 
 .tab-pane {
