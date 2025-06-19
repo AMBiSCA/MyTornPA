@@ -406,9 +406,10 @@
 
 
 /* Leader Configuration Section (Tab 4) */
+/* Leader Configuration Section (Tab 4) - UPDATED FOR GRID LAYOUT */
 .config-section {
-    margin-bottom: 15px; /* NEW: Reduced margin */
-    padding: 10px; /* NEW: Reduced padding */
+    margin-bottom: 0px; /* IMPORTANT: Removed vertical margin to allow grid gap to manage spacing */
+    padding: 10px; /* Kept current padding, adjust if needed for more snug fit */
     border: 1px solid #00a8ff;
     border-radius: 8px;
     background-color: #222;
@@ -544,33 +545,7 @@ select[multiple] {
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
 }
-/* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
-#leader-config-tab {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Creates two equal-width columns for desktop */
-    gap: 20px; /* Adds space between grid items (both rows and columns) */
-    padding: 10px; /* Adds a little internal padding to the grid container itself */
-    box-sizing: border-box; /* Ensures padding is included in the element's total width/height */
-}
 
-/* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
-/* REMINDER: Add class="designate-admins-section" to that specific <div> in your HTML */
-.config-section.designate-admins-section {
-    grid-column: auto; /* Ensures it occupies a single column, overriding any potential previous span */
-}
-
-/* Responsive Adjustments for Smaller Screens */
-@media (max-width: 992px) { /* You can adjust this breakpoint (e.g., 768px) */
-    #leader-config-tab {
-        grid-template-columns: 1fr; /* On smaller screens, stack into a single column */
-    }
-}
-
-/* Optional: Fine-tune vertical spacing within the config-sections themselves if needed */
-.config-section {
-    margin-bottom: 0px; /* Ensure no extra margin between sections within the grid */
-    /* padding: 8px; */ /* You can uncomment and adjust this if the internal padding of each box needs tweaking */
-}
 
 @media (max-width: 480px) {
     .main-content-wrapper { padding-top: 75px; } 
