@@ -517,13 +517,24 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
 
         // --- NEW CODE STARTS HERE (Faction update from existing data) ---
-        // After successfully fetching all data from Torn, extract faction info and send to Netlify Function
-        const currentFactionData = data.profile && data.profile.faction ? {
-            factionID: data.profile.faction.ID, // Use 'ID' as per your log
-            factionName: data.profile.faction.name
-            // You can add faction_tag if you want to store that too
-            // factionTag: data.profile.faction.faction_tag
-        } : { factionID: null, factionName: null }; // Set to null if no faction data found
+        const currentFactionData = {
+            factionID: null,
+            factionName: null,
+            factionPosition: null // Initialize position
+        };
+
+        if (data.profile && data.profile.faction) {
+            const faction = data.profile.faction;
+            if (typeof faction.ID === 'number') { // Ensure ID is a number
+                currentFactionData.factionID = faction.ID;
+            }
+            if (typeof faction.name === 'string') { // Ensure name is a string
+                currentFactionData.factionName = faction.name;
+            }
+            if (typeof faction.position === 'string') { // Ensure position is a string
+                currentFactionData.factionPosition = faction.position;
+            }
+        }
 
         console.log('Sending current faction data to Netlify function:', currentFactionData);
 
@@ -538,6 +549,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     uid: user.uid,
                     factionID: currentFactionData.factionID,
                     factionName: currentFactionData.factionName,
+                    factionPosition: currentFactionData.factionPosition, // Pass position
                 }),
             })
             .then(response => {
@@ -549,7 +561,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 return response.json();
             })
             .then(data => {
-                console.log('Faction update via provided data successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
+                console.log('Faction update via provided data successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName}, Position: ${data.factionPosition})`);
             })
             .catch(error => {
                 console.error('Faction update via provided data failed:', error.message);
@@ -714,7 +726,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
             // The call to fetchAllRequiredData will now handle the faction update
             if (profileDataToSave.tornApiKey || (currentDoc.exists && currentDoc.data().tornApiKey && !profileDataToSave.hasOwnProperty('tornApiKey')) ) { // check if API key is available after save
-                fetchAllRequiredData(user, db);
+                fetchAllRequiredData(user, db); // This will now trigger the faction update indirectly
                 if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
             } else {
                 clearQuickStats();

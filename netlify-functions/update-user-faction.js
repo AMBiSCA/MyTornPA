@@ -34,14 +34,15 @@ exports.handler = async (event, context) => {
         };
     }
 
-    let uid, factionID, factionName; // Changed expected parameters
+    let uid, factionID, factionName, factionPosition; // Added factionPosition
 
     try {
         // Parse the request body
         const body = JSON.parse(event.body);
         uid = body.uid;
-        factionID = body.factionID;     // New parameter
-        factionName = body.factionName; // New parameter
+        factionID = body.factionID;
+        factionName = body.factionName;
+        factionPosition = body.factionPosition; // Get factionPosition
 
         // Validate required parameters (uid is always required)
         if (!uid) {
@@ -70,12 +71,13 @@ exports.handler = async (event, context) => {
         };
 
         // Update faction details if they were provided (can be null if user left faction)
-        updateData.factionID = factionID !== undefined ? factionID : null; // Use provided factionID, default to null
-        updateData.factionName = factionName !== undefined ? factionName : null; // Use provided factionName, default to null
+        updateData.factionID = factionID !== undefined ? factionID : null;
+        updateData.factionName = factionName !== undefined ? factionName : null;
+        updateData.factionPosition = factionPosition !== undefined ? factionPosition : null; // Save factionPosition
 
         await userRef.update(updateData); // Use update to only modify specified fields
 
-        console.log(`Successfully updated faction data for UID: ${uid}. Faction ID: ${factionID}, Faction Name: ${factionName}`);
+        console.log(`Successfully updated faction data for UID: ${uid}. Faction ID: ${factionID}, Faction Name: ${factionName}, Position: ${factionPosition}`);
 
         return {
             statusCode: 200,
@@ -83,6 +85,7 @@ exports.handler = async (event, context) => {
                 message: 'Faction data updated successfully.',
                 factionId: factionID,
                 factionName: factionName,
+                factionPosition: factionPosition,
             }),
         };
 
