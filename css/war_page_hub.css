@@ -82,7 +82,7 @@
     overflow-y: auto; 
     box-sizing: border-box;
     margin-top: 0;
-    padding-top: 0;/* NEW: Remove top margin */
+    padding-top: 20px;/* NEW: Remove top margin */
 }
 
 .tab-pane {
