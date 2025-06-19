@@ -23,7 +23,7 @@ main.hub-layout-final {
     display: grid;
     grid-template-columns: minmax(280px, 320px) minmax(280px, 320px);
     justify-content: center;
-    gap: 1250px;
+    gap: 1225px;
     align-items: flex-start;
     box-sizing: border-box;
     font-weight: bold;
