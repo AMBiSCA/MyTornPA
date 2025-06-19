@@ -125,20 +125,183 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
-        // This is a large, complex function. We assume it's working as intended.
-        // To keep the response focused, its original body is maintained here.
-        // ... (original body of updateStatDisplay)
+        const element = document.getElementById(elementId);
+        if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
+        if (activeCooldownIntervals[elementId]) clearInterval(activeCooldownIntervals[elementId]);
+        delete activeCooldownIntervals[elementId]; delete activeCooldownEndTimes[elementId];
+        element.className = 'value';
+        const classesToRemove = ["stat-value-green", "stat-value-yellow", "stat-value-red", "stat-value-blue", "stat-value-orange", "stat-value-ok", "stat-value-cooldown-active"];
+        element.classList.remove(...classesToRemove);
+
+        if (isCooldown) {
+            const initialRemainingSeconds = Number(valueFromApi);
+            if (initialRemainingSeconds <= 0) {
+                if (elementId === "hospitalStat" && prefixText.toUpperCase() === "YES") {
+                    element.textContent = "No 😁";
+                    element.classList.add("stat-value-ok");
+                } else {
+                    element.textContent = "OK 😊";
+                    element.classList.add("stat-value-ok");
+                }
+            } else {
+                activeCooldownEndTimes[elementId] = Math.floor(Date.now() / 1000) + initialRemainingSeconds;
+                const updateThisTimer = () => {
+                    const nowSeconds = Math.floor(Date.now() / 1000);
+                    const endTime = activeCooldownEndTimes[elementId];
+                    element.classList.remove("stat-value-ok", "stat-value-cooldown-active", "stat-value-red", "stat-value-blue");
+                    if (nowSeconds >= endTime) {
+                        if (elementId === "hospitalStat" && prefixText.toUpperCase() === "YES") {
+                            element.textContent = "No �";
+                            element.classList.add("stat-value-ok");
+                        } else {
+                            element.textContent = "OK 😊";
+                            element.classList.add("stat-value-ok");
+                        }
+                        clearInterval(activeCooldownIntervals[elementId]);
+                        delete activeCooldownIntervals[elementId]; delete activeCooldownEndTimes[elementId];
+                    } else {
+                        const remaining = endTime - nowSeconds;
+                        let displayValue = formatTimeRemaining(remaining);
+                        if (remaining <= 0) {
+                            if (elementId === "hospitalStat" && prefixText.toUpperCase() === "YES") {
+                                displayValue = "No 😁";
+                            } else {
+                                displayValue = "OK 😊";
+                            }
+                        }
+
+                        if (elementId === "hospitalStat" && prefixText.toUpperCase() === "YES") {
+                            displayValue = `Yes 😥 (${formatTimeRemaining(remaining)})`;
+                            element.classList.add("stat-value-red");
+                        } else {
+                            element.classList.add("stat-value-cooldown-active");
+                        }
+                        element.textContent = displayValue;
+                    }
+                };
+                updateThisTimer();
+                activeCooldownIntervals[elementId] = setInterval(updateThisTimer, 1000);
+            }
+        } else if (elementId === "travelStatus") {
+            element.textContent = String(valueFromApi);
+            const upperVal = String(valueFromApi).toUpperCase();
+            element.classList.remove("stat-value-orange", "stat-value-blue");
+            if (upperVal.startsWith("YES")) element.classList.add("stat-value-orange");
+            else if (upperVal.includes("NO") || upperVal === "N/A") element.classList.add("stat-value-blue");
+        } else if (elementId === "hospitalStat") {
+            element.textContent = String(valueFromApi);
+            element.classList.remove("stat-value-ok", "stat-value-red", "stat-value-blue");
+
+            if (valueFromApi === "No 😁") {
+                element.classList.add("stat-value-ok");
+            } else if (valueFromApi === "Yes 😥") {
+                element.classList.add("stat-value-red");
+            } else {
+                element.classList.add("stat-value-blue");
+            }
+        } else {
+            element.textContent = (current == null || max == null) ? "N/A" : `${current}/${max}`;
+            if (element.textContent !== "N/A") {
+                if (elementId === "nerveStat") element.classList.add("stat-value-red");
+                else if (elementId === "energyStat") element.classList.add("stat-value-green");
+                else if (elementId === "happyStat") element.classList.add("stat-value-yellow");
+                else if (elementId === "lifeStat") element.classList.add("stat-value-blue");
+            }
+        }
     }
 
     function clearQuickStats() {
-        // ... (original body of clearQuickStats)
+        console.log("home.js: Clearing quick stats.");
+        updateStatDisplay("nerveStat", "--", "--"); updateStatDisplay("energyStat", "--", "--");
+        updateStatDisplay("happyStat", "--", "--"); updateStatDisplay("lifeStat", "--", "--");
+        updateStatDisplay("travelStatus", null, null, false, "N/A");
+        updateStatDisplay("hospitalStat", null, null, false, "N/A");
+        const cooldownIds = ["drugCooldownStat", "boosterCooldownStat"];
+        cooldownIds.forEach(id => updateStatDisplay(id, 0, 0, true, 0));
+        const errorEl = document.getElementById('quickStatsError'); if (errorEl) errorEl.textContent = '';
+        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+        if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = true; togglePersonalStatsCheckbox.checked = false; }
+        if (personalStatsModal) personalStatsModal.style.display = 'none';
+        if (shareFactionStatsToggleDashboard) { shareFactionStatsToggleDashboard.disabled = true; shareFactionStatsToggleDashboard.checked = false; }
+        if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
+        if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
     async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
-        // ... (original body of fetchDataForPersonalStatsModal)
+        if (!personalStatsModal || !personalStatsModalBody) {
+            console.error("Personal Stats Modal elements not found!");
+            if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+            return;
+        }
+        personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
+        personalStatsModal.style.display = 'flex';
+
+        const selections = "profile,personalstats,battlestats,workstats";
+        const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+        console.log("Fetching Personal Stats Modal data from API (key hidden for log)");
+
+        function formatTcpAnniversaryDate(dateObject) {
+            if (!dateObject) return 'N/A';
+            let jsDate;
+            if (dateObject instanceof Date) {
+                jsDate = dateObject;
+            } else if (dateObject && typeof dateObject.toDate === 'function') {
+                jsDate = dateObject.toDate(); // Correctly convert Firestore Timestamp to JS Date
+            } else {
+                return 'N/A';
+            }
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return jsDate.toLocaleDateString(undefined, options);
+        }
+
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            if (!response.ok) throw new Error(`API Error ${response.status}: ${data?.error?.error || response.statusText}`);
+            if (data.error) throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+
+            let htmlContent = '<h4>User Information</h4>';
+            htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
+            htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
+            htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
+            htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${(data.personalstats && data.personalstats.xantaken) ? data.personalstats.xantaken.toLocaleString() : 'N/A'}</span></p>`;
+            const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
+            htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
+
+            htmlContent += '<h4>Battle Stats</h4>';
+            const bsObject = data.battlestats;
+            if (bsObject && typeof bsObject.strength === 'number') {
+                const effStr = Math.floor(bsObject.strength * (1 + (bsObject.strength_modifier || 0) / 100));
+                const effDef = Math.floor(bsObject.defense * (1 + (bsObject.defense_modifier || 0) / 100));
+                const effSpd = Math.floor(bsObject.speed * (1 + (bsObject.speed_modifier || 0) / 100));
+                const effDex = Math.floor(bsObject.dexterity * (1 + (bsObject.dexterity_modifier || 0) / 100));
+                const totalBs = bsObject.total || (bsObject.strength + bsObject.defense + bsObject.speed + bsObject.dexterity);
+
+                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsObject.strength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.strength_modifier || 0}%) Eff: ${effStr.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsObject.defense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.defense_modifier || 0}%) Eff: ${effDef.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsObject.speed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.speed_modifier || 0}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsObject.dexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.dexterity_modifier || 0}%) Eff: ${effDex.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
+            } else {
+                htmlContent += '<p>Battle stats data not available.</p>';
+            }
+
+            htmlContent += '<h4>Work Stats</h4>';
+            const wsObject = data.workstats || data.job;
+            if (wsObject && typeof wsObject.manual_labor === 'number') {
+                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${wsObject.manual_labor.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${wsObject.intelligence.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${wsObject.endurance.toLocaleString()}</span></p>`;
+            } else {
+                htmlContent += '<p>Work stats data not available.</p>';
+            }
+
+            personalStatsModalBody.innerHTML = htmlContent;
+        } catch (error) {
+            personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
+        }
     }
 
-    // REVISED fetchAllRequiredData function
     async function fetchAllRequiredData(user, dbInstance) {
         if (!user || !dbInstance) {
             console.error("fetchAllRequiredData: User or DB not provided.");
@@ -148,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const quickStatsErrorEl = document.getElementById('quickStatsError');
         if (quickStatsErrorEl) quickStatsErrorEl.textContent = 'Loading data...';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
-
+        
         try {
             const userProfileRef = dbInstance.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
@@ -176,19 +339,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(errorMsg);
             }
 
-            // --- ALL YOUR ORIGINAL DATA DISPLAY LOGIC IS PRESERVED ---
-            // Example:
             const barDataSource = data.bars || data;
             updateStatDisplay("nerveStat", barDataSource.nerve?.current, barDataSource.nerve?.maximum);
-            // ... (rest of your original display logic)
+            updateStatDisplay("energyStat", barDataSource.energy?.current, barDataSource.energy?.maximum);
+            updateStatDisplay("happyStat", barDataSource.happy?.current, barDataSource.happy?.maximum);
+            updateStatDisplay("lifeStat", barDataSource.life?.current, barDataSource.life?.maximum);
 
+            if (data.cooldowns) {
+                updateStatDisplay("drugCooldownStat", 0, 0, true, data.cooldowns.drug || 0);
+                updateStatDisplay("boosterCooldownStat", 0, 0, true, data.cooldowns.booster || 0);
+            }
+            
+            const statusObject = (data.profile && data.profile.status) || data.status;
+            let determinedHospitalStatusText = "N/A";
+            if(statusObject) {
+                const hospitalUntil = statusObject.until || 0;
+                const nowSecondsApi = Math.floor(Date.now() / 1000);
+                if ((statusObject.state || "").toLowerCase() === "hospital" || (statusObject.description || "").toLowerCase().includes("in hospital")) {
+                    if (hospitalUntil > nowSecondsApi) {
+                        updateStatDisplay("hospitalStat", null, null, true, hospitalUntil - nowSecondsApi, "Yes");
+                        determinedHospitalStatusText = ""; // Handled by cooldown
+                    } else {
+                         determinedHospitalStatusText = "Yes 😥";
+                    }
+                } else {
+                     determinedHospitalStatusText = "No 😁";
+                }
+            }
+            if(determinedHospitalStatusText) updateStatDisplay("hospitalStat", null, null, false, determinedHospitalStatusText);
+
+            if (data.travel && data.travel.destination) {
+                updateStatDisplay("travelStatus", null, null, false, data.travel.time_left > 0 ? `Yes (${data.travel.destination})` : `No (${data.travel.destination})`);
+            } else {
+                updateStatDisplay("travelStatus", null, null, false, "No");
+            }
             if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
-
+            
             // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
             // It correctly finds the nested faction data and prepares it.
             const factionData = data?.faction || (data?.profile && data.profile.faction) || null;
             
             if (factionData) {
+                // These keys now match the snake_case keys from the API response
                 const updatePayload = {
                     uid: user.uid,
                     faction_id: factionData.faction_id ?? null,
@@ -198,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log('Sending corrected faction data to Netlify function:', updatePayload);
 
-                // Call the Netlify function to update Firebase in the background
                 fetch('/.netlify/functions/update-user-faction', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -215,23 +406,53 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Error in fetchAllRequiredData:", error);
             clearQuickStats();
-            if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error: ${error.message}. Check API key.`;
+            if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error: ${error.message}`;
         }
     }
 
 
-    // --- All original event listeners and profile setup logic are preserved below ---
-
     if (togglePersonalStatsCheckbox && personalStatsLabel) {
-        // ... (original listener logic)
+        togglePersonalStatsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                const user = auth.currentUser;
+                if (user && db) {
+                    db.collection('userProfiles').doc(user.uid).get().then(doc => {
+                        if (doc.exists && doc.data().tornApiKey) {
+                            fetchDataForPersonalStatsModal(doc.data().tornApiKey, doc.data());
+                        } else {
+                           if (personalStatsModalBody) {
+                                personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
+                                personalStatsModal.style.display = 'flex';
+                            }
+                            this.checked = false;
+                        }
+                    }).catch(err => {
+                        console.error("Error fetching profile for stats modal:", err);
+                        this.checked = false;
+                    });
+                }
+            } else {
+                if (personalStatsModal) personalStatsModal.style.display = 'none';
+            }
+        });
     }
 
     if (closePersonalStatsModalBtn && personalStatsModal) {
-        // ... (original listener logic)
+        closePersonalStatsModalBtn.addEventListener('click', function() {
+            personalStatsModal.style.display = 'none';
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        });
     }
 
     if (shareFactionStatsToggleDashboard && auth && db) {
-        // ... (original listener logic)
+        shareFactionStatsToggleDashboard.addEventListener('change', async function() {
+            const user = auth.currentUser; if (!user || !db) return;
+            try {
+                await db.collection('userProfiles').doc(user.uid).set({ shareFactionStats: this.checked }, { merge: true });
+                console.log("Faction share preference updated:", this.checked);
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = this.checked;
+            } catch (error) { console.error("Error updating faction share preference:", error); }
+        });
     }
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
@@ -260,21 +481,146 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (saveProfileBtn && auth && db) {
         saveProfileBtn.addEventListener('click', async () => {
-             // ... (original complex save logic is preserved)
+            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) { if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.'; return; }
+            if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
+            const preferredNameVal = preferredNameInput.value.trim();
+            if (!preferredNameVal) { if (nameErrorEl) nameErrorEl.textContent = 'Name required.'; return; }
+            if (preferredNameVal.length > 10) { if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.'; return; }
+            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) { if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.'; return; }
+            const user = auth.currentUser;
+            const profileDataToSave = {
+                preferredName: preferredNameVal,
+                tornApiKey: profileSetupApiKeyInput.value.trim() || null,
+                tornProfileId: profileSetupProfileIdInput.value.trim() || null,
+                tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
+                profileSetupComplete: true,
+                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false
+            };
+
+            try {
+                const userProfileRef = db.collection('userProfiles').doc(user.uid);
+                const currentDoc = await userProfileRef.get();
+
+                if (currentDoc.exists && currentDoc.data().tcpRegisteredAt) {
+                    // Don't overwrite existing registration date
+                } else {
+                    profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
+                }
+
+                if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                    profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                    profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                }
+
+                await userProfileRef.set(profileDataToSave, { merge: true });
+                if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
+                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
+                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
+                hideProfileSetupModal();
+                if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+                
+                if (profileDataToSave.tornApiKey) {
+                    fetchAllRequiredData(user, db);
+                } else {
+                    clearQuickStats();
+                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+                }
+
+            } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
         });
     }
 
-    // --- Firebase Auth State Change Listener ---
     if (auth) {
         auth.onAuthStateChanged(async function(user) {
-            // ... (original complex auth state logic is preserved)
-            if(user) {
-                // ...
-                fetchAllRequiredData(user, db);
-                // ...
+            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
+            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
+            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+
+            if (user) {
+                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+
+                let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
+                if (db) {
+                    try {
+                        const doc = await db.collection('userProfiles').doc(user.uid).get();
+                        profile = doc.exists ? doc.data() : null;
+                        if (profile && profile.preferredName && profile.profileSetupComplete) {
+                            userDisplayName = profile.preferredName; showSetup = false;
+                            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
+                            if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
+                                lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
+                                lastLogonInfoEl.style.display = 'block';
+                                if(lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                                lastActiveTimeoutId = setTimeout(() => { if(lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                            } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
+                            db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                            if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+                        } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                    } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
+                if (showSetup) {
+                    if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
+                    if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+                    showProfileSetupModal(); clearQuickStats();
+                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+                } else {
+                    if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                    else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
+                    if (profile && profile.tornApiKey) {
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+                        fetchAllRequiredData(user, db);
+                    } else {
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                        clearQuickStats();
+                        if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
+                    }
+                }
+
+            } else { // User is signed out
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+                if (mainHomepageContent) mainHomepageContent.style.display = 'none';
+                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+
+                clearQuickStats();
+                if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+                if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+
+                const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
+                const currentPath = window.location.pathname.toLowerCase();
+                const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
+
+
+                if (!isPublicPage) {
+                    console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
+                    window.location.href = '../index.html';
+                } else {
+                    console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+                }
             }
         });
     } else { console.error("Firebase auth object not available for auth state listener."); }
+
+    if (logoutButtonHeader && auth) {
+        logoutButtonHeader.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log('User signed out.');
+            }).catch(error => {
+                console.error('Sign out error:', error);
+            });
+        });
+    }
 
     document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
         toggle.addEventListener('click', function() { this.classList.toggle('active');
@@ -283,3 +629,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
 });
+�
