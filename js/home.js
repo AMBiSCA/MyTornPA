@@ -1,3 +1,4 @@
+// js/home.js
 document.addEventListener('DOMContentLoaded', function() {
     console.log("home.js: DOMContentLoaded event fired. All systems go (hopefully)!");
 
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
         const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
     }
-    
+
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     element.textContent = "No 😁";
                     element.classList.add("stat-value-ok");
                 } else {
-                    element.textContent = "OK 😊";
+                    element.textContent = "OK �";
                     element.classList.add("stat-value-ok");
                 }
             } else {
@@ -190,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (upperVal.includes("NO") || upperVal === "N/A") element.classList.add("stat-value-blue");
         } else if (elementId === "hospitalStat") {
             element.textContent = String(valueFromApi);
+            const upperVal = String(valueFromApi).toUpperCase();
             element.classList.remove("stat-value-ok", "stat-value-red", "stat-value-blue");
 
             if (valueFromApi === "No 😁") {
@@ -246,8 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (dateObject instanceof Date) {
                 jsDate = dateObject;
             } else if (dateObject && typeof dateObject.toDate === 'function') {
-                // --- THIS IS THE FIX ---
-                // This correctly converts the Firestore Timestamp into a standard JS Date.
                 jsDate = dateObject.toDate();
             } else {
                 console.warn("formatTcpAnniversaryDate: input was not a Date or convertible Firestore Timestamp. Value:", dateObject);
@@ -288,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let battleStatsDisplayed = false;
 
             if (bsObject && typeof bsObject.strength === 'number' && typeof bsObject.defense === 'number' && typeof bsObject.speed === 'number' && typeof bsObject.dexterity === 'number') {
+                console.log("Displaying Battle Stats from nested 'battlestats' object.");
                 const effStr = Math.floor(bsObject.strength * (1 + (bsObject.strength_modifier || 0) / 100));
                 const effDef = Math.floor(bsObject.defense * (1 + (bsObject.defense_modifier || 0) / 100));
                 const effSpd = Math.floor(bsObject.speed * (1 + (bsObject.speed_modifier || 0) / 100));
@@ -302,6 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 battleStatsDisplayed = true;
             }
             else if (typeof data.strength === 'number' && typeof data.defense === 'number' && typeof data.speed === 'number' && typeof data.dexterity === 'number') {
+                console.log("Displaying Battle Stats from top-level individual fields as 'battlestats' object was missing/invalid.");
                 const strength_modifier = data.strength_modifier || 0;
                 const defense_modifier = data.defense_modifier || 0;
                 const speed_modifier = data.speed_modifier || 0;
@@ -331,18 +333,21 @@ document.addEventListener('DOMContentLoaded', function() {
             let workStatsDisplayed = false;
 
             if (wsObject && typeof wsObject.manual_labor === 'number' && typeof wsObject.intelligence === 'number' && typeof wsObject.endurance === 'number') {
+                console.log("Displaying Work Stats from nested 'workstats' object.");
                 htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${wsObject.manual_labor.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${wsObject.intelligence.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${wsObject.endurance.toLocaleString()}</span></p>`;
                 workStatsDisplayed = true;
             }
             else if (typeof data.manual_labor === 'number' && typeof data.intelligence === 'number' && typeof data.endurance === 'number') {
+                console.log("Displaying Work Stats from top-level individual fields as 'workstats' object was missing/invalid.");
                 htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${data.manual_labor.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${data.intelligence.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${data.endurance.toLocaleString()}</span></p>`;
                 workStatsDisplayed = true;
             }
             else if (data.job && typeof data.job.manual_labor === 'number' && typeof data.job.intelligence === 'number' && typeof data.job.endurance === 'number') {
+                console.log("Displaying Work Stats from nested 'job' object.");
                 htmlContent += `<p><strong>Position:</strong> <span class="stat-value-api">${data.job.position || 'N/A'} at ${data.job.company_name || 'N/A'}</span></p>`;
                 htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${data.job.manual_labor.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${data.job.intelligence.toLocaleString()}</span></p>`;
@@ -368,14 +373,28 @@ document.addEventListener('DOMContentLoaded', function() {
             clearQuickStats();
             return;
         }
+        console.log("fetchAllRequiredData called for user:", user.uid);
         const quickStatsErrorEl = document.getElementById('quickStatsError');
         if (quickStatsErrorEl) quickStatsErrorEl.textContent = 'Loading data...';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+        if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.disabled = false;
+        if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = false;
+        if (personalStatsLabel) personalStatsLabel.style.cursor = 'pointer';
+
+        ["drugCooldownStat", "boosterCooldownStat"].forEach(id => {
+            if (activeCooldownIntervals[id]) clearInterval(activeCooldownIntervals[id]);
+            delete activeCooldownIntervals[id];
+            delete activeCooldownEndTimes[id];
+            updateStatDisplay(id, 0, 0, true, 0);
+        });
+        updateStatDisplay("hospitalStat", null, null, false, "N/A");
+        updateStatDisplay("travelStatus", null, null, false, "N/A");
 
         try {
             const userProfileRef = dbInstance.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             if (!doc.exists) {
+                console.log("User profile not found in Firestore.");
                 clearQuickStats();
                 return;
             }
@@ -383,29 +402,112 @@ document.addEventListener('DOMContentLoaded', function() {
             const apiKey = profileDataFromFirestore.tornApiKey;
 
             if (!apiKey) {
+                console.log("No API key found in user profile.");
                 clearQuickStats();
                 if (quickStatsErrorEl && profileDataFromFirestore.profileSetupComplete) quickStatsErrorEl.textContent = 'API Key not found. Please set it in your profile.';
+                if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
+                if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
                 return;
             }
 
             const selections = "bars,cooldowns,travel,profile";
             const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_HomeDashboard`;
-            
+            console.log(`Fetching dashboard data (selections: ${selections}, key hidden)`);
+
             const response = await fetch(apiUrl);
             const data = await response.json();
+            console.log("Dashboard API Response:", data);
 
-            if (!response.ok || data.error) {
-                const errorMsg = data?.error?.error || response.statusText || "Unknown API error";
-                throw new Error(errorMsg);
+            if (!response.ok) {
+                const errorMsg = data?.error?.error || response.statusText;
+                throw new Error(`API Error ${response.status}: ${errorMsg}`);
             }
-            
-            // ... (All original stat display logic is preserved)
+            if (data.error) {
+                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+            }
+
+            const barDataSource = data.bars || data;
+            updateStatDisplay("nerveStat", barDataSource.nerve?.current, barDataSource.nerve?.maximum);
+            updateStatDisplay("energyStat", barDataSource.energy?.current, barDataSource.energy?.maximum);
+            updateStatDisplay("happyStat", barDataSource.happy?.current, barDataSource.happy?.maximum);
+            updateStatDisplay("lifeStat", barDataSource.life?.current, barDataSource.life?.maximum);
+
+            if (data.cooldowns) {
+                updateStatDisplay("drugCooldownStat", 0, 0, true, data.cooldowns.drug || 0);
+                updateStatDisplay("boosterCooldownStat", 0, 0, true, data.cooldowns.booster || 0);
+            } else {
+                updateStatDisplay("drugCooldownStat", 0, 0, true, 0);
+                updateStatDisplay("boosterCooldownStat", 0, 0, true, 0);
+                console.warn("Cooldowns data missing from API response.");
+            }
+
+            const nowSecondsApi = Math.floor(Date.now() / 1000);
+            let inHospital = false;
+            let hospitalTimeRemaining = 0;
+            let determinedHospitalStatusText = "N/A";
+
+            const profileFromApi = data.profile;
+
+            if (profileFromApi && typeof profileFromApi.status === 'object' && profileFromApi.status !== null) {
+                const statusObject = profileFromApi.status;
+                const hospitalUntil = statusObject.until || 0;
+                const statusState = statusObject.state || "";
+                const statusDesc = statusObject.description || "";
+                if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
+                    inHospital = true;
+                    if (hospitalUntil > nowSecondsApi) {
+                        hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
+                    } else {
+                        determinedHospitalStatusText = "Yes 😥";
+                    }
+                } else {
+                    determinedHospitalStatusText = "No 😁";
+                }
+            } else if (data.status && typeof data.status === 'object' && data.status !== null) {
+                const statusObject = data.status;
+                const hospitalUntil = statusObject.until || 0;
+                const statusState = statusObject.state || "";
+                const statusDesc = statusObject.description || "";
+                if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
+                    inHospital = true;
+                    if (hospitalUntil > nowSecondsApi) {
+                        hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
+                    } else {
+                        determinedHospitalStatusText = "Yes 😥";
+                    }
+                } else {
+                    determinedHospitalStatusText = "No 😁";
+                }
+            } else {
+                console.warn("Hospital Check - Valid status object not found in data.profile.status or data.status.");
+            }
+
+            if (inHospital && hospitalTimeRemaining > 0) {
+                updateStatDisplay("hospitalStat", null, null, true, hospitalTimeRemaining, "Yes");
+            } else {
+                updateStatDisplay("hospitalStat", null, null, false, determinedHospitalStatusText);
+            }
+
+            if (data.travel && typeof data.travel.destination === 'string') {
+                if (data.travel.time_left > 0) {
+                    updateStatDisplay("travelStatus", null, null, false, `Yes (${data.travel.destination}, ${formatTimeRemaining(data.travel.time_left)})`);
+                } else {
+                    updateStatDisplay("travelStatus", null, null, false, `No (${data.travel.destination})`);
+                }
+            } else {
+                updateStatDisplay("travelStatus", null, null, false, "No");
+                console.warn("Travel data missing or not as expected in API response.");
+            }
 
             if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
-            
+
+
+            // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
+            // It safely checks for the nested faction object and uses the correct property names.
             const factionData = data?.profile?.faction || data?.faction || null;
             
             if (factionData) {
+                // These keys (faction_id, faction_name) now correctly match the API response.
                 const updatePayload = {
                     uid: user.uid,
                     faction_id: factionData.faction_id ?? null,
@@ -413,22 +515,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: factionData.position ?? null
                 };
 
+                console.log('Sending corrected faction data to Netlify function:', updatePayload);
+
                 fetch('/.netlify/functions/update-user-faction', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatePayload),
                 })
-                .then(res => res.json())
-                .then(result => console.log('Netlify function response:', result))
-                .catch(err => console.error('Error calling Netlify function:', err));
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Faction update successful:', data.message);
+                })
+                .catch(error => {
+                    console.error('Faction update via Netlify function failed:', error.message);
+                });
             } else {
                  console.warn("No faction data found in API response to update.");
             }
+            // --- *** END OF CORRECTED SECTION *** ---
 
         } catch (error) {
             console.error("Error in fetchAllRequiredData:", error);
             clearQuickStats();
-            if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error: ${error.message}`;
+            if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error loading data: ${error.message}. Check API key or Torn API status.`;
         }
     }
 
@@ -647,4 +763,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
-});
