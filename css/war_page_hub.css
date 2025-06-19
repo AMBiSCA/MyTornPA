@@ -79,7 +79,7 @@
 .tab-content-container {
     /* Styles for the container holding tab contents */
     padding: 15px; /* NEW: Reduced padding */
-    border: 2px solid black;
+    border: 3px solid black;
     border-radius: 0 0 8px 8px;
     background-color: #333;
     flex-grow: 1;
