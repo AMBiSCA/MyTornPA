@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
-	const termsCheckbox = document.getElementById('termsAgreementProfileModal');
 
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
@@ -504,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                            if (personalStatsModalBody) {
                                 personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
-                                 personalStatsModal.classList.add('visible');
+                                personalStatsModal.style.display = 'flex';
                             }
                             this.checked = false;
                         }
@@ -562,33 +561,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (saveProfileBtn && auth && db) {
         saveProfileBtn.addEventListener('click', async () => {
-            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.';
-                return;
-            }
-            if (nameErrorEl) nameErrorEl.textContent = '';
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-
+            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) { if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.'; return; }
+            if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
             const preferredNameVal = preferredNameInput.value.trim();
-            if (!preferredNameVal) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
-                return;
-            }
-            if (preferredNameVal.length > 10) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
-                return;
-            }
-            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
-                return;
-            }
-
-            // MANDATORY: Check if terms checkbox is ticked
-            if (!termsAgreementProfileModalCheckbox || !termsAgreementProfileModalCheckbox.checked) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                return; // Stop submission if not checked
-            }
-
+            if (!preferredNameVal) { if (nameErrorEl) nameErrorEl.textContent = 'Name required.'; return; }
+            if (preferredNameVal.length > 10) { if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.'; return; }
+            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) { if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.'; return; }
             const user = auth.currentUser;
             const profileDataToSave = {
                 preferredName: preferredNameVal,
@@ -597,7 +575,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
                 profileSetupComplete: true,
                 shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-                termsAgreed: termsAgreementProfileModalCheckbox.checked // Save the state of the terms checkbox
             };
 
             try {
@@ -616,31 +593,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 await userProfileRef.set(profileDataToSave, { merge: true });
                 if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
-                    displayRandomTip();
-                    localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                } else if (tornTipPlaceholderEl) {
-                    tornTipPlaceholderEl.style.display = 'none';
-                }
+                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                 hideProfileSetupModal();
                 if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-
+                
                 if (profileDataToSave.tornApiKey) {
                     fetchAllRequiredData(user, db);
                 } else {
                     clearQuickStats();
                     if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
                 }
 
-            } catch (error) {
-                console.error("Error saving profile: ", error);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving.";
-            }
+            } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
         });
     }
 
-   if (auth) {
+    if (auth) {
         auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
@@ -659,20 +629,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
                         const doc = await db.collection('userProfiles').doc(user.uid).get();
                         profile = doc.exists ? doc.data() : null;
-
-                        // Check if it's a brand new user from Firebase Auth perspective
-                        // Note: creationTime and lastSignInTime are typically in milliseconds.
-                        const isNewAuthUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
-                            userDisplayName = profile.preferredName;
-                            showSetup = false; // Profile is already complete in Firestore
-
-                            // Set checkbox state based on Firestore data
-                            if (termsAgreementProfileModalCheckbox) {
-                                termsAgreementProfileModalCheckbox.checked = profile.termsAgreed === true;
-                            }
-
+                            userDisplayName = profile.preferredName; showSetup = false;
                             if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
                             if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
                                 lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
@@ -682,46 +640,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
                             db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
                             if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                        } else if (isNewAuthUser) { // ONLY SHOW SETUP FOR BRAND NEW AUTH USERS
-                            userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User";
-                            showSetup = true; // Ensure setup is shown for truly new users
-
-                            // For new users, ensure checkbox is NOT pre-ticked (fresh start)
-                            if (termsAgreementProfileModalCheckbox) {
-                                termsAgreementProfileModalCheckbox.checked = false;
-                            }
-
-                        } else {
-                            // This path is for existing Firebase Auth users who don't have
-                            // a completed profile in Firestore yet (e.g., first login after an update)
-                            // We do NOT want to force the setup modal on them.
-                            userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User";
-                            showSetup = false; // DO NOT show setup modal automatically for existing users
-
-                            // For existing users without full profile, try to set checkbox state
-                            if (termsAgreementProfileModalCheckbox) {
-                                termsAgreementProfileModalCheckbox.checked = profile?.termsAgreed === true; // Use optional chaining for safety
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Error fetching profile on auth change:", e);
-                        userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User";
-                        // Ensure checkbox is unticked on error
-                        if (termsAgreementProfileModalCheckbox) {
-                            termsAgreementProfileModalCheckbox.checked = false;
-                        }
-                    }
+                        } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                    } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
                 } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
-
-                // This `if` block now only runs for truly new Firebase Auth users
                 if (showSetup) {
                     if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
                     if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
                     showProfileSetupModal(); clearQuickStats();
                     if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
                     if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
-                } else { // This block handles existing users (who have a completed profile or are not new auth users)
+                } else {
                     if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
                     else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                     if (profile && profile.tornApiKey) {
@@ -755,10 +684,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = '../index.html';
                 } else {
                     console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
-                }
-                // Ensure checkbox is unticked when logged out
-                if (termsAgreementProfileModalCheckbox) {
-                    termsAgreementProfileModalCheckbox.checked = false;
                 }
             }
         });
