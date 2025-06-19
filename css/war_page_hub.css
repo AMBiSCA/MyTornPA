@@ -11,7 +11,7 @@
     border-radius: 8px;
     margin-top: 5px; /* NEW: Reduced top margin to move up */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
-    width: 98%; /* NEW: Made even wider to use more space */
+    width: 98%; /* Make it take more of the available width */
     max-width: 1800px; /* NEW: Increased max-width significantly */
     box-sizing: border-box; /* Include padding/border in width */
     display: flex; /* Use flexbox for internal layout */
@@ -36,10 +36,10 @@
     /* Styles for the tab buttons container */
     display: flex;
     justify-content: space-around;
-    margin-bottom: 15px; /* NEW: Reduced bottom margin */
+    margin-bottom: 0; /* NEW: Reduced bottom margin to make it touch content */
     border-bottom: 2px solid #333;
     flex-wrap: wrap;
-    margin-top: 0; /* NEW: Remove top margin to move higher */
+    margin-top: 0; /* NEW: Removed top margin to move higher */
 }
 
 .tab-button {
@@ -73,7 +73,7 @@
 /* Tab Content Container */
 .tab-content-container {
     /* Styles for the container holding tab contents */
-    padding: 15px; /* NEW: Reduced padding */
+    padding: 5px 15px 15px; /* NEW: Reduced top padding (5px), kept side/bottom */
     border: 1px solid #333;
     border-radius: 0 0 8px 8px;
     background-color: #2a2a2a;
@@ -81,7 +81,7 @@
     height: 600px; /* NEW: Increased fixed height for smoother content flow */
     overflow-y: auto; 
     box-sizing: border-box;
-    margin-top: 0; /* NEW: Remove top margin */
+    margin-top: 0; /* Ensures it touches the tab-navigation's bottom */
 }
 
 .tab-pane {
@@ -103,12 +103,13 @@
     border-radius: 8px;
     background-color: #222;
     text-align: left;
+    margin-top: 5px; /* NEW: Reduced margin to bring content higher within the tab pane */
 }
 
 .war-announcement-section h3 {
     color: #00a8ff; /* NEW: Changed to blue theme color */
     margin-bottom: 8px; /* NEW: Reduced margin */
-    margin-top: 0; /* NEW: Remove top margin */
+    margin-top: 0; /* NEW: Removed top margin */
     text-align: center;
     font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
@@ -159,6 +160,7 @@
     border: 1px solid #555;
     border-radius: 8px;
     background-color: #222;
+    margin-top: 5px; /* NEW: Reduced margin to bring content higher within the tab pane */
 }
 
 .ops-control-item {
@@ -186,11 +188,12 @@
 
 /* Specific styling for Quick FF Targets container (side-by-side) */
 .ops-control-item .quick-ff-targets-container {
-    display: flex;
+    display: flex; /* NEW: Use flex for side-by-side */
     flex-direction: row; /* Arrange items horizontally */
     gap: 5px; /* Space between target displays */
     flex-wrap: wrap; /* Allow targets to wrap if space is too small */
     width: 100%;
+    justify-content: space-around; /* Distribute space */
 }
 .ops-control-item .quick-ff-targets-container span {
     flex-grow: 1; /* Allow targets to grow to fill space */
@@ -220,7 +223,7 @@
     background-color: #222;
     border: 1px solid #00a8ff;
     border-radius: 8px;
-    overflow: hidden; /* Contains child borders */
+    overflow: hidden;
 }
 
 .enemy-targets-header {
@@ -238,12 +241,12 @@
 .enemy-targets-header span {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis for long text */
+    text-overflow: ellipsis;
 }
 
 .enemy-targets-scroll-area {
     max-height: 450px; /* NEW: Slightly reduced max height */
-    overflow-y: auto; /* Enable vertical scrollbar */
+    overflow-y: auto;
     padding: 0;
     margin: 0;
 }
@@ -304,7 +307,7 @@
     min-width: unset;
     max-width: unset;
     border-radius: 3px;
-    background-color: #007bff; /* Blue */
+    background-color: #007bff;
     color: white;
 }
 .enemy-target-row .action-btn:hover {

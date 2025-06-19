@@ -34,15 +34,16 @@ exports.handler = async (event, context) => {
         };
     }
 
-    let uid, factionID, factionName, factionPosition; // Added factionPosition
+    // Changed to snake_case as per your requirement
+    let uid, faction_id, faction_name, position; 
 
     try {
         // Parse the request body
         const body = JSON.parse(event.body);
         uid = body.uid;
-        factionID = body.factionID;
-        factionName = body.factionName;
-        factionPosition = body.factionPosition; // Get factionPosition
+        faction_id = body.faction_id;       // Expecting snake_case
+        faction_name = body.faction_name;   // Expecting snake_case
+        position = body.position;           // Expecting snake_case
 
         // Validate required parameters (uid is always required)
         if (!uid) {
@@ -70,22 +71,22 @@ exports.handler = async (event, context) => {
             lastFactionUpdated: admin.firestore.FieldValue.serverTimestamp(), // Timestamp of update
         };
 
-        // Update faction details if they were provided (can be null if user left faction)
-        updateData.factionID = factionID !== undefined ? factionID : null;
-        updateData.factionName = factionName !== undefined ? factionName : null;
-        updateData.factionPosition = factionPosition !== undefined ? factionPosition : null; // Save factionPosition
+        // Use snake_case for Firestore fields as well, to match the data source
+        updateData.faction_id = faction_id !== undefined ? faction_id : null;
+        updateData.faction_name = faction_name !== undefined ? faction_name : null;
+        updateData.position = position !== undefined ? position : null;
 
         await userRef.update(updateData); // Use update to only modify specified fields
 
-        console.log(`Successfully updated faction data for UID: ${uid}. Faction ID: ${factionID}, Faction Name: ${factionName}, Position: ${factionPosition}`);
+        console.log(`Successfully updated faction data for UID: ${uid}. Faction ID: ${faction_id}, Faction Name: ${faction_name}, Position: ${position}`);
 
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Faction data updated successfully.',
-                factionId: factionID,
-                factionName: factionName,
-                factionPosition: factionPosition,
+                faction_id: faction_id,
+                faction_name: faction_name,
+                position: position,
             }),
         };
 

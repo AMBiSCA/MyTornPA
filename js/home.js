@@ -516,23 +516,24 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
 
-        // --- NEW CODE STARTS HERE (Faction update from existing data) ---
+        // --- NEW CODE STARTS HERE (Faction update from existing data - using snake_case) ---
         const currentFactionData = {
-            factionID: null,
-            factionName: null,
-            factionPosition: null // Initialize position
+            faction_id: null,
+            faction_name: null,
+            position: null // Initialize position with snake_case
         };
 
         if (data.profile && data.profile.faction) {
             const faction = data.profile.faction;
-            if (typeof faction.ID === 'number') { // Ensure ID is a number
-                currentFactionData.factionID = faction.ID;
+            // Use snake_case to match your desired storage and the data you observed
+            if (typeof faction.faction_id === 'number') { // Corrected from ID
+                currentFactionData.faction_id = faction.faction_id;
             }
-            if (typeof faction.name === 'string') { // Ensure name is a string
-                currentFactionData.factionName = faction.name;
+            if (typeof faction.faction_name === 'string') { // Corrected from name
+                currentFactionData.faction_name = faction.faction_name;
             }
-            if (typeof faction.position === 'string') { // Ensure position is a string
-                currentFactionData.factionPosition = faction.position;
+            if (typeof faction.position === 'string') { // Corrected from position to match direct observation
+                currentFactionData.position = faction.position;
             }
         }
 
@@ -547,9 +548,9 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 },
                 body: JSON.stringify({
                     uid: user.uid,
-                    factionID: currentFactionData.factionID,
-                    factionName: currentFactionData.factionName,
-                    factionPosition: currentFactionData.factionPosition, // Pass position
+                    faction_id: currentFactionData.faction_id,      // Pass snake_case
+                    faction_name: currentFactionData.faction_name,  // Pass snake_case
+                    position: currentFactionData.position,          // Pass snake_case
                 }),
             })
             .then(response => {
@@ -561,7 +562,8 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 return response.json();
             })
             .then(data => {
-                console.log('Faction update via provided data successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName}, Position: ${data.factionPosition})`);
+                // Ensure log output matches the snake_case keys now
+                console.log('Faction update via provided data successful:', data.message, `(Faction ID: ${data.faction_id}, Name: ${data.faction_name}, Position: ${data.position})`);
             })
             .catch(error => {
                 console.error('Faction update via provided data failed:', error.message);
