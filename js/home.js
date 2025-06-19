@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                            if (personalStatsModalBody) {
                                 personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
-                                personalStatsModal.classList.add('visible');
+                                 personalStatsModal.classList.add('visible');
                             }
                             this.checked = false;
                         }
@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'visible'; }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
