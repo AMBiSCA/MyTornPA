@@ -481,7 +481,6 @@ select[multiple] {
 
 .config-section .action-btn {
     width: auto;
-    align-self: flex-start;
     margin-top: 5px; /* NEW: Adjusted margin */
     padding: 6px 12px; /* NEW: Adjusted padding */
     font-size: 0.9em; /* NEW: Adjusted font size */
