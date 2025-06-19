@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'block' }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex' }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
