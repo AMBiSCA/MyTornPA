@@ -105,11 +105,14 @@
 /* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 /* This rule will now apply when the tab is active, overriding display: block and applying grid */
 #leader-config-tab.active {
-    display: grid; /* IMPORTANT CHANGE: Ensure this applies when active */
+    display: grid;
     grid-template-columns: 1fr 1fr; /* Creates two equal-width columns for desktop */
     gap: 20px; /* Adds space between grid items (both rows and columns) */
     padding: 10px; /* Adds a little internal padding to the grid container itself */
     box-sizing: border-box; /* Ensures padding is included in the element's total width/height */
+    
+    max-width: 1000px; /* ADDED: Set a maximum width for the grid container */
+    margin: 0 auto;    /* ADDED: Center the grid container horizontally */
 }
 
 /* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
