@@ -1,4 +1,4 @@
-// mysite/js/social.js - FINAL DIAGNOSTIC TEST
+// mysite/js/social.js - FINAL VERSION
 document.addEventListener('DOMContentLoaded', function() {
     console.log("social.js: Script loaded.");
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Main Hub Buttons
     const hubActionGlobalChatBtn = document.getElementById('hubActionGlobalChatFinal');
     const hubActionFactionChatBtn = document.getElementById('hubActionFactionChatFinal');
-    const hubActionFriendsChatBtn = document.getElementById('hubActionFriendsChatBtnFinal'); // Corrected ID again to be safe
+    const hubActionFriendsChatBtn = document.getElementById('hubActionFriendsChatBtnFinal'); // Corrected ID
     const viewFriendsBtnHub = document.getElementById('viewFriendsBtnFinal');
     const hubActionFactionInfoBtn = document.getElementById('hubActionFactionInfoFinal');
     const hubActionLeadershipViewBtn = document.getElementById('hubActionLeadershipViewFinal');
@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- These functions now use CSS classes for visibility ---
     function showModal(modalElement) {
         if (modalElement) {
             modalElement.classList.add('modal-is-visible');
@@ -138,16 +139,93 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayUserFactionInfo() {
         showModal(factionInfoModal);
+        loadFactionData();
+    }
+    
+    async function loadFactionData() {
+        if (!currentUserProfileData) return;
+        generalInfoContent.innerHTML = `<p>Faction: ${currentUserProfileData.factionName || 'N/A'}</p><p>Faction ID: ${currentUserProfileData.factionId || 'N/A'}</p>`;
+        // TODO: Add your logic here to fetch more detailed faction info.
+    }
+
+    function setupFactionInfoTabs() {
+        if (!factionInfoTabs) return;
+        factionInfoTabs.addEventListener('click', (event) => {
+            if (event.target.matches('.faction-info-tab-button')) {
+                factionInfoTabs.querySelectorAll('.faction-info-tab-button').forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+                const targetContentId = event.target.dataset.target;
+                factionInfoModal.querySelectorAll('.faction-info-modal-body-custom, #factionBattleStatsContent').forEach(content => {
+                    content.id === targetContentId ? content.classList.add('active') : content.classList.remove('active');
+                });
+            }
+        });
     }
 
     function displayLeadershipView() {
         showModal(leadershipPanelModal);
+        loadLookingForFactionUsers();
+    }
+
+    async function loadLookingForFactionUsers() {
+        lookingForFactionsList.innerHTML = '<li><p>Loading users...</p></li>';
+        // TODO: Fetch your list of users from Firebase here.
+        allLookingForFactionUsersData = [{ name: 'Player1 [123]', level: 10 }, { name: 'Player2 [456]', level: 25 }];
+        currentLeadershipPage = 1;
+        displayLookingForFactionUsersPage();
     }
     
+    function displayLookingForFactionUsersPage() {
+        if (!lookingForFactionsList) return;
+        lookingForFactionsList.innerHTML = '';
+        const totalPages = Math.ceil(allLookingForFactionUsersData.length / usersPerPage);
+        if (leadershipPageInfo) leadershipPageInfo.textContent = `Page ${currentLeadershipPage} of ${totalPages || 1}`;
+        if (leadershipPaginationControls) leadershipPaginationControls.style.display = totalPages > 1 ? 'flex' : 'none';
+        const pageUsers = allLookingForFactionUsersData.slice((currentLeadershipPage - 1) * usersPerPage, currentLeadershipPage * usersPerPage);
+        if (pageUsers.length === 0) {
+            lookingForFactionsList.innerHTML = '<li><p>No users found.</p></li>';
+            return;
+        }
+        pageUsers.forEach(user => {
+            const li = document.createElement('li');
+            li.className = 'looking-for-faction-item';
+            li.innerHTML = `<h5>${user.name}</h5><p>Level: <strong>${user.level}</strong></p>`;
+            lookingForFactionsList.appendChild(li);
+        });
+    }
+
     function displayOnTheHuntView() {
         showModal(onTheHuntModal);
+        loadRecruitingFactions();
     }
     
+    async function loadRecruitingFactions() {
+        recruitingFactionsList.innerHTML = '<li><p>Loading recruiting factions...</p></li>';
+        // TODO: Fetch your list of recruiting factions from Firebase here.
+        allRecruitingFactionsData = [{ name: 'The Cool Faction', respect: '1.2m' }, { name: 'Another Crew', respect: '500k' }];
+        currentFactionPage = 1;
+        displayFactionsPage();
+    }
+    
+    function displayFactionsPage() {
+        if (!recruitingFactionsList) return;
+        recruitingFactionsList.innerHTML = '';
+        const totalPages = Math.ceil(allRecruitingFactionsData.length / factionsPerPage);
+        if (factionPageInfo) factionPageInfo.textContent = `Page ${currentFactionPage} of ${totalPages || 1}`;
+        if (factionPaginationControls) factionPaginationControls.style.display = totalPages > 1 ? 'flex' : 'none';
+        const pageFactions = allRecruitingFactionsData.slice((currentFactionPage - 1) * factionsPerPage, currentFactionPage * factionsPerPage);
+        if (pageFactions.length === 0) {
+            recruitingFactionsList.innerHTML = '<li><p>No factions found.</p></li>';
+            return;
+        }
+        pageFactions.forEach(faction => {
+            const li = document.createElement('li');
+            li.className = 'recruiting-faction-item';
+            li.innerHTML = `<h5>${faction.name}</h5><p>Respect: <strong>${faction.respect}</strong></p>`;
+            recruitingFactionsList.appendChild(li);
+        });
+    }
+
     // --- MAIN INITIALIZATION & AUTH ---
 
     async function initializeHubContent(user) {
@@ -156,39 +234,80 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         currentUserId = user.uid;
+        const profileComplete = await loadHubUserProfileData();
+
+        if (!profileComplete) {
+            showModal(profileSetupModal);
+            return;
+        }
+        
         theHubMainUi.style.display = 'grid';
         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
         setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
         setupToggleSwitch(lookingForRecruitToggleFinal, 'isLookingForRecruits');
         setupToggleSwitch(appearOnlineToggleFinal, 'appearOnline');
     }
+
+    async function loadHubUserProfileData() {
+        if (!currentUserId || !db) return false;
+        try {
+            const doc = await db.collection('userProfiles').doc(currentUserId).get();
+            if (doc.exists) {
+                currentUserProfileData = doc.data();
+                if (hubFinalPreferredNameEl) hubFinalPreferredNameEl.textContent = currentUserProfileData.preferredName || 'N/A';
+                if (hubFinalTornProfileIdEl) hubFinalTornProfileIdEl.textContent = currentUserProfileData.tornProfileId || 'N/A';
+                if (shareStatsToggleFinal) shareStatsToggleFinal.checked = !!currentUserProfileData.shareStatsWithFaction;
+                if (lookingForFactionToggleFinal) lookingForFactionToggleFinal.checked = !!currentUserProfileData.isLookingForFaction;
+                if (lookingForRecruitToggleFinal) lookingForRecruitToggleFinal.checked = !!currentUserProfileData.isLookingForRecruits;
+                if (appearOnlineToggleFinal) appearOnlineToggleFinal.checked = currentUserProfileData.appearOnline !== false;
+                return !!currentUserProfileData.profileSetupComplete;
+            }
+            return false;
+        } catch (error) {
+            console.error("Error loading profile:", error);
+            return false;
+        }
+    }
     
     // --- EVENT LISTENER ATTACHMENTS ---
     
+    setupButtonListener(skipProfileSetupBtn, () => hideModal(profileSetupModal));
+    setupButtonListener(closeProfileModalBtn, () => hideModal(profileSetupModal));
+    setupButtonListener(saveProfileBtn, async () => {
+        const name = preferredNameInput.value.trim();
+        if (name.length === 0) return;
+        await db.collection('userProfiles').doc(currentUserId).set({
+            preferredName: name,
+            shareStatsWithFaction: shareFactionStatsModalToggle.checked,
+            profileSetupComplete: true,
+            tornApiKey: profileSetupApiKeyInput.value.trim(),
+            tornProfileId: profileSetupProfileIdInput.value.trim(),
+        }, { merge: true });
+        hideModal(profileSetupModal);
+        initializeHubContent(auth.currentUser);
+    });
+
     setupButtonListener(hubActionGlobalChatBtn, () => showChatModal('global'));
     setupButtonListener(hubActionFactionChatBtn, () => showChatModal('faction'));
     setupButtonListener(hubActionFriendsChatBtn, () => showChatModal('friends'));
-    
-    // Non-working buttons
     setupButtonListener(viewFriendsBtnHub, () => showModal(manageFriendsModal));
+    setupButtonListener(hubActionFactionInfoBtn, displayUserFactionInfo);
     setupButtonListener(hubActionLeadershipViewBtn, displayLeadershipView);
     setupButtonListener(hubActionOnTheHuntViewBtn, displayOnTheHuntView);
 
-    // =================================================================
-    // =========== THIS IS THE TEST ===========
-    // We are rewiring the "Faction Info" button to do what "Global Chat" does.
-    console.log("TESTING: Rewiring 'Faction Info' button to open the Chat Modal.");
-    setupButtonListener(hubActionFactionInfoBtn, () => showChatModal('global'));
-    // =================================================================
-
-    // Modal Close Buttons
     setupButtonListener(closeChatModalButton, () => hideModal(hubChatModal));
     setupButtonListener(closeManageFriendsModalBtn, () => hideModal(manageFriendsModal));
     setupButtonListener(closeFactionInfoModalBtn, () => hideModal(factionInfoModal));
     setupButtonListener(closeLeadershipPanelModalBtn, () => hideModal(leadershipPanelModal));
     setupButtonListener(closeOnTheHuntModalBtn, () => hideModal(onTheHuntModal));
+    
+    setupButtonListener(prevFactionPageBtn, () => { if(currentFactionPage > 1) { currentFactionPage--; displayFactionsPage(); } });
+    setupButtonListener(nextFactionPageBtn, () => { if((currentFactionPage * factionsPerPage) < allRecruitingFactionsData.length) { currentFactionPage++; displayFactionsPage(); } });
+    setupButtonListener(prevLeadershipPageBtn, () => { if(currentLeadershipPage > 1) { currentLeadershipPage--; displayLookingForFactionUsersPage(); } });
+    setupButtonListener(nextLeadershipPageBtn, () => { if((currentLeadershipPage * usersPerPage) < allLookingForFactionUsersData.length) { currentLeadershipPage++; displayLookingForFactionUsersPage(); } });
+    
+    setupFactionInfoTabs();
 
-    // --- Core Firebase Auth state listener ---
     if (auth) {
         auth.onAuthStateChanged(user => {
             if (user) {
