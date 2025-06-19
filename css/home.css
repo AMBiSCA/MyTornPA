@@ -182,7 +182,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 .modal-profile-setup .form-group a:hover,
 .modal-profile-setup .checkbox-label-inline a:hover { text-decoration: underline;}
 
-.modal-actions { margin-top: -40px; /* Reduced from -50px, more positive to move buttons down slightly */ display: flex; justify-content: flex-end; gap: 10px; /* Reduced from 12px */ }
+.modal-actions { margin-top: -45px; /* Reduced from -50px, more positive to move buttons down slightly */ display: flex; justify-content: flex-end; gap: 10px; /* Reduced from 12px */ }
 .modal-actions .btn { font-weight: bold; } /* Changed from .btn-uniform to .btn */
 #personalStatsModalBody h4 { margin-top: 15px; /* Reduced from 20px */ margin-bottom: 8px; /* Reduced from 10px */ color: #8ab4f8; border-bottom: 1px solid #555; padding-bottom: 5px; /* Reduced from 8px */ font-size: 1.1em; /* Reduced from 1.15em */ font-weight: 600;}
 #personalStatsModalBody h4:first-child { margin-top: 0; }
