@@ -588,9 +588,20 @@ select[multiple] {
     }
     .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
     .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
-    .config-section input[type="text"], .config-section textarea, .config-section select {
-        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
-    }
+   .config-section input[type="text"],
+   .config-section textarea
+   .config-section select {
+    width: 100%;
+    padding: 6px; /* NEW: Reduced padding */
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.9em; /* NEW: Reduced font size */
+    box-sizing: border-box; /* ADD THIS LINE */
+}
+    
     textarea { min-height: 60px; } /* NEW: Reduced min-height */
     select[multiple] { height: 100px; } /* NEW: Reduced height */
     .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
