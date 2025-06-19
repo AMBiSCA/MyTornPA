@@ -516,28 +516,27 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
 
-        // --- NEW CODE STARTS HERE (Faction update from existing data - CORRECTED EXTRACTION) ---
+        // --- NEW CODE STARTS HERE (Faction update from existing data - FINAL ATTEMPT AT EXTRACTION) ---
         const currentFactionData = {
             faction_id: null,
             faction_name: null,
-            position: null // Initialize position with snake_case
+            position: null
         };
 
         if (data.profile && data.profile.faction) {
             const faction = data.profile.faction;
-            // CORRECTED EXTRACTION: Use camelCase properties as seen in your API response log
-            if (typeof faction.ID === 'number') {
-                currentFactionData.faction_id = faction.ID; // Map API's ID to desired faction_id
+            // Removed typeof checks and added nullish coalescing to ensure assignment if property exists
+            // Also explicitly converting ID to number to be safe, as Firestore prefers numbers for IDs
+            currentFactionData.faction_id = faction.ID ?? null; 
+            if (currentFactionData.faction_id !== null) {
+                currentFactionData.faction_id = Number(currentFactionData.faction_id); // Ensure it's a number
             }
-            if (typeof faction.name === 'string') {
-                currentFactionData.faction_name = faction.name; // Map API's name to desired faction_name
-            }
-            if (typeof faction.position === 'string') {
-                currentFactionData.position = faction.position; // Map API's position to desired position
-            }
+            
+            currentFactionData.faction_name = faction.name ?? null;
+            currentFactionData.position = faction.position ?? null;
         }
 
-        console.log('Sending current faction data to Netlify function:', currentFactionData);
+        console.log('Sending current faction data to Netlify function (final extraction attempt):', currentFactionData);
 
         // Add a small delay to avoid potential rate limit issues, even with simplified Netlify function
         setTimeout(() => {
