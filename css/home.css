@@ -166,7 +166,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 #closePersonalStatsDialogBtn:hover { color: #00a8ff; }
 
 
-.form-group { margin-bottom: 10px; /* Reduced from 15px */ }
+.form-group { margin-bottom: 15px; /* Reduced from 15px */ }
 .form-group label { display: block; margin-bottom: 5px; /* Reduced from 8px */ font-weight: bold; font-size:0.9em; color: #b0b0b0;}
 .form-group input[type="text"], .form-group input[type="password"] { width: 100%; padding: 10px 12px; /* Reduced from 12px 14px */ border-radius: 4px; border: 1px solid #3a3a3a; background-color: #2c2f33; color: #e0e0e0; box-sizing: border-box; font-size: 0.95em; }
 .form-group input[type="text"]:focus, .form-group input[type="password"]:focus { border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2); }
