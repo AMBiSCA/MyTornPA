@@ -50,9 +50,9 @@
     border: 1px solid black; /* NEW: Added 1px black border */
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
-    border-radius: 5px 5px 0 0;
-    flex-grow: 1;
-    min-width: 120px;
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 120px; /* Minimum width for each tab */
     text-align: center;
 }
 
@@ -184,6 +184,27 @@
     padding: 6px; /* NEW: Reduced padding */
 }
 
+/* Specific styling for Quick FF Targets container (side-by-side) */
+.ops-control-item .quick-ff-targets-container {
+    display: flex;
+    flex-direction: row; /* Arrange items horizontally */
+    gap: 5px; /* Space between target displays */
+    flex-wrap: wrap; /* Allow targets to wrap if space is too small */
+    width: 100%;
+}
+.ops-control-item .quick-ff-targets-container span {
+    flex-grow: 1; /* Allow targets to grow to fill space */
+    min-width: 45%; /* Ensure they don't get too small */
+    text-align: center;
+    border: 1px solid #00a8ff;
+    border-radius: 4px;
+    padding: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.8em;
+}
+
+
 #quickAnnouncementInput {
     margin-bottom: 0;
 }
@@ -199,12 +220,12 @@
     background-color: #222;
     border: 1px solid #00a8ff;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: hidden; /* Contains child borders */
 }
 
 .enemy-targets-header {
     display: grid;
-    grid-template-columns: 2fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
+    grid-template-columns: 2fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; /* Adjusted column widths for better fit */
     padding: 8px 10px; /* NEW: Reduced padding */
     background-color: #00a8ff;
     color: #1e1e1e;
@@ -217,12 +238,12 @@
 .enemy-targets-header span {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* Add ellipsis for long text */
 }
 
 .enemy-targets-scroll-area {
     max-height: 450px; /* NEW: Slightly reduced max height */
-    overflow-y: auto;
+    overflow-y: auto; /* Enable vertical scrollbar */
     padding: 0;
     margin: 0;
 }
@@ -236,9 +257,9 @@
 
 .enemy-target-row {
     display: grid;
-    grid-template-columns: inherit;
+    grid-template-columns: inherit; /* Inherit column definitions from header */
     padding: 6px 10px; /* NEW: Reduced padding */
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #333; /* Lighter separator */
     align-items: center;
     font-size: 0.85em; /* NEW: Slightly smaller font */
     text-align: center;
@@ -263,7 +284,17 @@
 }
 
 /* Coloring for Difficulty and Status */
-/* ... (unchanged) ... */
+.difficulty-easy { color: #28a745; font-weight: bold; } /* Green */
+.difficulty-moderately-difficult { color: #ffc107; font-weight: bold; } /* Yellow/Orange */
+.difficulty-difficult { color: #dc3545; font-weight: bold; } /* Red */
+.difficulty-extremely-easy { color: #17a2b8; font-weight: bold; } /* Cyan */
+.difficulty-may-be-impossible { color: #6c757d; font-weight: bold; } /* Grey */
+
+.status-okay { color: #28a745; }
+.status-hospital { color: #dc3545; }
+.status-jail { color: #ffc107; }
+.status-traveling { color: #17a2b8; }
+.status-offline { color: #6c757d; }
 
 /* Styles for Attack/Claim buttons inside table rows */
 .enemy-target-row .action-btn {
@@ -273,7 +304,7 @@
     min-width: unset;
     max-width: unset;
     border-radius: 3px;
-    background-color: #007bff;
+    background-color: #007bff; /* Blue */
     color: white;
 }
 .enemy-target-row .action-btn:hover {
@@ -347,7 +378,7 @@
 
 .friendly-member-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr; /* Example columns for Name, E, Nerve, Status */
     padding: 6px 0; /* NEW: Reduced padding */
     border-bottom: 1px solid #333;
     align-items: center;
@@ -404,7 +435,7 @@ textarea {
 }
 
 select[multiple] {
-    height: 120px; /* NEW: Reduced height */
+    height: 120px;
 }
 
 .config-section .action-btn {
@@ -459,14 +490,14 @@ select[multiple] {
         gap: 10px; /* NEW: Reduced gap */
     }
     .ops-controls-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Stack controls vertically */
     }
     .enemy-targets-header, .enemy-target-row {
         grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; 
         font-size: 0.8em; /* NEW: Reduced base font size */
     }
     .faction-stats-summary {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Stack stats vertically */
     }
     .tab-content-container {
         height: auto; /* NEW: Allow height to be auto on smaller screens */
