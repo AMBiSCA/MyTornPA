@@ -516,7 +516,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
 
-        // --- NEW CODE STARTS HERE (Faction update from existing data - using snake_case) ---
+        // --- NEW CODE STARTS HERE (Faction update from existing data - CORRECTED EXTRACTION) ---
         const currentFactionData = {
             faction_id: null,
             faction_name: null,
@@ -525,15 +525,15 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         if (data.profile && data.profile.faction) {
             const faction = data.profile.faction;
-            // Use snake_case to match your desired storage and the data you observed
-            if (typeof faction.faction_id === 'number') { // Corrected from ID
-                currentFactionData.faction_id = faction.faction_id;
+            // CORRECTED EXTRACTION: Use camelCase properties as seen in your API response log
+            if (typeof faction.ID === 'number') {
+                currentFactionData.faction_id = faction.ID; // Map API's ID to desired faction_id
             }
-            if (typeof faction.faction_name === 'string') { // Corrected from name
-                currentFactionData.faction_name = faction.faction_name;
+            if (typeof faction.name === 'string') {
+                currentFactionData.faction_name = faction.name; // Map API's name to desired faction_name
             }
-            if (typeof faction.position === 'string') { // Corrected from position to match direct observation
-                currentFactionData.position = faction.position;
+            if (typeof faction.position === 'string') {
+                currentFactionData.position = faction.position; // Map API's position to desired position
             }
         }
 
