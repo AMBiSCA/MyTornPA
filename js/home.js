@@ -515,6 +515,48 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
+
+        // --- NEW CODE STARTS HERE (Faction update from existing data) ---
+        // After successfully fetching all data from Torn, extract faction info and send to Netlify Function
+        const currentFactionData = data.profile && data.profile.faction ? {
+            factionID: data.profile.faction.ID, // Use 'ID' as per your log
+            factionName: data.profile.faction.name
+            // You can add faction_tag if you want to store that too
+            // factionTag: data.profile.faction.faction_tag
+        } : { factionID: null, factionName: null }; // Set to null if no faction data found
+
+        console.log('Sending current faction data to Netlify function:', currentFactionData);
+
+        // Add a small delay to avoid potential rate limit issues, even with simplified Netlify function
+        setTimeout(() => {
+            fetch('/.netlify/functions/update-user-faction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    uid: user.uid,
+                    factionID: currentFactionData.factionID,
+                    factionName: currentFactionData.factionName,
+                }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Faction update via provided data successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
+            })
+            .catch(error => {
+                console.error('Faction update via provided data failed:', error.message);
+            });
+        }, 500); // Small 0.5-second delay
+        // --- NEW CODE ENDS HERE ---
+
     } catch (error) {
         console.error("Error in fetchAllRequiredData:", error);
         clearQuickStats();
@@ -670,6 +712,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
             hideProfileSetupModal();
             if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+            // The call to fetchAllRequiredData will now handle the faction update
             if (profileDataToSave.tornApiKey || (currentDoc.exists && currentDoc.data().tornApiKey && !profileDataToSave.hasOwnProperty('tornApiKey')) ) { // check if API key is available after save
                 fetchAllRequiredData(user, db);
                 if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
@@ -679,42 +722,9 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
             }
 
-            // --- NEW CODE STARTS HERE (Faction update on profile save) ---
-            // Trigger Faction Update after Profile Save, using the potentially new API key
-            // This 'if' condition ensures we only try to update faction if an API key is available
-            if (profileDataToSave.tornApiKey) {
-                console.log('Profile saved. Triggering faction update...');
-                // ADDED DELAY: Wait 1 second before calling Netlify function to help with Torn API rate limits
-                setTimeout(() => {
-                    fetch('/.netlify/functions/update-user-faction', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            uid: user.uid,
-                            tornApiKey: profileDataToSave.tornApiKey, // Use the API key they just saved
-                        }),
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(errorData => {
-                                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Faction update after profile save successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
-                    })
-                    .catch(error => {
-                        console.error('Faction update after profile save failed:', error.message);
-                    });
-                }, 1000); // 1-second delay
-            } else {
-                console.log('No Torn API key provided on profile save, skipping faction update.');
-            }
-            // --- NEW CODE ENDS HERE ---
+            // --- REMOVED DIRECT FACTION UPDATE CALL FROM HERE ---
+            // The faction update will now be handled inside fetchAllRequiredData after it gets the data
+            // --- END REMOVED CODE ---
 
         } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
     });
@@ -753,42 +763,9 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
                     if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
 
-                    // --- CODE ALREADY ADDED HERE FOR LOGIN FACTION UPDATE ---
-                    // Trigger Faction Update on Login, if API key is present
-                    if (profile.tornApiKey) {
-                        console.log('User logged in with API key. Triggering faction update...');
-                        // ADDED DELAY: Wait 1 second before calling Netlify function to help with Torn API rate limits
-                        setTimeout(() => {
-                            fetch('/.netlify/functions/update-user-faction', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    uid: user.uid,
-                                    tornApiKey: profile.tornApiKey, // Use the API key from the fetched profile
-                                }),
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    return response.json().then(errorData => {
-                                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                                    });
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                console.log('Faction update successful:', data.message, `(Faction ID: ${data.factionId}, Name: ${data.factionName})`);
-                                // Optionally, update a UI element here if you display faction info
-                                // on the home page itself without a full refresh.
-                            })
-                            .catch(error => {
-                                console.error('Faction update failed:', error.message);
-                                // Log the error but don't disrupt user experience, as it's a background update
-                            });
-                        }, 1000); // 1-second delay
-                    }
-                    // --- END OF CODE ALREADY ADDED HERE ---
+                    // --- REMOVED DIRECT FACTION UPDATE CALL FROM HERE ---
+                    // The faction update will now be handled inside fetchAllRequiredData after it gets the data
+                    // --- END REMOVED CODE ---
 
                 } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
             } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
@@ -805,7 +782,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
             if (profile && profile.tornApiKey) {
                 if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
-                fetchAllRequiredData(user, db);
+                fetchAllRequiredData(user, db); // This will now trigger the faction update
             } else {
                 if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
                 clearQuickStats();
