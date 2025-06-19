@@ -535,8 +535,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'visible'; }
-    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
+    function showProfileSetupModal() {
+    if (profileSetupModal) {
+        // Use 'flex' here if your CSS for .modal-overlay-profile relies on flexbox for centering,
+        // and profileSetupModal is the element that needs to be a flex container or a flex item within one.
+        // If profileSetupModal is the actual overlay, then 'flex' is good to enable centering children.
+        profileSetupModal.style.display = 'flex';
+    }
+   
+   }
+
+    function hideProfileSetupModal() {
+    if (profileSetupModal) {
+        // Always use 'none' to hide an element
+        profileSetupModal.style.display = 'none';
+        if (nameErrorEl) nameErrorEl.textContent = '';
+        if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
+    }
+}
+
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
