@@ -428,12 +428,16 @@
 
 /* Leader Configuration Section (Tab 4) */
 .config-section {
-    margin-bottom: 0px; /* IMPORTANT: Removed vertical margin to allow grid gap to manage spacing */
-    padding: 10px; /* Kept current padding, adjust if needed for more snug fit */
-    border: 1px solid #00a8ff;
-    border-radius: 8px;
-    background-color: #222;
-    text-align: left;
+    margin-bottom: 0px; /* Existing */
+    padding: 10px; /* Existing */
+    border: 1px solid #00a8ff; /* Existing */
+    border-radius: 8px; /* Existing */
+    background-color: #222; /* Existing */
+    text-align: left; /* Existing */
+    
+    display: flex; /* ADDED */
+    flex-direction: column; /* ADDED */
+    align-items: center; /* ADDED */
 }
 
 .config-section h4 {
@@ -480,14 +484,13 @@ select[multiple] {
 }
 
 .config-section .action-btn {
-    width: auto;
-    margin-top: 5px; /* NEW: Adjusted margin */
-    padding: 6px 12px; /* NEW: Adjusted padding */
-    font-size: 0.9em; /* NEW: Adjusted font size */
-	margin-left: auto;   /* ADD THIS */
-    margin-right: auto;  /* ADD THIS */
+    width: auto; /* Existing */
+    margin-top: 5px; /* Existing */
+    padding: 6px 12px; /* Existing */
+    font-size: 0.9em; /* Existing */
+    /* REMOVED: margin-left: auto; */
+    /* REMOVED: margin-right: auto; */
 }
-
 /* Specific styling for designated admins list */
 #designatedAdminsList, #watchListDisplay {
     list-style: none;
