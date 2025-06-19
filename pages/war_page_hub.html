@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - War Hub</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/war_page_hub.css"> </head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <a href="#" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-user-display" id="logged-in-user-display" style="display: none;">
+            </div>
+
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
+
+            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+                <button class="btn" id="homeButtonHeader">
+                    <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
+                </button>
+
+                <div class="dropdown align-right" id="usefulLinksDropdownContainer">
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗</span></button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
+
+                <div class="dropdown align-right" id="contactUsDropdownContainer">
+                    <button class="btn header-btn" id="contactUsBtn">
+                        <span class="btn-text">Contact:</span><span class="btn-icon">💬</span></button>
+                    <div class="dropdown-content" id="contactUsDropdown">
+                        <a href="report.html">Report an Issue</a> <a href="#">Live Chat (Soon™)</a>
+                        <a href="FAQ.html">F.A.Q</a> </div>
+                </div>
+
+                <button class="btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+                </button>
+            </div>
+
+            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+        </div>
+    </header>
+
+    <div class="main-content-wrapper">
+        <img src="../../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+        <img src="../../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+        <div id="warPageHubContainer" class="styled-container">
+            <h2 class="script-title">Faction War Hub</h2>
+
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="announcements">Announcements</button>
+                <button class="tab-button" data-tab="active-ops">Active Ops</button>
+                <button class="tab-button" data-tab="friendly-status">Friendly Status</button>
+                <button class="tab-button" data-tab="leader-config">Leader Config</button>
+            </div>
+
+            <div class="tab-content-container">
+                <div id="announcements-tab" class="tab-pane active">
+                    <div class="war-announcement-section">
+                        <h3>Game Plan:</h3>
+                        <div id="gamePlanDisplay" class="game-plan-display">
+                            <p>Loading game plan...</p>
+                        </div>
+                        <div class="war-status-display">
+                            <h4>Current War Status:</h4>
+                            <p>Termed: <span id="warTermedStatus">N/A</span></p>
+                            <p>Win/Loss Termed: <span id="warTermedWinLoss">N/A</span></p>
+                            <p>Chaining: <span id="warChainingStatus">N/A</span></p>
+                            <p>No Flying: <span id="warNoFlyingStatus">N/A</span></p>
+                            <p>Turtle Mode: <span id="warTurtleStatus">N/A</span></p>
+                        </div>
+                        <button id="copyGamePlanBtn" class="action-btn">Copy Game Plan</button>
+                    </div>
+                </div>
+
+                <div id="active-ops-tab" class="tab-pane">
+                    <div class="ops-controls-grid">
+                        <div class="ops-control-item">
+                            <label>Chain Timer:</label>
+                            <span id="chainTimerDisplay">Loading...</span>
+                        </div>
+                        <div class="ops-control-item">
+                            <label>Enemy Chain:</label>
+                            <span id="enemyChainTimerDisplay">Loading...</span>
+                        </div>
+                        <div class="ops-control-item">
+                            <label>Faction Announce:</label>
+                            <input type="text" id="quickAnnouncementInput" placeholder="Quick Message">
+                            <button id="postAnnouncementBtn" class="action-btn">Post</button>
+                        </div>
+                        <div class="ops-control-item">
+                            <label>Quick FF Targets:</label>
+                            <div id="quickFFTargetsDisplay">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="enemy-targets-list-section">
+                        <h3>Enemy Targets:</h3>
+                        <div class="enemy-targets-header">
+                            <span>Name [ID]</span>
+                            <span>FF</span>
+                            <span>Difficulty</span>
+                            <span>Est. Stats</span>
+                            <span>Hospital</span>
+                            <span>Attack</span>
+                            <span>Claim</span>
+                        </div>
+                        <div id="enemyTargetsList" class="enemy-targets-scroll-area">
+                            <p>Loading enemy targets...</p>
+                        </div>
+                    </div>
+
+                    <div class="alert-buttons-grid">
+                        <button id="alertHitterOnlineHospBtn" class="action-btn alert-btn">ALERT BIG HITTER ONLINE: SELF HOSP!</button>
+                        <button id="alertHitterActiveBtn" class="action-btn alert-btn">ALERT BIG HITTER ACTIVE</button>
+                        <button id="alertEnemyActiveBtn" class="action-btn alert-btn">ALERT ENEMY ACTIVE</button>
+                    </div>
+
+                    <div class="faction-stats-summary">
+                        <p>Total Faction Energy: <span id="totalFactionEnergy">Loading...</span></p>
+                        <p>Total Potential Hits: <span id="totalPotentialHits">Loading...</span></p>
+                        <p>Chain Progress: <span id="chainProgressDisplay">Loading...</span></p>
+                    </div>
+                </div>
+
+                <div id="friendly-status-tab" class="tab-pane">
+                    <h3>Friendly Faction Members:</h3>
+                    <div id="friendlyMembersList" class="friendly-members-scroll-area">
+                        <p>Loading friendly member status...</p>
+                    </div>
+                </div>
+
+                <div id="leader-config-tab" class="tab-pane">
+                    <h3>Leader Settings:</h3>
+                    <div class="config-section">
+                        <h4>Edit Game Plan:</h4>
+                        <textarea id="gamePlanEditArea"></textarea>
+                        <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Big Hitter Watchlist:</h4>
+                        <input type="text" id="watchEnemyIdInput" placeholder="Enemy ID to watch">
+                        <button id="addWatchEnemyBtn" class="action-btn">Add to Watchlist</button>
+                        <ul id="watchListDisplay"></ul>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Designate Tab 4 Admins:</h4>
+                        <p>Allow up to 5 additional faction members to access this tab.</p>
+                        <input type="text" id="designateAdminIdInput" placeholder="Member UID">
+                        <button id="addDesignateAdminBtn" class="action-btn">Add Admin</button>
+                        <div id="designateAdminError" class="error-message"></div>
+                        <ul id="designatedAdminsList"></ul>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Energy Tracking Members:</h4>
+                        <p>Select members whose energy contributes to faction totals.</p>
+                        <select id="energyTrackMemberSelect" multiple></select>
+                        <button id="saveEnergyTrackMembersBtn" class="action-btn">Save Selections</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="../../js/firebase-init.js"></script>
+    <script src="../../js/globalheader.js"></script>
+    <script src="../../js/war_page_hub.js"></script> </body>
+</html>
