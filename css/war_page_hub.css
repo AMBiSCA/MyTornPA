@@ -10,7 +10,7 @@
     padding: 10px; /* NEW: Reduced padding for more vertical space */
     border-radius: 8px;
     margin-top: 15px; /* Adjusted: Increased top margin to move down from header */
-    margin-bottom: 15px; /* Added: Creates space above the footer */
+    margin-bottom: 40px; /* Added: Creates space above the footer */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
