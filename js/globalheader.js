@@ -1,217 +1,167 @@
 // mysite/js/globalheader.js
 // This script manages the header UI based on Firebase authentication state.
 document.addEventListener('DOMContentLoaded', function() {
-    // Get header element references (all must be top-level for initial hiding)
+    console.log("globalheader.js: DOMContentLoaded event fired.");
+
+    // --- Get header element references ---
     const headerButtonsContainer = document.getElementById('headerButtonsContainer');
     const signUpButtonHeader = document.getElementById('signUpButtonHeader');
     const homeButtonHeader = document.getElementById('homeButtonHeader');
     const logoutButtonHeader = document.getElementById('logoutButtonHeader');
     const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown'); // Actual content div
+    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
     const contactUsBtn = document.getElementById('contactUsBtn');
-    const contactUsDropdown = document.getElementById('contactUsDropdown'); // Actual content div
+    const contactUsDropdown = document.getElementById('contactUsDropdown');
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
-    const loggedInUserDisplay = document.getElementById('loggedInUserDisplay'); 
+    const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
     const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
-    const headerLogoLink = document.getElementById('headerLogoLink'); // Get reference to the logo link
+    const headerLogoLink = document.querySelector('.header-left a'); // More robust selector for the logo link
 
-    // --- Initial display of elements ---
-    if (headerButtonsContainer) headerButtonsContainer.style.setProperty('display', 'none', 'important');
-    if (signUpButtonHeader) signUpButtonHeader.style.setProperty('display', 'none', 'important');
-    if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important'); 
-    if (logoutButtonHeader) logoutButtonHeader.style.setProperty('display', 'none', 'important');
-    if (tornCityHomepageLink) tornCityHomepageLink.style.setProperty('display', 'none', 'important');
-    if (loggedInUserDisplay) loggedInUserDisplay.style.setProperty('display', 'none', 'important');
-    if (headerEditProfileBtn) headerEditProfileBtn.style.setProperty('display', 'none', 'important');
+    // --- Dropdown Logic (Does not depend on Firebase Auth) ---
+    function closeOtherDropdowns(currentDropdown) {
+        document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
+            if (dropdown !== currentDropdown) {
+                dropdown.classList.remove('show');
+                const button = dropdown.previousElementSibling;
+                if (button) button.classList.remove('active');
+            }
+        });
+    }
 
-    if (usefulLinksBtn) usefulLinksBtn.style.setProperty('display', 'none', 'important');
-    if (contactUsBtn) contactUsBtn.style.setProperty('display', 'none', 'important');    
-
-    // --- Dropdown Logic ---
-    function closeOtherDropdowns(currentDropdownElement, currentButtonElement) {
-        const allDropdownContents = document.querySelectorAll('.dropdown-content.show');
-        allDropdownContents.forEach(dropdownContent => {
-            if (dropdownContent !== currentDropdownElement) {
-                dropdownContent.classList.remove('show');
-                dropdownContent.style.removeProperty('display');  
-                const associatedButton = dropdownContent.previousElementSibling;
-                if (associatedButton && associatedButton.classList.contains('btn') && associatedButton.classList.contains('active')) {
-                    associatedButton.classList.remove('active');
+    function setupDropdown(button, dropdown) {
+        if (button && dropdown) {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const isShowing = dropdown.classList.contains('show');
+                closeOtherDropdowns(dropdown);
+                if (!isShowing) {
+                    dropdown.classList.add('show');
+                    button.classList.add('active');
                 }
-            }
-        });
-    }
-
-    // Useful Links Dropdown
-    if (usefulLinksBtn && usefulLinksDropdown) {
-        usefulLinksBtn.addEventListener('click', function(event) {
-            event.stopPropagation();
-            const currentlyOpen = usefulLinksDropdown.classList.contains('show');
-            closeOtherDropdowns(usefulLinksDropdown, usefulLinksBtn);
-            if (!currentlyOpen) {
-                usefulLinksDropdown.classList.add('show');
-                usefulLinksBtn.classList.add('active');
-                usefulLinksDropdown.style.removeProperty('display');  
-            } else {
-                usefulLinksDropdown.classList.remove('show');
-                usefulLinksBtn.classList.remove('active');
-                usefulLinksDropdown.style.removeProperty('display');  
-            }
-        });
-    }
-
-    // Contact Us Dropdown
-    if (contactUsBtn && contactUsDropdown) {
-        contactUsBtn.addEventListener('click', function(event) {
-            event.stopPropagation();
-            const currentlyOpen = contactUsDropdown.classList.contains('show');
-            closeOtherDropdowns(contactUsDropdown, contactUsBtn);
-            if (!currentlyOpen) {
-                contactUsDropdown.classList.add('show');
-                contactUsBtn.classList.add('active');
-                contactUsDropdown.style.removeProperty('display');  
-            } else {
-                contactUsDropdown.classList.remove('show');
-                contactUsBtn.classList.remove('active');
-                contactUsDropdown.style.removeProperty('display');  
-            }
-        });
-    }
-
-    // Global click listener to close dropdowns when clicking outside
-    window.addEventListener('click', function(event) {
-        if (usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) {
-            if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
-                usefulLinksDropdown.classList.remove('show');
-                usefulLinksBtn.classList.remove('active');
-                usefulLinksDropdown.style.removeProperty('display');  
-            }
+            });
         }
-        if (contactUsDropdown && contactUsDropdown.classList.contains('show')) {
-            if (!contactUsBtn.contains(event.target) && !contactUsDropdown.contains(event.target)) {
-                contactUsDropdown.classList.remove('show');
-                contactUsBtn.classList.remove('active');
-                contactUsDropdown.style.removeProperty('display');  
-            }
-        }
+    }
+
+    setupDropdown(usefulLinksBtn, usefulLinksDropdown);
+    setupDropdown(contactUsBtn, contactUsDropdown);
+
+    window.addEventListener('click', function() {
+        closeOtherDropdowns(null); // Close all dropdowns
     });
 
-    // --- Firebase Auth state listener (Controls header button visibility and NAVIGATION) ---
-    if (typeof auth !== 'undefined') {
-        auth.onAuthStateChanged(function(user) {
-            console.log("globalheader.js: Auth state changed. User:", user);
-
-            const currentPagePath = window.location.pathname;
-            const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
-            const publicLandingPages = ['index.html', ''];  
-            const isSignUpPage = (pageName === 'signup.html');
-            const isHomePage = (pageName === 'home.html' || pageName === ''); 
-
-            if (user) {
-                console.log("globalheader.js: User IS signed in:", user.uid);
-
-                // Hide elements specific to logged-out state
-                if (loggedInUserDisplay) loggedInUserDisplay.style.setProperty('display', 'none', 'important');
-                if (tornCityHomepageLink) tornCityHomepageLink.style.setProperty('display', 'none', 'important');
-                if (signUpButtonHeader) signUpButtonHeader.style.setProperty('display', 'none', 'important');
-
-                // Show main header buttons container unless it's a specific public landing/signup page
-                if (headerButtonsContainer) {
-                    if (publicLandingPages.includes(pageName) || isSignUpPage) {
-                        headerButtonsContainer.style.setProperty('display', 'none', 'important');
-                    } else {
-                        headerButtonsContainer.style.setProperty('display', 'flex', 'important'); 
-                    }
-                }
-
-                // Explicitly set display for each individual button when logged in (forced with !important)
-                if (logoutButtonHeader) logoutButtonHeader.style.setProperty('display', 'inline-flex', 'important');
-                if (headerEditProfileBtn) headerEditProfileBtn.style.setProperty('display', 'inline-flex', 'important');
-                if (usefulLinksBtn) usefulLinksBtn.style.setProperty('display', 'inline-flex', 'important');
-                if (contactUsBtn) contactUsBtn.style.setProperty('display', 'inline-flex', 'important');
-
-                // Home button logic (in header): hide if current page is the conceptual "home" or "dashboard"
-                if (homeButtonHeader) {
-                    if (isHomePage || pageName === 'social.html' || pageName === 'dashboard.html') { 
-                        homeButtonHeader.style.setProperty('display', 'none', 'important');
-                    } else {
-                        homeButtonHeader.style.setProperty('display', 'inline-flex', 'important'); 
-                        // Attach click listener for Home button (using a named function to allow removal)
-                        homeButtonHeader.removeEventListener('click', homeNavHandler); 
-                        homeButtonHeader.addEventListener('click', homeNavHandler);
-                    }
-                }
-
-                // Attach click listener for Header Logo link
-                if (headerLogoLink) {
-                    headerLogoLink.removeEventListener('click', logoNavHandler); 
-                    headerLogoLink.addEventListener('click', logoNavHandler);
-                }
-
-                // --- ADDED LOGOUT FUNCTIONALITY ---
-                if (logoutButtonHeader) {
-                    logoutButtonHeader.removeEventListener('click', logoutHandler); 
-                    logoutButtonHeader.addEventListener('click', logoutHandler);
-                }
-
-            } else {
-                // No user is signed in (Logged Out)
-                console.log("globalheader.js: No user is signed in.");
-
-                // Hide all logged-in specific elements and show logged-out specific elements (forced with !important)
-                if (loggedInUserDisplay) loggedInUserDisplay.style.setProperty('display', 'none', 'important');
-                if (headerButtonsContainer) headerButtonsContainer.style.setProperty('display', 'none', 'important');
-                if (logoutButtonHeader) logoutButtonHeader.style.setProperty('display', 'none', 'important');
-                if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important');
-                if (headerEditProfileBtn) headerEditProfileBtn.style.setProperty('display', 'none', 'important');
-                if (usefulLinksBtn) usefulLinksBtn.style.setProperty('display', 'none', 'important');
-                if (contactUsBtn) contactUsBtn.style.setProperty('display', 'none', 'important');
-
-                if (tornCityHomepageLink) tornCityHomepageLink.style.setProperty('display', 'inline-flex', 'important');
-                if (signUpButtonHeader) {
-                    if (isSignUpPage) {
-                        signUpButtonHeader.style.setProperty('display', 'none', 'important');
-                    } else {
-                        signUpButtonHeader.style.setProperty('display', 'inline-flex', 'important');
-                    }
-                }
-            }
-        });
-    } else {
-        console.warn("globalheader.js: Firebase auth object is not available for header UI script. Ensure Firebase App and Auth SDKs are loaded correctly before globalheader.js.");
-        // Fallback for when Firebase auth is not available (forced with !important)
-        if (headerButtonsContainer) headerButtonsContainer.style.setProperty('display', 'none', 'important');
-        if (logoutButtonHeader) logoutButtonHeader.style.setProperty('display', 'none', 'important');
-        if (signUpButtonHeader) signUpButtonHeader.style.setProperty('display', 'inline-flex', 'important');
-        if (tornCityHomepageLink) tornCityHomepageLink.style.setProperty('display', 'inline-flex', 'important');
-        if (loggedInUserDisplay) loggedInUserDisplay.style.setProperty('display', 'none', 'important');
-        if (homeButtonHeader) homeButtonHeader.style.setProperty('display', 'none', 'important');
-        if (headerEditProfileBtn) headerEditProfileBtn.style.setProperty('display', 'none', 'important');
-        if (usefulLinksBtn) usefulLinksBtn.style.setProperty('display', 'none', 'important');
-        if (contactUsBtn) contactUsBtn.style.setProperty('display', 'none', 'important');
+    // --- CORRECTED FIREBASE INITIALIZATION ---
+    let auth = null;
+    try {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            auth = firebase.auth();
+            console.log("globalheader.js: Firebase Auth instance obtained successfully.");
+        } else {
+            throw new Error("Firebase auth object not found.");
+        }
+    } catch (e) {
+        console.error("globalheader.js: CRITICAL ERROR initializing Firebase Auth:", e);
+        // If Firebase fails, we can't show a proper header state.
+        // You could display an error message here if needed.
     }
-    console.log("globalheader.js: End of script.");
 
-    // --- Centralized Navigation Handlers (Using absolute paths for reliability) ---
-    // These paths are relative to the website's root (e.g., mysite.netlify.app/)
+
+    // --- Centralized Navigation and Action Handlers (that require 'auth') ---
     function homeNavHandler() {
-        console.log("Navigating to /pages/home.html via Home button.");
-        window.location.href = '/pages/home.html'; 
-    }
-
-    function logoNavHandler() {
-        console.log("Navigating to /pages/home.html via Logo link.");
-        window.location.href = '/pages/home.html'; 
+        window.location.href = '/pages/home.html';
     }
 
     function logoutHandler() {
+        if (!auth) {
+            console.error("Logout failed: Auth service not available.");
+            return;
+        }
         auth.signOut().then(() => {
             console.log("User signed out successfully.");
-            // Redirect to the index/login page (assuming index.html is at the root)
-            window.location.href = '/index.html'; 
+            window.location.href = '/index.html';
         }).catch((error) => {
             console.error("Error signing out:", error);
             alert("Failed to log out. Please try again.");
         });
     }
+
+    // --- Firebase Auth State Listener (Controls UI) ---
+    // This ENTIRE section only runs if 'auth' was successfully initialized.
+    if (auth) {
+        auth.onAuthStateChanged(function(user) {
+            console.log("globalheader.js: Auth state changed. User:", user);
+
+            const currentPagePath = window.location.pathname;
+            const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
+            const publicLandingPages = ['index.html', ''];
+            const isSignUpPage = (pageName === 'signup.html');
+            const isHomePage = (pageName === 'home.html' || pageName === '');
+
+            // Ensure all elements exist before trying to manipulate them
+            const elements = {
+                headerButtonsContainer,
+                signUpButtonHeader,
+                homeButtonHeader,
+                logoutButtonHeader,
+                usefulLinksBtn,
+                contactUsBtn,
+                tornCityHomepageLink,
+                loggedInUserDisplay,
+                headerEditProfileBtn,
+                headerLogoLink
+            };
+
+            if (user) {
+                // --- USER IS LOGGED IN ---
+                if (elements.signUpButtonHeader) elements.signUpButtonHeader.style.display = 'none';
+                if (elements.tornCityHomepageLink) elements.tornCityHomepageLink.style.display = 'none';
+                if (elements.loggedInUserDisplay) elements.loggedInUserDisplay.style.display = 'none'; // Assuming this is for logged-out state
+
+                if (elements.headerButtonsContainer) elements.headerButtonsContainer.style.display = 'flex';
+                if (elements.logoutButtonHeader) elements.logoutButtonHeader.style.display = 'inline-flex';
+                if (elements.headerEditProfileBtn) elements.headerEditProfileBtn.style.display = 'inline-flex';
+                if (elements.usefulLinksBtn) elements.usefulLinksBtn.style.display = 'inline-flex';
+                if (elements.contactUsBtn) elements.contactUsBtn.style.display = 'inline-flex';
+
+                if (elements.homeButtonHeader) {
+                    if (isHomePage || pageName === 'social.html' || pageName === 'dashboard.html') {
+                        elements.homeButtonHeader.style.display = 'none';
+                    } else {
+                        elements.homeButtonHeader.style.display = 'inline-flex';
+                    }
+                }
+
+                // Attach listeners for logged-in state
+                if (elements.logoutButtonHeader) {
+                    elements.logoutButtonHeader.removeEventListener('click', logoutHandler);
+                    elements.logoutButtonHeader.addEventListener('click', logoutHandler);
+                }
+                if (elements.homeButtonHeader) {
+                     elements.homeButtonHeader.removeEventListener('click', homeNavHandler);
+                     elements.homeButtonHeader.addEventListener('click', homeNavHandler);
+                }
+                if (elements.headerLogoLink) {
+                    elements.headerLogoLink.removeEventListener('click', homeNavHandler);
+                    elements.headerLogoLink.addEventListener('click', homeNavHandler);
+                }
+
+            } else {
+                // --- USER IS LOGGED OUT ---
+                if (elements.headerButtonsContainer) elements.headerButtonsContainer.style.display = 'none';
+                
+                // Show logged-out buttons
+                if (elements.tornCityHomepageLink) elements.tornCityHomepageLink.style.display = 'inline-flex';
+                if (elements.signUpButtonHeader) {
+                    elements.signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex';
+                }
+            }
+        });
+    } else {
+        // --- FALLBACK IF FIREBASE FAILS TO LOAD ---
+        console.warn("globalheader.js: Firebase auth object is NULL. Can't update header UI.");
+        // Hide all conditional buttons as a fallback
+        if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+        if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+    }
+
+    console.log("globalheader.js: End of script.");
 });
