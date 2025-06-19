@@ -1,4 +1,4 @@
-// mysite/js/social.js - FINAL WORKING VERSION
+// mysite/js/social.js - FINAL DIAGNOSTIC TEST
 document.addEventListener('DOMContentLoaded', function() {
     console.log("social.js: Script loaded.");
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Main Hub Buttons
     const hubActionGlobalChatBtn = document.getElementById('hubActionGlobalChatFinal');
     const hubActionFactionChatBtn = document.getElementById('hubActionFactionChatFinal');
-    const hubActionFriendsChatBtn = document.getElementById('hubActionFriendsChatBtnFinal'); // Corrected ID
+    const hubActionFriendsChatBtn = document.getElementById('hubActionFriendsChatBtnFinal'); // Corrected ID again to be safe
     const viewFriendsBtnHub = document.getElementById('viewFriendsBtnFinal');
     const hubActionFactionInfoBtn = document.getElementById('hubActionFactionInfoFinal');
     const hubActionLeadershipViewBtn = document.getElementById('hubActionLeadershipViewFinal');
@@ -136,6 +136,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if(contentToShow) contentToShow.classList.add('active');
     }
 
+    function displayUserFactionInfo() {
+        showModal(factionInfoModal);
+    }
+
+    function displayLeadershipView() {
+        showModal(leadershipPanelModal);
+    }
+    
+    function displayOnTheHuntView() {
+        showModal(onTheHuntModal);
+    }
+    
     // --- MAIN INITIALIZATION & AUTH ---
 
     async function initializeHubContent(user) {
@@ -144,14 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         currentUserId = user.uid;
-        // Logic to check if profile is complete...
-        const profileDoc = await db.collection('userProfiles').doc(currentUserId).get();
-        if (!profileDoc.exists || !profileDoc.data().profileSetupComplete) {
-            showModal(profileSetupModal);
-            return;
-        }
-        currentUserProfileData = profileDoc.data();
-        
         theHubMainUi.style.display = 'grid';
         setupToggleSwitch(shareStatsToggleFinal, 'shareStatsWithFaction');
         setupToggleSwitch(lookingForFactionToggleFinal, 'isLookingForFaction');
@@ -161,42 +165,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- EVENT LISTENER ATTACHMENTS ---
     
-    // Profile Modal
-    setupButtonListener(skipProfileSetupBtn, () => hideModal(profileSetupModal));
-    setupButtonListener(closeProfileModalBtn, () => hideModal(profileSetupModal));
-    setupButtonListener(saveProfileBtn, async () => {
-        const name = preferredNameInput.value.trim();
-        if (name.length === 0) return;
-        await db.collection('userProfiles').doc(currentUserId).set({
-            preferredName: name,
-            shareStatsWithFaction: shareFactionStatsModalToggle.checked,
-            profileSetupComplete: true,
-            tornApiKey: profileSetupApiKeyInput.value.trim(),
-            tornProfileId: profileSetupProfileIdInput.value.trim(),
-        }, { merge: true });
-        hideModal(profileSetupModal);
-        initializeHubContent(auth.currentUser);
-    });
-
-    // Chat Buttons
     setupButtonListener(hubActionGlobalChatBtn, () => showChatModal('global'));
     setupButtonListener(hubActionFactionChatBtn, () => showChatModal('faction'));
     setupButtonListener(hubActionFriendsChatBtn, () => showChatModal('friends'));
     
-    // --- CORRECTED LISTENERS FOR THE 4 PROBLEM BUTTONS ---
+    // Non-working buttons
     setupButtonListener(viewFriendsBtnHub, () => showModal(manageFriendsModal));
-    setupButtonListener(hubActionFactionInfoBtn, () => showModal(factionInfoModal));
-    setupButtonListener(hubActionLeadershipViewBtn, () => showModal(leadershipPanelModal));
-    setupButtonListener(hubActionOnTheHuntViewBtn, () => showModal(onTheHuntModal));
+    setupButtonListener(hubActionLeadershipViewBtn, displayLeadershipView);
+    setupButtonListener(hubActionOnTheHuntViewBtn, displayOnTheHuntView);
 
-    // All Modal Close Buttons
+    // =================================================================
+    // =========== THIS IS THE TEST ===========
+    // We are rewiring the "Faction Info" button to do what "Global Chat" does.
+    console.log("TESTING: Rewiring 'Faction Info' button to open the Chat Modal.");
+    setupButtonListener(hubActionFactionInfoBtn, () => showChatModal('global'));
+    // =================================================================
+
+    // Modal Close Buttons
     setupButtonListener(closeChatModalButton, () => hideModal(hubChatModal));
     setupButtonListener(closeManageFriendsModalBtn, () => hideModal(manageFriendsModal));
     setupButtonListener(closeFactionInfoModalBtn, () => hideModal(factionInfoModal));
     setupButtonListener(closeLeadershipPanelModalBtn, () => hideModal(leadershipPanelModal));
     setupButtonListener(closeOnTheHuntModalBtn, () => hideModal(onTheHuntModal));
-    
-    // Pagination and other listeners can be added back here as you build out those features.
 
     // --- Core Firebase Auth state listener ---
     if (auth) {
@@ -205,8 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 initializeHubContent(user);
             } else {
                 if (theHubMainUi) theHubMainUi.style.display = 'none';
-                // If you want to redirect on logout, uncomment the line below
-                // window.location.href = '/index.html';
             }
         });
     } else {
