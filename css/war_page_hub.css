@@ -510,7 +510,7 @@ select[multiple] {
 
 @media (max-width: 768px) {
     .tab-navigation {
-        flex-direction: column;
+        flex-direction: column; margin-bottom: 15px;
     }
     .tab-button {
         border-radius: 5px;
