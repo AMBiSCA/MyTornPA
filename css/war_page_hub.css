@@ -818,6 +818,33 @@ select[multiple] {
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
 }
+.member-selection-container {
+    height: 200px; /* You can still adjust the height */
+    overflow-y: auto; /* Adds the vertical scrollbar if needed */
+    
+    /* --- NEW LINES FOR COLUMNS --- */
+    column-count: 3; /* This creates 3 columns */
+    column-gap: 20px; /* This adds space between the columns */
+    
+    border: 1px solid #555;
+    padding: 10px;
+    background-color: #1a1a1a;
+    border-radius: 4px;
+}
+
+.member-selection-item {
+    display: flex;
+    align-items: center;
+    padding: 2px 0;
+    /* This prevents items from breaking across columns */
+    break-inside: avoid-column;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.member-selection-item label {
+    margin-left: 8px;
+}
 
 .war-status-toggles-grid .toggle-control {
     display: flex;           /* Make each control a flex container */
