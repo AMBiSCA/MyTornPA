@@ -62,6 +62,7 @@
     border-right: 2px solid black;
 }
 
+
 .tab-button:hover {
     background-color: #555; /* NEW: A slightly different hover color for non-active */
     color: #f0f0f0;
