@@ -11,8 +11,8 @@
     border-radius: 8px;
     margin-top: 15px; /* Top margin remains perfect */
     margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
-    margin-left: auto;   /* ADDED: Centering the overall container */
-    margin-right: auto;  /* ADDED: Centering the overall container */
+    margin-left: auto;    /* ADDED: Centering the overall container */
+    margin-right: auto;   /* ADDED: Centering the overall container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
@@ -231,29 +231,77 @@
     font-size: 0.9em; /* NEW: Slightly smaller font */
 }
 
+/* NEW/MODIFIED: War Status Display on Announcements tab */
 .war-status-display {
     padding: 10px;
     border: 1px solid #555;
     border-radius: 5px;
     background-color: #333;
     display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 5px 10px; /* NEW: Reduced gap */
-    align-items: center;
-    font-size: 0.9em; /* NEW: Slightly smaller font */
+    /* Grid for the status items: 2 columns with equal width, items centered */
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px */
+    align-items: start; /* Align items to the start of their grid cell vertically */
+    font-size: 0.9em;
+    padding-top: 15px; /* Add some top padding inside the box to push content down from title */
+    padding-bottom: 15px; /* Add some bottom padding inside the box */
+    margin-top: 0; /* Ensure no unwanted margin pushes it down from its h3 */
+    /* text-align: center; This will be applied to individual status items now */
 }
 
+/* Styles for individual status items within the war-status-display grid */
+.war-status-display .status-item {
+    display: flex;           /* Make each status item a flex container */
+    flex-direction: column;  /* Stack label above value */
+    align-items: center;     /* Center horizontally within its grid cell */
+    justify-content: center; /* Center vertically if the grid cell has extra height */
+    text-align: center;      /* Center the text content within the item */
+}
+
+.war-status-display .status-label {
+    font-weight: bold;
+    color: #e0a71a; /* Matching the gold of config-section h4 for labels */
+    margin-bottom: 3px; /* Small space below label and above value */
+}
+
+.war-status-display .status-value {
+    color: #f0f0f0; /* White/light text for the value */
+    font-weight: normal; /* Ensure it's not bold */
+}
+
+/* For the 'Next Planned Chain Time' item to span both columns */
+.war-status-display .status-item-full-width {
+    grid-column: 1 / -1; /* Make this item span all columns */
+    margin-top: 10px; /* Add some space above this row for separation */
+}
+
+/* Style for the 'Next Planned Chain Time' value box (like the input on Leader Config) */
+.war-status-display .status-value-box {
+    background-color: #1e1e1e; /* Darker background for the box */
+    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
+    border-radius: 4px;
+    padding: 5px 10px; /* Padding inside the box */
+    font-family: 'Courier New', Courier, monospace; /* Monospace font for time */
+    font-size: 1em; /* Slightly larger font for readability */
+    min-width: 120px; /* Ensure it has a minimum width */
+    max-width: 180px; /* Limit max width */
+    display: inline-block; /* Treat as inline-block to accept width/height but flow like text */
+    box-sizing: border-box;
+    text-align: center; /* Ensure text inside the box is centered */
+}
+
+
+/* Existing h4 for war-status-display (from .war-status-display h4) - This specific selector from your original CSS is likely redundant or causing issues.
+   The HTML for Announcements tab uses h3. Removing this specific rule to prevent conflict.
 .war-status-display h4 {
-    color: #e0a71a; /* KEPT GOLD: This is a sub-header, often useful to contrast */
+    color: #e0a71a;
     margin-bottom: 5px;
     grid-column: 1 / -1;
     text-align: center;
 }
+*/
+/* END NEW/MODIFIED: War Status Display */
 
-.war-status-display span {
-    font-weight: bold;
-    color: #fff;
-}
 
 /* Active Ops Controls Grid (Tab 2) */
 .ops-controls-grid {
@@ -315,7 +363,7 @@
 }
 
 #postAnnouncementBtn {
-    margin-top: 5px;
+    margin-top: 15px; /* Adjusted margin to ensure consistent gap with Game Plan Save button */
 }
 
 /* Enemy Targets List Section (Tab 2) */
@@ -510,7 +558,7 @@
     border-radius: 8px; /* Existing */
     background-color: #222; /* Existing */
     text-align: left; /* Existing */
-    
+
     display: flex; /* ADDED */
     flex-direction: column; /* ADDED */
     align-items: center; /* ADDED */
@@ -579,7 +627,7 @@
 /* Target the specific toggle-control by the ID of its input for precision */
 .toggle-control:has(input#nextChainTimeInput) {
     /* Existing: display: flex; flex-direction: column; */
-    align-items: center;   /* Centers the label and input elements horizontally */
+    align-items: center;    /* Centers the label and input elements horizontally */
     /* Remove text-align: center from here, we'll apply it directly to the label */
 }
 
@@ -602,8 +650,8 @@
     min-width: 100px; /* Ensure it doesn't get too small */
     display: block; /* Make it a block element so margin: auto can center it */
     margin-left: auto; /* Center the input horizontally */
-    margin-right: auto; 
-	margin-top: 3px;
+    margin-right: auto;
+    margin-top: 3px;
     /* You may also adjust padding and font-size if necessary */
     /* padding: 6px; */
     /* font-size: 0.9em; */
@@ -626,7 +674,7 @@ select[multiple] {
     font-size: 0.9em; /* Existing */
     font-weight: bold; /* ADDED: Make the text bold */
     background-color: #007bff; /* ADDED: Blue background to match header buttons */
-    color: black; /* Corrected: Changed to white text as per typical blue button style, assuming this was intended from "match header buttons" */
+    color: white; /* Corrected: Changed to white text as per typical blue button style */
     border: 2px solid black; /* CORRECTED: Changed #black to black */
     border-radius: 5px; /* ADDED: Border-radius to match header buttons */
     transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
@@ -682,7 +730,7 @@ select[multiple] {
         grid-template-columns: 1fr; /* Stack controls vertically */
     }
     .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; 
+        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
         font-size: 0.8em; /* NEW: Reduced base font size */
     }
     .faction-stats-summary {
@@ -698,7 +746,7 @@ select[multiple] {
 
     /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
     #leader-config-tab.active { /* IMPORTANT: Also add .active here */
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr;
         max-width: 600px; /* On smaller screens, stack into a single column */
     }
     /* --- END LEADER CONFIG TAB --- */
@@ -735,14 +783,14 @@ select[multiple] {
 }
 
 @media (max-width: 480px) {
-    .main-content-wrapper { padding-top: 75px; } 
+    .main-content-wrapper { padding-top: 75px; }
     #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
     .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
     .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
     .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
     .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
     .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr; 
+        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
         font-size: 0.7em; /* NEW: Further reduced base font size */
     }
     .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
