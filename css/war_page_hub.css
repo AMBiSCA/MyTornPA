@@ -11,8 +11,8 @@
     border-radius: 8px;
     margin-top: 15px; /* Top margin remains perfect */
     margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
-    margin-left: auto;     /* ADDED: Centering the overall container */
-    margin-right: auto;    /* ADDED: Centering the overall container */
+    margin-left: auto;    /* ADDED: Centering the overall container */
+    margin-right: auto;   /* ADDED: Centering the overall container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
@@ -370,7 +370,7 @@
 }
 .ops-control-item .quick-ff-targets-container span {
     flex-grow: 1; /* Allow targets to grow to fill space */
-    min-width: 45%; /* Ensure they don't get too small */
+    min-width: 45%; /* Ensure they don-t get too small */
     text-align: center;
     border: 1px solid #00a8ff;
     border-radius: 4px;
@@ -619,7 +619,7 @@
 .config-section h4 {
     color: #e0a71a;
     margin-bottom: 8px; /* NEW: Reduced margin */
-    margin-top: 0; /* NEW: Remove top margin */
+    margin-top: 0; /* NEW: Remove top top margin */
     text-align: center;
     font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
@@ -683,15 +683,14 @@
     /* box-sizing: border-box; */
 }
 
-/* NEW: Styling for the Set Targets button to fit in the grid */
+/* Styling for the Set Targets button to fit correctly when placed outside grid */
 #setTargetsBtn {
     padding: 8px 12px; /* Consistent padding for action buttons */
     font-size: 0.9em;
     font-weight: bold; /* Make button text bold */
-    width: 100%; /* Make it fill its column */
-    box-sizing: border-box;
-    display: block; /* Ensure it behaves as a block in the grid cell */
-    margin: auto; /* Center it within its grid cell if its width is not 100% */
+    width: auto; /* Allow width to shrink to content */
+    display: block; /* Make it a block element for centering */
+    margin: 10px auto 0 auto; /* Center horizontally and add margin-top */
     /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
 }
 
