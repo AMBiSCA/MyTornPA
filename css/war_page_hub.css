@@ -684,15 +684,15 @@
 }
 
 /* Styling for the Set Targets button to fit correctly when placed outside grid */
-#setTargetsBtn {
-    padding: 8px 12px; /* Consistent padding for action buttons */
+/* This rule is intentionally commented out in the master copy as the button will be removed from HTML */
+/* #setTargetsBtn {
+    padding: 8px 12px;
     font-size: 0.9em;
-    font-weight: bold; /* Make button text bold */
-    width: auto; /* Allow width to shrink to content */
-    display: block; /* Make it a block element for centering */
-    margin: 10px auto 0 auto; /* Center horizontally and add margin-top */
-    /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
-}
+    font-weight: bold;
+    width: auto;
+    display: block;
+    margin: 10px auto 0 auto;
+} */
 
 
 textarea {
@@ -817,35 +817,6 @@ select[multiple] {
     .config-section h4 {
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
-}
-
-.war-status-toggles-grid .toggle-control {
-    display: flex;           /* Make each control a flex container */
-    flex-direction: column;  /* Stack label, input/button vertically */
-    align-items: center;     /* Center content horizontally within the column */
-    gap: 3px; /* Small gap between stacked items like labels and inputs */
-}
-
-/* Update: Style specifically for the labels within these toggle controls (to center their text) */
-.war-status-toggles-grid .toggle-control label {
-    display: block; /* Ensure the label behaves like a block-level element */
-    width: 100%; /* Ensure it takes full available width within its parent */
-    text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box;
-}
-
-/* Update: Style for the input fields for time and enemy ID */
-/* These properties will ensure they are block-level and centered horizontally within their flex containers */
-#nextChainTimeInput,
-#enemyFactionIDInputLeaderConfig {
-    width: auto; /* Allow width to be determined by content/min-width/max-width */
-    max-width: 160px; /* Adjust this value as needed to match the label's width */
-    min-width: 100px; /* Ensure it doesn't get too small */
-    display: block; /* Make it a block element so margin: auto can center it */
-    margin-left: auto; /* Center the input horizontally */
-    margin-right: auto;
-    margin-top: 3px; /* Small gap between label and input */
-    /* Inherit padding, font-size, border from .config-section input[type="text"] */
 }
 
 @media (max-width: 480px) {
