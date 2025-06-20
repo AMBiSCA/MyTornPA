@@ -209,7 +209,7 @@
 
     /* NEW ADAPTATIONS: Two columns of names */
     display: grid; /* Changed from flex to grid */
-    grid-template-columns: 250px 250px;
+    grid-template-columns: 180px 180px 180px;
     gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px between items */
 
     margin-bottom: 8px; /* Space below the list, similar to inputs */
