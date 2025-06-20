@@ -229,6 +229,15 @@
     white-space: pre-wrap;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.9em; /* NEW: Slightly smaller font */
+    min-height: 80px; /* Keep minimum, but allow it to grow */
+    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Vertically center its content (e.g., "Loading game plan...") */
+    justify-content: center; /* Horizontally center its content */
+    text-align: center; /* Ensure text is centered */
+    padding: 15px; /* Adjust internal padding to fill space and align vertically */
+    box-sizing: border-box;
+}
 }
 
 /* NEW/MODIFIED: War Status Display on Announcements tab */
