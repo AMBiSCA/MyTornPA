@@ -1,5 +1,5 @@
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v4 COMPLETE
+   War Page Hub JavaScript (war_page_hub.js) - v5 FINAL
    ========================================================================== */
 
 // --- Global Variables ---
@@ -86,6 +86,7 @@ async function initializeAndLoadData(apiKey) {
 }
 
 function populateUiComponents(warData, apiKey) {
+    // This function now safely checks if an element exists before using it.
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
@@ -107,10 +108,13 @@ function populateUiComponents(warData, apiKey) {
     }
 
     if (factionApiFullData.members) {
-        populateMemberSelectionLists(factionApiFullData.members, warData.tab4Admins || [], warData.energyTrackingMembers || []);
+        populateMemberSelectionLists(
+            factionApiFullData.members,
+            warData.tab4Admins || [],
+            warData.energyTrackingMembers || []
+        );
     }
 }
-
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
@@ -159,3 +163,140 @@ function populateMemberSelectionLists(members, savedAdmins, savedEnergyMembers) 
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
 }
+
+function populateWarStatusDisplay(warData = {}) {
+    if (warEnlistedStatus) warEnlistedStatus.textContent = warData.toggleEnlisted ? 'Yes' : 'No';
+    if (warTermedStatus) warTermedStatus.textContent = warData.toggleTermedWar ? 'Yes' : 'No';
+    if (warTermedWinLoss) warTermedWinLoss.textContent = warData.toggleTermedWinLoss ? 'Win' : 'Loss';
+    if (warChainingStatus) warChainingStatus.textContent = warData.toggleChaining ? 'Yes' : 'No';
+    if (warNoFlyingStatus) warNoFlyingStatus.textContent = warData.toggleNoFlying ? 'Yes' : 'No';
+    if (warTurtleStatus) warTurtleStatus.textContent = warData.toggleTurtleMode ? 'Yes' : 'No';
+    if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
+}
+
+function loadWarStatusForEdit(warData = {}) {
+    if (toggleEnlisted) toggleEnlisted.checked = warData.toggleEnlisted || false;
+    if (toggleTermedWar) toggleTermedWar.checked = warData.toggleTermedWar || false;
+    if (toggleTermedWinLoss) toggleTermedWinLoss.checked = warData.toggleTermedWinLoss || false;
+    if (toggleChaining) toggleChaining.checked = warData.toggleChaining || false;
+    if (toggleNoFlying) toggleNoFlying.checked = warData.toggleNoFlying || false;
+    if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
+    if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
+    if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
+}
+// --- Event Listeners Setup ---
+
+function setupEventListeners(apiKey) {
+    if (saveGamePlanBtn) {
+        saveGamePlanBtn.addEventListener('click', async () => {
+            if (!gamePlanEditArea) return;
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ gamePlan: gamePlanEditArea.value }, { merge: true });
+                if (gamePlanDisplay) gamePlanDisplay.textContent = gamePlanEditArea.value;
+                alert('Game plan saved!');
+            } catch (error) {
+                console.error('Error saving game plan:', error);
+                alert('Error saving game plan.');
+            }
+        });
+    }
+
+    if (postAnnouncementBtn) {
+        postAnnouncementBtn.addEventListener('click', async () => {
+            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
+                quickAnnouncementInput.value = '';
+                alert('Announcement posted!');
+            } catch (error) {
+                console.error('Error posting announcement:', error);
+            }
+        });
+    }
+    
+    if (saveWarStatusControlsBtn) {
+        saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
+            try {
+                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+                alert('War status saved!');
+                populateWarStatusDisplay(statusData);
+                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
+            } catch (error) {
+                console.error('Error saving war status:', error);
+            }
+        });
+    }
+
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            if (!designateAdminsContainer) return;
+            const selectedAdminIds = Array.from(designateAdminsContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+                alert('Admins saved!');
+            } catch (error) {
+                console.error("Error saving admins:", error);
+            }
+        });
+    }
+
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+                alert('Energy tracking members saved!');
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+            }
+        });
+    }
+}
+
+// --- Main Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
+    });
+    showTab('announcements-tab');
+
+    let listenersInitialized = false;
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            const apiKey = doc.exists ? doc.data().tornApiKey : null;
+
+            if (apiKey) {
+                userApiKey = apiKey; // Set global API key
+                await initializeAndLoadData(apiKey);
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    listenersInitialized = true;
+                }
+            } else {
+                console.warn("API key not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        }
+    });
+});
