@@ -202,26 +202,20 @@
 
                     <div class="config-section">
                         <h4>Designate Tab 4 Admins:</h4>
-                        <p>Allow up to 5 additional faction members to access this tab.</p>
-                        <input type="text" id="designateAdminIdInput" placeholder="Member UID">
-                        <button id="addDesignateAdminBtn" class="action-btn">Add Admin</button>
-                        <div id="designateAdminError" class="error-message"></div>
-                        <ul id="designatedAdminsList"></ul>
-                    </div>
+                        <p>Select members to designate as admins:</p>
+                        <select id="designateAdminSelect" multiple></select> <div id="designateAdminError" class="error-message"></div>
+                        <button id="saveAdminSelectionsBtn" class="action-btn">Save Admins</button> </div>
 
                     <div class="config-section">
                         <h4>Big Hitter Watchlist:</h4>
-                        <input type="text" id="watchEnemyIdInput" placeholder="Enemy ID to watch">
-                        <button id="addWatchEnemyBtn" class="action-btn">Add to Watchlist</button>
-                        <ul id="watchListDisplay"></ul>
-                    </div>
+                        <p>Select enemies to watch:</p>
+                        <select id="watchEnemySelect" multiple></select> <button id="saveWatchlistSelectionsBtn" class="action-btn">Save Selections</button> </div>
 
                     <div class="config-section">
                         <h4>Energy Tracking Members:</h4>
-                        <p>Add/Remove members whose energy contributes to faction totals.</p>
-                        <input type="text" id="energyTrackMemberInput" placeholder="Member ID to track">
-                        <button id="addEnergyTrackMemberBtn" class="action-btn">Add Member</button>
-                        <ul id="energyTrackMembersList"></ul> </div>
+                        <p>Select members whose energy contributes to faction totals.</p>
+                        <select id="energyTrackMemberSelect" multiple></select> <button id="saveEnergyTrackMembersBtn" class="action-btn">Save Selections</button>
+                    </div>
                 </div>
             </div>
         </div>
