@@ -509,9 +509,11 @@
 
 /* Style specifically for the label text within this toggle control */
 .toggle-control:has(input#nextChainTimeInput) label {
-    text-align: center !important; /* Force center alignment of the text content */
-    width: 100%; /* Ensure the label spans full width of its flex container */
+    display: block; /* Make the label behave like a block-level element */
+    width: 100%; /* Ensure it takes full available width within its parent */
+    text-align: center; /* Center the text content within this block-level label */
     box-sizing: border-box; /* Include padding/border in width calculation */
+    /* If still not working, consider adding !important here, but try without first */
 }
 
 /* Style for the input field itself */
