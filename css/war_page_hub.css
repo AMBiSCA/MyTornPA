@@ -217,29 +217,26 @@
 
 .member-checkbox-list .member-selection-item {
     display: flex;
-    align-items: center; /* Vertically centers content */
-    flex-direction: row; /* Keeps the HTML order (input then label) as a row */
-    gap: 5px; /* This controls the small space between the label and the checkbox */
+    align-items: center; /* Vertically centers name and checkbox */
+    flex-direction: row; /* Keeps the label and checkbox in order */
+    gap: 5px; /* Controls the small space between the label and checkbox */
     color: #f0f0f0;
     font-size: 0.9em;
-    /* REMOVED: justify-content: space-between; (This was pushing the checkbox far right) */
-}
 
-.member-checkbox-list .member-selection-item input[type="checkbox"] {
-    accent-color: #00a8ff; /* Keeps the blue color for the checkbox box */
-    margin: 0; /* Removes default margin */
-    transform: scale(1.1); /* Keeps it slightly larger */
-    flex-shrink: 0; /* Prevents checkbox from shrinking */
-    order: 1; /* Places the checkbox visually after the label */
+    /* NEW STYLES FOR THE "LITTLE BOX" EFFECT */
+    background-color: #2a2a2a; /* A slightly lighter shade for the inner box background */
+    border: 1px solid #444; /* A subtle border around each member's box */
+    border-radius: 4px; /* Slightly rounded corners for the box */
+    padding: 6px 8px; /* Internal padding inside each member's box */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* A very subtle shadow for depth */
 }
 
 .member-checkbox-list .member-selection-item label {
     cursor: pointer;
-    flex-grow: 0; /* IMPORTANT: Prevents the label from expanding and creating a large gap */
+    flex-grow: 1; /* Allows the name (label) to take up available space */
     text-align: left; /* Ensures label text remains left-aligned */
-    order: 0; /* Places the label visually before the checkbox */
+    order: 0; /* Puts the label visually before the checkbox */
 }
-
 /* Adjust textarea within the moved Faction Announcements to stretch and have margin */
 .announcement-section-item .war-announcement-section textarea {
     flex-grow: 1; /* Allow textarea to grow and take available space */
