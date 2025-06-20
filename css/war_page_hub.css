@@ -383,7 +383,7 @@
     text-align: center; /* Ensure text inside the box is centered */
 }
 #currentTeamLeadInput {
-    margin-top: 8px !important; /* Adjust this pixel value as needed to align it perfectly */
+    margin-top: 4px !important; /* Adjust this pixel value as needed to align it perfectly */
 }
 
 
