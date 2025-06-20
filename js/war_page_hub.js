@@ -55,6 +55,18 @@ const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus')
 const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
 
 
+// --- ADDED START: Getters for the War Status Controls on Leader Config Tab ---
+const saveWarStatusBtn = document.getElementById('saveWarStatusBtn');
+const toggleEnlisted = document.getElementById('toggleEnlisted');
+const toggleTermedWar = document.getElementById('toggleTermedWar');
+const toggleTermedWinLoss = document.getElementById('toggleTermedWinLoss');
+const toggleChaining = document.getElementById('toggleChaining');
+const toggleNoFlying = document.getElementById('toggleNoFlying');
+const toggleTurtleMode = document.getElementById('toggleTurtleMode');
+const nextChainTimeInput = document.getElementById('nextChainTimeInput');
+// --- ADDED END ---
+
+
 // --- Global API Data Storage ---
 let factionApiFullData = null; // Will store the full response from the user's faction API call (basic, ranked_wars)
 let enemyFactionBasicData = null; // Will store basic data from the enemy faction's API call
@@ -208,6 +220,12 @@ async function initializeWarHubApiData(user, apiKey) {
         loadFriendlyMembers();
         loadGamePlanForEdit();
         loadEnergyTrackMembers();
+        
+        // --- ADDED START ---
+        // Load the current war status into the leader config controls
+        loadWarStatusForEdit();
+        // --- ADDED END ---
+
 
     } catch (error) {
         console.error("Error initializing Torn API data for War Hub:", error);
@@ -507,6 +525,67 @@ if (saveGamePlanBtn) {
     });
 }
 
+
+// --- ADDED START: New function and event listener for War Status Controls ---
+
+// Function to load the current war status into the controls on the Leader Config tab
+async function loadWarStatusForEdit() {
+    try {
+        const doc = await db.collection('factionWars').doc('currentWar').get();
+        if (doc.exists && doc.data()) {
+            const warData = doc.data();
+            // Set checkbox states
+            if (toggleEnlisted) toggleEnlisted.checked = warData.toggleEnlisted || false;
+            if (toggleTermedWar) toggleTermedWar.checked = warData.toggleTermedWar || false;
+            if (toggleChaining) toggleChaining.checked = warData.toggleChaining || false;
+            if (toggleNoFlying) toggleNoFlying.checked = warData.toggleNoFlying || false;
+            if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
+
+            // Set text input values
+            if (toggleTermedWinLoss) toggleTermedWinLoss.value = warData.toggleTermedWinLoss || '';
+            if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
+        } else {
+            console.log("No existing war status in Firestore to load into controls.");
+        }
+    } catch (error) {
+        console.error('Error loading war status for editing:', error);
+        alert('Could not load current war status settings.');
+    }
+}
+
+
+// Event listener for the "Save War Status" button
+if (saveWarStatusBtn) {
+    saveWarStatusBtn.addEventListener('click', async () => {
+        // Create an object with all the status data from the controls
+        const statusData = {
+            toggleEnlisted: toggleEnlisted.checked,
+            toggleTermedWar: toggleTermedWar.checked,
+            toggleChaining: toggleChaining.checked,
+            toggleNoFlying: toggleNoFlying.checked,
+            toggleTurtleMode: toggleTurtleMode.checked,
+            toggleTermedWinLoss: toggleTermedWinLoss.value,
+            nextChainTimeInput: nextChainTimeInput.value,
+            statusLastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            // Update the 'currentWar' document in Firestore with the new data
+            await db.collection('factionWars').doc('currentWar').update(statusData);
+            
+            // Refresh the display on the Announcements tab to show the new status
+            populateWarStatusDisplay();
+            
+            alert('War status saved successfully!');
+        } catch (error) {
+            console.error('Error saving war status:', error);
+            alert('An error occurred while saving the war status.');
+        }
+    });
+}
+// --- ADDED END ---
+
+
 // Load Energy Tracking Members
 async function loadEnergyTrackMembers() {
     try {
@@ -580,6 +659,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         loadFriendlyMembers();
                         loadGamePlanForEdit();
                         loadEnergyTrackMembers();
+                        
+                        // --- ADDED START ---
+                        // Load the current war status into the leader config controls
+                        loadWarStatusForEdit();
+                        // --- ADDED END ---
 
                     } else {
                         console.warn("No API key found for current user in Firestore. Cannot fetch Torn API data.");
@@ -591,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         displayMessage(warTermedWinLoss, 'N/A');
                         displayMessage(warChainingStatus, 'N/A');
                         displayMessage(warNoFlyingStatus, 'N/A');
-                        displayMessage(warTurtleMode, 'N/A');
+                        displayMessage(warTurtleStatus, 'N/A');
                         displayMessage(warNextChainTimeStatus, 'N/A');
                         displayMessage(factionAnnouncementsDisplay, 'API key needed.', true);
                     }
@@ -622,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayMessage(warTermedWinLoss, 'N/A');
             displayMessage(warChainingStatus, 'N/A');
             displayMessage(warNoFlyingStatus, 'N/A');
-            displayMessage(warTurtleMode, 'N/A');
+            displayMessage(warTurtleStatus, 'N/A');
             displayMessage(warNextChainTimeStatus, 'N/A');
             displayMessage(factionAnnouncementsDisplay, 'Please log in.', true);
         }
