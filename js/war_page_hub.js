@@ -141,14 +141,14 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=) ---
-        // This call is expected to provide user faction data, and ranked_wars (including opponent ID).
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
-        console.log(`Fetching user faction data (selections=, key hidden)`);
+        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=basic,ranked_wars) ---
+        // This call is expected to provide user faction data, and ranked war details including opponent ID.
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
+        console.log(`Fetching user faction data (selections=basic,ranked_wars, key hidden)`);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
         const userFactionData = await userFactionResponse.json();
-        console.log("User Faction API Full Data Response (selections=):", userFactionData);
+        console.log("User Faction API Full Data Response (selections=basic,ranked_wars):", userFactionData);
 
         if (!userFactionResponse.ok || userFactionData.error) {
             throw new Error(`Torn API User Faction Error: ${userFactionData.error?.error || userFactionResponse.statusText}`);
@@ -162,11 +162,33 @@ async function initializeWarHubApiData(user, apiKey) {
         }
 
         // --- Extract Opponent ID for Second API Call (if war is active) ---
-        // Correctly find the active war object where 'end' is 0
-        const activeRankedWarEntry = Object.values(factionApiFullData.ranked_wars || {}).find(
-            warEntry => warEntry.war?.end === 0
-        );
-        const opponentFactionId = activeRankedWarEntry?.opponent_faction_id;
+        let opponentFactionId = null;
+        const rankedWars = factionApiFullData.ranked_wars;
+
+        if (rankedWars && typeof rankedWars === 'object') {
+            // Find the active war by checking if 'war.end' is 0 for any war entry
+            const activeWarEntry = Object.values(rankedWars).find(
+                warEntry => warEntry && warEntry.war && warEntry.war.end === 0
+            );
+
+            if (activeWarEntry) {
+                // Now, from the activeWarEntry, find the opponent's ID in the 'factions' object
+                // The opponent is the faction whose ID is NOT the user's faction ID.
+                const userFactionId = String(factionApiFullData.ID);
+                const factionsInWar = activeWarEntry.factions || {};
+                
+                // Iterate through the factions involved in the war
+                for (const factionKey in factionsInWar) {
+                    if (Object.prototype.hasOwnProperty.call(factionsInWar, factionKey)) {
+                        const factionInWarId = String(factionsInWar[factionKey].id || factionsInWar[factionKey].faction_id);
+                        if (factionInWarId !== userFactionId) {
+                            opponentFactionId = factionInWarId;
+                            break; // Found the opponent
+                        }
+                    }
+                }
+            }
+        }
         console.log("Extracted opponentFactionId:", opponentFactionId); // Log to debug
 
         enemyFactionBasicData = null; // Reset for each fetch
@@ -241,8 +263,9 @@ async function initializeWarHubApiData(user, apiKey) {
 function populateFactionVersusSection() {
     if (factionVersusSectionEl && factionApiFullData) {
         const userFaction = factionApiFullData; // This is the user's faction data
+        // Find the active ranked war entry again (same logic as initializeWarHubApiData)
         const activeRankedWar = Object.values(factionApiFullData.ranked_wars || {}).find(
-            warEntry => warEntry.war?.end === 0 // Find the active war by checking if 'end' is 0
+            warEntry => warEntry.war?.end === 0
         );
 
         // Populate Faction 1 (User's Faction)
