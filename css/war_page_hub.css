@@ -11,8 +11,8 @@
     border-radius: 8px;
     margin-top: 15px; /* Top margin remains perfect */
     margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
-    margin-left: auto;    /* ADDED: Centering the overall container */
-    margin-right: auto;   /* ADDED: Centering the overall container */
+    margin-left: auto;     /* ADDED: Centering the overall container */
+    margin-right: auto;    /* ADDED: Centering the overall container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
@@ -594,6 +594,11 @@
     width: 100%; /* Ensure it spans available width of parent config-section */
     box-sizing: border-box;
 }
+
+/* REMOVED: .war-status-toggles-grid .toggle-control:last-child { grid-column: 1 / -1; } */
+/* This rule was removed to allow the last row to flow into 3 columns */
+
+
 /* Fix for checkbox alignment within War Status Controls */
 .war-status-toggles-grid label {
     display: flex;       /* Make the label a flex container */
@@ -610,10 +615,6 @@
     accent-color: #00a8ff; /* Consistent theme color for the checkbox */
 }
 
-/* And this for the last item to span all columns */
-.war-status-toggles-grid .toggle-control:last-child {
-    grid-column: 1 / -1; /* Make it span all columns */
-}
 
 .config-section h4 {
     color: #e0a71a;
@@ -655,20 +656,20 @@
     /* Remove text-align: center from here, we'll apply it directly to the label */
 }
 
-/* Style specifically for the label text within this toggle control */
-.toggle-control:has(input#nextChainTimeInput) label {
+/* Style specifically for the label text within these toggle controls (to center their text) */
+.toggle-control:has(input#nextChainTimeInput) label,
+.toggle-control:has(input#enemyFactionIDInputLeaderConfig) label { /* ADDED: Enemy Faction ID label */
     display: block; /* Make the label behave like a block-level element */
     width: 100%; /* Ensure it takes full available width within its parent */
     text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box; /* Include padding/border in width calculation */
-    /* If still not working, consider adding !important here, but try without first */
+    box-sizing: border-box;
 }
 #postAnnouncementBtn {
     margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
 }
 
 /* Style for the input field itself */
-#nextChainTimeInput {
+#nextChainTimeInput, #enemyFactionIDInputLeaderConfig { /* ADDED: Enemy Faction ID input */
     width: auto; /* Allow width to be determined by content/min-width/max-width */
     max-width: 160px; /* Adjust this value as needed to match the label's width */
     min-width: 100px; /* Ensure it doesn't get too small */
@@ -681,6 +682,19 @@
     /* font-size: 0.9em; */
     /* box-sizing: border-box; */
 }
+
+/* NEW: Styling for the Set Targets button to fit in the grid */
+#setTargetsBtn {
+    padding: 8px 12px; /* Consistent padding for action buttons */
+    font-size: 0.9em;
+    font-weight: bold; /* Make button text bold */
+    width: 100%; /* Make it fill its column */
+    box-sizing: border-box;
+    display: block; /* Ensure it behaves as a block in the grid cell */
+    margin: auto; /* Center it within its grid cell if its width is not 100% */
+    /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
+}
+
 
 textarea {
     resize: vertical;
