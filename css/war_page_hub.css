@@ -679,7 +679,6 @@
 
 .config-section input[type="text"],
 .config-section select { /* REMOVED TEXTAREA FROM THIS SELECTOR */
-    width: 100%;
     padding: 6px; /* NEW: Reduced padding */
     margin-bottom: 8px; /* NEW: Reduced margin */
     border: 1px solid #555;
