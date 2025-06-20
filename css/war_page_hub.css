@@ -214,6 +214,21 @@
 
     margin-bottom: 8px; /* Space below the list, similar to inputs */
 }
+/* NEW: Style for the container holding Next Chain Time and Current Team Lead */
+.status-summary-two-col {
+    display: flex; /* Use flexbox to arrange items horizontally */
+    justify-content: space-around; /* Distribute space evenly around items */
+    align-items: center; /* Vertically align items in the middle */
+    padding-top: 10px; /* Add some padding above the content */
+    padding-bottom: 5px; /* Add some padding below */
+    gap: 15px; /* Space between the two items */
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens if they don't fit */
+}
+
+/* Ensure the status-value-box is visible within this new layout */
+.status-summary-two-col .status-value-box {
+    margin-top: 0; /* Remove default margin-top if not needed for vertical stacking */
+}
 
 .member-checkbox-list .member-selection-item {
     display: flex;
