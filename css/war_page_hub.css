@@ -526,7 +526,8 @@
     min-width: 100px; /* Ensure it doesn't get too small */
     display: block; /* Make it a block element so margin: auto can center it */
     margin-left: auto; /* Center the input horizontally */
-    margin-right: auto; /* Center the input horizontally */
+    margin-right: auto; 
+	margin-top: 3px;
     /* You may also adjust padding and font-size if necessary */
     /* padding: 6px; */
     /* font-size: 0.9em; */
