@@ -56,9 +56,7 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 
 
 // --- Global API Data Storage ---
-let currentUserFactionApiData = null; // Will store user's faction data from Torn API (basic + ranked_wars + members)
-let currentEnemyFactionApiData = null; // Will store enemy faction data from Torn API (basic)
-let activeRankedWarDetails = null; // Will store active ranked war details from currentUserFactionApiData.ranked_wars.current
+let factionApiFullData = null; // Will store the full single API response
 
 
 // --- Utility Functions ---
@@ -110,7 +108,7 @@ function formatTime(seconds) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Helper to construct faction image URL
+// Helper to construct faction image URL from tag_image
 function getFactionImageUrl(tagImageFilename) {
     if (tagImageFilename) {
         return `https://www.torn.com/factions.php?image=${tagImageFilename}`;
@@ -118,7 +116,7 @@ function getFactionImageUrl(tagImageFilename) {
     return 'https://dummyimage.com/100x100/333/fff&text=No+Logo'; // Placeholder
 }
 
-// Helper to count members from the 'members' object provided by API
+// Helper to count members from the 'members' object provided by API (when 'members' selection is used)
 function countFactionMembers(membersObject) {
     if (membersObject && typeof membersObject === 'object') {
         return Object.keys(membersObject).length;
@@ -138,57 +136,36 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1: Get User's Faction Data, Ranked War Info, and Members ---
-        // Selections 'basic' (for name, id, image), 'ranked_wars' (for opponent), 'members' (for member count)
-        const factionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars,members&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionDetails`;
-        console.log(`Fetching user faction data for title & Vs box (selections: basic,ranked_wars,members, key hidden)`);
+        // --- API Call: Using only selections= as per strict instruction ---
+        const factionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_Strict`;
+        console.log(`Fetching Torn API data with selections= (key hidden)`);
 
         const factionResponse = await fetch(factionApiUrl);
-        const factionData = await factionResponse.json();
-        console.log("User Faction API Response for Vs Box:", factionData);
+        const data = await factionResponse.json(); // This 'data' is the full JSON response
+        console.log("Single Faction API Full Response:", data);
 
-        if (!factionResponse.ok || factionData.error) {
-            throw new Error(`Torn API Faction Error: ${factionData.error?.error || factionResponse.statusText}`);
+        if (!factionResponse.ok || data.error) {
+            throw new Error(`Torn API Error: ${data.error?.error || factionResponse.statusText}`);
         }
 
-        currentUserFactionApiData = factionData; // Store user's own faction data
-        activeRankedWarDetails = factionData.ranked_wars?.current; // Get the current active ranked war details
-
+        factionApiFullData = data; // Store the full response globally for all functions to use
 
         // --- Populate Main Title ---
-        const usersFactionName = currentUserFactionApiData?.name || "Your Faction";
+        const usersFactionName = factionApiFullData?.name || "Your Faction";
         if (factionWarHubTitleEl) {
             factionWarHubTitleEl.textContent = `${usersFactionName}'s War Hub.`;
         }
 
-        // --- API Call 2 (Conditional): Get Enemy Faction Data if in War ---
-        currentEnemyFactionApiData = null; // Reset enemy faction
-        if (activeRankedWarDetails && activeRankedWarDetails.opponent_faction_id) {
-            const enemyFactionId = activeRankedWarDetails.opponent_faction_id;
-            // Fetch basic details for the enemy faction to get their name, member count, and image
-            const enemyFactionApiUrl = `https://api.torn.com/faction/${enemyFactionId}/?selections=basic&key=${apiKey}&comment=MyTornPA_WarHub_EnemyFactionDetails`;
-            console.log(`Fetching enemy faction data for Vs box (ID: ${enemyFactionId}, key hidden)`);
-
-            const enemyResponse = await fetch(enemyFactionApiUrl);
-            const enemyData = await enemyResponse.json();
-            console.log("Enemy Faction API Response for Vs Box:", enemyData);
-
-            if (!enemyResponse.ok || enemyData.error) {
-                console.warn(`Could not fetch enemy faction details: ${enemyData.error?.error || enemyResponse.statusText}`);
-                // Proceed without enemy data, VS section might show N/A for enemy
-            } else {
-                currentEnemyFactionApiData = enemyData; // Store enemy faction data
-            }
-        }
-
-        // --- Populate Faction Versus Section (always call after API data is ready) ---
+        // --- Populate Faction Versus Section ---
         populateFactionVersusSection();
 
         // --- Populate War Status Display Box on Announcements Tab (Uses Firestore) ---
-        populateWarStatusDisplay(); // Reverted to Firestore source
+        // (This function relies on Firestore, not this API call directly)
+        populateWarStatusDisplay();
         
         // --- Populate Announcements Display Box on Announcements Tab (Uses Firestore) ---
-        populateFactionAnnouncementsDisplay(); // Uses Firestore
+        // (This function relies on Firestore, not this API call directly)
+        populateFactionAnnouncementsDisplay();
 
         // Call other data loading functions that rely on API or Firebase
         loadGamePlan(); // Loads from Firestore
@@ -203,20 +180,12 @@ async function initializeWarHubApiData(user, apiKey) {
 
     } catch (error) {
         console.error("Error initializing Torn API data for War Hub:", error);
-        // Display more user-friendly messages for key types or general errors
-        if (error.message.includes("Key must be set to Full Access") || error.message.includes("Wrong fields")) {
-             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `War Hub. (Check API Key)`;
-             if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:orange;">Cannot load Faction vs. Faction data. Please ensure your Torn API Key is **Full Access**.</p>';
-        } else if (error.message.includes("Failed to fetch") || error.message.includes("Torn API Faction Error")) {
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
-            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">Error loading Faction vs. Faction data: ${error.message}</p>`;
-        } else {
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
-            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">An unexpected error occurred loading Faction Vs: ${error.message}</p>`;
-        }
+        // Generic error message for API failures based on explicit instruction
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
+        if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">Error loading faction data: ${error.message}. Data might be incomplete.</p>`;
 
-        if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'block'; // Ensure message is visible if hidden
-        // Ensure Vs section is cleared on API error
+        if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'block';
+        // Ensure Vs section is cleared or shows placeholders on API error
         if (factionOneNameEl) factionOneNameEl.textContent = 'N/A';
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
         if (factionOnePicEl) factionOnePicEl.src = 'https://dummyimage.com/100x100/333/fff&text=F1';
@@ -227,32 +196,54 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 }
 
-// Function to populate the Faction Versus Section
+// Function to populate the Faction Versus Section using factionApiFullData
 function populateFactionVersusSection() {
-    if (factionVersusSectionEl && currentUserFactionApiData) {
-        const activeRankedWar = currentUserFactionApiData.ranked_wars?.current;
+    if (factionVersusSectionEl && factionApiFullData) {
+        const userFaction = factionApiFullData; // This is the user's faction data
+        const activeRankedWar = factionApiFullData.ranked_wars?.current; // Get ranked war from the response
 
         // Populate Faction 1 (User's Faction)
-        if (factionOneNameEl) factionOneNameEl.textContent = currentUserFactionApiData.name || 'Your Faction';
-        // Use countFactionMembers helper as 'members' object is given, not 'members.total'
-        if (factionOneMembersEl) factionOneMembersEl.textContent = countFactionMembers(currentUserFactionApiData.members) || 'N/A';
-        if (factionOnePicEl) factionOnePicEl.src = getFactionImageUrl(currentUserFactionApiData.tag_image) || 'https://dummyimage.com/100x100/333/fff&text=F1';
-        if (factionOnePicEl) factionOnePicEl.alt = currentUserFactionApiData.name || 'Faction 1 Logo';
+        if (factionOneNameEl) factionOneNameEl.textContent = userFaction.name || 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = countFactionMembers(userFaction.members) || 'N/A';
+        if (factionOnePicEl) factionOnePicEl.src = getFactionImageUrl(userFaction.tag_image) || 'https://dummyimage.com/100x100/333/fff&text=F1';
+        if (factionOnePicEl) factionOnePicEl.alt = userFaction.name || 'Faction 1 Logo';
 
-        // Check if there's an active war AND enemy faction data was successfully retrieved
-        if (activeRankedWar && currentEnemyFactionApiData) {
+        // Populate Faction 2 (Enemy Faction) from ranked_wars
+        if (activeRankedWar) {
+            // Find the opponent's data within the 'factions' object of the active war
+            const opponentFactionId = activeRankedWar.opponent_faction_id;
+            const opponentDataInWar = Object.values(activeRankedWar.factions || {}).find(
+                f => String(f.id) === String(opponentFactionId) || String(f.faction_id) === String(opponentFactionId)
+            );
+            // The JSON shows structure like ranked_wars.ID.factions.OPPONENT_ID.name
+            // We need to extract the specific opponent from the 'factions' object by their ID.
+
+            let enemyFactionName = 'Enemy Faction';
+            let enemyFactionMembers = 'N/A';
+            let enemyFactionImage = 'https://dummyimage.com/100x100/333/fff&text=F2';
+
+            if (opponentDataInWar) {
+                enemyFactionName = opponentDataInWar.name || 'Enemy Faction';
+                // Member count for enemy faction from this response is NOT available here directly.
+                // It would require a separate API call using their faction ID and selections=basic.
+                // For now, we'll keep N/A or derive if possible from external source (not this API call).
+                // Image for opponent is also NOT available here.
+                // This would require a separate API call to faction/[id]/?selections=basic.
+            } else {
+                 console.warn("Opponent data not found within ranked_wars.factions object.");
+            }
+
             factionVersusSectionEl.style.display = 'flex'; // Show the section
 
-            // Populate Faction 2 (Enemy Faction)
-            if (factionTwoNameEl) factionTwoNameEl.textContent = currentEnemyFactionApiData.name || 'Enemy Faction';
-            if (factionTwoMembersEl) factionTwoMembersEl.textContent = currentEnemyFactionApiData.members?.total || 'N/A'; // Assuming enemy basic call provides members.total
-            if (factionTwoPicEl) factionTwoPicEl.src = getFactionImageUrl(currentEnemyFactionApiData.image) || 'https://dummyimage.com/100x100/333/fff&text=F2'; // Assuming enemy basic call provides 'image'
-            if (factionTwoPicEl) factionTwoPicEl.alt = currentEnemyFactionApiData.name || 'Faction 2 Logo';
+            if (factionTwoNameEl) factionTwoNameEl.textContent = enemyFactionName;
+            if (factionTwoMembersEl) factionTwoMembersEl.textContent = enemyFactionMembers; // Will likely be N/A
+            if (factionTwoPicEl) factionTwoPicEl.src = enemyFactionImage; // Will likely be placeholder
+            if (factionTwoPicEl) factionTwoPicEl.alt = enemyFactionName;
 
             if (versusTextEl) versusTextEl.textContent = 'Vs';
 
         } else {
-            // No active war or couldn't get enemy data, show "Your Faction" vs "No Enemy"
+            // No active war
             factionVersusSectionEl.style.display = 'flex'; // Still show, but with "No War" info
             if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy';
             if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
@@ -262,7 +253,7 @@ function populateFactionVersusSection() {
             if (versusTextEl) versusTextEl.textContent = 'Vs (No War)';
         }
     } else if (factionVersusSectionEl) {
-        factionVersusSectionEl.style.display = 'none'; // Hide if no user faction data at all
+        factionVersusSectionEl.style.display = 'none'; // Hide if no faction data at all
     }
 }
 
