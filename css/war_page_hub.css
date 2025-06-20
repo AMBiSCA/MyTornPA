@@ -200,12 +200,7 @@
 }
 
 /* Responsive adjustments for smaller screens, mirroring Leader Config tab */
-@media (max-width: 992px) {
-    .announcements-grid-container {
-        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
-        max-width: 600px; /* Limit width similar to leader-config-tab responsive */
-    }
-}
+
 
 @media (max-width: 768px) {
     .announcements-grid-container {
@@ -790,7 +785,8 @@ select[multiple] {
     /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
     /* THIS IS THE PROBLEM LINE, IT'S TARGETING THE WRONG ELEMENT */
     #leader-config-tab.active { /* IMPORTANT: Also add .active here */
-        grid-template-columns: 1fr; /* On smaller screens, stack into a single column */
+        grid-template-columns: 1fr;
+        max-width: 600px; /* On smaller screens, stack into a single column */
     }
     /* --- END LEADER CONFIG TAB --- */
 }
