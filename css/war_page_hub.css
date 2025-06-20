@@ -819,7 +819,6 @@ select[multiple] {
     }
 }
 
-
 .war-status-toggles-grid .toggle-control {
     display: flex;           /* Make each control a flex container */
     flex-direction: column;  /* Stack label, input/button vertically */
