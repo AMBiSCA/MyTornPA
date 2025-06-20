@@ -62,7 +62,6 @@
     border-right: 2px solid black;
 }
 
-
 .tab-button:hover {
     background-color: #555; /* NEW: A slightly different hover color for non-active */
     color: #f0f0f0;
@@ -607,22 +606,12 @@
     padding: 0;          /* Remove default padding */
     vertical-align: middle; /* Ensures baseline alignment, though flexbox should mostly handle this */
     transform: scale(1.1); /* Slightly increase size for better visibility if needed */
-    accent-color: #00a8ff; /* Consistent theme color for the checkb
+    accent-color: #00a8ff; /* Consistent theme color for the checkbox */
 }
-#setTargetsBtn {
-    padding: 8px 12px; /* Consistent padding for action buttons */
-    font-size: 0.9em;
-    font-weight: bold; /* Make button text bold */
-    width: 100%; /* Make it fill its column */
-    box-sizing: border-box;
-    display: block; /* Ensure it behaves as a block in the grid cell */
-    margin: auto; /* Center it within its grid cell if its width is not 100% */
-    /* These properties should inherit from .config-section .action-btn unless overridden here: */
-    /* background-color: #007bff; */
-    /* color: white; */
-    /* border: 2px solid black; */
-    /* border-radius: 5px; */
-    /* transition: background-color 0.3s ease, border-color 0.3s ease; */
+
+/* And this for the last item to span all columns */
+.war-status-toggles-grid .toggle-control:last-child {
+    grid-column: 1 / -1; /* Make it span all columns */
 }
 
 .config-section h4 {
@@ -666,28 +655,27 @@
 }
 
 /* Style specifically for the label text within this toggle control */
-.toggle-control:has(input#nextChainTimeInput) label,
-.toggle-control:has(input#enemyFactionIDInputLeaderConfig) label {
+.toggle-control:has(input#nextChainTimeInput) label {
     display: block; /* Make the label behave like a block-level element */
     width: 100%; /* Ensure it takes full available width within its parent */
     text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box;
+    box-sizing: border-box; /* Include padding/border in width calculation */
+    /* If still not working, consider adding !important here, but try without first */
 }
 #postAnnouncementBtn {
     margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
 }
 
 /* Style for the input field itself */
-#nextChainTimeInput,
-#enemyFactionIDInputLeaderConfig {
+#nextChainTimeInput {
     width: auto; /* Allow width to be determined by content/min-width/max-width */
     max-width: 160px; /* Adjust this value as needed to match the label's width */
     min-width: 100px; /* Ensure it doesn't get too small */
     display: block; /* Make it a block element so margin: auto can center it */
     margin-left: auto; /* Center the input horizontally */
     margin-right: auto;
-    margin-top: 3px; /* Small gap between label and input */
-    /* These properties should inherit from .config-section input[type="text"] unless overridden here: */
+    margin-top: 3px;
+    /* You may also adjust padding and font-size if necessary */
     /* padding: 6px; */
     /* font-size: 0.9em; */
     /* box-sizing: border-box; */
