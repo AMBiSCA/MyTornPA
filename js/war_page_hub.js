@@ -126,7 +126,7 @@ function countFactionMembers(membersObject) {
     return 0;
 }
 
-// NEW HELPER: Simple delay function
+// Simple delay function
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -169,8 +169,8 @@ async function initializeWarHubApiData(user, apiKey) {
 
         enemyFactionBasicData = null; // Reset for each fetch
 
-        // --- ADDED DELAY HERE ---
-        await delay(100); // Small delay before the second API call (e.g., 100ms)
+        // --- ADDED DELAY: 2-second delay as requested ---
+        await delay(2000); // 2000 milliseconds = 2 seconds
 
         // --- API Call 2 (Conditional): Get Enemy Faction's Basic Details ---
         if (opponentFactionId) {
@@ -251,7 +251,8 @@ function populateFactionVersusSection() {
         if (factionOnePicEl) factionOnePicEl.alt = userFaction.name || 'Faction 1 Logo';
 
         // Populate Faction 2 (Enemy Faction)
-        if (activeRankedWar && enemyFactionBasicData) { // Check if in war AND enemy data was successfully fetched
+        // Check if in war AND enemy basic data was successfully fetched
+        if (activeRankedWar && enemyFactionBasicData) {
             factionVersusSectionEl.style.display = 'flex'; // Show the section
 
             if (factionTwoNameEl) factionTwoNameEl.textContent = enemyFactionBasicData.name || 'Enemy Faction';
