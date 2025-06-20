@@ -262,6 +262,9 @@
 
 /* Specific button margin for Post Announcement, if it's inside the .announcement-section-item */
 /* (This rule duplicates what you likely already have for #postAnnouncementBtn, ensure it's correct) */
+#postAnnouncementBtn {
+    margin-top: 10x; /* This specific margin was for consistency with Save Game Plan */
+}
 
 /* Responsive adjustments for smaller screens, mirroring Leader Config tab */
 
