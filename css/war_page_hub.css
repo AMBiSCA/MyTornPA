@@ -651,11 +651,11 @@
     justify-content: space-between;
 }
 .war-status-toggles-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 10px; 
-    width: 100%;
-    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
+    gap: 10px; /* Internal gap between toggles */
+    width: 100%; /* Ensure it spans available width of parent config-section */
+    box-sizing: border-box;
 }
 
 /* REMOVED: .war-status-toggles-grid .toggle-control:last-child { grid-column: 1 / -1; } */
@@ -892,18 +892,17 @@ select[multiple] {
     text-align: center; /* Center the text content within this block-level label */
     box-sizing: border-box;
 }
-/* Update: Style for the input fields for time, enemy ID, AND Current Team Lead */
+
+/* Update: Style for the input fields for time and enemy ID */
 /* These properties will ensure they are block-level and centered horizontally within their flex containers */
 #nextChainTimeInput,
-#enemyFactionIDInputLeaderConfig,
-#currentTeamLeadInput { /* ADDED: #currentTeamLeadInput here */
-    width: 150px !important; /* Forces all three to the same size */
-    max-width: 160px; 
-    min-width: 100px;
-    display: block !important; /* Ensure it behaves as a block to allow margin: auto */
-    margin-left: auto !important; /* Force centering horizontally */
-    margin-right: auto !important; /* Force centering horizontally */
-    margin-top: 3px !important; /* Keep consistent top margin */
+#enemyFactionIDInputLeaderConfig {
+    width: 150px !important;
+    max-width: 160px; /* Adjust this value as needed to match the label's width */
+    min-width: 100px; /* Ensure it doesn't get too small */
+    display: block; /* Make it a block element so margin: auto can center it */
+    margin-top: 3px; /* Small gap between label and input */
+    /* Inherit padding, font-size, border from .config-section input[type="text"] */
 }
 
 @media (max-width: 480px) {
