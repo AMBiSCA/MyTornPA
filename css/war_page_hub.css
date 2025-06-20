@@ -499,6 +499,24 @@
     font-size: 0.9em;
     box-sizing: border-box !important; /* IMPORTANT: Added !important here for overlap fix */
 }
+/* Specific styling for 'Next Planned Chain Time' label and input */
+/* Target the specific toggle-control by the ID of its input for precision */
+.toggle-control:has(input#nextChainTimeInput) {
+    align-items: center; /* Center horizontally within this specific toggle-control */
+    text-align: center; /* Ensure the label text itself is centered */
+}
+
+/* Style for the 'Next Planned Chain Time' input field */
+#nextChainTimeInput {
+    width: auto; /* Allow the width to be determined by min/max-width */
+    max-width: 160px; /* Adjust this value as needed to match the text length */
+    min-width: 100px; /* Prevent it from becoming too narrow */
+    /* Ensure existing padding/font-size from .config-section input[type="text"] are appropriate,
+       or override them here if needed */
+    /* padding: 6px; */
+    /* font-size: 0.9em; */
+    /* box-sizing: border-box; */
+}
 
 
 textarea {
@@ -516,8 +534,8 @@ select[multiple] {
     padding: 8px 12px; /* Adjusted padding to match header buttons */
     font-size: 0.9em; /* Existing */
     background-color: #007bff; /* ADDED: Blue background to match header buttons */
-    color: white; /* ADDED: White text to match header buttons */
-    border: 1px solid #00a8ff; /* ADDED: Blue border to match header buttons */
+    color: black; /* ADDED: White text to match header buttons */
+    border: 1px solid #black; /* ADDED: Blue border to match header buttons */
     border-radius: 5px; /* ADDED: Border-radius to match header buttons */
     transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
 }
