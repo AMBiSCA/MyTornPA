@@ -11,8 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <link rel="stylesheet" href="../../css/global.css">
-    <link rel="stylesheet" href="../../css/war_page_hub.css">
-</head>
+    <link rel="stylesheet" href="../../css/war_page_hub.css"> </head>
 <body>
 
     <header>
@@ -83,39 +82,20 @@
 
             <div class="tab-content-container">
                 <div id="announcements-tab" class="tab-pane active">
-                    <div class="announcements-grid-container">
-
-                        <div class="announcement-section-item">
-                            <div class="war-announcement-section">
-                                <h3>Game Plan:</h3>
-                                <div id="gamePlanDisplay" class="game-plan-display">
-                                    <p>Loading game plan...</p>
-                                </div>
-                                <button id="copyGamePlanBtn" class="action-btn">Copy Game Plan</button>
-                            </div>
+                    <div class="war-announcement-section">
+                        <h3>Game Plan:</h3>
+                        <div id="gamePlanDisplay" class="game-plan-display">
+                            <p>Loading game plan...</p>
                         </div>
-
-                        <div class="announcement-section-item">
-                            <div class="war-announcement-section">
-                                <h3>Current War Status:</h3>
-                                <div class="war-status-display">
-                                    <p>Termed: <span id="warTermedStatus">N/A</span></p>
-                                    <p>Win/Loss Termed: <span id="warTermedWinLoss">N/A</span></p>
-                                    <p>Chaining: <span id="warChainingStatus">N/A</span></p>
-                                    <p>No Flying: <span id="warNoFlyingStatus">N/A</span></p>
-                                    <p>Turtle Mode: <span id="warTurtleStatus">N/A</span></p>
-                                </div>
-                            </div>
+                        <div class="war-status-display">
+                            <h4>Current War Status:</h4>
+                            <p>Termed: <span id="warTermedStatus">N/A</span></p>
+                            <p>Win/Loss Termed: <span id="warTermedWinLoss">N/A</span></p>
+                            <p>Chaining: <span id="warChainingStatus">N/A</span></p>
+                            <p>No Flying: <span id="warNoFlyingStatus">N/A</span></p>
+                            <p>Turtle Mode: <span id="warTurtleStatus">N/A</span></p>
                         </div>
-
-                        <div class="announcement-section-item">
-                            <div class="war-announcement-section">
-                                <h3>Faction Announcements:</h3>
-                                <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
-                                <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
-                            </div>
-                        </div>
-
+                        <button id="copyGamePlanBtn" class="action-btn">Copy Game Plan</button>
                     </div>
                 </div>
 
@@ -178,6 +158,12 @@
                 </div>
 
                 <div id="leader-config-tab" class="tab-pane">
+                    <div class="config-section">
+                        <h4>Faction Announcements:</h4>
+                        <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
+                        <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
+                    </div>
+
                     <div class="config-section">
                         <h4>War Status Controls:</h4>
                         <div class="war-status-toggles-grid"> <div class="toggle-control">
@@ -253,6 +239,5 @@
 
     <script src="../../js/firebase-init.js"></script>
     <script src="../../js/globalheader.js"></script>
-    <script src="../../js/war_page_hub.js"></script>
-</body>
+    <script src="../../js/war_page_hub.js"></script> </body>
 </html>
