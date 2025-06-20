@@ -217,11 +217,12 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         }
 
         const enemyData = await response.json();
+        console.log("Enemy Faction API Data:", enemyData); // ADD THIS LINE
         if (enemyData.error) {
             console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
         }
-
+		
         if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.name || 'Unknown Faction';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.tag_image)}')`;
