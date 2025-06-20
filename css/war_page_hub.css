@@ -197,38 +197,51 @@
 }
 
 /* Styling for the new scrollable checkbox containers */
+/* Styling for the new scrollable checkbox containers */
 .member-checkbox-list {
     border: 1px solid #555;
     border-radius: 4px;
     background-color: #333;
-    max-height: 150px; /* Adjust as needed for desired scroll height */
+    max-height: 150px; /* Keeps the scroll behavior */
     overflow-y: auto; /* Enables vertical scrolling */
     padding: 8px; /* Internal padding for the list */
     box-sizing: border-box;
-    display: flex; /* Use flexbox for internal checkbox layout */
-    flex-direction: column; /* Stack checkboxes vertically */
-    gap: 5px; /* Space between checkbox items */
+
+    /* NEW ADAPTATIONS: Two columns of names */
+    display: grid; /* Changed from flex to grid */
+    grid-template-columns: 1fr 1fr; /* Creates two equal columns */
+    gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px between items */
+
     margin-bottom: 8px; /* Space below the list, similar to inputs */
 }
 
 .member-checkbox-list .member-selection-item {
+    /* ADAPTATION: Checkbox on the right side of the name */
     display: flex;
-    align-items: center;
-    gap: 5px;
+    align-items: center; /* Vertically centers name and checkbox */
+    justify-content: space-between; /* Pushes content to ends, effectively name left, checkbox right */
+    flex-direction: row; /* Default or can be explicitly row */
+    gap: 5px; /* Small gap between name and checkbox if not using space-between fully */
     color: #f0f0f0;
     font-size: 0.9em;
 }
 
+/* Specific styling for the actual checkbox input */
 .member-checkbox-list .member-selection-item input[type="checkbox"] {
-    accent-color: #00a8ff; /* Theme color for checkboxes */
+    accent-color: #00a8ff; /* Keeps the blue color for the checkbox box */
     margin: 0;
     transform: scale(1.1); /* Slightly larger checkbox */
-    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    flex-shrink: 0; /* Prevents checkbox from shrinking */
+    order: 1; /* Puts the checkbox visually after the label within its flex container */
+    /* Note: if using justify-content: space-between on parent, order is not strictly needed if label flex-grows.
+       However, it's good practice for clear intent if the HTML order is <input><label>. */
 }
 
 .member-checkbox-list .member-selection-item label {
     cursor: pointer;
-    flex-grow: 1; /* Allow label to take up remaining space */
+    flex-grow: 1; /* Allows the name (label) to take up available space */
+    text-align: left; /* Ensures label text remains left-aligned */
+    order: 0; /* Puts the label visually before the checkbox */
 }
 /* Adjust textarea within the moved Faction Announcements to stretch and have margin */
 .announcement-section-item .war-announcement-section textarea {
