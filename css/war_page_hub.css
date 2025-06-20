@@ -555,8 +555,8 @@ select[multiple] {
     transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
 }
 .config-section .action-btn:hover {
-    background-color: #0056b3; /* ADDED: Darker blue on hover */
-    border-color: #00a8ff; /* ADDED: Maintain border color on hover */
+    background-color: #00a8ff; /* ADDED: Darker blue on hover */
+    border-color: black; /* ADDED: Maintain border color on hover */
 }
 /* Specific styling for designated admins list */
 #designatedAdminsList, #watchListDisplay {
