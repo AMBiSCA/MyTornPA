@@ -554,7 +554,8 @@ select[multiple] {
 
     /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
     #leader-config-tab.active { /* IMPORTANT: Also add .active here */
-        grid-template-columns: 1fr; max-width: 600px; /* On smaller screens, stack into a single column */
+        grid-template-columns: 1fr; 
+        max-width: 600px; /* On smaller screens, stack into a single column */
     }
     /* --- END LEADER CONFIG TAB --- */
 }
@@ -588,6 +589,7 @@ select[multiple] {
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
 }
+
 @media (max-width: 480px) {
     .main-content-wrapper { padding-top: 75px; } 
     #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
