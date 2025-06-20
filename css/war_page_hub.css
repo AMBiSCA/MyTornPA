@@ -896,13 +896,15 @@ select[multiple] {
 /* Update: Style for the input fields for time and enemy ID */
 /* These properties will ensure they are block-level and centered horizontally within their flex containers */
 #nextChainTimeInput,
-#enemyFactionIDInputLeaderConfig {
+#enemyFactionIDInputLeaderConfig,
+#currentTeamLeadInput {
     width: 150px !important;
-    max-width: 160px; /* Adjust this value as needed to match the label's width */
-    min-width: 100px; /* Ensure it doesn't get too small */
-    display: block; /* Make it a block element so margin: auto can center it */
-    margin-top: 3px; /* Small gap between label and input */
-    /* Inherit padding, font-size, border from .config-section input[type="text"] */
+    max-width: 160px;
+    min-width: 100px;
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 3px !important;
 }
 
 @media (max-width: 480px) {
