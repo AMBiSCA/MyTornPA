@@ -225,7 +225,8 @@
 
                     <div class="config-section">
                         <h4>War Status Controls:</h4>
-                        <div class="war-status-toggles-grid"> <div class="toggle-control">
+                        <div class="war-status-toggles-grid">
+                            <div class="toggle-control">
                                 <label for="toggleEnlisted">Enlisted:</label>
                                 <input type="checkbox" id="toggleEnlisted">
                             </div>
@@ -253,7 +254,15 @@
                                 <label for="nextChainTimeInput">Next Planned Chain Time:</label>
                                 <input type="text" id="nextChainTimeInput" placeholder="e.g., 00:00:00">
                             </div>
-                        </div> <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
+                            <div class="toggle-control">
+                                <label for="enemyFactionIDInputLeaderConfig">Enemy Faction ID:</label>
+                                <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
+                            </div>
+                            <div class="toggle-control">
+                                <button id="setTargetsBtn" class="action-btn">Set Targets</button>
+                            </div>
+                            </div>
+                        <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
                     </div>
 
                     <div class="config-section">
