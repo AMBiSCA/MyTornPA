@@ -52,11 +52,14 @@ const factionVersusSectionEl = document.querySelector('.faction-versus-section')
 // New elements for War Status Display on Announcements tab
 const warEnlistedStatus = document.getElementById('warEnlistedStatus');
 const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
+const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
 
-// --- Global API Data Storage (to make data accessible across functions) ---
-let tornApiData = null; // Will store the full API response for user/faction
-let currentUserFaction = null;
-let currentEnemyFaction = null;
+
+// --- Global API Data Storage ---
+let currentUserFaction = null; // Will store user's faction data from API
+let currentEnemyFaction = null; // Will store enemy faction data from API
+let activeRankedWar = null; // Will store active ranked war details
+
 
 // --- Utility Functions ---
 
@@ -81,9 +84,9 @@ function showTab(tabId) {
 
 // Function to display a message in a specific element
 function displayMessage(element, message, isError = false) {
-    if (element) { // Changed from elementId to direct element reference
+    if (element) {
         element.textContent = message;
-        element.style.color = isError ? 'red' : ''; // Optional: style error messages
+        element.style.color = isError ? 'red' : '';
     }
 }
 
@@ -98,14 +101,15 @@ async function copyToClipboard(text) {
     }
 }
 
-// Helper for formatting time remaining (copied from home.js if needed)
-function formatTimeRemaining(secs) {
-    if (secs <= 0) return "OK 😊";
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    const s = Math.floor(secs % 60);
+// Helper for formatting time remaining (assuming seconds timestamp or duration)
+function formatTime(seconds) {
+    if (typeof seconds !== 'number' || seconds <= 0) return "N/A";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
+
 
 // --- Main Data Initialization and Population (Centralized) ---
 
@@ -118,42 +122,57 @@ async function initializeWarHubWithApiData(user, apiKey) {
         return;
     }
 
-    // Fetch user's faction details including enemy_faction if in war
-    const selections = "basic,faction"; // 'basic' for user status, 'faction' for faction info
-    const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_WarHub_Main`;
-
     try {
-        console.log(`Fetching war hub data (selections: ${selections}, key hidden)`);
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        console.log("War Hub API Response:", data);
+        // --- API Call 1: Get User's Faction Data and Ranked War Info ---
+        const factionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFaction`;
+        console.log(`Fetching user faction data (selections: basic,ranked_wars, key hidden)`);
 
-        if (!response.ok) {
-            const errorMsg = data?.error?.error || response.statusText;
-            throw new Error(`API Error ${response.status}: ${errorMsg}`);
-        }
-        if (data.error) {
-            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+        const factionResponse = await fetch(factionApiUrl);
+        const factionData = await factionResponse.json();
+        console.log("User Faction API Response:", factionData);
+
+        if (!factionResponse.ok || factionData.error) {
+            throw new Error(`Faction API Error: ${factionData.error?.error || factionResponse.statusText}`);
         }
 
-        tornApiData = data; // Store the full API response globally or module-scoped
-        currentUserFaction = data.faction; // Store user's faction data
-        currentEnemyFaction = data.faction?.enemy_faction; // Store enemy faction data
+        currentUserFaction = factionData; // Store user's own faction data
+        activeRankedWar = factionData.ranked_wars?.current; // Get the current active ranked war details
 
         // --- Populate Main Title ---
         const usersFactionName = currentUserFaction?.name || "Your Faction";
         if (factionWarHubTitleEl) {
             factionWarHubTitleEl.textContent = `${usersFactionName}'s War Hub.`;
+        } else {
+            console.warn("factionWarHubTitleEl not found.");
+        }
+
+        // --- API Call 2 (Conditional): Get Enemy Faction Data if in War ---
+        currentEnemyFaction = null; // Reset enemy faction
+        if (activeRankedWar && activeRankedWar.opponent_faction_id) {
+            const enemyFactionId = activeRankedWar.opponent_faction_id;
+            const enemyFactionApiUrl = `https://api.torn.com/faction/${enemyFactionId}/?selections=basic&key=${apiKey}&comment=MyTornPA_WarHub_EnemyFaction`;
+            console.log(`Fetching enemy faction data (ID: ${enemyFactionId}, key hidden)`);
+
+            const enemyResponse = await fetch(enemyFactionApiUrl);
+            const enemyData = await enemyResponse.json();
+            console.log("Enemy Faction API Response:", enemyData);
+
+            if (!enemyResponse.ok || enemyData.error) {
+                console.warn(`Could not fetch enemy faction details: ${enemyData.error?.error || enemyResponse.statusText}`);
+                // Proceed without enemy data
+            } else {
+                currentEnemyFaction = enemyData; // Store enemy faction data
+            }
         }
 
         // --- Populate Faction Versus Section ---
         populateFactionVersusSection();
 
         // --- Populate War Status Display Box on Announcements Tab ---
-        populateWarStatusDisplay(tornApiData);
+        populateWarStatusDisplay();
 
         // --- Populate Announcements Display Box on Announcements Tab ---
-        populateFactionAnnouncementsDisplay();
+        populateFactionAnnouncementsDisplay(); // This reads from Firestore
 
         // Call other data loading functions that rely on API or Firebase
         loadGamePlan(); // Loads from Firestore
@@ -168,16 +187,27 @@ async function initializeWarHubWithApiData(user, apiKey) {
 
     } catch (error) {
         console.error("Error fetching war hub data:", error);
-        if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
+        // Display more user-friendly messages for key types or general errors
+        if (error.message.includes("API Error: Key must be set to Full Access")) {
+             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `War Hub. (API Key Access Needed)`;
+             if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:orange;">Cannot load war data. Please ensure your Torn API Key is **Full Access**.</p>';
+        } else if (error.message.includes("API Error:") || error.message.includes("Failed to fetch")) {
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
+            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">Error loading war data: ${error.message}</p>`;
+        } else {
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
+            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">An unexpected error occurred: ${error.message}</p>`;
+        }
+
+        if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'block'; // Ensure message is visible if hidden
         // Also clear / reset other dynamic fields on error
         displayMessage(gamePlanDisplay, 'Error loading game plan.', true);
+        displayMessage(warEnlistedStatus, 'Error', true);
         displayMessage(warTermedStatus, 'Error', true);
         displayMessage(warTermedWinLoss, 'Error', true);
         displayMessage(warChainingStatus, 'Error', true);
         displayMessage(warNoFlyingStatus, 'Error', true);
         displayMessage(warTurtleStatus, 'Error', true);
-        displayMessage(warEnlistedStatus, 'Error', true);
         displayMessage(warNextChainTimeStatus, 'Error', true);
         displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
     }
@@ -185,31 +215,30 @@ async function initializeWarHubWithApiData(user, apiKey) {
 
 // Function to populate the Faction Versus Section
 function populateFactionVersusSection() {
-    if (factionVersusSectionEl && currentUserFaction) { // Ensure elements and user faction data exist
+    if (factionVersusSectionEl && currentUserFaction) {
         // Check if there's an active war with an enemy faction
-        if (currentEnemyFaction && currentEnemyFaction.faction_id && currentUserFaction.id) {
+        if (activeRankedWar && currentEnemyFaction) {
             factionVersusSectionEl.style.display = 'flex'; // Show the section
 
             // Populate Faction 1 (User's Faction)
             if (factionOneNameEl) factionOneNameEl.textContent = currentUserFaction.name || 'Your Faction';
             if (factionOneMembersEl) factionOneMembersEl.textContent = currentUserFaction.members?.total || 'N/A';
-            if (factionOnePicEl) factionOnePicEl.src = currentUserFaction.image || 'https://dummyimage.com/100x100/333/fff&text=F1'; // Default placeholder
+            if (factionOnePicEl) factionOnePicEl.src = currentUserFaction.image || 'https://dummyimage.com/100x100/333/fff&text=F1';
             if (factionOnePicEl) factionOnePicEl.alt = currentUserFaction.name || 'Faction 1 Logo';
 
             // Populate Faction 2 (Enemy Faction)
             if (factionTwoNameEl) factionTwoNameEl.textContent = currentEnemyFaction.name || 'Enemy Faction';
             if (factionTwoMembersEl) factionTwoMembersEl.textContent = currentEnemyFaction.members?.total || 'N/A';
-            if (factionTwoPicEl) factionTwoPicEl.src = currentEnemyFaction.image || 'https://dummyimage.com/100x100/333/fff&text=F2'; // Default placeholder
+            if (factionTwoPicEl) factionTwoPicEl.src = currentEnemyFaction.image || 'https://dummyimage.com/100x100/333/fff&text=F2';
             if (factionTwoPicEl) factionTwoPicEl.alt = currentEnemyFaction.name || 'Faction 2 Logo';
 
-            // Update "Vs" text (already in HTML, no change needed unless dynamic styling)
             if (versusTextEl) versusTextEl.textContent = 'Vs';
 
         } else {
             // If not in a war, or no enemy faction data
             factionVersusSectionEl.style.display = 'none'; // Hide the section
             // Optionally display a message:
-            // if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:#ccc;">Not currently in a ranked war.</p>';
+            // factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:#ccc;">Not currently in a ranked war.</p>';
         }
     } else if (factionVersusSectionEl) {
         factionVersusSectionEl.style.display = 'none'; // Hide if no user faction data
@@ -217,51 +246,37 @@ function populateFactionVersusSection() {
 }
 
 // Function to populate the War Status Display Box on Announcements Tab
-function populateWarStatusDisplay(apiData) {
-    if (!apiData || !apiData.faction) {
-        console.warn("API data for war status display is missing.");
-        displayMessage(warEnlistedStatus, 'N/A');
-        displayMessage(warTermedStatus, 'N/A');
-        displayMessage(warTermedWinLoss, 'N/A');
-        displayMessage(warChainingStatus, 'N/A');
-        displayMessage(warNoFlyingStatus, 'N/A');
-        displayMessage(warTurtleStatus, 'N/A');
-        displayMessage(warNextChainTimeStatus, 'N/A');
+function populateWarStatusDisplay() {
+    if (!activeRankedWar) {
+        console.warn("No active ranked war data found for status display.");
+        displayMessage(warEnlistedStatus, 'No War');
+        displayMessage(warTermedStatus, 'No War');
+        displayMessage(warTermedWinLoss, 'No War');
+        displayMessage(warChainingStatus, 'No War');
+        displayMessage(warNoFlyingStatus, 'No War');
+        displayMessage(warTurtleStatus, 'No War');
+        displayMessage(warNextChainTimeStatus, 'No War');
         return;
     }
 
-    const war = apiData.faction.war; // Access the 'war' object within faction data
-    const basicStatus = apiData.basic.status; // Access user's basic status (e.g., in_hospital)
+    // Assuming properties like enlisted, termed etc. are directly on activeRankedWar
+    displayMessage(warEnlistedStatus, activeRankedWar.enlisted === true ? 'Yes' : 'No');
+    displayMessage(warTermedStatus, activeRankedWar.termed === true ? 'Yes' : 'No');
+    displayMessage(warTermedWinLoss, activeRankedWar.termed_win_loss || 'N/A'); // Assuming API provides this string/value
+    displayMessage(warChainingStatus, activeRankedWar.chaining === true ? 'Yes' : 'No'); // Assuming API provides this
+    displayMessage(warNoFlyingStatus, activeRankedWar.no_flying === true ? 'Yes' : 'No'); // Assuming API provides this
+    displayMessage(warTurtleStatus, activeRankedWar.turtle_mode === true ? 'Yes' : 'No'); // Assuming API provides this
 
-    if (war) {
-        // These might come from 'war' object or from general 'status'
-        displayMessage(warEnlistedStatus, war.enlisted === true ? 'Yes' : 'No');
-        displayMessage(warTermedStatus, war.termed === true ? 'Yes' : 'No');
-        displayMessage(warTermedWinLoss, war.termed_win_loss || 'N/A'); // Assuming API provides this string/value
-        displayMessage(warChainingStatus, war.chaining === true ? 'Yes' : 'No'); // Assuming API provides this
-        displayMessage(warNoFlyingStatus, war.no_flying === true ? 'Yes' : 'No'); // Assuming API provides this
-        displayMessage(warTurtleStatus, war.turtle_mode === true ? 'Yes' : 'No'); // Assuming API provides this
-
-        // Next Planned Chain Time - This needs to come from an API field if available
-        // Example: if API provides 'war.next_chain_start_timestamp' or 'war.next_chain_time_remaining'
-        const nextChainTime = war.next_chain_start || 'N/A'; // Placeholder API field
-        if (nextChainTime !== 'N/A' && typeof nextChainTime === 'number') {
-             // If it's a timestamp, format it. If it's seconds remaining, format as time remaining.
-             // For now, if it's a raw timestamp from API, convert to readable time or format.
-             // Assuming a simple value or a countdown would be provided by a Netlify function.
-             displayMessage(warNextChainTimeStatus, nextChainTime);
-        } else {
-             displayMessage(warNextChainTimeStatus, nextChainTime); // Display N/A or actual value
-        }
-
+    // Next Planned Chain Time - This needs to come from an API field
+    // activeRankedWar.next_chain_time is a timestamp in seconds when the chain *ends* if active.
+    // For *next planned chain time*, you might need a different field or custom logic.
+    // Assuming activeRankedWar.next_chain_start or activeRankedWar.chain_start could be used, or a custom field.
+    const nextChainTime = activeRankedWar.next_chain_time || 0; // Example: assuming it's a timestamp
+    if (nextChainTime > 0) {
+        // You may need to fetch current Torn time to calculate countdown if this is a future timestamp
+        // For simplicity, let's display raw timestamp or a placeholder
+        displayMessage(warNextChainTimeStatus, "TBD"); // Placeholder, needs actual API field or logic
     } else {
-        console.warn("War data not found in API response.");
-        displayMessage(warEnlistedStatus, 'N/A');
-        displayMessage(warTermedStatus, 'N/A');
-        displayMessage(warTermedWinLoss, 'N/A');
-        displayMessage(warChainingStatus, 'N/A');
-        displayMessage(warNoFlyingStatus, 'N/A');
-        displayMessage(warTurtleStatus, 'N/A');
         displayMessage(warNextChainTimeStatus, 'N/A');
     }
 }
@@ -302,9 +317,9 @@ async function loadGamePlan() {
 }
 
 // Copy Game Plan button
-if (copyGamePlanBtn) { // Check if element exists before adding listener
+if (copyGamePlanBtn) {
     copyGamePlanBtn.addEventListener('click', async () => {
-        const gamePlanText = gamePlanDisplay.textContent; // Using direct element reference
+        const gamePlanText = gamePlanDisplay.textContent;
         const copied = await copyToClipboard(gamePlanText);
         if (copied) {
             alert('Game plan copied to clipboard!');
@@ -320,23 +335,20 @@ if (copyGamePlanBtn) { // Check if element exists before adding listener
 // Load chain timer
 async function loadChainTimer() {
     // Implement logic to fetch and display the chain timer
-    // Example: Fetch from Firebase or a Netlify Function
     if (chainTimerDisplay) displayMessage(chainTimerDisplay, '00:00:00'); // Placeholder
 }
 
 // Load enemy chain timer
 async function loadEnemyChainTimer() {
     // Implement logic to fetch and display the enemy chain timer
-    // Example: Fetch from Firebase or a Netlify Function
     if (enemyChainTimerDisplay) displayMessage(enemyChainTimerDisplay, '00:00:00'); // Placeholder
 }
 
 // Post Announcement button (Now on Leader Config tab)
-if (postAnnouncementBtn) { // Check if element exists before adding listener
+if (postAnnouncementBtn) {
     postAnnouncementBtn.addEventListener('click', async () => {
-        const message = quickAnnouncementInput.value; // Using direct element reference
+        const message = quickAnnouncementInput.value;
         if (message.trim() !== '') {
-            // Implement logic to post the announcement to Firestore
             try {
                 await db.collection('factionWars').doc('currentWar').update({
                     quickAnnouncement: message,
@@ -357,11 +369,9 @@ if (postAnnouncementBtn) { // Check if element exists before adding listener
 // Load Quick FF Targets
 async function loadQuickFFTargets() {
     try {
-        // Implement logic to fetch and display quick FF targets
-        // Example: Call a Netlify Function (fetch-fairfight-data.js)
         const targets = ['Target 1', 'Target 2', 'Target 3']; // Placeholder
-        if (quickFFTargetsDisplay) { // Check if element exists
-            const targetList = targets.map(target => `<span>${target}</span>`).join(''); // Using span for consistency with HTML
+        if (quickFFTargetsDisplay) {
+            const targetList = targets.map(target => `<span>${target}</span>`).join('');
             quickFFTargetsDisplay.innerHTML = targetList;
         }
     } catch (error) {
@@ -373,10 +383,8 @@ async function loadQuickFFTargets() {
 // Load Enemy Targets List
 async function loadEnemyTargets() {
     try {
-        // Implement logic to fetch and display the enemy targets list
-        // Example: Call a Netlify Function (get-recommended-targets.js), integrate hospital timers, attack pop-ups, claim logic
         const targets = [{ name: 'Enemy 1 [123]', ff: 80, difficulty: 'Easy', estStats: '10k', hospital: '00:10:00', canAttack: true, canClaim: true }, /* ... */]; // Placeholder
-        if (enemyTargetsList) { // Check if element exists
+        if (enemyTargetsList) {
             const targetRows = targets.map(target => `
                 <div class="enemy-target-row">
                     <span>${target.name}</span>
@@ -404,7 +412,6 @@ if (alertEnemyActiveBtn) alertEnemyActiveBtn.addEventListener('click', () => { c
 // Faction Energy/Hits Tracker
 async function loadFactionStats() {
     // Implement logic to fetch and display faction energy, potential hits, and chain progress
-    // Example: Fetch from Firebase or a Netlify Function
     if (totalFactionEnergy) displayMessage(totalFactionEnergy, '1000'); // Placeholder
     if (totalPotentialHits) displayMessage(totalPotentialHits, '50'); // Placeholder
     if (chainProgressDisplay) displayMessage(chainProgressDisplay, '500/1000'); // Placeholder
@@ -415,10 +422,8 @@ async function loadFactionStats() {
 // Load Friendly Members List
 async function loadFriendlyMembers() {
     try {
-        // Implement logic to fetch and display friendly member status
-        // Example: Fetch from Firebase
         const members = [{ name: 'Member 1', energy: 100, hospital: '00:05:00' }, /* ... */]; // Placeholder
-        if (friendlyMembersList) { // Check if element exists
+        if (friendlyMembersList) {
             const memberRows = members.map(member => `
                 <div>${member.name} - Energy: ${member.energy}, Hospital: ${member.hospital}</div>
             `).join('');
@@ -438,7 +443,7 @@ async function loadGamePlanForEdit() {
         const doc = await db.collection('factionWars').doc('currentWar').get();
         if (doc.exists) {
             const gamePlan = doc.data().gamePlan || '';
-            if (gamePlanEditArea) gamePlanEditArea.value = gamePlan; // Using direct element reference
+            if (gamePlanEditArea) gamePlanEditArea.value = gamePlan;
         }
     } catch (error) {
         console.error('Error loading game plan for edit:', error);
@@ -447,9 +452,9 @@ async function loadGamePlanForEdit() {
 }
 
 // Save Game Plan
-if (saveGamePlanBtn) { // Check if element exists before adding listener
+if (saveGamePlanBtn) {
     saveGamePlanBtn.addEventListener('click', async () => {
-        const newGamePlan = gamePlanEditArea.value; // Using direct element reference
+        const newGamePlan = gamePlanEditArea.value;
         try {
             await db.collection('factionWars').doc('currentWar').update({ gamePlan: newGamePlan });
             loadGamePlan(); // Refresh the displayed game plan on Announcements tab
@@ -461,20 +466,11 @@ if (saveGamePlanBtn) { // Check if element exists before adding listener
     });
 }
 
-// Placeholder for missing HTML elements (from old HTML, now moved or refactored)
-// These handlers will not run if the elements don't exist in the current HTML.
-// Add to Watchlist
-// document.getElementById('addWatchEnemyBtn').addEventListener('click', () => { /* ... */ });
-// Add Designated Admin
-// document.getElementById('addDesignateAdminBtn').addEventListener('click', () => { /* ... */ });
-
-
 // Load Energy Tracking Members
 async function loadEnergyTrackMembers() {
     try {
-        // Implement logic to fetch faction members and populate the select
         const members = [{ uid: 'user1', name: 'Member 1' }, { uid: 'user2', name: 'Member 2' }, /* ... */]; // Placeholder
-        if (energyTrackMemberSelect) { // Check if element exists
+        if (energyTrackMemberSelect) {
             energyTrackMemberSelect.innerHTML = ''; // Clear previous options
             members.forEach(member => {
                 const option = document.createElement('option');
@@ -490,11 +486,10 @@ async function loadEnergyTrackMembers() {
 }
 
 // Save Energy Tracking Members
-if (saveEnergyTrackMembersBtn) { // Check if element exists before adding listener
+if (saveEnergyTrackMembersBtn) {
     saveEnergyTrackMembersBtn.addEventListener('click', () => {
-        const selectedMembers = Array.from(energyTrackMemberSelect.selectedOptions) // Using direct element reference
+        const selectedMembers = Array.from(energyTrackMemberSelect.selectedOptions)
             .map(option => option.value);
-        // Implement logic to save the selected member UIDs
         console.log('Saving energy tracking members:', selectedMembers);
         alert('Energy tracking members saved!');
     });
@@ -505,7 +500,7 @@ if (saveEnergyTrackMembersBtn) { // Check if element exists before adding listen
 document.addEventListener('DOMContentLoaded', () => {
     console.log("war_page_hub.js: DOMContentLoaded event fired.");
 
-    // Tab switching logic (already there, just wrapped for clarity)
+    // Tab switching logic
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             const tabId = event.target.dataset.tab + '-tab';
@@ -532,22 +527,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.warn("No API key found for current user in Firestore. Cannot fetch Torn API data.");
                         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
                         if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
-                        // Clear placeholders or show relevant messages for other elements
-                        displayMessage(gamePlanDisplay, 'API key needed.');
-                        displayMessage(warEnlistedStatus, 'N/A'); // Clear status
-                        // ... more clearances for other sections ...
+                        displayMessage(gamePlanDisplay, 'API key needed. Update in profile.', true);
+                        displayMessage(warEnlistedStatus, 'N/A');
+                        displayMessage(warTermedStatus, 'N/A');
+                        displayMessage(warTermedWinLoss, 'N/A');
+                        displayMessage(warChainingStatus, 'N/A');
+                        displayMessage(warNoFlyingStatus, 'N/A');
+                        displayMessage(warTurtleStatus, 'N/A');
+                        displayMessage(warNextChainTimeStatus, 'N/A');
+                        displayMessage(factionAnnouncementsDisplay, 'API key needed.', true);
                     }
                 } else {
                     console.warn("User profile not found in Firestore. Cannot fetch Torn API data.");
                     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Profile Incomplete)";
                     if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
-                    displayMessage(gamePlanDisplay, 'Complete profile.');
+                    displayMessage(gamePlanDisplay, 'Complete profile.', true);
+                    displayMessage(warEnlistedStatus, 'N/A');
+                    // ... (clear other status fields)
+                    displayMessage(factionAnnouncementsDisplay, 'Complete profile.', true);
                 }
             } catch (e) {
                 console.error("Error getting user profile for API key:", e);
-                if (factionWarHubTitleEl) factionWarHubTitleTitleEl.textContent = "Faction War Hub. (Error Loading)";
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Error Loading)";
                 if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
                 displayMessage(gamePlanDisplay, 'Error loading data.', true);
+                displayMessage(warEnlistedStatus, 'Error', true);
+                // ... (clear other status fields)
+                displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
             }
         } else {
             console.log("User not logged in. War Hub not initialized.");
@@ -555,8 +561,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
             // Clear all dynamic data when logged out
             displayMessage(gamePlanDisplay, 'Please log in to see war data.');
-            displayMessage(warEnlistedStatus, 'N/A'); // Clear status
-            // ... clear other sections ...
+            displayMessage(warEnlistedStatus, 'N/A');
+            displayMessage(warTermedStatus, 'N/A');
+            displayMessage(warTermedWinLoss, 'N/A');
+            displayMessage(warChainingStatus, 'N/A');
+            displayMessage(warNoFlyingStatus, 'N/A');
+            displayMessage(warTurtleStatus, 'N/A');
+            displayMessage(warNextChainTimeStatus, 'N/A');
+            displayMessage(factionAnnouncementsDisplay, 'Please log in.', true);
         }
     });
 });
