@@ -216,33 +216,30 @@
 }
 
 .member-checkbox-list .member-selection-item {
-    /* ADAPTATION: Checkbox on the right side of the name */
     display: flex;
-    align-items: center; /* Vertically centers name and checkbox */
-    justify-content: space-between; /* Pushes content to ends, effectively name left, checkbox right */
-    flex-direction: row; /* Default or can be explicitly row */
-    gap: 5px; /* Small gap between name and checkbox if not using space-between fully */
+    align-items: center; /* Vertically centers content */
+    flex-direction: row; /* Keeps the HTML order (input then label) as a row */
+    gap: 5px; /* This controls the small space between the label and the checkbox */
     color: #f0f0f0;
     font-size: 0.9em;
+    /* REMOVED: justify-content: space-between; (This was pushing the checkbox far right) */
 }
 
-/* Specific styling for the actual checkbox input */
 .member-checkbox-list .member-selection-item input[type="checkbox"] {
     accent-color: #00a8ff; /* Keeps the blue color for the checkbox box */
-    margin: 0;
-    transform: scale(1.1); /* Slightly larger checkbox */
+    margin: 0; /* Removes default margin */
+    transform: scale(1.1); /* Keeps it slightly larger */
     flex-shrink: 0; /* Prevents checkbox from shrinking */
-    order: 1; /* Puts the checkbox visually after the label within its flex container */
-    /* Note: if using justify-content: space-between on parent, order is not strictly needed if label flex-grows.
-       However, it's good practice for clear intent if the HTML order is <input><label>. */
+    order: 1; /* Places the checkbox visually after the label */
 }
 
 .member-checkbox-list .member-selection-item label {
     cursor: pointer;
-    flex-grow: 1; /* Allows the name (label) to take up available space */
+    flex-grow: 0; /* IMPORTANT: Prevents the label from expanding and creating a large gap */
     text-align: left; /* Ensures label text remains left-aligned */
-    order: 0; /* Puts the label visually before the checkbox */
+    order: 0; /* Places the label visually before the checkbox */
 }
+
 /* Adjust textarea within the moved Faction Announcements to stretch and have margin */
 .announcement-section-item .war-announcement-section textarea {
     flex-grow: 1; /* Allow textarea to grow and take available space */
