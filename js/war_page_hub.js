@@ -25,7 +25,7 @@ const quickAnnouncementInput = document.getElementById('quickAnnouncementInput')
 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay'); // Re-declared for direct use
 const enemyTargetsList = document.getElementById('enemyTargetsList');
 const alertHitterOnlineHospBtn = document.getElementById('alertHitterOnlineHospBtn');
-const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn'); // Corrected typo
+const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn');
 const alertEnemyActiveBtn = document.getElementById('alertEnemyActiveBtn');
 const totalFactionEnergy = document.getElementById('totalFactionEnergy');
 const totalPotentialHits = document.getElementById('totalPotentialHits');
@@ -56,7 +56,7 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 
 
 // --- Global API Data Storage ---
-let factionApiFullData = null; // Will store the full response from the user's faction API call (basic, ranked_wars)
+let factionApiFullData = null; // Will store the full response from the user's faction API call (basic, ranked_wars, members)
 let enemyFactionBasicData = null; // Will store basic data from the enemy faction's API call
 
 
@@ -109,7 +109,7 @@ function formatTime(seconds) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Helper to construct faction image URL from tag_image filename
+// Helper to construct faction image URL from tag_image filename (for specific cases)
 function getFactionImageUrl(imageFileName) {
     if (imageFileName) {
         // This pattern is often used for dynamic image fetching by Torn for tag_images
@@ -142,7 +142,7 @@ async function initializeWarHubApiData(user, apiKey) {
 
     try {
         // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=) ---
-        // This call is expected to provide user faction data, and ranked war details including opponent ID.
+        // Expecting this call to provide user faction data, and ranked war details including opponent ID.
         const userFactionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
         console.log(`Fetching user faction data (selections=, key hidden)`);
 
@@ -162,8 +162,11 @@ async function initializeWarHubApiData(user, apiKey) {
         }
 
         // --- Extract Opponent ID for Second API Call (if war is active) ---
-        const activeRankedWar = factionApiFullData.ranked_wars?.current;
-        const opponentFactionId = activeRankedWar?.opponent_faction_id;
+        // Correctly find the active war object where 'end' is 0
+        const activeRankedWarEntry = Object.values(factionApiFullData.ranked_wars || {}).find(
+            warEntry => warEntry.war?.end === 0
+        );
+        const opponentFactionId = activeRankedWarEntry?.opponent_faction_id;
 
         enemyFactionBasicData = null; // Reset for each fetch
 
@@ -235,7 +238,9 @@ async function initializeWarHubApiData(user, apiKey) {
 function populateFactionVersusSection() {
     if (factionVersusSectionEl && factionApiFullData) {
         const userFaction = factionApiFullData; // This is the user's faction data
-        const activeRankedWar = factionApiFullData.ranked_wars?.current; // Get ranked war from the response
+        const activeRankedWar = Object.values(factionApiFullData.ranked_wars || {}).find(
+            warEntry => warEntry.war?.end === 0 // Find the active war by checking if 'end' is 0
+        );
 
         // Populate Faction 1 (User's Faction)
         if (factionOneNameEl) factionOneNameEl.textContent = userFaction.name || 'Your Faction';
