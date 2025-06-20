@@ -166,18 +166,19 @@ async function initializeWarHubApiData(user, apiKey) {
         const rankedWars = factionApiFullData.ranked_wars;
 
         if (rankedWars && typeof rankedWars === 'object') {
+            console.log("rankedWars object found:", rankedWars); // DIAGNOSTIC LOG
             // Find the active war by checking if 'war.end' is 0 for any war entry
             const activeWarEntry = Object.values(rankedWars).find(
                 warEntry => warEntry && warEntry.war && warEntry.war.end === 0
             );
 
             if (activeWarEntry) {
+                console.log("Active War Entry found:", activeWarEntry); // DIAGNOSTIC LOG
                 // Now, from the activeWarEntry, find the opponent's ID in the 'factions' object
                 // The opponent is the faction whose ID is NOT the user's faction ID.
                 const userFactionId = String(factionApiFullData.ID);
                 const factionsInWar = activeWarEntry.factions || {};
                 
-                // Iterate through the factions involved in the war
                 for (const factionKey in factionsInWar) {
                     if (Object.prototype.hasOwnProperty.call(factionsInWar, factionKey)) {
                         const factionInWarId = String(factionsInWar[factionKey].id || factionsInWar[factionKey].faction_id);
@@ -187,9 +188,13 @@ async function initializeWarHubApiData(user, apiKey) {
                         }
                     }
                 }
+            } else {
+                console.log("No active war entry found with war.end === 0."); // DIAGNOSTIC LOG
             }
+        } else {
+            console.log("ranked_wars object is null, undefined or not an object."); // DIAGNOSTIC LOG
         }
-        console.log("Extracted opponentFactionId:", opponentFactionId); // Log to debug
+        console.log("Extracted opponentFactionId (after logic):", opponentFactionId); // DIAGNOSTIC LOG
 
         enemyFactionBasicData = null; // Reset for each fetch
 
@@ -263,9 +268,8 @@ async function initializeWarHubApiData(user, apiKey) {
 function populateFactionVersusSection() {
     if (factionVersusSectionEl && factionApiFullData) {
         const userFaction = factionApiFullData; // This is the user's faction data
-        // Find the active ranked war entry again (same logic as initializeWarHubApiData)
         const activeRankedWar = Object.values(factionApiFullData.ranked_wars || {}).find(
-            warEntry => warEntry.war?.end === 0
+            warEntry => warEntry.war?.end === 0 // Find the active war by checking if 'end' is 0
         );
 
         // Populate Faction 1 (User's Faction)
