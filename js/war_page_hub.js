@@ -25,7 +25,8 @@ const quickAnnouncementInput = document.getElementById('quickAnnouncementInput')
 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay'); // Re-declared for direct use
 const enemyTargetsList = document.getElementById('enemyTargetsList');
 const alertHitterOnlineHospBtn = document.getElementById('alertHitterOnlineHospBtn');
-const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn'); // Corrected typo
+const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn');
+// FIXED TYPO: alertEnemyActiveBtn was incorrectly assigned alertHitterActiveBtn's ID
 const alertEnemyActiveBtn = document.getElementById('alertEnemyActiveBtn');
 const totalFactionEnergy = document.getElementById('totalFactionEnergy');
 const totalPotentialHits = document.getElementById('totalPotentialHits');
@@ -528,7 +529,7 @@ async function loadEnergyTrackMembers() {
 
 // Save Energy Tracking Members
 if (saveEnergyTrackMembersBtn) {
-    saveEnergyTrackingMembersBtn.addEventListener('click', () => { // Fixed typo saveEnergyTrackMembersBtn
+    saveEnergyTrackMembersBtn.addEventListener('click', () => {
         const selectedMembers = Array.from(energyTrackMemberSelect.selectedOptions)
             .map(option => option.value);
         console.log('Saving energy tracking members:', selectedMembers);
