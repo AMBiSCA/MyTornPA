@@ -509,8 +509,8 @@
 
 /* Style specifically for the label text within this toggle control */
 .toggle-control:has(input#nextChainTimeInput) label {
-    text-align: center; /* Center the text content of the label */
-    width: 100%; /* Ensure the label spans full width of its flex container to allow text-align to work */
+    text-align: center !important; /* Force center alignment of the text content */
+    width: 100%; /* Ensure the label spans full width of its flex container */
     box-sizing: border-box; /* Include padding/border in width calculation */
 }
 
