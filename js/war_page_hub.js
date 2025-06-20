@@ -56,9 +56,8 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 
 
 // --- Global API Data Storage ---
-let currentUserFaction = null; // Will store user's faction data from API
-let currentEnemyFaction = null; // Will store enemy faction data from API
-let activeRankedWar = null; // Will store active ranked war details
+let currentUserFactionApiData = null; // Will store user's faction data from Torn API (basic + ranked_wars)
+let currentEnemyFactionApiData = null; // Will store enemy faction data from Torn API (basic)
 
 
 // --- Utility Functions ---
@@ -111,10 +110,10 @@ function formatTime(seconds) {
 }
 
 
-// --- Main Data Initialization and Population (Centralized) ---
+// --- Main Torn API Data Fetching and Population (For Faction Title & Vs Box) ---
 
-// This function fetches data from Torn API and populates dynamic elements
-async function initializeWarHubWithApiData(user, apiKey) {
+// This function fetches Torn API data relevant to the main title and the Faction vs. Faction box
+async function initializeWarHubApiData(user, apiKey) {
     if (!apiKey) {
         console.warn("API Key not available for war hub data fetching.");
         if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
@@ -123,85 +122,149 @@ async function initializeWarHubWithApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1: Get User's Faction Data and Ranked War Info ---
-        const factionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFaction`;
-        console.log(`Fetching user faction data (selections: basic,ranked_wars, key hidden)`);
+        // --- API Call 1: Get User's Faction Data and Ranked War Info (Needed for enemy faction ID) ---
+        const factionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionDetails`;
+        console.log(`Fetching user faction data for title & Vs box (selections: basic,ranked_wars, key hidden)`);
 
         const factionResponse = await fetch(factionApiUrl);
         const factionData = await factionResponse.json();
-        console.log("User Faction API Response:", factionData);
+        console.log("User Faction API Response for Vs Box:", factionData);
 
         if (!factionResponse.ok || factionData.error) {
-            throw new Error(`Faction API Error: ${factionData.error?.error || factionResponse.statusText}`);
+            throw new Error(`Torn API Faction Error: ${factionData.error?.error || factionResponse.statusText}`);
         }
 
-        currentUserFaction = factionData; // Store user's own faction data
-        activeRankedWar = factionData.ranked_wars?.current; // Get the current active ranked war details
+        currentUserFactionApiData = factionData; // Store user's own faction data (including ranked_wars)
 
         // --- Populate Main Title ---
-        const usersFactionName = currentUserFaction?.name || "Your Faction";
+        const usersFactionName = currentUserFactionApiData?.name || "Your Faction";
         if (factionWarHubTitleEl) {
             factionWarHubTitleEl.textContent = `${usersFactionName}'s War Hub.`;
-        } else {
-            console.warn("factionWarHubTitleEl not found.");
         }
 
         // --- API Call 2 (Conditional): Get Enemy Faction Data if in War ---
-        currentEnemyFaction = null; // Reset enemy faction
+        currentEnemyFactionApiData = null; // Reset enemy faction
+        const activeRankedWar = currentUserFactionApiData.ranked_wars?.current; // Get the current active ranked war details
         if (activeRankedWar && activeRankedWar.opponent_faction_id) {
             const enemyFactionId = activeRankedWar.opponent_faction_id;
-            const enemyFactionApiUrl = `https://api.torn.com/faction/${enemyFactionId}/?selections=basic&key=${apiKey}&comment=MyTornPA_WarHub_EnemyFaction`;
-            console.log(`Fetching enemy faction data (ID: ${enemyFactionId}, key hidden)`);
+            const enemyFactionApiUrl = `https://api.torn.com/faction/${enemyFactionId}/?selections=basic&key=${apiKey}&comment=MyTornPA_WarHub_EnemyFactionDetails`;
+            console.log(`Fetching enemy faction data for Vs box (ID: ${enemyFactionId}, key hidden)`);
 
             const enemyResponse = await fetch(enemyFactionApiUrl);
             const enemyData = await enemyResponse.json();
-            console.log("Enemy Faction API Response:", enemyData);
+            console.log("Enemy Faction API Response for Vs Box:", enemyData);
 
             if (!enemyResponse.ok || enemyData.error) {
                 console.warn(`Could not fetch enemy faction details: ${enemyData.error?.error || enemyResponse.statusText}`);
-                // Proceed without enemy data
+                // Proceed without enemy data, VS section might show N/A for enemy
             } else {
-                currentEnemyFaction = enemyData; // Store enemy faction data
+                currentEnemyFactionApiData = enemyData; // Store enemy faction data
             }
         }
 
-        // --- Populate Faction Versus Section ---
+        // --- Populate Faction Versus Section (always call after API data is ready) ---
         populateFactionVersusSection();
 
-        // --- Populate War Status Display Box on Announcements Tab ---
-        populateWarStatusDisplay();
-
-        // --- Populate Announcements Display Box on Announcements Tab ---
-        populateFactionAnnouncementsDisplay(); // This reads from Firestore
-
-        // Call other data loading functions that rely on API or Firebase
-        loadGamePlan(); // Loads from Firestore
-        loadChainTimer();
-        loadEnemyChainTimer();
-        loadQuickFFTargets();
-        loadEnemyTargets();
-        loadFactionStats();
-        loadFriendlyMembers();
-        loadGamePlanForEdit(); // Loads from Firestore
-        loadEnergyTrackMembers();
-
     } catch (error) {
-        console.error("Error fetching war hub data:", error);
+        console.error("Error initializing Torn API data for War Hub:", error);
         // Display more user-friendly messages for key types or general errors
-        if (error.message.includes("API Error: Key must be set to Full Access")) {
-             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `War Hub. (API Key Access Needed)`;
-             if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:orange;">Cannot load war data. Please ensure your Torn API Key is **Full Access**.</p>';
-        } else if (error.message.includes("API Error:") || error.message.includes("Failed to fetch")) {
+        if (error.message.includes("Key must be set to Full Access") || error.message.includes("Wrong fields")) {
+             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `War Hub. (Check API Key)`;
+             if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:orange;">Cannot load Faction vs. Faction data. Please ensure your Torn API Key is **Full Access**.</p>';
+        } else if (error.message.includes("Failed to fetch") || error.message.includes("Torn API Faction Error")) {
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
-            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">Error loading war data: ${error.message}</p>`;
+            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">Error loading Faction vs. Faction data: ${error.message}</p>`;
         } else {
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
-            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">An unexpected error occurred: ${error.message}</p>`;
+            if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">An unexpected error occurred loading Faction Vs: ${error.message}</p>`;
         }
 
         if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'block'; // Ensure message is visible if hidden
-        // Also clear / reset other dynamic fields on error
-        displayMessage(gamePlanDisplay, 'Error loading game plan.', true);
+        // Ensure Vs section is cleared on API error
+        if (factionOneNameEl) factionOneNameEl.textContent = 'N/A';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
+        if (factionOnePicEl) factionOnePicEl.src = 'https://dummyimage.com/100x100/333/fff&text=F1';
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'N/A';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        if (factionTwoPicEl) factionTwoPicEl.src = 'https://dummyimage.com/100x100/333/fff&text=F2';
+        if (versusTextEl) versusTextEl.textContent = 'Vs';
+    }
+}
+
+// Function to populate the Faction Versus Section
+function populateFactionVersusSection() {
+    if (factionVersusSectionEl && currentUserFactionApiData) {
+        const activeRankedWar = currentUserFactionApiData.ranked_wars?.current;
+
+        // Check if there's an active war AND enemy faction data was successfully retrieved
+        if (activeRankedWar && currentEnemyFactionApiData) {
+            factionVersusSectionEl.style.display = 'flex'; // Show the section
+
+            // Populate Faction 1 (User's Faction)
+            if (factionOneNameEl) factionOneNameEl.textContent = currentUserFactionApiData.name || 'Your Faction';
+            if (factionOneMembersEl) factionOneMembersEl.textContent = currentUserFactionApiData.members?.total || 'N/A';
+            if (factionOnePicEl) factionOnePicEl.src = currentUserFactionApiData.image || 'https://dummyimage.com/100x100/333/fff&text=F1';
+            if (factionOnePicEl) factionOnePicEl.alt = currentUserFactionApiData.name || 'Faction 1 Logo';
+
+            // Populate Faction 2 (Enemy Faction)
+            if (factionTwoNameEl) factionTwoNameEl.textContent = currentEnemyFactionApiData.name || 'Enemy Faction';
+            if (factionTwoMembersEl) factionTwoMembersEl.textContent = currentEnemyFactionApiData.members?.total || 'N/A';
+            if (factionTwoPicEl) factionTwoPicEl.src = currentEnemyFactionApiData.image || 'https://dummyimage.com/100x100/333/fff&text=F2';
+            if (factionTwoPicEl) factionTwoPicEl.alt = currentEnemyFactionApiData.name || 'Faction 2 Logo';
+
+            if (versusTextEl) versusTextEl.textContent = 'Vs';
+
+        } else {
+            // No active war or couldn't get enemy data, show "Your Faction" vs "N/A" or hide
+            factionVersusSectionEl.style.display = 'flex'; // Still show, but with "No War" info
+            if (factionOneNameEl) factionOneNameEl.textContent = currentUserFactionApiData.name || 'Your Faction';
+            if (factionOneMembersEl) factionOneMembersEl.textContent = currentUserFactionApiData.members?.total || 'N/A';
+            if (factionOnePicEl) factionOnePicEl.src = currentUserFactionApiData.image || 'https://dummyimage.com/100x100/333/fff&text=F1';
+            if (factionOnePicEl) factionOnePicEl.alt = currentUserFactionApiData.name || 'Faction 1 Logo';
+
+            if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy';
+            if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+            if (factionTwoPicEl) factionTwoPicEl.src = 'https://dummyimage.com/100x100/333/fff&text=N/A';
+            if (factionTwoPicEl) factionTwoPicEl.alt = 'No Enemy';
+
+            if (versusTextEl) versusTextEl.textContent = 'Vs (No War)';
+        }
+    } else if (factionVersusSectionEl) {
+        factionVersusSectionEl.style.display = 'none'; // Hide if no user faction data at all
+    }
+}
+
+
+// --- Firestore Data Loading (For Game Plan, War Status Display, Faction Announcements Display) ---
+
+// Function to populate the War Status Display Box on Announcements Tab (Firestore Source)
+async function populateWarStatusDisplay() {
+    try {
+        const doc = await db.collection('factionWars').doc('currentWar').get();
+        if (doc.exists) {
+            const warData = doc.data();
+            displayMessage(warEnlistedStatus, warData.toggleEnlisted === true ? 'Yes' : 'No');
+            displayMessage(warTermedStatus, warData.toggleTermedWar === true ? 'Yes' : 'No');
+            displayMessage(warTermedWinLoss, warData.toggleTermedWinLoss || 'N/A');
+            displayMessage(warChainingStatus, warData.toggleChaining === true ? 'Yes' : 'No');
+            displayMessage(warNoFlyingStatus, warData.toggleNoFlying === true ? 'Yes' : 'No');
+            displayMessage(warTurtleStatus, warData.toggleTurtleMode === true ? 'Yes' : 'No');
+
+            const nextChainTime = warData.nextChainTimeInput || 'N/A'; // From Leader Config input
+            displayMessage(warNextChainTimeStatus, nextChainTime);
+
+        } else {
+            console.warn("No war document found for war status display.");
+            displayMessage(warEnlistedStatus, 'N/A');
+            displayMessage(warTermedStatus, 'N/A');
+            displayMessage(warTermedWinLoss, 'N/A');
+            displayMessage(warChainingStatus, 'N/A');
+            displayMessage(warNoFlyingStatus, 'N/A');
+            displayMessage(warTurtleStatus, 'N/A');
+            displayMessage(warNextChainTimeStatus, 'N/A');
+        }
+    } catch (error) {
+        console.error('Error loading war status from Firestore:', error);
         displayMessage(warEnlistedStatus, 'Error', true);
         displayMessage(warTermedStatus, 'Error', true);
         displayMessage(warTermedWinLoss, 'Error', true);
@@ -209,90 +272,21 @@ async function initializeWarHubWithApiData(user, apiKey) {
         displayMessage(warNoFlyingStatus, 'Error', true);
         displayMessage(warTurtleStatus, 'Error', true);
         displayMessage(warNextChainTimeStatus, 'Error', true);
-        displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
     }
 }
 
-// Function to populate the Faction Versus Section
-function populateFactionVersusSection() {
-    if (factionVersusSectionEl && currentUserFaction) {
-        // Check if there's an active war with an enemy faction
-        if (activeRankedWar && currentEnemyFaction) {
-            factionVersusSectionEl.style.display = 'flex'; // Show the section
-
-            // Populate Faction 1 (User's Faction)
-            if (factionOneNameEl) factionOneNameEl.textContent = currentUserFaction.name || 'Your Faction';
-            if (factionOneMembersEl) factionOneMembersEl.textContent = currentUserFaction.members?.total || 'N/A';
-            if (factionOnePicEl) factionOnePicEl.src = currentUserFaction.image || 'https://dummyimage.com/100x100/333/fff&text=F1';
-            if (factionOnePicEl) factionOnePicEl.alt = currentUserFaction.name || 'Faction 1 Logo';
-
-            // Populate Faction 2 (Enemy Faction)
-            if (factionTwoNameEl) factionTwoNameEl.textContent = currentEnemyFaction.name || 'Enemy Faction';
-            if (factionTwoMembersEl) factionTwoMembersEl.textContent = currentEnemyFaction.members?.total || 'N/A';
-            if (factionTwoPicEl) factionTwoPicEl.src = currentEnemyFaction.image || 'https://dummyimage.com/100x100/333/fff&text=F2';
-            if (factionTwoPicEl) factionTwoPicEl.alt = currentEnemyFaction.name || 'Faction 2 Logo';
-
-            if (versusTextEl) versusTextEl.textContent = 'Vs';
-
-        } else {
-            // If not in a war, or no enemy faction data
-            factionVersusSectionEl.style.display = 'none'; // Hide the section
-            // Optionally display a message:
-            // factionVersusSectionEl.innerHTML = '<p style="text-align:center; color:#ccc;">Not currently in a ranked war.</p>';
-        }
-    } else if (factionVersusSectionEl) {
-        factionVersusSectionEl.style.display = 'none'; // Hide if no user faction data
-    }
-}
-
-// Function to populate the War Status Display Box on Announcements Tab
-function populateWarStatusDisplay() {
-    if (!activeRankedWar) {
-        console.warn("No active ranked war data found for status display.");
-        displayMessage(warEnlistedStatus, 'No War');
-        displayMessage(warTermedStatus, 'No War');
-        displayMessage(warTermedWinLoss, 'No War');
-        displayMessage(warChainingStatus, 'No War');
-        displayMessage(warNoFlyingStatus, 'No War');
-        displayMessage(warTurtleStatus, 'No War');
-        displayMessage(warNextChainTimeStatus, 'No War');
-        return;
-    }
-
-    // Assuming properties like enlisted, termed etc. are directly on activeRankedWar
-    displayMessage(warEnlistedStatus, activeRankedWar.enlisted === true ? 'Yes' : 'No');
-    displayMessage(warTermedStatus, activeRankedWar.termed === true ? 'Yes' : 'No');
-    displayMessage(warTermedWinLoss, activeRankedWar.termed_win_loss || 'N/A'); // Assuming API provides this string/value
-    displayMessage(warChainingStatus, activeRankedWar.chaining === true ? 'Yes' : 'No'); // Assuming API provides this
-    displayMessage(warNoFlyingStatus, activeRankedWar.no_flying === true ? 'Yes' : 'No'); // Assuming API provides this
-    displayMessage(warTurtleStatus, activeRankedWar.turtle_mode === true ? 'Yes' : 'No'); // Assuming API provides this
-
-    // Next Planned Chain Time - This needs to come from an API field
-    // activeRankedWar.next_chain_time is a timestamp in seconds when the chain *ends* if active.
-    // For *next planned chain time*, you might need a different field or custom logic.
-    // Assuming activeRankedWar.next_chain_start or activeRankedWar.chain_start could be used, or a custom field.
-    const nextChainTime = activeRankedWar.next_chain_time || 0; // Example: assuming it's a timestamp
-    if (nextChainTime > 0) {
-        // You may need to fetch current Torn time to calculate countdown if this is a future timestamp
-        // For simplicity, let's display raw timestamp or a placeholder
-        displayMessage(warNextChainTimeStatus, "TBD"); // Placeholder, needs actual API field or logic
-    } else {
-        displayMessage(warNextChainTimeStatus, 'N/A');
-    }
-}
-
-// Function to populate the Faction Announcements Display Box on Announcements Tab
+// Function to populate the Faction Announcements Display Box on Announcements Tab (Firestore Source)
 async function populateFactionAnnouncementsDisplay() {
     try {
         const doc = await db.collection('factionWars').doc('currentWar').get();
         if (doc.exists) {
             const announcement = doc.data().quickAnnouncement || 'No current announcements.';
-            displayMessage(factionAnnouncementsDisplay, announcement); // Using direct element reference
+            displayMessage(factionAnnouncementsDisplay, announcement);
         } else {
             displayMessage(factionAnnouncementsDisplay, 'No war document found for announcements.');
         }
     } catch (error) {
-        console.error('Error loading faction announcements for display:', error);
+        console.error('Error loading faction announcements for display from Firestore:', error);
         displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
     }
 }
@@ -306,12 +300,12 @@ async function loadGamePlan() {
         const doc = await db.collection('factionWars').doc('currentWar').get();
         if (doc.exists) {
             const gamePlan = doc.data().gamePlan || 'No game plan available.';
-            displayMessage(gamePlanDisplay, gamePlan); // Using direct element reference
+            displayMessage(gamePlanDisplay, gamePlan);
         } else {
             displayMessage(gamePlanDisplay, 'No war document found.');
         }
     } catch (error) {
-        console.error('Error loading game plan:', error);
+        console.error('Error loading game plan from Firestore:', error);
         displayMessage(gamePlanDisplay, 'Error loading game plan.', true);
     }
 }
@@ -344,7 +338,7 @@ async function loadEnemyChainTimer() {
     if (enemyChainTimerDisplay) displayMessage(enemyChainTimerDisplay, '00:00:00'); // Placeholder
 }
 
-// Post Announcement button (Now on Leader Config tab)
+// Post Announcement button (Now on Leader Config tab, saves to Firestore)
 if (postAnnouncementBtn) {
     postAnnouncementBtn.addEventListener('click', async () => {
         const message = quickAnnouncementInput.value;
@@ -522,7 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const profileData = doc.data();
                     const apiKey = profileData.tornApiKey;
                     if (apiKey) {
-                        await initializeWarHubWithApiData(user, apiKey);
+                        // Initialize Torn API-dependent data
+                        await initializeWarHubApiData(user, apiKey);
                     } else {
                         console.warn("No API key found for current user in Firestore. Cannot fetch Torn API data.");
                         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
@@ -533,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         displayMessage(warTermedWinLoss, 'N/A');
                         displayMessage(warChainingStatus, 'N/A');
                         displayMessage(warNoFlyingStatus, 'N/A');
-                        displayMessage(warTurtleStatus, 'N/A');
+                        displayMessage(warTurtleMode, 'N/A');
                         displayMessage(warNextChainTimeStatus, 'N/A');
                         displayMessage(factionAnnouncementsDisplay, 'API key needed.', true);
                     }
@@ -543,7 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
                     displayMessage(gamePlanDisplay, 'Complete profile.', true);
                     displayMessage(warEnlistedStatus, 'N/A');
-                    // ... (clear other status fields)
                     displayMessage(factionAnnouncementsDisplay, 'Complete profile.', true);
                 }
             } catch (e) {
@@ -552,7 +546,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'none';
                 displayMessage(gamePlanDisplay, 'Error loading data.', true);
                 displayMessage(warEnlistedStatus, 'Error', true);
-                // ... (clear other status fields)
                 displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
             }
         } else {
@@ -566,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayMessage(warTermedWinLoss, 'N/A');
             displayMessage(warChainingStatus, 'N/A');
             displayMessage(warNoFlyingStatus, 'N/A');
-            displayMessage(warTurtleStatus, 'N/A');
+            displayMessage(warTurtleMode, 'N/A');
             displayMessage(warNextChainTimeStatus, 'N/A');
             displayMessage(factionAnnouncementsDisplay, 'Please log in.', true);
         }
