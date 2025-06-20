@@ -46,146 +46,6 @@
     margin-top: 0;
 }
 
-.tab-button {
-    /* Styles for individual tab buttons */
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 8px 12px; /* NEW: Slightly reduced padding */
-    border: 2px solid black; /* NEW: Added 1px black border */
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 120px; /* Minimum width for each tab */
-    text-align: center;
-    border-left: 2px solid black;
-    border-right: 2px solid black;
-}
-/* Styling for the new Faction Versus Section */
-.faction-versus-section {
-    display: flex; /* Use flexbox to arrange internal blocks horizontally */
-    justify-content: space-around; /* Distribute space between info blocks and images */
-    align-items: center; /* Vertically align content within the section */
-    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
-
-    max-width: 1000px; /* NEW: Set a maximum width to make it shorter than full length */
-    margin: 20px auto; /* Center the box horizontally and add vertical margin */
-    padding: 15px; /* Internal padding for the box */
-
-    border: 1px solid #00a8ff; /* Blue border matching theme */
-    border-radius: 8px;
-    background-color: #222; /* Dark background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
-    box-sizing: border-box; /* Include padding and border in element's total width/height */
-}
-
-/* Styles for the Faction Name and Total Members blocks */
-.faction-info-block {
-    flex: 1; /* Allow blocks to grow and shrink */
-    min-width: 180px; /* Ensure a minimum width before wrapping */
-    text-align: center;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-.faction-info-block h4 {
-    color: #00a8ff; /* Blue color for faction names */
-    font-size: 1.3em;
-    margin-top: 0;
-    margin-bottom: 5px;
-}
-
-.faction-info-block p {
-    font-size: 0.95em;
-    color: #f0f0f0;
-    margin: 0;
-}
-
-/* Styles for the image and Vs text container */
-.faction-images {
-    display: flex;
-    align-items: center; /* Vertically align images and Vs text */
-    justify-content: center; /* Horizontally center content */
-    gap: 15px; /* Space between elements */
-    flex-shrink: 0; /* Prevent this block from shrinking excessively */
-    padding: 10px;
-}
-
-/* Styles for the Faction Profile Pictures */
-.faction-logo {
-    width: 100px; /* Fixed width for the image */
-    height: 100px; /* Fixed height for the image */
-    border-radius: 8px; /* Slightly rounded corners for the images */
-    border: 2px solid #00a8ff; /* Blue border for the images */
-    object-fit: cover; /* Ensures image covers the area without distortion */
-}
-
-/* Styles for the "Vs" text */
-.versus-text {
-    font-size: 2.5em; /* Large size for "Vs" */
-    font-weight: bold;
-    color: #e0a71a; /* Gold/orange color */
-    margin: 0 10px; /* Horizontal spacing around "Vs" */
-    flex-shrink: 0; /* Prevent from shrinking */
-}
-
-/* Responsive adjustments for the Faction Versus Section */
-@media (max-width: 768px) {
-    .faction-versus-section {
-        flex-direction: column; /* Stack elements vertically on smaller screens */
-        max-width: 90%; /* Adjust max-width for very small screens */
-        padding: 10px;
-        gap: 15px; /* Gap between stacked blocks */
-    }
-
-    .faction-info-block {
-        order: 1; /* Place info blocks at top/bottom when stacked */
-        width: 100%;
-        min-width: unset;
-    }
-
-    .faction-images {
-        order: 2; /* Place images in the middle when stacked */
-        flex-direction: row; /* Keep images and Vs horizontal */
-        width: 100%;
-        justify-content: center;
-    }
-
-    /* Adjust font size for Vs and images on smaller screens if needed */
-    .versus-text {
-        font-size: 2em;
-    }
-    .faction-logo {
-        width: 80px;
-        height: 80px;
-    }
-
-    /* Reverse order of Faction 2 info block when stacked to keep Faction 1 on top */
-    .faction-info-block:last-child {
-        order: 3;
-    }
-}
-
-@media (max-width: 480px) {
-    .faction-versus-section {
-        padding: 8px;
-        gap: 10px;
-    }
-    .faction-logo {
-        width: 60px;
-        height: 60px;
-    }
-    .versus-text {
-        font-size: 1.8em;
-    }
-    .faction-info-block h4 {
-        font-size: 1.1em;
-    }
-    .faction-info-block p {
-        font-size: 0.85em;
-    }
-}
-
 .tab-button:hover {
     background-color: #555; /* NEW: A slightly different hover color for non-active */
     color: #f0f0f0;
@@ -717,6 +577,11 @@
     width: 100%; /* Ensure it spans available width of parent config-section */
     box-sizing: border-box;
 }
+
+/* REMOVED: .war-status-toggles-grid .toggle-control:last-child { grid-column: 1 / -1; } */
+/* This rule was removed to allow the last row to flow into 3 columns */
+
+
 /* Fix for checkbox alignment within War Status Controls */
 .war-status-toggles-grid label {
     display: flex;       /* Make the label a flex container */
@@ -733,10 +598,6 @@
     accent-color: #00a8ff; /* Consistent theme color for the checkbox */
 }
 
-/* And this for the last item to span all columns */
-.war-status-toggles-grid .toggle-control:last-child {
-    grid-column: 1 / -1; /* Make it span all columns */
-}
 
 .config-section h4 {
     color: #e0a71a;
@@ -779,19 +640,19 @@
 }
 
 /* Style specifically for the label text within this toggle control */
-.toggle-control:has(input#nextChainTimeInput) label {
+.toggle-control:has(input#nextChainTimeInput) label,
+.toggle-control:has(input#enemyFactionIDInputLeaderConfig) label { /* ADDED: Enemy Faction ID label */
     display: block; /* Make the label behave like a block-level element */
     width: 100%; /* Ensure it takes full available width within its parent */
     text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box; /* Include padding/border in width calculation */
-    /* If still not working, consider adding !important here, but try without first */
+    box-sizing: border-box;
 }
 #postAnnouncementBtn {
     margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
 }
 
 /* Style for the input field itself */
-#nextChainTimeInput {
+#nextChainTimeInput, #enemyFactionIDInputLeaderConfig { /* ADDED: Enemy Faction ID input */
     width: auto; /* Allow width to be determined by content/min-width/max-width */
     max-width: 160px; /* Adjust this value as needed to match the label's width */
     min-width: 100px; /* Ensure it doesn't get too small */
@@ -804,6 +665,18 @@
     /* font-size: 0.9em; */
     /* box-sizing: border-box; */
 }
+
+/* NEW: Styling for the Set Targets button to fit in the grid */
+#setTargetsBtn {
+    padding: 8px 12px; /* Example matching other action buttons */
+    font-size: 0.9em;
+    width: 100%; /* Make it fill its column */
+    box-sizing: border-box;
+    display: block; /* Ensure it behaves as a block in the grid cell */
+    margin: auto; /* Center it within its grid cell if its width is not 100% */
+    /* Inherit action-btn colors from parent rule */
+}
+
 
 textarea {
     resize: vertical;
