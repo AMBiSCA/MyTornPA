@@ -219,51 +219,18 @@
     }
 }
 
-/* MODIFIED: game-plan-display to match height and center content */
 .game-plan-display {
     background-color: #333;
     color: #f0f0f0;
-    padding: 15px; /* Adjusted padding to fill space and align vertically */
+    padding: 8px; /* NEW: Reduced padding */
     border-radius: 5px;
-    margin-bottom: 10px; /* NEW: Reduced margin (existing was 10px) */
-    min-height: 80px; /* NEW: Slightly reduced min-height (existing was 80px) */
+    margin-bottom: 10px; /* NEW: Reduced margin */
+    min-height: 80px; /* NEW: Slightly reduced min-height */
     white-space: pre-wrap;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9em; /* NEW: Slightly smaller font (existing was 0.9em) */
-    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically center its content (e.g., "Loading game plan...") */
-    justify-content: center; /* Horizontally center its content */
-    text-align: center; /* Ensure text is centered */
-    box-sizing: border-box; /* Include padding in width/height */
+    font-size: 0.9em; /* NEW: Slightly smaller font */
+    
 }
-
-/* NEW: factionAnnouncementsDisplay to match height and center content */
-#factionAnnouncementsDisplay {
-    /* Inherits from .game-plan-display for general look, but override for flex properties */
-    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically center its content (e.g., "No current announcements.") */
-    justify-content: center; /* Horizontally center its content */
-    text-align: center; /* Ensure text is centered */
-    padding: 15px; /* Adjust internal padding to fill space and align vertically */
-    box-sizing: border-box;
-    background-color: #333; /* Explicitly set background if not fully inherited */
-    color: #f0f0f0; /* Explicitly set color if not fully inherited */
-    border-radius: 5px; /* Explicitly set border-radius if not fully inherited */
-    min-height: 80px; /* Ensure a minimum height similar to game-plan-display */
-    white-space: pre-wrap; /* Preserve white space for content */
-    font-family: 'Courier New', Courier, monospace; /* Font for content */
-    font-size: 0.9em; /* Font size for content */
-}
-
-/* NEW: Adjust the direct content of these display boxes to center */
-.game-plan-display p,
-#factionAnnouncementsDisplay p {
-    margin: 0; /* Remove default paragraph margins */
-    width: 100%; /* Ensure p takes full width to allow text-align:center on itself */
-}
-
 
 /* NEW/MODIFIED: War Status Display on Announcements tab */
 .war-status-display {
@@ -280,9 +247,10 @@
     padding-top: 15px; /* Add some top padding inside the box to push content down from title */
     padding-bottom: 15px; /* Add some bottom padding inside the box */
     margin-top: 0; /* Ensure no unwanted margin pushes it down from its h3 */
+    /* text-align: center; This will be applied to individual status items now */
 }
 
-/* NEW: Styles for individual status items within the war-status-display grid */
+/* Styles for individual status items within the war-status-display grid */
 .war-status-display .status-item {
     display: flex;           /* Make each status item a flex container */
     flex-direction: column;  /* Stack label above value */
@@ -308,7 +276,7 @@
     margin-top: 10px; /* Add some space above this row for separation */
 }
 
-/* NEW: Style for the 'Next Planned Chain Time' value box (like the input on Leader Config) */
+/* Style for the 'Next Planned Chain Time' value box (like the input on Leader Config) */
 .war-status-display .status-value-box {
     background-color: #1e1e1e; /* Darker background for the box */
     border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
@@ -322,6 +290,18 @@
     box-sizing: border-box;
     text-align: center; /* Ensure text inside the box is centered */
 }
+
+
+/* Existing h4 for war-status-display (from .war-status-display h4) - This specific selector from your original CSS is likely redundant or causing issues.
+   The HTML for Announcements tab uses h3. Removing this specific rule to prevent conflict.
+.war-status-display h4 {
+    color: #e0a71a;
+    margin-bottom: 5px;
+    grid-column: 1 / -1;
+    text-align: center;
+}
+*/
+/* END NEW/MODIFIED: War Status Display */
 
 
 /* Active Ops Controls Grid (Tab 2) */
@@ -379,14 +359,12 @@
     font-size: 0.8em;
 }
 
-/* The #quickAnnouncementInput is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
-/* #quickAnnouncementInput {
+#quickAnnouncementInput {
     margin-bottom: 0;
-} */
+}
 
-/* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
 #postAnnouncementBtn {
-    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
+    margin-top: 15px; /* Adjusted margin to ensure consistent gap with Game Plan Save button */
 }
 
 /* Enemy Targets List Section (Tab 2) */
