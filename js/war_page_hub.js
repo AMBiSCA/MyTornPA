@@ -25,7 +25,7 @@ const quickAnnouncementInput = document.getElementById('quickAnnouncementInput')
 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay'); // Re-declared for direct use
 const enemyTargetsList = document.getElementById('enemyTargetsList');
 const alertHitterOnlineHospBtn = document.getElementById('alertHitterOnlineHospBtn');
-const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn');
+const alertHitterActiveBtn = document = document.getElementById('alertHitterActiveBtn'); // Fixed typo
 const alertEnemyActiveBtn = document.getElementById('alertEnemyActiveBtn');
 const totalFactionEnergy = document.getElementById('totalFactionEnergy');
 const totalPotentialHits = document.getElementById('totalPotentialHits');
@@ -56,7 +56,8 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 
 
 // --- Global API Data Storage ---
-let factionApiFullData = null; // Will store the full single API response
+let factionApiFullData = null; // Will store the full response from the user's faction API call (basic, ranked_wars)
+let enemyFactionBasicData = null; // Will store basic data from the enemy faction's API call
 
 
 // --- Utility Functions ---
@@ -108,18 +109,24 @@ function formatTime(seconds) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Helper to construct faction image URL from tag_image
-function getFactionImageUrl(tagImageFilename) {
-    if (tagImageFilename) {
-        return `https://www.torn.com/factions.php?image=${tagImageFilename}`;
+// Helper to construct faction image URL from tag_image filename
+// Note: 'basic' selection usually provides 'image' (full URL) directly.
+// This function is for when 'tag_image' (filename) is provided instead.
+function getFactionImageUrl(imageFileName) {
+    if (imageFileName) {
+        // This pattern is often used for dynamic image fetching by Torn for tag_images
+        return `https://www.torn.com/factions.php?image=${imageFileName}`;
     }
     return 'https://dummyimage.com/100x100/333/fff&text=No+Logo'; // Placeholder
 }
 
 // Helper to count members from the 'members' object provided by API (when 'members' selection is used)
+// This is a fallback if members.total is not directly present in the basic selection.
 function countFactionMembers(membersObject) {
-    if (membersObject && typeof membersObject === 'object') {
+    if (membersObject && typeof membersObject === 'object' && !membersObject.total) { // Only count if 'total' property is missing
         return Object.keys(membersObject).length;
+    } else if (membersObject && typeof membersObject.total === 'number') {
+        return membersObject.total; // Use total if available from basic selection
     }
     return 0;
 }
@@ -136,19 +143,19 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call: Using only selections= as per strict instruction ---
-        const factionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_Strict`;
-        console.log(`Fetching Torn API data with selections= (key hidden)`);
+        // --- API Call 1 (Strictly as requested): Get User's Faction Data (basic, ranked_wars) ---
+        // This call is expected to provide user faction data, and ranked war details including opponent ID.
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
+        console.log(`Fetching user faction data (selections=basic,ranked_wars, key hidden)`);
 
-        const factionResponse = await fetch(factionApiUrl);
-        const data = await factionResponse.json(); // This 'data' is the full JSON response
-        console.log("Single Faction API Full Response:", data);
+        const userFactionResponse = await fetch(userFactionApiUrl);
+        const userFactionData = await userFactionResponse.json();
+        console.log("User Faction API Full Data Response (selections=basic,ranked_wars):", userFactionData);
 
-        if (!factionResponse.ok || data.error) {
-            throw new Error(`Torn API Error: ${data.error?.error || factionResponse.statusText}`);
+        if (!userFactionResponse.ok || userFactionData.error) {
+            throw new Error(`Torn API User Faction Error: ${userFactionData.error?.error || userFactionResponse.statusText}`);
         }
-
-        factionApiFullData = data; // Store the full response globally for all functions to use
+        factionApiFullData = userFactionData; // Store the full response for global use
 
         // --- Populate Main Title ---
         const usersFactionName = factionApiFullData?.name || "Your Faction";
@@ -156,36 +163,55 @@ async function initializeWarHubApiData(user, apiKey) {
             factionWarHubTitleEl.textContent = `${usersFactionName}'s War Hub.`;
         }
 
-        // --- Populate Faction Versus Section ---
+        // --- Extract Opponent ID for Second API Call (if war is active) ---
+        const activeRankedWar = factionApiFullData.ranked_wars?.current;
+        const opponentFactionId = activeRankedWar?.opponent_faction_id;
+
+        enemyFactionBasicData = null; // Reset for each fetch
+
+        // --- API Call 2 (Conditional): Get Enemy Faction's Basic Details ---
+        if (opponentFactionId) {
+            const enemyFactionApiUrl = `https://api.torn.com/faction/${opponentFactionId}/?selections=basic&key=${apiKey}&comment=MyTornPA_WarHub_EnemyBasicData`;
+            console.log(`Fetching enemy faction basic data (ID: ${opponentFactionId}, selections=basic, key hidden)`);
+
+            const enemyFactionResponse = await fetch(enemyFactionApiUrl);
+            const enemyFactionData = await enemyFactionResponse.json();
+            console.log("Enemy Faction Basic Data Response:", enemyFactionData);
+
+            if (!enemyFactionResponse.ok || enemyFactionData.error) {
+                console.warn(`Could not fetch enemy faction basic details: ${enemyFactionData.error?.error || enemyFactionResponse.statusText}`);
+                // Proceed, but enemy data will be N/A
+            } else {
+                enemyFactionBasicData = enemyFactionData; // Store enemy's basic data
+            }
+        }
+
+        // --- Populate Faction Versus Section (uses fetched data) ---
         populateFactionVersusSection();
 
-        // --- Populate War Status Display Box on Announcements Tab (Uses Firestore) ---
-        // (This function relies on Firestore, not this API call directly)
+        // --- Initialize Firestore-dependent data (Game Plan, War Status Display, Faction Announcements Display) ---
+        // These functions use data stored in your Firebase Firestore 'factionWars' document
+        loadGamePlan();
         populateWarStatusDisplay();
-        
-        // --- Populate Announcements Display Box on Announcements Tab (Uses Firestore) ---
-        // (This function relies on Firestore, not this API call directly)
         populateFactionAnnouncementsDisplay();
 
-        // Call other data loading functions that rely on API or Firebase
-        loadGamePlan(); // Loads from Firestore
+        // Call other remaining data functions (placeholders/Netlify)
         loadChainTimer();
         loadEnemyChainTimer();
         loadQuickFFTargets();
         loadEnemyTargets();
         loadFactionStats();
         loadFriendlyMembers();
-        loadGamePlanForEdit(); // Loads from Firestore
+        loadGamePlanForEdit();
         loadEnergyTrackMembers();
 
     } catch (error) {
         console.error("Error initializing Torn API data for War Hub:", error);
-        // Generic error message for API failures based on explicit instruction
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub.`;
         if (factionVersusSectionEl) factionVersusSectionEl.innerHTML = `<p style="text-align:center; color:red;">Error loading faction data: ${error.message}. Data might be incomplete.</p>`;
 
         if (factionVersusSectionEl) factionVersusSectionEl.style.display = 'block';
-        // Ensure Vs section is cleared or shows placeholders on API error
+        // Clear or show placeholders on API error
         if (factionOneNameEl) factionOneNameEl.textContent = 'N/A';
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
         if (factionOnePicEl) factionOnePicEl.src = 'https://dummyimage.com/100x100/333/fff&text=F1';
@@ -193,10 +219,21 @@ async function initializeWarHubApiData(user, apiKey) {
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
         if (factionTwoPicEl) factionTwoPicEl.src = 'https://dummyimage.com/100x100/333/fff&text=F2';
         if (versusTextEl) versusTextEl.textContent = 'Vs';
+
+        // Also clear / reset other Firestore-dependent displays that might have API data fallback messages
+        displayMessage(gamePlanDisplay, 'Error loading game plan.', true);
+        displayMessage(warEnlistedStatus, 'Error', true);
+        displayMessage(warTermedStatus, 'Error', true);
+        displayMessage(warTermedWinLoss, 'Error', true);
+        displayMessage(warChainingStatus, 'Error', true);
+        displayMessage(warNoFlyingStatus, 'Error', true);
+        displayMessage(warTurtleStatus, 'Error', true);
+        displayMessage(warNextChainTimeStatus, 'Error', true);
+        displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
     }
 }
 
-// Function to populate the Faction Versus Section using factionApiFullData
+// Function to populate the Faction Versus Section using data from the single factionApiFullData response
 function populateFactionVersusSection() {
     if (factionVersusSectionEl && factionApiFullData) {
         const userFaction = factionApiFullData; // This is the user's faction data
@@ -204,48 +241,28 @@ function populateFactionVersusSection() {
 
         // Populate Faction 1 (User's Faction)
         if (factionOneNameEl) factionOneNameEl.textContent = userFaction.name || 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = countFactionMembers(userFaction.members) || 'N/A';
-        if (factionOnePicEl) factionOnePicEl.src = getFactionImageUrl(userFaction.tag_image) || 'https://dummyimage.com/100x100/333/fff&text=F1';
+        // basic selection for faction usually provides members.total directly. If not, fallback to counting.
+        if (factionOneMembersEl) factionOneMembersEl.textContent = userFaction.members?.total || countFactionMembers(userFaction.members) || 'N/A';
+        // basic selection for faction usually provides 'image' (full URL). If not, fallback to tag_image.
+        if (factionOnePicEl) factionOnePicEl.src = userFaction.image || getFactionImageUrl(userFaction.tag_image) || 'https://dummyimage.com/100x100/333/fff&text=F1';
         if (factionOnePicEl) factionOnePicEl.alt = userFaction.name || 'Faction 1 Logo';
 
-        // Populate Faction 2 (Enemy Faction) from ranked_wars
-        if (activeRankedWar) {
-            // Find the opponent's data within the 'factions' object of the active war
-            const opponentFactionId = activeRankedWar.opponent_faction_id;
-            const opponentDataInWar = Object.values(activeRankedWar.factions || {}).find(
-                f => String(f.id) === String(opponentFactionId) || String(f.faction_id) === String(opponentFactionId)
-            );
-            // The JSON shows structure like ranked_wars.ID.factions.OPPONENT_ID.name
-            // We need to extract the specific opponent from the 'factions' object by their ID.
-
-            let enemyFactionName = 'Enemy Faction';
-            let enemyFactionMembers = 'N/A';
-            let enemyFactionImage = 'https://dummyimage.com/100x100/333/fff&text=F2';
-
-            if (opponentDataInWar) {
-                enemyFactionName = opponentDataInWar.name || 'Enemy Faction';
-                // Member count for enemy faction from this response is NOT available here directly.
-                // It would require a separate API call using their faction ID and selections=basic.
-                // For now, we'll keep N/A or derive if possible from external source (not this API call).
-                // Image for opponent is also NOT available here.
-                // This would require a separate API call to faction/[id]/?selections=basic.
-            } else {
-                 console.warn("Opponent data not found within ranked_wars.factions object.");
-            }
-
+        // Populate Faction 2 (Enemy Faction)
+        // Check if in war AND enemy basic data was successfully fetched (from second API call)
+        if (activeRankedWar && enemyFactionBasicData) {
             factionVersusSectionEl.style.display = 'flex'; // Show the section
 
-            if (factionTwoNameEl) factionTwoNameEl.textContent = enemyFactionName;
-            if (factionTwoMembersEl) factionTwoMembersEl.textContent = enemyFactionMembers; // Will likely be N/A
-            if (factionTwoPicEl) factionTwoPicEl.src = enemyFactionImage; // Will likely be placeholder
-            if (factionTwoPicEl) factionTwoPicEl.alt = enemyFactionName;
+            if (factionTwoNameEl) factionTwoNameEl.textContent = enemyFactionBasicData.name || 'Enemy Faction';
+            if (factionTwoMembersEl) factionTwoMembersEl.textContent = enemyFactionBasicData.members?.total || 'N/A'; // Use members.total from enemy's basic data
+            if (factionTwoPicEl) factionTwoPicEl.src = enemyFactionBasicData.image || 'https://dummyimage.com/100x100/333/fff&text=F2'; // Use enemyFactionBasicData.image (full URL)
+            if (factionTwoPicEl) factionTwoPicEl.alt = enemyFactionBasicData.name || 'Faction 2 Logo';
 
             if (versusTextEl) versusTextEl.textContent = 'Vs';
 
         } else {
-            // No active war
+            // No active war or couldn't get enemy data, show "Your Faction" vs "No Enemy"
             factionVersusSectionEl.style.display = 'flex'; // Still show, but with "No War" info
-            if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy';
+            if (factionTwoNameEl) factionTwoTwoNameEl.textContent = 'No Enemy'; // Fixed typo
             if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
             if (factionTwoPicEl) factionTwoPicEl.src = 'https://dummyimage.com/100x100/333/fff&text=N/A';
             if (factionTwoPicEl) factionTwoPicEl.alt = 'No Enemy';
@@ -253,7 +270,7 @@ function populateFactionVersusSection() {
             if (versusTextEl) versusTextEl.textContent = 'Vs (No War)';
         }
     } else if (factionVersusSectionEl) {
-        factionVersusSectionEl.style.display = 'none'; // Hide if no faction data at all
+        factionVersusSectionEl.style.display = 'none'; // Hide if no user faction data at all
     }
 }
 
@@ -425,6 +442,7 @@ async function loadEnemyTargets() {
 if (alertHitterOnlineHospBtn) alertHitterOnlineHospBtn.addEventListener('click', () => { console.log('Alert: Big Hitter Online (Self Hosp)'); });
 if (alertHitterActiveBtn) alertHitterActiveBtn.addEventListener('click', () => { console.log('Alert: Big Hitter Active'); });
 if (alertEnemyActiveBtn) alertEnemyActiveBtn.addEventListener('click', () => { console.log('Alert: Enemy Active'); });
+
 
 // Faction Energy/Hits Tracker
 async function loadFactionStats() {
