@@ -131,7 +131,7 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
         // MODIFIED: Requesting 'members' data in addition to 'basic'
-        const enemyApiUrl = `https://api.torn.com/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
         const response = await fetch(enemyApiUrl);
 
         if (!response.ok) {
