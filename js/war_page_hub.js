@@ -167,10 +167,10 @@ async function initializeAndLoadData(apiKey) {
 }
 
 function populateUiComponents(warData, apiKey) {
-    if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.name || "Your Faction"}'s War Hub.`;
-    if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.name || 'Your Faction';
+    if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`; // MODIFIED: .basic.name
+    if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction'; // MODIFIED: .basic.name
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
-    if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.tag_image)}')`;
+    if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.basic.tag_image)}')`; // MODIFIED: .basic.tag_image
     
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
