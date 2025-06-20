@@ -210,7 +210,7 @@
     /* NEW ADAPTATIONS: Two columns of names */
     display: grid; /* Changed from flex to grid */
     grid-template-columns: 150px 150px 150px;
-    gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px between items */
+    gap: 24px 15px; /* Vertical gap 8px, Horizontal gap 15px between items */
 
     margin-bottom: 8px; /* Space below the list, similar to inputs */
 }
