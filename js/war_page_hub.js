@@ -126,6 +126,11 @@ function countFactionMembers(membersObject) {
     return 0;
 }
 
+// NEW HELPER: Simple delay function
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 // --- API Data Fetching and Population (For Faction Title & Vs Box) ---
 
@@ -158,11 +163,14 @@ async function initializeWarHubApiData(user, apiKey) {
             factionWarHubTitleEl.textContent = `${usersFactionName}'s War Hub.`;
         }
 
-        // --- Extract Opponent ID for Second API Call ---
+        // --- Extract Opponent ID for Second API Call (if war is active) ---
         const activeRankedWar = factionApiFullData.ranked_wars?.current;
         const opponentFactionId = activeRankedWar?.opponent_faction_id;
 
         enemyFactionBasicData = null; // Reset for each fetch
+
+        // --- ADDED DELAY HERE ---
+        await delay(100); // Small delay before the second API call (e.g., 100ms)
 
         // --- API Call 2 (Conditional): Get Enemy Faction's Basic Details ---
         if (opponentFactionId) {
@@ -223,7 +231,7 @@ async function initializeWarHubApiData(user, apiKey) {
         displayMessage(warTermedWinLoss, 'Error', true);
         displayMessage(warChainingStatus, 'Error', true);
         displayMessage(warNoFlyingStatus, 'Error', true);
-        displayMessage(warTurtleStatus, 'Error', true);
+        displayMessage(warTurtleMode, 'Error', true);
         displayMessage(warNextChainTimeStatus, 'Error', true);
         displayMessage(factionAnnouncementsDisplay, 'Error loading announcements.', true);
     }
