@@ -430,7 +430,7 @@
 .config-section {
     margin-bottom: 0px; /* Existing */
     padding: 10px; /* Existing */
-    border: 1px solid #00a8ff; /* Existing */
+    border: 1px solid black;
     border-radius: 8px; /* Existing */
     background-color: #222; /* Existing */
     text-align: left; /* Existing */
@@ -445,6 +445,21 @@
     gap: 10px; /* Internal gap between toggles */
     width: 100%; /* Ensure it spans available width of parent config-section */
     box-sizing: border-box;
+}
+/* Fix for checkbox alignment within War Status Controls */
+.war-status-toggles-grid label {
+    display: flex;       /* Make the label a flex container */
+    align-items: center; /* Align items (checkbox and text) vertically in the center */
+    gap: 5px;            /* Add a small space between the checkbox and the label text */
+    cursor: pointer;     /* Indicate the whole label is clickable */
+}
+
+.war-status-toggles-grid input[type="checkbox"] {
+    margin: 0;           /* Remove default margin that might push it around */
+    padding: 0;          /* Remove default padding */
+    vertical-align: middle; /* Ensures baseline alignment, though flexbox should mostly handle this */
+    transform: scale(1.1); /* Slightly increase size for better visibility if needed */
+    accent-color: #00a8ff; /* Consistent theme color for the checkbox */
 }
 
 /* And this for the last item to span all columns */
