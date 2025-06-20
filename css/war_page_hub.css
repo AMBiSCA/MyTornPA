@@ -502,22 +502,31 @@
 /* Specific styling for 'Next Planned Chain Time' label and input */
 /* Target the specific toggle-control by the ID of its input for precision */
 .toggle-control:has(input#nextChainTimeInput) {
-    align-items: center; /* Center horizontally within this specific toggle-control */
-    text-align: center; /* Ensure the label text itself is centered */
+    /* Existing: display: flex; flex-direction: column; */
+    align-items: center;   /* Centers the label and input elements horizontally */
+    /* Remove text-align: center from here, we'll apply it directly to the label */
 }
 
-/* Style for the 'Next Planned Chain Time' input field */
+/* Style specifically for the label text within this toggle control */
+.toggle-control:has(input#nextChainTimeInput) label {
+    text-align: center; /* Center the text content of the label */
+    width: 100%; /* Ensure the label spans full width of its flex container to allow text-align to work */
+    box-sizing: border-box; /* Include padding/border in width calculation */
+}
+
+/* Style for the input field itself */
 #nextChainTimeInput {
-    width: auto; /* Allow the width to be determined by min/max-width */
-    max-width: 160px; /* Adjust this value as needed to match the text length */
-    min-width: 100px; /* Prevent it from becoming too narrow */
-    /* Ensure existing padding/font-size from .config-section input[type="text"] are appropriate,
-       or override them here if needed */
+    width: auto; /* Allow width to be determined by content/min-width/max-width */
+    max-width: 160px; /* Adjust this value as needed to match the label's width */
+    min-width: 100px; /* Ensure it doesn't get too small */
+    display: block; /* Make it a block element so margin: auto can center it */
+    margin-left: auto; /* Center the input horizontally */
+    margin-right: auto; /* Center the input horizontally */
+    /* You may also adjust padding and font-size if necessary */
     /* padding: 6px; */
     /* font-size: 0.9em; */
     /* box-sizing: border-box; */
 }
-
 
 textarea {
     resize: vertical;
