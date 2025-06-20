@@ -439,6 +439,18 @@
     flex-direction: column; /* ADDED */
     align-items: center; /* ADDED */
 }
+.war-status-toggles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
+    gap: 10px; /* Internal gap between toggles */
+    width: 100%; /* Ensure it spans available width of parent config-section */
+    box-sizing: border-box;
+}
+
+/* And this for the last item to span all columns */
+.war-status-toggles-grid .toggle-control:last-child {
+    grid-column: 1 / -1; /* Make it span all columns */
+}
 
 .config-section h4 {
     color: #e0a71a;
