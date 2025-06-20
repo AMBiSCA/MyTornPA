@@ -1,5 +1,5 @@
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v6 FINAL (Detailed Error Logging)
+   War Page Hub JavaScript (war_page_hub.js) - v7 (V2 URL Test)
    ========================================================================== */
 
 // --- Global Variables ---
@@ -68,11 +68,20 @@ function countFactionMembers(membersObject) {
 
 async function initializeAndLoadData(apiKey) {
     try {
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub`;
+        // *** MODIFIED ***: Testing the user's suggested v2 URL format.
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub_V2Test`;
+        
+        console.log("Attempting to fetch from new v2 URL:", userFactionApiUrl);
+
         const userFactionResponse = await fetch(userFactionApiUrl);
+        
+        // Check if the server responded with an error like 404 Not Found
+        if (!userFactionResponse.ok) {
+            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+        }
+
         factionApiFullData = await userFactionResponse.json();
 
-        // *** MODIFIED FOR BETTER ERROR LOGGING ***
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
@@ -122,8 +131,14 @@ function populateUiComponents(warData, apiKey) {
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
-        const enemyApiUrl = `https://api.torn.com/faction/${factionID}?selections=basic&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        // *** MODIFIED ***: Testing the user's suggested v2 URL format.
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic&key=${apiKey}&comment=MyTornPA_EnemyFaction_V2Test`;
         const response = await fetch(enemyApiUrl);
+
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+
         const enemyData = await response.json();
         if (enemyData.error) throw new Error(enemyData.error);
 
