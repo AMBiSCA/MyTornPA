@@ -142,6 +142,82 @@
     text-align: center;
     font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
+/* Styling for the new grid layout in the Announcements tab */
+.announcements-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid for 3 columns */
+    gap: 20px; /* Space between the three containers */
+    padding: 10px; /* Optional: internal padding for the grid */
+    box-sizing: border-box;
+    width: 100%; /* Ensure it takes full width of its parent */
+    max-width: 1750px; /* Adjust to match your overall max-width if desired */
+    margin: 0 auto; /* Center the grid if it's narrower than its parent */
+}
+
+/* Style for each individual container within the announcements grid */
+.announcement-section-item {
+    display: flex; /* Make it a flex container to align its inner content (the war-announcement-section) */
+    flex-direction: column; /* Stack content vertically */
+    /* flex-grow: 1; /* Uncomment if you want items to grow and fill available space */
+}
+
+/* Ensure the .war-announcement-section inside this grid also fills its space */
+.announcement-section-item .war-announcement-section {
+    flex-grow: 1; /* Make the inner content grow to fill the container height if items are stretched */
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack its own content vertically */
+    justify-content: space-between; /* Distribute space between header, content, and button */
+
+    /* Apply box styling similar to .config-section */
+    border: 1px solid black; /* Matching the border from .config-section */
+    border-radius: 8px; /* Matching the border-radius from .config-section */
+    background-color: #222; /* Matching the background from .config-section */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth like other boxes */
+    padding: 10px; /* Adjust internal padding to match .config-section */
+    box-sizing: border-box;
+}
+
+/* Adjust textarea within the moved Faction Announcements to stretch and have margin */
+.announcement-section-item .war-announcement-section textarea {
+    flex-grow: 1; /* Allow textarea to grow and take available space */
+    margin-bottom: 15px; /* Ensure space above button */
+    height: auto; /* Allow height to adjust */
+    min-height: 80px; /* Match min-height from config-section textarea */
+    resize: vertical; /* Allow vertical resizing */
+}
+
+/* Specific button margin for Post Announcement, if it's inside the .announcement-section-item */
+/* (This rule duplicates what you likely already have for #postAnnouncementBtn, ensure it's correct) */
+#postAnnouncementBtn {
+    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
+}
+
+/* Responsive adjustments for smaller screens, mirroring Leader Config tab */
+@media (max-width: 992px) {
+    .announcements-grid-container {
+        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
+        max-width: 600px; /* Limit width similar to leader-config-tab responsive */
+    }
+}
+
+@media (max-width: 768px) {
+    .announcements-grid-container {
+        gap: 15px; /* Slightly reduce gap on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .announcements-grid-container {
+        gap: 8px; /* Further reduce gap on very small screens */
+        padding: 5px; /* Reduce padding for tight spaces */
+    }
+    .announcement-section-item .war-announcement-section {
+        padding: 8px; /* Adjust inner padding of the boxes */
+    }
+    .announcement-section-item .war-announcement-section textarea {
+        min-height: 60px; /* Adjust textarea min-height for small screens */
+    }
+}
 
 .game-plan-display {
     background-color: #333;
