@@ -148,6 +148,7 @@ async function initializeAndLoadData(apiKey) {
         }
 
         factionApiFullData = await userFactionResponse.json();
+		console.log("Faction API Full Data:", factionApiFullData); // ADD THIS LINE
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
