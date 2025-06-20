@@ -1,8 +1,6 @@
-Of course. Here is the complete, updated war_page_hub.js file with the requested change implemented.
-I have commented out the line that attempts to load your faction's image, as requested.
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v6 FINAL (Detailed Error Logging)
-   ========================================================================== */
+   War Page Hub JavaScript (war_page_hub.js) - v6 FINAL (Detailed Error Logging)
+   ========================================================================== */
 
 // --- Global Variables ---
 const db = firebase.firestore();
@@ -95,7 +93,7 @@ function populateUiComponents(warData, apiKey) {
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
-    // if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.tag_image)}')`;
+    if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.tag_image)}')`;
     
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
