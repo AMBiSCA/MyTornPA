@@ -764,7 +764,7 @@
 
 textarea {
     resize: vertical;
-    min-height: 80px; /* NEW: Reduced min-height */
+    min-height: 150px; /* NEW: Reduced min-height */
 }
 
 select[multiple] {
