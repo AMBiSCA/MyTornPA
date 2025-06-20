@@ -382,6 +382,9 @@
     box-sizing: border-box;
     text-align: center; /* Ensure text inside the box is centered */
 }
+#currentTeamLeadInput {
+    margin-top: 8px !important; /* Adjust this pixel value as needed to align it perfectly */
+}
 
 
 /* Active Ops Controls Grid (Tab 2) */
