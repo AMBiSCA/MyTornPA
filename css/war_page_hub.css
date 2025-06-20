@@ -515,6 +515,9 @@
     box-sizing: border-box; /* Include padding/border in width calculation */
     /* If still not working, consider adding !important here, but try without first */
 }
+#postAnnouncementBtn {
+    margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
+}
 
 /* Style for the input field itself */
 #nextChainTimeInput {
