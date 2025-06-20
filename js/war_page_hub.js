@@ -166,124 +166,6 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-// NEW: Autocomplete setup for the Current Team Lead input
-function setupTeamLeadAutocomplete(allFactionMembers) {
-    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-    if (!currentTeamLeadInput) return;
-
-    let autocompleteList = null; // Reference to the suggestion list div
-    let currentFocus = -1;      // Current focused item for keyboard navigation
-
-    // Filter members for autocomplete suggestions
-    const filterMembers = (searchTerm) => {
-        searchTerm = searchTerm.toLowerCase();
-        if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
-        return Object.values(allFactionMembers).filter(member => 
-            member.name && member.name.toLowerCase().startsWith(searchTerm)
-        ).sort((a, b) => a.name.localeCompare(b.name));
-    };
-
-    // Create and display the autocomplete suggestions
-    const showSuggestions = (arr) => {
-        // Remove any existing list
-        closeAllLists();
-
-        if (!arr.length) return false;
-
-        // Create the autocomplete list container
-        autocompleteList = document.createElement("DIV");
-        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
-        autocompleteList.setAttribute("class", "autocomplete-items"); // Add a class for styling
-
-        // Append the list to the parent of the input (e.g., the toggle-control div)
-        // This ensures the list is positioned correctly relative to the input
-        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
-
-        // Populate the list with suggestions
-        arr.forEach(member => {
-            const item = document.createElement("DIV");
-            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
-            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
-            item.innerHTML += `<input type="hidden" value="${member.name}">`; // Hidden input to hold the full name
-
-            item.addEventListener("click", function(e) {
-                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
-                closeAllLists();
-                currentTeamLeadInput.focus(); // Keep focus after selection
-            });
-            autocompleteList.appendChild(item);
-        });
-        return true;
-    };
-
-    // Handle input events on the text field
-    currentTeamLeadInput.addEventListener("input", function(e) {
-        const val = this.value;
-        closeAllLists(); // Close any open lists
-
-        if (!val) { return false; } // If no input, don't show suggestions
-
-        const matches = filterMembers(val);
-        showSuggestions(matches);
-        currentFocus = -1; // Reset focus on new input
-    });
-
-    // Handle keyboard navigation (arrows, Enter, Escape)
-    currentTeamLeadInput.addEventListener("keydown", function(e) {
-        let x = document.getElementById(this.id + "-autocomplete-list");
-        if (x) x = x.getElementsByTagName("div"); // Get all suggestion items
-
-        if (e.keyCode == 40) { // DOWN arrow
-            currentFocus++;
-            addActive(x);
-        } else if (e.keyCode == 38) { // UP arrow
-            currentFocus--;
-            addActive(x);
-        } else if (e.keyCode == 13) { // ENTER key
-            e.preventDefault(); // Prevent form submission
-            if (currentFocus > -1) {
-                if (x) x[currentFocus].click(); // Simulate a click on the active item
-            } else {
-                closeAllLists(); // If no item is focused, just close the list
-            }
-        } else if (e.keyCode == 27) { // ESCAPE key
-            closeAllLists();
-        }
-    });
-
-    // Helper to add "active" class for keyboard navigation highlighting
-    const addActive = (x) => {
-        if (!x) return false;
-        removeActive(x); // Remove active from all items first
-        if (currentFocus >= x.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = (x.length - 1);
-        x[currentFocus].classList.add("autocomplete-active");
-    };
-
-    // Helper to remove "active" class
-    const removeActive = (x) => {
-        for (let i = 0; i < x.length; i++) {
-            x[i].classList.remove("autocomplete-active");
-        }
-    };
-
-    // Close all autocomplete lists
-    const closeAllLists = (elmnt) => {
-        const x = document.getElementsByClassName("autocomplete-items");
-        for (let i = 0; i < x.length; i++) {
-            if (elmnt != x[i] && elmnt != currentTeamLeadInput) { // Don't close if click target is the list or input
-                x[i].parentNode.removeChild(x[i]);
-            }
-        }
-        currentFocus = -1; // Reset focus when lists are closed
-    };
-
-    // Close lists when clicking outside the input/list
-    document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
-    });
-}
-
 function populateUiComponents(warData, apiKey) {
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
@@ -406,6 +288,8 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+	
+	
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
@@ -475,7 +359,7 @@ function setupEventListeners(apiKey) {
     if (saveSelectionsBtnBH) {
         saveSelectionsBtnBH.addEventListener('click', async () => {
             if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox']:checked')).map(cb => cb.value);
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             try {
                 await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
                 alert('Big Hitter Watchlist saved!');
@@ -484,9 +368,39 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
-    // CORRECTED PLACEMENT: Setup autocomplete for the Current Team Lead input
-    if (factionApiFullData && factionApiFullData.members) { // Ensure members data is available
-        setupTeamLeadAutocomplete(factionApiFullData.members);
-    }
 }
+
+// --- Main Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
+    });
+    showTab('announcements-tab');
+
+    let listenersInitialized = false;
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            const apiKey = doc.exists ? doc.data().tornApiKey : null;
+
+            if (apiKey) {
+                userApiKey = apiKey;
+                await initializeAndLoadData(apiKey);
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    listenersInitialized = true;
+                }
+            } else {
+                console.warn("API key not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        }
+    });
+});
