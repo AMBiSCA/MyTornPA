@@ -535,8 +535,8 @@ select[multiple] {
     font-size: 0.9em; /* Existing */
     font-weight: bold; /* ADDED: Make the text bold */
     background-color: #007bff; /* ADDED: Blue background to match header buttons */
-    color: white; /* Corrected: Changed to white text as per typical blue button style, assuming this was intended from "match header buttons" */
-    border: 1px solid black; /* CORRECTED: Changed #black to black */
+    color: black; /* Corrected: Changed to white text as per typical blue button style, assuming this was intended from "match header buttons" */
+    border: 2px solid black; /* CORRECTED: Changed #black to black */
     border-radius: 5px; /* ADDED: Border-radius to match header buttons */
     transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
 }
