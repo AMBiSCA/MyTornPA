@@ -513,10 +513,17 @@ select[multiple] {
 .config-section .action-btn {
     width: auto; /* Existing */
     margin-top: 5px; /* Existing */
-    padding: 6px 12px; /* Existing */
+    padding: 8px 12px; /* Adjusted padding to match header buttons */
     font-size: 0.9em; /* Existing */
-    /* REMOVED: margin-left: auto; */
-    /* REMOVED: margin-right: auto; */
+    background-color: #007bff; /* ADDED: Blue background to match header buttons */
+    color: white; /* ADDED: White text to match header buttons */
+    border: 1px solid #00a8ff; /* ADDED: Blue border to match header buttons */
+    border-radius: 5px; /* ADDED: Border-radius to match header buttons */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
+}
+.config-section .action-btn:hover {
+    background-color: #0056b3; /* ADDED: Darker blue on hover */
+    border-color: #00a8ff; /* ADDED: Maintain border color on hover */
 }
 /* Specific styling for designated admins list */
 #designatedAdminsList, #watchListDisplay {
