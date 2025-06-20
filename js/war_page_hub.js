@@ -130,8 +130,8 @@ function populateUiComponents(warData, apiKey) {
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
-        // *** REVERTED ***: This URL is back to the original format.
-        const enemyApiUrl = `https://api.torn.com/faction/${factionID}?selections=basic&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        // MODIFIED: Requesting 'members' data in addition to 'basic'
+        const enemyApiUrl = `https://api.torn.com/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
         const response = await fetch(enemyApiUrl);
 
         if (!response.ok) {
@@ -139,19 +139,75 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         }
 
         const enemyData = await response.json();
-        if (enemyData.error) throw new Error(enemyData.error);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
 
         if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.name || 'Unknown Faction';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.tag_image)}')`;
+
+        // NEW: Populate the Big Hitter Watchlist with enemy members
+        if (enemyData.members) {
+            populateWatchlistSelect(enemyData.members, []); // Assuming no pre-saved watchlist selection for now
+        } else {
+            console.warn("Enemy faction members data not found.");
+            populateWatchlistSelect({}, []); // Clear the watchlist if no members
+        }
+
     } catch (error) {
         console.error('Error fetching enemy faction data:', error);
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
+        populateWatchlistSelect({}, []); // Clear watchlist on error
     }
 }
 
-function populateMemberSelectionLists(members, savedAdmins, savedEnergyMembers) {
+ function populateWatchlistSelect(enemyMembers, savedWatchlistMembers = []) {
+    const watchEnemySelect = document.getElementById('watchEnemySelect');
+
+    if (!watchEnemySelect) {
+        console.error("HTML Error: Cannot find element with ID 'watchEnemySelect'.");
+        return;
+    }
+
+    watchEnemySelect.innerHTML = ''; // Clear existing options
+
+    if (!enemyMembers || typeof enemyMembers !== 'object') {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'No enemy members available';
+        watchEnemySelect.appendChild(defaultOption);
+        watchEnemySelect.disabled = true; // Disable if no members
+        return;
+    }
+
+    watchEnemySelect.disabled = false; // Enable if members are present
+
+    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
+        const nameA = enemyMembers[a].name || '';
+        const nameB = enemyMembers[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
+
+    sortedEnemyMemberIds.forEach(memberId => {
+        const member = enemyMembers[memberId];
+        const memberName = member.name || `Unknown (${memberId})`;
+
+        const option = document.createElement('option');
+        option.value = memberId;
+        option.textContent = memberName;
+        // Optionally, pre-select if memberId is in savedWatchlistMembers
+        if (savedWatchlistMembers.includes(memberId)) {
+            option.selected = true;
+        }
+        watchEnemySelect.appendChild(option);
+    });
+}
+
+ function populateMemberSelectionLists(members, savedAdmins, savedEnergyMembers) {
     if (!members || typeof members !== 'object') return;
 
     // Get the <select> elements directly
