@@ -223,7 +223,6 @@
     color: #f0f0f0;
     font-size: 0.9em;
     max-height: 334px;
-    /* NEW STYLES FOR THE "LITTLE BOX" EFFECT */
     background-color: #2a2a2a; /* A slightly lighter shade for the inner box background */
     border: 1px solid #444; /* A subtle border around each member's box */
     border-radius: 4px; /* Slightly rounded corners for the box */
@@ -765,7 +764,7 @@ select[multiple] {
     font-size: 0.9em; /* Existing */
     font-weight: bold; /* ADDED: Make the text bold */
     background-color: #007bff; /* ADDED: Blue background to match header buttons */
-    color: white; /* Corrected: Changed to white text as per typical blue button style */
+    color: black; /* Corrected: Changed to white text as per typical blue button style */
     border: 2px solid black; /* CORRECTED: Changed #black to black */
     border-radius: 5px; /* ADDED: Border-radius to match header buttons */
     transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
