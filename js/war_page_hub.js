@@ -1,6 +1,6 @@
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v9 (Selective V2 URL Test)
-   ========================================================================== */
+   War Page Hub JavaScript (war_page_hub.js) - v9 (Selective V2 URL Test)
+   ========================================================================== */
 
 // --- Global Variables ---
 const db = firebase.firestore();
@@ -39,10 +39,16 @@ const toggleTurtleMode = document.getElementById('toggleTurtleMode');
 const nextChainTimeInput = document.getElementById('nextChainTimeInput');
 const enemyFactionIDInput = document.getElementById('enemyFactionIDInputLeaderConfig');
 const saveWarStatusControlsBtn = document.getElementById('saveWarStatusControlsBtn');
-const designateAdminsContainer = document.getElementById('designateAdminsContainer');
+
+// UPDATED: DOM getters for the new div containers
+const designatedAdminsContainer = document.getElementById('designatedAdminsContainer');
+const bigHitterWatchlistContainer = document.getElementById('bigHitterWatchlistContainer');
 const energyTrackingContainer = document.getElementById('energyTrackingContainer');
+
 const saveAdminsBtn = document.getElementById('saveAdminsBtn');
 const saveEnergyTrackMembersBtn = document.getElementById('saveEnergyTrackMembersBtn');
+const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH'); // Get Big Hitter Save button
+
 
 // --- Utility Functions ---
 
@@ -62,6 +68,68 @@ function getFactionImageUrl(imageFileName) {
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
     return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
+}
+
+// NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
+function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
+    if (!members || typeof members !== 'object') return;
+
+    if (designatedAdminsContainer) designatedAdminsContainer.innerHTML = '';
+    else { console.error("HTML Error: Cannot find element with ID 'designatedAdminsContainer'."); return; }
+
+    if (energyTrackingContainer) energyTrackingContainer.innerHTML = '';
+    else { console.error("HTML Error: Cannot find element with ID 'energyTrackingContainer'."); return; }
+
+    const sortedMemberIds = Object.keys(members).sort((a, b) => {
+        const nameA = members[a].name || '';
+        const nameB = members[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
+
+    sortedMemberIds.forEach(memberId => {
+        const member = members[memberId];
+        const memberName = member.name || `Unknown (${memberId})`;
+
+        // Create and append checkbox for Designate Admins
+        const isAdminChecked = (savedAdmins && savedAdmins.includes(memberId)) ? 'checked' : '';
+        const adminItemHtml = `<div class="member-selection-item"><input type="checkbox" id="admin-member-${memberId}" value="${memberId}" ${isAdminChecked}><label for="admin-member-${memberId}">${memberName}</label></div>`;
+        designatedAdminsContainer.insertAdjacentHTML('beforeend', adminItemHtml);
+
+        // Create and append checkbox for Energy Tracking Members
+        const isEnergyChecked = (savedEnergyMembers && savedEnergyMembers.includes(memberId)) ? 'checked' : '';
+        const energyItemHtml = `<div class="member-selection-item"><input type="checkbox" id="energy-member-${memberId}" value="${memberId}" ${isEnergyChecked}><label for="energy-member-${memberId}">${memberName}</label></div>`;
+        energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
+    });
+}
+
+// NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
+function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
+    if (!bigHitterWatchlistContainer) {
+        console.error("HTML Error: Cannot find element with ID 'bigHitterWatchlistContainer'.");
+        return;
+    }
+
+    bigHitterWatchlistContainer.innerHTML = ''; // Clear existing checkboxes
+
+    if (!enemyMembers || typeof enemyMembers !== 'object' || Object.keys(enemyMembers).length === 0) {
+        bigHitterWatchlistContainer.innerHTML = '<div class="member-selection-item">No enemy members available</div>';
+        return;
+    }
+
+    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
+        const nameA = enemyMembers[a].name || '';
+        const nameB = enemyMembers[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
+
+    sortedEnemyMemberIds.forEach(memberId => {
+        const member = enemyMembers[memberId];
+        const memberName = member.name || `Unknown (${memberId})`;
+
+        const isWatchlistChecked = (savedWatchlistMembers && savedWatchlistMembers.includes(memberId)) ? 'checked' : '';
+        const itemHtml = `<div class="member-selection-item"><input type="checkbox" id="enemy-member-${memberId}" value="${memberId}" ${isWatchlistChecked}><label for="enemy-member-${memberId}">${memberName}</label></div>`;
+        bigHitterWatchlistContainer.insertAdjacentHTML('beforeend', itemHtml);
+    });
 }
 
 // --- Data Loading & UI Population ---
@@ -116,21 +184,30 @@ function populateUiComponents(warData, apiKey) {
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
+        // NEW: Clear big hitter watchlist if no enemy is set
+        populateEnemyMemberCheckboxes({}, []); 
     }
 
     if (factionApiFullData.members) {
-        populateMemberSelectionLists(
+        // UPDATED: Call the new function name for friendly members
+        populateFriendlyMemberCheckboxes(
             factionApiFullData.members,
             warData.tab4Admins || [],
             warData.energyTrackingMembers || []
         );
     }
+    // NEW: Also load saved watchlist members when UI components are populated
+    // Note: populateEnemyMemberCheckboxes will be called by fetchAndDisplayEnemyFaction
+    // or cleared above if no enemy ID is present.
+    // If you need pre-selection on initial load *before* enemy data arrives,
+    // you'll need to fetch savedWatchlist and pass it here.
+    // For simplicity for now, it assumes saved members are handled when enemy data arrives.
 }
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
-        // MODIFIED: Requesting 'members' data in addition to 'basic'
+        // CORRECTED: Requesting 'members' data AND using v2 endpoint for enemy faction
         const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
         const response = await fetch(enemyApiUrl);
 
@@ -148,12 +225,17 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.tag_image)}')`;
 
-        // NEW: Populate the Big Hitter Watchlist with enemy members
+        // UPDATED: Call the new function name for enemy members
+        // NEW: Pass saved watchlist members to enable pre-selection
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
         if (enemyData.members) {
-            populateWatchlistSelect(enemyData.members, []); // Assuming no pre-saved watchlist selection for now
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
         } else {
             console.warn("Enemy faction members data not found.");
-            populateWatchlistSelect({}, []); // Clear the watchlist if no members
+            populateEnemyMemberCheckboxes({}, []); // Clear the watchlist if no members
         }
 
     } catch (error) {
@@ -161,110 +243,8 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
-        populateWatchlistSelect({}, []); // Clear watchlist on error
+        populateEnemyMemberCheckboxes({}, []); // Clear watchlist on error
     }
-}
-
- function populateWatchlistSelect(enemyMembers, savedWatchlistMembers = []) {
-    const watchEnemySelect = document.getElementById('watchEnemySelect');
-
-    if (!watchEnemySelect) {
-        console.error("HTML Error: Cannot find element with ID 'watchEnemySelect'.");
-        return;
-    }
-
-    watchEnemySelect.innerHTML = ''; // Clear existing options
-
-    if (!enemyMembers || typeof enemyMembers !== 'object') {
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'No enemy members available';
-        watchEnemySelect.appendChild(defaultOption);
-        watchEnemySelect.disabled = true; // Disable if no members
-        return;
-    }
-
-    watchEnemySelect.disabled = false; // Enable if members are present
-
-    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
-        const nameA = enemyMembers[a].name || '';
-        const nameB = enemyMembers[b].name || '';
-        return nameA.localeCompare(nameB);
-    });
-
-    sortedEnemyMemberIds.forEach(memberId => {
-        const member = enemyMembers[memberId];
-        const memberName = member.name || `Unknown (${memberId})`;
-
-        const option = document.createElement('option');
-        option.value = memberId;
-        option.textContent = memberName;
-        // Optionally, pre-select if memberId is in savedWatchlistMembers
-        if (savedWatchlistMembers.includes(memberId)) {
-            option.selected = true;
-        }
-        watchEnemySelect.appendChild(option);
-    });
-}
-
- function populateMemberSelectionLists(members, savedAdmins, savedEnergyMembers) {
-    if (!members || typeof members !== 'object') return;
-
-    // Get the <select> elements directly
-    const designateAdminSelect = document.getElementById('designateAdminSelect');
-    const energyTrackMemberSelect = document.getElementById('energyTrackMemberSelect');
-    const watchEnemySelect = document.getElementById('watchEnemySelect'); // Make sure this is also handled if used
-
-    // Clear existing options in the select boxes
-    if (designateAdminSelect) designateAdminSelect.innerHTML = '';
-    if (energyTrackMemberSelect) energyTrackMemberSelect.innerHTML = '';
-    if (watchEnemySelect) watchEnemySelect.innerHTML = ''; // Clear if watchEnemySelect is also used for members
-
-    const sortedMemberIds = Object.keys(members).sort((a, b) => {
-        // Ensure member.name exists before comparing
-        const nameA = members[a].name || '';
-        const nameB = members[b].name || '';
-        return nameA.localeCompare(nameB);
-    });
-
-    sortedMemberIds.forEach(memberId => {
-        const member = members[memberId];
-        const memberName = member.name || `Unknown (${memberId})`; // Fallback for name
-
-        // Populate Designate Admins Select
-        if (designateAdminSelect) {
-            const adminOption = document.createElement('option');
-            adminOption.value = memberId;
-            adminOption.textContent = memberName;
-            if (savedAdmins && savedAdmins.includes(memberId)) { // Check if savedAdmins is defined
-                adminOption.selected = true; // Select the option if it was previously saved
-            }
-            designateAdminSelect.appendChild(adminOption);
-        }
-
-        // Populate Energy Tracking Members Select
-        if (energyTrackMemberSelect) {
-            const energyOption = document.createElement('option');
-            energyOption.value = memberId;
-            energyOption.textContent = memberName;
-            if (savedEnergyMembers && savedEnergyMembers.includes(memberId)) { // Check if savedEnergyMembers is defined
-                energyOption.selected = true; // Select the option if it was previously saved
-            }
-            energyTrackMemberSelect.appendChild(energyOption);
-        }
-
-        // If 'Big Hitter Watchlist' is also populated by faction members,
-        // and uses a <select> with ID 'watchEnemySelect', add similar logic here.
-        // Assuming it is, based on your HTML having a <select id="watchEnemySelect">
-        if (watchEnemySelect) {
-             const watchOption = document.createElement('option');
-             watchOption.value = memberId;
-             watchOption.textContent = memberName;
-             // If you have a 'savedWatchlist' array for pre-selection, add it here:
-             // if (savedWatchlist && savedWatchlist.includes(memberId)) { watchOption.selected = true; }
-             watchEnemySelect.appendChild(watchOption);
-        }
-    });
 }
 
 function populateWarStatusDisplay(warData = {}) {
@@ -345,8 +325,8 @@ function setupEventListeners(apiKey) {
 
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
-            if (!designateAdminsContainer) return;
-            const selectedAdminIds = Array.from(designateAdminsContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+            if (!designatedAdminsContainer) return;
+            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             try {
                 await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
                 alert('Admins saved!');
@@ -359,12 +339,26 @@ function setupEventListeners(apiKey) {
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
             if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             try {
                 await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
                 alert('Energy tracking members saved!');
             } catch (error) {
                 console.error("Error saving energy members:", error);
+            }
+        });
+    }
+
+    // NEW: Save button for Big Hitter Watchlist
+    if (saveSelectionsBtnBH) {
+        saveSelectionsBtnBH.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+                alert('Big Hitter Watchlist saved!');
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
             }
         });
     }
