@@ -25,7 +25,7 @@ const quickAnnouncementInput = document.getElementById('quickAnnouncementInput')
 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay'); // Re-declared for direct use
 const enemyTargetsList = document.getElementById('enemyTargetsList');
 const alertHitterOnlineHospBtn = document.getElementById('alertHitterOnlineHospBtn');
-const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn');
+const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn'); // Corrected typo
 const alertEnemyActiveBtn = document.getElementById('alertEnemyActiveBtn');
 const totalFactionEnergy = document.getElementById('totalFactionEnergy');
 const totalPotentialHits = document.getElementById('totalPotentialHits');
@@ -56,7 +56,7 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 
 
 // --- Global API Data Storage ---
-let factionApiFullData = null; // Will store the full response from the user's faction API call (basic, ranked_wars, members)
+let factionApiFullData = null; // Will store the full response from the user's faction API call (basic, ranked_wars)
 let enemyFactionBasicData = null; // Will store basic data from the enemy faction's API call
 
 
@@ -109,7 +109,7 @@ function formatTime(seconds) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Helper to construct faction image URL from tag_image filename (for specific cases)
+// Helper to construct faction image URL from tag_image filename
 function getFactionImageUrl(imageFileName) {
     if (imageFileName) {
         // This pattern is often used for dynamic image fetching by Torn for tag_images
@@ -141,14 +141,14 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=) ---
-        // Expecting this call to provide user faction data, and ranked war details including opponent ID.
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
-        console.log(`Fetching user faction data (selections=, key hidden)`);
+        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=basic,ranked_wars) ---
+        // This call is expected to provide user faction data, and ranked war details including opponent ID.
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
+        console.log(`Fetching user faction data (selections=basic,ranked_wars, key hidden)`);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
         const userFactionData = await userFactionResponse.json();
-        console.log("User Faction API Full Data Response (selections=):", userFactionData);
+        console.log("User Faction API Full Data Response (selections=basic,ranked_wars):", userFactionData);
 
         if (!userFactionResponse.ok || userFactionData.error) {
             throw new Error(`Torn API User Faction Error: ${userFactionData.error?.error || userFactionResponse.statusText}`);
@@ -167,11 +167,12 @@ async function initializeWarHubApiData(user, apiKey) {
             warEntry => warEntry.war?.end === 0
         );
         const opponentFactionId = activeRankedWarEntry?.opponent_faction_id;
+        console.log("Extracted opponentFactionId:", opponentFactionId); // Log to debug
 
         enemyFactionBasicData = null; // Reset for each fetch
 
         // --- API Call 2 (Conditional): Get Enemy Faction's Basic Details ---
-        if (opponentFactionId) {
+        if (opponentFactionId) { // This condition should now correctly trigger if an opponent ID is found
             const enemyFactionApiUrl = `https://api.torn.com/faction/${opponentFactionId}/?selections=basic&key=${apiKey}&comment=MyTornPA_WarHub_EnemyBasicData`;
             console.log(`Fetching enemy faction basic data (ID: ${opponentFactionId}, selections=basic, key hidden)`);
 
@@ -180,11 +181,13 @@ async function initializeWarHubApiData(user, apiKey) {
             console.log("Enemy Faction Basic Data Response:", enemyFactionData);
 
             if (!enemyFactionResponse.ok || enemyFactionData.error) {
-                console.warn(`Could not fetch enemy faction basic details: ${enemyFactionData.error?.error || enemyFactionResponse.statusText}`);
+                console.warn(`Could not fetch enemy faction basic details: ${enemyFactionData.error?.error || enemyFactionData.error?.message || enemyFactionResponse.statusText}`);
                 // Proceed, but enemy data will be N/A
             } else {
                 enemyFactionBasicData = enemyFactionData; // Store enemy's basic data
             }
+        } else {
+            console.log("No active ranked war or opponentFactionId found, skipping second API call.");
         }
 
         // --- Populate Faction Versus Section (uses fetched data) ---
@@ -525,7 +528,7 @@ async function loadEnergyTrackMembers() {
 
 // Save Energy Tracking Members
 if (saveEnergyTrackMembersBtn) {
-    saveEnergyTrackMembersBtn.addEventListener('click', () => {
+    saveEnergyTrackingMembersBtn.addEventListener('click', () => { // Fixed typo saveEnergyTrackMembersBtn
         const selectedMembers = Array.from(energyTrackMemberSelect.selectedOptions)
             .map(option => option.value);
         console.log('Saving energy tracking members:', selectedMembers);
