@@ -154,31 +154,60 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
 function populateMemberSelectionLists(members, savedAdmins, savedEnergyMembers) {
     if (!members || typeof members !== 'object') return;
 
-    if (designateAdminsContainer) {
-        designateAdminsContainer.innerHTML = '';
-    } else {
-        console.error("HTML Error: Cannot find element with ID 'designateAdminsContainer'.");
-        return;
-    }
-    if (energyTrackingContainer) {
-        energyTrackingContainer.innerHTML = '';
-    } else {
-        console.error("HTML Error: Cannot find element with ID 'energyTrackingContainer'.");
-        return;
-    }
+    // Get the <select> elements directly
+    const designateAdminSelect = document.getElementById('designateAdminSelect');
+    const energyTrackMemberSelect = document.getElementById('energyTrackMemberSelect');
+    const watchEnemySelect = document.getElementById('watchEnemySelect'); // Make sure this is also handled if used
 
-    const sortedMemberIds = Object.keys(members).sort((a, b) => members[a].name.localeCompare(members[b].name));
+    // Clear existing options in the select boxes
+    if (designateAdminSelect) designateAdminSelect.innerHTML = '';
+    if (energyTrackMemberSelect) energyTrackMemberSelect.innerHTML = '';
+    if (watchEnemySelect) watchEnemySelect.innerHTML = ''; // Clear if watchEnemySelect is also used for members
+
+    const sortedMemberIds = Object.keys(members).sort((a, b) => {
+        // Ensure member.name exists before comparing
+        const nameA = members[a].name || '';
+        const nameB = members[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
 
     sortedMemberIds.forEach(memberId => {
         const member = members[memberId];
-        const isAdminChecked = savedAdmins.includes(memberId) ? 'checked' : '';
-        const isEnergyChecked = savedEnergyMembers.includes(memberId) ? 'checked' : '';
+        const memberName = member.name || `Unknown (${memberId})`; // Fallback for name
 
-        const adminItemHtml = `<div class="member-selection-item"><input type="checkbox" id="admin-member-${memberId}" value="${memberId}" ${isAdminChecked}><label for="admin-member-${memberId}">${member.name}</label></div>`;
-        const energyItemHtml = `<div class="member-selection-item"><input type="checkbox" id="energy-member-${memberId}" value="${memberId}" ${isEnergyChecked}><label for="energy-member-${memberId}">${member.name}</label></div>`;
+        // Populate Designate Admins Select
+        if (designateAdminSelect) {
+            const adminOption = document.createElement('option');
+            adminOption.value = memberId;
+            adminOption.textContent = memberName;
+            if (savedAdmins && savedAdmins.includes(memberId)) { // Check if savedAdmins is defined
+                adminOption.selected = true; // Select the option if it was previously saved
+            }
+            designateAdminSelect.appendChild(adminOption);
+        }
 
-        designateAdminsContainer.insertAdjacentHTML('beforeend', adminItemHtml);
-        energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
+        // Populate Energy Tracking Members Select
+        if (energyTrackMemberSelect) {
+            const energyOption = document.createElement('option');
+            energyOption.value = memberId;
+            energyOption.textContent = memberName;
+            if (savedEnergyMembers && savedEnergyMembers.includes(memberId)) { // Check if savedEnergyMembers is defined
+                energyOption.selected = true; // Select the option if it was previously saved
+            }
+            energyTrackMemberSelect.appendChild(energyOption);
+        }
+
+        // If 'Big Hitter Watchlist' is also populated by faction members,
+        // and uses a <select> with ID 'watchEnemySelect', add similar logic here.
+        // Assuming it is, based on your HTML having a <select id="watchEnemySelect">
+        if (watchEnemySelect) {
+             const watchOption = document.createElement('option');
+             watchOption.value = memberId;
+             watchOption.textContent = memberName;
+             // If you have a 'savedWatchlist' array for pre-selection, add it here:
+             // if (savedWatchlist && savedWatchlist.includes(memberId)) { watchOption.selected = true; }
+             watchEnemySelect.appendChild(watchOption);
+        }
     });
 }
 
