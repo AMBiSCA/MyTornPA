@@ -888,7 +888,7 @@ select[multiple] {
 /* These properties will ensure they are block-level and centered horizontally within their flex containers */
 #nextChainTimeInput,
 #enemyFactionIDInputLeaderConfig {
-    width: auto; /* Allow width to be determined by content/min-width/max-width */
+    width: auto !important; 
     max-width: 160px; /* Adjust this value as needed to match the label's width */
     min-width: 100px; /* Ensure it doesn't get too small */
     display: block; /* Make it a block element so margin: auto can center it */
