@@ -167,10 +167,9 @@ async function initializeAndLoadData(apiKey) {
 }
 
 function populateUiComponents(warData, apiKey) {
-    if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`; // MODIFIED: .basic.name
-    if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction'; // MODIFIED: .basic.name
+    if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
+    if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
-    if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.basic.tag_image)}')`; // MODIFIED: .basic.tag_image
     
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
@@ -217,15 +216,18 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         }
 
         const enemyData = await response.json();
-        console.log("Enemy Faction API Data:", enemyData); // ADD THIS LINE
+        console.log("Enemy Faction API Data:", enemyData); // Keep this line for debugging for now
         if (enemyData.error) {
             console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
         }
-		
-        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.name || 'Unknown Faction';
+
+        // CORRECTED: Accessing name, members, and tag_image from enemyData.basic
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
-        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.tag_image)}')`;
+        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.basic.tag_image)}')`;
+
+        // ... rest of the fetchAndDisplayEnemyFaction function remains the same ...
 
         // UPDATED: Call the new function name for enemy members
         // NEW: Pass saved watchlist members to enable pre-selection
