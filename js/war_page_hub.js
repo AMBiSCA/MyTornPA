@@ -1,6 +1,8 @@
+Of course. Here is the complete, updated war_page_hub.js file with the requested change implemented.
+I have commented out the line that attempts to load your faction's image, as requested.
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v5 FINAL
-   ========================================================================== */
+   War Page Hub JavaScript (war_page_hub.js) - v6 FINAL (Detailed Error Logging)
+   ========================================================================== */
 
 // --- Global Variables ---
 const db = firebase.firestore();
@@ -72,7 +74,11 @@ async function initializeAndLoadData(apiKey) {
         const userFactionResponse = await fetch(userFactionApiUrl);
         factionApiFullData = await userFactionResponse.json();
 
-        if (factionApiFullData.error) throw new Error(`Torn API Error: ${factionApiFullData.error}`);
+        // *** MODIFIED FOR BETTER ERROR LOGGING ***
+        if (factionApiFullData.error) {
+            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+        }
 
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
@@ -86,11 +92,10 @@ async function initializeAndLoadData(apiKey) {
 }
 
 function populateUiComponents(warData, apiKey) {
-    // This function now safely checks if an element exists before using it.
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
-    if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.tag_image)}')`;
+    // if (factionOnePicEl) factionOnePicEl.style.backgroundImage = `url('${getFactionImageUrl(factionApiFullData.tag_image)}')`;
     
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
@@ -115,6 +120,7 @@ function populateUiComponents(warData, apiKey) {
         );
     }
 }
+
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
@@ -184,6 +190,7 @@ function loadWarStatusForEdit(warData = {}) {
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
 }
+
 // --- Event Listeners Setup ---
 
 function setupEventListeners(apiKey) {
@@ -282,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
 
             if (apiKey) {
-                userApiKey = apiKey; // Set global API key
+                userApiKey = apiKey;
                 await initializeAndLoadData(apiKey);
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
