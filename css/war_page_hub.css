@@ -300,7 +300,7 @@
 
 .war-status-display .status-value {
     color: #f0f0f0; /* White/light text for the value */
-    font-weight: normal; /* Ensure it's not bold */
+    font-weight: normal; /* Ensure it-s not bold */
 }
 
 /* For the 'Next Planned Chain Time' item to span both columns */
