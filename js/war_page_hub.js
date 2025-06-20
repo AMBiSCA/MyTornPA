@@ -1,5 +1,5 @@
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v7 (V2 URL Test)
+   War Page Hub JavaScript (war_page_hub.js) - v5 FINAL
    ========================================================================== */
 
 // --- Global Variables ---
@@ -68,24 +68,11 @@ function countFactionMembers(membersObject) {
 
 async function initializeAndLoadData(apiKey) {
     try {
-        // *** MODIFIED ***: Testing the user's suggested v2 URL format.
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub_V2Test`;
-        
-        console.log("Attempting to fetch from new v2 URL:", userFactionApiUrl);
-
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub`;
         const userFactionResponse = await fetch(userFactionApiUrl);
-        
-        // Check if the server responded with an error like 404 Not Found
-        if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
-        }
-
         factionApiFullData = await userFactionResponse.json();
 
-        if (factionApiFullData.error) {
-            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
-        }
+        if (factionApiFullData.error) throw new Error(`Torn API Error: ${factionApiFullData.error}`);
 
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
@@ -99,6 +86,7 @@ async function initializeAndLoadData(apiKey) {
 }
 
 function populateUiComponents(warData, apiKey) {
+    // This function now safely checks if an element exists before using it.
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
@@ -127,18 +115,11 @@ function populateUiComponents(warData, apiKey) {
         );
     }
 }
-
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
-        // *** MODIFIED ***: Testing the user's suggested v2 URL format.
-        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic&key=${apiKey}&comment=MyTornPA_EnemyFaction_V2Test`;
+        const enemyApiUrl = `https://api.torn.com/faction/${factionID}?selections=basic&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
         const response = await fetch(enemyApiUrl);
-
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-
         const enemyData = await response.json();
         if (enemyData.error) throw new Error(enemyData.error);
 
@@ -203,7 +184,6 @@ function loadWarStatusForEdit(warData = {}) {
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
 }
-
 // --- Event Listeners Setup ---
 
 function setupEventListeners(apiKey) {
@@ -302,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
 
             if (apiKey) {
-                userApiKey = apiKey;
+                userApiKey = apiKey; // Set global API key
                 await initializeAndLoadData(apiKey);
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
