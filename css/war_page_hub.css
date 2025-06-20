@@ -1,106 +1,106 @@
 /* ==========================================================================
-   War Page Hub Specific Styles (war_page_hub.css)
-   ========================================================================== */
+   War Page Hub Specific Styles (war_page_hub.css)
+   ========================================================================== */
 
 /* Overall Container for the War Page Hub */
 #warPageHubContainer {
-    /* Styles for the main container */
-    background-color: #1e1e1e; /* Darker background */
-    color: #f0f0f0; /* Light text */
-    padding: 10px; /* NEW: Reduced padding for more vertical space */
-    border-radius: 8px;
-    margin-top: 15px; /* Top margin remains perfect */
-    margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
-    margin-left: auto;    /* ADDED: Centering the overall container */
-    margin-right: auto;    /* ADDED: Centering the overall container */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
-    width: 98%; /* NEW: Made even wider to use more space */
-    max-width: 1800px; /* NEW: Increased max-width significantly */
-    box-sizing: border-box; /* Include padding/border in width */
-    display: flex; /* Use flexbox for internal layout */
-    flex-direction: column; /* Stack content vertically */
-    gap: 0px; /* NEW: Reduced space between main sections */
-    min-height: calc(100vh - 170px);
-    border: 3px solid black;
+    /* Styles for the main container */
+    background-color: #1e1e1e; /* Darker background */
+    color: #f0f0f0; /* Light text */
+    padding: 10px; /* NEW: Reduced padding for more vertical space */
+    border-radius: 8px;
+    margin-top: 15px; /* Top margin remains perfect */
+    margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
+    margin-left: auto;    /* ADDED: Centering the overall container */
+    margin-right: auto;   /* ADDED: Centering the overall container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+    width: 98%; /* NEW: Made even wider to use more space */
+    max-width: 1800px; /* NEW: Increased max-width significantly */
+    box-sizing: border-box; /* Include padding/border in width */
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack content vertically */
+    gap: 0px; /* NEW: Reduced space between main sections */
+    min-height: calc(100vh - 170px);
+    border: 3px solid black;
 }
 
 /* Script Title */
 .script-title {
-    /* Styles for the main title */
-    color: #00a8ff; /* NEW: Changed to blue theme color */
-    text-align: center;
-    margin-bottom: 10px; /* NEW: Reduced bottom margin */
-    margin-top: 5px; /* NEW: Reduced top margin to move higher */
-    font-size: 2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    /* Styles for the main title */
+    color: #00a8ff; /* NEW: Changed to blue theme color */
+    text-align: center;
+    margin-bottom: 10px; /* NEW: Reduced bottom margin */
+    margin-top: 5px; /* NEW: Reduced top margin to move higher */
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Tab Navigation Styles */
 .tab-navigation {
-    /* Styles for the tab buttons container */
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 0; /* NEW: Reduced bottom margin */
-    border-bottom: none; /* REMOVED separating border */
-    flex-wrap: wrap;
-    margin-top: 0;
+    /* Styles for the tab buttons container */
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 0; /* NEW: Reduced bottom margin */
+    border-bottom: none; /* REMOVED separating border */
+    flex-wrap: wrap;
+    margin-top: 0;
 }
 
 .tab-button {
-    /* Styles for individual tab buttons */
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 8px 12px; /* NEW: Slightly reduced padding */
-    border: 2px solid black; /* NEW: Added 1px black border */
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 120px; /* Minimum width for each tab */
-    text-align: center;
-    border-left: 2px solid black;
-    border-right: 2px solid black;
+    /* Styles for individual tab buttons */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Slightly reduced padding */
+    border: 2px solid black; /* NEW: Added 1px black border */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 120px; /* Minimum width for each tab */
+    text-align: center;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
 }
 
 
 .tab-button:hover {
-    background-color: #555; /* NEW: A slightly different hover color for non-active */
-    color: #f0f0f0;
-    border-color: #00a8ff; /* Highlight border on hover */
+    background-color: #555; /* NEW: A slightly different hover color for non-active */
+    color: #f0f0f0;
+    border-color: #00a8ff; /* Highlight border on hover */
 }
 
 .tab-button.active {
-    /* Active state */
-    background-color: #00a8ff; /* NEW: Changed to blue theme color */
-    color: #1e1e1e; /* Dark text on blue */
-    border-color: #00a8ff; /* Active border color */
-    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Subtle glow for active tab */
+    /* Active state */
+    background-color: #00a8ff; /* NEW: Changed to blue theme color */
+    color: #1e1e1e; /* Dark text on blue */
+    border-color: #00a8ff; /* Active border color */
+    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Subtle glow for active tab */
 }
 
 /* Tab Content Container */
 .tab-content-container {
-    /* Styles for the container holding tab contents */
-    padding: 15px; /* NEW: Reduced padding */
-    border: 3px solid black;
-    border-radius: 0 0 8px 8px;
-    background-color: #333;
-    flex-grow: 1;
-    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
-    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
-    box-sizing: border-box;
-    margin-top: 0;
-    padding-top: 0; /* IMPORTANT CHANGE: Removed gap at the top of content container */
+    /* Styles for the container holding tab contents */
+    padding: 15px; /* NEW: Reduced padding */
+    border: 3px solid black;
+    border-radius: 0 0 8px 8px;
+    background-color: #333;
+    flex-grow: 1;
+    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
+    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
+    box-sizing: border-box;
+    margin-top: 0;
+    padding-top: 0; /* IMPORTANT CHANGE: Removed gap at the top of content container */
 }
 
 .tab-pane {
-    /* Styles for individual tab content areas */
-    display: none;
-    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
-    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
+    /* Styles for individual tab content areas */
+    display: none;
+    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
+    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
 }
 
 .tab-pane.active {
-    display: block;
+    display: block;
 }
 
 /* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
@@ -108,18 +108,16 @@
 /* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 #leader-config-tab.active {
     /* This rule defines properties for the *overall tab pane*, not its internal grid */
-    padding: 10px;
-    box-sizing: border-box;
-    /* Removed: display: grid, grid-template-columns, gap, max-width, margin from here */
-    /* These properties are now correctly placed on .config-grid */
+    padding: 10px; 
+    box-sizing: border-box; 
 }
 
 /* NEW RULE: Apply grid to the .config-grid class which is the direct parent of your sections */
 .config-grid {
-    display: grid;
+    display: grid; 
     grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
-    gap: 20px;
-    padding: 0;
+    gap: 20px; 
+    padding: 0; 
     box-sizing: border-box;
     max-width: 1750px; /* Max-width for the grid content */
     margin: 0 auto; /* Center the grid container horizontally */
@@ -128,7 +126,7 @@
 /* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
 /* REMINDER: Add class="designate-admins-section" to that specific <div> in your HTML */
 .config-section.designate-admins-section {
-    grid-column: auto; /* Ensures it occupies a single column, overriding any potential previous span */
+    grid-column: auto; /* Ensures it occupies a single column, overriding any potential previous span */
 }
 
 /* --- END LEADER CONFIG TAB SPECIFIC STYLES --- */
@@ -136,237 +134,750 @@
 
 /* War Announcement Section (Tab 1) */
 .war-announcement-section {
-    margin-bottom: 15px; /* NEW: Reduced margin */
-    padding: 10px; /* NEW: Reduced padding */
-    border: 1px solid #555;
-    border-radius: 8px;
-    background-color: #222;
-    text-align: left;
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    padding: 10px; /* NEW: Reduced padding */
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222;
+    text-align: left;
 }
 
 .war-announcement-section h3 {
-    color: #00a8ff; /* NEW: Changed to blue theme color */
-    margin-bottom: 8px; /* NEW: Reduced margin */
-    margin-top: 0; /* NEW: Remove top margin */
-    text-align: center;
-    font-size: 1.5em; /* NEW: Slightly adjusted font size */
+    color: #00a8ff; /* NEW: Changed to blue theme color */
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    margin-top: 0; /* NEW: Remove top margin */
+    text-align: center;
+    font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
 /* Styling for the new grid layout in the Announcements tab */
 .announcements-grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid for 3 columns */
-    gap: 20px; /* Space between the three containers */
-    padding: 10px; /* Optional: internal padding for the grid */
-    box-sizing: border-box;
-    width: 100%; /* Ensure it takes full width of its parent */
-    max-width: 1750px; /* Adjust to match your overall max-width if desired */
-    margin: 0 auto; /* Center the grid if it's narrower than its parent */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid for 3 columns */
+    gap: 20px; /* Space between the three containers */
+    padding: 10px; /* Optional: internal padding for the grid */
+    box-sizing: border-box;
+    width: 100%; /* Ensure it takes full width of its parent */
+    max-width: 1750px; /* Adjust to match your overall max-width if desired */
+    margin: 0 auto; /* Center the grid if it's narrower than its parent */
 }
 
 /* Style for each individual container within the announcements grid */
 .announcement-section-item {
-    display: flex; /* Make it a flex container to align its inner content (the war-announcement-section) */
-    flex-direction: column; /* Stack content vertically */
-    /* flex-grow: 1; /* Uncomment if you want items to grow and fill available space */
+    display: flex; /* Make it a flex container to align its inner content (the war-announcement-section) */
+    flex-direction: column; /* Stack content vertically */
+    /* flex-grow: 1; /* Uncomment if you want items to grow and fill available space */
 }
 
 /* Ensure the .war-announcement-section inside this grid also fills its space */
 .announcement-section-item .war-announcement-section {
-    flex-grow: 1; /* Make the inner content grow to fill the container height if items are stretched */
-    display: flex; /* Make it a flex container */
-    flex-direction: column; /* Stack its own content vertically */
-    justify-content: space-between; /* Distribute space between header, content, and button */
+    flex-grow: 1; /* Make the inner content grow to fill the container height if items are stretched */
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack its own content vertically */
+    justify-content: space-between; /* Distribute space between header, content, and button */
 
-    /* Apply box styling similar to .config-section */
-    border: 1px solid black; /* Matching the border from .config-section */
-    border-radius: 8px; /* Matching the border-radius from .config-section */
-    background-color: #222; /* Matching the background from .config-section */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth like other boxes */
-    padding: 10px; /* Adjust internal padding to match .config-section */
-    box-sizing: border-box;
+    /* Apply box styling similar to .config-section */
+    border: 1px solid black; /* Matching the border from .config-section */
+    border-radius: 8px; /* Matching the border-radius from .config-section */
+    background-color: #222; /* Matching the background from .config-section */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth like other boxes */
+    padding: 10px; /* Adjust internal padding to match .config-section */
+    box-sizing: border-box;
 }
 
 /* Adjust textarea within the moved Faction Announcements to stretch and have margin */
 .announcement-section-item .war-announcement-section textarea {
-    flex-grow: 1; /* Allow textarea to grow and take available space */
-    margin-bottom: 15px; /* Ensure space above button */
-    height: auto; /* Allow height to adjust */
-    min-height: 80px; /* Match min-height from config-section textarea */
-    resize: vertical; /* Allow vertical resizing */
+    flex-grow: 1; /* Allow textarea to grow and take available space */
+    margin-bottom: 15px; /* Ensure space above button */
+    height: auto; /* Allow height to adjust */
+    min-height: 80px; /* Match min-height from config-section textarea */
+    resize: vertical; /* Allow vertical resizing */
 }
 
 /* Specific button margin for Post Announcement, if it's inside the .announcement-section-item */
 /* (This rule duplicates what you likely already have for #postAnnouncementBtn, ensure it's correct) */
 #postAnnouncementBtn {
-    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
+    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
 }
 
 /* Responsive adjustments for smaller screens, mirroring Leader Config tab */
 @media (max-width: 992px) {
-    .announcements-grid-container {
-        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
-        max-width: 600px; /* Limit width similar to leader-config-tab responsive */
-    }
-
-    #warPageHubContainer {
-        padding: 10px; /* NEW: Reduced padding */
-        gap: 10px; /* NEW: Reduced gap */
-    }
-    .ops-controls-grid {
-        grid-template-columns: 1fr; /* Stack controls vertically */
-    }
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
-        font-size: 0.8em; /* NEW: Reduced base font size */
-    }
-    .faction-stats-summary {
-        grid-template-columns: 1fr; /* Stack stats vertically */
-    }
-    .tab-content-container {
-        height: auto; /* NEW: Allow height to be auto on smaller screens */
-        min-height: 400px; /* Keep a minimum height */
-    }
-    .friendly-members-scroll-area {
-        max-height: 400px; /* NEW: Adjusted max height */
-    }
-
-    /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
-    /* CORRECTED: This now targets .config-grid, NOT #leader-config-tab.active */
-    .config-grid {
-        grid-template-columns: 1fr;
-        max-width: 600px; /* On smaller screens, stack into a single column */
-    }
-    /* --- END LEADER CONFIG TAB --- */
+    .announcements-grid-container {
+        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
+        max-width: 600px; /* Limit width similar to leader-config-tab responsive */
+    }
 }
 
 @media (max-width: 768px) {
-    .tab-navigation {
-        flex-direction: column; margin-bottom: 0px;
-    }
-    .tab-button {
-        border-radius: 5px;
-        margin-bottom: 5px;
-        font-size: 0.9em; /* NEW: Adjusted font size */
-        padding: 6px 10px; /* NEW: Adjusted padding */
-    }
-    .tab-content-container {
-        border-radius: 8px;
-    }
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
-        font-size: 0.75em; /* NEW: Reduced base font size */
-    }
-    .alert-buttons-grid {
-        flex-direction: column;
-    }
-    .alert-btn {
-        margin-bottom: 8px; /* NEW: Reduced margin */
-        padding: 6px 10px; /* NEW: Reduced padding */
-        font-size: 0.85em; /* NEW: Reduced font size */
-    }
-    .config-section h4 {
-        font-size: 1.3em; /* NEW: Adjusted font size */
-    }
+    .announcements-grid-container {
+        gap: 15px; /* Slightly reduce gap on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .announcements-grid-container {
+        gap: 8px; /* Further reduce gap on very small screens */
+        padding: 5px; /* Reduce padding for tight spaces */
+    }
+    .announcement-section-item .war-announcement-section {
+        padding: 8px; /* Adjust inner padding of the boxes */
+    }
+    .announcement-section-item .war-announcement-section textarea {
+        min-height: 60px; /* Adjust textarea min-height for small screens */
+    }
+}
+
+/* MODIFIED: game-plan-display to match height and center content */
+.game-plan-display {
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 15px; /* Adjusted padding to fill space and align vertically */
+    border-radius: 5px;
+    margin-bottom: 10px; /* NEW: Reduced margin (existing was 10px) */
+    min-height: 80px; /* NEW: Slightly reduced min-height (existing was 80px) */
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em; /* NEW: Slightly smaller font (existing was 0.9em) */
+    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Vertically center its content (e.g., "Loading game plan...") */
+    justify-content: center; /* Horizontally center its content */
+    text-align: center; /* Ensure text is centered */
+    box-sizing: border-box; /* Include padding in width/height */
+}
+
+/* NEW: factionAnnouncementsDisplay to match height and center content */
+#factionAnnouncementsDisplay {
+    /* Inherits from .game-plan-display for general look, but override for flex properties */
+    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Vertically center its content (e.g., "No current announcements.") */
+    justify-content: center; /* Horizontally center its content */
+    text-align: center; /* Ensure text is centered */
+    padding: 15px; /* Adjust internal padding to fill space and align vertically */
+    box-sizing: border-box;
+    background-color: #333; /* Explicitly set background if not fully inherited */
+    color: #f0f0f0; /* Explicitly set color if not fully inherited */
+    border-radius: 5px; /* Explicitly set border-radius if not fully inherited */
+    min-height: 80px; /* Ensure a minimum height similar to game-plan-display */
+    white-space: pre-wrap; /* Preserve white space for content */
+    font-family: 'Courier New', Courier, monospace; /* Font for content */
+    font-size: 0.9em; /* Font size for content */
+}
+
+/* NEW: Adjust the direct content of these display boxes to center */
+.game-plan-display p,
+#factionAnnouncementsDisplay p {
+    margin: 0; /* Remove default paragraph margins */
+    width: 100%; /* Ensure p takes full width to allow text-align:center on itself */
+}
+
+
+/* NEW/MODIFIED: War Status Display on Announcements tab */
+.war-status-display {
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    display: grid;
+    /* Grid for the status items: 2 columns with equal width, items centered */
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px */
+    align-items: start; /* Align items to the start of their grid cell vertically */
+    font-size: 0.9em;
+    padding-top: 15px; /* Add some top padding inside the box to push content down from title */
+    padding-bottom: 15px; /* Add some bottom padding inside the box */
+    margin-top: 0; /* Ensure no unwanted margin pushes it down from its h3 */
+}
+
+/* NEW: Styles for individual status items within the war-status-display grid */
+.war-status-display .status-item {
+    display: flex;           /* Make each status item a flex container */
+    flex-direction: column;  /* Stack label above value */
+    align-items: center;     /* Center horizontally within its grid cell */
+    justify-content: center; /* Center vertically if the grid cell has extra height */
+    text-align: center;      /* Center the text content within the item */
+}
+
+.war-status-display .status-label {
+    font-weight: bold;
+    color: #e0a71a; /* Matching the gold of config-section h4 for labels */
+    margin-bottom: 3px; /* Small space below label and above value */
+}
+
+.war-status-display .status-value {
+    color: #f0f0f0; /* White/light text for the value */
+    font-weight: normal; /* Ensure it-s not bold */
+}
+
+/* For the 'Next Planned Chain Time' item to span both columns */
+.war-status-display .status-item-full-width {
+    grid-column: 1 / -1; /* Make this item span all columns */
+    margin-top: 10px; /* Add some space above this row for separation */
+}
+
+/* NEW: Style for the 'Next Planned Chain Time' value box (like the input on Leader Config) */
+.war-status-display .status-value-box {
+    background-color: #1e1e1e; /* Darker background for the box */
+    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
+    border-radius: 4px;
+    padding: 5px 10px; /* Padding inside the box */
+    font-family: 'Courier New', Courier, monospace; /* Monospace font for time */
+    font-size: 1em; /* Slightly larger font for readability */
+    min-width: 120px; /* Ensure it has a minimum width */
+    max-width: 180px; /* Limit max width */
+    display: inline-block; /* Treat as inline-block to accept width/height but flow like text */
+    box-sizing: border-box;
+    text-align: center; /* Ensure text inside the box is centered */
+}
+
+
+/* Active Ops Controls Grid (Tab 2) */
+.ops-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* NEW: Min-width slightly smaller */
+    gap: 10px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    padding: 10px; /* NEW: Reduced padding */
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222;
+}
+
+.ops-control-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px; /* NEW: Reduced gap */
+    align-items: flex-start;
+    white-space: nowrap;
+    font-size: 0.9em; /* NEW: Slightly smaller font */
+}
+
+.ops-control-item label {
+    color: #00a8ff;
+    font-weight: bold;
+}
+
+.ops-control-item input[type="text"],
+.ops-control-item select,
+.ops-control-item button {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.9em; /* NEW: Smaller font for inputs/selects */
+    padding: 6px; /* NEW: Reduced padding */
+}
+
+/* Specific styling for Quick FF Targets container (side-by-side) */
+.ops-control-item .quick-ff-targets-container {
+    display: flex;
+    flex-direction: row; /* Arrange items horizontally */
+    gap: 5px; /* Space between target displays */
+    flex-wrap: wrap; /* Allow targets to wrap if space is too small */
+    width: 100%;
+}
+.ops-control-item .quick-ff-targets-container span {
+    flex-grow: 1; /* Allow targets to grow to fill space */
+    min-width: 45%; /* Ensure they don-t get too small */
+    text-align: center;
+    border: 1px solid #00a8ff;
+    border-radius: 4px;
+    padding: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.8em;
+}
+
+/* The #quickAnnouncementInput is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
+/* #quickAnnouncementInput {
+    margin-bottom: 0;
+} */
+
+/* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
+#postAnnouncementBtn {
+    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
+}
+
+/* Enemy Targets List Section (Tab 2) */
+.enemy-targets-list-section {
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    background-color: #222;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    overflow: hidden; /* Contains child borders */
+}
+
+.enemy-targets-header {
+    display: grid;
+    grid-template-columns: 2fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr; /* Adjusted column widths for better fit */
+    padding: 8px 10px; /* NEW: Reduced padding */
+    background-color: #00a8ff;
+    color: #1e1e1e;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #1e1e1e;
+    font-size: 0.9em; /* NEW: Slightly smaller font */
+}
+
+.enemy-targets-header span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis for long text */
+}
+
+.enemy-targets-scroll-area {
+    max-height: 450px; /* NEW: Slightly reduced max height */
+    overflow-y: auto; /* Enable vertical scrollbar */
+    padding: 0;
+    margin: 0;
+}
+
+/* Custom scrollbar for enemy list (inherits from global) */
+.enemy-targets-scroll-area::-webkit-scrollbar { width: 10px; }
+.enemy-targets-scroll-area::-webkit-scrollbar-track { background: #1a1a1a; }
+.enemy-targets-scroll-area::-webkit-scrollbar-thumb { background-color: #007acc; border-radius: 5px; border: 2px solid #1a1a1a; }
+.enemy-targets-scroll-area::-webkit-scrollbar-thumb:hover { background-color: #00a8ff; }
+
+
+.enemy-target-row {
+    display: grid;
+    grid-template-columns: inherit; /* Inherit column definitions from header */
+    padding: 6px 10px; /* NEW: Reduced padding */
+    border-bottom: 1px solid #333; /* Lighter separator */
+    align-items: center;
+    font-size: 0.85em; /* NEW: Slightly smaller font */
+    text-align: center;
+    color: #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.enemy-target-row:hover {
+    background-color: #3a3a3a;
+}
+
+.enemy-target-row:last-child {
+    border-bottom: none;
+}
+
+/* Specific styling for columns within target row */
+.enemy-target-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 2px; /* NEW: Reduced horizontal padding */
+}
+
+/* Coloring for Difficulty and Status */
+.difficulty-easy { color: #28a745; font-weight: bold; } /* Green */
+.difficulty-moderately-difficult { color: #ffc107; font-weight: bold; } /* Yellow/Orange */
+.difficulty-difficult { color: #dc3545; font-weight: bold; } /* Red */
+.difficulty-extremely-easy { color: #17a2b8; font-weight: bold; } /* Cyan */
+.difficulty-may-be-impossible { color: #6c757d; font-weight: bold; } /* Grey */
+
+.status-okay { color: #28a745; }
+.status-hospital { color: #dc3545; }
+.status-jail { color: #ffc107; }
+.status-traveling { color: #17a2b8; }
+.status-offline { color: #6c757d; }
+
+/* Styles for Attack/Claim buttons inside table rows */
+.enemy-target-row .action-btn {
+    padding: 3px 6px; /* NEW: Reduced padding */
+    font-size: 0.75em; /* NEW: Reduced font size */
+    height: auto;
+    min-width: unset;
+    max-width: unset;
+    border-radius: 3px;
+    background-color: #007bff; /* Blue */
+    color: white;
+}
+.enemy-target-row .action-btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* Alert Buttons Grid (Tab 2) */
+.alert-buttons-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    flex-wrap: wrap;
+}
+
+.alert-btn {
+    background-color: #d9534f;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Reduced padding */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    flex-grow: 1;
+    min-width: 120px; /* NEW: Slightly smaller min-width */
+    text-align: center;
+    font-size: 0.85em; /* NEW: Reduced font size */
+}
+
+.alert-btn:hover {
+    background-color: #c9302c;
+}
+
+/* Faction Stats Summary (Tab 2) */
+.faction-stats-summary {
+    padding: 10px; /* NEW: Reduced padding */
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    font-size: 0.9em; /* NEW: Reduced font size */
+}
+
+.faction-stats-summary p {
+    margin: 0;
+    text-align: left;
+    color: #e0a71a;
+    font-weight: bold;
+}
+
+.faction-stats-summary p span {
+    color: #f0f0f0;
+    font-weight: normal;
+    margin-left: 5px; /* NEW: Reduced margin */
+}
+
+
+/* Friendly Members List (Tab 3) */
+.friendly-members-scroll-area {
+    max-height: 550px; /* NEW: Adjusted max height */
+    overflow-y: auto;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #222;
+}
+
+.friendly-member-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr; /* Example columns for Name, E, Nerve, Status */
+    padding: 6px 0; /* NEW: Reduced padding */
+    border-bottom: 1px solid #333;
+    align-items: center;
+    font-size: 0.85em; /* NEW: Reduced font size */
+    color: #f0f0f0;
+}
+.friendly-member-row:last-child {
+    border-bottom: none;
+}
+.friendly-member-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+/* Styles for member stats (e.g., green for high E, red for low life) */
+/* ... (unchanged) ... */
+
+
+/* Leader Configuration Section (Tab 4) */
+.config-section {
+    margin-bottom: 0px; /* Existing */
+    padding: 10px; /* Existing */
+    border: 1px solid black;
+    border-radius: 8px; /* Existing */
+    background-color: #222; /* Existing */
+    text-align: left; /* Existing */
+
+    display: flex; /* ADDED */
+    flex-direction: column; /* ADDED */
+    align-items: center; /* ADDED */
+}
+.war-status-toggles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
+    gap: 10px; /* Internal gap between toggles */
+    width: 100%; /* Ensure it spans available width of parent config-section */
+    box-sizing: border-box;
+}
+
+/* REMOVED: .war-status-toggles-grid .toggle-control:last-child { grid-column: 1 / -1; } */
+/* This rule was removed to allow the last row to flow into 3 columns */
+
+
+/* Fix for checkbox alignment within War Status Controls */
+.war-status-toggles-grid label {
+    display: flex;       /* Make the label a flex container */
+    align-items: center; /* Align items (checkbox and text) vertically in the center */
+    gap: 5px;            /* Add a small space between the checkbox and the label text */
+    cursor: pointer;     /* Indicate the whole label is clickable */
+}
+
+.war-status-toggles-grid input[type="checkbox"] {
+    margin: 0;           /* Remove default margin that might push it around */
+    padding: 0;          /* Remove default padding */
+    vertical-align: middle; /* Ensures baseline alignment, though flexbox should mostly handle this */
+    transform: scale(1.1); /* Slightly increase size for better visibility if needed */
+    accent-color: #00a8ff; /* Consistent theme color for the checkbox */
+}
+
+
+.config-section h4 {
+    color: #e0a71a;
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    margin-top: 0; /* NEW: Remove top top margin */
+    text-align: center;
+    font-size: 1.5em; /* NEW: Slightly adjusted font size */
+}
+
+.config-section input[type="text"],
+.config-section select { /* REMOVED TEXTAREA FROM THIS SELECTOR */
+    width: 100%;
+    padding: 6px; /* NEW: Reduced padding */
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.9em; /* NEW: Reduced font size */
+    box-sizing: border-box; /* Applied here */
+}
+
+.config-section textarea { /* TEXTAREA HAS ITS OWN SELECTOR FOR !IMPORTANT */
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.9em;
+    box-sizing: border-box !important; /* IMPORTANT: Added !important here for overlap fix */
+}
+/* Specific styling for 'Next Planned Chain Time' label and input */
+/* Target the specific toggle-control by the ID of its input for precision */
+.toggle-control:has(input#nextChainTimeInput) {
+    /* Existing: display: flex; flex-direction: column; */
+    align-items: center;    /* Centers the label and input elements horizontally */
+    /* Remove text-align: center from here, we'll apply it directly to the label */
+}
+
+/* Style specifically for the label text within these toggle controls (to center their text) */
+.toggle-control:has(input#nextChainTimeInput) label,
+.toggle-control:has(input#enemyFactionIDInputLeaderConfig) label { /* ADDED: Enemy Faction ID label */
+    display: block; /* Make the label behave like a block-level element */
+    width: 100%; /* Ensure it takes full available width within its parent */
+    text-align: center; /* Center the text content within this block-level label */
+    box-sizing: border-box;
+}
+#postAnnouncementBtn {
+    margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
+}
+
+/* Style for the input field itself */
+#nextChainTimeInput, #enemyFactionIDInputLeaderConfig { /* ADDED: Enemy Faction ID input */
+    width: auto; /* Allow width to be determined by content/min-width/max-width */
+    max-width: 160px; /* Adjust this value as needed to match the label's width */
+    min-width: 100px; /* Ensure it doesn't get too small */
+    display: block; /* Make it a block element so margin: auto can center it */
+    margin-left: auto; /* Center the input horizontally */
+    margin-right: auto;
+    margin-top: 3px;
+    /* You may also adjust padding and font-size if necessary */
+    /* padding: 6px; */
+    /* font-size: 0.9em; */
+    /* box-sizing: border-box; */
+}
+
+/* Styling for the Set Targets button to fit correctly when placed outside grid */
+#setTargetsBtn {
+    padding: 8px 12px; /* Consistent padding for action buttons */
+    font-size: 0.9em;
+    font-weight: bold; /* Make button text bold */
+    width: auto; /* Allow width to shrink to content */
+    display: block; /* Make it a block element for centering */
+    margin: 10px auto 0 auto; /* Center horizontally and add margin-top */
+    /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
+}
+
+
+textarea {
+    resize: vertical;
+    min-height: 80px; /* NEW: Reduced min-height */
+}
+
+select[multiple] {
+    height: 120px;
+}
+
+.config-section .action-btn {
+    width: auto; /* Existing */
+    margin-top: 5px; /* Existing */
+    padding: 8px 12px; /* Adjusted padding to match header buttons */
+    font-size: 0.9em; /* Existing */
+    font-weight: bold; /* ADDED: Make the text bold */
+    background-color: #007bff; /* ADDED: Blue background to match header buttons */
+    color: white; /* Corrected: Changed to white text as per typical blue button style */
+    border: 2px solid black; /* CORRECTED: Changed #black to black */
+    border-radius: 5px; /* ADDED: Border-radius to match header buttons */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
+}
+.config-section .action-btn:hover {
+    background-color: #00a8ff; /* ADDED: Darker blue on hover */
+    border-color: black; /* ADDED: Maintain border color on hover */
+}
+/* Specific styling for designated admins list */
+#designatedAdminsList, #watchListDisplay {
+    list-style: none;
+    padding: 5px; /* NEW: Reduced padding */
+    margin-top: 8px; /* NEW: Reduced margin */
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    max-height: 150px; /* NEW: Reduced max-height */
+    overflow-y: auto;
+}
+
+#designatedAdminsList li, #watchListDisplay li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px; /* NEW: Reduced padding */
+    border-bottom: 1px solid #444;
+    font-size: 0.85em; /* NEW: Reduced font size */
+}
+#designatedAdminsList li:last-child, #watchListDisplay li:last-child {
+    border-bottom: none;
+}
+#designatedAdminsList .remove-btn, #watchListDisplay .remove-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 3px 6px; /* NEW: Reduced padding */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.7em; /* NEW: Reduced font size */
+}
+#designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
+    background-color: #c82333;
+}
+
+
+/* Responsive Media Queries for the War Hub Container */
+@media (max-width: 992px) {
+    #warPageHubContainer {
+        padding: 10px; /* NEW: Reduced padding */
+        gap: 10px; /* NEW: Reduced gap */
+    }
+    .ops-controls-grid {
+        grid-template-columns: 1fr; /* Stack controls vertically */
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
+        font-size: 0.8em; /* NEW: Reduced base font size */
+    }
+    .faction-stats-summary {
+        grid-template-columns: 1fr; /* Stack stats vertically */
+    }
+    .tab-content-container {
+        height: auto; /* NEW: Allow height to be auto on smaller screens */
+        min-height: 400px; /* Keep a minimum height */
+    }
+    .friendly-members-scroll-area {
+        max-height: 400px; /* NEW: Adjusted max height */
+    }
+
+    /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
+    /* THIS IS THE PROBLEM LINE, IT'S TARGETING THE WRONG ELEMENT */
+    #leader-config-tab.active { /* IMPORTANT: Also add .active here */
+        grid-template-columns: 1fr; /* On smaller screens, stack into a single column */
+    }
+    /* --- END LEADER CONFIG TAB --- */
+}
+
+@media (max-width: 768px) {
+    .tab-navigation {
+        flex-direction: column; margin-bottom: 0px;
+    }
+    .tab-button {
+        border-radius: 5px;
+        margin-bottom: 5px;
+        font-size: 0.9em; /* NEW: Adjusted font size */
+        padding: 6px 10px; /* NEW: Adjusted padding */
+    }
+    .tab-content-container {
+        border-radius: 8px;
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
+        font-size: 0.75em; /* NEW: Reduced base font size */
+    }
+    .alert-buttons-grid {
+        flex-direction: column;
+    }
+    .alert-btn {
+        margin-bottom: 8px; /* NEW: Reduced margin */
+        padding: 6px 10px; /* NEW: Reduced padding */
+        font-size: 0.85em; /* NEW: Reduced font size */
+    }
+    .config-section h4 {
+        font-size: 1.3em; /* NEW: Adjusted font size */
+    }
 }
 
 .war-status-toggles-grid .toggle-control {
-    display: flex;           /* Make each control a flex container */
-    flex-direction: column;  /* Stack label, input/button vertically */
-    align-items: center;     /* Center content horizontally within the column */
-    gap: 3px; /* Small gap between stacked items like labels and inputs */
+    display: flex;           /* Make each control a flex container */
+    flex-direction: column;  /* Stack label, input/button vertically */
+    align-items: center;     /* Center content horizontally within the column */
+    gap: 3px; /* Small gap between stacked items like labels and inputs */
 }
 
 /* Update: Style specifically for the labels within these toggle controls (to center their text) */
 .war-status-toggles-grid .toggle-control label {
-    display: block; /* Ensure the label behaves like a block-level element */
-    width: 100%; /* Ensure it takes full available width within its parent */
-    text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box;
+    display: block; /* Ensure the label behaves like a block-level element */
+    width: 100%; /* Ensure it takes full available width within its parent */
+    text-align: center; /* Center the text content within this block-level label */
+    box-sizing: border-box;
 }
 
 /* Update: Style for the input fields for time and enemy ID */
 /* These properties will ensure they are block-level and centered horizontally within their flex containers */
 #nextChainTimeInput,
 #enemyFactionIDInputLeaderConfig {
-    width: auto; /* Allow width to be determined by content/min-width/max-width */
-    max-width: 160px; /* Adjust this value as needed to match the label's width */
-    min-width: 100px; /* Ensure it doesn't get too small */
-    display: block; /* Make it a block element so margin: auto can center it */
-    margin-left: auto; /* Center the input horizontally */
-    margin-right: auto;
-    margin-top: 3px; /* Small gap between label and input */
-    /* Inherit padding, font-size, border from .config-section input[type="text"] */
+    width: auto; /* Allow width to be determined by content/min-width/max-width */
+    max-width: 160px; /* Adjust this value as needed to match the label's width */
+    min-width: 100px; /* Ensure it doesn't get too small */
+    display: block; /* Make it a block element so margin: auto can center it */
+    margin-left: auto; /* Center the input horizontally */
+    margin-right: auto;
+    margin-top: 3px; /* Small gap between label and input */
+    /* Inherit padding, font-size, border from .config-section input[type="text"] */
 }
 
-/* Styling for the Set Targets button to fit correctly when placed outside grid */
-#setTargetsBtn {
-    padding: 8px 12px; /* Consistent padding for action buttons */
-    font-size: 0.9em;
-    font-weight: bold; /* Make button text bold */
-    width: auto; /* Allow width to shrink to content */
-    display: block; /* Make it a block element for centering */
-    margin: 10px auto 0 auto; /* Center horizontally and add margin-top */
-    /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
-}
-
-
-textarea {
-    resize: vertical;
-    min-height: 80px; /* NEW: Reduced min-height */
-}
-
-select[multiple] {
-    height: 120px;
-}
-
-.config-section .action-btn {
-    width: auto; /* Existing */
-    margin-top: 5px; /* Existing */
-    padding: 8px 12px; /* Adjusted padding to match header buttons */
-    font-size: 0.9em; /* Existing */
-    font-weight: bold; /* ADDED: Make the text bold */
-    background-color: #007bff; /* ADDED: Blue background to match header buttons */
-    color: white; /* Corrected: Changed to white text as per typical blue button style */
-    border: 2px solid black; /* CORRECTED: Changed #black to black */
-    border-radius: 5px; /* ADDED: Border-radius to match header buttons */
-    transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
-}
-.config-section .action-btn:hover {
-    background-color: #00a8ff; /* ADDED: Darker blue on hover */
-    border-color: black; /* ADDED: Maintain border color on hover */
-}
-/* Specific styling for designated admins list */
-#designatedAdminsList, #watchListDisplay {
-    list-style: none;
-    padding: 5px; /* NEW: Reduced padding */
-    margin-top: 8px; /* NEW: Reduced margin */
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #333;
-    max-height: 150px; /* NEW: Reduced max-height */
-    overflow-y: auto;
-}
-
-#designatedAdminsList li, #watchListDisplay li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 8px; /* NEW: Reduced padding */
-    border-bottom: 1px solid #444;
-    font-size: 0.85em; /* NEW: Reduced font size */
-}
-#designatedAdminsList li:last-child, #watchListDisplay li:last-child {
-    border-bottom: none;
-}
-#designatedAdminsList .remove-btn, #watchListDisplay .remove-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 3px 6px; /* NEW: Reduced padding */
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.7em; /* NEW: Reduced font size */
-}
-#designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
-    background-color: #c82333;
+@media (max-width: 480px) {
+    .main-content-wrapper { padding-top: 75px; }
+    #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
+    .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
+    .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
+    .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
+    .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
+        font-size: 0.7em; /* NEW: Further reduced base font size */
+    }
+    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
+    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; } /* NEW: Adjusted padding, font size, margin */
+    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; } /* NEW: Reduced padding, gap, font size */
+    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
+        font-size: 0.8em; /* NEW: Adjusted font size */
+        padding: 4px 6px; /* NEW: Adjusted padding */
+    }
+    .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
+    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
+    .config-section input[type="text"], .config-section textarea, .config-section select {
+        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
+    }
+    textarea { min-height: 60px; } /* NEW: Reduced min-height */
+    select[multiple] { height: 100px; } /* NEW: Reduced height */
+    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
 }
