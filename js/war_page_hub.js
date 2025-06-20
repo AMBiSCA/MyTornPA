@@ -26,7 +26,6 @@ const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay'); 
 const enemyTargetsList = document.getElementById('enemyTargetsList');
 const alertHitterOnlineHospBtn = document.getElementById('alertHitterOnlineHospBtn');
 const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn');
-// FIXED TYPO: alertEnemyActiveBtn was incorrectly assigned alertHitterActiveBtn's ID
 const alertEnemyActiveBtn = document.getElementById('alertEnemyActiveBtn');
 const totalFactionEnergy = document.getElementById('totalFactionEnergy');
 const totalPotentialHits = document.getElementById('totalPotentialHits');
@@ -142,14 +141,14 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=basic,ranked_wars) ---
-        // This call is expected to provide user faction data, and ranked war details including opponent ID.
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
-        console.log(`Fetching user faction data (selections=basic,ranked_wars, key hidden)`);
+        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=) ---
+        // This call is expected to provide user faction data, and ranked_wars (including opponent ID).
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
+        console.log(`Fetching user faction data (selections=, key hidden)`);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
         const userFactionData = await userFactionResponse.json();
-        console.log("User Faction API Full Data Response (selections=basic,ranked_wars):", userFactionData);
+        console.log("User Faction API Full Data Response (selections=):", userFactionData);
 
         if (!userFactionResponse.ok || userFactionData.error) {
             throw new Error(`Torn API User Faction Error: ${userFactionData.error?.error || userFactionResponse.statusText}`);
