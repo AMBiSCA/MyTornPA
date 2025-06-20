@@ -25,7 +25,7 @@ const quickAnnouncementInput = document.getElementById('quickAnnouncementInput')
 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay'); // Re-declared for direct use
 const enemyTargetsList = document.getElementById('enemyTargetsList');
 const alertHitterOnlineHospBtn = document.getElementById('alertHitterOnlineHospBtn');
-const alertHitterActiveBtn = document = document.getElementById('alertHitterActiveBtn'); // Fixed typo
+const alertHitterActiveBtn = document.getElementById('alertHitterActiveBtn'); // Corrected typo
 const alertEnemyActiveBtn = document.getElementById('alertEnemyActiveBtn');
 const totalFactionEnergy = document.getElementById('totalFactionEnergy');
 const totalPotentialHits = document.getElementById('totalPotentialHits');
@@ -110,8 +110,6 @@ function formatTime(seconds) {
 }
 
 // Helper to construct faction image URL from tag_image filename
-// Note: 'basic' selection usually provides 'image' (full URL) directly.
-// This function is for when 'tag_image' (filename) is provided instead.
 function getFactionImageUrl(imageFileName) {
     if (imageFileName) {
         // This pattern is often used for dynamic image fetching by Torn for tag_images
@@ -143,14 +141,14 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1 (Strictly as requested): Get User's Faction Data (basic, ranked_wars) ---
+        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=) ---
         // This call is expected to provide user faction data, and ranked war details including opponent ID.
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
-        console.log(`Fetching user faction data (selections=basic,ranked_wars, key hidden)`);
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
+        console.log(`Fetching user faction data (selections=, key hidden)`);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
         const userFactionData = await userFactionResponse.json();
-        console.log("User Faction API Full Data Response (selections=basic,ranked_wars):", userFactionData);
+        console.log("User Faction API Full Data Response (selections=):", userFactionData);
 
         if (!userFactionResponse.ok || userFactionData.error) {
             throw new Error(`Torn API User Faction Error: ${userFactionData.error?.error || userFactionResponse.statusText}`);
@@ -241,7 +239,7 @@ function populateFactionVersusSection() {
 
         // Populate Faction 1 (User's Faction)
         if (factionOneNameEl) factionOneNameEl.textContent = userFaction.name || 'Your Faction';
-        // basic selection for faction usually provides members.total directly. If not, fallback to counting.
+        // Use userFaction.members.total if available from basic selection, otherwise count from list if present
         if (factionOneMembersEl) factionOneMembersEl.textContent = userFaction.members?.total || countFactionMembers(userFaction.members) || 'N/A';
         // basic selection for faction usually provides 'image' (full URL). If not, fallback to tag_image.
         if (factionOnePicEl) factionOnePicEl.src = userFaction.image || getFactionImageUrl(userFaction.tag_image) || 'https://dummyimage.com/100x100/333/fff&text=F1';
@@ -262,7 +260,7 @@ function populateFactionVersusSection() {
         } else {
             // No active war or couldn't get enemy data, show "Your Faction" vs "No Enemy"
             factionVersusSectionEl.style.display = 'flex'; // Still show, but with "No War" info
-            if (factionTwoNameEl) factionTwoTwoNameEl.textContent = 'No Enemy'; // Fixed typo
+            if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy';
             if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
             if (factionTwoPicEl) factionTwoPicEl.src = 'https://dummyimage.com/100x100/333/fff&text=N/A';
             if (factionTwoPicEl) factionTwoPicEl.alt = 'No Enemy';
