@@ -114,8 +114,9 @@
                         <div class="ops-control-item ops-quick-targets">
                             <label>Quick FF Targets:</label>
                             <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
-                                <span id="quickFFTarget1">Target 1</span>
-                                <span id="quickFFTarget2">Target 2</span>
+                                <span>Target 1</span>
+                                <span>Target 2</span>
+                                <span>Target 3</span>
                             </div>
                         </div>
                     </div>
@@ -145,7 +146,8 @@
                     <div class="faction-stats-summary">
                         <p>Total Faction Energy: <span id="totalFactionEnergy">Loading...</span></p>
                         <p>Total Potential Hits: <span id="totalPotentialHits">Loading...</span></p>
-                        </div>
+                        <p>Chain Progress: <span id="chainProgressDisplay">500/1000</span></p>
+                    </div>
                 </div>
 
                 <div id="friendly-status-tab" class="tab-pane">
@@ -164,8 +166,7 @@
 
                     <div class="config-section">
                         <h4>Faction Announcements:</h4>
-                        <input type="text" id="quickAnnouncementInput" placeholder="Quick Message">
-                        <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
+                        <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea> <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
                     </div>
 
                     <div class="config-section">
