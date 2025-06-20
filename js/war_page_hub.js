@@ -141,14 +141,14 @@ async function initializeWarHubApiData(user, apiKey) {
     }
 
     try {
-        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=basic,ranked_wars) ---
-        // This call is expected to provide user faction data, and ranked war details including opponent ID.
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
-        console.log(`Fetching user faction data (selections=basic,ranked_wars, key hidden)`);
+        // --- API Call 1 (Strictly as requested): Get User's Faction Data (selections=) ---
+        // This call is expected to provide user faction data, and ranked_wars (including opponent ID).
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=&key=${apiKey}&comment=MyTornPA_WarHub_UserFactionData`;
+        console.log(`Fetching user faction data (selections=, key hidden)`);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
         const userFactionData = await userFactionResponse.json();
-        console.log("User Faction API Full Data Response (selections=basic,ranked_wars):", userFactionData);
+        console.log("User Faction API Full Data Response (selections=):", userFactionData);
 
         if (!userFactionResponse.ok || userFactionData.error) {
             throw new Error(`Torn API User Faction Error: ${userFactionData.error?.error || userFactionResponse.statusText}`);
@@ -162,39 +162,12 @@ async function initializeWarHubApiData(user, apiKey) {
         }
 
         // --- Extract Opponent ID for Second API Call (if war is active) ---
-        let opponentFactionId = null;
-        const rankedWars = factionApiFullData.ranked_wars;
-
-        if (rankedWars && typeof rankedWars === 'object') {
-            console.log("rankedWars object found:", rankedWars); // DIAGNOSTIC LOG
-            // Find the active war by checking if 'war.end' is 0 for any war entry
-            const activeWarEntry = Object.values(rankedWars).find(
-                warEntry => warEntry && warEntry.war && warEntry.war.end === 0
-            );
-
-            if (activeWarEntry) {
-                console.log("Active War Entry found:", activeWarEntry); // DIAGNOSTIC LOG
-                // Now, from the activeWarEntry, find the opponent's ID in the 'factions' object
-                // The opponent is the faction whose ID is NOT the user's faction ID.
-                const userFactionId = String(factionApiFullData.ID);
-                const factionsInWar = activeWarEntry.factions || {};
-                
-                for (const factionKey in factionsInWar) {
-                    if (Object.prototype.hasOwnProperty.call(factionsInWar, factionKey)) {
-                        const factionInWarId = String(factionsInWar[factionKey].id || factionsInWar[factionKey].faction_id);
-                        if (factionInWarId !== userFactionId) {
-                            opponentFactionId = factionInWarId;
-                            break; // Found the opponent
-                        }
-                    }
-                }
-            } else {
-                console.log("No active war entry found with war.end === 0."); // DIAGNOSTIC LOG
-            }
-        } else {
-            console.log("ranked_wars object is null, undefined or not an object."); // DIAGNOSTIC LOG
-        }
-        console.log("Extracted opponentFactionId (after logic):", opponentFactionId); // DIAGNOSTIC LOG
+        // Correctly find the active war object where 'end' is 0
+        const activeRankedWarEntry = Object.values(factionApiFullData.ranked_wars || {}).find(
+            warEntry => warEntry.war?.end === 0
+        );
+        const opponentFactionId = activeRankedWarEntry?.opponent_faction_id;
+        console.log("Extracted opponentFactionId:", opponentFactionId); // Log to debug
 
         enemyFactionBasicData = null; // Reset for each fetch
 
