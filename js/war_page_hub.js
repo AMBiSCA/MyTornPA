@@ -371,6 +371,46 @@ function displayEnemyTargetsTable(members) {
     enemyTargetsContainer.innerHTML = tableHtml;
 }
 
+function rgbToHex(r, g, b) {
+    return (
+        "#" +
+        ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()
+    );
+}
+
+function get_ff_colour(value) {
+    let r, g, b;
+    if (value <= 1) {
+        r = 0x28; g = 0x28; b = 0xc6; // Blue
+    } else if (value <= 3) {
+        const t = (value - 1) / 2;
+        r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t);
+    } else if (value <= 5) {
+        const t = (value - 3) / 2;
+        r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28;
+    } else {
+        r = 0xc6; g = 0x28; b = 0x28; // Red
+    }
+    return rgbToHex(r, g, b);
+}
+
+function get_contrast_color(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+    return brightness > 126 ? "black" : "white";
+}
+
+function get_difficulty_text(ff) {
+    if (ff <= 1) return "Extremely easy";
+    else if (ff <= 2) return "Easy";
+    else if (ff <= 3.5) return "Moderately difficult";
+    else if (ff <= 4.5) return "Difficult";
+    else return "May be impossible";
+}
+
+
 // NEW: Function to format time from timestamp
 function formatTornTime(timestamp) {
   const date = new Date(timestamp * 1000); // Torn API timestamps are in seconds
@@ -378,6 +418,75 @@ function formatTornTime(timestamp) {
   const minutes = String(date.getUTCMinutes()).padStart(2, '0');
   const seconds = String(date.getUTCSeconds()).padStart(2, '0');
   return `${hours}:${minutes}:${seconds}`;
+}
+
+async function displayQuickFFTargets(userApiKey, playerId) {
+    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+    if (!quickFFTargetsDisplay) {
+        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
+        return;
+    }
+
+    quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>'; // Loading state
+
+    if (!userApiKey || !playerId) {
+        quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
+        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
+        return;
+    }
+
+    try {
+        const functionUrl = `/.netlify/functions/get-recommended-targets`;
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
+        });
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            const errorMessage = data.error || `Error from server: ${response.status} ${response.statusText}`;
+            quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
+            console.error("Error fetching Quick FF Targets:", errorMessage);
+            return;
+        }
+
+        if (!data.targets || data.targets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
+            return;
+        }
+
+        // Clear existing content to populate with new links
+        quickFFTargetsDisplay.innerHTML = '';
+
+        // Display up to the first 2 targets
+        for (let i = 0; i < Math.min(2, data.targets.length); i++) {
+            const target = data.targets[i];
+            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
+            const targetName = target.playerName || `Target ${i + 1}`;
+            const ffScore = parseFloat(target.fairFightScore);
+            const difficultyText = get_difficulty_text(ffScore);
+            const bgColor = get_ff_colour(ffScore);
+            const textColor = get_contrast_color(bgColor);
+
+            const targetHtml = `
+                <a href="${attackUrl}" target="_blank" 
+                   style="background-color: ${bgColor}; color: ${textColor}; 
+                          border: 1px solid ${textColor === 'black' ? '#000' : '#FFF'}; 
+                          text-decoration: none; padding: 4px; border-radius: 4px; 
+                          display: flex; justify-content: center; align-items: center; 
+                          font-size: 0.8em; font-weight: bold; width: 100%; box-sizing: border-box;"
+                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${ffScore} (${difficultyText})">
+                    ${targetName}
+                </a>
+            `;
+            quickFFTargetsDisplay.insertAdjacentHTML('beforeend', targetHtml);
+        }
+
+    } catch (error) {
+        console.error("Failed to fetch or display Quick FF Targets:", error);
+        quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
+    }
 }
 
 // NEW: Function to fetch and display chain data
@@ -863,59 +972,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
-            const apiKey = doc.exists ? doc.data().tornApiKey : null;
-            currentTornUserName = doc.exists ? doc.data().preferredName : 'Unknown';
+            const userData = doc.exists ? doc.data() : {};
+            const apiKey = userData.tornApiKey || null;
+            const playerId = userData.tornProfileId || null; // NEW: Get player ID
+            currentTornUserName = userData.preferredName || 'Unknown';
 
-            if (apiKey) {
-                userApiKey = apiKey; // Ensure userApiKey is set globally
+            if (apiKey && playerId) { // MODIFIED: Check for both API key and player ID
+                userApiKey = apiKey; // Ensure userApiKey is set globally
 
-                // Initial load of general UI components
-                await initializeAndLoadData(apiKey);
+                // Initial load of general UI components
+                await initializeAndLoadData(apiKey);
 
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    listenersInitialized = true;
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    listenersInitialized = true;
 
-                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); // Now only updates local timers
+                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
+                    setInterval(updateAllTimers, 1000); // Now only updates local timers
 
-                    // Start Chain Data API fetch every 1.75 seconds
+                    // NEW: Fetch and display quick FF targets periodically
                     setInterval(() => {
-                        if (userApiKey) {
-                            fetchAndDisplayChainData(userApiKey);
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
                         } else {
-                            console.warn("API key not available for periodic chain data refresh.");
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 1750); // 1750 milliseconds = 1.75 seconds
+                    }, 5000); // Refresh quick targets every 5 seconds (adjust as needed)
 
-                    // Start Enemy Data API fetch every 1 second
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
-                        }
-                    }, 1000); // 1000 milliseconds = 1 second
+                    // Start Chain Data API fetch every 1.75 seconds
+                    setInterval(() => {
+                        if (userApiKey) {
+                            fetchAndDisplayChainData(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic chain data refresh.");
+                        }
+                    }, 1750); // 1750 milliseconds = 1.75 seconds
 
-                    // Perform initial API fetches immediately on load
-                    if (userApiKey) {
-                        fetchAndDisplayChainData(userApiKey);
+                    // Start Enemy Data API fetch every 1 second
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 1000); // 1000 milliseconds = 1 second
+
+                    // Perform initial API fetches immediately on load
+                    if (userApiKey) {
+                        fetchAndDisplayChainData(userApiKey);
+                    }
+                    if (userApiKey && globalEnemyFactionID) {
+                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                    }
+                    // NEW: Initial call for quick FF targets
+                    if (userApiKey && playerId) {
+                        displayQuickFFTargets(userApiKey, playerId);
                     }
-                    if (userApiKey && globalEnemyFactionID) {
-                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                    }
+                } // Closes: if (!listenersInitialized)
+            } else { // MODIFIED: Condition now explicitly checks for API Key or Player ID
+                console.warn("API key or Player ID not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                // NEW: Clear and display initial Quick FF Target placeholders
+                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+                if (quickFFTargetsDisplay) {
+                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
                 }
-            } else {
-                console.warn("API key not found.");
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
-            }
-        } else {
-            userApiKey = null;
-            listenersInitialized = false;
-            console.log("User not logged in.");
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-        }
-    });
-});
+            }
