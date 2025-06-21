@@ -39,6 +39,7 @@ const toggleTurtleMode = document.getElementById('toggleTurtleMode');
 const nextChainTimeInput = document.getElementById('nextChainTimeInput');
 const enemyFactionIDInput = document.getElementById('enemyFactionIDInputLeaderConfig');
 const saveWarStatusControlsBtn = document.getElementById('saveWarStatusControlsBtn');
+const enemyTargetsContainer = document.getElementById('enemyTargetsContainer');
 
 // UPDATED: DOM getters for the new div containers
 const designatedAdminsContainer = document.getElementById('designatedAdminsContainer');
@@ -170,7 +171,7 @@ function populateUiComponents(warData, apiKey) {
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
-    
+
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
@@ -178,68 +179,47 @@ function populateUiComponents(warData, apiKey) {
     populateWarStatusDisplay(warData);
     loadWarStatusForEdit(warData);
 
+    // This is the single, correct block for handling the enemy faction display
     if (warData.enemyFactionID) {
         fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
     } else {
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
-        // NEW: Clear big hitter watchlist if no enemy is set
-        populateEnemyMemberCheckboxes({}, []); 
+        populateEnemyMemberCheckboxes({}, []);
+        displayEnemyTargetsTable(null); // This clears the table
     }
 
     if (factionApiFullData.members) {
-        // UPDATED: Call the new function name for friendly members
         populateFriendlyMemberCheckboxes(
             factionApiFullData.members,
             warData.tab4Admins || [],
             warData.energyTrackingMembers || []
         );
     }
-    // NEW: Also load saved watchlist members when UI components are populated
-    // Note: populateEnemyMemberCheckboxes will be called by fetchAndDisplayEnemyFaction
-    // or cleared above if no enemy ID is present.
-    // If you need pre-selection on initial load *before* enemy data arrives,
-    // you'll need to fetch savedWatchlist and pass it here.
-    // For simplicity for now, it assumes saved members are handled when enemy data arrives.
 }
 
+// Inside fetchAndDisplayEnemyFaction function...
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
-        // CORRECTED: Requesting 'members' data AND using v2 endpoint for enemy faction
-        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
-        const response = await fetch(enemyApiUrl);
-
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-
+        // ... (api call code) ...
         const enemyData = await response.json();
-        console.log("Enemy Faction API Data:", enemyData); // Keep this line for debugging for now
-        if (enemyData.error) {
-            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
-        }
+        // ... (error checking) ...
 
-        // CORRECTED: Accessing name, members, and tag_image from enemyData.basic
-        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
-        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.basic.tag_image)}')`;
+        // ... (populating faction name, members, pic) ...
 
-        // ... rest of the fetchAndDisplayEnemyFaction function remains the same ...
-
-        // UPDATED: Call the new function name for enemy members
-        // NEW: Pass saved watchlist members to enable pre-selection
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
         const savedWatchlistMembers = warData.bigHitterWatchlist || [];
 
         if (enemyData.members) {
+            displayEnemyTargetsTable(enemyData.members); // <-- ADD THIS LINE
             populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
         } else {
             console.warn("Enemy faction members data not found.");
-            populateEnemyMemberCheckboxes({}, []); // Clear the watchlist if no members
+            displayEnemyTargetsTable(null); // <-- ADD THIS LINE
+            populateEnemyMemberCheckboxes({}, []);
         }
 
     } catch (error) {
@@ -247,7 +227,8 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
-        populateEnemyMemberCheckboxes({}, []); // Clear watchlist on error
+        displayEnemyTargetsTable(null); // <-- ADD THIS LINE
+        populateEnemyMemberCheckboxes({}, []);
     }
 }
 
