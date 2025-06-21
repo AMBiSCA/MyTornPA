@@ -195,9 +195,10 @@ async function fetchAndDisplayChainData(apiKey) {
     }
 }
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
-async function fetchAndDisplayRankedWarScores() { // No apiKey param needed, reads userApiKey global and factionApiFullData
-    if (!factionApiFullData || !factionApiFullData.ranked_wars || !factionApiFullData.ID) {
-        console.warn("Ranked War Data not fully available in factionApiFullData.ranked_wars.");
+async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
+    // MODIFIED: Updated condition to look for 'wars.ranked_wars'
+    if (!factionApiFullData || !factionApiFullData.wars || !factionApiFullData.wars.ranked_wars || !factionApiFullData.ID) {
+        console.warn("Ranked War Data not fully available in factionApiFullData.wars.ranked_wars.");
         // Reset display if data is missing
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
@@ -209,8 +210,9 @@ async function fetchAndDisplayRankedWarScores() { // No apiKey param needed, rea
     }
 
     try {
-        const rankedWarData = factionApiFullData.ranked_wars; // Use the globally fetched full data
-        console.log("Ranked War API Data (from factionApiFullData):", rankedWarData);
+        // MODIFIED: Access ranked_wars through the 'wars' object
+        const rankedWarData = factionApiFullData.wars.ranked_wars; 
+        console.log("Ranked War API Data (from factionApiFullData.wars):", rankedWarData);
 
         // Find the active ranked war (assuming only one is typically active at a time)
         let activeWar = null;
@@ -252,7 +254,7 @@ async function fetchAndDisplayRankedWarScores() { // No apiKey param needed, rea
         }
 
     } catch (error) {
-        console.error("Error processing ranked war data from factionApiFullData:", error);
+        console.error("Error processing ranked war data from factionApiFullData.wars:", error);
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
         if (warTargetScore) warTargetScore.textContent = 'Error';
