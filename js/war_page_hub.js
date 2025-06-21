@@ -803,7 +803,7 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 async function initializeAndLoadData(apiKey) {
     try {
         // URGENTLY MODIFIED: Request EXACTLY 'basic' and 'chain' selections as specified
-      const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,chain&key=${apiKey}`;
+      const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,chain,wars&key=${apiKey}`;
 
         console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
