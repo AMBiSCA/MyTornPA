@@ -103,6 +103,16 @@
     display: block;
 }
 
+/* Ensure the active-ops-tab itself manages its internal layout */
+#active-ops-tab.tab-pane.active {
+    display: flex; /* Make this specific tab's content a flex container */
+    flex-direction: column; /* Stack its direct children (controls and content row) vertically */
+    height: 100%; /* Crucial for internal flex children to scale */
+    width: 100%; /* Ensure it takes full width */
+    box-sizing: border-box;
+    overflow-y: visible; /* Still allows content to push main page if needed */
+}
+
 /* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
 
 /* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
@@ -282,14 +292,6 @@
    ========================================================================== */
 
 /* This wrapper handles the side-by-side layout of the table and chatbox */
-.active-ops-content-wrapper {
-    display: flex;
-    gap: 20px; /* Space between the table section and the chatbox */
-    width: 100%;
-    height: 100%; /* Make it fill the height of its parent (.tab-pane) */
-    align-items: flex-start; /* Align children to the top */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-}
 
 /* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-left-panel {
@@ -307,6 +309,16 @@
     flex: 1; /* Allows it to grow and shrink */
     min-width: 300px; /* Minimum width for the chatbox side */
     /* Height will be matched to left panel via flex alignment on parent .active-ops-content-wrapper */
+}
+
+/* New wrapper to hold the left panel (table) and right panel (chat) side-by-side */
+.active-ops-main-content-row {
+    display: flex; /* Makes its children (left & right panels) go side-by-side */
+    flex-grow: 1; /* Allows this row to take up remaining vertical space */
+    gap: 20px; /* Space between the left and right panels */
+    width: 100%; /* Ensures it spans the full width of its parent */
+    align-items: flex-start; /* Aligns content to the top within the row */
+    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
 }
 
 /* ==========================================================================
@@ -475,8 +487,7 @@
 
 @media (max-width: 1200px) {
     .active-ops-content-wrapper {
-        flex-direction: column; /* Stack table and chatbox vertically on smaller wide screens */
-        align-items: center; /* Center stacked items */
+
     }
 
     .active-ops-left-panel,
