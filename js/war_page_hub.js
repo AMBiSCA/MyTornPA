@@ -116,7 +116,7 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 // Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
 // REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
 function updateAllTimers() {
-  const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
+  const nowInSeconds = Math.floor(Date.now() / 1000);
 
   // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
   // This part handles the manually set 'Next Planned Chain Time' countdown locally.
@@ -179,25 +179,9 @@ function updateAllTimers() {
           }
       });
   }
+}
 
-  // NEW: Update Chain Timer Display (smooth 1-second countdown)
-  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
-      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
-      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-  } else if (chainTimerDisplay) {
-      // If no chain is active or data is reset, show 'Chain Over'
-      chainTimerDisplay.textContent = 'Chain Over';
-  }
-
-  // NEW: Update Chain Started Time Display
-  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-  } else if (chainStartedDisplay) {
-      chainStartedDisplay.textContent = 'Started: N/A';
-  }
-}- NEW API CALL TRIGGERING LOGIC ---
+  // --- NEW API CALL TRIGGERING LOGIC ---
   // Trigger API calls for both chain and enemy data every 1.5 seconds (every 3rd tick if main interval is 0.5s)
   if (apiCallCounter % 3 === 0) {
       if (userApiKey) {
