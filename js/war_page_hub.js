@@ -1037,5 +1037,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
-                }
-            }
+        }
+    });
+});
