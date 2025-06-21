@@ -459,13 +459,16 @@ function populateUiComponents(warData, apiKey) {
     populateWarStatusDisplay(warData);
     loadWarStatusForEdit(warData);
 
+    // NEW: Store enemy faction ID globally after initial fetch or load
+    globalEnemyFactionID = warData.enemyFactionID || null;
+
     // This is the single, correct block for handling the enemy faction display
     if (warData.enemyFactionID) {
         fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
     } else {
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
+        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
         populateEnemyMemberCheckboxes({}, []);
         displayEnemyTargetsTable(null); // This clears the table
     }

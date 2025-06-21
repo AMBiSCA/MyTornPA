@@ -453,13 +453,13 @@
 
 /* Active Ops Controls Grid (Tab 2) */
 .ops-controls-grid {
-    margin-top: 20px;
+    margin-top: 10px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* NEW: Min-width slightly smaller */
     gap: 10px; /* NEW: Reduced gap */
     margin-bottom: 15px; /* NEW: Reduced margin */
     padding: 10px; /* NEW: Reduced padding */
-    border: 1px solid #555;
+    border: 1px solid black;
     border-radius: 8px;
     background-color: #222;
 }
