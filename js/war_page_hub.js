@@ -590,6 +590,7 @@ function setupEventListeners(apiKey) {
     }
 }
 
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -604,8 +605,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const doc = await userProfileRef.get();
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
 
-            // This line gets the user's name and stores it in the global variable
-            currentTornUserName = doc.exists ? doc.data().name : 'Unknown';
+            // This is the corrected line using your database field name
+            currentTornUserName = doc.exists ? doc.data().preferredName : 'Unknown';
 
             if (apiKey) {
                 userApiKey = apiKey;
