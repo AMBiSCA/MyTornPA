@@ -1,20 +1,22 @@
 /* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v9 (Selective V2 URL Test)
-   ========================================================================== */
+    War Page Hub JavaScript (war_page_hub.js) - v9 (Selective V2 URL Test)
+    ========================================================================== */
 
 // --- Global Variables ---
 const db = firebase.firestore();
 const auth = firebase.auth();
 let userApiKey = null;
-let factionApiFullData = null;
+let factionApiFullData = null; // This will hold the basic faction data for our faction (includes ID, name)
 let currentTornUserName = 'Unknown';
-let apiCallCounter = 0; // Counter for API call intervals
+let apiCallCounter = 0; // Counter (less critical with separate intervals, but good for diagnostics)
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-let currentLiveChainSeconds = 0; // Stores the remaining chain timeout for local countdown
-let lastChainApiFetchTime = 0; // Stores the timestamp of the last chain API fetch
-let globalChainStartedTimestamp = 0; // Stores the actual chain start time from API
-let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
-let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
+
+// Global Variables for Chain Timer Display and Ranked War Scores
+let currentLiveChainSeconds = 0; // Stores the 'timeout' value from the last API fetch
+let lastChainApiFetchTime = 0;   // Stores Date.now() (in milliseconds) of the last chain API fetch
+let globalChainStartedTimestamp = 0; // Stores the 'start' timestamp from the API
+let globalChainCurrentNumber = 'N/A'; // Stores the 'current' chain number from the API
+let globalRankedWarData = null; // Stores the fetched ranked war data
 
 
 // --- DOM Element Getters ---
@@ -31,8 +33,10 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
 const factionOneNameEl = document.getElementById('factionOneName');
 const factionOneMembersEl = document.getElementById('factionOneMembers');
+// Removed factionOnePicEl and factionTwoPicEl getters as per previous discussions
 const factionTwoNameEl = document.getElementById('factionTwoName');
 const factionTwoMembersEl = document.getElementById('factionTwoMembers');
+
 const gamePlanEditArea = document.getElementById('gamePlanEditArea');
 const saveGamePlanBtn = document.getElementById('saveGamePlanBtn');
 const quickAnnouncementInput = document.getElementById('quickAnnouncementInput');
@@ -57,9 +61,18 @@ const chainTimerDisplay = document.getElementById('chainTimerDisplay');
 const currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
 const chainStartedDisplay = document.getElementById('chainStartedDisplay');
 
+// NEW: DOM Getters for Ranked War Scores Section (Based on proposed HTML)
+const yourFactionRankedScore = document.getElementById('yourFactionRankedScore');
+const opponentFactionRankedScore = document.getElementById('opponentFactionRankedScore');
+const warTargetScore = document.getElementById('warTargetScore');
+const warStartedTime = document.getElementById('warStartedTime');
+const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
+const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
+
 
 // --- Utility Functions ---
 
+// Basic UI Control
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
@@ -78,7 +91,119 @@ function countFactionMembers(membersObject) {
     return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
 }
 
-// NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
+// Time Formatting Functions
+function formatTime(seconds) {
+    if (seconds <= 0) return '0s';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    let result = '';
+    if (h > 0) result += `${h}h `;
+    if (m > 0) result += `${m}m `;
+    if (s > 0) result += `${s}s`;
+    return result.trim();
+}
+
+function formatTornTime(timestamp) {
+  const date = new Date(timestamp * 1000); // Torn API timestamps are in seconds
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+function formatRelativeTime(timestampInSeconds) {
+    if (!timestampInSeconds || timestampInSeconds === 0) {
+        return "N/A";
+    }
+
+    const now = Math.floor(Date.now() / 1000); // Current time in seconds
+    const diffSeconds = now - timestampInSeconds;
+
+    if (diffSeconds < 60) {
+        return "Now"; // Less than 1 minute
+    } else if (diffSeconds < 3600) { // Less than 1 hour (60 minutes)
+        const minutes = Math.floor(diffSeconds / 60);
+        return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+    } else if (diffSeconds < 86400) { // Less than 1 day (24 hours)
+        const hours = Math.floor(diffSeconds / 3600);
+        return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    } else { // 1 day or more
+        const days = Math.floor(diffSeconds / 86400);
+        return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
+}
+
+// FF Target Utility Functions
+function rgbToHex(r, g, b) {
+    return (
+        "#" +
+        ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()
+    );
+}
+
+function get_ff_colour(value) {
+    let r, g, b;
+    if (value <= 1) {
+        r = 0x28; g = 0x28; b = 0xc6; // Blue
+    } else if (value <= 3) {
+        const t = (value - 1) / 2;
+        r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t);
+    } else if (value <= 5) {
+        const t = (value - 3) / 2;
+        r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28;
+    } else {
+        r = 0xc6; g = 0x28; b = 0x28; // Red
+    }
+    return rgbToHex(r, g, b);
+}
+
+function get_contrast_color(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+    return brightness > 126 ? "black" : "white";
+}
+
+function get_difficulty_text(ff) {
+    if (ff <= 1) return "Extremely easy";
+    else if (ff <= 2) return "Easy";
+    else if (ff <= 3.5) return "Moderately difficult";
+    else if (ff <= 4.5) return "Difficult";
+    else return "May be impossible";
+}
+
+// Claim/Unclaim Functions
+function claimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+
+    if (claimBtn) {
+        claimBtn.textContent = 'Unclaim';
+        claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
+    }
+    if (targetRow) {
+        targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
+    }
+}
+
+function unclaimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+
+    if (claimBtn) {
+        claimBtn.disabled = false;
+        claimBtn.textContent = 'Claim';
+        claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
+    }
+    if (targetRow) {
+        targetRow.style.backgroundColor = '';  
+    }
+}
+
+
+// UI Population Functions
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
     if (!members || typeof members !== 'object') return;
 
@@ -98,382 +223,53 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         const member = members[memberId];
         const memberName = member.name || `Unknown (${memberId})`;
 
-        // Create and append checkbox for Designate Admins
         const isAdminChecked = (savedAdmins && savedAdmins.includes(memberId)) ? 'checked' : '';
         const adminItemHtml = `<div class="member-selection-item"><input type="checkbox" id="admin-member-${memberId}" value="${memberId}" ${isAdminChecked}><label for="admin-member-${memberId}">${memberName}</label></div>`;
         designatedAdminsContainer.insertAdjacentHTML('beforeend', adminItemHtml);
 
-        // Create and append checkbox for Energy Tracking Members
         const isEnergyChecked = (savedEnergyMembers && savedEnergyMembers.includes(memberId)) ? 'checked' : '';
         const energyItemHtml = `<div class="member-selection-item"><input type="checkbox" id="energy-member-${memberId}" value="${memberId}" ${isEnergyChecked}><label for="energy-member-${memberId}">${memberName}</label></div>`;
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
 }
-// NEW: Helper function to format time remaining from seconds (Moved for proper scope)
-function formatTime(seconds) {
-    if (seconds <= 0) return '0s';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    let result = '';
-    if (h > 0) result += `${h}h `;
-    if (m > 0) result += `${m}m `;
-    if (s > 0) result += `${s}s`;
-    return result.trim();
-}
 
-// NEW: Function to fetch and display chain data (Moved for proper scope)
-async function fetchAndDisplayChainData(apiKey) {
-    if (!apiKey) {
-        console.warn("API key is not available. Cannot fetch chain data.");
+function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
+    if (!bigHitterWatchlistContainer) {
+        console.error("HTML Error: Cannot find element with ID 'bigHitterWatchlistContainer'.");
         return;
     }
 
-    try {
-        const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
-        const response = await fetch(chainApiUrl);
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-        const chainData = await response.json();
-        console.log("Chain API Data (fetched):", chainData);
+    bigHitterWatchlistContainer.innerHTML = ''; // Clear existing checkboxes
 
-        if (chainData && chainData.chain) {
-            // Store the relevant values globally for updateAllTimers to use
-            currentLiveChainSeconds = chainData.chain.timeout || 0;
-            lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
-            globalChainStartedTimestamp = chainData.chain.start || 0;
-            globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
-
-            // Update current chain number display here (as it's directly from API)
-            if (currentChainNumberDisplay) {
-                currentChainNumberDisplay.textContent = globalChainCurrentNumber;
-            }
-
-            // Logic for Chain Started time display (no change from previous as requested)
-            if (chainStartedDisplay) {
-                const newChainStartedTimestamp = chainData.chain.start || 0;
-                if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
-                    globalChainStartedTimestamp = newChainStartedTimestamp;
-                    chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-                } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
-                    globalChainStartedTimestamp = 0;
-                    chainStartedDisplay.textContent = 'Started: N/A';
-                } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
-                    // No change needed
-                }
-            }
-
-        } else {
-            console.warn("Chain data not found in API response, or chain object is missing.");
-            // Reset global variables if no chain data
-            currentLiveChainSeconds = 0;
-            lastChainApiFetchTime = 0;
-            globalChainStartedTimestamp = 0;
-            globalChainCurrentNumber = 'N/A';
-
-            // Ensure display elements are reset if API data is missing/invalid
-            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-            if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
-        }
-
-    } catch (error) {
-        console.error("Error fetching chain data:", error);
-        // On error, reset global variables and display 'Error'
-        currentLiveChainSeconds = 0;
-        lastChainApiFetchTime = 0;
-        globalChainStartedTimestamp = 0;
-        globalChainCurrentNumber = 'N/A';
-
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-    }
-}
-
-// MODIFIED: updateAllTimers function (Moved for proper scope)
-function updateAllTimers() {
-    console.count('updateAllTimers called');
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-
-    // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
-    if (warNextChainTimeStatus && nextChainTimeInput) {
-        const nextChainTimeValue = nextChainTimeInput.value.trim();
-        const targetChainTime = parseInt(nextChainTimeValue, 10);
-
-        if (!isNaN(targetChainTime) && targetChainTime > 0) {
-            const timeLeft = targetChainTime - nowInSeconds;
-            if (timeLeft > 0) {
-                warNextChainTimeStatus.textContent = formatTime(timeLeft);
-            } else {
-                warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
-            }
-        } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
-            // Do nothing if it's already N/A or empty, to avoid resetting manual text
-        } else {
-            warNextChainTimeStatus.textContent = 'N/A';
-        }
-    }
-
-    // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
-    if (enemyTargetsContainer) {
-        const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
-        statusCells.forEach(cell => {
-            const targetTime = parseInt(cell.dataset.until, 10);
-            const statusState = cell.dataset.statusState;
-            const originalDescription = cell.textContent.split('(')[0].trim();
-
-            if (!isNaN(targetTime) && targetTime > 0) {
-                const timeLeft = targetTime - nowInSeconds;
-
-                if (timeLeft > 0) {
-                    if (statusState === 'Hospital') {
-                        cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                    } else if (statusState === 'Traveling') {
-                        cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                    }
-                } else {
-                    if (statusState === 'Hospital') {
-                        cell.textContent = `Okay`;
-                        cell.classList.remove('status-hospital', 'status-other', 'status-okay');
-                    } else if (statusState === 'Traveling') {
-                        const destination = originalDescription.replace('Traveling to ', '');
-                        cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                        cell.classList.remove('status-traveling', 'status-other');
-                        cell.classList.add('status-okay');
-                    } else {
-                        cell.textContent = `${statusState} (Time Up)`;
-                        cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                        cell.classList.add('status-okay');
-                    }
-                }
-            }
-        });
-    }
-
-    // NEW: Update Chain Timer Display (smooth 1-second countdown)
-    // This logic relies on global variables set by fetchAndDisplayChainData, which must be called separately by setInterval in DOMContentLoaded
-    console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
-    if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-        const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
-        const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-        chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-    } else if (chainTimerDisplay) {
-        chainTimerDisplay.textContent = 'Chain Over';
-    }
-
-    // NEW: Update Chain Started Time Display
-    // This section ensures the Chain Started time is displayed when data is available
-    if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-        chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-    } else if (chainStartedDisplay) {
-        chainStartedDisplay.textContent = 'Started: N/A';
-    }
-}
-
-async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
-    if (!factionID || !apiKey) return;
-    try {
-        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
-        const response = await fetch(enemyApiUrl);
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-        enemyDataGlobal = await response.json(); // Store enemy data globally
-        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
-        console.log("Enemy Faction API Data:", enemyData);
-        if (enemyData.error) {
-            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
-        }
-
-        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
-
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
-
-        if (enemyData.members) {
-            // Corrected function call
-            displayEnemyTargetsTable(enemyData.members);
-            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
-        } else {
-            console.warn("Enemy faction members data not found.");
-            // Corrected function call
-            displayEnemyTargetsTable(null);
-            populateEnemyMemberCheckboxes({}, []);
-        }
-    } catch (error) {
-        console.error('Error fetching enemy faction data:', error);
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
-        if (factionTwoMembersEl) factionTwoTwoMembersEl.textContent = 'N/A';
-        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
-        displayEnemyTargetsTable(null);
-        populateEnemyMemberCheckboxes({}, []);
-    }
-}
-
-
-
-
-  // NEW: Update Chain Timer Display (smooth 1-second countdown)
-  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
-  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
-      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
-      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-  } else if (chainTimerDisplay) {
-      // If no chain is active or data is reset, show 'Chain Over'
-      chainTimerDisplay.textContent = 'Chain Over';
-  }
-
-  // NEW: Update Chain Started Time Display
-  // This section ensures the Chain Started time is displayed when data is available
-  // It is placed here because the value does not change after initial fetch
-  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-  } else if (chainStartedDisplay) {
-      chainStartedDisplay.textContent = 'Started: N/A';
-  }
-  
- // NEW: Function to fetch and display Chain Score (e.g., Lead Target progress)
-async function fetchAndDisplayChainScore(apiKey) {
-    const yourFactionNameScoreEl = document.getElementById('yourFactionNameScore');
-    const currentChainScoreEl = document.getElementById('currentChainScore');
-    const leadTargetProgressEl = document.getElementById('leadTargetProgress');
-    const targetFactionScoreEl = document.getElementById('targetFactionScore');
-    const enemyFactionNameScoreEl = document.getElementById('enemyFactionNameScore');
-
-    // Set initial loading states
-    if (currentChainScoreEl) currentChainScoreEl.textContent = '...';
-    if (leadTargetProgressEl) leadTargetProgressEl.textContent = '... / ...';
-    if (targetFactionScoreEl) targetFactionScoreEl.textContent = '...';
-
-    if (!apiKey) {
-        console.warn("API key is not available. Cannot fetch chain score data.");
-        if (currentChainScoreEl) currentChainScoreEl.textContent = 'N/A';
-        if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'N/A';
-        if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'N/A';
+    if (!enemyMembers || typeof enemyMembers !== 'object' || Object.keys(enemyMembers).length === 0) {
+        bigHitterWatchlistContainer.innerHTML = '<div class="member-selection-item">No enemy members available</div>';
         return;
     }
 
-    try {
-        const chainScoreApiUrl = `https://api.torn.com/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainScore`;
-        const response = await fetch(chainScoreApiUrl);
+    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
+        const nameA = enemyMembers[a].name || '';
+        const nameB = enemyMembers[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
 
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-        const chainData = await response.json();
-        console.log("Chain Score API Data (selections=chain):", chainData);
+    sortedEnemyMemberIds.forEach(memberId => {
+        const member = enemyMembers[memberId];
+        const memberName = member.name || `Unknown (${memberId})`;
 
-        if (chainData && chainData.chain) {
-            const chain = chainData.chain;
-            
-            // Your Faction Name
-            if (yourFactionNameScoreEl && factionApiFullData && factionApiFullData.basic) {
-                yourFactionNameScoreEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-            } else if (yourFactionNameScoreEl) {
-                yourFactionNameScoreEl.textContent = 'Your Faction'; // Fallback
-            }
-
-            // Current Chain Score (left side)
-            if (currentChainScoreEl) {
-                currentChainScoreEl.textContent = chain.current !== undefined ? chain.current.toLocaleString() : 'N/A';
-            }
-
-            // Lead Target Progress (middle)
-            if (leadTargetProgressEl) {
-                const maxHits = chain.max !== undefined ? chain.max.toLocaleString() : 'N/A';
-                // Assuming 'chain_target_score' represents the lead target progress value
-                const targetScore = chain.chain_target_score !== undefined ? chain.chain_target_score.toLocaleString() : 'N/A';
-                leadTargetProgressEl.textContent = `${targetScore} / ${maxHits}`;
-            }
-
-            // Target Faction Score (right side)
-            if (targetFactionScoreEl) {
-                // If the chain.target_id is the enemy faction, we can try to display its name
-                // For now, let's display the 'target' from the chain data, which typically represents the enemy score or a value associated with them.
-                targetFactionScoreEl.textContent = chain.target !== undefined ? chain.target.toLocaleString() : 'N/A';
-            }
-
-            // Enemy Faction Name for Target Score (This requires a separate basic selection for enemy faction if not already fetched)
-            // For now, we use a generic label or assume globalEnemyFactionID's name is already known from other fetches.
-            if (enemyFactionNameScoreEl) {
-                 if (globalEnemyFactionID && enemyDataGlobal && enemyDataGlobal.basic) { // Assuming enemyDataGlobal is available from fetchAndDisplayEnemyFaction
-                     enemyFactionNameScoreEl.textContent = enemyDataGlobal.basic.name || 'Enemy Faction';
-                 } else {
-                     enemyFactionNameScoreEl.textContent = 'Enemy Faction'; // Default generic
-                 }
-            }
-
-
-        } else {
-            console.warn("Chain data not found in API response for chain score.");
-            if (currentChainScoreEl) currentChainScoreEl.textContent = 'N/A';
-            if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'N/A';
-            if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'N/A';
-        }
-
-    } catch (error) {
-        console.error("Error fetching chain score data:", error);
-        if (currentChainScoreEl) currentChainScoreEl.textContent = 'Error';
-        if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'Error';
-        if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'Error';
-    }
-} 
-
-  // NEW: Update Chain Timer Display (smooth 1-second countdown)
-  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
-  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
-      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
-      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-  } else if (chainTimerDisplay) {
-      // If no chain is active or data is reset, show 'Chain Over'
-      chainTimerDisplay.textContent = 'Chain Over';
-  }
-
-  // --- ADD THIS NEW BLOCK BELOW YOUR EXISTING updateAllTimers LOGIC ---
-  if (userApiKey) {
-    fetchAndDisplayChainData(userApiKey);
-  } else {
-    console.warn("API key not available. Cannot update chain timer.");
-  }
-  
-// NEW: Function to handle claiming a target
-// UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
-function claimTarget(memberId) {
-    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    const targetRow = document.getElementById(`target-row-${memberId}`);
-
-    if (claimBtn) {
-        // Change the button text and make its new function call unclaimTarget
-        claimBtn.textContent = 'Unclaim';
-        claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
-    }
-    
-    // Change the row color to show it's claimed
-    if (targetRow) {
-        targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
-    }
+        const isWatchlistChecked = (savedWatchlistMembers && savedWatchlistMembers.includes(memberId)) ? 'checked' : '';
+        const itemHtml = `<div class="member-selection-item"><input type="checkbox" id="enemy-member-${memberId}" value="${memberId}" ${isWatchlistChecked}><label for="enemy-member-${memberId}">${memberName}</label></div>`;
+        bigHitterWatchlistContainer.insertAdjacentHTML('beforeend', itemHtml);
+    });
 }
-// NEW: Helper function to format time remaining from seconds
 
-
-// NEW: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
-// MODIFIED: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
+// Main Table Population Function
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
         return;
     }
 
-    // Clear the container first
-    enemyTargetsContainer.innerHTML = '';
+    enemyTargetsContainer.innerHTML = ''; // Clear the container first
 
     if (!members || Object.keys(members).length === 0) {
         enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
@@ -526,206 +322,379 @@ function displayEnemyTargetsTable(members) {
 
         // Determine Last Action text
         const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
-        const lastActionText = formatRelativeTime(lastActionTimestamp); // Use the new function here
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
 
         tableHtml += `<tr id="target-row-${memberId}">
-                             <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
-                             <td class="col-level">${member.level}</td>
-                             <td class="col-last-action">${lastActionText}</td> <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
-                             <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
-                             <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
-                         </tr>`;
+                                <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                                <td class="col-level">${member.level}</td>
+                                <td class="col-last-action">${lastActionText}</td> <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                                <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                                <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                            </tr>`;
     }
     tableHtml += `</tbody></table>`;
 
     enemyTargetsContainer.innerHTML = tableHtml;
 }
 
-function rgbToHex(r, g, b) {
-    return (
-        "#" +
-        ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()
-    );
-}
 
-function get_ff_colour(value) {
-    let r, g, b;
-    if (value <= 1) {
-        r = 0x28; g = 0x28; b = 0xc6; // Blue
-    } else if (value <= 3) {
-        const t = (value - 1) / 2;
-        r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t);
-    } else if (value <= 5) {
-        const t = (value - 3) / 2;
-        r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28;
+// --- API Fetching Functions ---
+
+// NEW: Function to fetch and display chain data
+async function fetchAndDisplayChainData(apiKey) {
+  if (!apiKey) {
+    console.warn("API key is not available. Cannot fetch chain data.");
+    return;
+  }
+
+  try {
+    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
+    const response = await fetch(chainApiUrl);
+    if (!response.ok) {
+      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+    }
+    const chainData = await response.json();
+    console.log("Chain API Data (fetched):", chainData);
+
+    if (chainData && chainData.chain) {
+      // Store the relevant values globally for updateAllTimers to use
+      currentLiveChainSeconds = chainData.chain.timeout || 0;
+      lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+      globalChainStartedTimestamp = chainData.chain.start || 0;
+      globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+
+      // Update the chain number display directly here, as it's not a countdown
+      if (currentChainNumberDisplay) {
+        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+      }
+
+      // Logic for Chain Started time display (no change from previous as requested)
+      if (chainStartedDisplay) {
+        const newChainStartedTimestamp = chainData.chain.start || 0;
+        if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+            globalChainStartedTimestamp = newChainStartedTimestamp;
+            chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+        } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+            globalChainStartedTimestamp = 0;
+            chainStartedDisplay.textContent = 'Started: N/A';
+        } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+            // No change needed
+        }
+      }
+
     } else {
-        r = 0xc6; g = 0x28; b = 0x28; // Red
-    }
-    return rgbToHex(r, g, b);
-}
+      console.warn("Chain data not found in API response, or chain object is missing.");
+      // Reset global variables if no chain data
+      currentLiveChainSeconds = 0;
+      lastChainApiFetchTime = 0;
+      globalChainStartedTimestamp = 0;
+      globalChainCurrentNumber = 'N/A';
 
-function get_contrast_color(hex) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const brightness = r * 0.299 + g * 0.587 + b * 0.114;
-    return brightness > 126 ? "black" : "white";
-}
-
-function get_difficulty_text(ff) {
-    if (ff <= 1) return "Extremely easy";
-    else if (ff <= 2) return "Easy";
-    else if (ff <= 3.5) return "Moderately difficult";
-    else if (ff <= 4.5) return "Difficult";
-    else return "May be impossible";
-}
-
-
-// NEW: Function to format time from timestamp
-function formatTornTime(timestamp) {
-  const date = new Date(timestamp * 1000); // Torn API timestamps are in seconds
-  const hours = String(date.getUTCHours()).padStart(2, '0');
-  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
-}
-
-async function displayQuickFFTargets(userApiKey, playerId) {
-    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-    if (!quickFFTargetsDisplay) {
-        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
-        return;
+      // Ensure display elements are reset if API data is missing/invalid
+      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+      if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
     }
 
-    quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>'; // Loading state
+  } catch (error) {
+    console.error("Error fetching chain data:", error);
+    // On error, reset global variables and display 'Error'
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
 
-    if (!userApiKey || !playerId) {
-        quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
-        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+  }
+}
+
+// Function to fetch and display Enemy Faction Data (Moved up for scope)
+async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+    if (!factionID || !apiKey) return;
+    try {
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        const enemyData = await response.json();
+        console.log("Enemy Faction API Data:", enemyData);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
+
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
+
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
+        if (enemyData.members) {
+            displayEnemyTargetsTable(enemyData.members);
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
+        } else {
+            console.warn("Enemy faction members data not found.");
+            displayEnemyTargetsTable(null);
+            populateEnemyMemberCheckboxes({}, []);
+        }
+    } catch (error) {
+        console.error('Error fetching enemy faction data:', error);
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        displayEnemyTargetsTable(null);
+        populateEnemyMemberCheckboxes({}, []);
+    }
+}
+
+// NEW: Function to fetch and display Ranked War Scores
+async function fetchAndDisplayRankedWarScores(apiKey) {
+    if (!apiKey) {
+        console.warn("API key not available for ranked war data refresh.");
         return;
     }
 
     try {
-        // 1. Get IDs of players currently in the main enemy table
-        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
-        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
-        console.log("Excluded Player IDs (from main table):", excludedPlayerIDs);
-
-        const functionUrl = `/.netlify/functions/get-recommended-targets`;
-        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
-        });
+        const rankedWarApiUrl = `https://api.torn.com/faction/?selections=ranked_wars&key=${apiKey}&comment=MyTornPA_RankedWarScores`;
+        const response = await fetch(rankedWarApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
         const data = await response.json();
+        console.log("Ranked War API Data:", data);
 
-        if (!response.ok || data.error) {
-            const errorMessage = data.error || `Error from server: ${response.status} ${response.statusText}`;
-            quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
-            console.error("Error fetching Quick FF Targets:", errorMessage);
-            return;
-        }
+        if (data && data.ranked_wars) {
+            globalRankedWarData = data.ranked_wars; // Store it globally
 
-        if (!data.targets || data.targets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
-            return;
-        }
+            const yourFactionId = factionApiFullData.ID; // Assuming factionApiFullData contains our ID
+            let activeWar = null;
+            let opponentFactionId = null;
 
-        // 2. Filter out already displayed targets from the fetched list
-        const availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
-        console.log("Available targets after exclusion:", availableTargets);
+            for (const warId in data.ranked_wars) {
+                const warEntry = data.ranked_wars[warId];
+                if (warEntry.war && warEntry.war.end === 0) { // Check if war is active (end time 0)
+                    activeWar = warEntry;
+                    opponentFactionId = Object.keys(activeWar.factions).find(id => id !== String(yourFactionId));
+                    break;
+                }
+            }
 
-        if (availableTargets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
-            return;
-        }
+            if (activeWar && yourFactionId && opponentFactionId) {
+                const yourFactionInfo = activeWar.factions[yourFactionId];
+                const opponentFactionInfo = activeWar.factions[opponentFactionId];
 
-        // 3. Shuffle the available targets (Fisher-Yates algorithm)
-        for (let i = availableTargets.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]]; // Swap
-        }
-        console.log("Shuffled available targets:", availableTargets);
+                // Update HTML elements
+                if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score || 'N/A' : 'N/A';
+                if (yourFactionNameScoreLabel && yourFactionInfo) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
 
-        // Clear existing content to populate with new links
-        quickFFTargetsDisplay.innerHTML = '';
+                if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score || 'N/A' : 'N/A';
+                if (opponentFactionNameScoreLabel && opponentFactionInfo) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
 
-        // Display up to the first 2 unique and random targets
-        for (let i = 0; i < Math.min(2, availableTargets.length); i++) {
-            const target = availableTargets[i];
-            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
-            const targetName = target.playerName || `Target ${i + 1}`; // Fallback name
+                if (warTargetScore) warTargetScore.textContent = activeWar.war.target || 'N/A';
+                if (warStartedTime) warStartedTime.textContent = activeWar.war.start ? formatTornTime(activeWar.war.start) : 'N/A';
 
-            const targetHtml = `
-                <a href="${attackUrl}" target="_blank"
-                   class="quick-ff-target-btn"
-                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
-                    ${targetName}
-                </a>
-            `;
-            quickFFTargetsDisplay.insertAdjacentHTML('beforeend', targetHtml);
+
+            } else {
+                // No active war found or data incomplete
+                if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+                if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+                if (warTargetScore) warTargetScore.textContent = 'N/A';
+                if (warStartedTime) warStartedTime.textContent = 'N/A';
+                if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+                if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+            }
+
+        } else {
+            console.warn("Ranked war data not found in API response, or ranked_wars object is missing.");
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+            if (warTargetScore) warTargetScore.textContent = 'N/A';
+            if (warStartedTime) warStartedTime.textContent = 'N/A';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
         }
 
     } catch (error) {
-        console.error("Failed to fetch or display Quick FF Targets:", error);
-        quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
+        console.error("Error fetching ranked war data:", error);
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
+        if (warTargetScore) warTargetScore.textContent = 'Error';
+        if (warStartedTime) warStartedTime.textContent = 'Error';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
 
 
+// NEW: Function to handle claiming a target
+// UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
+function claimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
 
-function formatRelativeTime(timestampInSeconds) {
-    if (!timestampInSeconds || timestampInSeconds === 0) {
-        return "N/A";
+    if (claimBtn) {
+        // Change the button text and make its new function call unclaimTarget
+        claimBtn.textContent = 'Unclaim';
+        claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
     }
-
-    const now = Math.floor(Date.now() / 1000); // Current time in seconds
-    const diffSeconds = now - timestampInSeconds;
-
-    if (diffSeconds < 60) {
-        return "Now"; // Less than 1 minute
-    } else if (diffSeconds < 3600) { // Less than 1 hour (60 minutes)
-        const minutes = Math.floor(diffSeconds / 60);
-        return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
-    } else if (diffSeconds < 86400) { // Less than 1 day (24 hours)
-        const hours = Math.floor(diffSeconds / 3600);
-        return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-    } else { // 1 day or more
-        const days = Math.floor(diffSeconds / 86400);
-        return `${days} day${days === 1 ? '' : 's'} ago`;
+    
+    // Change the row color to show it's claimed
+    if (targetRow) {
+        targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
     }
 }
-// NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
-function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
-    if (!bigHitterWatchlistContainer) {
-        console.error("HTML Error: Cannot find element with ID 'bigHitterWatchlistContainer'.");
-        return;
+
+function unclaimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+
+    if (claimBtn) {
+        // Re-enable the button and set it back to the "Claim" state
+        claimBtn.disabled = false;
+        claimBtn.textContent = 'Claim';
+        // Change the onclick event back to call claimTarget
+        claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
     }
 
-    bigHitterWatchlistContainer.innerHTML = ''; // Clear existing checkboxes
-
-    if (!enemyMembers || typeof enemyMembers !== 'object' || Object.keys(enemyMembers).length === 0) {
-        bigHitterWatchlistContainer.innerHTML = '<div class="member-selection-item">No enemy members available</div>';
-        return;
+    // Remove the special background color from the row
+    if (targetRow) {
+        targetRow.style.backgroundColor = '';  
     }
+}
 
-    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
-        const nameA = enemyMembers[a].name || '';
-        const nameB = enemyMembers[b].name || '';
-        return nameA.localeCompare(nameB);
+// NEW: Autocomplete setup for the Current Team Lead input
+function setupTeamLeadAutocomplete(allFactionMembers) {
+    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+    if (!currentTeamLeadInput) return;
+
+    let autocompleteList = null; // Reference to the suggestion list div
+    let currentFocus = -1;       // Current focused item for keyboard navigation
+
+    // Filter members for autocomplete suggestions
+    const filterMembers = (searchTerm) => {
+        searchTerm = searchTerm.toLowerCase();
+        if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
+        const filtered = Object.values(allFactionMembers).filter(member => 
+            member.name && member.name.toLowerCase().startsWith(searchTerm)
+        ).sort((a, b) => a.name.localeCompare(b.name));
+        console.log("Autocomplete Filtered Matches for '" + searchTerm + "':", filtered); // <<< CONSOLE LOG ADDED
+        return filtered;
+    };
+
+    // Create and display the autocomplete suggestions
+    const showSuggestions = (arr) => {
+        console.log("Attempting to show suggestions:", arr); // <<< CONSOLE LOG ADDED
+        // Remove any existing list
+        closeAllLists();
+
+        if (!arr.length) { 
+            console.log("Input value is empty, not showing suggestions."); // <<< CONSOLE LOG ADDED
+            return false; 
+        } 
+
+        // Create the autocomplete list container
+        autocompleteList = document.createElement("DIV");
+        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
+        autocompleteList.setAttribute("class", "autocomplete-items"); // Add a class for styling
+
+        // Append the list to the parent of the input (e.g., the toggle-control div)
+        // This ensures the list is positioned correctly relative to the input
+        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
+        console.log("Autocomplete list container created and appended."); // <<< CONSOLE LOG ADDED
+
+        // Populate the list with suggestions
+        arr.forEach(member => {
+            const item = document.createElement("DIV");
+            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
+            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
+            item.innerHTML += `<input type="hidden" value="${member.name}">`; // Hidden input to hold the full name
+
+            item.addEventListener("click", function(e) {
+                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
+                closeAllLists();
+                currentTeamLeadInput.focus(); // Keep focus after selection
+            });
+            autocompleteList.appendChild(item);
+        });
+        console.log("Suggestions populated into list."); // <<< CONSOLE LOG ADDED
+        return true;
+    };
+
+    // Handle input events on the text field
+    currentTeamLeadInput.addEventListener("input", function(e) {
+        const val = this.value;
+        console.log("Input event fired. Value:", val); // <<< CONSOLE LOG ADDED
+        closeAllLists(); // Close any open lists
+
+        if (!val) { 
+            console.log("Input value is empty, not showing suggestions."); // <<< CONSOLE LOG ADDED
+            return false; 
+        } 
+
+        const matches = filterMembers(val);
+        showSuggestions(matches);
+        currentFocus = -1; // Reset focus on new input
     });
 
-    sortedEnemyMemberIds.forEach(memberId => {
-        const member = enemyMembers[memberId];
-        const memberName = member.name || `Unknown (${memberId})`;
+    // Handle keyboard navigation (arrows, Enter, Escape)
+    currentTeamLeadInput.addEventListener("keydown", function(e) {
+        let x = document.getElementById(this.id + "-autocomplete-list");
+        if (x) x = x.getElementsByTagName("div"); // Get all suggestion items
 
-        const isWatchlistChecked = (savedWatchlistMembers && savedWatchlistMembers.includes(memberId)) ? 'checked' : '';
-        const itemHtml = `<div class="member-selection-item"><input type="checkbox" id="enemy-member-${memberId}" value="${memberId}" ${isWatchlistChecked}><label for="enemy-member-${memberId}">${memberName}</label></div>`;
-        bigHitterWatchlistContainer.insertAdjacentHTML('beforeend', itemHtml);
+        if (e.keyCode == 40) { // DOWN arrow
+            currentFocus++;
+            addActive(x);
+        } else if (e.keyCode == 38) { // UP arrow
+            currentFocus--;
+            addActive(x);
+        } else if (e.keyCode == 13) { // ENTER key
+            e.preventDefault(); // Prevent form submission
+            if (currentFocus > -1) {
+                if (x) x[currentFocus].click(); // Simulate a click on the active item
+            } else {
+                closeAllLists(); // If no item is focused, just close the list
+            }
+        } else if (e.keyCode == 27) { // ESCAPE key
+            closeAllLists();
+        }
+    });
+
+    // Helper to add "active" class for keyboard navigation highlighting
+    const addActive = (x) => {
+        if (!x) return false;
+        removeActive(x); // Remove active from all items first
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+    };
+
+    // Helper to remove "active" class
+    const removeActive = (x) => {
+        for (let i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
+    };
+
+    // Close all autocomplete lists
+    const closeAllLists = (elmnt) => {
+        const x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != currentTeamLeadInput) { // Don't close if click target is the list or input
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+        currentFocus = -1; // Reset focus when lists are closed
+    };
+
+    // Close lists when clicking outside the input/list
+    document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
     });
 }
 
-// --- Data Loading & UI Population ---
+// --- Data Loading & UI Population Functions ---
+// Moved up to be available before initializeAndLoadData and populateUiComponents
 
 async function initializeAndLoadData(apiKey) {
     try {
@@ -794,75 +763,6 @@ function populateUiComponents(warData, apiKey) {
     }
 }
 
-// Inside fetchAndDisplayEnemyFaction function...
-// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayChainData' FUNCTION WITH THIS ONE
-async function fetchAndDisplayChainData(apiKey) {
-  if (!apiKey) {
-    console.warn("API key is not available. Cannot fetch chain data.");
-    return;
-  }
-
-  try {
-    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
-    const response = await fetch(chainApiUrl);
-    if (!response.ok) {
-      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-    }
-    const chainData = await response.json();
-    console.log("Chain API Data (fetched):", chainData); // This log is already here and is useful!
-
-    if (chainData && chainData.chain) {
-      // Store the relevant values globally for updateAllTimers to use
-      currentLiveChainSeconds = chainData.chain.timeout || 0;
-      lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
-      globalChainStartedTimestamp = chainData.chain.start || 0;
-      globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
-
-      // Update current chain number display here (as it's directly from API)
-      if (currentChainNumberDisplay) {
-        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
-      }
-
-      // Logic for Chain Started time display (no change from previous as requested)
-      if (chainStartedDisplay) {
-        const newChainStartedTimestamp = chainData.chain.start || 0;
-        if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
-            globalChainStartedTimestamp = newChainStartedTimestamp;
-            chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-        } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
-            globalChainStartedTimestamp = 0;
-            chainStartedDisplay.textContent = 'Started: N/A';
-        } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
-            // No change needed
-        }
-      }
-
-    } else {
-      console.warn("Chain data not found in API response, or chain object is missing.");
-      // Reset global variables if no chain data
-      currentLiveChainSeconds = 0;
-      lastChainApiFetchTime = 0;
-      globalChainStartedTimestamp = 0;
-      globalChainCurrentNumber = 'N/A';
-
-      // Ensure display elements are reset if API data is missing/invalid
-      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
-    }
-
-  } catch (error) {
-    console.error("Error fetching chain data:", error);
-    // On error, reset global variables and display 'Error'
-    currentLiveChainSeconds = 0;
-    lastChainApiFetchTime = 0;
-    globalChainStartedTimestamp = 0;
-    globalChainCurrentNumber = 'N/A';
-
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-  }
-}
-
 function populateWarStatusDisplay(warData = {}) {
     if (warEnlistedStatus) warEnlistedStatus.textContent = warData.toggleEnlisted ? 'Yes' : 'No';
     if (warTermedStatus) warTermedStatus.textContent = warData.toggleTermedWar ? 'Yes' : 'No';
@@ -890,7 +790,7 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
     if (!currentTeamLeadInput) return;
 
     let autocompleteList = null; // Reference to the suggestion list div
-    let currentFocus = -1;      // Current focused item for keyboard navigation
+    let currentFocus = -1;       // Current focused item for keyboard navigation
 
     // Filter members for autocomplete suggestions
     const filterMembers = (searchTerm) => {
@@ -909,10 +809,10 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
         // Remove any existing list
         closeAllLists();
 
-        if (!arr.length) {
-            console.log("No matches to show."); // <<< CONSOLE LOG ADDED
-            return false;
-        }
+        if (!arr.length) { 
+            console.log("Input value is empty, not showing suggestions."); // <<< CONSOLE LOG ADDED
+            return false; 
+        } 
 
         // Create the autocomplete list container
         autocompleteList = document.createElement("DIV");
@@ -1030,8 +930,8 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-	
-	
+    
+    
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
@@ -1112,6 +1012,7 @@ function setupEventListeners(apiKey) {
     }
 }
 
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1121,73 +1022,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
+            // Define userProfileRef INSIDE this block, as 'user' is scoped here.
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
             const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null;
+            const playerId = userData.tornProfileId || null; // NEW: Get player ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            if (apiKey && playerId) {
-                userApiKey = apiKey;
+            if (apiKey && playerId) { // MODIFIED: Check for both API key and player ID
+                userApiKey = apiKey; // Ensure userApiKey is set globally
 
+                // Initial load of general UI components
                 await initializeAndLoadData(apiKey);
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
                     listenersInitialized = true;
 
-                    setInterval(updateAllTimers, 1000);
+                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
+                    setInterval(updateAllTimers, 1000); // Now only updates local timers
 
-                    // Fetch and display quick FF targets periodically
+                    // NEW: Fetch and display quick FF targets periodically
                     setInterval(() => {
                         if (userApiKey && playerId) {
                             displayQuickFFTargets(userApiKey, playerId);
                         } else {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 60000);
+                    }, 60000); // Refresh quick targets every 60 seconds (60000 ms)
 
+                    // Start Chain Data API fetch every 1.75 seconds
                     setInterval(() => {
                         if (userApiKey) {
                             fetchAndDisplayChainData(userApiKey);
                         } else {
                             console.warn("API key not available for periodic chain data refresh.");
                         }
-                    }, 1750);
+                    }, 1750); // 1750 milliseconds = 1.75 seconds
 
+                    // Start Enemy Data API fetch every 1 second
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1000);
+                    }, 1000); // 1000 milliseconds = 1 second
 
-                    // NEW: Periodically fetch and display chain score
+                    // NEW: Start Ranked War Scores API fetch every 30 seconds
                     setInterval(() => {
-                        if (userApiKey) {
-                            fetchAndDisplayChainScore(userApiKey);
+                        if (userApiKey && factionApiFullData && factionApiFullData.ID) { // Need our own faction ID
+                            fetchAndDisplayRankedWarScores(userApiKey);
                         } else {
-                            console.warn("API key not available for periodic chain score refresh.");
+                            console.warn("API key or faction data not available for periodic Ranked War scores refresh.");
                         }
-                    }, 5000); // Refresh every 5 seconds, adjust as needed
+                    }, 30000); // 30000 milliseconds = 30 seconds
 
-                    // Initial API fetches
+                    // Perform initial API fetches immediately on load
                     if (userApiKey) {
                         fetchAndDisplayChainData(userApiKey);
-                        fetchAndDisplayChainScore(userApiKey); // NEW: Initial call for chain score
                     }
                     if (userApiKey && globalEnemyFactionID) {
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
+                    // NEW: Initial call for quick FF targets
                     if (userApiKey && playerId) {
                         displayQuickFFTargets(userApiKey, playerId);
                     }
-                }
-            } else {
+                    // NEW: Initial call for Ranked War Scores
+                    if (userApiKey && factionApiFullData && factionApiFullData.ID) {
+                        fetchAndDisplayRankedWarScores(userApiKey);
+                    }
+                } // Closes: if (!listenersInitialized)
+            } else { // MODIFIED: Condition now explicitly checks for API Key or Player ID
                 console.warn("API key or Player ID not found.");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                // NEW: Clear and display initial Quick FF Target placeholders
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
@@ -1199,5 +1110,5 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    });
-});
+    }); // Closes: auth.onAuthStateChanged
+}); // Closes: document.addEventListener('DOMContentLoaded', ...)
