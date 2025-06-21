@@ -545,6 +545,74 @@
     border-color: #007bff;
 }
 
+/* Styling for the new Chain Score Display within Active Ops */
+.ops-control-item.ops-chain-score {
+    display: flex;
+    flex-direction: row; /* Arrange the main groups horizontally: YourFaction, MiddleInfo, EnemyFaction */
+    justify-content: space-between; /* Pushes YourFaction group to left, EnemyFaction group to right, middle in between */
+    align-items: flex-start; /* Align items to the top (names will determine height) */
+    padding: 5px;
+    border: 1px solid black; /* Match surrounding control items */
+    border-radius: 8px; /* Match surrounding control items */
+    background-color: #222; /* Match surrounding control items */
+    box-sizing: border-box;
+    white-space: nowrap; /* Prevent content from wrapping */
+    flex-grow: 1; /* Allow it to grow and fill available space in the grid */
+    min-width: 250px; /* Ensure it has a reasonable min-width if needed */
+}
+
+/* Group for Faction Name and Score (e.g., Your Faction and 1,407) */
+.ops-chain-score .faction-score-group {
+    display: flex;
+    flex-direction: column; /* Stack name above score */
+    align-items: center; /* Center name and score within their small column */
+    gap: 2px; /* Small gap between name and score */
+}
+
+/* Faction Name (e.g., Your Faction, Enemy Faction) */
+.ops-chain-score .score-faction-name {
+    font-size: 0.8em;
+    color: #f0f0f0; /* Light text for names */
+    font-weight: bold;
+    /* text-align: center; is implied by align-items: center on parent faction-score-group */
+}
+
+/* Score Value (e.g., 1,407, 1,930) */
+.ops-chain-score .score-value {
+    font-size: 1.5em; /* Larger font size for the scores */
+    font-weight: bold;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.ops-chain-score .current-score {
+    color: #ff8c00; /* Orange color for current score */
+}
+
+.ops-chain-score .target-score {
+    color: #4CAF50; /* Green color for target score */
+}
+
+/* Middle section with LEAD TARGET and progress */
+.ops-chain-score .score-target-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center "LEAD TARGET" and "523 / 2,800" */
+    justify-content: center; /* Vertically center if needed */
+    flex-grow: 1; /* Allows this section to take up available horizontal space */
+    padding: 0 5px; /* Add some horizontal padding to give space around it */
+}
+
+.ops-chain-score .score-label {
+    font-weight: bold;
+    color: #e0a71a; /* Gold-like color for labels */
+    font-size: 0.7em; /* Consistent with your example */
+}
+
+.ops-chain-score .score-progress {
+    color: #a9a9a9; /* Greyish color for progress numbers */
+    font-size: 0.7em; /* Consistent with your example */
+}
+
 /* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
 #postAnnouncementBtn {
     margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
