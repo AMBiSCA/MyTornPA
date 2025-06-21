@@ -116,7 +116,7 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 // Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
 // REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
 function updateAllTimers() {
-  const nowInSeconds = Math.floor(Date.now() / 1000);
+  const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
 
   // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
   // This part handles the manually set 'Next Planned Chain Time' countdown locally.
@@ -179,9 +179,25 @@ function updateAllTimers() {
           }
       });
   }
-}
 
-  // --- NEW API CALL TRIGGERING LOGIC ---
+  // NEW: Update Chain Timer Display (smooth 1-second countdown)
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
+      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      // If no chain is active or data is reset, show 'Chain Over'
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // NEW: Update Chain Started Time Display
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+}- NEW API CALL TRIGGERING LOGIC ---
   // Trigger API calls for both chain and enemy data every 1.5 seconds (every 3rd tick if main interval is 0.5s)
   if (apiCallCounter % 3 === 0) {
       if (userApiKey) {
@@ -382,6 +398,7 @@ function formatTornTime(timestamp) {
 }
 
 // NEW: Function to fetch and display chain data
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayChainData' FUNCTION WITH THIS ONE
 async function fetchAndDisplayChainData(apiKey) {
   if (!apiKey) {
     console.warn("API key is not available. Cannot fetch chain data.");
@@ -395,50 +412,41 @@ async function fetchAndDisplayChainData(apiKey) {
       throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
     }
     const chainData = await response.json();
-    console.log("Chain API Data:", chainData);
+    console.log("Chain API Data (fetched):", chainData); // Log for debugging
 
     if (chainData && chainData.chain) {
-      if (chainTimerDisplay) {
-        // MODIFIED: Use chainData.chain.timeout for timeLeft if available and positive
-        const endTime = chainData.chain.chain_end; // Keep for fallback if timeout is not used
-        const now = Math.floor(Date.now() / 1000); // Current time in seconds
+      // Store the relevant values globally for updateAllTimers to use
+      currentLiveChainSeconds = chainData.chain.timeout || 0;
+      lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+      globalChainStartedTimestamp = chainData.chain.start || 0;
+      globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
 
-        let timeLeft = 0;
-        // Prioritize 'timeout' if it's a valid positive number
-        if (typeof chainData.chain.timeout === 'number' && chainData.chain.timeout > 0) {
-            timeLeft = chainData.chain.timeout;
-        } 
-        // Fallback to 'chain_end' if 'timeout' isn't active/positive and 'chain_end' is in the future
-        else if (typeof endTime === 'number' && endTime > now) {
-            timeLeft = endTime - now;
-        }
-
-        chainTimerDisplay.textContent = timeLeft > 0 ? formatTime(timeLeft) : 'Chain Over';
-      }
+      // Update the chain number display directly here, as it's not a countdown
       if (currentChainNumberDisplay) {
-        currentChainNumberDisplay.textContent = chainData.chain.current || 'N/A';
+        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
       }
-      if (chainStartedDisplay) {
-        // MODIFIED: Use chainData.chain.start instead of chainData.chain.chain_started
-        // Only update if 'start' property exists and is a truthy value (e.g., not 0 or null)
-        if (chainData.chain.start) {
-            chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.start)}`;
-        } else {
-            chainStartedDisplay.textContent = 'Started: N/A'; // Explicitly set N/A if 'start' is falsy/missing
-        }
-      }
+
     } else {
       console.warn("Chain data not found in API response, or chain object is missing.");
-      if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+      // Reset global variables if no chain data
+      currentLiveChainSeconds = 0;
+      lastChainApiFetchTime = 0;
+      globalChainStartedTimestamp = 0;
+      globalChainCurrentNumber = 'N/A';
+
+      // Ensure display elements are reset if API data is missing/invalid
       if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
     }
 
   } catch (error) {
     console.error("Error fetching chain data:", error);
-    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+    // On error, reset global variables and display 'Error'
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
+
     if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
   }
 }
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
