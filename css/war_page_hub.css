@@ -467,10 +467,21 @@
 .ops-control-item {
     display: flex;
     flex-direction: column;
-    gap: 3px; /* NEW: Reduced gap */
-    align-items: flex-start;
+    gap: 3px;
+    /* align-items: flex-start;  REMOVE THIS LINE - it forces content to the left */
     white-space: nowrap;
-    font-size: 0.9em; /* NEW: Slightly smaller font */
+    font-size: 0.9em;
+
+    /* NEW: Add alignment for the item itself within the grid cell */
+    justify-self: end; /* Aligns the item to the end (right) of its grid cell */
+    text-align: right; /* Aligns text within this item to the right */
+}
+
+/* Specific adjustment for the label within ops-quick-targets to ensure it aligns with text-align: right */
+.ops-control-item.ops-quick-targets label {
+    width: 100%; /* Ensure label takes full width */
+    text-align: right; /* Align the label text to the right */
+    box-sizing: border-box; /* Include padding/border in width */
 }
 
 .ops-control-item label {
