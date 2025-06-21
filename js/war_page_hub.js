@@ -236,8 +236,7 @@ function updateAllTimers() {
   } else if (chainStartedDisplay) {
       chainStartedDisplay.textContent = 'Started: N/A';
   }
-}
-  
+ 
  // NEW: Function to fetch and display Chain Score (e.g., Lead Target progress)
 async function fetchAndDisplayChainScore(apiKey) {
     const yourFactionNameScoreEl = document.getElementById('yourFactionNameScore');
