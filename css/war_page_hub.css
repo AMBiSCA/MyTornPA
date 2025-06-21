@@ -490,14 +490,11 @@
 /* Specific styling for Quick FF Targets container (side-by-side) */
 .ops-control-item .quick-ff-targets-container {
     display: flex;
-    flex-direction: row; /* Arrange items horizontally */
-    gap: 5px; /* Space between target displays */
-    flex-wrap: wrap; /* Allow targets to wrap if space is too small */
-    width: 100%;
+    flex-direction: column; /* This stacks Target 1 and Target 2 vertically */
+    gap: 5px; /* Adds vertical space between Target 1 and Target 2 */
+    width: 100%; /* Ensures the container takes full available width */
 }
 .ops-control-item .quick-ff-targets-container span {
-    flex-grow: 1; /* Allow targets to grow to fill space */
-    min-width: 45%; /* Ensure they don-t get too small */
     text-align: center;
     border: 1px solid #00a8ff;
     border-radius: 4px;
@@ -505,6 +502,8 @@
     background-color: #333;
     color: #f0f0f0;
     font-size: 0.8em;
+    width: 100%; /* Makes each target span the full width available to its container */
+    box-sizing: border-box; /* Ensures padding/border are included in the 100% width */
 }
 
 /* The #quickAnnouncementInput is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
