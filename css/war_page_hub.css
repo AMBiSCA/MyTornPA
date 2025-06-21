@@ -545,7 +545,7 @@
 /* Outer wrapper for the fixed header table setup */
 /* This matches your HTML: <div class="enemy-targets-list-section"> */
 .enemy-targets-list-section {
-    margin-top: 5x; /* Adjust this value (e.g., 10px, 30px) to move it down further */
+    margin-top: 5px; /* Adjust this value (e.g., 10px, 30px) to move it down further */
     margin-bottom: 50px;
     max-width: 900px; /* Adjust as needed */
     background-color: #222;
