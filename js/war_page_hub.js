@@ -1220,6 +1220,8 @@ function setupEventListeners(apiKey) {
 
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1240,7 +1242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let warData = {}; // CRITICAL FIX: Initialize warData here to ensure it's always defined
             try {
                 const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warDoc.data() : {};
+                warData = warDoc.exists ? warData.data() : {};
             } catch (firebaseError) {
                 console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
                 // warData remains {} on error, allowing populateUiComponents to still be called without crashing
@@ -1257,8 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Explicit initial calls for API-driven displays
                 fetchAndDisplayChainData(); 
-                // fetchAndDisplayRankedWarScores(); // COMMENTED OUT: Initial call for Ranked War Scores display
-
+                fetchAndDisplayRankedWarScores(); 
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
@@ -1267,14 +1268,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Start local timers (e.g., hospital/travel countdowns) every 1 second
                     setInterval(updateAllTimers, 1000); 
 
-                    // Start Enemy Data API fetch every 1 second
+                    // MODIFIED: Enemy Data API fetch every 1.5 seconds (was 1 second)
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1000); 
+                    }, 1500); // CHANGED from 1000 to 1500
 
                     // Start Quick FF Targets fetch every 60 seconds
                     setInterval(() => {
@@ -1293,19 +1294,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
                     }, 1750); 
-
-                    // Removed setInterval for fetchAndDisplayRankedWarScores here.
-                    // If you want to re-enable it later, you would add:
-                    /*
-                    setInterval(() => {
-                        if (userApiKey && factionApiFullData && factionApiFullData.wars && factionApiFullData.ID) { // Check for 'wars' and 'ID'
-                            fetchAndDisplayRankedWarScores();
-                        } else {
-                            console.warn("API key or faction data (wars/ID) not available for periodic Ranked War scores refresh.");
-                        }
-                    }, 30000); // 30 seconds
-                    */
-
 
                     // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
                     if (userApiKey && globalEnemyFactionID) {
