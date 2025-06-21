@@ -39,8 +39,6 @@ const toggleTurtleMode = document.getElementById('toggleTurtleMode');
 const nextChainTimeInput = document.getElementById('nextChainTimeInput');
 const enemyFactionIDInput = document.getElementById('enemyFactionIDInputLeaderConfig');
 const saveWarStatusControlsBtn = document.getElementById('saveWarStatusControlsBtn');
-const friendlyMembersListContainer = document.getElementById('friendlyMembersListContainer');
-const totalEnergyDisplay = document.getElementById('total-energy-display');
 
 // UPDATED: DOM getters for the new div containers
 const designatedAdminsContainer = document.getElementById('designatedAdminsContainer');
@@ -61,6 +59,10 @@ function showTab(tabId) {
     if (selectedTab) selectedTab.classList.add('active');
     const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab', '')}"]`);
     if (selectedButton) selectedButton.classList.add('active');
+}
+
+function getFactionImageUrl(imageFileName) {
+    return imageFileName ? `https://www.torn.com/factions.php?image=${imageFileName}` : '';
 }
 
 function countFactionMembers(membersObject) {
@@ -99,29 +101,6 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
 }
-
-function formatTimeSince(timestamp) {
-    if (!timestamp || !timestamp.seconds) return 'N/A';
-    const now = new Date();
-    const lastActionDate = timestamp.toDate();
-    const seconds = Math.floor((now - lastActionDate) / 1000);
-
-    if (seconds < 60) return `${seconds}s ago`;
-    
-    let interval = seconds / 31536000;
-    if (interval > 1) return `${Math.floor(interval)}y ago`;
-    interval = seconds / 2592000;
-    if (interval > 1) return `${Math.floor(interval)}m ago`;
-    interval = seconds / 86400;
-    if (interval > 1) return `${Math.floor(interval)}d ago`;
-    interval = seconds / 3600;
-    if (interval > 1) return `${Math.floor(interval)}h ago`;
-    interval = seconds / 60;
-    if (interval > 1) return `${Math.floor(interval)}min ago`;
-    return `${Math.floor(seconds)}s ago`;
-}
-
-// ... the rest of your code ...
 
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
@@ -180,7 +159,6 @@ async function initializeAndLoadData(apiKey) {
         const warData = warDoc.exists ? warDoc.data() : {};
 
         populateUiComponents(warData, apiKey);
-		listenForLiveMemberData();
 
     } catch (error) {
         console.error("Error during data initialization:", error);
@@ -519,100 +497,6 @@ function setupEventListeners(apiKey) {
                 console.error("Error saving big hitter watchlist:", error);
             }
         });
-    }
-}
-
-// *** NEW: Main function to listen for live data and render the table ***
-function listenForLiveMemberData() {
-    // This assumes member data is stored in a subcollection named 'liveData'
-    const liveDataRef = db.collection('factionWars').doc('currentWar').collection('liveData');
-
-    liveDataRef.onSnapshot(snapshot => {
-        let liveMembers = [];
-        snapshot.forEach(doc => {
-            liveMembers.push({ id: doc.id, ...doc.data() });
-        });
-        
-        // Combine with the main member list to get names, levels etc.
-        const combinedData = liveMembers.map(liveMember => {
-            const staticData = factionApiFullData.members[liveMember.id] || {};
-            return { ...staticData, ...liveMember }; // live data (energy, status) overrides static
-        });
-
-        renderFriendlyStatusTable(combinedData);
-    }, error => {
-        console.error("Error listening to live member data:", error);
-        if(friendlyMembersListContainer) friendlyMembersListContainer.innerHTML = `<p>Error loading live member data.</p>`;
-    });
-}
-
-// *** NEW: Function to build and render the friendly status table ***
-function renderFriendlyStatusTable(memberData) {
-    if (!friendlyMembersListContainer) {
-        console.error("HTML Error: Cannot find element with ID 'friendlyMembersListContainer'.");
-        return;
-    }
-
-    let tableHtml = `
-        <table class="status-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Level</th>
-                    <th>Strength</th>
-                    <th>Defense</th>
-                    <th>Speed</th>
-                    <th>Dexterity</th>
-                    <th>Last Action</th>
-                    <th>Energy</th>
-                    <th>Drug C/D</th>
-                    <th>Travelling</th>
-                    <th>Hospital</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    let totalCurrentEnergy = 0;
-    let totalMaxEnergy = 0;
-
-    // Sort data alphabetically by name
-    memberData.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
-
-    for (const member of memberData) {
-        // Safely access nested properties
-        const currentEnergy = member.energy ? member.energy.current : 0;
-        const maxEnergy = member.energy ? member.energy.max : 0;
-        
-        totalCurrentEnergy += currentEnergy;
-        totalMaxEnergy += maxEnergy;
-
-        const drugCooldown = member.cooldowns ? member.cooldowns.drug : 0;
-        const hospitalTimer = member.status ? member.status.hospital_timestamp : 0;
-        const travelingTimer = member.status ? member.status.travel_timestamp : 0;
-        
-        tableHtml += `
-            <tr>
-                <td>${member.name || 'Unknown'} [${member.id}]</td>
-                <td>${member.level || 'N/A'}</td>
-                <td>${member.strength ? member.strength.toLocaleString() : 'N/A'}</td>
-                <td>${member.defense ? member.defense.toLocaleString() : 'N/A'}</td>
-                <td>${member.speed ? member.speed.toLocaleString() : 'N/A'}</td>
-                <td>${member.dexterity ? member.dexterity.toLocaleString() : 'N/A'}</td>
-                <td>${formatTimeSince(member.last_action)}</td>
-                <td>${currentEnergy}/${maxEnergy}</td>
-                <td>${drugCooldown > 0 ? `${drugCooldown}m` : 'OK'}</td>
-                <td>${travelingTimer > 0 ? 'Yes' : 'No'}</td>
-                <td>${hospitalTimer > 0 ? 'Yes' : 'No'}</td>
-            </tr>
-        `;
-    }
-
-    tableHtml += `</tbody></table>`;
-    friendlyMembersListContainer.innerHTML = tableHtml;
-
-    if (totalEnergyDisplay) {
-        totalEnergyDisplay.textContent = `Total Faction Energy: ${totalCurrentEnergy.toLocaleString()} / ${totalMaxEnergy.toLocaleString()}`;
     }
 }
 
