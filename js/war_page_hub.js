@@ -1,4 +1,6 @@
- War Page Hub JavaScript (war_page_hub.js) 
+/* ==========================================================================
+   War Page Hub JavaScript (war_page_hub.js) - v9 (Selective V2 URL Test)
+   ========================================================================== */
 
 // --- Global Variables ---
 const db = firebase.firestore();
@@ -105,6 +107,8 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
  * Updates all real-time timers on the page, including the main chain timer
  * and individual hospital/travel timers in the enemy targets table.
  */
+// Existing updateAllTimers function (DO NOT REPLACE THE WHOLE FUNCTION, JUST ADD THIS PART)
+// Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
 function updateAllTimers() {
   const nowInSeconds = Math.floor(Date.now() / 1000);
   apiCallCounter++; // Increment counter with each tick
@@ -834,6 +838,7 @@ function setupEventListeners(apiKey) {
     }
 }
 
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -864,6 +869,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
     });
-    // Start the real-time timers with a faster interval for 1.5s refresh
-    setInterval(updateAllTimers, 500); // CHANGED FROM 1000 to 500
+    // Start the real-time timers
+    setInterval(updateAllTimers, 1000);
 });
