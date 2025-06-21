@@ -332,7 +332,7 @@
     border-radius: 8px;
     display: flex;
     flex-direction: column; /* Stack tabs, display, input vertically */
-    height: 700px; /* Crucial: Make chatbox fill available height of its parent .active-ops-right-panel */
+    height: 475px; /* Crucial: Make chatbox fill available height of its parent .active-ops-right-panel */
     overflow: hidden; /* Ensures content stays within rounded borders */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
 }
