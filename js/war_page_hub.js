@@ -197,8 +197,7 @@ function updateAllTimers() {
   } else if (chainStartedDisplay) {
       chainStartedDisplay.textContent = 'Started: N/A';
   }
-- NEW API CALL TRIGGERING LOGIC ---
-  // Trigger API calls for both chain and enemy data every 1.5 seconds (every 3rd tick if main interval is 0.5s)
+
   if (apiCallCounter % 3 === 0) {
       if (userApiKey) {
           fetchAndDisplayChainData(userApiKey); // Fetch chain data
