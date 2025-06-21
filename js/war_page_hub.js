@@ -10,10 +10,6 @@ let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // NEW: Counter for API call intervals
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-let currentLiveChainSeconds = 0; // Stores the 'timeout' value from the last API fetch
-let lastChainApiFetchTime = 0;   // Stores Date.now() (in milliseconds) of the last chain API fetch
-let globalChainStartedTimestamp = 0; // Stores the 'start' timestamp from the API
-let globalChainCurrentNumber = 'N/A'; // Stores the 'current' chain number from the API
 
 
 // --- DOM Element Getters ---
@@ -116,7 +112,7 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 // Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
 // REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
 function updateAllTimers() {
-  const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
+  const nowInSeconds = Math.floor(Date.now() / 1000);
 
   // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
   // This part handles the manually set 'Next Planned Chain Time' countdown locally.
@@ -179,25 +175,10 @@ function updateAllTimers() {
           }
       });
   }
+}
 
-  // NEW: Update Chain Timer Display (smooth 1-second countdown)
-  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
-      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
-      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-  } else if (chainTimerDisplay) {
-      // If no chain is active or data is reset, show 'Chain Over'
-      chainTimerDisplay.textContent = 'Chain Over';
-  }
-
-  // NEW: Update Chain Started Time Display
-  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-  } else if (chainStartedDisplay) {
-      chainStartedDisplay.textContent = 'Started: N/A';
-  }
-
+  // --- NEW API CALL TRIGGERING LOGIC ---
+  // Trigger API calls for both chain and enemy data every 1.5 seconds (every 3rd tick if main interval is 0.5s)
   if (apiCallCounter % 3 === 0) {
       if (userApiKey) {
           fetchAndDisplayChainData(userApiKey); // Fetch chain data
@@ -397,7 +378,6 @@ function formatTornTime(timestamp) {
 }
 
 // NEW: Function to fetch and display chain data
-// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayChainData' FUNCTION WITH THIS ONE
 async function fetchAndDisplayChainData(apiKey) {
   if (!apiKey) {
     console.warn("API key is not available. Cannot fetch chain data.");
@@ -411,41 +391,50 @@ async function fetchAndDisplayChainData(apiKey) {
       throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
     }
     const chainData = await response.json();
-    console.log("Chain API Data (fetched):", chainData); // Log for debugging
+    console.log("Chain API Data:", chainData);
 
     if (chainData && chainData.chain) {
-      // Store the relevant values globally for updateAllTimers to use
-      currentLiveChainSeconds = chainData.chain.timeout || 0;
-      lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
-      globalChainStartedTimestamp = chainData.chain.start || 0;
-      globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+      if (chainTimerDisplay) {
+        // MODIFIED: Use chainData.chain.timeout for timeLeft if available and positive
+        const endTime = chainData.chain.chain_end; // Keep for fallback if timeout is not used
+        const now = Math.floor(Date.now() / 1000); // Current time in seconds
 
-      // Update the chain number display directly here, as it's not a countdown
-      if (currentChainNumberDisplay) {
-        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+        let timeLeft = 0;
+        // Prioritize 'timeout' if it's a valid positive number
+        if (typeof chainData.chain.timeout === 'number' && chainData.chain.timeout > 0) {
+            timeLeft = chainData.chain.timeout;
+        } 
+        // Fallback to 'chain_end' if 'timeout' isn't active/positive and 'chain_end' is in the future
+        else if (typeof endTime === 'number' && endTime > now) {
+            timeLeft = endTime - now;
+        }
+
+        chainTimerDisplay.textContent = timeLeft > 0 ? formatTime(timeLeft) : 'Chain Over';
       }
-
+      if (currentChainNumberDisplay) {
+        currentChainNumberDisplay.textContent = chainData.chain.current || 'N/A';
+      }
+      if (chainStartedDisplay) {
+        // MODIFIED: Use chainData.chain.start instead of chainData.chain.chain_started
+        // Only update if 'start' property exists and is a truthy value (e.g., not 0 or null)
+        if (chainData.chain.start) {
+            chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.start)}`;
+        } else {
+            chainStartedDisplay.textContent = 'Started: N/A'; // Explicitly set N/A if 'start' is falsy/missing
+        }
+      }
     } else {
       console.warn("Chain data not found in API response, or chain object is missing.");
-      // Reset global variables if no chain data
-      currentLiveChainSeconds = 0;
-      lastChainApiFetchTime = 0;
-      globalChainStartedTimestamp = 0;
-      globalChainCurrentNumber = 'N/A';
-
-      // Ensure display elements are reset if API data is missing/invalid
+      if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
       if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
     }
 
   } catch (error) {
     console.error("Error fetching chain data:", error);
-    // On error, reset global variables and display 'Error'
-    currentLiveChainSeconds = 0;
-    lastChainApiFetchTime = 0;
-    globalChainStartedTimestamp = 0;
-    globalChainCurrentNumber = 'N/A';
-
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
   }
 }
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
@@ -842,72 +831,67 @@ function setupEventListeners(apiKey) {
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Event listeners for tab buttons
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
     });
-    showTab('announcements-tab'); // Show the initial tab
+    showTab('announcements-tab');
+    let listenersInitialized = false;
 
-    let listenersInitialized = false; // Flag to ensure listeners and intervals are set up only once
-
-    // Firebase authentication state observer
     auth.onAuthStateChanged(async (user) => {
         if (user) {
-            // User is signed in. Fetch user profile and API key.
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
             currentTornUserName = doc.exists ? doc.data().preferredName : 'Unknown';
 
             if (apiKey) {
-                userApiKey = apiKey; // Set global API key
+                userApiKey = apiKey; // Ensure userApiKey is set globally
 
-                // Load initial UI components and data
+                // Initial load of general UI components
                 await initializeAndLoadData(apiKey);
 
-                // Initialize listeners and intervals only if they haven't been yet
                 if (!listenersInitialized) {
-                    setupEventListeners(apiKey); // Setup UI event listeners
+                    setupEventListeners(apiKey);
                     listenersInitialized = true;
 
-                    // Start intervals for data refreshing
-                    setInterval(updateAllTimers, 1000); // Update local timers every 1 second
+                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
+                    setInterval(updateAllTimers, 1000); // Now only updates local timers
 
+                    // Start Chain Data API fetch every 1.75 seconds
                     setInterval(() => {
                         if (userApiKey) {
                             fetchAndDisplayChainData(userApiKey);
                         } else {
-                            console.warn("API key not available for periodic chain data refresh (chain data).");
+                            console.warn("API key not available for periodic chain data refresh.");
                         }
-                    }, 1750); // Fetch chain data every 1.75 seconds
+                    }, 1750); // 1750 milliseconds = 1.75 seconds
 
+                    // Start Enemy Data API fetch every 1 second
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh (enemy data).");
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1000); // Fetch enemy data every 1 second
+                    }, 1000); // 1000 milliseconds = 1 second
 
-                    // Perform initial API fetches immediately on load (if not done already)
+                    // Perform initial API fetches immediately on load
                     if (userApiKey) {
                         fetchAndDisplayChainData(userApiKey);
                     }
                     if (userApiKey && globalEnemyFactionID) {
-                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
-                } // Closes: if (!listenersInitialized)
+                }
             } else {
-                // API key not found for the logged-in user
                 console.warn("API key not found.");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
             }
         } else {
-            // User is signed out. Reset states.
             userApiKey = null;
-            listenersInitialized = false; // Reset flag when user logs out
+            listenersInitialized = false;
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    }); // Closes: auth.onAuthStateChanged
-}); // Closes: document.addEventListener('DOMContentLoaded', ...)
+    });
+});
