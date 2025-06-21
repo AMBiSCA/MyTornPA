@@ -1212,10 +1212,9 @@ function setupEventListeners(apiKey) {
         });
     }
 }
+
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
-// --- Main Initialization ---
-// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
-// --- Main Initialization ---
+
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1233,32 +1232,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerId = userData.tornProfileId || null; // Get player ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            // NEW: Fetch warData from Firebase here, once after auth state changed
-            const warDoc = await db.collection('factionWars').doc('currentWar').get();
-            const warData = warDoc.exists ? warData.data() : {};
+            let warData = {}; // MODIFIED: Initialize warData here to ensure it's always defined
+            try {
+                const warDoc = await db.collection('factionWars').doc('currentWar').get();
+                warData = warDoc.exists ? warDoc.data() : {};
+            } catch (firebaseError) {
+                console.error("Error fetching warData from Firebase:", firebaseError);
+                // warData remains {} on error, so populateUiComponents can still be called
+            }
 
             if (apiKey && playerId) {
-                userApiKey = apiKey; // Ensure userApiKey is set globally
+                userApiKey = apiKey;
 
                 // Initial load of comprehensive faction data (basic, members, chain, wars)
-                // This call populates factionApiFullData
                 await initializeAndLoadData(apiKey); 
 
-                // NEW: Call populateUiComponents with fetched warData and apiKey
-                // This ensures all UI elements dependent on both Torn API data and Firebase warData are updated initially
+                // Call populateUiComponents with fetched warData and apiKey
                 populateUiComponents(warData, apiKey);
 
-                // NEW: Explicit initial calls for API-driven displays
+                // Explicit initial calls for API-driven displays
                 // These functions will now read from the globally populated factionApiFullData
-                fetchAndDisplayChainData(); // Initial call for Chain Timer/Started/Number
-                fetchAndDisplayRankedWarScores(); // Initial call for Ranked War Scores display
+                fetchAndDisplayChainData(); 
+                fetchAndDisplayRankedWarScores(); 
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
                     listenersInitialized = true;
 
                     // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); // Only updates local timers
+                    setInterval(updateAllTimers, 1000); 
 
                     // Start Enemy Data API fetch every 1 second
                     setInterval(() => {
@@ -1267,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1000); // 1000 milliseconds = 1 second
+                    }, 1000); 
 
                     // Start Quick FF Targets fetch every 60 seconds
                     setInterval(() => {
@@ -1276,23 +1278,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 60000); // Refresh quick targets every 60 seconds (60000 ms)
+                    }, 60000); 
 
                     // Start OUR Faction Data (Combined) fetch every 1.75 seconds
-                    // This is the periodic call to refresh ALL our faction's data
                     setInterval(() => {
                         if (userApiKey) { 
-                            initializeAndLoadData(userApiKey); // This will re-fetch and update factionApiFullData
+                            initializeAndLoadData(userApiKey); 
                         } else {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
-                    }, 1750); // 1750 milliseconds = 1.75 seconds
+                    }, 1750); 
 
-                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents which are done above)
-                    if (userApiKey && globalEnemyFactionID) { // Initial call for enemy data
+                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
+                    if (userApiKey && globalEnemyFactionID) {
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
-                    if (userApiKey && playerId) { // Initial call for quick FF targets
+                    if (userApiKey && playerId) {
                         displayQuickFFTargets(userApiKey, playerId);
                     }
                 } // Closes: if (!listenersInitialized)
@@ -1310,5 +1311,5 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    }); // Closes: auth.onAuthStateChanged
-}); // Closes: document.addEventListener('DOMContentLoaded', ...)
+    }); 
+}); 
