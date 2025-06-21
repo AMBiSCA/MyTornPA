@@ -484,6 +484,17 @@
     box-sizing: border-box; /* Include padding/border in width */
 }
 
+/* Specific styling to force ops-timer back to left alignment */
+.ops-control-item.ops-timer {
+    justify-self: start; /* Forces this specific grid item to align to the start (left) of its grid cell */
+    text-align: left;    /* Aligns the text content within this item to the left */
+}
+
+/* Ensure the label within ops-timer also aligns left */
+.ops-control-item.ops-timer label {
+    text-align: left; /* Forces the label text to be left-aligned */
+}
+
 .ops-control-item label {
     color: #00a8ff;
     font-weight: bold;
