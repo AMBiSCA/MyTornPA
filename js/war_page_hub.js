@@ -436,7 +436,7 @@ async function fetchAndDisplayChainScore(apiKey) {
       // If no chain is active or data is reset, show 'Chain Over'
       chainTimerDisplay.textContent = 'Chain Over';
   }
-}
+
   // --- ADD THIS NEW BLOCK BELOW YOUR EXISTING updateAllTimers LOGIC ---
   if (userApiKey) {
     fetchAndDisplayChainData(userApiKey);
