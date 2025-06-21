@@ -842,67 +842,72 @@ function setupEventListeners(apiKey) {
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Event listeners for tab buttons
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
     });
-    showTab('announcements-tab');
-    let listenersInitialized = false;
+    showTab('announcements-tab'); // Show the initial tab
 
+    let listenersInitialized = false; // Flag to ensure listeners and intervals are set up only once
+
+    // Firebase authentication state observer
     auth.onAuthStateChanged(async (user) => {
         if (user) {
+            // User is signed in. Fetch user profile and API key.
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
             currentTornUserName = doc.exists ? doc.data().preferredName : 'Unknown';
 
             if (apiKey) {
-                userApiKey = apiKey; // Ensure userApiKey is set globally
+                userApiKey = apiKey; // Set global API key
 
-                // Initial load of general UI components
+                // Load initial UI components and data
                 await initializeAndLoadData(apiKey);
 
+                // Initialize listeners and intervals only if they haven't been yet
                 if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
+                    setupEventListeners(apiKey); // Setup UI event listeners
                     listenersInitialized = true;
 
-                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); // Now only updates local timers
+                    // Start intervals for data refreshing
+                    setInterval(updateAllTimers, 1000); // Update local timers every 1 second
 
-                    // Start Chain Data API fetch every 1.75 seconds
                     setInterval(() => {
                         if (userApiKey) {
                             fetchAndDisplayChainData(userApiKey);
                         } else {
-                            console.warn("API key not available for periodic chain data refresh.");
+                            console.warn("API key not available for periodic chain data refresh (chain data).");
                         }
-                    }, 1750); // 1750 milliseconds = 1.75 seconds
+                    }, 1750); // Fetch chain data every 1.75 seconds
 
-                    // Start Enemy Data API fetch every 1 second
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh (enemy data).");
                         }
-                    }, 1000); // 1000 milliseconds = 1 second
+                    }, 1000); // Fetch enemy data every 1 second
 
-                    // Perform initial API fetches immediately on load
+                    // Perform initial API fetches immediately on load (if not done already)
                     if (userApiKey) {
                         fetchAndDisplayChainData(userApiKey);
                     }
                     if (userApiKey && globalEnemyFactionID) {
-                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
-                }
+                } // Closes: if (!listenersInitialized)
             } else {
+                // API key not found for the logged-in user
                 console.warn("API key not found.");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
             }
         } else {
+            // User is signed out. Reset states.
             userApiKey = null;
-            listenersInitialized = false;
+            listenersInitialized = false; // Reset flag when user logs out
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    });
-});
+    }); // Closes: auth.onAuthStateChanged
+}); // Closes: document.addEventListener('DOMContentLoaded', ...)
