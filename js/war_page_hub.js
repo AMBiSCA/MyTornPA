@@ -7,6 +7,7 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 let userApiKey = null;
 let factionApiFullData = null;
+let currentTornUserName = 'Unknown';
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -102,6 +103,41 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
 }
+// NEW: Function to handle claiming a target
+function claimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const attackLink = document.getElementById(`attack-link-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+
+    if (claimBtn) {
+        claimBtn.disabled = true;
+        // Use the user's name
+        claimBtn.textContent = `Claimed by ${currentTornUserName}`; 
+        claimBtn.style.cursor = 'not-allowed';
+    }
+    // Optional: visually disable the attack link too
+    if (attackLink) {
+        attackLink.style.pointerEvents = 'none';
+        attackLink.style.opacity = '0.5';
+    }
+    // Optional: change the row color to show it's claimed
+    if (targetRow) {
+        targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
+    }
+}
+
+// NEW: Helper function to format time remaining from seconds
+function formatTime(seconds) {
+    if (seconds <= 0) return '0s';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    let result = '';
+    if (h > 0) result += `${h}h `;
+    if (m > 0) result += `${m}m `;
+    if (s > 0) result += `${s}s`;
+    return result.trim();
+}
 
 function formatTime(seconds) {
     if (seconds <= 0) return '0s';
@@ -116,6 +152,7 @@ function formatTime(seconds) {
 }
 
 // NEW: Function to build and display the enemy targets table
+// UPDATED: Function to build and display the enemy targets table with a Claim button
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
@@ -125,12 +162,14 @@ function displayEnemyTargetsTable(members) {
         enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
         return;
     }
+    // Added "Claim" to the header
     let tableHtml = `<table class="enemy-targets-table">
                         <thead>
                             <tr>
                                 <th>Name (ID)</th>
                                 <th>Level</th>
                                 <th>Status</th>
+                                <th>Claim</th>
                                 <th>Attack</th>
                             </tr>
                         </thead>
@@ -149,11 +188,14 @@ function displayEnemyTargetsTable(members) {
         } else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
         }
-        tableHtml += `<tr>
+        
+        // Added id to the row, a new cell for the claim button, and an id for the attack link
+        tableHtml += `<tr id="target-row-${memberId}">
                         <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                         <td>${member.level}</td>
                         <td class="${statusClass}">${statusText}</td>
-                        <td><a href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                        <td><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                        <td><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
                       </tr>`;
     }
     tableHtml += `</tbody></table>`;
@@ -548,7 +590,6 @@ function setupEventListeners(apiKey) {
     }
 }
 
-// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -562,6 +603,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
+
+            // This line gets the user's name and stores it in the global variable
+            currentTornUserName = doc.exists ? doc.data().name : 'Unknown';
 
             if (apiKey) {
                 userApiKey = apiKey;
