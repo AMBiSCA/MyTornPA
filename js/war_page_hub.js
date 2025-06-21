@@ -197,16 +197,21 @@ async function fetchAndDisplayChainData(apiKey) {
 
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
-    // NEW: Debugging logs to check condition variables
+    // NEW: Debugging logs to check condition variables (KEEP THESE FOR YOUR CONSOLE DEBUGGING)
     console.log("DEBUG_RANKED: Calling fetchAndDisplayRankedWarScores");
     console.log("DEBUG_RANKED: factionApiFullData:", factionApiFullData);
     console.log("DEBUG_RANKED: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
-    console.log("DEBUG_RANKED: factionApiFullData.wars.ranked_wars:", factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked_wars : 'N/A');
+    // MODIFIED: Logging the 'ranked' property explicitly as per your instruction
+    console.log("DEBUG_RANKED: factionApiFullData.wars.ranked (as requested):", factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked : 'N/A');
     console.log("DEBUG_RANKED: factionApiFullData.ID:", factionApiFullData ? factionApiFullData.ID : 'N/A');
 
-    // MODIFIED: Updated condition to look for 'wars.ranked_wars'
-    if (!factionApiFullData || !factionApiFullData.wars || !factionApiFullData.wars.ranked_wars || !factionApiFullData.ID) {
-        console.warn("Ranked War Data not fully available in factionApiFullData.wars.ranked_wars (condition failed).");
+    // MODIFIED: Access ranked_wars through the 'wars' object, looking for 'ranked' as requested
+    // Note: This assumes 'ranked' is the correct property name in your API response if 'ranked_wars' was failing.
+    // The API JSON previously showed 'ranked_wars' with an underscore and 's'.
+    const rankedWarData = factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked : null; // Changed to .ranked as per instruction
+    
+    if (!factionApiFullData || !factionApiFullData.wars || !rankedWarData || !factionApiFullData.ID) { // Condition uses rankedWarData directly
+        console.warn("Ranked War Data not fully available (condition failed based on 'ranked' property).");
         // Reset display if data is missing
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
@@ -218,14 +223,13 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     }
 
     try {
-        // MODIFIED: Access ranked_wars through the 'wars' object
-        const rankedWarData = factionApiFullData.wars.ranked_wars; 
-        console.log("Ranked War API Data (from factionApiFullData.wars):", rankedWarData);
+        console.log("Ranked War API Data (from factionApiFullData.wars.ranked):", rankedWarData); // Log the data being used
 
         // Find the active ranked war (assuming only one is typically active at a time)
         let activeWar = null;
         const yourFactionId = factionApiFullData.ID; // Get our faction ID from full data
 
+        // Iterating through the 'rankedWarData' object (which is factionApiFullData.wars.ranked)
         for (const warId in rankedWarData) {
             const warEntry = rankedWarData[warId];
             // Check if war is active (end time 0) AND has our faction as a participant
@@ -262,7 +266,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
         }
 
     } catch (error) {
-        console.error("Error processing ranked war data from factionApiFullData.wars:", error);
+        console.error("Error processing ranked war data from factionApiFullData.wars (after 'ranked' access attempt):", error);
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
         if (warTargetScore) warTargetScore.textContent = 'Error';
@@ -272,7 +276,6 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     }
 }
 
-// MODIFIED: updateAllTimers function (Moved for proper scope)
 function updateAllTimers() {
     console.count('updateAllTimers called');
     const nowInSeconds = Math.floor(Date.now() / 1000);
