@@ -23,10 +23,8 @@ const factionAnnouncementsDisplay = document.getElementById('factionAnnouncement
 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
 const factionOneNameEl = document.getElementById('factionOneName');
 const factionOneMembersEl = document.getElementById('factionOneMembers');
-const factionOnePicEl = document.getElementById('factionOnePic');
 const factionTwoNameEl = document.getElementById('factionTwoName');
 const factionTwoMembersEl = document.getElementById('factionTwoMembers');
-const factionTwoPicEl = document.getElementById('factionTwoPic');
 const gamePlanEditArea = document.getElementById('gamePlanEditArea');
 const saveGamePlanBtn = document.getElementById('saveGamePlanBtn');
 const quickAnnouncementInput = document.getElementById('quickAnnouncementInput');
@@ -41,15 +39,15 @@ const nextChainTimeInput = document.getElementById('nextChainTimeInput');
 const enemyFactionIDInput = document.getElementById('enemyFactionIDInputLeaderConfig');
 const saveWarStatusControlsBtn = document.getElementById('saveWarStatusControlsBtn');
 const enemyTargetsContainer = document.getElementById('enemyTargetsContainer');
-
-// UPDATED: DOM getters for the new div containers
 const designatedAdminsContainer = document.getElementById('designatedAdminsContainer');
 const bigHitterWatchlistContainer = document.getElementById('bigHitterWatchlistContainer');
 const energyTrackingContainer = document.getElementById('energyTrackingContainer');
-
 const saveAdminsBtn = document.getElementById('saveAdminsBtn');
 const saveEnergyTrackMembersBtn = document.getElementById('saveEnergyTrackMembersBtn');
 const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH'); // Get Big Hitter Save button
+const chainTimerDisplay = document.getElementById('chainTimerDisplay');
+const currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
+const chainStartedDisplay = document.getElementById('chainStartedDisplay');
 
 
 // --- Utility Functions ---
@@ -107,77 +105,83 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
  * Updates all real-time timers on the page, including the main chain timer
  * and individual hospital/travel timers in the enemy targets table.
  */
+// Existing updateAllTimers function (DO NOT REPLACE THE WHOLE FUNCTION, JUST ADD THIS PART)
 function updateAllTimers() {
-    const nowInSeconds = Math.floor(Date.now() / 1000);
+  const nowInSeconds = Math.floor(Date.now() / 1000);
 
-    // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp)
-    // Assuming nextChainTimeInput.value stores a Unix timestamp in seconds
-    if (warNextChainTimeStatus && nextChainTimeInput) {
-        const nextChainTimeValue = nextChainTimeInput.value.trim();
-        const targetChainTime = parseInt(nextChainTimeValue, 10);
+  // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp)
+  // Assuming nextChainTimeInput.value stores a Unix timestamp in seconds
+  if (warNextChainTimeStatus && nextChainTimeInput) {
+      const nextChainTimeValue = nextChainTimeInput.value.trim();
+      const targetChainTime = parseInt(nextChainTimeValue, 10);
 
-        if (!isNaN(targetChainTime) && targetChainTime > 0) {
-            const timeLeft = targetChainTime - nowInSeconds;
-            if (timeLeft > 0) {
-                warNextChainTimeStatus.textContent = formatTime(timeLeft);
-            } else {
-                warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
-                // Optionally: Disable the timer or reset the input if needed
-                // For continuous timer that might restart (e.g., new chain time set),
-                // it's fine to just update its text.
-            }
-        } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
-            // Do nothing if it's already N/A or empty, to avoid resetting manual text
-        } else {
-            // Only update if it previously had a value and it's now invalid or empty
-            warNextChainTimeStatus.textContent = 'N/A';
-        }
-    }
+      if (!isNaN(targetChainTime) && targetChainTime > 0) {
+          const timeLeft = targetChainTime - nowInSeconds;
+          if (timeLeft > 0) {
+              warNextChainTimeStatus.textContent = formatTime(timeLeft);
+          } else {
+              warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
+          }
+      } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
+          // Do nothing if it's already N/A or empty, to avoid resetting manual text
+      } else {
+          // Only update if it previously had a value and it's now invalid or empty
+          warNextChainTimeStatus.textContent = 'N/A';
+      }
+  }
 
 
-    // 2. Update Enemy Target Timers (Hospital and Traveling)
-    // We look for <td> elements within the enemyTargetsContainer that have data-until attributes
-    if (enemyTargetsContainer) {
-        const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+  // 2. Update Enemy Target Timers (Hospital and Traveling)
+  // We look for <td> elements within the enemyTargetsContainer that have data-until attributes
+  if (enemyTargetsContainer) {
+      const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
 
-        statusCells.forEach(cell => {
-            const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
-            const statusState = cell.dataset.statusState; // Get original status state
-            const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part (e.g. "Traveling to XYZ")
+      statusCells.forEach(cell => {
+          const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
+          const statusState = cell.dataset.statusState; // Get original status state
+          const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part (e.g. "Traveling to XYZ")
 
-            if (!isNaN(targetTime) && targetTime > 0) {
-                const timeLeft = targetTime - nowInSeconds;
+          if (!isNaN(targetTime) && targetTime > 0) {
+              const timeLeft = targetTime - nowInSeconds;
 
-                if (timeLeft > 0) {
-                    // Update text based on original status state
-                    if (statusState === 'Hospital') {
-                        cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                    }
-                    // For Traveling, we don't want a countdown, just the destination or "Arriving soon"
-                    // If the original text contains 'Traveling to', keep it.
-                    // This section won't change the Traveling text *unless* it expires
-                } else {
-                    // Timer has expired
-                    if (statusState === 'Hospital') {
-                        cell.textContent = `In Hospital (Time Up)`; // More explicit for Hospital
-                        cell.classList.remove('status-hospital', 'status-other');
-                        cell.classList.add('status-okay'); // Assume they are okay after hospital
-                    } else if (statusState === 'Traveling') {
-                        // For traveling, if time is up, they have arrived.
-                        // The original description would be "Traveling to X", so we extract X.
-                        const destination = originalDescription.replace('Traveling to ', '');
-                        cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                        cell.classList.remove('status-traveling', 'status-other');
-                        cell.classList.add('status-okay'); // Assume they are okay after travel
-                    } else {
-                        cell.textContent = `${statusState} (Time Up)`; // Generic fallback
-                        cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                        cell.classList.add('status-okay');
-                    }
-                }
-            }
-        });
-    }
+              if (timeLeft > 0) {
+                  // Update text based on original status state
+                  if (statusState === 'Hospital') {
+                      cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
+                  }
+                  // For Traveling, we don't want a countdown, just the destination or "Arriving soon"
+                  // If the original text contains 'Traveling to', keep it.
+                  // This section won't change the Traveling text *unless* it expires
+              } else {
+                  // Timer has expired
+                  if (statusState === 'Hospital') {
+                      cell.textContent = `In Hospital (Time Up)`; // More explicit for Hospital
+                      cell.classList.remove('status-hospital', 'status-other');
+                      cell.classList.add('status-okay'); // Assume they are okay after hospital
+                  } else if (statusState === 'Traveling') {
+                      // For traveling, if time is up, they have arrived.
+                      // The original description would be "Traveling to X", so we extract X.
+                      const destination = originalDescription.replace('Traveling to ', '');
+                      cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
+                      cell.classList.remove('status-traveling', 'status-other');
+                      cell.classList.add('status-okay'); // Assume they are okay after travel
+                  } else {
+                      cell.textContent = `${statusState} (Time Up)`; // Generic fallback
+                      cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                      cell.classList.add('status-okay');
+                  }
+              }
+          }
+      });
+  }
+
+  // --- ADD THIS NEW BLOCK BELOW YOUR EXISTING updateAllTimers LOGIC ---
+  if (userApiKey) {
+    fetchAndDisplayChainData(userApiKey);
+  } else {
+    console.warn("API key not available. Cannot update chain timer.");
+  }
+  // --- END OF NEW BLOCK ---
 }
 
 // NEW: Function to handle claiming a target
@@ -321,6 +325,61 @@ function displayEnemyTargetsTable(members) {
 
     // Append the entire wrapper to the enemyTargetsContainer
     enemyTargetsContainer.appendChild(tableWrapper);
+}
+
+// NEW: Function to format time from timestamp
+function formatTornTime(timestamp) {
+  const date = new Date(timestamp * 1000); // Torn API timestamps are in seconds
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+// NEW: Function to fetch and display chain data
+async function fetchAndDisplayChainData(apiKey) {
+  if (!apiKey) {
+    console.warn("API key is not available. Cannot fetch chain data.");
+    return;
+  }
+
+  try {
+    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
+    const response = await fetch(chainApiUrl);
+    if (!response.ok) {
+      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+    }
+    const chainData = await response.json();
+    console.log("Chain API Data:", chainData);
+
+    if (chainData && chainData.chain) {
+      if (chainTimerDisplay) {
+        const endTime = chainData.chain.chain_end;
+        const startTime = chainData.chain.chain_started;
+        const now = Math.floor(Date.now() / 1000);
+        const timeLeft = endTime - now;
+
+        chainTimerDisplay.textContent = timeLeft > 0 ? formatTime(timeLeft) : 'Chain Over';
+      }
+      if (currentChainNumberDisplay) {
+        currentChainNumberDisplay.textContent = chainData.chain.current || 'N/A';
+      }
+      if (chainStartedDisplay && chainData.chain.chain_started) {
+          chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.chain_started)}`;
+      }
+    } else {
+      console.warn("Chain data not found in API response.");
+      if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
+    }
+
+  } catch (error) {
+    console.error("Error fetching chain data:", error);
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: Error';
+  }
 }
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
