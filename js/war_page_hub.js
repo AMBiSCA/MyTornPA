@@ -74,10 +74,6 @@ function showTab(tabId) {
     if (selectedButton) selectedButton.classList.add('active');
 }
 
-function getFactionImageUrl(imageFileName) {
-    return imageFileName ? `https://www.torn.com/factions.php?image=${imageFileName}` : '';
-}
-
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
     return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
@@ -253,7 +249,6 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
             if (warTargetScore) warTargetScore.textContent = activeWar.war.target || 'N/A';
             if (warStartedTime) warStartedTime.textContent = activeWar.war.start ? formatTornTime(activeWar.war.start) : 'N/A';
-
 
         } else {
             // No active war found
