@@ -16,7 +16,7 @@ const warTermedStatus = document.getElementById('warTermedStatus');
 const warTermedWinLoss = document.getElementById('warTermedWinLoss');
 const warChainingStatus = document.getElementById('warChainingStatus');
 const warNoFlyingStatus = document.getElementById('warNoFlyingStatus');
-const warTurtleStatus = document.getElementById('warTurtleMode');
+const warTurtleStatus = document.getElementById('warTurtleStatus');
 const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
 const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
@@ -148,7 +148,7 @@ async function initializeAndLoadData(apiKey) {
         }
 
         factionApiFullData = await userFactionResponse.json();
-        // console.log("Faction API Full Data:", factionApiFullData); // Debug log removed
+		console.log("Faction API Full Data:", factionApiFullData); // ADD THIS LINE
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
@@ -170,7 +170,6 @@ function populateUiComponents(warData, apiKey) {
     if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
     if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
     if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
-    // Removed the line that set the background image for factionOnePicEl
     
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
@@ -200,6 +199,8 @@ function populateUiComponents(warData, apiKey) {
     // NEW: Also load saved watchlist members when UI components are populated
     // Note: populateEnemyMemberCheckboxes will be called by fetchAndDisplayEnemyFaction
     // or cleared above if no enemy ID is present.
+    // If you need pre-selection on initial load *before* enemy data arrives,
+    // you'll need to fetch savedWatchlist and pass it here.
     // For simplicity for now, it assumes saved members are handled when enemy data arrives.
 }
 
@@ -215,15 +216,18 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         }
 
         const enemyData = await response.json();
-        // console.log("Enemy Faction API Data:", enemyData); // Debug log removed
+        console.log("Enemy Faction API Data:", enemyData); // Keep this line for debugging for now
         if (enemyData.error) {
             console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
         }
 
+        // CORRECTED: Accessing name, members, and tag_image from enemyData.basic
         if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.basic.tag_image)}')`;
+
+        // ... rest of the fetchAndDisplayEnemyFaction function remains the same ...
 
         // UPDATED: Call the new function name for enemy members
         // NEW: Pass saved watchlist members to enable pre-selection
@@ -268,6 +272,136 @@ function loadWarStatusForEdit(warData = {}) {
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
 }
 
+// NEW: Autocomplete setup for the Current Team Lead input
+function setupTeamLeadAutocomplete(allFactionMembers) {
+    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+    if (!currentTeamLeadInput) return;
+
+    let autocompleteList = null; // Reference to the suggestion list div
+    let currentFocus = -1;      // Current focused item for keyboard navigation
+
+    // Filter members for autocomplete suggestions
+    const filterMembers = (searchTerm) => {
+        searchTerm = searchTerm.toLowerCase();
+        if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
+        const filtered = Object.values(allFactionMembers).filter(member => 
+            member.name && member.name.toLowerCase().startsWith(searchTerm)
+        ).sort((a, b) => a.name.localeCompare(b.name));
+        console.log("Autocomplete Filtered Matches for '" + searchTerm + "':", filtered); // <<< CONSOLE LOG ADDED
+        return filtered;
+    };
+
+    // Create and display the autocomplete suggestions
+    const showSuggestions = (arr) => {
+        console.log("Attempting to show suggestions:", arr); // <<< CONSOLE LOG ADDED
+        // Remove any existing list
+        closeAllLists();
+
+        if (!arr.length) {
+            console.log("No matches to show."); // <<< CONSOLE LOG ADDED
+            return false;
+        }
+
+        // Create the autocomplete list container
+        autocompleteList = document.createElement("DIV");
+        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
+        autocompleteList.setAttribute("class", "autocomplete-items"); // Add a class for styling
+
+        // Append the list to the parent of the input (e.g., the toggle-control div)
+        // This ensures the list is positioned correctly relative to the input
+        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
+        console.log("Autocomplete list container created and appended."); // <<< CONSOLE LOG ADDED
+
+        // Populate the list with suggestions
+        arr.forEach(member => {
+            const item = document.createElement("DIV");
+            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
+            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
+            item.innerHTML += `<input type="hidden" value="${member.name}">`; // Hidden input to hold the full name
+
+            item.addEventListener("click", function(e) {
+                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
+                closeAllLists();
+                currentTeamLeadInput.focus(); // Keep focus after selection
+            });
+            autocompleteList.appendChild(item);
+        });
+        console.log("Suggestions populated into list."); // <<< CONSOLE LOG ADDED
+        return true;
+    };
+
+    // Handle input events on the text field
+    currentTeamLeadInput.addEventListener("input", function(e) {
+        const val = this.value;
+        console.log("Input event fired. Value:", val); // <<< CONSOLE LOG ADDED
+        closeAllLists(); // Close any open lists
+
+        if (!val) { 
+            console.log("Input value is empty, not showing suggestions."); // <<< CONSOLE LOG ADDED
+            return false; 
+        } 
+
+        const matches = filterMembers(val);
+        showSuggestions(matches);
+        currentFocus = -1; // Reset focus on new input
+    });
+
+    // Handle keyboard navigation (arrows, Enter, Escape)
+    currentTeamLeadInput.addEventListener("keydown", function(e) {
+        let x = document.getElementById(this.id + "-autocomplete-list");
+        if (x) x = x.getElementsByTagName("div"); // Get all suggestion items
+
+        if (e.keyCode == 40) { // DOWN arrow
+            currentFocus++;
+            addActive(x);
+        } else if (e.keyCode == 38) { // UP arrow
+            currentFocus--;
+            addActive(x);
+        } else if (e.keyCode == 13) { // ENTER key
+            e.preventDefault(); // Prevent form submission
+            if (currentFocus > -1) {
+                if (x) x[currentFocus].click(); // Simulate a click on the active item
+            } else {
+                closeAllLists(); // If no item is focused, just close the list
+            }
+        } else if (e.keyCode == 27) { // ESCAPE key
+            closeAllLists();
+        }
+    });
+
+    // Helper to add "active" class for keyboard navigation highlighting
+    const addActive = (x) => {
+        if (!x) return false;
+        removeActive(x); // Remove active from all items first
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+    };
+
+    // Helper to remove "active" class
+    const removeActive = (x) => {
+        for (let i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
+    };
+
+    // Close all autocomplete lists
+    const closeAllLists = (elmnt) => {
+        const x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != currentTeamLeadInput) { // Don't close if click target is the list or input
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+        currentFocus = -1; // Reset focus when lists are closed
+    };
+
+    // Close lists when clicking outside the input/list
+    document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+    });
+}
+
 // --- Event Listeners Setup ---
 
 function setupEventListeners(apiKey) {
@@ -284,6 +418,8 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+	
+	
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
@@ -362,139 +498,39 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
-    // CORRECTED PLACEMENT: Setup autocomplete for the Current Team Lead input
-    if (factionApiFullData && factionApiFullData.members) { // Ensure members data is available
-        setupTeamLeadAutocomplete(factionApiFullData.members);
-    }
 }
 
-// NEW: Autocomplete setup for the Current Team Lead input
-function setupTeamLeadAutocomplete(allFactionMembers) {
-    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-    if (!currentTeamLeadInput) return;
-
-    let autocompleteList = null; // Reference to the suggestion list div
-    let currentFocus = -1;      // Current focused item for keyboard navigation
-
-    // Filter members for autocomplete suggestions
-    const filterMembers = (searchTerm) => {
-        searchTerm = searchTerm.toLowerCase();
-        if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
-        const filtered = Object.values(allFactionMembers).filter(member => 
-            member.name && member.name.toLowerCase().startsWith(searchTerm)
-        ).sort((a, b) => a.name.localeCompare(b.name));
-        // console.log("Autocomplete Filtered Matches for '" + searchTerm + "':", filtered); // ADD THIS LOG (removed by user)
-        return filtered;
-    };
-
-    // Create and display the autocomplete suggestions
-    const showSuggestions = (arr) => {
-        // console.log("Attempting to show suggestions:", arr); // ADD THIS LOG (removed by user)
-        // Remove any existing list
-        closeAllLists();
-
-        if (!arr.length) {
-            // console.log("No matches to show."); // ADD THIS LOG (removed by user)
-            return false;
-        }
-
-        // Create the autocomplete list container
-        autocompleteList = document.createElement("DIV");
-        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
-        autocompleteList.setAttribute("class", "autocomplete-items"); // Add a class for styling
-
-        // Append the list to the parent of the input (e.g., the toggle-control div)
-        // This ensures the list is positioned correctly relative to the input
-        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
-        // console.log("Autocomplete list container created and appended."); // ADD THIS LOG (removed by user)
-
-        // Populate the list with suggestions
-        arr.forEach(member => {
-            const item = document.createElement("DIV");
-            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
-            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
-            item.innerHTML += `<input type="hidden" value="${member.name}">`; // Hidden input to hold the full name
-
-            item.addEventListener("click", function(e) {
-                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
-                closeAllLists();
-                currentTeamLeadInput.focus(); // Keep focus after selection
-            });
-            autocompleteList.appendChild(item);
-        });
-        // console.log("Suggestions populated into list."); // ADD THIS LOG (removed by user)
-        return true;
-    };
-
-    // Handle input events on the text field
-    currentTeamLeadInput.addEventListener("input", function(e) {
-        const val = this.value;
-        // console.log("Input event fired. Value:", val); // ADD THIS LOG (removed by user)
-        closeAllLists(); // Close any open lists
-
-        if (!val) { 
-            // console.log("Input value is empty, not showing suggestions."); // ADD THIS LOG (removed by user)
-            return false; 
-        } 
-
-        const matches = filterMembers(val);
-        showSuggestions(matches);
-        currentFocus = -1; // Reset focus on new input
+// --- Main Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
     });
+    showTab('announcements-tab');
 
-    // Handle keyboard navigation (arrows, Enter, Escape)
-    currentTeamLeadInput.addEventListener("keydown", function(e) {
-        let x = document.getElementById(this.id + "-autocomplete-list");
-        if (x) x = x.getElementsByTagName("div"); // Get all suggestion items
+    let listenersInitialized = false;
 
-        if (e.keyCode == 40) { // DOWN arrow
-            currentFocus++;
-            addActive(x);
-        } else if (e.keyCode == 38) { // UP arrow
-            currentFocus--;
-            addActive(x);
-        } else if (e.keyCode == 13) { // ENTER key
-            e.preventDefault(); // Prevent form submission
-            if (currentFocus > -1) {
-                if (x) x[currentFocus].click(); // Simulate a click on the active item
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            const apiKey = doc.exists ? doc.data().tornApiKey : null;
+
+            if (apiKey) {
+                userApiKey = apiKey;
+                await initializeAndLoadData(apiKey);
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    listenersInitialized = true;
+                }
             } else {
-                closeAllLists(); // If no item is focused, just close the list
+                console.warn("API key not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
             }
-        } else if (e.keyCode == 27) { // ESCAPE key
-            closeAllLists();
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
     });
-
-    // Helper to add "active" class for keyboard navigation highlighting
-    const addActive = (x) => {
-        if (!x) return false;
-        removeActive(x); // Remove active from all items first
-        if (currentFocus >= x.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = (x.length - 1);
-        x[currentFocus].classList.add("autocomplete-active");
-    };
-
-    // Helper to remove "active" class
-    const removeActive = (x) => {
-        for (let i = 0; i < x.length; i++) {
-            x[i].classList.remove("autocomplete-active");
-        }
-    };
-
-    // Close all autocomplete lists
-    const closeAllLists = (elmnt) => {
-        const x = document.getElementsByClassName("autocomplete-items");
-        for (let i = 0; i < x.length; i++) {
-            if (elmnt != x[i] && elmnt != currentTeamLeadInput) { // Don't close if click target is the list or input
-                x[i].parentNode.removeChild(x[i]);
-            }
-        }
-        currentFocus = -1; // Reset focus when lists are closed
-    };
-
-    // Close lists when clicking outside the input/list
-    document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
-    });
-}
+});
