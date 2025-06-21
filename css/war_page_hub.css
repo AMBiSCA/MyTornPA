@@ -95,10 +95,10 @@
 .tab-pane {
     /* Styles for individual tab content areas */
     display: none;
-    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
-    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
+    height: 100%; /* IMPORTANT: Allow tab pane to fill available height */
+    overflow-y: visible; /* Allow content to push parent down if needed (controlled by main-content-wrapper overflow) */
+    box-sizing: border-box; /* Include padding/border in height calculations */
 }
-
 .tab-pane.active {
     display: block;
 }
@@ -136,12 +136,11 @@
 /* You will also need to ensure this rule is correctly placed inside your @media (max-width: 992px) block: */
 @media (max-width: 992px) {
     /* ... (your other existing rules in this media query) ... */
-
-    /* CORRECTED: This now targets .config-grid for responsive stacking */
-    .config-grid {
-        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
-        max-width: 600px; /* Limit width similar to other responsive sections */
+    .tab-content-container {
+        height: 100%; /* Ensure it fills parent height */
+        min-height: unset; /* Remove min-height here as well */
     }
+    /* ... (rest of media query) ... */
 }
 
 /* War Announcement Section (Tab 1) */
