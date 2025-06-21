@@ -144,6 +144,28 @@ function formatTime(seconds) {
     if (s > 0) result += `${s}s`;
     return result.trim();
 }
+// NEW: Function to update all countdown timers on the page
+function updateAllTimers() {
+    const now = Math.floor(Date.now() / 1000);
+    const timerElements = document.querySelectorAll('.countdown-timer');
+
+    timerElements.forEach(timerEl => {
+        const until = parseInt(timerEl.dataset.until, 10);
+        const timeLeft = until - now;
+
+        if (timeLeft > 0) {
+            // If time is left, update the text
+            timerEl.textContent = formatTime(timeLeft);
+        } else {
+            // If the timer is finished, update the whole table cell to say "Okay"
+            const parentTd = timerEl.closest('td');
+            if (parentTd) {
+                parentTd.textContent = 'Okay';
+                parentTd.className = ''; // Remove the red/orange color
+            }
+        }
+    });
+}
 
 // NEW: Function to handle un-claiming a target
 function unclaimTarget(memberId) {
@@ -187,25 +209,32 @@ function displayEnemyTargetsTable(members) {
                         <tbody>`;
 
     for (const member of members) {
-        const memberId = member.id; 
+        const memberId = member.id;
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
-        let statusText = member.status.description;
+        // MODIFIED: This whole block is updated to create timers correctly
+        let statusDisplayHtml = member.status.description;
         let statusClass = '';
-        if (member.status.state === 'Hospital') {
-            statusClass = 'status-hospital';
+
+        // Check if the status has an end time (like hospital or travel)
+        if (member.status.until && member.status.state !== 'Okay') {
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
-            statusText = `In Hospital (${formatTime(timeLeft)})`;
-        } else if (member.status.state !== 'Okay') {
-            statusClass = 'status-other';
+
+            // Determine the prefix text (e.g., "In Hospital")
+            const prefix = member.status.details ? member.status.details.replace(/<.*?>/g, '') : member.status.description;
+            
+            statusClass = (member.status.state === 'Hospital') ? 'status-hospital' : 'status-other';
+            
+            // Create a span with a special class and a data-until attribute
+            statusDisplayHtml = `${prefix} (<span class="countdown-timer" data-until="${member.status.until}">${formatTime(timeLeft)}</span>)`;
         }
-        
+
         tableHtml += `<tr id="target-row-${memberId}">
                         <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                         <td>${member.level}</td>
-                        <td class="${statusClass}">${statusText}</td>
+                        <td class="${statusClass}">${statusDisplayHtml}</td>
                         <td><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
                         <td><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
                       </tr>`;
