@@ -347,48 +347,53 @@
     overflow: hidden; /* Contain inner elements within rounded corners */
 }
 
-/* Individual Chat Tabs */
+* Styles for individual Chat Tabs, updated to mimic table headers 
+
 .chat-tab {
-    flex-grow: 1; /* Allows tabs to share horizontal space */
-    padding: 8px 5px; /* Compact padding for small tabs */
-    background-color: #333;
-    color: #f0f0f0;
-    border: none;
-    border-right: 1px solid #1e1e1e; /* Separator between tabs */
+    flex-grow: 1;
+    padding: 8px 10px; /* Matched padding from table headers */
+    background-color: #00a8ff; /* Blue header background, matching screenshot */
+    color: #1e1e1e; /* Dark text on blue */
+    border: none; /* Remove existing border */
+    border-bottom: 2px solid #1e1e1e; /* Darker border below tab, mimicking table header */
     cursor: pointer;
-    font-size: 0.75em; /* Small font size for tabs */
-    font-weight: bold;
-    text-align: center;
+    font-size: 0.9em; /* Matched font size from table headers */
+    font-weight: bold; /* Keep bold */
+    text-align: center; /* Keep centered */
     transition: background-color 0.2s ease, color 0.2s ease;
-    white-space: nowrap; /* Prevent tab text from wrapping */
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if tab text is too long */
+    text-overflow: ellipsis;
+    border-radius: 0; /* Remove top border-radius from chat tabs */
 }
 
-.chat-tab:last-child {
-    border-right: none; /* No border on the very last tab */
-}
-
-.chat-tab:hover {
-    background-color: #555;
-    color: #00a8ff; /* Highlight on hover */
-}
-
+/* Specific adjustments for the active chat tab */
 .chat-tab.active {
-    background-color: #00a8ff; /* Active tab color */
+    background-color: #00a8ff; /* Active tab color remains the same blue */
     color: #1e1e1e; /* Dark text on active tab */
+    border-color: #1e1e1e; /* Consistent border color */
+    box-shadow: none; /* Remove any subtle glow, unless you want to keep it */
 }
 
-/* Chat Display Area (where messages appear) */
-.chat-display-area {
-    flex-grow: 1; /* Crucial: Makes message area take up all remaining vertical space */
-    background-color: #1a1a1a; /* Very dark background for message display */
-    padding: 10px;
-    overflow-y: auto; /* Enable scrolling for messages */
-    word-wrap: break-word; /* Prevents long words from breaking layout */
-    font-size: 0.9em;
-    line-height: 1.4;
-    color: #f0f0f0; /* Light text for messages */
+/* Adjust the hover state to match the table header's less prominent hover if desired */
+.chat-tab:hover {
+    background-color: #007bff; /* A slightly different blue on hover, like attack links */
+    color: #f0f0f0; /* Lighter text on hover, if you want contrast, or keep #1e1e1e */
+    border-color: #1e1e1e; /* Keep border consistent on hover */
+}
+
+/* Adjust the chat tabs container to remove its bottom border and any top-left/right radius
+   if you want a completely seamless look with the new tab style. */
+.chat-tabs-container {
+    border-bottom: none; /* Remove separator below tabs */
+    background-color: #00a8ff; /* Match the tab background for a unified look */
+    border-radius: 8px 8px 0 0; /* Keep top container radius, but tabs themselves lose it */
+    overflow: hidden; /* Ensure content stays within rounded borders */
+}
+
+/* Remove border-right from the chat tabs, as table headers don't have this */
+.chat-tab:not(:last-child) {
+    border-right: none;
 }
 
 /* Custom scrollbar for chat display area */
