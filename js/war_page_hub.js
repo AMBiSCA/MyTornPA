@@ -157,7 +157,7 @@ function displayEnemyTargetsTable(members) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
         return;
     }
-    if (!members || Object.keys(members).length === 0) {
+    if (!members || members.length === 0) {
         enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
         return;
     }
@@ -172,11 +172,12 @@ function displayEnemyTargetsTable(members) {
                             </tr>
                         </thead>
                         <tbody>`;
-    for (const memberId in members) {
-        const member = members[memberId];
+
+    // MODIFIED: Changed the loop to correctly handle the members array
+    for (const member of members) {
+        // Get the real ID from the member object itself
+        const memberId = member.id; 
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
-        
-        // MODIFIED: Updated the attack URL format
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
         let statusText = member.status.description;
@@ -190,6 +191,7 @@ function displayEnemyTargetsTable(members) {
             statusClass = 'status-other';
         }
         
+        // All instances of memberId below are now correct
         tableHtml += `<tr id="target-row-${memberId}">
                         <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                         <td>${member.level}</td>
@@ -200,7 +202,7 @@ function displayEnemyTargetsTable(members) {
     }
     tableHtml += `</tbody></table>`;
     enemyTargetsContainer.innerHTML = tableHtml;
-}// UPDATED: Function to build and display the enemy targets table with a Claim button
+}
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
