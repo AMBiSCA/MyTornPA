@@ -194,21 +194,6 @@ async function fetchAndDisplayChainData(apiKey) {
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
     }
 }
-// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
-Okay, I see the latest console output from image_d69cfd.jpg. It confirms that your initializeAndLoadData function is now correctly fetching basic, chain, and wars data into factionApiFullData. That's a big step forward!
-
-However, the main problem you're seeing is still that the "Ranked War Score Display" isn't populated, and you're still getting the warning "Ranked War Data not fully available...".
-
-This means that the if condition at the beginning of your fetchAndDisplayRankedWarScores function is still evaluating to false:
-if (!factionApiFullData || !factionApiFullData.wars || !factionApiFullData.wars.ranked_wars || !factionApiFullData.ID)
-
-Even though the factionApiFullData object (as shown in your console expansion) does contain ID and wars.ranked_wars, there might be a subtle timing issue where fetchAndDisplayRankedWarScores is being called before factionApiFullData is fully processed and stable, or a very specific edge case is failing that check.
-
-To pinpoint exactly which part of that condition is failing, we need to add more precise console logs right at the start of that function.
-
-Here's the snippet for your fetchAndDisplayRankedWarScores function. Please replace your entire existing fetchAndDisplayRankedWarScores function with this code:
-
-JavaScript
 
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
