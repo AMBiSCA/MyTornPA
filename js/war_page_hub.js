@@ -10,6 +10,10 @@ let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // NEW: Counter for API call intervals
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
+let currentLiveChainSeconds = 0; // Stores the 'timeout' value from the last API fetch
+let lastChainApiFetchTime = 0;   // Stores Date.now() (in milliseconds) of the last chain API fetch
+let globalChainStartedTimestamp = 0; // Stores the 'start' timestamp from the API
+let globalChainCurrentNumber = 'N/A'; // Stores the 'current' chain number from the API
 
 
 // --- DOM Element Getters ---
