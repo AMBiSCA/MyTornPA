@@ -1223,6 +1223,8 @@ function setupEventListeners(apiKey) {
 
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1240,13 +1242,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerId = userData.tornProfileId || null; // Get player ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            let warData = {}; // MODIFIED: Initialize warData here to ensure it's always defined
+            let warData = {}; // CRITICAL FIX: Initialize warData here to ensure it's always defined
             try {
                 const warDoc = await db.collection('factionWars').doc('currentWar').get();
                 warData = warDoc.exists ? warDoc.data() : {};
             } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase:", firebaseError);
-                // warData remains {} on error, so populateUiComponents can still be called
+                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+                // warData remains {} on error, allowing populateUiComponents to still be called without crashing
             }
 
             if (apiKey && playerId) {
@@ -1298,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 1750); 
 
-                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents which are done above)
+                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
                     if (userApiKey && globalEnemyFactionID) {
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
@@ -1307,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } // Closes: if (!listenersInitialized)
             } else {
-                console.warn("API key or Player ID not found.");
+                console.warn("API key or Player ID not found (from Firebase user profile).");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
