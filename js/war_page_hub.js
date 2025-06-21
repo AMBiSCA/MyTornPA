@@ -10,7 +10,10 @@ let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // NEW: Counter for API call intervals
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-
+let currentLiveChainSeconds = 0;
+let lastChainApiFetchTime = 0;
+let globalChainStartedTimestamp = 0; // Already in your code, just confirm it's at the top
+let globalChainCurrentNumber = 'N/A'; // Already in your code, just confirm it's at the top
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -215,6 +218,93 @@ function updateAllTimers() {
           }
       });
   }
+  
+ // NEW: Function to fetch and display Chain Score (e.g., Lead Target progress)
+async function fetchAndDisplayChainScore(apiKey) {
+    const yourFactionNameScoreEl = document.getElementById('yourFactionNameScore');
+    const currentChainScoreEl = document.getElementById('currentChainScore');
+    const leadTargetProgressEl = document.getElementById('leadTargetProgress');
+    const targetFactionScoreEl = document.getElementById('targetFactionScore');
+    const enemyFactionNameScoreEl = document.getElementById('enemyFactionNameScore');
+
+    // Set initial loading states
+    if (currentChainScoreEl) currentChainScoreEl.textContent = '...';
+    if (leadTargetProgressEl) leadTargetProgressEl.textContent = '... / ...';
+    if (targetFactionScoreEl) targetFactionScoreEl.textContent = '...';
+
+    if (!apiKey) {
+        console.warn("API key is not available. Cannot fetch chain score data.");
+        if (currentChainScoreEl) currentChainScoreEl.textContent = 'N/A';
+        if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'N/A';
+        if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'N/A';
+        return;
+    }
+
+    try {
+        const chainScoreApiUrl = `https://api.torn.com/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainScore`;
+        const response = await fetch(chainScoreApiUrl);
+
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        const chainData = await response.json();
+        console.log("Chain Score API Data (selections=chain):", chainData);
+
+        if (chainData && chainData.chain) {
+            const chain = chainData.chain;
+            
+            // Your Faction Name
+            if (yourFactionNameScoreEl && factionApiFullData && factionApiFullData.basic) {
+                yourFactionNameScoreEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+            } else if (yourFactionNameScoreEl) {
+                yourFactionNameScoreEl.textContent = 'Your Faction'; // Fallback
+            }
+
+            // Current Chain Score (left side)
+            if (currentChainScoreEl) {
+                currentChainScoreEl.textContent = chain.current !== undefined ? chain.current.toLocaleString() : 'N/A';
+            }
+
+            // Lead Target Progress (middle)
+            if (leadTargetProgressEl) {
+                const maxHits = chain.max !== undefined ? chain.max.toLocaleString() : 'N/A';
+                // Assuming 'chain_target_score' represents the lead target progress value
+                const targetScore = chain.chain_target_score !== undefined ? chain.chain_target_score.toLocaleString() : 'N/A';
+                leadTargetProgressEl.textContent = `${targetScore} / ${maxHits}`;
+            }
+
+            // Target Faction Score (right side)
+            if (targetFactionScoreEl) {
+                // If the chain.target_id is the enemy faction, we can try to display its name
+                // For now, let's display the 'target' from the chain data, which typically represents the enemy score or a value associated with them.
+                targetFactionScoreEl.textContent = chain.target !== undefined ? chain.target.toLocaleString() : 'N/A';
+            }
+
+            // Enemy Faction Name for Target Score (This requires a separate basic selection for enemy faction if not already fetched)
+            // For now, we use a generic label or assume globalEnemyFactionID's name is already known from other fetches.
+            if (enemyFactionNameScoreEl) {
+                 if (globalEnemyFactionID && enemyDataGlobal && enemyDataGlobal.basic) { // Assuming enemyDataGlobal is available from fetchAndDisplayEnemyFaction
+                     enemyFactionNameScoreEl.textContent = enemyDataGlobal.basic.name || 'Enemy Faction';
+                 } else {
+                     enemyFactionNameScoreEl.textContent = 'Enemy Faction'; // Default generic
+                 }
+            }
+
+
+        } else {
+            console.warn("Chain data not found in API response for chain score.");
+            if (currentChainScoreEl) currentChainScoreEl.textContent = 'N/A';
+            if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'N/A';
+            if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'N/A';
+        }
+
+    } catch (error) {
+        console.error("Error fetching chain score data:", error);
+        if (currentChainScoreEl) currentChainScoreEl.textContent = 'Error';
+        if (leadTargetProgressEl) leadTargetProgressEl.textContent = 'Error';
+        if (targetFactionScoreEl) targetFactionScoreEl.textContent = 'Error';
+    }
+} 
 
   // NEW: Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
@@ -998,70 +1088,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
-            // Define userProfileRef INSIDE this block, as 'user' is scoped here.
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
             const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null; // NEW: Get player ID
+            const playerId = userData.tornProfileId || null;
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            if (apiKey && playerId) { // MODIFIED: Check for both API key and player ID
-                userApiKey = apiKey; // Ensure userApiKey is set globally
+            if (apiKey && playerId) {
+                userApiKey = apiKey;
 
-                // Initial load of general UI components
                 await initializeAndLoadData(apiKey);
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
                     listenersInitialized = true;
 
-                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); // Now only updates local timers
+                    setInterval(updateAllTimers, 1000);
 
-                    // NEW: Fetch and display quick FF targets periodically
+                    // Fetch and display quick FF targets periodically
                     setInterval(() => {
                         if (userApiKey && playerId) {
                             displayQuickFFTargets(userApiKey, playerId);
                         } else {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 60000); // Refresh quick targets every 60 seconds (60000 ms)
+                    }, 60000);
 
-                    // Start Chain Data API fetch every 1.75 seconds
                     setInterval(() => {
                         if (userApiKey) {
                             fetchAndDisplayChainData(userApiKey);
                         } else {
                             console.warn("API key not available for periodic chain data refresh.");
                         }
-                    }, 1750); // 1750 milliseconds = 1.75 seconds
+                    }, 1750);
 
-                    // Start Enemy Data API fetch every 1 second
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1000); // 1000 milliseconds = 1 second
+                    }, 1000);
 
-                    // Perform initial API fetches immediately on load
+                    // NEW: Periodically fetch and display chain score
+                    setInterval(() => {
+                        if (userApiKey) {
+                            fetchAndDisplayChainScore(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic chain score refresh.");
+                        }
+                    }, 5000); // Refresh every 5 seconds, adjust as needed
+
+                    // Initial API fetches
                     if (userApiKey) {
                         fetchAndDisplayChainData(userApiKey);
+                        fetchAndDisplayChainScore(userApiKey); // NEW: Initial call for chain score
                     }
                     if (userApiKey && globalEnemyFactionID) {
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
-                    // NEW: Initial call for quick FF targets
                     if (userApiKey && playerId) {
                         displayQuickFFTargets(userApiKey, playerId);
                     }
-                } // Closes: if (!listenersInitialized)
-            } else { // MODIFIED: Condition now explicitly checks for API Key or Player ID
+                }
+            } else {
                 console.warn("API key or Player ID not found.");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                // NEW: Clear and display initial Quick FF Target placeholders
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
@@ -1073,5 +1166,5 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    }); // Closes: auth.onAuthStateChanged
-}); // Closes: document.addEventListener('DOMContentLoaded', ...)
+    });
+});
