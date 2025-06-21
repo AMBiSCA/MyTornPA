@@ -165,38 +165,37 @@
                 </div>
 
                 <div id="active-ops-tab" class="tab-pane">
-                    <div class="active-ops-content-wrapper"> <div class="active-ops-left-panel"> <div class="ops-controls-grid">
-                                <div class="ops-control-item ops-timer">
-                                    <label>Chain Timer:</label>
-                                    <span id="chainTimerDisplay">00:00:00</span>
-                                    <span id="chainStartedDisplay">Started: N/A</span>
-                                    <span id="currentChainNumberDisplay">N/A</span>
-                                </div>
-                                <div class="ops-control-item ops-chain-score">
-                                    <div class="faction-score-group your-faction">
-                                        <span id="yourFactionNameScore" class="score-faction-name">Your Faction</span>
-                                        <span id="currentChainScore" class="score-value current-score">0</span>
-                                    </div>
-                                    <div class="score-target-info">
-                                        <span class="score-label">LEAD TARGET</span>
-                                        <span id="leadTargetProgress" class="score-progress">0 / 0</span>
-                                    </div>
-                                    <div class="faction-score-group enemy-faction">
-                                        <span id="enemyFactionNameScore" class="score-faction-name">Enemy Faction</span>
-                                        <span id="targetFactionScore" class="score-value target-score">0</span>
-                                    </div>
-                                </div>
-
-                                <div class="ops-control-item ops-quick-targets">
-                                    <label>Quick FF Targets:</label>
-                                    <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
-                                        <span>Target 1</span>
-                                        <span>Target 2</span>
-                                        <span>Target 3</span>
-                                    </div>
-                                </div>
+                    <div class="ops-controls-grid">
+                        <div class="ops-control-item ops-timer">
+                            <label>Chain Timer:</label>
+                            <span id="chainTimerDisplay">00:00:00</span>
+                            <span id="chainStartedDisplay">Started: N/A</span>
+                            <span id="currentChainNumberDisplay">N/A</span>
+                        </div>
+                        <div class="ops-control-item ops-chain-score">
+                            <div class="faction-score-group your-faction">
+                                <span id="yourFactionNameScore" class="score-faction-name">Your Faction</span>
+                                <span id="currentChainScore" class="score-value current-score">0</span>
                             </div>
+                            <div class="score-target-info">
+                                <span class="score-label">LEAD TARGET</span>
+                                <span id="leadTargetProgress" class="score-progress">0 / 0</span>
+                            </div>
+                            <div class="faction-score-group enemy-faction">
+                                <span id="enemyFactionNameScore" class="score-faction-name">Enemy Faction</span>
+                                <span id="targetFactionScore" class="score-value target-score">0</span>
+                            </div>
+                        </div>
 
+                        <div class="ops-control-item ops-quick-targets">
+                            <label>Quick FF Targets:</label>
+                            <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
+                                <span>Target 1</span>
+                                <span>Target 2</span>
+                                <span>Target 3</span>
+                            </div>
+                        </div>
+                    </div> <div class="active-ops-main-content-row"> <div class="active-ops-left-panel">
                             <div class="enemy-targets-list-section">
                                 <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
                                     <p>Loading enemy targets...</p>
@@ -226,9 +225,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div> </div> </div>
-
-                <div id="friendly-status-tab" class="tab-pane">
+                        </div> </div> </div> <div id="friendly-status-tab" class="tab-pane">
                     <div id="faction-live-stats-header">
                         <h3>Friendly Faction Status</h3>
                         <div id="total-energy-display">Calculating...</div>
