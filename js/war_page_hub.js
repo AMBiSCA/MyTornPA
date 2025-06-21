@@ -152,12 +152,13 @@ function unclaimTarget(memberId) {
 }
 
 // NEW: Function to build and display the enemy targets table
+// NEW: Function to build and display the enemy targets table
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
         return;
     }
-    if (!members || members.length === 0) {
+    if (!members || Object.keys(members).length === 0) { // Check for empty object or array
         enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
         return;
     }
@@ -173,29 +174,43 @@ function displayEnemyTargetsTable(members) {
                         </thead>
                         <tbody>`;
 
-    for (const member of members) {
-        const memberId = member.id; 
+    // Convert members object to array for consistent iteration
+    const membersArray = Object.values(members);
+
+    for (const member of membersArray) {
+        const memberId = member.id;
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
         let statusText = member.status.description;
         let statusClass = '';
+        let dataUntil = ''; // Store the 'until' timestamp for the timer
+        let statusState = member.status.state; // Store the state for updateAllTimers
+
         if (member.status.state === 'Hospital') {
             statusClass = 'status-hospital';
+            dataUntil = member.status.until; // Save this timestamp
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
             statusText = `In Hospital (${formatTime(timeLeft)})`;
-        } else if (member.status.state !== 'Okay') {
+        } else if (member.status.state === 'Traveling') { // Handle Traveling status
+            statusClass = 'status-traveling';
+            dataUntil = member.status.until; // Save this timestamp
+            const now = Math.floor(Date.now() / 1000);
+            const timeLeft = member.status.until - now;
+            statusText = `Traveling (${formatTime(timeLeft)})`;
+        }
+        else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
         }
-        
+
         tableHtml += `<tr id="target-row-${memberId}">
                         <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                         <td>${member.level}</td>
-                        <td class="${statusClass}">${statusText}</td>
+                        <td class="${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
                         <td><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
                         <td><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
-                      </tr>`;
+                    </tr>`;
     }
     tableHtml += `</tbody></table>`;
     enemyTargetsContainer.innerHTML = tableHtml;
