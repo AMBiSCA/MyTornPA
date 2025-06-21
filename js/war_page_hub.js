@@ -800,42 +800,40 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 // --- Data Loading & UI Population ---
 
 // REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THIS ONE
+// REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THIS ONE
 async function initializeAndLoadData(apiKey) {
     try {
-        // URGENTLY MODIFIED: Request EXACTLY 'basic' and 'chain' selections as specified
+        // MODIFIED: Request 'basic', 'chain', and 'wars' selections for our faction
         const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
-        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
+        console.log("Attempting to fetch faction data with specified selections (corrected):", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionApiUrl.status} ${userFactionApiUrl.statusText}`);
+            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-		console.log("Faction API Full Data (basic,chain only):", factionApiFullData); // Log the response
+		console.log("Faction API Full Data (basic,chain,wars):", factionApiFullData); // Log the full response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // Pass warData and apiKey to populateUiComponents
-        // warData (from Firebase) is still needed for game plan, announcements, leader config settings etc.
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = doc.exists ? doc.data() : {};
-        populateUiComponents(warData, apiKey); // Pass warData and apiKey
+        // populateUiComponents is now called from auth.onAuthStateChanged, which passes warData
+        // No direct call to populateUiComponents or warDoc/warData fetching from Firebase here anymore.
 
     } catch (error) {
-        console.error("Error during basic/chain data initialization:", error);
+        console.error("Error during basic/chain/wars data initialization:", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
         // Also reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        // IMPORTANT: These elements will NOT be populated by this API call
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A'; // Explicitly set to N/A
+        // These elements will now be populated by fetchAndDisplayRankedWarScores if data is found
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
         if (warTargetScore) warTargetScore.textContent = 'N/A';
         if (warStartedTime) warStartedTime.textContent = 'N/A';
@@ -844,21 +842,27 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-// REPLACE YOUR ENTIRE EXISTING 'populateUiComponents' FUNCTION WITH THIS ONE
-function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+
+        function populateUiComponents(warData, apiKey) { // warData is passed from auth.onAuthStateChanged
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
+        // Check for factionApiFullData.members.total, as basic,chain,wars might not include full member list
+        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? factionApiFullData.members.total || 'N/A' : 'N/A'}`;
 
         // Populate friendly member checkboxes (from factionApiFullData.members)
-        if (factionApiFullData.members) {
+        // Note: factionApiFullData.members is available if 'members' selection is used in initializeAndLoadData.
+        // With basic,chain,wars, it might not be. Adjust as needed.
+        if (factionApiFullData.members) { // Check if members data is actually present
             populateFriendlyMemberCheckboxes(
                 factionApiFullData.members,
                 warData.tab4Admins || [], // warData comes from Firebase
                 warData.energyTrackingMembers || []
             );
+        } else {
+            console.warn("factionApiFullData.members not available for friendly member checkboxes.");
+            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
         }
     } else {
         console.warn("factionApiFullData not available in populateUiComponents.");
@@ -1198,6 +1202,8 @@ function setupEventListeners(apiKey) {
         });
     }
 }
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1209,18 +1215,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             // Define userProfileRef INSIDE this block, as 'user' is scoped here.
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
+            const doc = await userProfileRef.get(); // Fetch user profile doc from Firebase
             const userData = doc.exists ? doc.data() : {};
             const apiKey = userData.tornApiKey || null;
             const playerId = userData.tornProfileId || null; // Get player ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
+            // NEW: Fetch warData from Firebase here, once after auth state changed
+            const warDoc = await db.collection('factionWars').doc('currentWar').get();
+            const warData = warDoc.exists ? warDoc.data() : {};
+
             if (apiKey && playerId) {
                 userApiKey = apiKey; // Ensure userApiKey is set globally
 
-                // Initial load of comprehensive faction data (basic, members, chain, ranked_wars)
-                // This is the first call that populates factionApiFullData
+                // Initial load of comprehensive faction data (basic, members, chain, wars)
+                // This call populates factionApiFullData
                 await initializeAndLoadData(apiKey); 
+
+                // NEW: Call populateUiComponents with fetched warData and apiKey
+                // This ensures all UI elements dependent on both Torn API data and Firebase warData are updated initially
+                populateUiComponents(warData, apiKey);
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
@@ -1257,14 +1271,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 1750); // 1750 milliseconds = 1.75 seconds
 
-                    // Perform initial API fetches immediately on load (besides initializeAndLoadData done above)
+                    // Perform initial API fetches immediately on load (besides initializeAndLoadData and populateUiComponents above)
                     if (userApiKey && globalEnemyFactionID) { // Initial call for enemy data
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
                     if (userApiKey && playerId) { // Initial call for quick FF targets
                         displayQuickFFTargets(userApiKey, playerId);
                     }
-                    // Initial call for comprehensive faction data is handled by initializeAndLoadData awaiting above
                 } // Closes: if (!listenersInitialized)
             } else {
                 console.warn("API key or Player ID not found.");
