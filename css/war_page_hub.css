@@ -1126,68 +1126,9 @@ autocomplete-items {
         max-height: 400px; /* NEW: Adjusted max height */
     }
 
-/* Styling for the new Chain Score Display within Active Ops */
-.ops-control-item.ops-chain-score {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center the entire block horizontally within its grid cell */
-    justify-content: center; /* Center vertically if space allows */
-    gap: 5px; /* Space between faction names and the main score display */
-    padding: 5px;
-    border: 1px solid black; /* Match surrounding control items */
-    border-radius: 8px; /* Match surrounding control items */
-    background-color: #222; /* Match surrounding control items */
-    box-sizing: border-box;
-    white-space: nowrap; /* Prevent wrapping of contents if possible */
-}
+    /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
 
-.ops-chain-score .score-faction-name {
-    font-size: 0.8em;
-    color: #f0f0f0; /* Light text for names */
-    font-weight: bold;
-    text-align: center;
-    width: 100%; /* Ensure it takes full width for centering */
-}
-
-.ops-chain-score .chain-score-display {
-    display: flex;
-    align-items: center;
-    justify-content: space-around; /* Distribute space around the three score components */
-    width: 100%; /* Take full width of parent */
-    padding: 5px 0; /* Vertical padding */
-    gap: 5px; /* Space between score values and info */
-}
-
-.ops-chain-score .score-value {
-    font-size: 1.5em; /* Larger font size for the scores */
-    font-weight: bold;
-    flex-shrink: 0; /* Prevent shrinking */
-}
-
-.ops-chain-score .current-score {
-    color: #ff8c00; /* Orange color for current score */
-}
-
-.ops-chain-score .target-score {
-    color: #4CAF50; /* Green color for target score */
-}
-
-.ops-chain-score .score-target-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center "LEAD TARGET" and "523 / 2,800" */
-    font-size: 0.7em; /* Smaller font for lead target info */
-    color: #f0f0f0; /* Light text */
-    flex-grow: 1; /* Allow this section to take up available space */
-}
-
-.ops-chain-score .score-label {
-    font-weight: bold;
-    color: #e0a71a; /* Gold-like color for labels */
-}
-
-.ops-chain-score .score-progress {
-    color: #a9a9a9; /* Greyish color for progress numbers */
+    /* --- END LEADER CONFIG TAB --- */
 }
 
 @media (max-width: 768px) {

@@ -150,6 +150,7 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     }
 }
 
+// REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
 function updateAllTimers() {
   console.count('updateAllTimers called'); // NEW: Added console.count
   const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
@@ -198,14 +199,13 @@ function updateAllTimers() {
               } else {
                   // Timer has expired, assume they are now 'Okay' or 'Arrived'
                   if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (Time Up)`;
-                      cell.classList.remove('status-hospital', 'status-other');
-                      cell.classList.add('status-okay');
+                      cell.textContent = `Okay`; // MODIFIED: Changed text to 'Okay'
+                      cell.classList.remove('status-hospital', 'status-other', 'status-okay'); // MODIFIED: Removed 'status-okay' to make it white
                   } else if (statusState === 'Traveling') {
                       const destination = originalDescription.replace('Traveling to ', '');
                       cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
                       cell.classList.remove('status-traveling', 'status-other');
-                      cell.classList.add('status-okay');
+                      cell.classList.add('status-okay'); // This can remain green if that's desired for 'Arrived'
                   } else {
                       cell.textContent = `${statusState} (Time Up)`;
                       cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
@@ -215,6 +215,28 @@ function updateAllTimers() {
           }
       });
   }
+
+  // NEW: Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
+      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      // If no chain is active or data is reset, show 'Chain Over'
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // NEW: Update Chain Started Time Display
+  // This section ensures the Chain Started time is displayed when data is available
+  // It is placed here because the value does not change after initial fetch
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+}
   
  // NEW: Function to fetch and display Chain Score (e.g., Lead Target progress)
 async function fetchAndDisplayChainScore(apiKey) {
