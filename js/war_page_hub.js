@@ -599,6 +599,87 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 
+// NEW: Function to fetch and display chain data
+async function fetchAndDisplayChainData(apiKey) {
+  if (!apiKey) {
+    console.warn("API key is not available. Cannot fetch chain data.");
+    return;
+  }
+
+  try {
+    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
+    const response = await fetch(chainApiUrl);
+    if (!response.ok) {
+      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+    }
+    const chainData = await response.json();
+    console.log("Chain API Data:", chainData);
+
+    if (chainData && chainData.chain) {
+      if (chainTimerDisplay) {
+        // MODIFIED: Use chainData.chain.timeout for timeLeft if available and positive
+        const endTime = chainData.chain.chain_end; // Keep for fallback if timeout is not used
+        const now = Math.floor(Date.now() / 1000); // Current time in seconds
+
+        let timeLeft = 0;
+        // Prioritize 'timeout' if it's a valid positive number
+        if (typeof chainData.chain.timeout === 'number' && chainData.chain.timeout > 0) {
+            timeLeft = chainData.chain.timeout;
+        } 
+        // Fallback to 'chain_end' if 'timeout' isn't active/positive and 'chain_end' is in the future
+        else if (typeof endTime === 'number' && endTime > now) {
+            timeLeft = endTime - now;
+        }
+
+        chainTimerDisplay.textContent = timeLeft > 0 ? formatTime(timeLeft) : 'Chain Over';
+      }
+      if (currentChainNumberDisplay) {
+        currentChainNumberDisplay.textContent = chainData.chain.current || 'N/A';
+      }
+      if (chainStartedDisplay) {
+        // MODIFIED: Use chainData.chain.start instead of chainData.chain.chain_started
+        // Only update if 'start' property exists and is a truthy value (e.g., not 0 or null)
+        if (chainData.chain.start) {
+            chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.start)}`;
+        } else {
+            chainStartedDisplay.textContent = 'Started: N/A'; // Explicitly set N/A if 'start' is falsy/missing
+        }
+      }
+    } else {
+      console.warn("Chain data not found in API response, or chain object is missing.");
+      if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
+    }
+
+  } catch (error) {
+    console.error("Error fetching chain data:", error);
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+  }
+}
+function formatRelativeTime(timestampInSeconds) {
+    if (!timestampInSeconds || timestampInSeconds === 0) {
+        return "N/A";
+    }
+
+    const now = Math.floor(Date.now() / 1000); // Current time in seconds
+    const diffSeconds = now - timestampInSeconds;
+
+    if (diffSeconds < 60) {
+        return "Now"; // Less than 1 minute
+    } else if (diffSeconds < 3600) { // Less than 1 hour (60 minutes)
+        const minutes = Math.floor(diffSeconds / 60);
+        return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+    } else if (diffSeconds < 86400) { // Less than 1 day (24 hours)
+        const hours = Math.floor(diffSeconds / 3600);
+        return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    } else { // 1 day or more
+        const days = Math.floor(diffSeconds / 86400);
+        return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
+}
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
