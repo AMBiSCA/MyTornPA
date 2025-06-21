@@ -553,7 +553,7 @@
 
 /* Enemy Targets List Section (Tab 2) */
 .enemy-targets-list-section {
-    margin-bottom: 0px;
+    margin-bottom: 50px;
 	max-width: 900px;
     background-color: #222;
     border: 1px solid black;
