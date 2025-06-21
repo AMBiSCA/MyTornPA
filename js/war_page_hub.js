@@ -108,10 +108,8 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
  * and individual hospital/travel timers in the enemy targets table.
  */
 // Existing updateAllTimers function (DO NOT REPLACE THE WHOLE FUNCTION, JUST ADD THIS PART)
-// Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
 function updateAllTimers() {
   const nowInSeconds = Math.floor(Date.now() / 1000);
-  apiCallCounter++; // Increment counter with each tick
 
   // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp)
   // Assuming nextChainTimeInput.value stores a Unix timestamp in seconds
@@ -133,68 +131,6 @@ function updateAllTimers() {
           warNextChainTimeStatus.textContent = 'N/A';
       }
   }
-
-
-  // 2. Update Enemy Target Timers (Hospital and Traveling)
-  // We look for <td> elements within the enemyTargetsContainer that have data-until attributes
-  if (enemyTargetsContainer) {
-      const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
-      statusCells.forEach(cell => {
-          const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
-          const statusState = cell.dataset.statusState; // Get original status state
-          const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part (e.g. "Traveling to XYZ")
-
-          if (!isNaN(targetTime) && targetTime > 0) {
-              const timeLeft = targetTime - nowInSeconds;
-
-              if (timeLeft > 0) {
-                  // Update text based on original status state
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                  }
-                  // For Traveling, we don't want a countdown, just the destination or "Arriving soon"
-                  // If the original text contains 'Traveling to', keep it.
-                  // This section won't change the Traveling text *unless* it expires
-              } else {
-                  // Timer has expired
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (Time Up)`; // More explicit for Hospital
-                      cell.classList.remove('status-hospital', 'status-other');
-                      cell.classList.add('status-okay'); // Assume they are okay after hospital
-                  } else if (statusState === 'Traveling') {
-                      // For traveling, if time is up, they have arrived.
-                      // The original description would be "Traveling to X", so we extract X.
-                      const destination = originalDescription.replace('Traveling to ', '');
-                      cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                      cell.classList.remove('status-traveling', 'status-other');
-                      cell.classList.add('status-okay'); // Assume they are okay after travel
-                  } else {
-                      cell.textContent = `${statusState} (Time Up)`; // Generic fallback
-                      cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                      cell.classList.add('status-okay');
-                  }
-              }
-          }
-      });
-  }
-
-  // --- NEW API CALL TRIGGERING LOGIC ---
-  // Trigger API calls for both chain and enemy data every 1.5 seconds (every 3rd tick if main interval is 0.5s)
-  if (apiCallCounter % 3 === 0) {
-      if (userApiKey) {
-          fetchAndDisplayChainData(userApiKey); // Fetch chain data
-      } else {
-          console.warn("API key not available for chain data refresh.");
-      }
-
-      if (userApiKey && globalEnemyFactionID) {
-          fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Fetch enemy data
-      } else {
-          console.warn("API key or enemy faction ID not available for enemy data refresh.");
-      }
-  }
-}
 
 
   // 2. Update Enemy Target Timers (Hospital and Traveling)
