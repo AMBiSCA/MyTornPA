@@ -10,10 +10,7 @@ let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // NEW: Counter for API call intervals
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-let currentLiveChainSeconds = 0;
-let lastChainApiFetchTime = 0;
-let globalChainStartedTimestamp = 0; // Already in your code, just confirm it's at the top
-let globalChainCurrentNumber = 'N/A'; // Already in your code, just confirm it's at the top
+
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
