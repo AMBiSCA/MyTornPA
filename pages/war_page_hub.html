@@ -155,8 +155,7 @@
                         <div class="faction-images">
                             <div id="factionOnePic" class="faction-logo faction-emblem-placeholder" alt="Faction 1 Logo Placeholder"></div>
                             <span class="versus-text">Vs</span>
-                            <div id="factionTwoPic" class="faction-logo faction-emblem-placeholder" alt="Faction 2 Logo Placeholder"></div>
-                        </div>
+                            </div>
                         <div class="faction-info-block">
                             <h4 id="factionTwoName">Faction 2 Name</h4>
                             <p>Total Members: <span id="factionTwoMembers">N/A</span></p>
@@ -172,18 +171,26 @@
                             <span id="chainStartedDisplay">Started: N/A</span>
                             <span id="currentChainNumberDisplay">N/A</span>
                         </div>
-                        <div class="ops-control-item ops-chain-score">
-                            <div class="faction-score-group your-faction">
-                                <span id="yourFactionNameScore" class="score-faction-name">Your Faction</span>
-                                <span id="currentChainScore" class="score-value current-score">0</span>
+
+                        <div class="ops-control-item ops-ranked-war-score">
+                            <div class="ranked-score-group your-faction-score">
+                                <span id="yourFactionNameScoreLabel" class="score-faction-name">Your Faction</span>
+                                <span id="yourFactionRankedScore" class="score-value">N/A</span>
                             </div>
-                            <div class="score-target-info">
+                            
+                            <div class="ranked-score-group lead-target-info">
                                 <span class="score-label">LEAD TARGET</span>
-                                <span id="leadTargetProgress" class="score-progress">0 / 0</span>
+                                <span id="leadTargetProgress" class="score-progress">N/A / N/A</span>
                             </div>
-                            <div class="faction-score-group enemy-faction">
-                                <span id="enemyFactionNameScore" class="score-faction-name">Enemy Faction</span>
-                                <span id="targetFactionScore" class="score-value target-score">0</span>
+                            
+                            <div class="ranked-score-group opponent-faction-score">
+                                <span id="opponentFactionNameScoreLabel" class="score-faction-name">Enemy Faction</span>
+                                <span id="opponentFactionRankedScore" class="score-value">N/A</span>
+                            </div>
+
+                            <div class="ranked-war-start-time">
+                                <span class="score-label">War Started:</span>
+                                <span id="warStartedTime" class="score-time">N/A</span>
                             </div>
                         </div>
 
@@ -195,7 +202,9 @@
                                 <span>Target 3</span>
                             </div>
                         </div>
-                    </div> <div class="active-ops-main-content-row"> <div class="active-ops-left-panel">
+                    </div>
+
+                    <div class="active-ops-main-content-row"> <div class="active-ops-left-panel">
                             <div class="enemy-targets-list-section">
                                 <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
                                     <p>Loading enemy targets...</p>
@@ -226,112 +235,51 @@
                                 </div>
                             </div>
                         </div> </div> </div> <div id="friendly-status-tab" class="tab-pane">
-                    <div id="faction-live-stats-header">
-                        <h3>Friendly Faction Status</h3>
-                        <div id="total-energy-display">Calculating...</div>
-                    </div>
-                    <div id="friendlyMembersListContainer">
-                        <p>Loading member data...</p>
-                    </div>
-                </div>
-                <div id="leader-config-tab" class="tab-pane">
-                    <div class="config-grid">
-                        <div class="config-section">
-                            <h4>Edit Game Plan:</h4>
-                            <textarea id="gamePlanEditArea"></textarea>
-                            <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
-                        </div>
+                    <div id="faction-live-stats-header">
+                        <h3>Friendly Faction Status</h3>
+                        <div id="total-energy-display">Calculating...</div>
+                    </div>
+                    <div id="friendlyMembersListContainer">
+                        <p>Loading member data...</p>
+                    </div>
+                </div>
+                <div id="leader-config-tab" class="tab-pane">
+                    <div class="config-grid">
+                        <div class="config-section">
+                            <h4>Edit Game Plan:</h4>
+                            <textarea id="gamePlanEditArea"></textarea>
+                            <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
+                        </div>
 
-                        <div class="config-section">
-                            <h4>War Status Controls:</h4>
-                            <div class="war-status-toggles-grid">
-                                <div class="toggle-control">
-                                    <label for="toggleEnlisted">Enlisted:</label>
-                                    <input type="checkbox" id="toggleEnlisted">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleTermedWar">Termed War:</label>
-                                    <input type="checkbox" id="toggleTermedWar">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleTermedWinLoss">Win/Loss Termed:</label>
-                                    <input type="checkbox" id="toggleTermedWinLoss">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleChaining">Chaining:</label>
-                                    <input type="checkbox" id="toggleChaining">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleNoFlying">No Flying:</label>
-                                    <input type="checkbox" id="toggleNoFlying">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleTurtleMode">Turtle Mode:</label>
-                                    <input type="checkbox" id="toggleTurtleMode">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="enemyFactionIDInputLeaderConfig">Enemy Faction ID:</label>
-                                    <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="nextChainTimeInput">Next Chain Time:</label>
-                                    <input type="text" id="nextChainTimeInput" placeholder="e.g., 00:00:00">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="currentTeamLeadInput">Current Team Lead:</label>
-                                    <input type="text" id="currentTeamLeadInput" placeholder="Enter name">
-                                </div>
-                            </div>
-                            <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Faction Announcements:</h4> <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
-                            <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Designate Tab 4 Admins:</h4>
-                            <p>Select members to designate as admins:</p>
-                            <div id="designatedAdminsContainer" class="member-checkbox-list"></div>
-                            <div id="designateAdminError" class="error-message"></div>
-                            <button id="saveAdminSelectionsBtn" class="action-btn">Save Admins</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Big Hitter Watchlist:</h4>
-                            <p>Select enemies to watch:</p>
-                            <div id="bigHitterWatchlistContainer" class="member-checkbox-list"></div>
-                            <button id="saveWatchlistSelectionsBtn" class="action-btn">Save Selections</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Energy Tracking Members:</h4>
-                            <p>Select members whose energy contributes to faction totals.</p>
-                            <div id="energyTrackingContainer" class="member-checkbox-list"></div>
-                            <button id="saveEnergyTrackMembersBtn" class="action-btn">Save Selections</button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="#" id="homeButtonFooter">Home</a>
-            <a href="FAQ.html">F.A.Q</a>
-            <a href="Terms.html">Disclaimer & Terms</a>
-            <a href="report.html">Report an Issue</a>
-            <a href="about.html">About Us</a>
-            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-        </div>
-        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-    </footer>
-
-    <script src="../../js/firebase-init.js"></script>
-    <script src="../../js/globalheader.js"></script>
-    <script src="../../js/war_page_hub.js"></script>
-</body>
-</html>
+                        <div class="config-section">
+                            <h4>War Status Controls:</h4>
+                            <div class="war-status-toggles-grid">
+                                <div class="toggle-control">
+                                    <label for="toggleEnlisted">Enlisted:</label>
+                                    <input type="checkbox" id="toggleEnlisted">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleTermedWar">Termed War:</label>
+                                    <input type="checkbox" id="toggleTermedWar">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleTermedWinLoss">Win/Loss Termed:</label>
+                                    <input type="checkbox" id="toggleTermedWinLoss">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleChaining">Chaining:</label>
+                                    <input type="checkbox" id="toggleChaining">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleNoFlying">No Flying:</label>
+                                    <input type="checkbox" id="toggleNoFlying">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleTurtleMode">Turtle Mode:</label>
+                                    <input type="checkbox" id="toggleTurtleMode">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="enemyFactionIDInputLeaderConfig">Enemy Faction ID:</label>
+                                    <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
+                                </div>
+                                <div class="toggle-control">
