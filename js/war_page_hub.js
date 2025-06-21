@@ -961,7 +961,6 @@ function setupEventListeners(apiKey) {
     }
 }
 
-// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
@@ -972,24 +971,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
+            // Define userProfileRef INSIDE this block, as 'user' is scoped here.
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
-            const userData = doc.exists ? doc.data() : {};
-            const apiKey = userData.tornApiKey || null;
+            const userData = doc.exists ? doc.data() : {};
+            const apiKey = userData.tornApiKey || null;
             const playerId = userData.tornProfileId || null; // NEW: Get player ID
-            currentTornUserName = userData.preferredName || 'Unknown';
+            currentTornUserName = userData.preferredName || 'Unknown';
 
-            if (apiKey && playerId) { // MODIFIED: Check for both API key and player ID
-                userApiKey = apiKey; // Ensure userApiKey is set globally
+            if (apiKey && playerId) { // MODIFIED: Check for both API key and player ID
+                userApiKey = apiKey; // Ensure userApiKey is set globally
 
-                // Initial load of general UI components
-                await initializeAndLoadData(apiKey);
+                // Initial load of general UI components
+                await initializeAndLoadData(apiKey);
 
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    listenersInitialized = true;
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    listenersInitialized = true;
 
-                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); // Now only updates local timers
+                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
+                    setInterval(updateAllTimers, 1000); // Now only updates local timers
 
                     // NEW: Fetch and display quick FF targets periodically
                     setInterval(() => {
@@ -1000,43 +1001,50 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 5000); // Refresh quick targets every 5 seconds (adjust as needed)
 
-                    // Start Chain Data API fetch every 1.75 seconds
-                    setInterval(() => {
-                        if (userApiKey) {
-                            fetchAndDisplayChainData(userApiKey);
-                        } else {
-                            console.warn("API key not available for periodic chain data refresh.");
-                        }
-                    }, 1750); // 1750 milliseconds = 1.75 seconds
+                    // Start Chain Data API fetch every 1.75 seconds
+                    setInterval(() => {
+                        if (userApiKey) {
+                            fetchAndDisplayChainData(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic chain data refresh.");
+                        }
+                    }, 1750); // 1750 milliseconds = 1.75 seconds
 
-                    // Start Enemy Data API fetch every 1 second
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
-                        }
-                    }, 1000); // 1000 milliseconds = 1 second
+                    // Start Enemy Data API fetch every 1 second
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 1000); // 1000 milliseconds = 1 second
 
-                    // Perform initial API fetches immediately on load
-                    if (userApiKey) {
-                        fetchAndDisplayChainData(userApiKey);
-                    }
-                    if (userApiKey && globalEnemyFactionID) {
-                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                    }
+                    // Perform initial API fetches immediately on load
+                    if (userApiKey) {
+                        fetchAndDisplayChainData(userApiKey);
+                    }
+                    if (userApiKey && globalEnemyFactionID) {
+                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                    }
                     // NEW: Initial call for quick FF targets
                     if (userApiKey && playerId) {
                         displayQuickFFTargets(userApiKey, playerId);
                     }
-                } // Closes: if (!listenersInitialized)
-            } else { // MODIFIED: Condition now explicitly checks for API Key or Player ID
-                console.warn("API key or Player ID not found.");
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                } // Closes: if (!listenersInitialized)
+            } else { // MODIFIED: Condition now explicitly checks for API Key or Player ID
+                console.warn("API key or Player ID not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
                 // NEW: Clear and display initial Quick FF Target placeholders
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+                }
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    });
-});
+    }); // Closes: auth.onAuthStateChanged
+}); // Closes: document.addEventListener('DOMContentLoaded', ...)
