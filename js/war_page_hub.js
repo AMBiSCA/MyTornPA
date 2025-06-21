@@ -143,6 +143,7 @@ function updateAllTimers() {
         statusCells.forEach(cell => {
             const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
             const statusState = cell.dataset.statusState; // Get original status state
+            const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part (e.g. "Traveling to XYZ")
 
             if (!isNaN(targetTime) && targetTime > 0) {
                 const timeLeft = targetTime - nowInSeconds;
@@ -151,19 +152,28 @@ function updateAllTimers() {
                     // Update text based on original status state
                     if (statusState === 'Hospital') {
                         cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                    } else if (statusState === 'Traveling') {
-                        cell.textContent = `Traveling (${formatTime(timeLeft)})`;
                     }
-                    // Add other status types here if they have 'until' timers
+                    // For Traveling, we don't want a countdown, just the destination or "Arriving soon"
+                    // If the original text contains 'Traveling to', keep it.
+                    // This section won't change the Traveling text *unless* it expires
                 } else {
                     // Timer has expired
-                    cell.textContent = `${statusState} (Time Up)`; // Show "Hospital (Time Up)" or "Traveling (Time Up)"
-                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other'); // Clean up classes
-                    cell.classList.add('status-okay'); // Maybe add a new class for "okay" or "back"
-                    // You might want to trigger a full refresh of the enemy table here
-                    // to get their actual current status from Torn API,
-                    // but that would require an API call every time a timer expires.
-                    // For simplicity, we just mark it as "Time Up".
+                    if (statusState === 'Hospital') {
+                        cell.textContent = `In Hospital (Time Up)`; // More explicit for Hospital
+                        cell.classList.remove('status-hospital', 'status-other');
+                        cell.classList.add('status-okay'); // Assume they are okay after hospital
+                    } else if (statusState === 'Traveling') {
+                        // For traveling, if time is up, they have arrived.
+                        // The original description would be "Traveling to X", so we extract X.
+                        const destination = originalDescription.replace('Traveling to ', '');
+                        cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
+                        cell.classList.remove('status-traveling', 'status-other');
+                        cell.classList.add('status-okay'); // Assume they are okay after travel
+                    } else {
+                        cell.textContent = `${statusState} (Time Up)`; // Generic fallback
+                        cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                        cell.classList.add('status-okay');
+                    }
                 }
             }
         });
@@ -219,6 +229,7 @@ function unclaimTarget(memberId) {
 
 // NEW: Function to build and display the enemy targets table
 // NEW: Function to build and display the enemy targets table
+// NEW: Function to build and display the enemy targets table
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
@@ -248,7 +259,7 @@ function displayEnemyTargetsTable(members) {
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
-        let statusText = member.status.description;
+        let statusText = member.status.description; // Default to description
         let statusClass = '';
         let dataUntil = ''; // Store the 'until' timestamp for the timer
         let statusState = member.status.state; // Store the state for updateAllTimers
@@ -259,12 +270,20 @@ function displayEnemyTargetsTable(members) {
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
             statusText = `In Hospital (${formatTime(timeLeft)})`;
-        } else if (member.status.state === 'Traveling') { // Handle Traveling status
+        } else if (member.status.state === 'Traveling') {
             statusClass = 'status-traveling';
-            dataUntil = member.status.until; // Save this timestamp
+            dataUntil = member.status.until; // Still save the timestamp to check if arrived
+            // For traveling, we want to show the destination immediately, not a countdown.
+            // The Torn API `description` for traveling usually contains the destination (e.g., "Traveling to Cayman Islands").
+            // We'll keep the full description and let updateAllTimers handle "Arrived" if time's up.
+            // If the destination isn't always in `description`, you might need a different API call or data point.
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
-            statusText = `Traveling (${formatTime(timeLeft)})`;
+            if (timeLeft <= 0) {
+                 statusText = `Arrived (${member.status.description.replace('Traveling to ', '')})`; // Or just 'Arrived'
+            } else {
+                 statusText = member.status.description; // Keep "Traveling to X"
+            }
         }
         else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
