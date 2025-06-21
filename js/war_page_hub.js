@@ -104,24 +104,22 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
     });
 }
 // NEW: Function to handle claiming a target
+// UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 function claimTarget(memberId) {
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
 
     if (claimBtn) {
-        claimBtn.disabled = true;
-        claimBtn.textContent = `Claimed by ${currentTornUserName}`;
-        claimBtn.style.cursor = 'not-allowed';
+        // Change the button text and make its new function call unclaimTarget
+        claimBtn.textContent = 'Unclaim';
+        claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
     }
     
-    // The lines that disabled the attack link have been removed.
-
-    // Optional: change the row color to show it's claimed
+    // Change the row color to show it's claimed
     if (targetRow) {
         targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
     }
 }
-
 // NEW: Helper function to format time remaining from seconds
 function formatTime(seconds) {
     if (seconds <= 0) return '0s';
@@ -145,6 +143,25 @@ function formatTime(seconds) {
     if (m > 0) result += `${m}m `;
     if (s > 0) result += `${s}s`;
     return result.trim();
+}
+
+// NEW: Function to handle un-claiming a target
+function unclaimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+
+    if (claimBtn) {
+        // Re-enable the button and set it back to the "Claim" state
+        claimBtn.disabled = false;
+        claimBtn.textContent = 'Claim';
+        // Change the onclick event back to call claimTarget
+        claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
+    }
+
+    // Remove the special background color from the row
+    if (targetRow) {
+        targetRow.style.backgroundColor = ''; 
+    }
 }
 
 // NEW: Function to build and display the enemy targets table
