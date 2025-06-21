@@ -803,7 +803,7 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 async function initializeAndLoadData(apiKey) {
     try {
         // URGENTLY MODIFIED: Request EXACTLY 'basic' and 'chain' selections as specified
-        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,chain&key=${apiKey}`; // EXACT URL AS REQUESTED
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
         console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
@@ -814,7 +814,7 @@ async function initializeAndLoadData(apiKey) {
         }
 
         factionApiFullData = await userFactionResponse.json();
-		const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+		console.log("Faction API Full Data (basic,chain only):", factionApiFullData); // Log the response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
