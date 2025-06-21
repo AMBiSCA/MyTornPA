@@ -1218,6 +1218,8 @@ function setupEventListeners(apiKey) {
     }
 }
 
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1248,16 +1250,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 // Initial load of comprehensive faction data (basic, members, chain, wars)
-                // This call populates factionApiFullData
                 await initializeAndLoadData(apiKey); 
 
                 // Call populateUiComponents with fetched warData and apiKey
                 populateUiComponents(warData, apiKey);
 
                 // Explicit initial calls for API-driven displays
-                // These functions will now read from the globally populated factionApiFullData
                 fetchAndDisplayChainData(); 
-                fetchAndDisplayRankedWarScores(); 
+                // fetchAndDisplayRankedWarScores(); // COMMENTED OUT: Initial call for Ranked War Scores display
+
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
@@ -1293,6 +1294,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 1750); 
 
+                    // Removed setInterval for fetchAndDisplayRankedWarScores here.
+                    // If you want to re-enable it later, you would add:
+                    /*
+                    setInterval(() => {
+                        if (userApiKey && factionApiFullData && factionApiFullData.wars && factionApiFullData.ID) { // Check for 'wars' and 'ID'
+                            fetchAndDisplayRankedWarScores();
+                        } else {
+                            console.warn("API key or faction data (wars/ID) not available for periodic Ranked War scores refresh.");
+                        }
+                    }, 30000); // 30 seconds
+                    */
+
+
                     // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
                     if (userApiKey && globalEnemyFactionID) {
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
@@ -1302,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } // Closes: if (!listenersInitialized)
             } else {
-                console.warn("API key or Player ID not found (from Firebase user profile).");
+                console.warn("API key or Player ID not found.");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
