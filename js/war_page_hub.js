@@ -1206,6 +1206,8 @@ function setupEventListeners(apiKey) {
 }
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1225,7 +1227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // NEW: Fetch warData from Firebase here, once after auth state changed
             const warDoc = await db.collection('factionWars').doc('currentWar').get();
-            const warData = warDoc.exists ? warDoc.data() : {};
+            const warData = warDoc.exists ? warData.data() : {};
 
             if (apiKey && playerId) {
                 userApiKey = apiKey; // Ensure userApiKey is set globally
@@ -1237,6 +1239,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // NEW: Call populateUiComponents with fetched warData and apiKey
                 // This ensures all UI elements dependent on both Torn API data and Firebase warData are updated initially
                 populateUiComponents(warData, apiKey);
+
+                // NEW: Explicit initial calls for API-driven displays
+                // These functions will now read from the globally populated factionApiFullData
+                fetchAndDisplayChainData(); // Initial call for Chain Timer/Started/Number
+                fetchAndDisplayRankedWarScores(); // Initial call for Ranked War Scores display
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
@@ -1273,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 1750); // 1750 milliseconds = 1.75 seconds
 
-                    // Perform initial API fetches immediately on load (besides initializeAndLoadData and populateUiComponents above)
+                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents which are done above)
                     if (userApiKey && globalEnemyFactionID) { // Initial call for enemy data
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
