@@ -133,7 +133,8 @@
 
 /* Ensure .config-section elements behave correctly within the grid */
 .config-section {
-    margin-bottom: 0px; /* Existing */
+    min-width: 0; /* ADD THIS LINE */
+	margin-bottom: 0px; /* Existing */
     padding: 10px; /* Existing */
     border: 1px solid black;
     border-radius: 8px; /* Existing */
