@@ -286,6 +286,7 @@
 /* --- Main Table Structure --- */
 .enemy-targets-table {
     width: 100%;
+	max-width: 750px;
     margin-top: 10px;
     border-collapse: collapse; /* Removes space between cell borders */
     font-family: Arial, sans-serif;
