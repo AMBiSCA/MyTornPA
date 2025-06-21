@@ -103,6 +103,72 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
 }
+/**
+ * Updates all real-time timers on the page, including the main chain timer
+ * and individual hospital/travel timers in the enemy targets table.
+ */
+function updateAllTimers() {
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp)
+    // Assuming nextChainTimeInput.value stores a Unix timestamp in seconds
+    if (warNextChainTimeStatus && nextChainTimeInput) {
+        const nextChainTimeValue = nextChainTimeInput.value.trim();
+        const targetChainTime = parseInt(nextChainTimeValue, 10);
+
+        if (!isNaN(targetChainTime) && targetChainTime > 0) {
+            const timeLeft = targetChainTime - nowInSeconds;
+            if (timeLeft > 0) {
+                warNextChainTimeStatus.textContent = formatTime(timeLeft);
+            } else {
+                warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
+                // Optionally: Disable the timer or reset the input if needed
+                // For continuous timer that might restart (e.g., new chain time set),
+                // it's fine to just update its text.
+            }
+        } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
+            // Do nothing if it's already N/A or empty, to avoid resetting manual text
+        } else {
+            // Only update if it previously had a value and it's now invalid or empty
+            warNextChainTimeStatus.textContent = 'N/A';
+        }
+    }
+
+
+    // 2. Update Enemy Target Timers (Hospital and Traveling)
+    // We look for <td> elements within the enemyTargetsContainer that have data-until attributes
+    if (enemyTargetsContainer) {
+        const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+
+        statusCells.forEach(cell => {
+            const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
+            const statusState = cell.dataset.statusState; // Get original status state
+
+            if (!isNaN(targetTime) && targetTime > 0) {
+                const timeLeft = targetTime - nowInSeconds;
+
+                if (timeLeft > 0) {
+                    // Update text based on original status state
+                    if (statusState === 'Hospital') {
+                        cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
+                    } else if (statusState === 'Traveling') {
+                        cell.textContent = `Traveling (${formatTime(timeLeft)})`;
+                    }
+                    // Add other status types here if they have 'until' timers
+                } else {
+                    // Timer has expired
+                    cell.textContent = `${statusState} (Time Up)`; // Show "Hospital (Time Up)" or "Traveling (Time Up)"
+                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other'); // Clean up classes
+                    cell.classList.add('status-okay'); // Maybe add a new class for "okay" or "back"
+                    // You might want to trigger a full refresh of the enemy table here
+                    // to get their actual current status from Torn API,
+                    // but that would require an API call every time a timer expires.
+                    // For simplicity, we just mark it as "Time Up".
+                }
+            }
+        });
+    }
+}
 // NEW: Function to handle claiming a target
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 function claimTarget(memberId) {
