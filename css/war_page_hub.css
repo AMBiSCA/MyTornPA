@@ -113,30 +113,42 @@
     overflow-y: visible; /* Still allows content to push main page if needed */
 }
 
-/* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
-
-/* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
-
-/* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 #leader-config-tab.active {
-    /* This rule defines properties for the *overall tab pane*, not its internal grid */
-    padding: 10px; 
-    box-sizing: border-box; 
-    /* The grid properties have been removed from here to prevent conflict */
+
+    display: block;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 /* CORRECTED: Apply grid to the .config-grid class which is the direct parent of your sections */
 .config-grid {
-    display: grid; 
+    display: grid;
     grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
-    gap: 20px; 
-    padding: 0; /* Adjust as needed, typically 0 here as sections have padding */
+    gap: 20px;
+    padding: 0;
     box-sizing: border-box;
     max-width: 1750px; /* Max-width for the grid content */
     margin: 0 auto; /* Center the grid container horizontally */
 }
 
 /* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
+.config-section.designate-admins-section {
+    grid-column: auto;
+}
+
+/* Ensure .config-section elements behave correctly within the grid */
+.config-section {
+    margin-bottom: 0px; /* Existing */
+    padding: 10px; /* Existing */
+    border: 1px solid black;
+    border-radius: 8px; /* Existing */
+    background-color: #222; /* Existing */
+    text-align: left; /* Existing */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
 .config-section.designate-admins-section {
     grid-column: auto;
 }
@@ -205,8 +217,7 @@
     box-sizing: border-box;
 }
 
-/* Styling for the new scrollable checkbox containers */
-/* Styling for the new scrollable checkbox containers */
+
 .member-checkbox-list {
     border: 1px solid #555;
     border-radius: 4px;
@@ -234,7 +245,6 @@
     flex-wrap: wrap; /* Allow items to wrap on smaller screens if they don't fit */
 }
 
-/* Ensure the status-value-box is visible within this new layout */
 .status-summary-two-col .status-value-box {
     margin-top: 0; /* Remove default margin-top if not needed for vertical stacking */
 }
