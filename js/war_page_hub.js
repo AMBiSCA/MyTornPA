@@ -9,6 +9,7 @@ let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // NEW: Counter for API call intervals
+let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
 let globalEnemyFactionID = null; // NEW: To store enemy ID for repeated calls
 
 // --- DOM Element Getters ---
@@ -109,12 +110,12 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
  */
 // Existing updateAllTimers function (DO NOT REPLACE THE WHOLE FUNCTION, JUST ADD THIS PART)
 // Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
+// REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
 function updateAllTimers() {
   const nowInSeconds = Math.floor(Date.now() / 1000);
-  apiCallCounter++; // Increment counter with each tick
 
-  // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp)
-  // Assuming nextChainTimeInput.value stores a Unix timestamp in seconds
+  // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
+  // This part handles the manually set 'Next Planned Chain Time' countdown locally.
   if (warNextChainTimeStatus && nextChainTimeInput) {
       const nextChainTimeValue = nextChainTimeInput.value.trim();
       const targetChainTime = parseInt(nextChainTimeValue, 10);
@@ -133,6 +134,48 @@ function updateAllTimers() {
           warNextChainTimeStatus.textContent = 'N/A';
       }
   }
+
+  // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
+  // This part updates existing enemy timers locally without new API calls.
+  if (enemyTargetsContainer) {
+      const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+
+      statusCells.forEach(cell => {
+          const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
+          const statusState = cell.dataset.statusState; // Get original status state
+          const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part
+
+          if (!isNaN(targetTime) && targetTime > 0) {
+              const timeLeft = targetTime - nowInSeconds;
+
+              if (timeLeft > 0) {
+                  if (statusState === 'Hospital') {
+                      cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
+                  } else if (statusState === 'Traveling') {
+                      // Keep the original description with updated time, e.g., "Traveling to X (Ym Zs)"
+                      cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
+                  }
+              } else {
+                  // Timer has expired, assume they are now 'Okay' or 'Arrived'
+                  if (statusState === 'Hospital') {
+                      cell.textContent = `In Hospital (Time Up)`;
+                      cell.classList.remove('status-hospital', 'status-other');
+                      cell.classList.add('status-okay');
+                  } else if (statusState === 'Traveling') {
+                      const destination = originalDescription.replace('Traveling to ', '');
+                      cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
+                      cell.classList.remove('status-traveling', 'status-other');
+                      cell.classList.add('status-okay');
+                  } else {
+                      cell.textContent = `${statusState} (Time Up)`;
+                      cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                      cell.classList.add('status-okay');
+                  }
+              }
+          }
+      });
+  }
+}
 
 
   // 2. Update Enemy Target Timers (Hospital and Traveling)
@@ -838,6 +881,7 @@ function setupEventListeners(apiKey) {
     }
 }
 
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
@@ -845,18 +889,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     showTab('announcements-tab');
     let listenersInitialized = false;
+
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
             currentTornUserName = doc.exists ? doc.data().preferredName : 'Unknown';
+
             if (apiKey) {
-                userApiKey = apiKey;
+                userApiKey = apiKey; // Ensure userApiKey is set globally
+
+                // Initial load of general UI components
                 await initializeAndLoadData(apiKey);
+
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
                     listenersInitialized = true;
+
+                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
+                    setInterval(updateAllTimers, 1000); // Now only updates local timers
+
+                    // Start Chain Data API fetch every 1.75 seconds
+                    setInterval(() => {
+                        if (userApiKey) {
+                            fetchAndDisplayChainData(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic chain data refresh.");
+                        }
+                    }, 1750); // 1750 milliseconds = 1.75 seconds
+
+                    // Start Enemy Data API fetch every 1 second
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 1000); // 1000 milliseconds = 1 second
+
+                    // Perform initial API fetches immediately on load
+                    if (userApiKey) {
+                        fetchAndDisplayChainData(userApiKey);
+                    }
+                    if (userApiKey && globalEnemyFactionID) {
+                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                    }
                 }
             } else {
                 console.warn("API key not found.");
@@ -869,6 +947,4 @@ document.addEventListener('DOMContentLoaded', () => {
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
     });
-    // Start the real-time timers
-    setInterval(updateAllTimers, 1000);
 });
