@@ -108,10 +108,48 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
  * Updates all real-time timers on the page, including the main chain timer
  * and individual hospital/travel timers in the enemy targets table.
  */
-// Existing updateAllTimers function (DO NOT REPLACE THE WHOLE FUNCTION, JUST ADD THIS PART)
-// Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
-// REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
-// REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
+async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+    if (!factionID || !apiKey) return;
+    try {
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        const enemyData = await response.json();
+        console.log("Enemy Faction API Data:", enemyData);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
+
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
+
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
+        if (enemyData.members) {
+            // Corrected function call
+            displayEnemyTargetsTable(enemyData.members);
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
+        } else {
+            console.warn("Enemy faction members data not found.");
+            // Corrected function call
+            displayEnemyTargetsTable(null);
+            populateEnemyMemberCheckboxes({}, []);
+        }
+    } catch (error) {
+        console.error('Error fetching enemy faction data:', error);
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
+        if (factionTwoMembersEl) factionTwoTwoMembersEl.textContent = 'N/A';
+        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
+        displayEnemyTargetsTable(null);
+        populateEnemyMemberCheckboxes({}, []);
+    }
+}
+
 function updateAllTimers() {
   console.count('updateAllTimers called'); // NEW: Added console.count
   const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
