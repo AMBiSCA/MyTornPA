@@ -290,9 +290,7 @@ function updateAllTimers() {
   } else {
     console.warn("API key not available. Cannot update chain timer.");
   }
-  // --- END OF NEW BLOCK ---
-}
-
+  
 // NEW: Function to handle claiming a target
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 function claimTarget(memberId) {
