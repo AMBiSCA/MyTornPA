@@ -1232,10 +1232,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerId = userData.tornProfileId || null; // Get player ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            let warData = {}; // CRITICAL FIX: Initialize warData here to ensure it's always defined
+            let warData = {}; // Initialize warData here to ensure it's always defined
             try {
                 const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warData.data() : {};
+                warData = warDoc.exists ? warDoc.data() : {}; // CORRECTED: Changed warData.data() to warDoc.data()
             } catch (firebaseError) {
                 console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
                 // warData remains {} on error, allowing populateUiComponents to still be called without crashing
