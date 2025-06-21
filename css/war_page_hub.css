@@ -603,11 +603,11 @@
 
 /* Define consistent column widths for BOTH header (<thead>) and body (<tbody>) tables */
 /* These percentages sum to 100% and should match the 'th' and 'td' structure */
-.enemy-targets-table .col-name { width: 25%; }
+.enemy-targets-table .col-name { width: 24%; }
 .enemy-targets-table .col-level { width: 10%; }
-.enemy-targets-table .col-status { width: 25%; }
-.enemy-targets-table .col-claim { width: 20%; }
-.enemy-targets-table .col-attack { width: 20%; }
+.enemy-targets-table .col-status { width: 26%; } /* Slightly increased for status text */
+.enemy-targets-table .col-claim { width: 18%; } /* Adjusted for Claim button */
+.enemy-targets-table .col-attack { width: 22%; } /* Adjusted for Attack button */
 
 
 /* --- Status-Specific Colors (Existing, but ensure they target the new <td>) --- */
@@ -682,18 +682,20 @@
 
 /* Responsive adjustments for columns - ensure they apply to both header and body tables */
 @media (max-width: 992px) {
-    .enemy-targets-table .col-name { width: 25%; }
+    /* ... (your other existing rules in this media query) ... */
+    .enemy-targets-table .col-name { width: 24%; }
     .enemy-targets-table .col-level { width: 10%; }
-    .enemy-targets-table .col-status { width: 25%; }
-    .enemy-targets-table .col-claim { width: 20%; }
-    .enemy-targets-table .col-attack { width: 20%; }
+    .enemy-targets-table .col-status { width: 26%; }
+    .enemy-targets-table .col-claim { width: 18%; }
+    .enemy-targets-table .col-attack { width: 22%; }
 }
 
 @media (max-width: 768px) {
-    .enemy-targets-table .col-name { width: 22%; }
+    /* ... (your other existing rules in this media query) ... */
+    .enemy-targets-table .col-name { width: 23%; } /* Adjusted */
     .enemy-targets-table .col-level { width: 9%; }
-    .enemy-targets-table .col-status { width: 24%; }
-    .enemy-targets-table .col-claim { width: 22%; }
+    .enemy-targets-table .col-status { width: 25%; } /* Adjusted */
+    .enemy-targets-table .col-claim { width: 20%; } /* Adjusted */
     .enemy-targets-table .col-attack { width: 23%; }
     .enemy-targets-table thead th, .enemy-targets-table tbody td {
         font-size: 0.75em;
@@ -704,7 +706,6 @@
         font-size: 11px;
     }
 }
-
 @media (max-width: 480px) {
     .enemy-targets-table .col-name { width: 20%; }
     .enemy-targets-table .col-level { width: 8%; }
