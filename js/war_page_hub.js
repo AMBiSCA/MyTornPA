@@ -813,16 +813,12 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-// --- Data Loading & UI Population ---
-
-// REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THIS ONE
-// REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THIS ONE
 async function initializeAndLoadData(apiKey) {
     try {
-        // MODIFIED: Request 'basic', 'chain', and 'wars' selections for our faction
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        // REVERTED: Request 'basic', 'members', and 'chain' selections only, as requested for stability
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain&key=${apiKey}&comment=MyTornPA_WarHub_Reverted_Members`;
 
-        console.log("Attempting to fetch faction data with specified selections (corrected):", userFactionApiUrl);
+        console.log("Attempting to fetch faction data (reverted basic,members,chain):", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
@@ -831,25 +827,28 @@ async function initializeAndLoadData(apiKey) {
         }
 
         factionApiFullData = await userFactionResponse.json();
-		console.log("Faction API Full Data (basic,chain,wars):", factionApiFullData); // Log the full response
+		console.log("Faction API Full Data (basic,members,chain):", factionApiFullData); // Log the response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // populateUiComponents is now called from auth.onAuthStateChanged, which passes warData
-        // No direct call to populateUiComponents or warDoc/warData fetching from Firebase here anymore.
+        // Pass warData and apiKey to populateUiComponents
+        // warData (from Firebase) is still needed for game plan, announcements, leader config settings etc.
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        populateUiComponents(warData, apiKey); // Pass warData and apiKey
 
     } catch (error) {
-        console.error("Error during basic/chain/wars data initialization:", error);
+        console.error("Error during basic/members/chain data initialization (reverted URL):", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
         // Also reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        // These elements will now be populated by fetchAndDisplayRankedWarScores if data is found
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        // IMPORTANT: These elements will NOT be populated by this API call
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A'; // Explicitly set to N/A
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
         if (warTargetScore) warTargetScore.textContent = 'N/A';
         if (warStartedTime) warStartedTime.textContent = 'N/A';
@@ -1219,12 +1218,6 @@ function setupEventListeners(apiKey) {
     }
 }
 
-// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
-
-// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
-// --- Main Initialization ---
-// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
-// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
