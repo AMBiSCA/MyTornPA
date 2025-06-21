@@ -294,10 +294,7 @@ function unclaimTarget(memberId) {
     }
 }
 
-// NEW: Function to build and display the enemy targets table
-// NEW: Function to build and display the enemy targets table
-// NEW: Function to build and display the enemy targets table
-// NEW: Function to build and display the enemy targets table
+// NEW: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
@@ -307,37 +304,24 @@ function displayEnemyTargetsTable(members) {
     // Clear the container first
     enemyTargetsContainer.innerHTML = '';
 
-    if (!members || Object.keys(members).length === 0) { // Check for empty object or array
+    if (!members || Object.keys(members).length === 0) {
         enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
         return;
     }
 
-    // Create the main wrapper for the fixed header table
-    const tableWrapper = document.createElement('div');
-    tableWrapper.className = 'enemy-targets-table-wrapper'; // New class for wrapper
+    // Build the entire table HTML string
+    let tableHtml = `<table class="enemy-targets-table">
+                        <thead>
+                            <tr>
+                                <th class="col-name">Name (ID)</th>
+                                <th class="col-level">Level</th>
+                                <th class="col-status">Status</th>
+                                <th class="col-claim">Claim</th>
+                                <th class="col-attack">Attack</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
 
-    // Create the header table
-    let headerTableHtml = `<table class="enemy-targets-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-name">Name (ID)</th>
-                                        <th class="col-level">Level</th>
-                                        <th class="col-status">Status</th>
-                                        <th class="col-claim">Claim</th>
-                                        <th class="col-attack">Attack</th>
-                                    </tr>
-                                </thead>
-                            </table>`;
-    tableWrapper.insertAdjacentHTML('beforeend', headerTableHtml);
-
-    // Create the scrollable body container
-    const tbodyScrollDiv = document.createElement('div');
-    tbodyScrollDiv.className = 'enemy-targets-table-body-scroll'; // New class for scrollable body
-
-    // Build the body table HTML
-    let bodyTableHtml = `<table class="enemy-targets-table"><tbody>`;
-
-    // Convert members object to array for consistent iteration
     const membersArray = Object.values(members);
 
     for (const member of membersArray) {
@@ -345,33 +329,33 @@ function displayEnemyTargetsTable(members) {
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
-        let statusText = member.status.description; // Default to description
+        let statusText = member.status.description;
         let statusClass = '';
-        let dataUntil = ''; // Store the 'until' timestamp for the timer
-        let statusState = member.status.state; // Store the state for updateAllTimers
+        let dataUntil = '';
+        let statusState = member.status.state;
 
         if (member.status.state === 'Hospital') {
             statusClass = 'status-hospital';
-            dataUntil = member.status.until; // Save this timestamp
+            dataUntil = member.status.until;
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
             statusText = `In Hospital (${formatTime(timeLeft)})`;
         } else if (member.status.state === 'Traveling') {
             statusClass = 'status-traveling';
-            dataUntil = member.status.until; // Still save the timestamp to check if arrived
+            dataUntil = member.status.until;
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
             if (timeLeft <= 0) {
                  statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
             } else {
-                 statusText = member.status.description; // Keep "Traveling to X"
+                 statusText = member.status.description;
             }
         }
         else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
         }
 
-        bodyTableHtml += `<tr id="target-row-${memberId}">
+        tableHtml += `<tr id="target-row-${memberId}">
                             <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                             <td class="col-level">${member.level}</td>
                             <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
@@ -379,14 +363,9 @@ function displayEnemyTargetsTable(members) {
                             <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
                         </tr>`;
     }
-    bodyTableHtml += `</tbody></table>`;
-    tbodyScrollDiv.insertAdjacentHTML('beforeend', bodyTableHtml);
+    tableHtml += `</tbody></table>`;
 
-    // Append the scrollable body to the wrapper
-    tableWrapper.appendChild(tbodyScrollDiv);
-
-    // Append the entire wrapper to the enemyTargetsContainer
-    enemyTargetsContainer.appendChild(tableWrapper);
+    enemyTargetsContainer.innerHTML = tableHtml;
 }
 
 // NEW: Function to format time from timestamp
@@ -416,21 +395,36 @@ async function fetchAndDisplayChainData(apiKey) {
 
     if (chainData && chainData.chain) {
       if (chainTimerDisplay) {
-        const endTime = chainData.chain.chain_end;
-        const startTime = chainData.chain.chain_started;
-        const now = Math.floor(Date.now() / 1000);
-        const timeLeft = endTime - now;
+        // MODIFIED: Use chainData.chain.timeout for timeLeft if available and positive
+        const endTime = chainData.chain.chain_end; // Keep for fallback if timeout is not used
+        const now = Math.floor(Date.now() / 1000); // Current time in seconds
+
+        let timeLeft = 0;
+        // Prioritize 'timeout' if it's a valid positive number
+        if (typeof chainData.chain.timeout === 'number' && chainData.chain.timeout > 0) {
+            timeLeft = chainData.chain.timeout;
+        } 
+        // Fallback to 'chain_end' if 'timeout' isn't active/positive and 'chain_end' is in the future
+        else if (typeof endTime === 'number' && endTime > now) {
+            timeLeft = endTime - now;
+        }
 
         chainTimerDisplay.textContent = timeLeft > 0 ? formatTime(timeLeft) : 'Chain Over';
       }
       if (currentChainNumberDisplay) {
         currentChainNumberDisplay.textContent = chainData.chain.current || 'N/A';
       }
-      if (chainStartedDisplay && chainData.chain.chain_started) {
-          chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.chain_started)}`;
+      if (chainStartedDisplay) {
+        // MODIFIED: Use chainData.chain.start instead of chainData.chain.chain_started
+        // Only update if 'start' property exists and is a truthy value (e.g., not 0 or null)
+        if (chainData.chain.start) {
+            chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.start)}`;
+        } else {
+            chainStartedDisplay.textContent = 'Started: N/A'; // Explicitly set N/A if 'start' is falsy/missing
+        }
       }
     } else {
-      console.warn("Chain data not found in API response.");
+      console.warn("Chain data not found in API response, or chain object is missing.");
       if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
       if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
       if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
@@ -440,7 +434,7 @@ async function fetchAndDisplayChainData(apiKey) {
     console.error("Error fetching chain data:", error);
     if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: Error';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
   }
 }
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
