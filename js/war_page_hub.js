@@ -194,64 +194,55 @@ async function fetchAndDisplayChainData(apiKey) {
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
     }
 }
-async function fetchAndDisplayRankedWarScores(apiKey) {
-    if (!apiKey) {
-        console.warn("API key not available for ranked war data refresh.");
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
+async function fetchAndDisplayRankedWarScores() { // No apiKey param needed, reads userApiKey global and factionApiFullData
+    if (!factionApiFullData || !factionApiFullData.ranked_wars || !factionApiFullData.ID) {
+        console.warn("Ranked War Data not fully available in factionApiFullData.ranked_wars.");
+        // Reset display if data is missing
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
         return;
     }
 
     try {
-        const rankedWarApiUrl = `https://api.torn.com/faction/?selections=ranked_wars&key=${apiKey}&comment=MyTornPA_RankedWarScores`;
-        const response = await fetch(rankedWarApiUrl);
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        const rankedWarData = factionApiFullData.ranked_wars; // Use the globally fetched full data
+        console.log("Ranked War API Data (from factionApiFullData):", rankedWarData);
+
+        // Find the active ranked war (assuming only one is typically active at a time)
+        let activeWar = null;
+        const yourFactionId = factionApiFullData.ID; // Get our faction ID from full data
+
+        for (const warId in rankedWarData) {
+            const warEntry = rankedWarData[warId];
+            // Check if war is active (end time 0) AND has our faction as a participant
+            if (warEntry.war && warEntry.war.end === 0 && warEntry.factions && warEntry.factions[yourFactionId]) {
+                activeWar = warEntry;
+                break;
+            }
         }
-        const data = await response.json();
-        console.log("Ranked War API Data:", data);
 
-        if (data && data.ranked_wars) {
-            globalRankedWarData = data.ranked_wars; // Store it globally
+        if (activeWar) {
+            const opponentFactionId = Object.keys(activeWar.factions).find(id => id !== String(yourFactionId));
+            const yourFactionInfo = activeWar.factions[yourFactionId];
+            const opponentFactionInfo = activeWar.factions[opponentFactionId];
 
-            const yourFactionId = factionApiFullData.ID; // Assuming factionApiFullData contains our ID
-            let activeWar = null;
-            let opponentFactionId = null;
+            // Update HTML elements
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score || 'N/A' : 'N/A';
+            if (yourFactionNameScoreLabel && yourFactionInfo) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
 
-            for (const warId in data.ranked_wars) {
-                const warEntry = data.ranked_wars[warId];
-                if (warEntry.war && warEntry.war.end === 0) { // Check if war is active (end time 0)
-                    activeWar = warEntry;
-                    break;
-                }
-            }
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score || 'N/A' : 'N/A';
+            if (opponentFactionNameScoreLabel && opponentFactionInfo) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
 
-            if (activeWar && yourFactionId && opponentFactionId) {
-                const yourFactionInfo = activeWar.factions[yourFactionId];
-                const opponentFactionInfo = activeWar.factions[opponentFactionId];
+            if (warTargetScore) warTargetScore.textContent = activeWar.war.target || 'N/A';
+            if (warStartedTime) warStartedTime.textContent = activeWar.war.start ? formatTornTime(activeWar.war.start) : 'N/A';
 
-                // Update HTML elements
-                if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score || 'N/A' : 'N/A';
-                // Update names in labels for clarity
-                if (yourFactionNameScoreLabel && yourFactionInfo) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
-
-                if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score || 'N/A' : 'N/A';
-                if (opponentFactionNameScoreLabel && opponentFactionInfo) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
-
-                if (warTargetScore) warTargetScore.textContent = activeWar.war.target || 'N/A';
-                if (warStartedTime) warStartedTime.textContent = activeWar.war.start ? formatTornTime(activeWar.war.start) : 'N/A';
-
-
-            } else {
-                // No active war found
-                if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-                if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-                if (warTargetScore) warTargetScore.textContent = 'N/A';
-                if (warStartedTime) warStartedTime.textContent = 'N/A';
-                if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-                if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
-            }
 
         } else {
-            console.warn("Ranked war data not found in API response, or ranked_wars object is missing.");
+            // No active war found
             if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
             if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
             if (warTargetScore) warTargetScore.textContent = 'N/A';
@@ -261,7 +252,7 @@ async function fetchAndDisplayRankedWarScores(apiKey) {
         }
 
     } catch (error) {
-        console.error("Error fetching ranked war data:", error);
+        console.error("Error processing ranked war data from factionApiFullData:", error);
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
         if (warTargetScore) warTargetScore.textContent = 'Error';
@@ -810,10 +801,10 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 
 async function initializeAndLoadData(apiKey) {
     try {
-        // *** MODIFIED ***: Using "v2" URL ONLY for the user's own faction data.
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub_V2Test`;
+        // MODIFIED: Request 'basic', 'members', 'chain', and 'ranked_wars' in one call for our faction
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
-        console.log("Attempting to fetch from v2 URL for user's faction:", userFactionApiUrl);
+        console.log("Attempting to fetch comprehensive faction data:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
@@ -822,125 +813,136 @@ async function initializeAndLoadData(apiKey) {
         }
 
         factionApiFullData = await userFactionResponse.json();
-		console.log("Faction API Full Data:", factionApiFullData); // ADD THIS LINE
+		console.log("Faction API Full Data (Combined):", factionApiFullData); // Log the full response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
+        // Now, pass warData and apiKey to populateUiComponents
+        // warData (from Firebase) is still needed for game plan, announcements, leader config settings etc.
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-
-        populateUiComponents(warData, apiKey);
+        populateUiComponents(warData, apiKey); // Pass warData and apiKey
 
     } catch (error) {
-        console.error("Error during data initialization:", error);
+        console.error("Error during comprehensive data initialization:", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
+        // Also reset related displays on error
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
+        if (warTargetScore) warTargetScore.textContent = 'Error';
+        if (warStartedTime) warStartedTime.textContent = 'Error';
     }
 }
 
-function populateUiComponents(warData, apiKey) {
-    if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
-    if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-    if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
+// REPLACE YOUR ENTIRE EXISTING 'populateUiComponents' FUNCTION WITH THIS ONE
+function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+    // Basic Faction Info (from global factionApiFullData)
+    if (factionApiFullData) {
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
+        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${countFactionMembers(factionApiFullData.members) || 'N/A'}`;
 
+        // Populate friendly member checkboxes (from factionApiFullData.members)
+        if (factionApiFullData.members) {
+            populateFriendlyMemberCheckboxes(
+                factionApiFullData.members,
+                warData.tab4Admins || [], // warData comes from Firebase
+                warData.energyTrackingMembers || []
+            );
+        }
+    } else {
+        console.warn("factionApiFullData not available in populateUiComponents.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
+        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
+    }
+    
+    // Game Plan & Announcements (from Firebase warData)
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
 
-    populateWarStatusDisplay(warData);
-    loadWarStatusForEdit(warData);
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData); // Uses warData (Firebase)
 
-    // NEW: Store enemy faction ID globally after initial fetch or load
+    // Store enemy faction ID globally (from Firebase warData)
     globalEnemyFactionID = warData.enemyFactionID || null;
 
-    // This is the single, correct block for handling the enemy faction display
+    // Display enemy targets table (still needs enemyData via separate fetch)
     if (warData.enemyFactionID) {
         fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
     } else {
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
         populateEnemyMemberCheckboxes({}, []);
         displayEnemyTargetsTable(null); // This clears the table
-    }
-
-    if (factionApiFullData.members) {
-        populateFriendlyMemberCheckboxes(
-            factionApiFullData.members,
-            warData.tab4Admins || [],
-            warData.energyTrackingMembers || []
-        );
     }
 }
 
 // Inside fetchAndDisplayEnemyFaction function...
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayChainData' FUNCTION WITH THIS ONE
-async function fetchAndDisplayChainData(apiKey) {
-  if (!apiKey) {
-    console.warn("API key is not available. Cannot fetch chain data.");
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayChainData' FUNCTION WITH THIS ONE
+async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
+  if (!factionApiFullData || !factionApiFullData.chain) {
+    console.warn("Chain data not fully available in factionApiFullData.chain.");
+    // Ensure display elements are reset if data is missing
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over'; // Also reset timer display
     return;
   }
 
-  try {
-    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
-    const response = await fetch(chainApiUrl);
-    if (!response.ok) {
-      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-    }
-    const chainData = await response.json();
-    console.log("Chain API Data (fetched):", chainData); // This log is already here and is useful!
+  const chainData = factionApiFullData; // Use the globally fetched full data
+  console.log("Chain API Data (from factionApiFullData):", chainData.chain); // Log for debugging
 
-    if (chainData && chainData.chain) {
-      // Store the relevant values globally for updateAllTimers to use
-      currentLiveChainSeconds = chainData.chain.timeout || 0;
-      lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
-      globalChainStartedTimestamp = chainData.chain.start || 0;
-      globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+  if (chainData && chainData.chain) {
+    // Store the relevant values globally for updateAllTimers to use
+    currentLiveChainSeconds = chainData.chain.timeout || 0;
+    lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+    globalChainStartedTimestamp = chainData.chain.start || 0;
+    globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
 
-      // Update current chain number display here (as it's directly from API)
-      if (currentChainNumberDisplay) {
-        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
-      }
-
-      // Logic for Chain Started time display (no change from previous as requested)
-      if (chainStartedDisplay) {
-        const newChainStartedTimestamp = chainData.chain.start || 0;
-        if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
-            globalChainStartedTimestamp = newChainStartedTimestamp;
-            chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-        } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
-            globalChainStartedTimestamp = 0;
-            chainStartedDisplay.textContent = 'Started: N/A';
-        } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
-            // No change needed
-        }
-      }
-
-    } else {
-      console.warn("Chain data not found in API response, or chain object is missing.");
-      // Reset global variables if no chain data
-      currentLiveChainSeconds = 0;
-      lastChainApiFetchTime = 0;
-      globalChainStartedTimestamp = 0;
-      globalChainCurrentNumber = 'N/A';
-
-      // Ensure display elements are reset if API data is missing/invalid
-      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
+    // Update the chain number display directly here, as it's not a countdown
+    if (currentChainNumberDisplay) {
+      currentChainNumberDisplay.textContent = globalChainCurrentNumber;
     }
 
-  } catch (error) {
-    console.error("Error fetching chain data:", error);
-    // On error, reset global variables and display 'Error'
+    // Logic for Chain Started time display (no change from previous as requested)
+    if (chainStartedDisplay) {
+      const newChainStartedTimestamp = chainData.chain.start || 0;
+      if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+          globalChainStartedTimestamp = newChainStartedTimestamp;
+          chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+      } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+          globalChainStartedTimestamp = 0;
+          chainStartedDisplay.textContent = 'Started: N/A';
+      } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+          // No change needed
+      }
+    }
+
+  } else { // Should ideally not be hit if outer if (factionApiFullData.chain) handles it
+    console.warn("Chain data not found within factionApiFullData.chain.");
+    // Reset global variables if no chain data
     currentLiveChainSeconds = 0;
     lastChainApiFetchTime = 0;
     globalChainStartedTimestamp = 0;
     globalChainCurrentNumber = 'N/A';
 
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+    // Ensure display elements are reset if data is missing/invalid
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
   }
 }
 
@@ -1206,39 +1208,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
             const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null; // NEW: Get player ID
+            const playerId = userData.tornProfileId || null; // Get player ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            if (apiKey && playerId) { // MODIFIED: Check for both API key and player ID
+            if (apiKey && playerId) {
                 userApiKey = apiKey; // Ensure userApiKey is set globally
 
-                // Initial load of general UI components
-                await initializeAndLoadData(apiKey); // This call populates factionApiFullData
+                // Initial load of comprehensive faction data (basic, members, chain, ranked_wars)
+                // This is the first call that populates factionApiFullData
+                await initializeAndLoadData(apiKey); 
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
                     listenersInitialized = true;
 
                     // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); // Now only updates local timers
-
-                    // Fetch and display quick FF targets periodically
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        } else {
-                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                        }
-                    }, 60000); // Refresh quick targets every 60 seconds (60000 ms)
-
-                    // Start Chain Data API fetch every 1.75 seconds
-                    setInterval(() => {
-                        if (userApiKey) {
-                            fetchAndDisplayChainData(userApiKey);
-                        } else {
-                            console.warn("API key not available for periodic chain data refresh.");
-                        }
-                    }, 1750); // 1750 milliseconds = 1.75 seconds
+                    setInterval(updateAllTimers, 1000); // Only updates local timers
 
                     // Start Enemy Data API fetch every 1 second
                     setInterval(() => {
@@ -1249,36 +1234,37 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 1000); // 1000 milliseconds = 1 second
 
-                    // NEW: Start Ranked War Scores API fetch every 30 seconds
+                    // Start Quick FF Targets fetch every 60 seconds
                     setInterval(() => {
-                        // Check for factionApiFullData.ID as it's needed to find our faction's score in ranked_wars
-                        if (userApiKey && factionApiFullData && factionApiFullData.ID) { 
-                            fetchAndDisplayRankedWarScores(userApiKey);
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
                         } else {
-                            console.warn("API key or faction data not available for periodic Ranked War scores refresh.");
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 30000); // 30000 milliseconds = 30 seconds
+                    }, 60000); // Refresh quick targets every 60 seconds (60000 ms)
 
-                    // Perform initial API fetches immediately on load
-                    if (userApiKey) {
-                        fetchAndDisplayChainData(userApiKey);
-                    }
-                    if (userApiKey && globalEnemyFactionID) {
+                    // Start OUR Faction Data (Combined) fetch every 1.75 seconds
+                    // This is the periodic call to refresh ALL our faction's data
+                    setInterval(() => {
+                        if (userApiKey) { 
+                            initializeAndLoadData(userApiKey); // This will re-fetch and update factionApiFullData
+                        } else {
+                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 1750); // 1750 milliseconds = 1.75 seconds
+
+                    // Perform initial API fetches immediately on load (besides initializeAndLoadData done above)
+                    if (userApiKey && globalEnemyFactionID) { // Initial call for enemy data
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
-                    if (userApiKey && playerId) {
+                    if (userApiKey && playerId) { // Initial call for quick FF targets
                         displayQuickFFTargets(userApiKey, playerId);
                     }
-                    // NEW: Initial call for Ranked War Scores
-                    // This is placed after initializeAndLoadData so factionApiFullData.ID is available
-                    if (userApiKey && factionApiFullData && factionApiFullData.ID) {
-                        fetchAndDisplayRankedWarScores(userApiKey);
-                    }
+                    // Initial call for comprehensive faction data is handled by initializeAndLoadData awaiting above
                 } // Closes: if (!listenersInitialized)
-            } else { // MODIFIED: Condition now explicitly checks for API Key or Player ID
+            } else {
                 console.warn("API key or Player ID not found.");
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                // NEW: Clear and display initial Quick FF Target placeholders
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
