@@ -464,19 +464,12 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             const target = data.targets[i];
             const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
             const targetName = target.playerName || `Target ${i + 1}`;
-            const ffScore = parseFloat(target.fairFightScore);
-            const difficultyText = get_difficulty_text(ffScore);
-            const bgColor = get_ff_colour(ffScore);
-            const textColor = get_contrast_color(bgColor);
+            // Removed fair fight color logic here, will rely on CSS for generic button look
 
             const targetHtml = `
-                <a href="${attackUrl}" target="_blank" 
-                   style="background-color: ${bgColor}; color: ${textColor}; 
-                          border: 1px solid ${textColor === 'black' ? '#000' : '#FFF'}; 
-                          text-decoration: none; padding: 4px; border-radius: 4px; 
-                          display: flex; justify-content: center; align-items: center; 
-                          font-size: 0.8em; font-weight: bold; width: 100%; box-sizing: border-box;"
-                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${ffScore} (${difficultyText})">
+                <a href="${attackUrl}" target="_blank"
+                   class="quick-ff-target-btn"
+                   title="${targetName} (ID: ${target.playerID})">
                     ${targetName}
                 </a>
             `;
@@ -961,7 +954,6 @@ function setupEventListeners(apiKey) {
     }
 }
 
-// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -999,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 5000); // Refresh quick targets every 5 seconds (adjust as needed)
+                    }, 60000); // Refresh quick targets every 60 seconds (60000 ms)
 
                     // Start Chain Data API fetch every 1.75 seconds
                     setInterval(() => {
