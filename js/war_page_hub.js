@@ -295,6 +295,7 @@ function unclaimTarget(memberId) {
 }
 
 // NEW: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
+// MODIFIED: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
@@ -311,18 +312,19 @@ function displayEnemyTargetsTable(members) {
 
     // Build the entire table HTML string
     let tableHtml = `<table class="enemy-targets-table">
-                        <thead>
-                            <tr>
-                                <th class="col-name">Name (ID)</th>
-                                <th class="col-level">Level</th>
-                                <th class="col-status">Status</th>
-                                <th class="col-claim">Claim</th>
-                                <th class="col-attack">Attack</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                         <thead>
+                             <tr>
+                                 <th class="col-name">Name (ID)</th>
+                                 <th class="col-level">Level</th>
+                                 <th class="col-last-action">Last Action</th> <th class="col-status">Status</th>
+                                 <th class="col-claim">Claim</th>
+                                 <th class="col-attack">Attack</th>
+                             </tr>
+                         </thead>
+                         <tbody>`;
 
     const membersArray = Object.values(members);
+    const nowInSeconds = Math.floor(Date.now() / 1000); // Get current time once for efficiency
 
     for (const member of membersArray) {
         const memberId = member.id;
@@ -337,31 +339,32 @@ function displayEnemyTargetsTable(members) {
         if (member.status.state === 'Hospital') {
             statusClass = 'status-hospital';
             dataUntil = member.status.until;
-            const now = Math.floor(Date.now() / 1000);
-            const timeLeft = member.status.until - now;
+            const timeLeft = member.status.until - nowInSeconds;
             statusText = `In Hospital (${formatTime(timeLeft)})`;
         } else if (member.status.state === 'Traveling') {
             statusClass = 'status-traveling';
             dataUntil = member.status.until;
-            const now = Math.floor(Date.now() / 1000);
-            const timeLeft = member.status.until - now;
+            const timeLeft = member.status.until - nowInSeconds;
             if (timeLeft <= 0) {
-                 statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
+                statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
             } else {
-                 statusText = member.status.description;
+                statusText = member.status.description;
             }
-        }
-        else if (member.status.state !== 'Okay') {
+        } else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
         }
 
+        // Determine Last Action text
+        const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp); // Use the new function here
+
         tableHtml += `<tr id="target-row-${memberId}">
-                            <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
-                            <td class="col-level">${member.level}</td>
-                            <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
-                            <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
-                            <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
-                        </tr>`;
+                             <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                             <td class="col-level">${member.level}</td>
+                             <td class="col-last-action">${lastActionText}</td> <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                             <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                             <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                         </tr>`;
     }
     tableHtml += `</tbody></table>`;
 
@@ -436,6 +439,27 @@ async function fetchAndDisplayChainData(apiKey) {
     if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
     if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
   }
+}
+function formatRelativeTime(timestampInSeconds) {
+    if (!timestampInSeconds || timestampInSeconds === 0) {
+        return "N/A";
+    }
+
+    const now = Math.floor(Date.now() / 1000); // Current time in seconds
+    const diffSeconds = now - timestampInSeconds;
+
+    if (diffSeconds < 60) {
+        return "Now"; // Less than 1 minute
+    } else if (diffSeconds < 3600) { // Less than 1 hour (60 minutes)
+        const minutes = Math.floor(diffSeconds / 60);
+        return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+    } else if (diffSeconds < 86400) { // Less than 1 day (24 hours)
+        const hours = Math.floor(diffSeconds / 3600);
+        return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    } else { // 1 day or more
+        const days = Math.floor(diffSeconds / 86400);
+        return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
 }
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
