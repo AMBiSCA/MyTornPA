@@ -817,6 +817,52 @@ select[multiple] {
 #designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
     background-color: #c82333;
 }
+autocomplete-items {
+    position: absolute; /* Position the list directly below the input */
+    border: 1px solid #00a8ff; /* Blue border */
+    border-bottom: none;
+    border-top: none;
+    z-index: 99; /* Ensure it appears above other content */
+    /* Position the autocomplete items to be the same width as the input: */
+    top: 100%; /* Position it directly below the input (100% of parent's height) */
+    left: 0;
+    right: 0;
+    background-color: #222; /* Dark background */
+    max-height: 200px; /* Max height for scrollable list */
+    overflow-y: auto; /* Enable scrolling */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+    margin-top: 3px; /* Small gap between input and list */
+    border-radius: 0 0 5px 5px; /* Rounded bottom corners */
+}
+
+.autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #333; /* Item background */
+    border-bottom: 1px solid #444; /* Separator between items */
+    color: #f0f0f0; /* Text color */
+    font-size: 0.9em;
+}
+
+/* Style for highlighted item (on hover or keyboard navigation) */
+.autocomplete-items div:hover,
+.autocomplete-items .autocomplete-active {
+    background-color: #00a8ff; /* Blue highlight */
+    color: #1e1e1e; /* Dark text on highlight */
+}
+
+/* Style for matched text */
+.autocomplete-items strong {
+    color: #e0a71a; /* Gold color for matched text */
+}
+
+/* IMPORTANT: Ensure the parent container of the input has position: relative;
+   This makes `top: 100%`, `left: 0`, `right: 0` in `.autocomplete-items`
+   position correctly relative to the input field. */
+.war-status-toggles-grid .toggle-control {
+    position: relative; /* ADD THIS LINE to your existing .war-status-toggles-grid .toggle-control rule */
+    /* ... other existing rules for toggle-control ... */
+}
 
 
 /* Responsive Media Queries for the War Hub Container */
