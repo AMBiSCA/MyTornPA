@@ -10,7 +10,7 @@ let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // NEW: Counter for API call intervals
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-let globalEnemyFactionID = null; // NEW: To store enemy ID for repeated calls
+
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
