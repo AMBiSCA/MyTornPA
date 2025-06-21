@@ -133,41 +133,6 @@ function formatTime(seconds) {
     return result.trim();
 }
 
-function formatTime(seconds) {
-    if (seconds <= 0) return '0s';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    let result = '';
-    if (h > 0) result += `${h}h `;
-    if (m > 0) result += `${m}m `;
-    if (s > 0) result += `${s}s`;
-    return result.trim();
-}
-// NEW: Function to update all countdown timers on the page
-function updateAllTimers() {
-    const now = Math.floor(Date.now() / 1000);
-    const timerElements = document.querySelectorAll('.countdown-timer');
-
-    timerElements.forEach(timerEl => {
-        const until = parseInt(timerEl.dataset.until, 10);
-        const timeLeft = until - now;
-
-        if (timeLeft > 0) {
-            // If time is left, update the text
-            timerEl.textContent = formatTime(timeLeft);
-        } else {
-            // If the timer is finished, update the whole table cell to say "Okay"
-            const parentTd = timerEl.closest('td');
-            if (parentTd) {
-                parentTd.textContent = 'Okay';
-                parentTd.className = ''; // Remove the red/orange color
-            }
-        }
-    });
-}
-
-// NEW: Function to handle un-claiming a target
 function unclaimTarget(memberId) {
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
@@ -209,32 +174,25 @@ function displayEnemyTargetsTable(members) {
                         <tbody>`;
 
     for (const member of members) {
-        const memberId = member.id;
+        const memberId = member.id; 
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
-        // MODIFIED: This whole block is updated to create timers correctly
-        let statusDisplayHtml = member.status.description;
+        let statusText = member.status.description;
         let statusClass = '';
-
-        // Check if the status has an end time (like hospital or travel)
-        if (member.status.until && member.status.state !== 'Okay') {
+        if (member.status.state === 'Hospital') {
+            statusClass = 'status-hospital';
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
-
-            // Determine the prefix text (e.g., "In Hospital")
-            const prefix = member.status.details ? member.status.details.replace(/<.*?>/g, '') : member.status.description;
-            
-            statusClass = (member.status.state === 'Hospital') ? 'status-hospital' : 'status-other';
-            
-            // Create a span with a special class and a data-until attribute
-            statusDisplayHtml = `${prefix} (<span class="countdown-timer" data-until="${member.status.until}">${formatTime(timeLeft)}</span>)`;
+            statusText = `In Hospital (${formatTime(timeLeft)})`;
+        } else if (member.status.state !== 'Okay') {
+            statusClass = 'status-other';
         }
-
+        
         tableHtml += `<tr id="target-row-${memberId}">
                         <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                         <td>${member.level}</td>
-                        <td class="${statusClass}">${statusDisplayHtml}</td>
+                        <td class="${statusClass}">${statusText}</td>
                         <td><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
                         <td><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
                       </tr>`;
@@ -638,18 +596,13 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
     });
     showTab('announcements-tab');
-
     let listenersInitialized = false;
-
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const apiKey = doc.exists ? doc.data().tornApiKey : null;
-
-            // This is the corrected line using your database field name
             currentTornUserName = doc.exists ? doc.data().preferredName : 'Unknown';
-
             if (apiKey) {
                 userApiKey = apiKey;
                 await initializeAndLoadData(apiKey);
@@ -668,4 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
     });
+    // Start the real-time timers
+    setInterval(updateAllTimers, 1000);
 });
