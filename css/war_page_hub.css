@@ -556,11 +556,18 @@
     text-align: center; /* Center header text as per screenshot */
     padding: 8px 10px;
     border-bottom: 2px solid #1e1e1e; /* Darker border below header */
+    border-right: 1px solid #1e1e1e; /* ADDED: Vertical line for headers */
     font-size: 0.9em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     /* No 'position: sticky'  here as it's a separate table */
+}
+
+/* Removes the right border from the last column cells */
+.enemy-targets-table thead th:last-child,
+.enemy-targets-table tbody td:last-child {
+    border-right: none;
 }
 
 /* Scrollable container for the table body */
