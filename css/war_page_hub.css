@@ -123,12 +123,12 @@
 /* CORRECTED: Apply grid to the .config-grid class which is the direct parent of your sections */
 .config-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* CHANGE '300px' to '250px' */
     gap: 20px;
     padding: 0;
     box-sizing: border-box;
-    max-width: 1750px; /* Max-width for the grid content */
-    margin: 0 auto; /* Center the grid container horizontally */
+    max-width: 1750px;
+    margin: 0 auto;
 }
 
 /* Ensure .config-section elements behave correctly within the grid */
@@ -1266,7 +1266,8 @@
     background-color: #333;
     color: #f0f0f0;
     font-size: 0.9em;
-    box-sizing: border-box !important; /* IMPORTANT: Added !important here for overlap fix */
+    box-sizing: border-box;
+    word-break: break-word; /* ADD THIS LINE */
 }
 /* Specific styling for 'Next Planned Chain Time' label and input */
 /* Target the specific toggle-control by the ID of its input for precision */
