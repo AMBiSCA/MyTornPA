@@ -165,44 +165,68 @@
                 </div>
 
                 <div id="active-ops-tab" class="tab-pane">
-                    <div class="ops-controls-grid">
-                        <div class="ops-control-item ops-timer">
-                            <label>Chain Timer:</label>
-                            <span id="chainTimerDisplay">00:00:00</span>
-                            <span id="chainStartedDisplay">Started: N/A</span>
-                            <span id="currentChainNumberDisplay">N/A</span>
-                        </div>
-                        <div class="ops-control-item ops-chain-score">
-                            <div class="faction-score-group your-faction">
-                                <span id="yourFactionNameScore" class="score-faction-name">Your Faction</span>
-                                <span id="currentChainScore" class="score-value current-score">0</span>
-                            </div>
-                            <div class="score-target-info">
-                                <span class="score-label">LEAD TARGET</span>
-                                <span id="leadTargetProgress" class="score-progress">0 / 0</span>
-                            </div>
-                            <div class="faction-score-group enemy-faction">
-                                <span id="enemyFactionNameScore" class="score-faction-name">Enemy Faction</span>
-                                <span id="targetFactionScore" class="score-value target-score">0</span>
-                            </div>
-                        </div>
+                    <div class="active-ops-content-wrapper"> <div class="active-ops-left-panel"> <div class="ops-controls-grid">
+                                <div class="ops-control-item ops-timer">
+                                    <label>Chain Timer:</label>
+                                    <span id="chainTimerDisplay">00:00:00</span>
+                                    <span id="chainStartedDisplay">Started: N/A</span>
+                                    <span id="currentChainNumberDisplay">N/A</span>
+                                </div>
+                                <div class="ops-control-item ops-chain-score">
+                                    <div class="faction-score-group your-faction">
+                                        <span id="yourFactionNameScore" class="score-faction-name">Your Faction</span>
+                                        <span id="currentChainScore" class="score-value current-score">0</span>
+                                    </div>
+                                    <div class="score-target-info">
+                                        <span class="score-label">LEAD TARGET</span>
+                                        <span id="leadTargetProgress" class="score-progress">0 / 0</span>
+                                    </div>
+                                    <div class="faction-score-group enemy-faction">
+                                        <span id="enemyFactionNameScore" class="score-faction-name">Enemy Faction</span>
+                                        <span id="targetFactionScore" class="score-value target-score">0</span>
+                                    </div>
+                                </div>
 
-                        <div class="ops-control-item ops-quick-targets">
-                            <label>Quick FF Targets:</label>
-                            <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
-                                <span>Target 1</span>
-                                <span>Target 2</span>
+                                <div class="ops-control-item ops-quick-targets">
+                                    <label>Quick FF Targets:</label>
+                                    <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
+                                        <span>Target 1</span>
+                                        <span>Target 2</span>
+                                        <span>Target 3</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="enemy-targets-list-section">
-                        <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
-                            <p>Loading enemy targets...</p>
-                        </div>
-                    </div>
-
-                    </div>
+                            <div class="enemy-targets-list-section">
+                                <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
+                                    <p>Loading enemy targets...</p>
+                                </div>
+                            </div>
+                        </div> <div class="active-ops-right-panel"> <div id="warChatBox" class="chat-container">
+                                <div class="chat-tabs-container">
+                                    <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
+                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
+                                    <button class="chat-tab" data-chat-tab="friends">Friends</button>
+                                    <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
+                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
+                                    <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
+                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
+                                </div>
+                                <div class="chat-display-area">
+                                    <p>Welcome to the chat! Messages will appear here...</p>
+                                </div>
+                                <div class="chat-input-area">
+                                    <div class="chat-input-buttons-top">
+                                        <button class="chat-action-btn siren-btn">🚨</button>
+                                        <button class="chat-action-btn blank-btn"></button>
+                                    </div>
+                                    <div class="chat-input-text-send">
+                                        <input type="text" class="chat-text-input" placeholder="Type your message...">
+                                        <button class="chat-send-btn">Send</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> </div> </div>
 
                 <div id="friendly-status-tab" class="tab-pane">
                     <div id="faction-live-stats-header">
