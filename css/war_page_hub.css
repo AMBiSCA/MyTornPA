@@ -15,7 +15,7 @@
     margin-right: auto;   /* ADDED: Centering the overall container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
     width: 98%; /* NEW: Made even wider to use more space */
-    max-width: 1800px; /* NEW: Increased max-width significantly */
+    max-width: 750px; /* NEW: Increased max-width significantly */
     box-sizing: border-box; /* Include padding/border in width */
     display: flex; /* Use flexbox for internal layout */
     flex-direction: column; /* Stack content vertically */
@@ -286,7 +286,7 @@
 /* --- Main Table Structure --- */
 .enemy-targets-table {
     width: 100%;
-	max-width: 750px;
+	max-width: 900px;
     margin-top: 10px;
     border-collapse: collapse; /* Removes space between cell borders */
     font-family: Arial, sans-serif;
