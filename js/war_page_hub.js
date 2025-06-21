@@ -8,8 +8,13 @@ const auth = firebase.auth();
 let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
-let apiCallCounter = 0; // NEW: Counter for API call intervals
+let apiCallCounter = 0; // Counter for API call intervals
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
+let currentLiveChainSeconds = 0; // Stores the remaining chain timeout for local countdown
+let lastChainApiFetchTime = 0; // Stores the timestamp of the last chain API fetch
+let globalChainStartedTimestamp = 0; // Stores the actual chain start time from API
+let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
+let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
 
 
 // --- DOM Element Getters ---
@@ -104,10 +109,168 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
 }
-/**
- * Updates all real-time timers on the page, including the main chain timer
- * and individual hospital/travel timers in the enemy targets table.
- */
+// NEW: Helper function to format time remaining from seconds (Moved for proper scope)
+function formatTime(seconds) {
+    if (seconds <= 0) return '0s';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    let result = '';
+    if (h > 0) result += `${h}h `;
+    if (m > 0) result += `${m}m `;
+    if (s > 0) result += `${s}s`;
+    return result.trim();
+}
+
+// NEW: Function to fetch and display chain data (Moved for proper scope)
+async function fetchAndDisplayChainData(apiKey) {
+    if (!apiKey) {
+        console.warn("API key is not available. Cannot fetch chain data.");
+        return;
+    }
+
+    try {
+        const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
+        const response = await fetch(chainApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        const chainData = await response.json();
+        console.log("Chain API Data (fetched):", chainData);
+
+        if (chainData && chainData.chain) {
+            // Store the relevant values globally for updateAllTimers to use
+            currentLiveChainSeconds = chainData.chain.timeout || 0;
+            lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+            globalChainStartedTimestamp = chainData.chain.start || 0;
+            globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+
+            // Update current chain number display here (as it's directly from API)
+            if (currentChainNumberDisplay) {
+                currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+            }
+
+            // Logic for Chain Started time display (no change from previous as requested)
+            if (chainStartedDisplay) {
+                const newChainStartedTimestamp = chainData.chain.start || 0;
+                if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+                    globalChainStartedTimestamp = newChainStartedTimestamp;
+                    chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+                } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+                    globalChainStartedTimestamp = 0;
+                    chainStartedDisplay.textContent = 'Started: N/A';
+                } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+                    // No change needed
+                }
+            }
+
+        } else {
+            console.warn("Chain data not found in API response, or chain object is missing.");
+            // Reset global variables if no chain data
+            currentLiveChainSeconds = 0;
+            lastChainApiFetchTime = 0;
+            globalChainStartedTimestamp = 0;
+            globalChainCurrentNumber = 'N/A';
+
+            // Ensure display elements are reset if API data is missing/invalid
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
+        }
+
+    } catch (error) {
+        console.error("Error fetching chain data:", error);
+        // On error, reset global variables and display 'Error'
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
+        globalChainStartedTimestamp = 0;
+        globalChainCurrentNumber = 'N/A';
+
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+    }
+}
+
+// MODIFIED: updateAllTimers function (Moved for proper scope)
+function updateAllTimers() {
+    console.count('updateAllTimers called');
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
+    if (warNextChainTimeStatus && nextChainTimeInput) {
+        const nextChainTimeValue = nextChainTimeInput.value.trim();
+        const targetChainTime = parseInt(nextChainTimeValue, 10);
+
+        if (!isNaN(targetChainTime) && targetChainTime > 0) {
+            const timeLeft = targetChainTime - nowInSeconds;
+            if (timeLeft > 0) {
+                warNextChainTimeStatus.textContent = formatTime(timeLeft);
+            } else {
+                warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
+            }
+        } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
+            // Do nothing if it's already N/A or empty, to avoid resetting manual text
+        } else {
+            warNextChainTimeStatus.textContent = 'N/A';
+        }
+    }
+
+    // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
+    if (enemyTargetsContainer) {
+        const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+
+        statusCells.forEach(cell => {
+            const targetTime = parseInt(cell.dataset.until, 10);
+            const statusState = cell.dataset.statusState;
+            const originalDescription = cell.textContent.split('(')[0].trim();
+
+            if (!isNaN(targetTime) && targetTime > 0) {
+                const timeLeft = targetTime - nowInSeconds;
+
+                if (timeLeft > 0) {
+                    if (statusState === 'Hospital') {
+                        cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
+                    } else if (statusState === 'Traveling') {
+                        cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
+                    }
+                } else {
+                    if (statusState === 'Hospital') {
+                        cell.textContent = `Okay`;
+                        cell.classList.remove('status-hospital', 'status-other', 'status-okay');
+                    } else if (statusState === 'Traveling') {
+                        const destination = originalDescription.replace('Traveling to ', '');
+                        cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
+                        cell.classList.remove('status-traveling', 'status-other');
+                        cell.classList.add('status-okay');
+                    } else {
+                        cell.textContent = `${statusState} (Time Up)`;
+                        cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                        cell.classList.add('status-okay');
+                    }
+                }
+            }
+        });
+    }
+
+    // NEW: Update Chain Timer Display (smooth 1-second countdown)
+    // This logic relies on global variables set by fetchAndDisplayChainData, which must be called separately by setInterval in DOMContentLoaded
+    console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+    if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+        const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+        const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+        chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+    } else if (chainTimerDisplay) {
+        chainTimerDisplay.textContent = 'Chain Over';
+    }
+
+    // NEW: Update Chain Started Time Display
+    // This section ensures the Chain Started time is displayed when data is available
+    if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+        chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+    } else if (chainStartedDisplay) {
+        chainStartedDisplay.textContent = 'Started: N/A';
+    }
+}
+
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
@@ -116,7 +279,8 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         if (!response.ok) {
             throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
         }
-        const enemyData = await response.json();
+        enemyDataGlobal = await response.json(); // Store enemy data globally
+        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
         console.log("Enemy Faction API Data:", enemyData);
         if (enemyData.error) {
             console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
@@ -150,71 +314,8 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     }
 }
 
-// REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
-function updateAllTimers() {
-  console.count('updateAllTimers called'); // NEW: Added console.count
-  const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
 
-  // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
-  // This part handles the manually set 'Next Planned Chain Time' countdown locally.
-  if (warNextChainTimeStatus && nextChainTimeInput) {
-      const nextChainTimeValue = nextChainTimeInput.value.trim();
-      const targetChainTime = parseInt(nextChainTimeValue, 10);
 
-      if (!isNaN(targetChainTime) && targetChainTime > 0) {
-          const timeLeft = targetChainTime - nowInSeconds;
-          if (timeLeft > 0) {
-              warNextChainTimeStatus.textContent = formatTime(timeLeft);
-          } else {
-              warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
-          }
-      } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
-          // Do nothing if it's already N/A or empty, to avoid resetting manual text
-      } else {
-          // Only update if it previously had a value and it's now invalid or empty
-          warNextChainTimeStatus.textContent = 'N/A';
-      }
-  }
-
-  // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
-  // This part updates existing enemy timers locally without new API calls.
-  if (enemyTargetsContainer) {
-      const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
-      statusCells.forEach(cell => {
-          const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
-          const statusState = cell.dataset.statusState; // Get original status state
-          const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part
-
-          if (!isNaN(targetTime) && targetTime > 0) {
-              const timeLeft = targetTime - nowInSeconds;
-
-              if (timeLeft > 0) {
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                  } else if (statusState === 'Traveling') {
-                      // Keep the original description with updated time, e.g., "Traveling to X (Ym Zs)"
-                      cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                  }
-              } else {
-                  // Timer has expired, assume they are now 'Okay' or 'Arrived'
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `Okay`; // MODIFIED: Changed text to 'Okay'
-                      cell.classList.remove('status-hospital', 'status-other', 'status-okay'); // MODIFIED: Removed 'status-okay' to make it white
-                  } else if (statusState === 'Traveling') {
-                      const destination = originalDescription.replace('Traveling to ', '');
-                      cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                      cell.classList.remove('status-traveling', 'status-other');
-                      cell.classList.add('status-okay'); // This can remain green if that's desired for 'Arrived'
-                  } else {
-                      cell.textContent = `${statusState} (Time Up)`;
-                      cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                      cell.classList.add('status-okay');
-                  }
-              }
-          }
-      });
-  }
 
   // NEW: Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
@@ -236,7 +337,8 @@ function updateAllTimers() {
   } else if (chainStartedDisplay) {
       chainStartedDisplay.textContent = 'Started: N/A';
   }
- 
+}
+  
  // NEW: Function to fetch and display Chain Score (e.g., Lead Target progress)
 async function fetchAndDisplayChainScore(apiKey) {
     const yourFactionNameScoreEl = document.getElementById('yourFactionNameScore');
@@ -361,35 +463,7 @@ function claimTarget(memberId) {
     }
 }
 // NEW: Helper function to format time remaining from seconds
-function formatTime(seconds) {
-    if (seconds <= 0) return '0s';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    let result = '';
-    if (h > 0) result += `${h}h `;
-    if (m > 0) result += `${m}m `;
-    if (s > 0) result += `${s}s`;
-    return result.trim();
-}
 
-function unclaimTarget(memberId) {
-    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    const targetRow = document.getElementById(`target-row-${memberId}`);
-
-    if (claimBtn) {
-        // Re-enable the button and set it back to the "Claim" state
-        claimBtn.disabled = false;
-        claimBtn.textContent = 'Claim';
-        // Change the onclick event back to call claimTarget
-        claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
-    }
-
-    // Remove the special background color from the row
-    if (targetRow) {
-        targetRow.style.backgroundColor = ''; 
-    }
-}
 
 // NEW: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
 // MODIFIED: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
@@ -599,66 +673,8 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 
-// NEW: Function to fetch and display chain data
-async function fetchAndDisplayChainData(apiKey) {
-  if (!apiKey) {
-    console.warn("API key is not available. Cannot fetch chain data.");
-    return;
-  }
 
-  try {
-    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
-    const response = await fetch(chainApiUrl);
-    if (!response.ok) {
-      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-    }
-    const chainData = await response.json();
-    console.log("Chain API Data:", chainData);
 
-    if (chainData && chainData.chain) {
-      if (chainTimerDisplay) {
-        // MODIFIED: Use chainData.chain.timeout for timeLeft if available and positive
-        const endTime = chainData.chain.chain_end; // Keep for fallback if timeout is not used
-        const now = Math.floor(Date.now() / 1000); // Current time in seconds
-
-        let timeLeft = 0;
-        // Prioritize 'timeout' if it's a valid positive number
-        if (typeof chainData.chain.timeout === 'number' && chainData.chain.timeout > 0) {
-            timeLeft = chainData.chain.timeout;
-        } 
-        // Fallback to 'chain_end' if 'timeout' isn't active/positive and 'chain_end' is in the future
-        else if (typeof endTime === 'number' && endTime > now) {
-            timeLeft = endTime - now;
-        }
-
-        chainTimerDisplay.textContent = timeLeft > 0 ? formatTime(timeLeft) : 'Chain Over';
-      }
-      if (currentChainNumberDisplay) {
-        currentChainNumberDisplay.textContent = chainData.chain.current || 'N/A';
-      }
-      if (chainStartedDisplay) {
-        // MODIFIED: Use chainData.chain.start instead of chainData.chain.chain_started
-        // Only update if 'start' property exists and is a truthy value (e.g., not 0 or null)
-        if (chainData.chain.start) {
-            chainStartedDisplay.textContent = `Started: ${formatTornTime(chainData.chain.start)}`;
-        } else {
-            chainStartedDisplay.textContent = 'Started: N/A'; // Explicitly set N/A if 'start' is falsy/missing
-        }
-      }
-    } else {
-      console.warn("Chain data not found in API response, or chain object is missing.");
-      if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
-      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
-    }
-
-  } catch (error) {
-    console.error("Error fetching chain data:", error);
-    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-  }
-}
 function formatRelativeTime(timestampInSeconds) {
     if (!timestampInSeconds || timestampInSeconds === 0) {
         return "N/A";
