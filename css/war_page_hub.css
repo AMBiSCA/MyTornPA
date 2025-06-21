@@ -3,25 +3,24 @@
    ========================================================================== */
 
 /* Overall Container for the War Page Hub */
-/* Overall Container for the War Page Hub */
 #warPageHubContainer {
     /* Styles for the main container */
-    background-color: #1e1e1e; /* Darker background */
-    color: #f0f0f0; /* Light text */
-    padding: 10px; /* NEW: Reduced padding for more vertical space */
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    padding: 10px;
     border-radius: 8px;
-    margin-top: 15px; /* Top margin remains perfect */
-    margin-bottom: 50px; /* CORRECTED: Ensure this is a positive value for a gap */
-    margin-left: auto;     /* ADDED: Centering the overall container */
-    margin-right: auto;    /* ADDED: Centering the overall container */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
-    width: 98%; /* NEW: Made even wider to use more space */
-    max-width: 1800px; /* NEW: Increased max-width significantly */
-    box-sizing: border-box; /* Include padding/border in width */
-    display: flex; /* Use flexbox for internal layout */
-    flex-direction: column; /* Stack content vertically */
-    gap: 0px; /* NEW: Reduced space between main sections */
-    /* REMOVED: min-height: calc(100vh - 170px); - Allow content to dictate height */
+    margin-top: 15px;
+    margin-bottom: 50px; /* Keep this positive value for the gap */
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    width: 98%;
+    max-width: 1800px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    /* REMOVED: min-height: calc(100vh - 170px); */ /* This line MUST be removed */
     border: 3px solid black;
 }
 
@@ -79,20 +78,19 @@
 }
 
 /* Tab Content Container */
-/* Tab Content Container */
 .tab-content-container {
     /* Styles for the container holding tab contents */
-    padding: 15px; /* NEW: Reduced padding */
+    padding: 15px;
     border: 3px solid black;
     border-radius: 0 0 8px 8px;
     background-color: #333;
     flex-grow: 1;
     height: auto;
-    overflow-y: visible; /* CORRECTED: Allows content to push parent down, no internal scroll */
+    overflow-y: visible; /* Change this to 'visible' to allow content to push parent down */
     box-sizing: border-box;
     margin-top: 0;
     padding-top: 0;
-    /* REMOVED: min-height: 400px; */
+    /* REMOVED: min-height: 400px; */ /* This line MUST be removed */
 }
 .tab-pane {
     /* Styles for individual tab content areas */
