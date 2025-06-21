@@ -203,31 +203,43 @@ function populateUiComponents(warData, apiKey) {
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
-        // ... (api call code) ...
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
         const enemyData = await response.json();
-        // ... (error checking) ...
+        console.log("Enemy Faction API Data:", enemyData);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
 
-        // ... (populating faction name, members, pic) ...
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
+        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = `url('${getFactionImageUrl(enemyData.basic.tag_image)}')`;
 
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
         const savedWatchlistMembers = warData.bigHitterWatchlist || [];
 
         if (enemyData.members) {
-            displayEnemyTargetsTable(enemyData.members); // <-- ADD THIS LINE
+            // Corrected function call
+            displayEnemyTargetsTable(enemyData.members);
             populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
         } else {
             console.warn("Enemy faction members data not found.");
-            displayEnemyTargetsTable(null); // <-- ADD THIS LINE
+            // Corrected function call
+            displayEnemyTargetsTable(null);
             populateEnemyMemberCheckboxes({}, []);
         }
-
     } catch (error) {
         console.error('Error fetching enemy faction data:', error);
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
         if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
-        displayEnemyTargetsTable(null); // <-- ADD THIS LINE
+        // Corrected function call
+        displayEnemyTargetsTable(null);
         populateEnemyMemberCheckboxes({}, []);
     }
 }
