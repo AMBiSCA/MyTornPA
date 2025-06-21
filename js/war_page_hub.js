@@ -179,6 +179,7 @@ function updateAllTimers() {
         });
     }
 }
+
 // NEW: Function to handle claiming a target
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 function claimTarget(memberId) {
@@ -230,26 +231,45 @@ function unclaimTarget(memberId) {
 // NEW: Function to build and display the enemy targets table
 // NEW: Function to build and display the enemy targets table
 // NEW: Function to build and display the enemy targets table
+// NEW: Function to build and display the enemy targets table
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
         return;
     }
+
+    // Clear the container first
+    enemyTargetsContainer.innerHTML = '';
+
     if (!members || Object.keys(members).length === 0) { // Check for empty object or array
         enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
         return;
     }
-    let tableHtml = `<table class="enemy-targets-table">
-                        <thead>
-                            <tr>
-                                <th>Name (ID)</th>
-                                <th>Level</th>
-                                <th>Status</th>
-                                <th>Claim</th>
-                                <th>Attack</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+
+    // Create the main wrapper for the fixed header table
+    const tableWrapper = document.createElement('div');
+    tableWrapper.className = 'enemy-targets-table-wrapper'; // New class for wrapper
+
+    // Create the header table
+    let headerTableHtml = `<table class="enemy-targets-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-name">Name (ID)</th>
+                                        <th class="col-level">Level</th>
+                                        <th class="col-status">Status</th>
+                                        <th class="col-claim">Claim</th>
+                                        <th class="col-attack">Attack</th>
+                                    </tr>
+                                </thead>
+                            </table>`;
+    tableWrapper.insertAdjacentHTML('beforeend', headerTableHtml);
+
+    // Create the scrollable body container
+    const tbodyScrollDiv = document.createElement('div');
+    tbodyScrollDiv.className = 'enemy-targets-table-body-scroll'; // New class for scrollable body
+
+    // Build the body table HTML
+    let bodyTableHtml = `<table class="enemy-targets-table"><tbody>`;
 
     // Convert members object to array for consistent iteration
     const membersArray = Object.values(members);
@@ -273,14 +293,10 @@ function displayEnemyTargetsTable(members) {
         } else if (member.status.state === 'Traveling') {
             statusClass = 'status-traveling';
             dataUntil = member.status.until; // Still save the timestamp to check if arrived
-            // For traveling, we want to show the destination immediately, not a countdown.
-            // The Torn API `description` for traveling usually contains the destination (e.g., "Traveling to Cayman Islands").
-            // We'll keep the full description and let updateAllTimers handle "Arrived" if time's up.
-            // If the destination isn't always in `description`, you might need a different API call or data point.
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = member.status.until - now;
             if (timeLeft <= 0) {
-                 statusText = `Arrived (${member.status.description.replace('Traveling to ', '')})`; // Or just 'Arrived'
+                 statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
             } else {
                  statusText = member.status.description; // Keep "Traveling to X"
             }
@@ -289,18 +305,23 @@ function displayEnemyTargetsTable(members) {
             statusClass = 'status-other';
         }
 
-        tableHtml += `<tr id="target-row-${memberId}">
-                        <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
-                        <td>${member.level}</td>
-                        <td class="${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
-                        <td><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
-                        <td><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
-                    </tr>`;
+        bodyTableHtml += `<tr id="target-row-${memberId}">
+                            <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                            <td class="col-level">${member.level}</td>
+                            <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                            <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                            <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                        </tr>`;
     }
-    tableHtml += `</tbody></table>`;
-    enemyTargetsContainer.innerHTML = tableHtml;
-}
+    bodyTableHtml += `</tbody></table>`;
+    tbodyScrollDiv.insertAdjacentHTML('beforeend', bodyTableHtml);
 
+    // Append the scrollable body to the wrapper
+    tableWrapper.appendChild(tbodyScrollDiv);
+
+    // Append the entire wrapper to the enemyTargetsContainer
+    enemyTargetsContainer.appendChild(tableWrapper);
+}
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
