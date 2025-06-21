@@ -1,121 +1,121 @@
 /* ==========================================================================
-   War Page Hub Specific Styles (war_page_hub.css)
-   ========================================================================== */
+   War Page Hub Specific Styles (war_page_hub.css)
+   ========================================================================== */
 
 /* Overall Container for the War Page Hub */
 #warPageHubContainer {
-    /* Styles for the main container */
-    background-color: #1e1e1e; /* Darker background */
-    color: #f0f0f0; /* Light text */
-    padding: 10px; /* NEW: Reduced padding for more vertical space */
-    border-radius: 8px;
-    margin-top: 15px; /* Top margin remains perfect */
-    margin-bottom: -50px; /* Explicitly set bottom margin for space from footer */
-    margin-left: auto;    /* ADDED: Centering the overall container */
-    margin-right: auto;   /* ADDED: Centering the overall container */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
-    width: 98%; /* NEW: Made even wider to use more space */
-    max-width: 1800px; /* NEW: Increased max-width significantly */
-    box-sizing: border-box; /* Include padding/border in width */
-    display: flex; /* Use flexbox for internal layout */
-    flex-direction: column; /* Stack content vertically */
-    gap: 0px; /* NEW: Reduced space between main sections */
-    min-height: calc(100vh - 170px);
-    border: 3px solid black;
+    /* Styles for the main container */
+    background-color: #1e1e1e; /* Darker background */
+    color: #f0f0f0; /* Light text */
+    padding: 10px; /* NEW: Reduced padding for more vertical space */
+    border-radius: 8px;
+    margin-top: 15px; /* Top margin remains perfect */
+    margin-bottom: -50px; /* Explicitly set bottom margin for space from footer */
+    margin-left: auto;    /* ADDED: Centering the overall container */
+    margin-right: auto;   /* ADDED: Centering the overall container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+    width: 98%; /* NEW: Made even wider to use more space */
+    max-width: 1800px; /* NEW: Increased max-width significantly */
+    box-sizing: border-box; /* Include padding/border in width */
+    display: flex; /* Use flexbox for internal layout */
+    flex-direction: column; /* Stack content vertically */
+    gap: 0px; /* NEW: Reduced space between main sections */
+    min-height: calc(100vh - 170px);
+    border: 3px solid black;
 }
 
 /* Script Title */
 .script-title {
-    /* Styles for the main title */
-    color: #00a8ff; /* NEW: Changed to blue theme color */
-    text-align: center;
-    margin-bottom: 10px; /* NEW: Reduced bottom margin */
-    margin-top: 5px; /* NEW: Reduced top margin to move higher */
-    font-size: 2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    /* Styles for the main title */
+    color: #00a8ff; /* NEW: Changed to blue theme color */
+    text-align: center;
+    margin-bottom: 10px; /* NEW: Reduced bottom margin */
+    margin-top: 5px; /* NEW: Reduced top margin to move higher */
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Tab Navigation Styles */
 .tab-navigation {
-    /* Styles for the tab buttons container */
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 0; /* NEW: Reduced bottom margin */
-    border-bottom: none; /* REMOVED separating border */
-    flex-wrap: wrap;
-    margin-top: 0;
+    /* Styles for the tab buttons container */
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 0; /* NEW: Reduced bottom margin */
+    border-bottom: none; /* REMOVED separating border */
+    flex-wrap: wrap;
+    margin-top: 0;
 }
 
 .tab-button {
-    /* Styles for individual tab buttons */
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 8px 12px; /* NEW: Slightly reduced padding */
-    border: 2px solid black; /* NEW: Added 1px black border */
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 120px; /* Minimum width for each tab */
-    text-align: center;
-    border-left: 2px solid black;
-    border-right: 2px solid black;
+    /* Styles for individual tab buttons */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Slightly reduced padding */
+    border: 2px solid black; /* NEW: Added 1px black border */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 120px; /* Minimum width for each tab */
+    text-align: center;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
 }
 
 
 .tab-button:hover {
-    background-color: #555; /* NEW: A slightly different hover color for non-active */
-    color: #f0f0f0;
-    border-color: #00a8ff; /* Highlight border on hover */
+    background-color: #555; /* NEW: A slightly different hover color for non-active */
+    color: #f0f0f0;
+    border-color: #00a8ff; /* Highlight border on hover */
 }
 
 .tab-button.active {
-    /* Active state */
-    background-color: #00a8ff; /* NEW: Changed to blue theme color */
-    color: #1e1e1e; /* Dark text on blue */
-    border-color: #00a8ff; /* Active border color */
-    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Subtle glow for active tab */
+    /* Active state */
+    background-color: #00a8ff; /* NEW: Changed to blue theme color */
+    color: #1e1e1e; /* Dark text on blue */
+    border-color: #00a8ff; /* Active border color */
+    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Subtle glow for active tab */
 }
 
 /* Tab Content Container */
 .tab-content-container {
-    /* Styles for the container holding tab contents */
-    padding: 15px; /* NEW: Reduced padding */
-    border: 3px solid black;
-    border-radius: 0 0 8px 8px;
-    background-color: #333;
-    flex-grow: 1;
-    height: auto;
-    overflow-y: auto; /* CHANGE THIS: Will add a scrollbar if content overflows vertically */
-    box-sizing: border-box;
-    margin-top: 0;
-    padding-top: 0;
-    min-height: 400px; /* OPTIONAL: Ensures a minimum height, adjust px as needed */
+    /* Styles for the container holding tab contents */
+    padding: 15px; /* NEW: Reduced padding */
+    border: 3px solid black;
+    border-radius: 0 0 8px 8px;
+    background-color: #333;
+    flex-grow: 1;
+    height: auto;
+    overflow-y: auto; /* CHANGE THIS: Will add a scrollbar if content overflows vertically */
+    box-sizing: border-box;
+    margin-top: 0;
+    padding-top: 0;
+    min-height: 400px; /* OPTIONAL: Ensures a minimum height, adjust px as needed */
 }
 .tab-pane {
-    /* Styles for individual tab content areas */
-    display: none;
-    height: 100%; /* IMPORTANT: Allow tab pane to fill available height */
-    overflow-y: visible; /* Allow content to push parent down if needed (controlled by main-content-wrapper overflow) */
-    box-sizing: border-box; /* Include padding/border in height calculations */
+    /* Styles for individual tab content areas */
+    display: none;
+    height: 100%; /* IMPORTANT: Allow tab pane to fill available height */
+    overflow-y: visible; /* Allow content to push parent down if needed (controlled by main-content-wrapper overflow) */
+    box-sizing: border-box; /* Include padding/border in height calculations */
 }
 .tab-pane.active {
-    display: block;
+    display: block;
 }
 
 /* Ensure the active-ops-tab itself manages its internal layout */
 #active-ops-tab.tab-pane.active {
-    display: flex; /* Make this specific tab's content a flex container */
-    flex-direction: column; /* Stack its direct children (controls and content row) vertically */
-    height: 100%; /* Crucial for internal flex children to scale */
-    width: 100%; /* Ensure it takes full width */
-    box-sizing: border-box;
-    overflow-y: visible; /* Still allows content to push main page if needed */
+    display: flex; /* Make this specific tab's content a flex container */
+    flex-direction: column; /* Stack its direct children (controls and content row) vertically */
+    height: 100%; /* Crucial for internal flex children to scale */
+    width: 100%; /* Ensure it takes full width */
+    box-sizing: border-box;
+    overflow-y: visible; /* Still allows content to push main page if needed */
 }
 
-/* LEADER CONFIG TAB STYLES */
 #leader-config-tab.active {
-    display: block; /* Just needs to be block to show its content */
+
+    display: block;
     padding: 10px;
     box-sizing: border-box;
 }
@@ -123,9 +123,7 @@
 /* CORRECTED: Apply grid to the .config-grid class which is the direct parent of your sections */
 .config-grid {
     display: grid;
-    /* Use auto-fit with minmax to allow columns to wrap on smaller screens.
-       300px is a reasonable minimum width for each section. */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
     gap: 20px;
     padding: 0;
     box-sizing: border-box;
@@ -133,283 +131,269 @@
     margin: 0 auto; /* Center the grid container horizontally */
 }
 
-/* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
-/* This rule is not needed if auto-fit handles responsiveness, and can cause issues.
-   If you truly need a section to span a fixed number of columns regardless of screen size,
-   you'd use 'grid-column: span X;' but this usually conflicts with auto-fit.
-   For now, removed as it was likely causing issues. */
-/* .config-section.designate-admins-section {
-    grid-column: auto;
-} */
-
 /* Ensure .config-section elements behave correctly within the grid */
 .config-section {
-    margin-bottom: 0; /* Ensures no extra margin between grid items */
-    padding: 10px;
+    margin-bottom: 0px; /* Existing */
+    padding: 10px; /* Existing */
     border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222;
-    text-align: left;
+    border-radius: 8px; /* Existing */
+    background-color: #222; /* Existing */
+    text-align: left; /* Existing */
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center content horizontally within the section */
-    justify-content: space-between; /* Distribute space vertically */
-    box-sizing: border-box; /* Include padding/border in width/height */
-    min-width: 0; /* Crucial: Allows grid items to shrink below intrinsic content size */
+    align-items: center;
+    justify-content: space-between;
 }
-
-/* The .config-section.designate-admins-section rule below is redundant/problematic with auto-fit */
-/* .config-section.designate-admins-section {
-    grid-column: auto;
-} */
+.config-section.designate-admins-section {
+    grid-column: auto;
+}
 
 /* --- END LEADER CONFIG TAB SPECIFIC STYLES --- */
 
 /* You will also need to ensure this rule is correctly placed inside your @media (max-width: 992px) block: */
 @media (max-width: 992px) {
-    /* ... (your other existing rules in this media query) ... */
-    .tab-content-container {
-        height: 100%; /* Ensure it fills parent height */
-        min-height: unset; /* Remove min-height here as well */
-    }
-    /* ... (rest of media query) ... */
+    /* ... (your other existing rules in this media query) ... */
+    .tab-content-container {
+        height: 100%; /* Ensure it fills parent height */
+        min-height: unset; /* Remove min-height here as well */
+    }
+    /* ... (rest of media query) ... */
 }
 
 /* War Announcement Section (Tab 1) */
 .war-announcement-section {
-    margin-bottom: 15px; /* NEW: Reduced margin */
-    padding: 10px; /* NEW: Reduced padding */
-    border: 1px solid #555;
-    border-radius: 8px;
-    background-color: #222;
-    text-align: left;
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    padding: 10px; /* NEW: Reduced padding */
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222;
+    text-align: left;
 }
 
 .war-announcement-section h3 {
-    color: #00a8ff; /* NEW: Changed to blue theme color */
-    margin-bottom: 8px; /* NEW: Reduced margin */
-    margin-top: 0; /* NEW: Remove top margin */
-    text-align: center;
-    font-size: 1.5em; /* NEW: Slightly adjusted font size */
+    color: #00a8ff; /* NEW: Changed to blue theme color */
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    margin-top: 0; /* NEW: Remove top margin */
+    text-align: center;
+    font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
 /* Styling for the new grid layout in the Announcements tab */
 .announcements-grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid for 3 columns */
-    gap: 20px; /* Space between the three containers */
-    padding: 10px; /* Optional: internal padding for the grid */
-    box-sizing: border-box;
-    width: 100%; /* Ensure it takes full width of its parent */
-    max-width: 1750px; /* Adjust to match your overall max-width if desired */
-    margin: 0 auto; /* Center the grid if it's narrower than its parent */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid for 3 columns */
+    gap: 20px; /* Space between the three containers */
+    padding: 10px; /* Optional: internal padding for the grid */
+    box-sizing: border-box;
+    width: 100%; /* Ensure it takes full width of its parent */
+    max-width: 1750px; /* Adjust to match your overall max-width if desired */
+    margin: 0 auto; /* Center the grid if it's narrower than its parent */
 }
 
 /* Style for each individual container within the announcements grid */
 .announcement-section-item {
-    display: flex; /* Make it a flex container to align its inner content (the war-announcement-section) */
-    flex-direction: column; /* Stack content vertically */
-    /* flex-grow: 1; /* Uncomment if you want items to grow and fill available space */
+    display: flex; /* Make it a flex container to align its inner content (the war-announcement-section) */
+    flex-direction: column; /* Stack content vertically */
+    /* flex-grow: 1; /* Uncomment if you want items to grow and fill available space */
 }
 
 /* Ensure the .war-announcement-section inside this grid also fills its space */
 .announcement-section-item .war-announcement-section {
-    flex-grow: 1; /* Make the inner content grow to fill the container height if items are stretched */
-    display: flex; /* Make it a flex container */
-    flex-direction: column; /* Stack its own content vertically */
-    justify-content: space-between; /* Distribute space between header, content, and button */
+    flex-grow: 1; /* Make the inner content grow to fill the container height if items are stretched */
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack its own content vertically */
+    justify-content: space-between; /* Distribute space between header, content, and button */
 
-    /* Apply box styling similar to .config-section */
-    border: 1px solid black; /* Matching the border from .config-section */
-    border-radius: 8px; /* Matching the border-radius from .config-section */
-    background-color: #222; /* Matching the background from .config-section */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth like other boxes */
-    padding: 10px; /* Adjust internal padding to match .config-section */
-    box-sizing: border-box;
+    /* Apply box styling similar to .config-section */
+    border: 1px solid black; /* Matching the border from .config-section */
+    border-radius: 8px; /* Matching the border-radius from .config-section */
+    background-color: #222; /* Matching the background from .config-section */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth like other boxes */
+    padding: 10px; /* Adjust internal padding to match .config-section */
+    box-sizing: border-box;
 }
 
 
 .member-checkbox-list {
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #333;
-    max-height: 150px; /* Keeps the scroll behavior */
-    overflow-y: auto; /* Enables vertical scrolling */
-    padding: 8px; /* Internal padding for the list */
-    box-sizing: border-box;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    max-height: 150px; /* Keeps the scroll behavior */
+    overflow-y: auto; /* Enables vertical scrolling */
+    padding: 8px; /* Internal padding for the list */
+    box-sizing: border-box;
 
-    /* NEW ADAPTATIONS: Two columns of names */
-    display: grid; /* Changed from flex to grid */
-    /* Changed to 3 columns, auto-fit for responsiveness */
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Adjusted for responsiveness */
+    /* NEW ADAPTATIONS: Two columns of names */
+    display: grid; /* Changed from flex to grid */
+    grid-template-columns: 150px 150px 150px;
     gap: 13px 15px; /* Vertical gap 8px, Horizontal gap 15px between items */
 
-    margin-bottom: 8px; /* Space below the list, similar to inputs */
+    margin-bottom: 8px; /* Space below the list, similar to inputs */
 }
 /* NEW: Style for the container holding Next Chain Time and Current Team Lead */
 .status-summary-two-col {
-    display: flex; /* Use flexbox to arrange items horizontally */
-    justify-content: space-around; /* Distribute space evenly around items */
-    align-items: center; /* Vertically align items in the middle */
-    padding-top: 10px; /* Add some padding above the content */
-    padding-bottom: 5px; /* Add some padding below */
-    gap: 15px; /* Space between the two items */
-    flex-wrap: wrap; /* Allow items to wrap on smaller screens if they don't fit */
+    display: flex; /* Use flexbox to arrange items horizontally */
+    justify-content: space-around; /* Distribute space evenly around items */
+    align-items: center; /* Vertically align items in the middle */
+    padding-top: 10px; /* Add some padding above the content */
+    padding-bottom: 5px; /* Add some padding below */
+    gap: 15px; /* Space between the two items */
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens if they don't fit */
 }
 
 .status-summary-two-col .status-value-box {
-    margin-top: 0; /* Remove default margin-top if not needed for vertical stacking */
+    margin-top: 0; /* Remove default margin-top if not needed for vertical stacking */
 }
 
 .member-checkbox-list .member-selection-item {
-    display: flex;
-    align-items: center; /* Vertically centers name and checkbox */
-    flex-direction: row; /* Keeps the label and checkbox in order */
-    gap: 5px; /* Controls the small space between the label and checkbox */
-    color: #f0f0f0;
-    font-size: 0.9em;
-    max-height: 334px; /* This max-height on a flex item might be problematic, but keeping for now */
-    background-color: #2a2a2a; /* A slightly lighter shade for the inner box background */
-    border: 1px solid #444; /* A subtle border around each member's box */
-    border-radius: 4px; /* Slightly rounded corners for the box */
-    padding: 6px 8px; /* Internal padding inside each member's box */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* A very subtle shadow for depth */
+    display: flex;
+    align-items: center; /* Vertically centers name and checkbox */
+    flex-direction: row; /* Keeps the label and checkbox in order */
+    gap: 5px; /* Controls the small space between the label and checkbox */
+    color: #f0f0f0;
+    font-size: 0.9em;
+    max-height: 334px;
+    background-color: #2a2a2a; /* A slightly lighter shade for the inner box background */
+    border: 1px solid #444; /* A subtle border around each member's box */
+    border-radius: 4px; /* Slightly rounded corners for the box */
+    padding: 6px 8px; /* Internal padding inside each member's box */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* A very subtle shadow for depth */
 }
 
 .member-checkbox-list .member-selection-item label {
-    cursor: pointer;
-    flex-grow: 1; /* Allows the name (label) to take up available space */
-    text-align: left; /* Ensures label text remains left-aligned */
-    order: 0; /* Puts the label visually before the checkbox */
+    cursor: pointer;
+    flex-grow: 1; /* Allows the name (label) to take up available space */
+    text-align: left; /* Ensures label text remains left-aligned */
+    order: 0; /* Puts the label visually before the checkbox */
 }
 /* Adjust textarea within the moved Faction Announcements to stretch and have margin */
 .announcement-section-item .war-announcement-section textarea {
-    flex-grow: 1; /* Allow textarea to grow and take available space */
-    margin-bottom: 15px; /* Ensure space above button */
-    height: auto; /* Allow height to adjust */
-    min-height: 80px; /* Match min-height from config-section textarea */
-    resize: vertical; /* Allow vertical resizing */
+    flex-grow: 1; /* Allow textarea to grow and take available space */
+    margin-bottom: 15px; /* Ensure space above button */
+    height: auto; /* Allow height to adjust */
+    min-height: 80px; /* Match min-height from config-section textarea */
+    resize: vertical; /* Allow vertical resizing */
 }
 
 @media (max-width: 768px) {
-    .announcements-grid-container {
-        gap: 15px; /* Slightly reduce gap on smaller screens */
-    }
+    .announcements-grid-container {
+        gap: 15px; /* Slightly reduce gap on smaller screens */
+    }
 }
 
 @media (max-width: 480px) {
-    .announcements-grid-container {
-        gap: 8px; /* Further reduce gap on very small screens */
-        padding: 5px; /* Reduce padding for tight spaces */
-    }
-    .announcement-section-item .war-announcement-section {
-        padding: 8px; /* Adjust inner padding of the boxes */
-    }
-    .announcement-section-item .war-announcement-section textarea {
-        min-height: 60px; /* Adjust textarea min-height for small screens */
-    }
+    .announcements-grid-container {
+        gap: 8px; /* Further reduce gap on very small screens */
+        padding: 5px; /* Reduce padding for tight spaces */
+    }
+    .announcement-section-item .war-announcement-section {
+        padding: 8px; /* Adjust inner padding of the boxes */
+    }
+    .announcement-section-item .war-announcement-section textarea {
+        min-height: 60px; /* Adjust textarea min-height for small screens */
+    }
 }
 /* ==========================================================================
-   Active Ops Tab Layout (Side-by-Side)
-   ========================================================================== */
+   Active Ops Tab Layout (Side-by-Side)
+   ========================================================================== */
 
 /* This wrapper handles the side-by-side layout of the table and chatbox */
 
 /* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-left-panel {
-    display: flex;
-    flex-direction: column;
-    flex: 1; /* Allows it to grow and shrink */
-    min-width: 450px; 
-	margin-top: -25px; 
-    /* Height will be implicitly driven by its content or flex alignment */
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Allows it to grow and shrink */
+    min-width: 450px; 
+	margin-top: -25px; 
+    /* Height will be implicitly driven by its content or flex alignment */
 }
 
 /* Right Panel: Holds the chatbox */
 .active-ops-right-panel {
-    display: flex;
-    flex-direction: column; /* Stack chat elements vertically */
-    flex: 1; /* Allows it to grow and shrink */
-    min-width: 300px; /* Minimum width for the chatbox side */
-    /* Height will be matched to left panel via flex alignment on parent .active-ops-content-wrapper */
+    display: flex;
+    flex-direction: column; /* Stack chat elements vertically */
+    flex: 1; /* Allows it to grow and shrink */
+    min-width: 300px; /* Minimum width for the chatbox side */
+    /* Height will be matched to left panel via flex alignment on parent .active-ops-content-wrapper */
 }
 
 /* New wrapper to hold the left panel (table) and right panel (chat) side-by-side */
 .active-ops-main-content-row {
-    display: flex; /* Makes its children (left & right panels) go side-by-side */
-    flex-grow: 1; /* Allows this row to take up remaining vertical space */
-    gap: 20px; /* Space between the left and right panels */
-    width: 100%; /* Ensures it spans the full width of its parent */
-    align-items: flex-start; /* Aligns content to the top within the row */
-    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
+    display: flex; /* Makes its children (left & right panels) go side-by-side */
+    flex-grow: 1; /* Allows this row to take up remaining vertical space */
+    gap: 20px; /* Space between the left and right panels */
+    width: 100%; /* Ensures it spans the full width of its parent */
+    align-items: flex-start; /* Aligns content to the top within the row */
+    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
 }
 
 /* ==========================================================================
-   Chatbox Specific Styles
-   ========================================================================== */
+   Chatbox Specific Styles
+   ========================================================================== */
 
 .chat-container {
-    background-color: #222; /* Dark background */
-    border: 1px solid black;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column; /* Stack tabs, display, input vertically */
-    height: 475px; /* Crucial: Make chatbox fill available height of its parent .active-ops-right-panel */
-    overflow: hidden; /* Ensures content stays within rounded borders */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
+    background-color: #222; /* Dark background */
+    border: 1px solid black;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column; /* Stack tabs, display, input vertically */
+    height: 475px; /* Crucial: Make chatbox fill available height of its parent .active-ops-right-panel */
+    overflow: hidden; /* Ensures content stays within rounded borders */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
 }
 
 /* Chat Tabs Container */
 .chat-tabs-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
-    border-bottom: 1px solid #1e1e1e; /* Separator below tabs */
-    background-color: #333; /* Slightly lighter background for tabs bar */
-    border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
-    overflow: hidden; /* Contain inner elements within rounded corners */
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+    border-bottom: 1px solid #1e1e1e; /* Separator below tabs */
+    background-color: #333; /* Slightly lighter background for tabs bar */
+    border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
+    overflow: hidden; /* Contain inner elements within rounded corners */
 }
 
 /* Individual Chat Tabs */
 .chat-tab {
-    flex-grow: 1; /* Allows tabs to share horizontal space */
-    padding: 8px 5px; /* Compact padding for small tabs */
-    background-color: #333;
-    color: #f0f0f0;
-    border: none;
-    border-right: 1px solid #1e1e1e; /* Separator between tabs */
-    cursor: pointer;
-    font-size: 0.9em; /* Small font size for tabs */
-    font-weight: bold;
-    text-align: center;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    white-space: nowrap; /* Prevent tab text from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if tab text is too long */
+    flex-grow: 1; /* Allows tabs to share horizontal space */
+    padding: 8px 5px; /* Compact padding for small tabs */
+    background-color: #333;
+    color: #f0f0f0;
+    border: none;
+    border-right: 1px solid #1e1e1e; /* Separator between tabs */
+    cursor: pointer;
+    font-size: 0.9em; /* Small font size for tabs */
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap; /* Prevent tab text from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if tab text is too long */
 }
 
 .chat-tab:last-child {
-    border-right: none; /* No border on the very last tab */
+    border-right: none; /* No border on the very last tab */
 }
 
 .chat-tab:hover {
-    background-color: #555;
-    color: #00a8ff; /* Highlight on hover */
+    background-color: #555;
+    color: #00a8ff; /* Highlight on hover */
 }
 
 .chat-tab.active {
-    background-color: #00a8ff; /* Active tab color */
-    color: #1e1e1e; /* Dark text on active tab */
+    background-color: #00a8ff; /* Active tab color */
+    color: #1e1e1e; /* Dark text on active tab */
 }
 
 /* Chat Display Area (where messages appear) */
 .chat-display-area {
-    flex-grow: 1; /* Crucial: Makes message area take up all remaining vertical space */
-    background-color: #1a1a1a; /* Very dark background for message display */
-    padding: 10px;
-    overflow-y: auto; /* Enable scrolling for messages */
-    word-wrap: break-word; /* Prevents long words from breaking layout */
-    font-size: 0.9em;
-    line-height: 1.4;
-    color: #f0f0f0; /* Light text for messages */
+    flex-grow: 1; /* Crucial: Makes message area take up all remaining vertical space */
+    background-color: #1a1a1a; /* Very dark background for message display */
+    padding: 10px;
+    overflow-y: auto; /* Enable scrolling for messages */
+    word-wrap: break-word; /* Prevents long words from breaking layout */
+    font-size: 0.9em;
+    line-height: 1.4;
+    color: #f0f0f0; /* Light text for messages */
 }
 
 /* Custom scrollbar for chat display area */
@@ -421,302 +405,301 @@
 
 /* Chat Input Area (bottom section with buttons and text input) */
 .chat-input-area {
-    flex-shrink: 0; /* Prevent this area from shrinking */
-    background-color: #333; /* Background for the input bar */
-    padding: 10px;
-    border-top: 1px solid #1e1e1e; /* Separator above input area */
-    display: flex;
-    flex-direction: column; /* Stack top buttons above input+send */
-    gap: 5px; /* Space between the two rows of controls */
+    flex-shrink: 0; /* Prevent this area from shrinking */
+    background-color: #333; /* Background for the input bar */
+    padding: 10px;
+    border-top: 1px solid #1e1e1e; /* Separator above input area */
+    display: flex;
+    flex-direction: column; /* Stack top buttons above input+send */
+    gap: 5px; /* Space between the two rows of controls */
 }
 
 /* Top row of smaller buttons (siren, blank) */
 .chat-input-buttons-top {
-    display: flex;
-    justify-content: flex-start; /* Align buttons to the left */
-    gap: 5px; /* Space between buttons */
+    display: flex;
+    justify-content: flex-start; /* Align buttons to the left */
+    gap: 5px; /* Space between buttons */
 }
 
 /* Small action buttons (siren, blank) */
 .chat-action-btn {
-    width: 30px; /* Small fixed width */
-    height: 30px; /* Small fixed height */
-    padding: 0; /* Remove default padding */
-    border: 1px solid #00a8ff;
-    border-radius: 50%; /* Make them circular */
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    font-size: 1.2em; /* Adjust icon size */
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    flex-shrink: 0; /* Prevent shrinking */
+    width: 30px; /* Small fixed width */
+    height: 30px; /* Small fixed height */
+    padding: 0; /* Remove default padding */
+    border: 1px solid #00a8ff;
+    border-radius: 50%; /* Make them circular */
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-size: 1.2em; /* Adjust icon size */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .chat-action-btn.siren-btn {
-    color: #ff0000; /* Red for siren */
+    color: #ff0000; /* Red for siren */
 }
 
 .chat-action-btn:hover {
-    background-color: #00a8ff;
-    border-color: #00e0ff;
-    color: #1e1e1e; /* Darken icon on hover */
+    background-color: #00a8ff;
+    border-color: #00e0ff;
+    color: #1e1e1e; /* Darken icon on hover */
 }
 
 /* Text input and Send button row */
 .chat-input-text-send {
-    display: flex;
-    gap: 5px; /* Space between input and send button */
-    width: 100%;
+    display: flex;
+    gap: 5px; /* Space between input and send button */
+    width: 100%;
 }
 
 /* Chat text input field */
 .chat-text-input {
-    flex-grow: 1; /* Input field takes up available space */
-    padding: 8px 10px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    font-size: 0.9em;
-    box-sizing: border-box;
+    flex-grow: 1; /* Input field takes up available space */
+    padding: 8px 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-size: 0.9em;
+    box-sizing: border-box;
 }
 
 /* Chat Send button */
 .chat-send-btn {
-    flex-shrink: 0; /* Prevent button from shrinking */
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff; /* Blue send button */
-    color: white;
-    font-size: 0.9em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent button from shrinking */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff; /* Blue send button */
+    color: white;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .chat-send-btn:hover {
-    background-color: #00a8ff;
+    background-color: #00a8ff;
 }
 
 
 /* ==========================================================================
-   Responsive Adjustments for the Active Ops Tab and Chatbox
-   ========================================================================== */
+   Responsive Adjustments for the Active Ops Tab and Chatbox
+   ========================================================================== */
 
 @media (max-width: 1200px) {
-    .active-ops-content-wrapper {
-        /* This class does not exist in your HTML. If it's supposed to wrap .active-ops-main-content-row, add it.
-           Otherwise, this rule does nothing. */
-    }
+    .active-ops-content-wrapper {
 
-    .active-ops-left-panel,
-    .active-ops-right-panel {
-        width: 100%; /* Make them take full width when stacked */
-        min-width: unset; /* Remove min-width when stacked */
-        max-width: 900px; /* Limit their max width to maintain readability */
-    }
+    }
 
-    .chat-container {
-        height: 600px; /* Give chat a fixed height when stacked (or auto if preferred) */
-    }
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        width: 100%; /* Make them take full width when stacked */
+        min-width: unset; /* Remove min-width when stacked */
+        max-width: 900px; /* Limit their max width to maintain readability */
+    }
+
+    .chat-container {
+        height: 600px; /* Give chat a fixed height when stacked (or auto if preferred) */
+    }
 }
 
 
 @media (max-width: 768px) {
-    /* Existing media queries from your file remain here.
-       Ensure they don't conflict with new chatbox styles if possible. */
+    /* Existing media queries from your file remain here.
+       Ensure they don't conflict with new chatbox styles if possible. */
 
-    /* Further adjust column widths for very small screens if needed,
-       these target the enemy targets table */
-    .enemy-targets-table .col-name { width: 22%; }
-    .enemy-targets-table .col-level { width: 9%; }
-    .enemy-targets-table .col-last-action { width: 17%; }
-    .enemy-targets-table .col-status { width: 17%; }
-    .enemy-targets-table .col-claim { width: 17%; }
-    .enemy-targets-table .col-attack { width: 18%; }
+    /* Further adjust column widths for very small screens if needed,
+       these target the enemy targets table */
+    .enemy-targets-table .col-name { width: 22%; }
+    .enemy-targets-table .col-level { width: 9%; }
+    .enemy-targets-table .col-last-action { width: 17%; }
+    .enemy-targets-table .col-status { width: 17%; }
+    .enemy-targets-table .col-claim { width: 17%; }
+    .enemy-targets-table .col-attack { width: 18%; }
 }
 
 @media (max-width: 480px) {
-    /* Even smaller screen adjustments if necessary */
-    .chat-tab {
-        font-size: 0.7em; /* Even smaller tab font */
-        padding: 6px 3px;
-    }
+    /* Even smaller screen adjustments if necessary */
+    .chat-tab {
+        font-size: 0.7em; /* Even smaller tab font */
+        padding: 6px 3px;
+    }
 }
 
 /* --- Status-Specific Colors --- */
 .enemy-targets-table .status-hospital {
-    color: #ff5c5c; /* Red for hospital */
-    font-weight: bold;
+    color: #ff5c5c; /* Red for hospital */
+    font-weight: bold;
 }
 
 .enemy-targets-table .status-other {
-    color: #ffb86c; /* Orange for other states like Jail/Abroad */
+    color: #ffb86c; /* Orange for other states like Jail/Abroad */
 }
 
 /* --- Link and Button Styles --- */
 .enemy-targets-table a {
-    color: #8ab4f8; /* A nice blue for links */
-    text-decoration: none;
+    color: #8ab4f8; /* A nice blue for links */
+    text-decoration: none;
 }
 
 .enemy-targets-table a:hover {
-    text-decoration: underline;
+    text-decoration: underline;
 }
 
 /* Style the "Attack" link to look like a button */
 .enemy-targets-table .attack-link {
-    display: inline-block;
-    background-color: #3d84b8; /* Blue for attack */
-    color: #ffffff;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
+    display: inline-block;
+    background-color: #3d84b8; /* Blue for attack */
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
 }
 
 .enemy-targets-table .attack-link:hover {
-    background-color: #4a9dcf;
-    text-decoration: none;
+    background-color: #4a9dcf;
+    text-decoration: none;
 }
 
 /* Style the "Claim" button */
 .enemy-targets-table .claim-btn {
-    background-color: #4CAF50; /* Green for claim */
-    color: white;
-    border: none;
-    padding: 4px 12px;
-    font-size: 13px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    background-color: #4CAF50; /* Green for claim */
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .enemy-targets-table .claim-btn:hover {
-    background-color: #5cb85c;
+    background-color: #5cb85c;
 }
 
 /* Style for when the button is disabled or says "Unclaim" */
 .enemy-targets-table .claim-btn:disabled,
 .enemy-targets-table .claim-btn[onclick*="unclaimTarget"] {
-    background-color: #d9534f; /* Red for "Unclaim" state */
-    cursor: pointer;
+    background-color: #d9534f; /* Red for "Unclaim" state */
+    cursor: pointer;
 }
 
 .enemy-targets-table .claim-btn[onclick*="unclaimTarget"]:hover {
-    background-color: #c9302c;
+    background-color: #c9302c;
 }
 
 /* MODIFIED: game-plan-display to match height and center content */
 .game-plan-display {
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 15px; /* Adjusted padding to fill space and align vertically */
-    border-radius: 5px;
-    margin-bottom: 10px; /* NEW: Reduced margin (existing was 10px) */
-    min-height: 80px; /* NEW: Slightly reduced min-height (existing was 80px) */
-    white-space: pre-wrap;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9em; /* NEW: Slightly smaller font (existing was 0.9em) */
-    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically center its content (e.g., "Loading game plan...") */
-    justify-content: center; /* Horizontally center its content */
-    text-align: center; /* Ensure text is centered */
-    box-sizing: border-box; /* Include padding in width/height */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 15px; /* Adjusted padding to fill space and align vertically */
+    border-radius: 5px;
+    margin-bottom: 10px; /* NEW: Reduced margin (existing was 10px) */
+    min-height: 80px; /* NEW: Slightly reduced min-height (existing was 80px) */
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em; /* NEW: Slightly smaller font (existing was 0.9em) */
+    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Vertically center its content (e.g., "Loading game plan...") */
+    justify-content: center; /* Horizontally center its content */
+    text-align: center; /* Ensure text is centered */
+    box-sizing: border-box; /* Include padding in width/height */
 }
 
 /* NEW: factionAnnouncementsDisplay to match height and center content */
 #factionAnnouncementsDisplay {
-    /* Inherits from .game-plan-display for general look, but override for flex properties */
-    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically center its content (e.g., "No current announcements.") */
-    justify-content: center; /* Horizontally center its content */
-    text-align: center; /* Ensure text is centered */
-    padding: 15px; /* Adjust internal padding to fill space and align vertically */
-    box-sizing: border-box;
-    background-color: #333; /* Explicitly set background if not fully inherited */
-    color: #f0f0f0; /* Explicitly set color if not fully inherited */
-    border-radius: 5px; /* Explicitly set border-radius if not fully inherited */
-    min-height: 80px; /* Ensure a minimum height similar to game-plan-display */
-    white-space: pre-wrap; /* Preserve white space for content */
-    font-family: 'Courier New', Courier, monospace; /* Font for content */
-    font-size: 0.9em; /* Font size for content */
+    /* Inherits from .game-plan-display for general look, but override for flex properties */
+    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Vertically center its content (e.g., "No current announcements.") */
+    justify-content: center; /* Horizontally center its content */
+    text-align: center; /* Ensure text is centered */
+    padding: 15px; /* Adjust internal padding to fill space and align vertically */
+    box-sizing: border-box;
+    background-color: #333; /* Explicitly set background if not fully inherited */
+    color: #f0f0f0; /* Explicitly set color if not fully inherited */
+    border-radius: 5px; /* Explicitly set border-radius if not fully inherited */
+    min-height: 80px; /* Ensure a minimum height similar to game-plan-display */
+    white-space: pre-wrap; /* Preserve white space for content */
+    font-family: 'Courier New', Courier, monospace; /* Font for content */
+    font-size: 0.9em; /* Font size for content */
 }
 
 /* NEW: Adjust the direct content of these display boxes to center */
 .game-plan-display p,
 #factionAnnouncementsDisplay p {
-    margin: 0; /* Remove default paragraph margins */
-    width: 100%; /* Ensure p takes full width to allow text-align:center on itself */
+    margin: 0; /* Remove default paragraph margins */
+    width: 100%; /* Ensure p takes full width to allow text-align:center on itself */
 }
 
 
 /* NEW/MODIFIED: War Status Display on Announcements tab */
 .war-status-display {
-    padding: 10px;
-    border: 1px solid #555;
-    border-radius: 5px;
-    background-color: #333;
-    display: grid;
-    /* Grid for the status items: 2 columns with equal width, items centered */
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px */
-    align-items: start; /* Align items to the start of their grid cell vertically */
-    font-size: 0.9em;
-    padding-top: 15px; /* Add some top padding inside the box to push content down from title */
-    padding-bottom: 15px; /* Add some bottom padding inside the box */
-    margin-top: 0; /* Ensure no unwanted margin pushes it down from its h3 */
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    display: grid;
+    /* Grid for the status items: 2 columns with equal width, items centered */
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px; /* Vertical gap 8px, Horizontal gap 15px */
+    align-items: start; /* Align items to the start of their grid cell vertically */
+    font-size: 0.9em;
+    padding-top: 15px; /* Add some top padding inside the box to push content down from title */
+    padding-bottom: 15px; /* Add some bottom padding inside the box */
+    margin-top: 0; /* Ensure no unwanted margin pushes it down from its h3 */
 }
 
 /* NEW: Styles for individual status items within the war-status-display grid */
 .war-status-display .status-item {
-    display: flex;           /* Make each status item a flex container */
-    flex-direction: column;  /* Stack label above value */
-    align-items: center;     /* Center horizontally within its grid cell */
-    justify-content: center; /* Center vertically if the grid cell has extra height */
-    text-align: center;      /* Center the text content within the item */
+    display: flex;           /* Make each status item a flex container */
+    flex-direction: column;  /* Stack label above value */
+    align-items: center;     /* Center horizontally within its grid cell */
+    justify-content: center; /* Center vertically if the grid cell has extra height */
+    text-align: center;      /* Center the text content within the item */
 }
 
 .war-status-display .status-label {
-    font-weight: bold;
-    color: #e0a71a; /* Matching the gold of config-section h4 for labels */
-    margin-bottom: 3px; /* Small space below label and above value */
+    font-weight: bold;
+    color: #e0a71a; /* Matching the gold of config-section h4 for labels */
+    margin-bottom: 3px; /* Small space below label and above value */
 }
 
 .war-status-display .status-value {
-    color: #f0f0f0; /* White/light text for the value */
-    font-weight: normal; /* Ensure it-s not bold */
+    color: #f0f0f0; /* White/light text for the value */
+    font-weight: normal; /* Ensure it-s not bold */
 }
 
 /* For the 'Next Planned Chain Time' item to span both columns */
 .war-status-display .status-item-full-width {
-    grid-column: 1 / -1; /* Make this item span all columns */
-    margin-top: 10px; /* Add some space above this row for separation */
+    grid-column: 1 / -1; /* Make this item span all columns */
+    margin-top: 10px; /* Add some space above this row for separation */
 }
 
 /* NEW: Style for the 'Next Planned Chain Time' value box (like the input on Leader Config) */
 .war-status-display .status-value-box {
-    background-color: #1e1e1e; /* Darker background for the box */
-    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
-    border-radius: 4px;
-    padding: 5px 10px; /* Padding inside the box */
-    font-family: 'Courier New', Courier, monospace; /* Monospace font for time */
-    font-size: 1em; /* Slightly larger font for readability */
-    min-width: 120px; /* Ensure it has a minimum width */
-    max-width: 180px; /* Limit max width */
-    display: inline-block; /* Treat as inline-block to accept width/height but flow like text */
-    box-sizing: border-box;
-    text-align: center; /* Ensure text inside the box is centered */
+    background-color: #1e1e1e; /* Darker background for the box */
+    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
+    border-radius: 4px;
+    padding: 5px 10px; /* Padding inside the box */
+    font-family: 'Courier New', Courier, monospace; /* Monospace font for time */
+    font-size: 1em; /* Slightly larger font for readability */
+    min-width: 120px; /* Ensure it has a minimum width */
+    max-width: 180px; /* Limit max width */
+    display: inline-block; /* Treat as inline-block to accept width/height but flow like text */
+    box-sizing: border-box;
+    text-align: center; /* Ensure text inside the box is centered */
 }
 #currentTeamLeadInput {
-    margin-top: 3px !important; /* Adjust this pixel value as needed to align it perfectly */
+    margin-top: 3px !important; /* Adjust this pixel value as needed to align it perfectly */
 }
 
 
@@ -724,214 +707,214 @@
 /* General styling for all ops-control-items (Keep this as is, for now, to retain Chain Timer fix) */
 /* Active Ops Controls Grid (Tab 2) */
 .ops-controls-grid {
-    margin-top: 10px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222;
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: #222;
 }
 
 /* General styling for all ops-control-items */
 .ops-control-item {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    white-space: nowrap;
-    font-size: 0.9em;
-    /* Default alignment can be removed or set here if needed, but specific overrides are below */
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    white-space: nowrap;
+    font-size: 0.9em;
+    /* Default alignment can be removed or set here if needed, but specific overrides are below */
 }
 
 /* General label styling within ops-control-item */
 .ops-control-item label {
-    color: #00a8ff;
-    font-weight: bold;
-    /* This rule should not have a text-align, as it's handled by more specific rules below */
+    color: #00a8ff;
+    font-weight: bold;
+    /* This rule should not have a text-align, as it's handled by more specific rules below */
 }
 
 /* General input/select/button styling within ops-control-item */
 .ops-control-item input[type="text"],
 .ops-control-item select,
 .ops-control-item button {
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 0.9em;
-    padding: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.9em;
+    padding: 6px;
 }
 
 /* Specific styling for ops-timer (Chain Timer) - Forces this item to align left */
 .ops-control-item.ops-timer {
-    justify-self: start; /* Aligns this grid item to the start (left) of its cell */
-    text-align: left;    /* Aligns text content within this item to the left */
+    justify-self: start; /* Aligns this grid item to the start (left) of its cell */
+    text-align: left;    /* Aligns text content within this item to the left */
 }
 
 .ops-control-item.ops-timer label {
-    text-align: left; /* Ensures the label text is left-aligned */
+    text-align: left; /* Ensures the label text is left-aligned */
 }
 
 /* Specific styling for Quick FF Targets container - Forces this item to align right */
 .ops-control-item.ops-quick-targets {
-    justify-self: end; /* Aligns the entire quick targets block to the right of its grid cell */
-    /* text-align: right; IS NOT NEEDED here for the block, its label will handle its own centering */
+    justify-self: end; /* Aligns the entire quick targets block to the right of its grid cell */
+    /* text-align: right; IS NOT NEEDED here for the block, its label will handle its own centering */
 }
 
 .ops-control-item.ops-quick-targets label {
-    width: 100%; /* Ensures the label spans the full width of its container */
-    text-align: center; /* Centers the label text horizontally */
-    box-sizing: border-box;
+    width: 100%; /* Ensures the label spans the full width of its container */
+    text-align: center; /* Centers the label text horizontally */
+    box-sizing: border-box;
 }
 
 /* Container for the Quick FF Target buttons - ensures vertical stacking and full width */
 .ops-control-item .quick-ff-targets-container {
-    display: flex;
-    flex-direction: column; /* Stacks the buttons vertically */
-    gap: 5px; /* Space between the buttons */
-    width: 100%; /* Makes the container fill the width of its parent ops-control-item */
+    display: flex;
+    flex-direction: column; /* Stacks the buttons vertically */
+    gap: 5px; /* Space between the buttons */
+    width: 100%; /* Makes the container fill the width of its parent ops-control-item */
 }
 
 /* Styling for the Quick FF Target buttons (the <a> tags) */
 .quick-ff-target-btn {
-    display: inline-block; /* Treat as block to accept width/padding, but allows content flow */
-    background-color: #007bff; /* A standard blue color, matching other buttons */
-    color: #ffffff; /* White text */
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: bold;
-    text-decoration: none;
-    text-align: center;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    border: 1px solid #0056b3;
-    box-sizing: border-box;
-    width: 100%; /* Make them take full width of their container */
+    display: inline-block; /* Treat as block to accept width/padding, but allows content flow */
+    background-color: #007bff; /* A standard blue color, matching other buttons */
+    color: #ffffff; /* White text */
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    border: 1px solid #0056b3;
+    box-sizing: border-box;
+    width: 100%; /* Make them take full width of their container */
 }
 
 .quick-ff-target-btn:hover {
-    background-color: #00a8ff;
-    border-color: #007bff;
+    background-color: #00a8ff;
+    border-color: #007bff;
 }
 
 /* Styling for the new Chain Score Display within Active Ops */
-.ops-control-item.ops-ranked-war-score { /* Renamed from .ops-chain-score for consistency with HTML */
-    display: flex;
-    flex-direction: row; /* Arrange the main groups horizontally: YourFaction, MiddleInfo, EnemyFaction */
-    justify-content: space-between; /* Pushes YourFaction group to left, EnemyFaction group to right, middle in between */
-    align-items: flex-start; /* Align items to the top (names will determine height) */
-    padding: 5px;
-    border: 1px solid black; /* Match surrounding control items */
-    border-radius: 8px; /* Match surrounding control items */
-    background-color: #222; /* Match surrounding control items */
-    box-sizing: border-box;
-    white-space: nowrap; /* Prevent content from wrapping */
-    flex-grow: 1; /* Allow it to grow and fill available space in the grid */
-    min-width: 250px; /* Ensure it has a reasonable min-width if needed */
+.ops-control-item.ops-chain-score {
+    display: flex;
+    flex-direction: row; /* Arrange the main groups horizontally: YourFaction, MiddleInfo, EnemyFaction */
+    justify-content: space-between; /* Pushes YourFaction group to left, EnemyFaction group to right, middle in between */
+    align-items: flex-start; /* Align items to the top (names will determine height) */
+    padding: 5px;
+    border: 1px solid black; /* Match surrounding control items */
+    border-radius: 8px; /* Match surrounding control items */
+    background-color: #222; /* Match surrounding control items */
+    box-sizing: border-box;
+    white-space: nowrap; /* Prevent content from wrapping */
+    flex-grow: 1; /* Allow it to grow and fill available space in the grid */
+    min-width: 250px; /* Ensure it has a reasonable min-width if needed */
 }
 
 /* Group for Faction Name and Score (e.g., Your Faction and 1,407) */
-.ops-ranked-war-score .ranked-score-group { /* Renamed from .faction-score-group for consistency */
-    display: flex;
-    flex-direction: column; /* Stack name above score */
-    align-items: center; /* Center name and score within their small column */
-    gap: 2px; /* Small gap between name and score */
+.ops-chain-score .faction-score-group {
+    display: flex;
+    flex-direction: column; /* Stack name above score */
+    align-items: center; /* Center name and score within their small column */
+    gap: 2px; /* Small gap between name and score */
 }
 
 /* Faction Name (e.g., Your Faction, Enemy Faction) */
-.ops-ranked-war-score .score-faction-name {
-    font-size: 0.8em;
-    color: #f0f0f0; /* Light text for names */
-    font-weight: bold;
-    /* text-align: center; is implied by align-items: center on parent faction-score-group */
+.ops-chain-score .score-faction-name {
+    font-size: 0.8em;
+    color: #f0f0f0; /* Light text for names */
+    font-weight: bold;
+    /* text-align: center; is implied by align-items: center on parent faction-score-group */
 }
 
 /* Score Value (e.g., 1,407, 1,930) */
-.ops-ranked-war-score .score-value {
-    font-size: 1.5em; /* Larger font size for the scores */
-    font-weight: bold;
-    flex-shrink: 0; /* Prevent shrinking */
+.ops-chain-score .score-value {
+    font-size: 1.5em; /* Larger font size for the scores */
+    font-weight: bold;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
-.ops-ranked-war-score .current-score {
-    color: #ff8c00; /* Orange color for current score */
+.ops-chain-score .current-score {
+    color: #ff8c00; /* Orange color for current score */
 }
 
-.ops-ranked-war-score .target-score {
-    color: #4CAF50; /* Green color for target score */
+.ops-chain-score .target-score {
+    color: #4CAF50; /* Green color for target score */
 }
 
 /* Middle section with LEAD TARGET and progress */
-.ops-ranked-war-score .lead-target-info { /* Renamed from .score-target-info for consistency */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center "LEAD TARGET" and "523 / 2,800" */
-    justify-content: center; /* Vertically center if needed */
-    flex-grow: 1; /* Allows this section to take up available horizontal space */
-    padding: 0 5px; /* Add some horizontal padding to give space around it */
+.ops-chain-score .score-target-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center "LEAD TARGET" and "523 / 2,800" */
+    justify-content: center; /* Vertically center if needed */
+    flex-grow: 1; /* Allows this section to take up available horizontal space */
+    padding: 0 5px; /* Add some horizontal padding to give space around it */
 }
 
-.ops-ranked-war-score .score-label {
-    font-weight: bold;
-    color: #e0a71a; /* Gold-like color for labels */
-    font-size: 0.7em; /* Consistent with your example */
+.ops-chain-score .score-label {
+    font-weight: bold;
+    color: #e0a71a; /* Gold-like color for labels */
+    font-size: 0.7em; /* Consistent with your example */
 }
 
-.ops-ranked-war-score .score-progress {
-    color: #a9a9a9; /* Greyish color for progress numbers */
-    font-size: 0.7em; /* Consistent with your example */
+.ops-chain-score .score-progress {
+    color: #a9a9a9; /* Greyish color for progress numbers */
+    font-size: 0.7em; /* Consistent with your example */
 }
 
 /* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
 #postAnnouncementBtn {
-    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
+    margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
 }
 
 /* ==========================================================================
-   Enemy Targets Table Styles (Fixed Header Version)
-   ========================================================================== */
+   Enemy Targets Table Styles (Fixed Header Version)
+   ========================================================================== */
 
 /* Outer wrapper for the fixed header table setup */
 /* This matches your HTML: <div class="enemy-targets-list-section"> */
 .enemy-targets-list-section {
-    margin-top: 25px !important;/* ADJUSTED: Increased to show more rows before internal scrollbar appears */
-    margin-bottom: 50px;
-    max-width: 900px; /* Adjust as needed */
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 8px;
-    overflow: hidden; /* Ensures rounded corners are respected and content is clipped */
+    margin-top: 25px; !IMPORTANT/* Adjust this value (e.g., 10px, 30px) to move it down further */
+    margin-bottom: 50px;
+    max-width: 900px; /* Adjust as needed */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures rounded corners are respected and content is clipped */
 }
 
 /* Wrapper generated by JS: <div class="enemy-targets-table-wrapper"> */
 .enemy-targets-table-wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 /* Base table styles for both header and body tables created by JS */
 .enemy-targets-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #ddd;
-    table-layout: fixed; /* Crucial: Ensures column widths are respected consistently */
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    table-layout: fixed; /* Crucial: Ensures column widths are respected consistently */
 }
 
 /* Styles for the header table (the one containing <thead>) */
 .enemy-targets-table thead th {
-    background-color: #00a8ff; /* Blue header background, matching screenshot */
-    color: #1e1e1e; /* Dark text on blue */
-    font-weight: bold;
-    text-align: center; /* Center header text as per screenshot */
-    padding: 8px 10px;
-    border-bottom: 2px solid #1e1e1e; /* Darker border below header */
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* No 'position: sticky'  here as it's a separate table */
+    background-color: #00a8ff; /* Blue header background, matching screenshot */
+    color: #1e1e1e; /* Dark text on blue */
+    font-weight: bold;
+    text-align: center; /* Center header text as per screenshot */
+    padding: 8px 10px;
+    border-bottom: 2px solid #1e1e1e; /* Darker border below header */
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* No 'position: sticky'  here as it's a separate table */
 }
 
 /* Scrollable container for the table body */
@@ -939,10 +922,10 @@
 /* Styling for the main table container (#enemyTargetsContainer) to enable scrolling */
 /* Styling for the main table container (#enemyTargetsContainer) to enable scrolling */
 #enemyTargetsContainer.enemy-targets-scroll-area {
-    max-height: 475px; /* ADJUSTED: Increased to show more rows before internal scrollbar appears */
-    overflow-y: auto; /* Enables vertical scrolling for the table content */
-    border-bottom-left-radius: 8px; /* To match the overall section's border-radius if needed */
-    border-bottom-right-radius: 8px; /* To match the overall section's border-radius if needed */
+    max-height: 475px; /* ADJUSTED: Increased to show more rows before internal scrollbar appears */
+    overflow-y: auto; /* Enables vertical scrolling for the table content */
+    border-bottom-left-radius: 8px; /* To match the overall section's border-radius if needed */
+    border-bottom-right-radius: 8px; /* To match the overall section's border-radius if needed */
 }
 
 /* Custom scrollbar for the table container */
@@ -953,25 +936,25 @@
 
 /* Styles for actual table data cells in the body (the <td> elements) */
 .enemy-targets-table tbody td {
-    padding: 5px 10px; /* Compact padding for rows */
-    border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center; /* Center cell content as per screenshot */
+    padding: 5px 10px; /* Compact padding for rows */
+    border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
+    vertical-align: middle;
+    font-size: 0.85em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center; /* Center cell content as per screenshot */
 }
 
 /* Remove bottom border from the very last row in the scrollable body */
 .enemy-targets-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: none;
 }
 
 /* Add a hover effect for better user experience on body rows */
 .enemy-targets-table tbody tr:hover {
-    background-color: #38383e;
+    background-color: #38383e;
 }
 
 /* Define consistent column widths for BOTH header (<thead>) and body (<tbody>) tables */
@@ -985,114 +968,114 @@
 
 /* --- Status-Specific Colors (Existing, but ensure they target the new <td>) --- */
 .enemy-targets-table .status-hospital {
-    color: #ff5c5c; /* Red for hospital */
-    font-weight: bold;
+    color: #ff5c5c; /* Red for hospital */
+    font-weight: bold;
 }
 .enemy-targets-table .status-traveling {
-    color: #17a2b8; /* Cyan for traveling */
+    color: #17a2b8; /* Cyan for traveling */
 }
 .enemy-targets-table .status-other {
-    color: #ffb86c; /* Orange for other states like Jail/Abroad */
+    color: #ffb86c; /* Orange for other states like Jail/Abroad */
 }
 .enemy-targets-table .status-okay {
-    color: #28a745; /* Green for okay status */
+    color: #28a745; /* Green for okay status */
 }
 
 
 /* --- Link and Button Styles (Ensure they target elements within the new table structure) --- */
 .enemy-targets-table a {
-    color: #8ab4f8; /* A nice blue for links */
-    text-decoration: none;
+    color: #8ab4f8; /* A nice blue for links */
+    text-decoration: none;
 }
 
 .enemy-targets-table a:hover {
-    text-decoration: underline;
+    text-decoration: underline;
 }
 
 /* Style the "Attack" link to look like a button */
 .enemy-targets-table .attack-link {
-    display: inline-block;
-    background-color: #3d84b8; /* Blue for attack */
-    color: #ffffff;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
+    display: inline-block;
+    background-color: #3d84b8; /* Blue for attack */
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
 }
 
 .enemy-targets-table .attack-link:hover {
-    background-color: #4a9dcf;
-    text-decoration: none;
+    background-color: #4a9dcf;
+    text-decoration: none;
 }
 
 /* Style the "Claim" button */
 .enemy-targets-table .claim-btn {
-    background-color: #4CAF50; /* Green for claim */
-    color: white;
-    border: none;
-    padding: 4px 12px;
-    font-size: 13px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    background-color: #4CAF50; /* Green for claim */
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .enemy-targets-table .claim-btn:hover {
-    background-color: #5cb85c;
+    background-color: #5cb85c;
 }
 
 /* Style for when the button is disabled or says "Unclaim" */
 .enemy-targets-table .claim-btn:disabled,
 .enemy-targets-table .claim-btn[onclick*="unclaimTarget"] { /* Using onclick selector from your JS */
-    background-color: #d9534f; /* Red for "Unclaim" state */
-    cursor: pointer;
+    background-color: #d9534f; /* Red for "Unclaim" state */
+    cursor: pointer;
 }
 
 .enemy-targets-table .claim-btn[onclick*="unclaimTarget"]:hover {
-    background-color: #c9302c;
+    background-color: #c9302c;
 }
 
 /* Responsive adjustments for columns - ensure they apply to both header and body tables */
 @media (max-width: 992px) {
-    /* ... (your other existing rules in this media query) ... */
-    .enemy-targets-table .col-name { width: 24%; }
-    .enemy-targets-table .col-level { width: 10%; }
-    .enemy-targets-table .col-status { width: 26%; }
-    .enemy-targets-table .col-claim { width: 18%; }
-    .enemy-targets-table .col-attack { width: 22%; }
+    /* ... (your other existing rules in this media query) ... */
+    .enemy-targets-table .col-name { width: 24%; }
+    .enemy-targets-table .col-level { width: 10%; }
+    .enemy-targets-table .col-status { width: 26%; }
+    .enemy-targets-table .col-claim { width: 18%; }
+    .enemy-targets-table .col-attack { width: 22%; }
 }
 
 @media (max-width: 768px) {
-    .enemy-targets-table .col-name { width: 22%; }
-    .enemy-targets-table .col-level { width: 9%; }
-    .enemy-targets-table .col-status { width: 24%; }
-    .enemy-targets-table .col-claim { width: 22%; }
-    .enemy-targets-table .col-attack { width: 23%; }
-    .enemy-targets-table thead th, .enemy-targets-table tbody td {
-        font-size: 0.75em;
-        padding: 5px 5px;
-    }
-    .enemy-targets-table .attack-link, .enemy-targets-table .claim-btn {
-        padding: 3px 8px;
-        font-size: 11px;
-    }
+    .enemy-targets-table .col-name { width: 22%; }
+    .enemy-targets-table .col-level { width: 9%; }
+    .enemy-targets-table .col-status { width: 24%; }
+    .enemy-targets-table .col-claim { width: 22%; }
+    .enemy-targets-table .col-attack { width: 23%; }
+    .enemy-targets-table thead th, .enemy-targets-table tbody td {
+        font-size: 0.75em;
+        padding: 5px 5px;
+    }
+    .enemy-targets-table .attack-link, .enemy-targets-table .claim-btn {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
 }
 
 @media (max-width: 480px) {
-    .enemy-targets-table .col-name { width: 20%; }
-    .enemy-targets-table .col-level { width: 8%; }
-    .enemy-targets-table .col-status { width: 23%; }
-    .enemy-targets-table .col-claim { width: 24%; }
-    .enemy-targets-table .col-attack { width: 25%; }
-    .enemy-targets-table thead th, .enemy-targets-table tbody td {
-        font-size: 0.7em;
-        padding: 3px 3px;
-    }
-    .enemy-targets-table .attack-link, .enemy-targets-table .claim-btn {
-        padding: 2px 5px;
-        font-size: 10px;
-    }
+    .enemy-targets-table .col-name { width: 20%; }
+    .enemy-targets-table .col-level { width: 8%; }
+    .enemy-targets-table .col-status { width: 23%; }
+    .enemy-targets-table .col-claim { width: 24%; }
+    .enemy-targets-table .col-attack { width: 25%; }
+    .enemy-targets-table thead th, .enemy-targets-table tbody td {
+        font-size: 0.7em;
+        padding: 3px 3px;
+    }
+    .enemy-targets-table .attack-link, .enemy-targets-table .claim-btn {
+        padding: 2px 5px;
+        font-size: 10px;
+    }
 }
 
 /* Coloring for Difficulty and Status */
@@ -1110,101 +1093,101 @@
 
 /* Styles for Attack/Claim buttons inside table rows */
 .enemy-target-row .action-btn {
-    padding: 3px 6px; /* NEW: Reduced padding */
-    font-size: 0.75em; /* NEW: Reduced font size */
-    height: auto;
-    min-width: unset;
-    max-width: unset;
-    border-radius: 3px;
-    background-color: #007bff; /* Blue */
-    color: white;
+    padding: 3px 6px; /* NEW: Reduced padding */
+    font-size: 0.75em; /* NEW: Reduced font size */
+    height: auto;
+    min-width: unset;
+    max-width: unset;
+    border-radius: 3px;
+    background-color: #007bff; /* Blue */
+    color: white;
 }
 .enemy-target-row .action-btn:hover {
-    background-color: #0056b3;
+    background-color: #0056b3;
 }
 
 
 /* Alert Buttons Grid (Tab 2) */
 .alert-buttons-grid {
-    display: flex;
-    justify-content: space-around;
-    gap: 8px; /* NEW: Reduced gap */
-    margin-bottom: 15px; /* NEW: Reduced margin */
-    flex-wrap: wrap;
+    display: flex;
+    justify-content: space-around;
+    gap: 8px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    flex-wrap: wrap;
 }
 
 .alert-btn {
-    background-color: #d9534f;
-    color: #f0f0f0;
-    padding: 8px 12px; /* NEW: Reduced padding */
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-radius: 5px;
-    flex-grow: 1;
-    min-width: 120px; /* NEW: Slightly smaller min-width */
-    text-align: center;
-    font-size: 0.85em; /* NEW: Reduced font size */
+    background-color: #d9534f;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Reduced padding */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    flex-grow: 1;
+    min-width: 120px; /* NEW: Slightly smaller min-width */
+    text-align: center;
+    font-size: 0.85em; /* NEW: Reduced font size */
 }
 
 .alert-btn:hover {
-    background-color: #c9302c;
+    background-color: #c9302c;
 }
 
 /* Faction Stats Summary (Tab 2) */
 .faction-stats-summary {
-    padding: 10px; /* NEW: Reduced padding */
-    border: 1px solid #555;
-    border-radius: 5px;
-    background-color: #2a2a2a;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px; /* NEW: Reduced gap */
-    margin-bottom: 15px; /* NEW: Reduced margin */
-    font-size: 0.9em; /* NEW: Reduced font size */
+    padding: 10px; /* NEW: Reduced padding */
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px; /* NEW: Reduced gap */
+    margin-bottom: 15px; /* NEW: Reduced margin */
+    font-size: 0.9em; /* NEW: Reduced font size */
 }
 
 .faction-stats-summary p {
-    margin: 0;
-    text-align: left;
-    color: #e0a71a;
-    font-weight: bold;
+    margin: 0;
+    text-align: left;
+    color: #e0a71a;
+    font-weight: bold;
 }
 
 .faction-stats-summary p span {
-    color: #f0f0f0;
-    font-weight: normal;
-    margin-left: 5px; /* NEW: Reduced margin */
+    color: #f0f0f0;
+    font-weight: normal;
+    margin-left: 5px; /* NEW: Reduced margin */
 }
 
 
 /* Friendly Members List (Tab 3) */
 .friendly-members-scroll-area {
-    max-height: 550px; /* NEW: Adjusted max height */
-    overflow-y: auto;
-    border: 1px solid #00a8ff;
-    border-radius: 8px;
-    padding: 10px;
-    background-color: #222;
+    max-height: 550px; /* NEW: Adjusted max height */
+    overflow-y: auto;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #222;
 }
 
 .friendly-member-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr; /* Example columns for Name, E, Nerve, Status */
-    padding: 6px 0; /* NEW: Reduced padding */
-    border-bottom: 1px solid #333;
-    align-items: center;
-    font-size: 0.85em; /* NEW: Reduced font size */
-    color: #f0f0f0;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr; /* Example columns for Name, E, Nerve, Status */
+    padding: 6px 0; /* NEW: Reduced padding */
+    border-bottom: 1px solid #333;
+    align-items: center;
+    font-size: 0.85em; /* NEW: Reduced font size */
+    color: #f0f0f0;
 }
 .friendly-member-row:last-child {
-    border-bottom: none;
+    border-bottom: none;
 }
 .friendly-member-row span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 /* Styles for member stats (e.g., green for high E, red for low life) */
 /* ... (unchanged) ... */
@@ -1212,24 +1195,24 @@
 
 /* Leader Configuration Section (Tab 4) */
 .config-section {
-    margin-bottom: 0px; /* Existing */
-    padding: 10px; /* Existing */
-    border: 1px solid black;
-    border-radius: 8px; /* Existing */
-    background-color: #222; /* Existing */
-    text-align: left; /* Existing */
+    margin-bottom: 0px; /* Existing */
+    padding: 10px; /* Existing */
+    border: 1px solid black;
+    border-radius: 8px; /* Existing */
+    background-color: #222; /* Existing */
+    text-align: left; /* Existing */
 
-    display: flex; /* ADDED */
-    flex-direction: column; /* ADDED */
-    align-items: center; /* ADDED */
-    justify-content: space-between;
+    display: flex; /* ADDED */
+    flex-direction: column; /* ADDED */
+    align-items: center; /* ADDED */
+    justify-content: space-between;
 }
 .war-status-toggles-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
-    gap: 10px; /* Internal gap between toggles */
-    width: 100%; /* Ensure it spans available width of parent config-section */
-    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
+    gap: 10px; /* Internal gap between toggles */
+    width: 100%; /* Ensure it spans available width of parent config-section */
+    box-sizing: border-box;
 }
 
 /* REMOVED: .war-status-toggles-grid .toggle-control:last-child { grid-column: 1 / -1; } */
@@ -1238,284 +1221,279 @@
 
 /* Fix for checkbox alignment within War Status Controls */
 .war-status-toggles-grid label {
-    display: flex;       /* Make the label a flex container */
-    align-items: center; /* Align items (checkbox and text) vertically in the center */
-    gap: 5px;            /* Add a small space between the checkbox and the label text */
-    cursor: pointer;     /* Indicate the whole label is clickable */
+    display: flex;       /* Make the label a flex container */
+    align-items: center; /* Align items (checkbox and text) vertically in the center */
+    gap: 5px;            /* Add a small space between the checkbox and the label text */
+    cursor: pointer;     /* Indicate the whole label is clickable */
 }
 
 .war-status-toggles-grid input[type="checkbox"] {
-    margin: 0;           /* Remove default margin that might push it around */
-    padding: 0;          /* Remove default padding */
-    vertical-align: middle; /* Ensures baseline alignment, though flexbox should mostly handle this */
-    transform: scale(1.1); /* Slightly increase size for better visibility if needed */
-    accent-color: #00a8ff; /* Consistent theme color for the checkbox */
+    margin: 0;           /* Remove default margin that might push it around */
+    padding: 0;          /* Remove default padding */
+    vertical-align: middle; /* Ensures baseline alignment, though flexbox should mostly handle this */
+    transform: scale(1.1); /* Slightly increase size for better visibility if needed */
+    accent-color: #00a8ff; /* Consistent theme color for the checkbox */
 }
 
 
 .config-section h4 {
-    color: #e0a71a;
-    margin-bottom: 8px; /* NEW: Reduced margin */
-    margin-top: 0; /* NEW: Remove top top margin */
-    text-align: center;
-    font-size: 1.5em; /* NEW: Slightly adjusted font size */
+    color: #e0a71a;
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    margin-top: 0; /* NEW: Remove top top margin */
+    text-align: center;
+    font-size: 1.5em; /* NEW: Slightly adjusted font size */
 }
 
 .config-section input[type="text"],
 .config-section select { /* REMOVED TEXTAREA FROM THIS SELECTOR */
-    padding: 6px; /* NEW: Reduced padding */
-    margin-bottom: 8px; /* NEW: Reduced margin */
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #333;
-    color: #f0f0f0;
-    font-size: 0.9em; /* NEW: Reduced font size */
-    box-sizing: border-box; /* Applied here */
+    padding: 6px; /* NEW: Reduced padding */
+    margin-bottom: 8px; /* NEW: Reduced margin */
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.9em; /* NEW: Reduced font size */
+    box-sizing: border-box; /* Applied here */
 }
 
 .config-section textarea { /* TEXTAREA HAS ITS OWN SELECTOR FOR !IMPORTANT */
-    width: 100%;
-    padding: 6px;
-    margin-bottom: 8px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #333;
-    color: #f0f0f0;
-    font-size: 0.9em;
-    box-sizing: border-box; /* REMOVED !important. Should work fine with consistent box-sizing */
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 0.9em;
+    box-sizing: border-box !important; /* IMPORTANT: Added !important here for overlap fix */
 }
 /* Specific styling for 'Next Planned Chain Time' label and input */
 /* Target the specific toggle-control by the ID of its input for precision */
 .toggle-control:has(input#nextChainTimeInput) {
-    /* Existing: display: flex; flex-direction: column; */
-    align-items: center;    /* Centers the label and input elements horizontally */
-    /* Remove text-align: center from here, we'll apply it directly to the label */
+    /* Existing: display: flex; flex-direction: column; */
+    align-items: center;    /* Centers the label and input elements horizontally */
+    /* Remove text-align: center from here, we'll apply it directly to the label */
 }
 
 /* Style specifically for the label text within these toggle controls (to center their text) */
 .toggle-control:has(input#nextChainTimeInput) label,
 .toggle-control:has(input#enemyFactionIDInputLeaderConfig) label { /* ADDED: Enemy Faction ID label */
-    display: block; /* Make the label behave like a block-level element */
-    width: 100%; /* Ensure it takes full available width within its parent */
-    text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box;
+    display: block; /* Make the label behave like a block-level element */
+    width: 100%; /* Ensure it takes full available width within its parent */
+    text-align: center; /* Center the text content within this block-level label */
+    box-sizing: border-box;
 }
 #postAnnouncementBtn {
-    margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
+    margin-top: 15px; /* Adjust this value until the gap matches Save Game Plan */
 }
 
 /* Style for the input field itself */
 #nextChainTimeInput, #enemyFactionIDInputLeaderConfig { /* ADDED: Enemy Faction ID input */
-    width: auto; /* Allow width to be determined by content/min-width/max-width */
-    max-width: 160px; /* Adjust this value as needed to match the label's width */
-    min-width: 100px; /* Ensure it doesn't get too small */
-    display: block; /* Make it a block element so margin: auto can center it */
-    margin-left: auto; /* Center the input horizontally */
-    margin-right: auto;
-    margin-top: 3px;
-    /* You may also adjust padding and font-size if necessary */
-    /* padding: 6px; */
-    /* font-size: 0.9em; */
-    /* box-sizing: border-box; */
+    width: auto; /* Allow width to be determined by content/min-width/max-width */
+    max-width: 160px; /* Adjust this value as needed to match the label's width */
+    min-width: 100px; /* Ensure it doesn't get too small */
+    display: block; /* Make it a block element so margin: auto can center it */
+    margin-left: auto; /* Center the input horizontally */
+    margin-right: auto;
+    margin-top: 3px;
+    /* You may also adjust padding and font-size if necessary */
+    /* padding: 6px; */
+    /* font-size: 0.9em; */
+    /* box-sizing: border-box; */
 }
 
 /* Styling for the Set Targets button to fit correctly when placed outside grid */
 #setTargetsBtn {
-    padding: 8px 12px; /* Consistent padding for action buttons */
-    font-size: 0.9em;
-    font-weight: bold; /* Make button text bold */
-    width: auto; /* Allow width to shrink to content */
-    display: block; /* Make it a block element for centering */
-    margin: 10px auto 0 auto; /* Center horizontally and add margin-top */
-    /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
+    padding: 8px 12px; /* Consistent padding for action buttons */
+    font-size: 0.9em;
+    font-weight: bold; /* Make button text bold */
+    width: auto; /* Allow width to shrink to content */
+    display: block; /* Make it a block element for centering */
+    margin: 10px auto 0 auto; /* Center horizontally and add margin-top */
+    /* Inherit background-color, color, border, border-radius, transition from .config-section .action-btn */
 }
 
 
 textarea {
-    resize: vertical;
-    min-height: 130px; /* NEW: Reduced min-height */
+    resize: vertical;
+    min-height: 130px; /* NEW: Reduced min-height */
 }
 
 select[multiple] {
-    height: 120px;
+    height: 120px;
 }
 
 .config-section .action-btn {
-    width: auto; /* Existing */
-    margin-top: 5px; /* Existing */
-    padding: 8px 12px; /* Adjusted padding to match header buttons */
-    font-size: 0.9em; /* Existing */
-    font-weight: bold; /* ADDED: Make the text bold */
-    background-color: #007bff; /* ADDED: Blue background to match header buttons */
-    color: white; /* Corrected: Changed to white text as per typical blue button style */
-    border: 2px solid black; /* CORRECTED: Changed #black to black */
-    border-radius: 5px; /* ADDED: Border-radius to match header buttons */
-    transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
+    width: auto; /* Existing */
+    margin-top: 5px; /* Existing */
+    padding: 8px 12px; /* Adjusted padding to match header buttons */
+    font-size: 0.9em; /* Existing */
+    font-weight: bold; /* ADDED: Make the text bold */
+    background-color: #007bff; /* ADDED: Blue background to match header buttons */
+    color: black; /* Corrected: Changed to white text as per typical blue button style */
+    border: 2px solid black; /* CORRECTED: Changed #black to black */
+    border-radius: 5px; /* ADDED: Border-radius to match header buttons */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* ADDED: Transition for hover effect */
 }
 .config-section .action-btn:hover {
-    background-color: #00a8ff; /* ADDED: Darker blue on hover */
-    border-color: black; /* ADDED: Maintain border color on hover */
+    background-color: #00a8ff; /* ADDED: Darker blue on hover */
+    border-color: black; /* ADDED: Maintain border color on hover */
 }
 /* Specific styling for designated admins list */
 #designatedAdminsList, #watchListDisplay {
-    list-style: none;
-    padding: 5px; /* NEW: Reduced padding */
-    margin-top: 8px; /* NEW: Reduced margin */
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #333;
-    max-height: 150px; /* NEW: Reduced max-height */
-    overflow-y: auto;
+    list-style: none;
+    padding: 5px; /* NEW: Reduced padding */
+    margin-top: 8px; /* NEW: Reduced margin */
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    max-height: 150px; /* NEW: Reduced max-height */
+    overflow-y: auto;
 }
 
 #designatedAdminsList li, #watchListDisplay li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 8px; /* NEW: Reduced padding */
-    border-bottom: 1px solid #444;
-    font-size: 0.85em; /* NEW: Reduced font size */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px; /* NEW: Reduced padding */
+    border-bottom: 1px solid #444;
+    font-size: 0.85em; /* NEW: Reduced font size */
 }
 #designatedAdminsList li:last-child, #watchListDisplay li:last-child {
-    border-bottom: none;
+    border-bottom: none;
 }
 #designatedAdminsList .remove-btn, #watchListDisplay .remove-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 3px 6px; /* NEW: Reduced padding */
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.7em; /* NEW: Reduced font size */
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 3px 6px; /* NEW: Reduced padding */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.7em; /* NEW: Reduced font size */
 }
 #designatedAdminsList .remove-btn:hover, #watchListDisplay .remove-btn:hover {
-    background-color: #c82333;
+    background-color: #c82333;
 }
 autocomplete-items {
-    position: absolute; /* Position the list directly below the input */
-    border: 1px solid #00a8ff; /* Blue border */
-    border-bottom: none;
-    border-top: none;
-    z-index: 99; /* Ensure it appears above other content */
-    /* Position the autocomplete items to be the same width as the input: */
-    top: 100%; /* Position it directly below the input (100% of parent's height) */
-    left: 0;
-    right: 0;
-    background-color: #222; /* Dark background */
-    max-height: 200px; /* Max height for scrollable list */
-    overflow-y: auto; /* Enable scrolling */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
-    margin-top: 3px; /* Small gap between input and list */
-    border-radius: 0 0 5px 5px; /* Rounded bottom corners */
+    position: absolute; /* Position the list directly below the input */
+    border: 1px solid #00a8ff; /* Blue border */
+    border-bottom: none;
+    border-top: none;
+    z-index: 99; /* Ensure it appears above other content */
+    /* Position the autocomplete items to be the same width as the input: */
+    top: 100%; /* Position it directly below the input (100% of parent's height) */
+    left: 0;
+    right: 0;
+    background-color: #222; /* Dark background */
+    max-height: 200px; /* Max height for scrollable list */
+    overflow-y: auto; /* Enable scrolling */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+    margin-top: 3px; /* Small gap between input and list */
+    border-radius: 0 0 5px 5px; /* Rounded bottom corners */
 }
 
 .autocomplete-items div {
-    padding: 10px;
-    cursor: pointer;
-    background-color: #333; /* Item background */
-    border-bottom: 1px solid #444; /* Separator between items */
-    color: #f0f0f0; /* Text color */
-    font-size: 0.9em;
+    padding: 10px;
+    cursor: pointer;
+    background-color: #333; /* Item background */
+    border-bottom: 1px solid #444; /* Separator between items */
+    color: #f0f0f0; /* Text color */
+    font-size: 0.9em;
 }
 
 /* Style for highlighted item (on hover or keyboard navigation) */
 .autocomplete-items div:hover,
 .autocomplete-items .autocomplete-active {
-    background-color: #00a8ff; /* Blue highlight */
-    color: #1e1e1e; /* Dark text on highlight */
+    background-color: #00a8ff; /* Blue highlight */
+    color: #1e1e1e; /* Dark text on highlight */
 }
 
 /* Style for matched text */
 .autocomplete-items strong {
-    color: #e0a71a; /* Gold color for matched text */
+    color: #e0a71a; /* Gold color for matched text */
 }
 
 /* IMPORTANT: Ensure the parent container of the input has position: relative;
-   This makes `top: 100%`, `left: 0`, `right: 0` in `.autocomplete-items`
-   position correctly relative to the input field. */
+   This makes `top: 100%`, `left: 0`, `right: 0` in `.autocomplete-items`
+   position correctly relative to the input field. */
 .war-status-toggles-grid .toggle-control {
-    position: relative; /* ADD THIS LINE to your existing .war-status-toggles-grid .toggle-control rule */
-    /* ... other existing rules for toggle-control ... */
+    position: relative; /* ADD THIS LINE to your existing .war-status-toggles-grid .toggle-control rule */
+    /* ... other existing rules for toggle-control ... */
 }
 
 
 /* Responsive Media Queries for the War Hub Container */
 @media (max-width: 992px) {
-    #warPageHubContainer {
-        padding: 10px; /* NEW: Reduced padding */
-        gap: 10px; /* NEW: Reduced gap */
-    }
-    .ops-controls-grid {
-        grid-template-columns: 1fr; /* Stack controls vertically */
-    }
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
-        font-size: 0.8em; /* NEW: Reduced base font size */
-    }
-    .faction-stats-summary {
-        grid-template-columns: 1fr; /* Stack stats vertically */
-    }
-    .tab-content-container {
-        height: auto; /* NEW: Allow height to be auto on smaller screens */
-        min-height: 400px; /* Keep a minimum height */
-    }
-    .friendly-members-scroll-area {
-        max-height: 400px; /* NEW: Adjusted max height */
-    }
-
-    /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
-    .config-grid {
-        /* On smaller screens, stack items if 3 columns don't fit well.
-           This will revert to 2 columns if space allows, then 1 column. */
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adjusted min-width for smaller screens */
+    #warPageHubContainer {
+        padding: 10px; /* NEW: Reduced padding */
+        gap: 10px; /* NEW: Reduced gap */
+    }
+    .ops-controls-grid {
+        grid-template-columns: 1fr; /* Stack controls vertically */
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
+        font-size: 0.8em; /* NEW: Reduced base font size */
+    }
+    .faction-stats-summary {
+        grid-template-columns: 1fr; /* Stack stats vertically */
+    }
+    .tab-content-container {
+        height: auto; /* NEW: Allow height to be auto on smaller screens */
+        min-height: 400px; /* Keep a minimum height */
+    }
+    .friendly-members-scroll-area {
+        max-height: 400px; /* NEW: Adjusted max height */
     }
 
-    /* --- END LEADER CONFIG TAB --- */
+    /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
+
+    /* --- END LEADER CONFIG TAB --- */
 }
 
 @media (max-width: 768px) {
-    .tab-navigation {
-        flex-direction: column; margin-bottom: 0px;
-    }
-    .tab-button {
-        border-radius: 5px;
-        margin-bottom: 5px;
-        font-size: 0.9em; /* NEW: Adjusted font size */
-        padding: 6px 10px; /* NEW: Adjusted padding */
-    }
-    .tab-content-container {
-        border-radius: 8px;
-    }
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
-        font-size: 0.75em; /* NEW: Reduced base font size */
-    }
-    .alert-buttons-grid {
-        flex-direction: column;
-    }
-    .alert-btn {
-        margin-bottom: 8px; /* NEW: Reduced margin */
-        padding: 6px 10px; /* NEW: Reduced padding */
-        font-size: 0.85em; /* NEW: Reduced font size */
-    }
-    .config-section h4 {
-        font-size: 1.3em; /* NEW: Adjusted font size */
-    }
+    .tab-navigation {
+        flex-direction: column; margin-bottom: 0px;
+    }
+    .tab-button {
+        border-radius: 5px;
+        margin-bottom: 5px;
+        font-size: 0.9em; /* NEW: Adjusted font size */
+        padding: 6px 10px; /* NEW: Adjusted padding */
+    }
+    .tab-content-container {
+        border-radius: 8px;
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
+        font-size: 0.75em; /* NEW: Reduced base font size */
+    }
+    .alert-buttons-grid {
+        flex-direction: column;
+    }
+    .alert-btn {
+        margin-bottom: 8px; /* NEW: Reduced margin */
+        padding: 6px 10px; /* NEW: Reduced padding */
+        font-size: 0.85em; /* NEW: Reduced font size */
+    }
+    .config-section h4 {
+        font-size: 1.3em; /* NEW: Adjusted font size */
+    }
 }
 
 .war-status-toggles-grid .toggle-control {
-    display: flex;           /* Make each control a flex container */
-    flex-direction: column;  /* Stack label, input/button vertically */
-    align-items: center;     /* Center content horizontally within the column */
-    gap: 3px; /* Small gap between stacked items like labels and inputs */
+    display: flex;           /* Make each control a flex container */
+    flex-direction: column;  /* Stack label, input/button vertically */
+    align-items: center;     /* Center content horizontally within the column */
+    gap: 3px; /* Small gap between stacked items like labels and inputs */
 }
 
 /* Update: Style specifically for the labels within these toggle controls (to center their text) */
 .war-status-toggles-grid .toggle-control label {
-    display: block; /* Ensure the label behaves like a block-level element */
-    width: 100%; /* Ensure it takes full available width within its parent */
-    text-align: center; /* Center the text content within this block-level label */
-    box-sizing: border-box;
+    display: block; /* Ensure the label behaves like a block-level element */
+    width: 100%; /* Ensure it takes full available width within its parent */
+    text-align: center; /* Center the text content within this block-level label */
+    box-sizing: border-box;
 }
 
 /* Update: Style for the input fields for time and enemy ID */
@@ -1523,39 +1501,39 @@ autocomplete-items {
 #nextChainTimeInput,
 #enemyFactionIDInputLeaderConfig,
 #currentTeamLeadInput {
-    width: 150px !important;
-    max-width: 160px;
-    min-width: 100px;
-    display: block !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    margin-top: 3px !important;
+    width: 150px !important;
+    max-width: 160px;
+    min-width: 100px;
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 3px !important;
 }
 
 @media (max-width: 480px) {
-    .main-content-wrapper { padding-top: 75px; }
-    #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
-    .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
-    .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
-    .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
-    .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
-        font-size: 0.7em; /* NEW: Further reduced base font size */
-    }
-    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
-    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; } /* NEW: Adjusted padding, font size, margin */
-    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; } /* NEW: Reduced padding, gap, font size */
-    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
-        font-size: 0.8em; /* NEW: Adjusted font size */
-        padding: 4px 6px; /* NEW: Adjusted padding */
-    }
-    .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
-    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
-    .config-section input[type="text"], .config-section textarea, .config-section select {
-        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
-    }
-    textarea { min-height: 60px; } /* NEW: Reduced min-height */
-    select[multiple] { height: 100px; } /* NEW: Reduced height */
-    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
+    .main-content-wrapper { padding-top: 75px; }
+    #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
+    .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
+    .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
+    .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
+    .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
+        font-size: 0.7em; /* NEW: Further reduced base font size */
+    }
+    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
+    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; } /* NEW: Adjusted padding, font size, margin */
+    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; } /* NEW: Reduced padding, gap, font size */
+    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
+        font-size: 0.8em; /* NEW: Adjusted font size */
+        padding: 4px 6px; /* NEW: Adjusted padding */
+    }
+    .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
+    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
+    .config-section input[type="text"], .config-section textarea, .config-section select {
+        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
+    }
+    textarea { min-height: 60px; } /* NEW: Reduced min-height */
+    select[multiple] { height: 100px; } /* NEW: Reduced height */
+    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
 }
