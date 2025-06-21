@@ -299,7 +299,7 @@
     flex-direction: column;
     flex: 1; /* Allows it to grow and shrink */
     min-width: 450px; 
-	margin-top: -40px; 
+	margin-top: -25px; 
     /* Height will be implicitly driven by its content or flex alignment */
 }
 
