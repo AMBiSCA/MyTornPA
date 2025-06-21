@@ -85,13 +85,13 @@
     border-radius: 0 0 8px 8px;
     background-color: #333;
     flex-grow: 1;
-    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
-    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
+    height: auto;
+    overflow-y: auto; /* CHANGE THIS: Will add a scrollbar if content overflows vertically */
     box-sizing: border-box;
     margin-top: 0;
-    padding-top: 0; /* IMPORTANT CHANGE: Removed gap at the top of content container */
+    padding-top: 0;
+    min-height: 400px; /* OPTIONAL: Ensures a minimum height, adjust px as needed */
 }
-
 .tab-pane {
     /* Styles for individual tab content areas */
     display: none;
