@@ -283,3 +283,72 @@
                                     <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
                                 </div>
                                 <div class="toggle-control">
+                                    <label for="nextChainTimeInput">Next Chain Time:</label>
+                                    <input type="text" id="nextChainTimeInput" placeholder="e.g., 00:00:00">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="currentTeamLeadInput">Current Team Lead:</label>
+                                    <input type="text" id="currentTeamLeadInput" placeholder="Enter name">
+                                </div>
+                            </div>
+                            <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>Faction Announcements:</h4> <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
+                            <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>Designate Tab 4 Admins:</h4>
+                            <p>Select members to designate as admins:</p>
+                            <div id="designatedAdminsContainer" class="member-checkbox-list"></div>
+                            <div id="designateAdminError" class="error-message"></div>
+                            <button id="saveAdminSelectionsBtn" class="action-btn">Save Admins</button>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>Big Hitter Watchlist:</h4>
+                            <p>Select enemies to watch:</p>
+                            <div id="bigHitterWatchlistContainer" class="member-checkbox-list"></div>
+                            <button id="saveWatchlistSelectionsBtn" class="action-btn">Save Selections</button>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>Energy Tracking Members:</h4>
+                            <p>Select members whose energy contributes to faction totals.</p>
+                            <div id="energyTrackingContainer" class="member-checkbox-list"></div>
+                            <button id="saveEnergyTrackMembersBtn" class="action-btn">Save Selections</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="../../js/firebase-init.js"></script>
+    <script src="../../js/globalheader.js"></script>
+    <script src="../../js/war_page_hub.js"></script>
+</body>
+</html>Yes, the HTML is correct based on our last agreement.
+
+It includes:
+* The Chain Timer display.
+* The new Ranked War Score Display (with your faction's score, opponent's score, war target, and war started time).
+* The Quick FF Targets display.
+* The "Enemy Chain" display block has been removed.
+
+This HTML should now match the structure that the JavaScript expects to update those sections.
