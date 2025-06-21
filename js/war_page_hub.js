@@ -799,44 +799,48 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 
 // --- Data Loading & UI Population ---
 
+// REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THIS ONE
 async function initializeAndLoadData(apiKey) {
     try {
-        // MODIFIED: Request 'basic', 'members', 'chain', and 'ranked_wars' in one call for our faction
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,ranked_wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        // URGENTLY MODIFIED: Request EXACTLY 'basic' and 'chain' selections as specified
+        const userFactionApiUrl = `https://api.torn.com/faction/?selections=basic,chain&key=${apiKey}`; // EXACT URL AS REQUESTED
 
-        console.log("Attempting to fetch comprehensive faction data:", userFactionApiUrl);
+        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+            throw new Error(`Server responded with an error: ${userFactionApiUrl.status} ${userFactionApiUrl.statusText}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-		console.log("Faction API Full Data (Combined):", factionApiFullData); // Log the full response
+		console.log("Faction API Full Data (basic,chain only):", factionApiFullData); // Log the response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // Now, pass warData and apiKey to populateUiComponents
+        // Pass warData and apiKey to populateUiComponents
         // warData (from Firebase) is still needed for game plan, announcements, leader config settings etc.
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
+        const warData = doc.exists ? doc.data() : {};
         populateUiComponents(warData, apiKey); // Pass warData and apiKey
 
     } catch (error) {
-        console.error("Error during comprehensive data initialization:", error);
+        console.error("Error during basic/chain data initialization:", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
         // Also reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
-        if (warTargetScore) warTargetScore.textContent = 'Error';
-        if (warStartedTime) warStartedTime.textContent = 'Error';
+        // IMPORTANT: These elements will NOT be populated by this API call
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A'; // Explicitly set to N/A
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
 
