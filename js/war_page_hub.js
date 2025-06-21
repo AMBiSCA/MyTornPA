@@ -173,9 +173,7 @@ function displayEnemyTargetsTable(members) {
                         </thead>
                         <tbody>`;
 
-    // MODIFIED: Changed the loop to correctly handle the members array
     for (const member of members) {
-        // Get the real ID from the member object itself
         const memberId = member.id; 
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
@@ -191,7 +189,6 @@ function displayEnemyTargetsTable(members) {
             statusClass = 'status-other';
         }
         
-        // All instances of memberId below are now correct
         tableHtml += `<tr id="target-row-${memberId}">
                         <td><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                         <td>${member.level}</td>
