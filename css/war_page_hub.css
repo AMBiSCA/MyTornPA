@@ -602,7 +602,7 @@
 /* Styling for the main table container (#enemyTargetsContainer) to enable scrolling */
 /* Styling for the main table container (#enemyTargetsContainer) to enable scrolling */
 #enemyTargetsContainer.enemy-targets-scroll-area {
-    max-height: 500px; /* ADJUSTED: Increased to show more rows before internal scrollbar appears */
+    max-height: 475px; /* ADJUSTED: Increased to show more rows before internal scrollbar appears */
     overflow-y: auto; /* Enables vertical scrolling for the table content */
     border-bottom-left-radius: 8px; /* To match the overall section's border-radius if needed */
     border-bottom-right-radius: 8px; /* To match the overall section's border-radius if needed */
