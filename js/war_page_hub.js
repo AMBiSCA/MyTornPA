@@ -519,8 +519,7 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         console.error('Error fetching enemy faction data:', error);
         if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
         if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = '';
-        // Corrected function call
+        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
         displayEnemyTargetsTable(null);
         populateEnemyMemberCheckboxes({}, []);
     }
