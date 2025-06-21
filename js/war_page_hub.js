@@ -106,20 +106,16 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 // NEW: Function to handle claiming a target
 function claimTarget(memberId) {
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    const attackLink = document.getElementById(`attack-link-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
 
     if (claimBtn) {
         claimBtn.disabled = true;
-        // Use the user's name
-        claimBtn.textContent = `Claimed by ${currentTornUserName}`; 
+        claimBtn.textContent = `Claimed by ${currentTornUserName}`;
         claimBtn.style.cursor = 'not-allowed';
     }
-    // Optional: visually disable the attack link too
-    if (attackLink) {
-        attackLink.style.pointerEvents = 'none';
-        attackLink.style.opacity = '0.5';
-    }
+    
+    // The lines that disabled the attack link have been removed.
+
     // Optional: change the row color to show it's claimed
     if (targetRow) {
         targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
