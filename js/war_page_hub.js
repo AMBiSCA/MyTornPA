@@ -1221,6 +1221,8 @@ function setupEventListeners(apiKey) {
 
 // REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
 
+// REPLACE YOUR ENTIRE EXISTING 'DOMContentLoaded' BLOCK WITH THIS ONE
+// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
@@ -1251,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 // Initial load of comprehensive faction data (basic, members, chain, wars)
+                // This call populates factionApiFullData
                 await initializeAndLoadData(apiKey); 
 
                 // Call populateUiComponents with fetched warData and apiKey
@@ -1295,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 1750); 
 
-                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
+                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents which are done above)
                     if (userApiKey && globalEnemyFactionID) {
                         fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                     }
@@ -1317,5 +1320,5 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User not logged in.");
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-    }); 
-}); 
+    }); // Closes: auth.onAuthStateChanged
+}); // Closes: document.addEventListener('DOMContentLoaded', ...)
