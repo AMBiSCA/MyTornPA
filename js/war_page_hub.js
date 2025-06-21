@@ -111,8 +111,10 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 // Existing updateAllTimers function (DO NOT REPLACE THE WHOLE FUNCTION, JUST ADD THIS PART)
 // Existing updateAllTimers function (REPLACE THE ENTIRE FUNCTION WITH THIS CODE)
 // REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
+// REPLACE YOUR ENTIRE EXISTING 'updateAllTimers' FUNCTION WITH THIS ONE
 function updateAllTimers() {
-  const nowInSeconds = Math.floor(Date.now() / 1000);
+  console.count('updateAllTimers called'); // NEW: Added console.count
+  const nowInSeconds = Math.floor(Date.now() / 1000); // Current time in seconds
 
   // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
   // This part handles the manually set 'Next Planned Chain Time' countdown locally.
@@ -175,70 +177,19 @@ function updateAllTimers() {
           }
       });
   }
+
+  // NEW: Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
+      // Calculate remaining time by subtracting elapsed time from the last fetched 'timeout'
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      // If no chain is active or data is reset, show 'Chain Over'
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
 }
-
-  // --- NEW API CALL TRIGGERING LOGIC ---
-  // Trigger API calls for both chain and enemy data every 1.5 seconds (every 3rd tick if main interval is 0.5s)
-  if (apiCallCounter % 3 === 0) {
-      if (userApiKey) {
-          fetchAndDisplayChainData(userApiKey); // Fetch chain data
-      } else {
-          console.warn("API key not available for chain data refresh.");
-      }
-
-      if (userApiKey && globalEnemyFactionID) {
-          fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Fetch enemy data
-      } else {
-          console.warn("API key or enemy faction ID not available for enemy data refresh.");
-      }
-  }
-
-
-
-  // 2. Update Enemy Target Timers (Hospital and Traveling)
-  // We look for <td> elements within the enemyTargetsContainer that have data-until attributes
-  if (enemyTargetsContainer) {
-      const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
-      statusCells.forEach(cell => {
-          const targetTime = parseInt(cell.dataset.until, 10); // Get timestamp from data-until
-          const statusState = cell.dataset.statusState; // Get original status state
-          const originalDescription = cell.textContent.split('(')[0].trim(); // Get original descriptive part (e.g. "Traveling to XYZ")
-
-          if (!isNaN(targetTime) && targetTime > 0) {
-              const timeLeft = targetTime - nowInSeconds;
-
-              if (timeLeft > 0) {
-                  // Update text based on original status state
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                  }
-                  // For Traveling, we don't want a countdown, just the destination or "Arriving soon"
-                  // If the original text contains 'Traveling to', keep it.
-                  // This section won't change the Traveling text *unless* it expires
-              } else {
-                  // Timer has expired
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (Time Up)`; // More explicit for Hospital
-                      cell.classList.remove('status-hospital', 'status-other');
-                      cell.classList.add('status-okay'); // Assume they are okay after hospital
-                  } else if (statusState === 'Traveling') {
-                      // For traveling, if time is up, they have arrived.
-                      // The original description would be "Traveling to X", so we extract X.
-                      const destination = originalDescription.replace('Traveling to ', '');
-                      cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                      cell.classList.remove('status-traveling', 'status-other');
-                      cell.classList.add('status-okay'); // Assume they are okay after travel
-                  } else {
-                      cell.textContent = `${statusState} (Time Up)`; // Generic fallback
-                      cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                      cell.classList.add('status-okay');
-                  }
-              }
-          }
-      });
-  }
-
   // --- ADD THIS NEW BLOCK BELOW YOUR EXISTING updateAllTimers LOGIC ---
   if (userApiKey) {
     fetchAndDisplayChainData(userApiKey);
@@ -436,6 +387,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 
     try {
+        // 1. Get IDs of players currently in the main enemy table
+        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
+        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
+        console.log("Excluded Player IDs (from main table):", excludedPlayerIDs);
+
         const functionUrl = `/.netlify/functions/get-recommended-targets`;
         const response = await fetch(functionUrl, {
             method: 'POST',
@@ -456,20 +412,35 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             return;
         }
 
+        // 2. Filter out already displayed targets from the fetched list
+        const availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
+        console.log("Available targets after exclusion:", availableTargets);
+
+        if (availableTargets.length === 0) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
+            return;
+        }
+
+        // 3. Shuffle the available targets (Fisher-Yates algorithm)
+        for (let i = availableTargets.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]]; // Swap
+        }
+        console.log("Shuffled available targets:", availableTargets);
+
         // Clear existing content to populate with new links
         quickFFTargetsDisplay.innerHTML = '';
 
-        // Display up to the first 2 targets
-        for (let i = 0; i < Math.min(2, data.targets.length); i++) {
-            const target = data.targets[i];
+        // Display up to the first 2 unique and random targets
+        for (let i = 0; i < Math.min(2, availableTargets.length); i++) {
+            const target = availableTargets[i];
             const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
-            const targetName = target.playerName || `Target ${i + 1}`;
-            // Removed fair fight color logic here, will rely on CSS for generic button look
+            const targetName = target.playerName || `Target ${i + 1}`; // Fallback name
 
             const targetHtml = `
                 <a href="${attackUrl}" target="_blank"
                    class="quick-ff-target-btn"
-                   title="${targetName} (ID: ${target.playerID})">
+                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
                     ${targetName}
                 </a>
             `;
@@ -663,46 +634,72 @@ function populateUiComponents(warData, apiKey) {
 }
 
 // Inside fetchAndDisplayEnemyFaction function...
-async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
-    if (!factionID || !apiKey) return;
-    try {
-        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
-        const response = await fetch(enemyApiUrl);
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-        const enemyData = await response.json();
-        console.log("Enemy Faction API Data:", enemyData);
-        if (enemyData.error) {
-            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
-        }
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayChainData' FUNCTION WITH THIS ONE
+async function fetchAndDisplayChainData(apiKey) {
+  if (!apiKey) {
+    console.warn("API key is not available. Cannot fetch chain data.");
+    return;
+  }
 
-        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
-
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
-
-        if (enemyData.members) {
-            // Corrected function call
-            displayEnemyTargetsTable(enemyData.members);
-            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
-        } else {
-            console.warn("Enemy faction members data not found.");
-            // Corrected function call
-            displayEnemyTargetsTable(null);
-            populateEnemyMemberCheckboxes({}, []);
-        }
-    } catch (error) {
-        console.error('Error fetching enemy faction data:', error);
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
-        displayEnemyTargetsTable(null);
-        populateEnemyMemberCheckboxes({}, []);
+  try {
+    const chainApiUrl = `https://api.torn.com/v2/faction/?selections=chain&key=${apiKey}&comment=MyTornPA_ChainData`;
+    const response = await fetch(chainApiUrl);
+    if (!response.ok) {
+      throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
     }
+    const chainData = await response.json();
+    console.log("Chain API Data (fetched):", chainData); // This log is already here and is useful!
+
+    if (chainData && chainData.chain) {
+      // Store the relevant values globally for updateAllTimers to use
+      currentLiveChainSeconds = chainData.chain.timeout || 0;
+      lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+      globalChainStartedTimestamp = chainData.chain.start || 0;
+      globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+
+      // Update current chain number display here (as it's directly from API)
+      if (currentChainNumberDisplay) {
+        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+      }
+
+      // Logic for Chain Started time display (no change from previous as requested)
+      if (chainStartedDisplay) {
+        const newChainStartedTimestamp = chainData.chain.start || 0;
+        if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+            globalChainStartedTimestamp = newChainStartedTimestamp;
+            chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+        } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+            globalChainStartedTimestamp = 0;
+            chainStartedDisplay.textContent = 'Started: N/A';
+        } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+            // No change needed
+        }
+      }
+
+    } else {
+      console.warn("Chain data not found in API response, or chain object is missing.");
+      // Reset global variables if no chain data
+      currentLiveChainSeconds = 0;
+      lastChainApiFetchTime = 0;
+      globalChainStartedTimestamp = 0;
+      globalChainCurrentNumber = 'N/A';
+
+      // Ensure display elements are reset if API data is missing/invalid
+      if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+      if (chainStartedDisplay) chainStartedDisplay.textContent = 'Started: N/A';
+    }
+
+  } catch (error) {
+    console.error("Error fetching chain data:", error);
+    // On error, reset global variables and display 'Error'
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
+
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+  }
 }
 
 function populateWarStatusDisplay(warData = {}) {
