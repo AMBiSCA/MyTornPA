@@ -298,7 +298,8 @@
     display: flex;
     flex-direction: column;
     flex: 1; /* Allows it to grow and shrink */
-    min-width: 450px; /* Minimum width for the table side */
+    min-width: 450px; 
+	margin-top: -40px; 
     /* Height will be implicitly driven by its content or flex alignment */
 }
 

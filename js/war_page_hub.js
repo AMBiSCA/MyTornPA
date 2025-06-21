@@ -192,21 +192,27 @@ async function fetchAndDisplayChainData(apiKey) {
 }
 
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
     // NEW: Debugging logs to check condition variables (KEEP THESE FOR YOUR CONSOLE DEBUGGING)
-    console.log("DEBUG_RANKED: Calling fetchAndDisplayRankedWarScores");
-    console.log("DEBUG_RANKED: factionApiFullData:", factionApiFullData);
-    console.log("DEBUG_RANKED: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
+    console.log("DEBUG_RANKED_V2: Calling fetchAndDisplayRankedWarScores");
+    console.log("DEBUG_RANKED_V2: factionApiFullData:", factionApiFullData);
+    console.log("DEBUG_RANKED_V2: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
     // MODIFIED: Logging the 'ranked' property explicitly as per your instruction
-    console.log("DEBUG_RANKED: factionApiFullData.wars.ranked (as requested):", factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked : 'N/A');
-    console.log("DEBUG_RANKED: factionApiFullData.ID:", factionApiFullData ? factionApiFullData.ID : 'N/A');
+    console.log("DEBUG_RANKED_V2: factionApiFullData.wars.ranked (as requested):", factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked : 'N/A');
+    console.log("DEBUG_RANKED_V2: factionApiFullData.ID:", factionApiFullData ? factionApiFullData.ID : 'N/A');
 
-    // MODIFIED: Access ranked_wars through the 'wars' object, looking for 'ranked' as requested
-    // Note: This assumes 'ranked' is the correct property name in your API response if 'ranked_wars' was failing.
-    // The API JSON previously showed 'ranked_wars' with an underscore and 's'.
-    const rankedWarData = factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked : null; // Changed to .ranked as per instruction
+    // MODIFIED: Primary data source now attempts to use the user-specified path: factionApiFullData.wars.ranked
+    // This assumes that `ranked` exists directly under `wars` and then contains war objects (like '26943')
+    let rankedWarData = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) { // Check for 'wars.ranked'
+        rankedWarData = factionApiFullData.wars.ranked; // Use 'ranked' directly as the collection of wars
+    } else {
+        console.warn("Ranked War Data (factionApiFullData.wars.ranked) not available or path incorrect. Defaulting to 'N/A' display.");
+    }
     
-    if (!factionApiFullData || !factionApiFullData.wars || !rankedWarData || !factionApiFullData.ID) { // Condition uses rankedWarData directly
+    // Original condition (slightly adjusted to use the new 'rankedWarData' variable from above)
+    if (!factionApiFullData || !factionApiFullData.wars || !rankedWarData || !factionApiFullData.ID) { // Now checks if 'rankedWarData' is populated
         console.warn("Ranked War Data not fully available (condition failed based on 'ranked' property).");
         // Reset display if data is missing
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
@@ -219,14 +225,15 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     }
 
     try {
-        console.log("Ranked War API Data (from factionApiFullData.wars.ranked):", rankedWarData); // Log the data being used
+        console.log("Ranked War API Data (from assumed factionApiFullData.wars.ranked):", rankedWarData);
 
         // Find the active ranked war (assuming only one is typically active at a time)
         let activeWar = null;
         const yourFactionId = factionApiFullData.ID; // Get our faction ID from full data
 
-        // Iterating through the 'rankedWarData' object (which is factionApiFullData.wars.ranked)
-        for (const warId in rankedWarData) {
+        // Iterating through the 'rankedWarData' object (which is now factionApiFullData.wars.ranked)
+        // This loop now assumes rankedWarData (i.e. factionApiFullData.wars.ranked) holds objects with war IDs
+        for (const warId in rankedWarData) { // This will iterate over properties of 'ranked' (e.g., "26943")
             const warEntry = rankedWarData[warId];
             // Check if war is active (end time 0) AND has our faction as a participant
             if (warEntry.war && warEntry.war.end === 0 && warEntry.factions && warEntry.factions[yourFactionId]) {
@@ -250,8 +257,9 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
             if (warTargetScore) warTargetScore.textContent = activeWar.war.target || 'N/A';
             if (warStartedTime) warStartedTime.textContent = activeWar.war.start ? formatTornTime(activeWar.war.start) : 'N/A';
 
+
         } else {
-            // No active war found
+            // No active war found or data incomplete
             if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
             if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
             if (warTargetScore) warTargetScore.textContent = 'N/A';
