@@ -10,7 +10,7 @@
     padding: 10px; /* NEW: Reduced padding for more vertical space */
     border-radius: 8px;
     margin-top: 15px; /* Top margin remains perfect */
-    margin-bottom: 20px; /* Explicitly set bottom margin for space from footer */
+    margin-bottom: 50px; /* Explicitly set bottom margin for space from footer */
     margin-left: auto;    /* ADDED: Centering the overall container */
     margin-right: auto;   /* ADDED: Centering the overall container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow */
