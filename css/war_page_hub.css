@@ -603,11 +603,11 @@
 
 /* Define consistent column widths for BOTH header (<thead>) and body (<tbody>) tables */
 /* These percentages sum to 100% and should match the 'th' and 'td' structure */
-.enemy-targets-table .col-name { width: 24%; }
+.enemy-targets-table .col-name { width: 25%; }
 .enemy-targets-table .col-level { width: 10%; }
-.enemy-targets-table .col-status { width: 26%; } /* Slightly increased for status text */
-.enemy-targets-table .col-claim { width: 18%; } /* Adjusted for Claim button */
-.enemy-targets-table .col-attack { width: 22%; } /* Adjusted for Attack button */
+.enemy-targets-table .col-status { width: 25%; }
+.enemy-targets-table .col-claim { width: 20%; }
+.enemy-targets-table .col-attack { width: 20%; }
 
 
 /* --- Status-Specific Colors (Existing, but ensure they target the new <td>) --- */
