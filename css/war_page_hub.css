@@ -452,108 +452,98 @@
 
 
 /* Active Ops Controls Grid (Tab 2) */
+/* General styling for all ops-control-items (Keep this as is, for now, to retain Chain Timer fix) */
+/* Active Ops Controls Grid (Tab 2) */
 .ops-controls-grid {
     margin-top: 10px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* NEW: Min-width slightly smaller */
-    gap: 10px; /* NEW: Reduced gap */
-    margin-bottom: 15px; /* NEW: Reduced margin */
-    padding: 10px; /* NEW: Reduced padding */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
     border: 1px solid black;
     border-radius: 8px;
     background-color: #222;
 }
 
+/* General styling for all ops-control-items */
 .ops-control-item {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    /* align-items: flex-start;  REMOVE THIS LINE - it forces content to the left */
     white-space: nowrap;
     font-size: 0.9em;
-
-    /* NEW: Add alignment for the item itself within the grid cell */
-    justify-self: end; /* Aligns the item to the end (right) of its grid cell */
-    text-align: right; /* Aligns text within this item to the right */
+    /* Default alignment can be removed or set here if needed, but specific overrides are below */
 }
 
-/* Specific adjustment for the label within ops-quick-targets to ensure it aligns with text-align: right */
-.ops-control-item.ops-quick-targets label {
-    width: 100%; /* Ensure label takes full width */
-    text-align: right; /* Align the label text to the right */
-    box-sizing: border-box; /* Include padding/border in width */
-}
-
-/* Specific styling to force ops-timer back to left alignment */
-.ops-control-item.ops-timer {
-    justify-self: start; /* Forces this specific grid item to align to the start (left) of its grid cell */
-    text-align: left;    /* Aligns the text content within this item to the left */
-}
-
-/* Ensure the label within ops-timer also aligns left */
-.ops-control-item.ops-timer label {
-    text-align: left; /* Forces the label text to be left-aligned */
-}
-
+/* General label styling within ops-control-item */
 .ops-control-item label {
     color: #00a8ff;
     font-weight: bold;
+    /* This rule should not have a text-align, as it's handled by more specific rules below */
 }
 
+/* General input/select/button styling within ops-control-item */
 .ops-control-item input[type="text"],
 .ops-control-item select,
 .ops-control-item button {
     width: 100%;
     box-sizing: border-box;
-    font-size: 0.9em; /* NEW: Smaller font for inputs/selects */
-    padding: 6px; /* NEW: Reduced padding */
+    font-size: 0.9em;
+    padding: 6px;
 }
 
-/* Specific styling for Quick FF Targets container (side-by-side) */
+/* Specific styling for ops-timer (Chain Timer) - Forces this item to align left */
+.ops-control-item.ops-timer {
+    justify-self: start; /* Aligns this grid item to the start (left) of its cell */
+    text-align: left;    /* Aligns text content within this item to the left */
+}
+
+.ops-control-item.ops-timer label {
+    text-align: left; /* Ensures the label text is left-aligned */
+}
+
+/* Specific styling for Quick FF Targets container - Forces this item to align right */
+.ops-control-item.ops-quick-targets {
+    justify-self: end; /* Aligns the entire quick targets block to the right of its grid cell */
+    /* text-align: right; IS NOT NEEDED here for the block, its label will handle its own centering */
+}
+
+.ops-control-item.ops-quick-targets label {
+    width: 100%; /* Ensures the label spans the full width of its container */
+    text-align: center; /* Centers the label text horizontally */
+    box-sizing: border-box;
+}
+
+/* Container for the Quick FF Target buttons - ensures vertical stacking and full width */
 .ops-control-item .quick-ff-targets-container {
     display: flex;
-    flex-direction: row; /* Arrange items horizontally */
-    gap: 5px; /* Space between target displays */
-    flex-wrap: wrap; /* Allow targets to wrap if space is too small */
-    width: 100%;
-}
-.ops-control-item .quick-ff-targets-container span {
-    flex-grow: 1; /* Allow targets to grow to fill space */
-    min-width: 45%; /* Ensure they don-t get too small */
-    text-align: center;
-    border: 1px solid #00a8ff;
-    border-radius: 4px;
-    padding: 4px;
-    background-color: #333;
-    color: #f0f0f0;
-    font-size: 0.8em;
+    flex-direction: column; /* Stacks the buttons vertically */
+    gap: 5px; /* Space between the buttons */
+    width: 100%; /* Makes the container fill the width of its parent ops-control-item */
 }
 
-
+/* Styling for the Quick FF Target buttons (the <a> tags) */
 .quick-ff-target-btn {
-    display: inline-block; /* Or 'block' if you want them to take full width */
+    display: inline-block; /* Treat as block to accept width/padding, but allows content flow */
     background-color: #007bff; /* A standard blue color, matching other buttons */
     color: #ffffff; /* White text */
-    padding: 4px 12px; /* Consistent padding */
+    padding: 4px 12px;
     border-radius: 4px;
-    font-size: 0.8em; /* Match previous font size */
-    font-weight: bold; /* Keep bold text */
-    text-decoration: none; /* Remove underline from links */
+    font-size: 0.8em;
+    font-weight: bold;
+    text-decoration: none;
     text-align: center;
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    border: 1px solid #0056b3; /* Slightly darker blue border */
-    box-sizing: border-box; /* Ensure padding/border are included in size */
+    border: 1px solid #0056b3;
+    box-sizing: border-box;
     width: 100%; /* Make them take full width of their container */
 }
 
 .quick-ff-target-btn:hover {
-    background-color: #00a8ff; /* Lighter blue on hover */
-    border-color: #007bff; /* Keep consistent border hover */
+    background-color: #00a8ff;
+    border-color: #007bff;
 }
-/* The #quickAnnouncementInput is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
-/* #quickAnnouncementInput {
-    margin-bottom: 0;
-} */
 
 /* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
 #postAnnouncementBtn {
