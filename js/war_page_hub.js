@@ -288,40 +288,50 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
  // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
  if (enemyTargetsContainer) {
-     const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+    const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
 
-     statusCells.forEach(cell => {
-         const targetTime = parseInt(cell.dataset.until, 10);
-         const statusState = cell.dataset.statusState;
-         const originalDescription = cell.textContent.split('(')[0].trim();
+    statusCells.forEach(cell => {
+        const targetTime = parseInt(cell.dataset.until, 10);
+        const statusState = cell.dataset.statusState;
+        const originalDescription = cell.textContent.split('(')[0].trim();
 
-         if (!isNaN(targetTime) && targetTime > 0) {
-             const timeLeft = targetTime - nowInSeconds;
+        if (!isNaN(targetTime) && targetTime > 0) {
+            const timeLeft = targetTime - nowInSeconds;
 
-             if (timeLeft > 0) {
-                 if (statusState === 'Hospital') {
-                     cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                 } else if (statusState === 'Traveling') {
-                     cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                 }
-             } else {
-                 if (statusState === 'Hospital') {
-                     cell.textContent = `Okay`;
-                     cell.classList.remove('status-hospital', 'status-other', 'status-okay');
-                 } else if (statusState === 'Traveling') {
-                     const destination = originalDescription.replace('Traveling to ', '');
-                     cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                     cell.classList.remove('status-traveling', 'status-other');
-                     cell.classList.add('status-okay');
-                 } else {
-                     cell.textContent = `${statusState} (Time Up)`;
-                     cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                     cell.classList.add('status-okay');
-                 }
-             }
-         }
-     });
- }
+            if (timeLeft > 0) {
+                if (statusState === 'Hospital') {
+                    cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
+                } else if (statusState === 'Traveling') {
+                    if (originalDescription === 'Returning') {
+                        cell.textContent = `Returning Home (${formatTime(timeLeft)})`;
+                    } else {
+                        cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
+                    }
+                }
+            } else {
+                if (statusState === 'Hospital') {
+                    cell.textContent = `Okay`;
+                    cell.classList.remove('status-hospital', 'status-other', 'status-okay');
+                } else if (statusState === 'Traveling') {
+                    if (originalDescription === 'Returning') {
+                        // CORRECTED: Set text to Okay and remove classes to revert to default (white) style.
+                        cell.textContent = `Okay`;
+                        cell.classList.remove('status-traveling', 'status-other', 'status-okay');
+                    } else {
+                        // Update text to "In [Destination]" and keep the orange style for arrived users.
+                        const destination = originalDescription.replace('Traveling to ', '').replace('Traveling ', '');
+                        cell.textContent = `In ${destination}`;
+                        // The class list is intentionally not changed here to keep the orange 'traveling' style.
+                    }
+                } else {
+                    cell.textContent = `${statusState} (Time Up)`;
+                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                    cell.classList.add('status-okay');
+                }
+            }
+        }
+    });
+}
 
  // Update Chain Timer Display (smooth 1-second countdown)
  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
