@@ -1164,12 +1164,19 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
         return filtered;
     };
 	
+	function setupMemberClickEvents() {
+    // This function is intended to set up click listeners for members in tables.
+    // If you have specific code for member clicks, please paste it here.
+    console.warn("setupMemberClickEvents is called but its full functionality is missing.");
+}
+	
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
     // If you have specific code that belongs here, please add it.
     console.warn("setupToggleSelectionEvents is called but its full functionality is missing.");
 }
+
 
     // Create and display the autocomplete suggestions
     const showSuggestions = (arr) => {
