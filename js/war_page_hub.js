@@ -1163,6 +1163,13 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
         console.log("Autocomplete Filtered Matches for '" + searchTerm + "':", filtered); // <<< CONSOLE LOG ADDED
         return filtered;
     };
+	
+	function setupToggleSelectionEvents() {
+    // This function is currently not defined.
+    // Its purpose is to set up event listeners for various toggles or selections on the page.
+    // If you have specific code that belongs here, please add it.
+    console.warn("setupToggleSelectionEvents is called but its full functionality is missing.");
+}
 
     // Create and display the autocomplete suggestions
     const showSuggestions = (arr) => {
@@ -1275,7 +1282,6 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
     });
 }
 
-// --- Event Listeners Setup ---
 
 // --- Event Listeners Setup ---
 function setupEventListeners(apiKey) {
