@@ -982,7 +982,8 @@ function populateWarStatusDisplay(warData = {}) {
     if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
     if (currentTeamLeadDisplay)
         currentTeamLeadDisplay.textContent = warData.currentTeamLead || 'N/A';
-    
+    }
+}
 
 function loadWarStatusForEdit(warData = {}) {
     if (toggleEnlisted) toggleEnlisted.checked = warData.toggleEnlisted || false;
@@ -1160,35 +1161,28 @@ function setupEventListeners(apiKey) {
     }
     
     if (saveWarStatusControlsBtn) {
-    saveWarStatusControlsBtn.addEventListener('click', async () => {
-        const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-
-        // NEW: Get the raw team lead value and filter it
-        const rawTeamLead = currentTeamLeadInput ? currentTeamLeadInput.value.trim() : '';
-        const filteredTeamLead = filterProfanity(rawTeamLead); // Apply the profanity filter
-
-        const statusData = {
-            toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-            toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-            toggleChaining: toggleChaining ? toggleChaining.checked : false,
-            toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-            toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-            toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-            nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-            enemyFactionID: enemyId,
-            currentTeamLead: filteredTeamLead // <-- This line saves the filtered team lead
-        };
-        try {
-            await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-            alert('War status saved!');
-            // Pass the updated statusData to populateWarStatusDisplay to ensure the UI updates correctly
-            populateWarStatusDisplay(statusData);
-            await fetchAndDisplayEnemyFaction(enemyId, apiKey);
-        } catch (error) {
-            console.error('Error saving war status:', error);
-        }
-    });
-}
+        saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
+            try {
+                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+                alert('War status saved!');
+                populateWarStatusDisplay(statusData);
+                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
+            } catch (error) {
+                console.error('Error saving war status:', error);
+            }
+        });
+    }
 
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
