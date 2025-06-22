@@ -998,6 +998,9 @@ function displayFriendlyMembersTable(members) {
  * @param {string} memberId The Torn User ID of the clicked member.
  */
 async function fetchAndDisplayMemberDetails(memberId) {
+    // --- NEW DEBUGGING LINE ---
+    console.log(`Searching Firebase for tornProfileId that matches: "${memberId}"`);
+
     const detailPanel = document.getElementById('selectedMemberDetailPanel');
     if (!detailPanel) {
         console.error("HTML Error: Cannot find the detail panel element.");
@@ -1006,16 +1009,12 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
     // Immediately show a loading state in the panel
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
-    // Add a class to handle the loaded state styling
     detailPanel.classList.add('detail-panel-loaded'); 
 
     try {
-        // This query finds a user in your database whose 'tornProfileId' matches the one from the clicked row.
-        // This assumes you are storing the Torn ID as 'tornProfileId' in your Firebase documents.
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
 
         if (querySnapshot.empty) {
-            // This message displays if the member hasn't signed up to your site
             detailPanel.innerHTML = `<h4>Details Unavailable</h4><p>This member has not registered on this site, or their Torn ID is not in the database.</p>`;
             return;
         }
@@ -1024,12 +1023,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const memberApiKey = userDoc.data().tornApiKey;
 
         if (!memberApiKey) {
-            // This message displays if they've registered but didn't provide a key
             detailPanel.innerHTML = `<h4>API Key Missing</h4><p>This member has not provided their API key.</p>`;
             return;
         }
 
-        // If we have a key, make the API call to Torn for profile and battlestats
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile,battlestats&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`Torn API Error: ${response.status}`);
@@ -1037,14 +1034,12 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const data = await response.json();
         if (data.error) throw new Error(`Torn API Error: ${data.error.error}`);
 
-        // Get the data from the response
         const stats = data.battlestats || {};
         const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
         const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
 
-        // Build the new HTML to display in the panel
         const detailsHtml = `
             <h4>${data.name || 'Unknown'} [${data.level || 'N/A'}]</h4>
             <div class="member-stats-grid">
@@ -1055,7 +1050,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             </div>
         `;
         
-        // Update the panel with the new details
         detailPanel.innerHTML = detailsHtml;
 
     } catch (error) {
