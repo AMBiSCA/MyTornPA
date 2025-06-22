@@ -1,4 +1,4 @@
-war page.
+
 
 // --- Global Variables ---
 const db = firebase.firestore();
