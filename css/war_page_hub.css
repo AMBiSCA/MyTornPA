@@ -252,7 +252,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
 }
 
-/* Chat Tabs Container */
 .chat-tabs-container {
     display: flex;
     flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
@@ -262,7 +261,6 @@
     overflow: hidden; /* Contain inner elements within rounded corners */
 }
 
-/* Individual Chat Tabs */
 .chat-tab {
     flex-grow: 1; /* Allows tabs to share horizontal space */
     padding: 8px 5px; /* Compact padding for small tabs */
@@ -377,7 +375,7 @@
 }
 
 
-  .chat-send-btn {
+.chat-send-btn {
     flex-shrink: 0; /* Prevent button from shrinking */
     padding: 8px 15px;
     border: none;
