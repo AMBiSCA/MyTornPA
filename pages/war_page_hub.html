@@ -220,14 +220,32 @@
                 </div>
 
                 <div id="friendly-status-tab" class="tab-pane">
-                    <div id="faction-live-stats-header">
-                        <h3>Friendly Faction Status</h3>
-                        <div id="total-energy-display">Calculating...</div>
+                    <div class="ops-controls-grid">
+                        <div class="ops-control-item">
+                            <label>Faction Live Status</label>
+                            <span id="friendly-status-summary"></span>
+                        </div>
                     </div>
-                    <div id="friendlyMembersListContainer">
-                        <p>Loading member data...</p>
+
+                    <div class="active-ops-main-content-row">
+
+                        <div class="active-ops-left-panel">
+                            <div id="friendlyMembersListContainer">
+                                <p style="text-align: center; margin-top: 50px;">The member table will go here.</p>
+                            </div>
+                        </div>
+
+                        <div class="active-ops-right-panel">
+                            <div id="selectedMemberDetailPanel" class="placeholder-panel">
+                                <h4>Member Details</h4>
+                                <div class="placeholder-icon">👤</div>
+                                <p><i>Select a member on the left to view their details.</i></p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+                
                 <div id="leader-config-tab" class="tab-pane">
                     <div class="config-grid">
                         <div class="config-section">
