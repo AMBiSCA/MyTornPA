@@ -782,22 +782,24 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+      function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-        // CORRECTED: Use factionApiFullData.members.total for Total Members count
         if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
-        // Populate friendly member checkboxes (from factionApiFullData.members)
-        // This condition should now be true as 'members' is fetched
+        // This block now populates checkboxes AND the new friendly members table
         if (factionApiFullData.members) { 
             populateFriendlyMemberCheckboxes(
                 factionApiFullData.members,
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
+            
+            // --- NEW LINE ADDED HERE ---
+            displayFriendlyMembersTable(factionApiFullData.members); 
+
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -830,8 +832,6 @@ async function initializeAndLoadData(apiKey) {
         displayEnemyTargetsTable(null); // This clears the table
     }
 }
-
- * @param {object} members - The members object from the API.
 
 function displayFriendlyMembersTable(members) {
     if (!friendlyMembersTbody) {
