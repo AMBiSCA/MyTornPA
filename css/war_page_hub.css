@@ -999,23 +999,48 @@ transition: background-color 0.2s ease;
     text-align: center;
     font-size: 0.85em; /* NEW: Reduced font size */
 }
+/* ==========================================================================
+   Styles & Sizing for Friendly Status Tab
+   ========================================================================== */
+
+/* --- Sizing for the Top Box --- */
+#friendly-status-tab .ops-controls-grid {
+    min-height: 95px;
+    align-items: center;
+}
+
+/* --- Sizing for the Main Panels (2-to-1 ratio) --- */
 #friendly-status-tab .active-ops-left-panel {
     flex: 2; 
 }
-
 #friendly-status-tab .active-ops-right-panel {
     flex: 1;
 }
 
-.placeholder-panel {
+/* --- Styling for Table & Placeholder Containers --- */
+#friendlyMembersListContainer {
+    margin-top: 20px;
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 475px; /* This explicitly matches the height of your chat-container */
+    display: flex;
+    flex-direction: column;
+}
+
+#friendly-members-table {
+    flex-grow: 1;
+}
+
+/* --- Placeholder for Member Details (Right Panel) --- */
+.detail-panel-placeholder { /* Using the new professional name */
     padding: 20px;
     border: 1px solid #555;
     border-radius: 8px;
     background-color: #222;
-    height: 100%; /* Makes the panel fill the vertical space */
+    height: 100%;
     box-sizing: border-box;
-
-    /* These center the content inside */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1023,20 +1048,20 @@ transition: background-color 0.2s ease;
     text-align: center;
 }
 
-.placeholder-panel h4 {
-    color: #e0a71a; /* Gold color to match other titles */
+.detail-panel-placeholder h4 {
+    color: #e0a71a;
     font-size: 1.5em;
     margin: 0;
 }
 
-.placeholder-icon {
-    font-size: 6em; /* Makes the icon large */
-    color: rgba(240, 240, 240, 0.05); /* Makes the icon very faint */
+.detail-panel-icon { /* Using the new professional name */
+    font-size: 6em;
+    color: rgba(240, 240, 240, 0.05);
     margin: 20px 0;
 }
 
-.placeholder-panel p {
-    color: #888; /* Faded grey for the instructional text */
+.detail-panel-placeholder p {
+    color: #888;
     margin: 0;
 }
 .alert-btn:hover {
