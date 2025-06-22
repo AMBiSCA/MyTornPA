@@ -1394,6 +1394,21 @@ autocomplete-items {
     box-sizing: border-box;
     white-space: nowrap; /* Prevent wrapping of contents if possible */
 }
+.faction-versus-section {
+    display: flex;             /* Makes content (faction names, Vs) appear in a row */
+    justify-content: center;   /* Centers the content horizontally */
+    align-items: center;       /* Vertically aligns items like "Vs" with the faction info */
+    gap: 15px;                 /* Adds space between the faction blocks and "Vs" */
+    
+    max-width: 900px;          /* Sets a maximum width for the box */
+    margin: 20px auto;         /* Centers the box horizontally and adds vertical space */
+    padding: 15px;             /* Adds internal spacing for the "box" effect */
+    
+    background-color: #2a2a2a; /* Darker background for the box */
+    border: 1px solid #444;    /* Subtle border for the box effect */
+    border-radius: 8px;        /* Rounded corners for the box */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Adds a subtle shadow for depth/fancy look */
+}
 
 .ops-chain-score .score-faction-name {
     font-size: 0.8em;
