@@ -373,7 +373,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
   } else if (warStartedTime) {
       warStartedTime.textContent = 'N/A';
   }
-}
+
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
