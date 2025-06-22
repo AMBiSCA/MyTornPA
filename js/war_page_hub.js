@@ -262,65 +262,92 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     }
 }
 
-  function updateAllTimers() {
-  console.count('updateAllTimers called');
-  const nowInSeconds = Math.floor(Date.now() / 1000);
+ function updateAllTimers() {
+ console.count('updateAllTimers called');
+ const nowInSeconds = Math.floor(Date.now() / 1000);
 
-  // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
-  if (warNextChainTimeStatus && nextChainTimeInput) {
-      const nextChainTimeValue = nextChainTimeInput.value.trim();
-      const targetChainTime = parseInt(nextChainTimeValue, 10);
+ // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
+ if (warNextChainTimeStatus && nextChainTimeInput) {
+     const nextChainTimeValue = nextChainTimeInput.value.trim();
+     const targetChainTime = parseInt(nextChainTimeValue, 10);
 
-      if (!isNaN(targetChainTime) && targetChainTime > 0) {
-          const timeLeft = targetChainTime - nowInSeconds;
-          if (timeLeft > 0) {
-              warNextChainTimeStatus.textContent = formatTime(timeLeft);
-          } else {
-              warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
-          }
-      } else if (warNextChainTimeStatus.textContent === 'N/A' || warNextChainTimeStatus.textContent === '') {
-          // Do nothing if it's already N/A or empty, to avoid resetting manual text
-      } else {
-          warNextChainTimeStatus.textContent = 'N/A';
-      }
-  }
+     if (!isNaN(targetChainTime) && targetChainTime > 0) {
+         const timeLeft = targetChainTime - nowInSeconds;
+         if (timeLeft > 0) {
+             warNextChainTimeStatus.textContent = formatTime(timeLeft);
+         } else {
+             warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
+         }
+     } else {
+         // If it's not a valid number for a countdown, display the raw input or 'N/A' if empty
+         // This prevents the flickering between user text and 'N/A'
+         warNextChainTimeStatus.textContent = nextChainTimeValue || 'N/A';
+     }
+ }
 
-  // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
-  if (enemyTargetsContainer) {
-      const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+ // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
+ if (enemyTargetsContainer) {
+     const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
 
-      statusCells.forEach(cell => {
-          const targetTime = parseInt(cell.dataset.until, 10);
-          const statusState = cell.dataset.statusState;
-          const originalDescription = cell.textContent.split('(')[0].trim();
+     statusCells.forEach(cell => {
+         const targetTime = parseInt(cell.dataset.until, 10);
+         const statusState = cell.dataset.statusState;
+         const originalDescription = cell.textContent.split('(')[0].trim();
 
-          if (!isNaN(targetTime) && targetTime > 0) {
-              const timeLeft = targetTime - nowInSeconds;
+         if (!isNaN(targetTime) && targetTime > 0) {
+             const timeLeft = targetTime - nowInSeconds;
 
-              if (timeLeft > 0) {
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                  } else if (statusState === 'Traveling') {
-                      cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                  }
-              } else {
-                  if (statusState === 'Hospital') {
-                      cell.textContent = `Okay`;
-                      cell.classList.remove('status-hospital', 'status-other', 'status-okay');
-                  } else if (statusState === 'Traveling') {
-                      const destination = originalDescription.replace('Traveling to ', '');
-                      cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
-                      cell.classList.remove('status-traveling', 'status-other');
-                      cell.classList.add('status-okay');
-                  } else {
-                      cell.textContent = `${statusState} (Time Up)`;
-                      cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                      cell.classList.add('status-okay');
-                  }
-              }
-          }
-      });
-  }
+             if (timeLeft > 0) {
+                 if (statusState === 'Hospital') {
+                     cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
+                 } else if (statusState === 'Traveling') {
+                     cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
+                 }
+             } else {
+                 if (statusState === 'Hospital') {
+                     cell.textContent = `Okay`;
+                     cell.classList.remove('status-hospital', 'status-other', 'status-okay');
+                 } else if (statusState === 'Traveling') {
+                     const destination = originalDescription.replace('Traveling to ', '');
+                     cell.textContent = `Arrived${destination ? ` (${destination})` : ''}`;
+                     cell.classList.remove('status-traveling', 'status-other');
+                     cell.classList.add('status-okay');
+                 } else {
+                     cell.textContent = `${statusState} (Time Up)`;
+                     cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                     cell.classList.add('status-okay');
+                 }
+             }
+         }
+     });
+ }
+
+ // Update Chain Timer Display (smooth 1-second countdown)
+ console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+ if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+     const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+     const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+     chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+ } else if (chainTimerDisplay) {
+     chainTimerDisplay.textContent = 'Chain Over';
+ }
+
+ // Update Chain Started Time Display
+ if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+     chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+ } else if (chainStartedDisplay) {
+     chainStartedDisplay.textContent = 'Started: N/A';
+ }
+
+ // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+ // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+ if (warStartedTime && globalWarStartedActualTime > 0) {
+     warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+ } else if (warStartedTime) {
+     warStartedTime.textContent = 'N/A';
+ }
+
+}
 
   // Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
