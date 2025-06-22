@@ -62,6 +62,7 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const currentTeamLeadDisplay = document.getElementById('currentTeamLeadDisplay'); // 
+const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -828,6 +829,67 @@ async function initializeAndLoadData(apiKey) {
         populateEnemyMemberCheckboxes({}, []);
         displayEnemyTargetsTable(null); // This clears the table
     }
+}
+
+ * @param {object} members - The members object from the API.
+
+function displayFriendlyMembersTable(members) {
+    if (!friendlyMembersTbody) {
+        console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
+        return;
+    }
+
+    // Clear the "Loading..." message from the table body
+    friendlyMembersTbody.innerHTML = '';
+
+    if (!members || Object.keys(members).length === 0) {
+        friendlyMembersTbody.innerHTML = `<tr><td colspan="10">Member data not available.</td></tr>`;
+        return;
+    }
+
+    // Convert the members object into an array and sort it alphabetically
+    const membersArray = Object.values(members);
+    membersArray.sort((a, b) => a.name.localeCompare(b.name));
+
+    let allRowsHtml = '';
+    for (const member of membersArray) {
+        // Create the URL for the member's profile
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${member.user_id}`;
+
+        // Get the data we have from the API call
+        const name = member.name;
+        const level = member.level;
+        const lastAction = formatRelativeTime(member.last_action.timestamp); // Use existing function to format time
+        const status = member.status.description;
+
+        // NOTE: As we discussed, the main faction API call does not provide live stats
+        // for other users. We will put "N/A" as a placeholder for now.
+        const strength = 'N/A';
+        const dexterity = 'N/A';
+        const speed = 'N/A';
+        const defense = 'N/A';
+        const nerve = 'N/A';
+        const energy = 'N/A';
+
+        // Build the HTML for one table row
+        allRowsHtml += `
+            <tr>
+                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+                <td>${level}</td>
+                <td>${lastAction}</td>
+                <td>${strength}</td>
+                <td>${dexterity}</td>
+                <td>${speed}</td>
+                <td>${defense}</td>
+                <td>${status}</td>
+                <td>${nerve}</td>
+                <td>${energy}</td>
+            </tr>
+        `;
+    }
+
+    // Add all the new rows to the table body at once
+    friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 function filterProfanity(text) {
     // IMPORTANT: You will need to customize this list with the specific words you want to filter.
