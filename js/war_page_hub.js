@@ -1,6 +1,4 @@
-/* ==========================================================================
-   War Page Hub JavaScript (war_page_hub.js) - v9 (Selective V2 URL Test)
-   ========================================================================== */
+war page.
 
 // --- Global Variables ---
 const db = firebase.firestore();
@@ -359,7 +357,7 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
             throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
         }
         enemyDataGlobal = await response.json(); // Store enemy data globally
-        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
+        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
         console.log("Enemy Faction API Data:", enemyData);
         if (enemyData.error) {
             console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
@@ -392,11 +390,6 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
         populateEnemyMemberCheckboxes({}, []);
     }
 }
-
-
-
-
-  // NEW: Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
   if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
       const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
@@ -818,7 +811,7 @@ async function initializeAndLoadData(apiKey) {
         }
 
         factionApiFullData = await userFactionResponse.json();
-		console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
+        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
@@ -845,7 +838,6 @@ async function initializeAndLoadData(apiKey) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-
 
        function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
@@ -1203,7 +1195,6 @@ function setupEventListeners(apiKey) {
     }
 }
 
-
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
@@ -1235,30 +1226,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 // Initial load of comprehensive faction data (basic, members, chain, wars)
-                await initializeAndLoadData(apiKey); 
+                await initializeAndLoadData(apiKey);
 
                 // Call populateUiComponents with fetched warData and apiKey
                 populateUiComponents(warData, apiKey);
 
                 // Explicit initial calls for API-driven displays
-                fetchAndDisplayChainData(); 
-                fetchAndDisplayRankedWarScores(); 
+                fetchAndDisplayChainData();
+                fetchAndDisplayRankedWarScores();
+                // NEW POSITION: Call displayQuickFFTargets here for immediate load
+                displayQuickFFTargets(userApiKey, playerId);
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
                     listenersInitialized = true;
 
                     // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                    setInterval(updateAllTimers, 1000); 
+                    setInterval(updateAllTimers, 1000);
 
-                    // MODIFIED: Enemy Data API fetch every 1.5 seconds (was 1 second)
+                    // MODIFIED: Enemy Data API fetch every 2 seconds
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1500); // CHANGED from 1000 to 1500
+                    }, 2000); // CHANGED from 1500 to 2000
 
                     // Start Quick FF Targets fetch every 60 seconds
                     setInterval(() => {
@@ -1267,24 +1260,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 60000); 
+                    }, 60000);
 
-                    // Start OUR Faction Data (Combined) fetch every 1.75 seconds
+                    // Start OUR Faction Data (Combined) fetch every 2 seconds
                     setInterval(() => {
-                        if (userApiKey) { 
-                            initializeAndLoadData(userApiKey); 
+                        if (userApiKey) {
+                            initializeAndLoadData(userApiKey);
                         } else {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
-                    }, 1750); 
+                    }, 2000); // CHANGED from 1750 to 2000
 
-                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
-                    if (userApiKey && globalEnemyFactionID) {
-                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                    }
-                    if (userApiKey && playerId) {
-                        displayQuickFFTargets(userApiKey, playerId);
-                    }
+                    // The original initial calls that are now either moved or redundant:
+                    // if (userApiKey && globalEnemyFactionID) {
+                    //     fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                    // }
+                    // if (userApiKey && playerId) {
+                    //     displayQuickFFTargets(userApiKey, playerId);
+                    // }
                 } // Closes: if (!listenersInitialized)
             } else {
                 console.warn("API key or Player ID not found.");
