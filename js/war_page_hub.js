@@ -942,6 +942,7 @@ function displayFriendlyMembersTable(members) {
 
     let allRowsHtml = '';
     for (const member of membersArray) {
+        // Create the URL for the member's profile
         const profileUrl = `https://www.torn.com/profiles.php?XID=${member.user_id}`;
 
         // Get the data we have from the API call
@@ -960,8 +961,7 @@ function displayFriendlyMembersTable(members) {
 
         // Build the HTML for one table row
         allRowsHtml += `
-            <tr>
-                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+            <tr data-id="${member.user_id}"> <td><a href="${profileUrl}" target="_blank">${name}</a></td>
                 <td>${level}</td>
                 <td>${lastAction}</td>
                 <td>${strength}</td>
@@ -1220,6 +1220,35 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+	function setupMemberClickEvents() {
+    if (!friendlyMembersTbody) {
+        console.error("Cannot set up click events, friendly members table body not found.");
+        return;
+    }
+
+    friendlyMembersTbody.addEventListener('click', (event) => {
+        // This code runs whenever you click anywhere inside the table body.
+        
+        // It finds the specific table row (tr) that was clicked.
+        const clickedRow = event.target.closest('tr');
+
+        // If the click wasn't on a row, it does nothing.
+        if (!clickedRow) {
+            return; 
+        }
+
+        // It reads the member's ID from the 'data-id' attribute we added to the row.
+        const memberId = clickedRow.dataset.id;
+
+        if (memberId) {
+            // For now, we just log the ID to the console to test that it's working.
+            console.log(`Clicked on member ID: ${memberId}`);
+            
+            // In the next steps, we will replace the line above with a function 
+            // that fetches and displays the details for this member.
+        }
+    });
+}
     
     if (saveWarStatusControlsBtn) {
         saveWarStatusControlsBtn.addEventListener('click', async () => {
