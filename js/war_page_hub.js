@@ -347,13 +347,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
      warStartedTime.textContent = 'N/A';
  }
 
- // --- REMOVED: This block was removed as it was a redundant call to fetchAndDisplayChainData ---
- // if (userApiKey) {
- //   fetchAndDisplayChainData(userApiKey);
- // } else {
- //   console.warn("API key not available. Cannot update chain timer.");
- // }
- }}
+}
 
   // Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
@@ -379,7 +373,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
   } else if (warStartedTime) {
       warStartedTime.textContent = 'N/A';
   }
-}
+
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
