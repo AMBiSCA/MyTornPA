@@ -95,56 +95,38 @@
 .tab-pane {
     /* Styles for individual tab content areas */
     display: none;
-    height: 100%; /* IMPORTANT: Allow tab pane to fill available height */
-    overflow-y: visible; /* Allow content to push parent down if needed (controlled by main-content-wrapper overflow) */
-    box-sizing: border-box; /* Include padding/border in height calculations */
+    height: auto; /* IMPORTANT CHANGE: Allow height to be determined by content */
+    overflow-y: visible; /* IMPORTANT CHANGE: Prevent internal vertical scrollbars */
 }
+
 .tab-pane.active {
     display: block;
 }
 
-/* Ensure the active-ops-tab itself manages its internal layout */
-#active-ops-tab.tab-pane.active {
-    display: flex; /* Make this specific tab's content a flex container */
-    flex-direction: column; /* Stack its direct children (controls and content row) vertically */
-    height: 100%; /* Crucial for internal flex children to scale */
-    width: 100%; /* Ensure it takes full width */
-    box-sizing: border-box;
-    overflow-y: visible; /* Still allows content to push main page if needed */
-}
+/* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
 
+/* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
+
+/* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 #leader-config-tab.active {
-
-    display: block;
-    padding: 10px;
-    box-sizing: border-box;
+    /* This rule defines properties for the *overall tab pane*, not its internal grid */
+    padding: 10px; 
+    box-sizing: border-box; 
+    /* The grid properties have been removed from here to prevent conflict */
 }
 
 /* CORRECTED: Apply grid to the .config-grid class which is the direct parent of your sections */
 .config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* CHANGE '300px' to '250px' */
-    gap: 20px;
-    padding: 0;
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
+    gap: 20px; 
+    padding: 0; /* Adjust as needed, typically 0 here as sections have padding */
     box-sizing: border-box;
-    max-width: 1750px;
-    margin: 0 auto;
+    max-width: 1750px; /* Max-width for the grid content */
+    margin: 0 auto; /* Center the grid container horizontally */
 }
 
-/* Ensure .config-section elements behave correctly within the grid */
-.config-section {
-    min-width: 0; /* ADD THIS LINE */
-	margin-bottom: 0px; /* Existing */
-    padding: 10px; /* Existing */
-    border: 1px solid black;
-    border-radius: 8px; /* Existing */
-    background-color: #222; /* Existing */
-    text-align: left; /* Existing */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-}
+/* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
 .config-section.designate-admins-section {
     grid-column: auto;
 }
@@ -154,11 +136,12 @@
 /* You will also need to ensure this rule is correctly placed inside your @media (max-width: 992px) block: */
 @media (max-width: 992px) {
     /* ... (your other existing rules in this media query) ... */
-    .tab-content-container {
-        height: 100%; /* Ensure it fills parent height */
-        min-height: unset; /* Remove min-height here as well */
+
+    /* CORRECTED: This now targets .config-grid for responsive stacking */
+    .config-grid {
+        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
+        max-width: 600px; /* Limit width similar to other responsive sections */
     }
-    /* ... (rest of media query) ... */
 }
 
 /* War Announcement Section (Tab 1) */
@@ -213,7 +196,8 @@
     box-sizing: border-box;
 }
 
-
+/* Styling for the new scrollable checkbox containers */
+/* Styling for the new scrollable checkbox containers */
 .member-checkbox-list {
     border: 1px solid #555;
     border-radius: 4px;
@@ -241,6 +225,7 @@
     flex-wrap: wrap; /* Allow items to wrap on smaller screens if they don't fit */
 }
 
+/* Ensure the status-value-box is visible within this new layout */
 .status-summary-two-col .status-value-box {
     margin-top: 0; /* Remove default margin-top if not needed for vertical stacking */
 }
@@ -291,244 +276,6 @@
     }
     .announcement-section-item .war-announcement-section textarea {
         min-height: 60px; /* Adjust textarea min-height for small screens */
-    }
-}
-/* ==========================================================================
-   Active Ops Tab Layout (Side-by-Side)
-   ========================================================================== */
-
-/* This wrapper handles the side-by-side layout of the table and chatbox */
-
-/* Left Panel: Holds the ops controls grid and enemy targets table */
-.active-ops-left-panel {
-    display: flex;
-    flex-direction: column;
-    flex: 1; /* Allows it to grow and shrink */
-    min-width: 450px; 
-	margin-top: -25px; 
-    /* Height will be implicitly driven by its content or flex alignment */
-}
-
-/* Right Panel: Holds the chatbox */
-.active-ops-right-panel {
-    display: flex;
-    flex-direction: column; /* Stack chat elements vertically */
-    flex: 1; /* Allows it to grow and shrink */
-    min-width: 300px; /* Minimum width for the chatbox side */
-    /* Height will be matched to left panel via flex alignment on parent .active-ops-content-wrapper */
-}
-
-/* New wrapper to hold the left panel (table) and right panel (chat) side-by-side */
-.active-ops-main-content-row {
-    display: flex; /* Makes its children (left & right panels) go side-by-side */
-    flex-grow: 1; /* Allows this row to take up remaining vertical space */
-    gap: 20px; /* Space between the left and right panels */
-    width: 100%; /* Ensures it spans the full width of its parent */
-    align-items: flex-start; /* Aligns content to the top within the row */
-    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
-}
-
-/* ==========================================================================
-   Chatbox Specific Styles
-   ========================================================================== */
-
-.chat-container {
-    background-color: #222; /* Dark background */
-    border: 1px solid black;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column; /* Stack tabs, display, input vertically */
-    height: 475px; /* Crucial: Make chatbox fill available height of its parent .active-ops-right-panel */
-    overflow: hidden; /* Ensures content stays within rounded borders */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
-}
-
-/* Chat Tabs Container */
-.chat-tabs-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
-    border-bottom: 1px solid #1e1e1e; /* Separator below tabs */
-    background-color: #333; /* Slightly lighter background for tabs bar */
-    border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
-    overflow: hidden; /* Contain inner elements within rounded corners */
-}
-
-/* Individual Chat Tabs */
-.chat-tab {
-    flex-grow: 1; /* Allows tabs to share horizontal space */
-    padding: 8px 5px; /* Compact padding for small tabs */
-    background-color: #333;
-    color: #f0f0f0;
-    border: none;
-    border-right: 1px solid #1e1e1e; /* Separator between tabs */
-    cursor: pointer;
-    font-size: 0.9em; /* Small font size for tabs */
-    font-weight: bold;
-    text-align: center;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    white-space: nowrap; /* Prevent tab text from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if tab text is too long */
-}
-
-.chat-tab:last-child {
-    border-right: none; /* No border on the very last tab */
-}
-
-.chat-tab:hover {
-    background-color: #555;
-    color: #00a8ff; /* Highlight on hover */
-}
-
-.chat-tab.active {
-    background-color: #00a8ff; /* Active tab color */
-    color: #1e1e1e; /* Dark text on active tab */
-}
-
-/* Chat Display Area (where messages appear) */
-.chat-display-area {
-    flex-grow: 1; /* Crucial: Makes message area take up all remaining vertical space */
-    background-color: #1a1a1a; /* Very dark background for message display */
-    padding: 10px;
-    overflow-y: auto; /* Enable scrolling for messages */
-    word-wrap: break-word; /* Prevents long words from breaking layout */
-    font-size: 0.9em;
-    line-height: 1.4;
-    color: #f0f0f0; /* Light text for messages */
-}
-
-/* Custom scrollbar for chat display area */
-.chat-display-area::-webkit-scrollbar { width: 10px; }
-.chat-display-area::-webkit-scrollbar-track { background: #1a1a1a; }
-.chat-display-area::-webkit-scrollbar-thumb { background-color: #007acc; border-radius: 5px; border: 2px solid #1a1a1a; }
-.chat-display-area::-webkit-scrollbar-thumb:hover { background-color: #00a8ff; }
-
-
-/* Chat Input Area (bottom section with buttons and text input) */
-.chat-input-area {
-    flex-shrink: 0; /* Prevent this area from shrinking */
-    background-color: #333; /* Background for the input bar */
-    padding: 10px;
-    border-top: 1px solid #1e1e1e; /* Separator above input area */
-    display: flex;
-    flex-direction: column; /* Stack top buttons above input+send */
-    gap: 5px; /* Space between the two rows of controls */
-}
-
-/* Top row of smaller buttons (siren, blank) */
-.chat-input-buttons-top {
-    display: flex;
-    justify-content: flex-start; /* Align buttons to the left */
-    gap: 5px; /* Space between buttons */
-}
-
-/* Small action buttons (siren, blank) */
-.chat-action-btn {
-    width: 30px; /* Small fixed width */
-    height: 30px; /* Small fixed height */
-    padding: 0; /* Remove default padding */
-    border: 1px solid #00a8ff;
-    border-radius: 50%; /* Make them circular */
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    font-size: 1.2em; /* Adjust icon size */
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    flex-shrink: 0; /* Prevent shrinking */
-}
-
-.chat-action-btn.siren-btn {
-    color: #ff0000; /* Red for siren */
-}
-
-.chat-action-btn:hover {
-    background-color: #00a8ff;
-    border-color: #00e0ff;
-    color: #1e1e1e; /* Darken icon on hover */
-}
-
-/* Text input and Send button row */
-.chat-input-text-send {
-    display: flex;
-    gap: 5px; /* Space between input and send button */
-    width: 100%;
-}
-
-/* Chat text input field */
-.chat-text-input {
-    flex-grow: 1; /* Input field takes up available space */
-    padding: 8px 10px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    font-size: 0.9em;
-    box-sizing: border-box;
-}
-
-/* Chat Send button */
-.chat-send-btn {
-    flex-shrink: 0; /* Prevent button from shrinking */
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff; /* Blue send button */
-    color: white;
-    font-size: 0.9em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.chat-send-btn:hover {
-    background-color: #00a8ff;
-}
-
-
-/* ==========================================================================
-   Responsive Adjustments for the Active Ops Tab and Chatbox
-   ========================================================================== */
-
-@media (max-width: 1200px) {
-    .active-ops-content-wrapper {
-
-    }
-
-    .active-ops-left-panel,
-    .active-ops-right-panel {
-        width: 100%; /* Make them take full width when stacked */
-        min-width: unset; /* Remove min-width when stacked */
-        max-width: 900px; /* Limit their max width to maintain readability */
-    }
-
-    .chat-container {
-        height: 600px; /* Give chat a fixed height when stacked (or auto if preferred) */
-    }
-}
-
-
-@media (max-width: 768px) {
-    /* Existing media queries from your file remain here.
-       Ensure they don't conflict with new chatbox styles if possible. */
-
-    /* Further adjust column widths for very small screens if needed,
-       these target the enemy targets table */
-    .enemy-targets-table .col-name { width: 22%; }
-    .enemy-targets-table .col-level { width: 9%; }
-    .enemy-targets-table .col-last-action { width: 17%; }
-    .enemy-targets-table .col-status { width: 17%; }
-    .enemy-targets-table .col-claim { width: 17%; }
-    .enemy-targets-table .col-attack { width: 18%; }
-}
-
-@media (max-width: 480px) {
-    /* Even smaller screen adjustments if necessary */
-    .chat-tab {
-        font-size: 0.7em; /* Even smaller tab font */
-        padding: 6px 3px;
     }
 }
 
@@ -798,74 +545,6 @@
     border-color: #007bff;
 }
 
-/* Styling for the new Chain Score Display within Active Ops */
-.ops-control-item.ops-chain-score {
-    display: flex;
-    flex-direction: row; /* Arrange the main groups horizontally: YourFaction, MiddleInfo, EnemyFaction */
-    justify-content: space-between; /* Pushes YourFaction group to left, EnemyFaction group to right, middle in between */
-    align-items: flex-start; /* Align items to the top (names will determine height) */
-    padding: 5px;
-    border: 1px solid black; /* Match surrounding control items */
-    border-radius: 8px; /* Match surrounding control items */
-    background-color: #222; /* Match surrounding control items */
-    box-sizing: border-box;
-    white-space: nowrap; /* Prevent content from wrapping */
-    flex-grow: 1; /* Allow it to grow and fill available space in the grid */
-    min-width: 250px; /* Ensure it has a reasonable min-width if needed */
-}
-
-/* Group for Faction Name and Score (e.g., Your Faction and 1,407) */
-.ops-chain-score .faction-score-group {
-    display: flex;
-    flex-direction: column; /* Stack name above score */
-    align-items: center; /* Center name and score within their small column */
-    gap: 2px; /* Small gap between name and score */
-}
-
-/* Faction Name (e.g., Your Faction, Enemy Faction) */
-.ops-chain-score .score-faction-name {
-    font-size: 0.8em;
-    color: #f0f0f0; /* Light text for names */
-    font-weight: bold;
-    /* text-align: center; is implied by align-items: center on parent faction-score-group */
-}
-
-/* Score Value (e.g., 1,407, 1,930) */
-.ops-chain-score .score-value {
-    font-size: 1.5em; /* Larger font size for the scores */
-    font-weight: bold;
-    flex-shrink: 0; /* Prevent shrinking */
-}
-
-.ops-chain-score .current-score {
-    color: #ff8c00; /* Orange color for current score */
-}
-
-.ops-chain-score .target-score {
-    color: #4CAF50; /* Green color for target score */
-}
-
-/* Middle section with LEAD TARGET and progress */
-.ops-chain-score .score-target-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center "LEAD TARGET" and "523 / 2,800" */
-    justify-content: center; /* Vertically center if needed */
-    flex-grow: 1; /* Allows this section to take up available horizontal space */
-    padding: 0 5px; /* Add some horizontal padding to give space around it */
-}
-
-.ops-chain-score .score-label {
-    font-weight: bold;
-    color: #e0a71a; /* Gold-like color for labels */
-    font-size: 0.7em; /* Consistent with your example */
-}
-
-.ops-chain-score .score-progress {
-    color: #a9a9a9; /* Greyish color for progress numbers */
-    font-size: 0.7em; /* Consistent with your example */
-}
-
 /* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
 #postAnnouncementBtn {
     margin-top: 15px; /* This specific margin was for consistency with Save Game Plan */
@@ -878,7 +557,7 @@
 /* Outer wrapper for the fixed header table setup */
 /* This matches your HTML: <div class="enemy-targets-list-section"> */
 .enemy-targets-list-section {
-    margin-top: 25px; !IMPORTANT/* Adjust this value (e.g., 10px, 30px) to move it down further */
+    margin-top: 25px; !IMPORTANT; /* Adjust this value (e.g., 10px, 30px) to move it down further */
     margin-bottom: 50px;
     max-width: 900px; /* Adjust as needed */
     background-color: #222;
@@ -1266,8 +945,7 @@
     background-color: #333;
     color: #f0f0f0;
     font-size: 0.9em;
-    box-sizing: border-box;
-    word-break: break-word; /* ADD THIS LINE */
+    box-sizing: border-box !important; /* IMPORTANT: Added !important here for overlap fix */
 }
 /* Specific styling for 'Next Planned Chain Time' label and input */
 /* Target the specific toggle-control by the ID of its input for precision */
@@ -1448,9 +1126,68 @@ autocomplete-items {
         max-height: 400px; /* NEW: Adjusted max height */
     }
 
-    /* --- LEADER CONFIG TAB IN MEDIA QUERY --- */
+/* Styling for the new Chain Score Display within Active Ops */
+.ops-control-item.ops-chain-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the entire block horizontally within its grid cell */
+    justify-content: center; /* Center vertically if space allows */
+    gap: 5px; /* Space between faction names and the main score display */
+    padding: 5px;
+    border: 1px solid black; /* Match surrounding control items */
+    border-radius: 8px; /* Match surrounding control items */
+    background-color: #222; /* Match surrounding control items */
+    box-sizing: border-box;
+    white-space: nowrap; /* Prevent wrapping of contents if possible */
+}
 
-    /* --- END LEADER CONFIG TAB --- */
+.ops-chain-score .score-faction-name {
+    font-size: 0.8em;
+    color: #f0f0f0; /* Light text for names */
+    font-weight: bold;
+    text-align: center;
+    width: 100%; /* Ensure it takes full width for centering */
+}
+
+.ops-chain-score .chain-score-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-around; /* Distribute space around the three score components */
+    width: 100%; /* Take full width of parent */
+    padding: 5px 0; /* Vertical padding */
+    gap: 5px; /* Space between score values and info */
+}
+
+.ops-chain-score .score-value {
+    font-size: 1.5em; /* Larger font size for the scores */
+    font-weight: bold;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.ops-chain-score .current-score {
+    color: #ff8c00; /* Orange color for current score */
+}
+
+.ops-chain-score .target-score {
+    color: #4CAF50; /* Green color for target score */
+}
+
+.ops-chain-score .score-target-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center "LEAD TARGET" and "523 / 2,800" */
+    font-size: 0.7em; /* Smaller font for lead target info */
+    color: #f0f0f0; /* Light text */
+    flex-grow: 1; /* Allow this section to take up available space */
+}
+
+.ops-chain-score .score-label {
+    font-weight: bold;
+    color: #e0a71a; /* Gold-like color for labels */
+}
+
+.ops-chain-score .score-progress {
+    color: #a9a9a9; /* Greyish color for progress numbers */
 }
 
 @media (max-width: 768px) {
