@@ -1241,12 +1241,22 @@ function setupMemberClickEvents() {
     }
 
     friendlyMembersTbody.addEventListener('click', (event) => {
+        // This finds the specific table row (tr) that you clicked on
         const clickedRow = event.target.closest('tr');
-        if (!clickedRow) return; 
+        if (!clickedRow) {
+            return; 
+        }
 
+        // This reads the ID from the 'data-id' attribute of that row
         const memberId = clickedRow.dataset.id;
+
         if (memberId) {
+            // If it finds an ID, it calls the function to fetch the details
             fetchAndDisplayMemberDetails(memberId);
+        } else {
+            // If you see this error in the F12 console, it means the 'data-id' 
+            // attribute is missing from your <tr> elements in the HTML.
+            console.error("Clicked row is missing the 'data-id' attribute.");
         }
     });
 }
