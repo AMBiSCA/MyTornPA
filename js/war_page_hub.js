@@ -1025,6 +1025,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         const userDoc = querySnapshot.docs[0];
         const memberApiKey = userDoc.data().tornApiKey;
+		
+		onsole.log("Found API Key For Clicked Member:", memberApiKey);
 
         if (!memberApiKey) {
             detailPanel.innerHTML = `<h4>API Key Missing</h4><p>This member has not provided their API key.</p>`;
