@@ -61,6 +61,7 @@ const warTargetScore = document.getElementById('warTargetScore');
 const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
+const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
 
 // --- Utility Functions ---
 
@@ -866,22 +867,24 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+      function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-        // CORRECTED: Use factionApiFullData.members.total for Total Members count
         if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
-        // Populate friendly member checkboxes (from factionApiFullData.members)
-        // This condition should now be true as 'members' is fetched
+        // This block now populates checkboxes AND the new friendly members table
         if (factionApiFullData.members) { 
             populateFriendlyMemberCheckboxes(
                 factionApiFullData.members,
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
+            
+            // --- NEW LINE ADDED HERE ---
+            displayFriendlyMembersTable(factionApiFullData.members); 
+
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -913,6 +916,67 @@ async function initializeAndLoadData(apiKey) {
         populateEnemyMemberCheckboxes({}, []);
         displayEnemyTargetsTable(null); // This clears the table
     }
+}
+
+/**
+ * Builds and displays the table for the user's own faction members.
+ * @param {object} members - The members object from the API.
+ */
+function displayFriendlyMembersTable(members) {
+    if (!friendlyMembersTbody) {
+        console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
+        return;
+    }
+
+    // Clear the "Loading..." message from the table body
+    friendlyMembersTbody.innerHTML = '';
+
+    if (!members || Object.keys(members).length === 0) {
+        friendlyMembersTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px;">Member data not available.</td></tr>`;
+        return;
+    }
+
+    // Convert the members object into an array and sort it alphabetically
+    const membersArray = Object.values(members);
+    membersArray.sort((a, b) => a.name.localeCompare(b.name));
+
+    let allRowsHtml = '';
+    for (const member of membersArray) {
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${member.user_id}`;
+
+        // Get the data we have from the API call
+        const name = member.name;
+        const level = member.level;
+        const lastAction = formatRelativeTime(member.last_action.timestamp);
+        const status = member.status.description;
+
+        // As discussed, these are placeholders as the data is not in this API call
+        const strength = 'N/A';
+        const dexterity = 'N/A';
+        const speed = 'N/A';
+        const defense = 'N/A';
+        const nerve = 'N/A';
+        const energy = 'N/A';
+
+        // Build the HTML for one table row
+        allRowsHtml += `
+            <tr>
+                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+                <td>${level}</td>
+                <td>${lastAction}</td>
+                <td>${strength}</td>
+                <td>${dexterity}</td>
+                <td>${speed}</td>
+                <td>${defense}</td>
+                <td>${status}</td>
+                <td>${nerve}</td>
+                <td>${energy}</td>
+            </tr>
+        `;
+    }
+
+    // Add all the new rows to the table body at once
+    friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
