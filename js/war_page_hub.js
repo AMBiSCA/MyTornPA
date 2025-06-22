@@ -1203,3 +1203,102 @@ function setupEventListeners(apiKey) {
     }
 }
 
+
+// --- Main Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
+    });
+    showTab('announcements-tab');
+    let listenersInitialized = false;
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            // Define userProfileRef INSIDE this block, as 'user' is scoped here.
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get(); // Fetch user profile doc from Firebase
+            const userData = doc.exists ? doc.data() : {};
+            const apiKey = userData.tornApiKey || null;
+            const playerId = userData.tornProfileId || null; // Get player ID
+            currentTornUserName = userData.preferredName || 'Unknown';
+
+            let warData = {}; // Initialize warData here to ensure it's always defined
+            try {
+                const warDoc = await db.collection('factionWars').doc('currentWar').get();
+                warData = warDoc.exists ? warDoc.data() : {}; // CORRECTED: Changed warData.data() to warDoc.data()
+            } catch (firebaseError) {
+                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+                // warData remains {} on error, allowing populateUiComponents to still be called without crashing
+            }
+
+            if (apiKey && playerId) {
+                userApiKey = apiKey;
+
+                // Initial load of comprehensive faction data (basic, members, chain, wars)
+                await initializeAndLoadData(apiKey); 
+
+                // Call populateUiComponents with fetched warData and apiKey
+                populateUiComponents(warData, apiKey);
+
+                // Explicit initial calls for API-driven displays
+                fetchAndDisplayChainData(); 
+                fetchAndDisplayRankedWarScores(); 
+
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    listenersInitialized = true;
+
+                    // Start local timers (e.g., hospital/travel countdowns) every 1 second
+                    setInterval(updateAllTimers, 1000); 
+
+                    // MODIFIED: Enemy Data API fetch every 1.5 seconds (was 1 second)
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 1500); // CHANGED from 1000 to 1500
+
+                    // Start Quick FF Targets fetch every 60 seconds
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        } else {
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                        }
+                    }, 60000); 
+
+                    // Start OUR Faction Data (Combined) fetch every 1.75 seconds
+                    setInterval(() => {
+                        if (userApiKey) { 
+                            initializeAndLoadData(userApiKey); 
+                        } else {
+                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 1750); 
+
+                    // Perform initial API fetches (besides initializeAndLoadData and populateUiComponents above)
+                    if (userApiKey && globalEnemyFactionID) {
+                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                    }
+                    if (userApiKey && playerId) {
+                        displayQuickFFTargets(userApiKey, playerId);
+                    }
+                } // Closes: if (!listenersInitialized)
+            } else {
+                console.warn("API key or Player ID not found.");
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+                if (quickFFTargetsDisplay) {
+                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+                }
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        }
+    }); // Closes: auth.onAuthStateChanged
+}); // Closes: document.addEventListener('DOMContentLoaded', ...)
