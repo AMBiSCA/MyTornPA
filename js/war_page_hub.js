@@ -1323,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showTab('announcements-tab');
     let listenersInitialized = false;
 
-   auth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged(async (user) => {
     if (user) {
         // Define userProfileRef INSIDE this block, as 'user' is scoped here.
         const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -1403,5 +1403,6 @@ document.addEventListener('DOMContentLoaded', () => {
         listenersInitialized = false;
         console.log("User not logged in.");
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-    }
-});
+    } 
+ });
+}); // Closes: document.addEventListener('DOMContentLoaded', ...)
