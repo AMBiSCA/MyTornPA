@@ -1150,21 +1150,100 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
     const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
     if (!currentTeamLeadInput) return;
 
-    let autocompleteList = null; // Reference to the suggestion list div
-    let currentFocus = -1;      // Current focused item for keyboard navigation
+    let autocompleteList = null; 
+    let currentFocus = -1;
 
-    // Filter members for autocomplete suggestions
     const filterMembers = (searchTerm) => {
         searchTerm = searchTerm.toLowerCase();
         if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
-        const filtered = Object.values(allFactionMembers).filter(member => 
+        return Object.values(allFactionMembers).filter(member => 
             member.name && member.name.toLowerCase().startsWith(searchTerm)
         ).sort((a, b) => a.name.localeCompare(b.name));
-        console.log("Autocomplete Filtered Matches for '" + searchTerm + "':", filtered); // <<< CONSOLE LOG ADDED
-        return filtered;
     };
-	
-	function setupMemberClickEvents() {
+
+    const showSuggestions = (arr) => {
+        closeAllLists();
+        if (!arr.length) return false;
+
+        autocompleteList = document.createElement("DIV");
+        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
+        autocompleteList.setAttribute("class", "autocomplete-items");
+        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
+
+        arr.forEach(member => {
+            const item = document.createElement("DIV");
+            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
+            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
+            item.innerHTML += `<input type="hidden" value="${member.name}">`;
+            
+            item.addEventListener("click", function(e) {
+                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
+                closeAllLists();
+                currentTeamLeadInput.focus();
+            });
+            autocompleteList.appendChild(item);
+        });
+        return true;
+    };
+
+    currentTeamLeadInput.addEventListener("input", function(e) {
+        const matches = filterMembers(this.value);
+        showSuggestions(matches);
+        currentFocus = -1;
+    });
+
+    currentTeamLeadInput.addEventListener("keydown", function(e) {
+        let x = document.getElementById(this.id + "-autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
+
+        if (e.keyCode == 40) { // DOWN
+            currentFocus++;
+            addActive(x);
+        } else if (e.keyCode == 38) { // UP
+            currentFocus--;
+            addActive(x);
+        } else if (e.keyCode == 13) { // ENTER
+            e.preventDefault();
+            if (currentFocus > -1) {
+                if (x) x[currentFocus].click();
+            } else {
+                closeAllLists();
+            }
+        } else if (e.keyCode == 27) { // ESC
+            closeAllLists();
+        }
+    });
+
+    const addActive = (x) => {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+    };
+
+    const removeActive = (x) => {
+        for (let i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
+    };
+
+    const closeAllLists = (elmnt) => {
+        const x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != currentTeamLeadInput) {
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+        currentFocus = -1;
+    };
+
+    document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+    });
+}
+
+function setupMemberClickEvents() {
     if (!friendlyMembersTbody) {
         console.error("Cannot set up click events, friendly members table body not found.");
         return;
@@ -1176,12 +1255,15 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
 
         const memberId = clickedRow.dataset.id;
         if (memberId) {
-            // This now calls our new function instead of just logging to the console
             fetchAndDisplayMemberDetails(memberId);
         }
     });
 }
-	
+
+function setupToggleSelectionEvents() {
+    // This function is currently not defined but is no longer causing an error.
+    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
+}
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
