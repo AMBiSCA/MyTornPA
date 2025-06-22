@@ -739,7 +739,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             console.error("Error fetching Quick FF Targets:", errorMessage);
             return;
         }
-
+ 
         if (!data.targets || data.targets.length === 0) {
             quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
             return;
@@ -950,25 +950,25 @@ function displayFriendlyMembersTable(members) {
         return;
     }
 
-    // CORRECTED: This gets an array of [memberID, memberObject] pairs
+    // This correctly gets an array of [ID, Data] pairs for each member
     const membersArray = Object.entries(members);
 
-    // Sort by member name
-    membersArray.sort(([, a], [, b]) => a.name.localeCompare(b.name));
+    // This sorts the array by the member's name
+    membersArray.sort(([, memberA], [, memberB]) => memberA.name.localeCompare(memberB.name));
 
     let allRowsHtml = '';
-    // CORRECTED: This loops through the array getting both the ID and the object
+    
+    // This correctly loops through the array getting both the memberId and the member object
     for (const [memberId, member] of membersArray) {
-        // Create the URL for the member's profile using the correct ID
+        
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
 
-        // Get the data we have from the API call
         const name = member.name;
         const level = member.level;
         const lastAction = formatRelativeTime(member.last_action.timestamp);
         const status = member.status.description;
 
-        // Placeholders for data we can't get from this API call
+        // Placeholders for stats we will get later
         const strength = 'N/A';
         const dexterity = 'N/A';
         const speed = 'N/A';
@@ -976,7 +976,7 @@ function displayFriendlyMembersTable(members) {
         const nerve = 'N/A';
         const energy = 'N/A';
 
-        // Build the HTML for one table row using the correct memberId for the data-id
+        // This line now correctly uses the REAL memberId for the data-id attribute
         allRowsHtml += `
             <tr data-id="${memberId}">
                 <td><a href="${profileUrl}" target="_blank">${name} [${memberId}]</a></td>
