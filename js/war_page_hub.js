@@ -348,31 +348,6 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
 }
 
-  // Update Chain Timer Display (smooth 1-second countdown)
-  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
-  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
-      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-  } else if (chainTimerDisplay) {
-      chainTimerDisplay.textContent = 'Chain Over';
-  }
-
-  // Update Chain Started Time Display
-  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-  } else if (chainStartedDisplay) {
-      chainStartedDisplay.textContent = 'Started: N/A';
-  }
-
-  // NEW: Update War Started Time Display (smooth 1-second relative countdown)
-  // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
-  if (warStartedTime && globalWarStartedActualTime > 0) {
-      warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
-  } else if (warStartedTime) {
-      warStartedTime.textContent = 'N/A';
-  }
-
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
@@ -928,63 +903,7 @@ function filterProfanity(text) {
     return text.replace(regex, replacement);
 }
 
-async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
-  if (!factionApiFullData || !factionApiFullData.chain) {
-    console.warn("Chain data not fully available in factionApiFullData.chain.");
-    // Ensure display elements are reset if data is missing
-    currentLiveChainSeconds = 0;
-    lastChainApiFetchTime = 0;
-    globalChainStartedTimestamp = 0;
-    globalChainCurrentNumber = 'N/A';
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over'; // Also reset timer display
-    return;
-  }
 
-  const chainData = factionApiFullData; // Use the globally fetched full data
-  console.log("Chain API Data (from factionApiFullData):", chainData.chain); // Log for debugging
-
-  if (chainData && chainData.chain) {
-    // Store the relevant values globally for updateAllTimers to use
-    currentLiveChainSeconds = chainData.chain.timeout || 0;
-    lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
-    globalChainStartedTimestamp = chainData.chain.start || 0;
-    globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
-
-    // Update the chain number display directly here, as it's not a countdown
-    if (currentChainNumberDisplay) {
-      currentChainNumberDisplay.textContent = globalChainCurrentNumber;
-    }
-
-    // Logic for Chain Started time display (no change from previous as requested)
-    if (chainStartedDisplay) {
-      const newChainStartedTimestamp = chainData.chain.start || 0;
-      if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
-          globalChainStartedTimestamp = newChainStartedTimestamp;
-          chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-      } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
-          globalChainStartedTimestamp = 0;
-          chainStartedDisplay.textContent = 'Started: N/A';
-      } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
-          // No change needed
-      }
-    }
-
-  } else { // Should ideally not be hit if outer if (factionApiFullData.chain) handles it
-    console.warn("Chain data not found within factionApiFullData.chain.");
-    // Reset global variables if no chain data
-    currentLiveChainSeconds = 0;
-    lastChainApiFetchTime = 0;
-    globalChainStartedTimestamp = 0;
-    globalChainCurrentNumber = 'N/A';
-
-    // Ensure display elements are reset if data is missing/invalid
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
-  }
-}
 
 function populateWarStatusDisplay(warData = {}) {
     if (warEnlistedStatus) warEnlistedStatus.textContent = warData.toggleEnlisted ? 'Yes' : 'No';
