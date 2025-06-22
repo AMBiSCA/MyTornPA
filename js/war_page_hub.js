@@ -942,7 +942,6 @@ function displayFriendlyMembersTable(members) {
         return;
     }
 
-    // Clear the "Loading..." message from the table body
     friendlyMembersTbody.innerHTML = '';
 
     if (!members || Object.keys(members).length === 0) {
@@ -950,22 +949,20 @@ function displayFriendlyMembersTable(members) {
         return;
     }
 
-    // Convert the members object into an array and sort it alphabetically
-    const membersArray = Object.values(members);
-    membersArray.sort((a, b) => a.name.localeCompare(b.name));
+    // CORRECTED: Get both the ID and the member object from the list
+    const membersArray = Object.entries(members); 
+    membersArray.sort(([, a], [, b]) => a.name.localeCompare(b.name));
 
     let allRowsHtml = '';
-    for (const member of membersArray) {
-        // Create the URL for the member's profile
-        const profileUrl = `https://www.torn.com/profiles.php?XID=${member.user_id}`;
+    // CORRECTED: Loop through the [memberId, member] pairs
+    for (const [memberId, member] of membersArray) { 
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
 
-        // Get the data we have from the API call
         const name = member.name;
         const level = member.level;
         const lastAction = formatRelativeTime(member.last_action.timestamp);
         const status = member.status.description;
 
-        // As discussed, these are placeholders as the data is not in this API call
         const strength = 'N/A';
         const dexterity = 'N/A';
         const speed = 'N/A';
@@ -973,9 +970,10 @@ function displayFriendlyMembersTable(members) {
         const nerve = 'N/A';
         const energy = 'N/A';
 
-        // Build the HTML for one table row
+        // Build the HTML for one table row, now using the correct memberId
         allRowsHtml += `
-            <tr data-id="${member.user_id}"> <td><a href="${profileUrl}" target="_blank">${name}</a></td>
+            <tr data-id="${memberId}">
+                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
                 <td>${level}</td>
                 <td>${lastAction}</td>
                 <td>${strength}</td>
@@ -989,7 +987,6 @@ function displayFriendlyMembersTable(members) {
         `;
     }
 
-    // Add all the new rows to the table body at once
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
