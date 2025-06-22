@@ -61,8 +61,7 @@ const warTargetScore = document.getElementById('warTargetScore');
 const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
-
-// --- Utility Functions ---
+const currentTeamLeadDisplay = document.getElementById('currentTeamLeadDisplay'); // 
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -914,6 +913,20 @@ async function initializeAndLoadData(apiKey) {
         displayEnemyTargetsTable(null); // This clears the table
     }
 }
+function filterProfanity(text) {
+    // IMPORTANT: You will need to customize this list with the specific words you want to filter.
+    // Example: const badWords = ["word1", "word2", "word3", ...];
+    const badWords = ["fuck", "shit", "bitch", "cunt", "asshole"]; // You can add more words here
+    const replacement = "****"; // Or any character(s) you prefer
+
+    if (badWords.length === 0) {
+        return text; // Return original text if no bad words are defined
+    }
+
+    // Create a regex from the bad words for global, case-insensitive replacement
+    const regex = new RegExp(badWords.join("|"), "gi");
+    return text.replace(regex, replacement);
+}
 
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
@@ -992,6 +1005,7 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
+	if (currentTeamLeadInput)  currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 // NEW: Autocomplete setup for the Current Team Lead input
