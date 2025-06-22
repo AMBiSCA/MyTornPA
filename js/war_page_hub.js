@@ -979,6 +979,77 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
+/**
+ * Fetches and displays detailed stats for a selected member in the right-side panel.
+ * @param {string} memberId The Torn User ID of the clicked member.
+ */
+async function fetchAndDisplayMemberDetails(memberId) {
+    const detailPanel = document.getElementById('selectedMemberDetailPanel');
+    if (!detailPanel) {
+        console.error("HTML Error: Cannot find the detail panel element.");
+        return;
+    }
+
+    // Immediately show a loading state in the panel
+    detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
+    // Add a class to handle the loaded state styling
+    detailPanel.classList.add('detail-panel-loaded'); 
+
+    try {
+        // This query finds a user in your database whose 'tornProfileId' matches the one from the clicked row.
+        // This assumes you are storing the Torn ID as 'tornProfileId' in your Firebase documents.
+        const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
+
+        if (querySnapshot.empty) {
+            // This message displays if the member hasn't signed up to your site
+            detailPanel.innerHTML = `<h4>Details Unavailable</h4><p>This member has not registered on this site, or their Torn ID is not in the database.</p>`;
+            return;
+        }
+
+        const userDoc = querySnapshot.docs[0];
+        const memberApiKey = userDoc.data().tornApiKey;
+
+        if (!memberApiKey) {
+            // This message displays if they've registered but didn't provide a key
+            detailPanel.innerHTML = `<h4>API Key Missing</h4><p>This member has not provided their API key.</p>`;
+            return;
+        }
+
+        // If we have a key, make the API call to Torn for profile and battlestats
+        const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile,battlestats&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`Torn API Error: ${response.status}`);
+        
+        const data = await response.json();
+        if (data.error) throw new Error(`Torn API Error: ${data.error.error}`);
+
+        // Get the data from the response
+        const stats = data.battlestats || {};
+        const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
+        const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
+        const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
+        const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
+
+        // Build the new HTML to display in the panel
+        const detailsHtml = `
+            <h4>${data.name || 'Unknown'} [${data.level || 'N/A'}]</h4>
+            <div class="member-stats-grid">
+                <span>Strength:</span> <span>${strength}</span>
+                <span>Speed:</span> <span>${speed}</span>
+                <span>Dexterity:</span> <span>${dexterity}</span>
+                <span>Defense:</span> <span>${defense}</span>
+            </div>
+        `;
+        
+        // Update the panel with the new details
+        detailPanel.innerHTML = detailsHtml;
+
+    } catch (error) {
+        console.error("Error fetching member details:", error);
+        detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
+    }
+}
+
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
@@ -1220,6 +1291,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+	
 	function setupMemberClickEvents() {
     if (!friendlyMembersTbody) {
         console.error("Cannot set up click events, friendly members table body not found.");
@@ -1227,25 +1299,13 @@ function setupEventListeners(apiKey) {
     }
 
     friendlyMembersTbody.addEventListener('click', (event) => {
-        // This code runs whenever you click anywhere inside the table body.
-        
-        // It finds the specific table row (tr) that was clicked.
         const clickedRow = event.target.closest('tr');
+        if (!clickedRow) return; 
 
-        // If the click wasn't on a row, it does nothing.
-        if (!clickedRow) {
-            return; 
-        }
-
-        // It reads the member's ID from the 'data-id' attribute we added to the row.
         const memberId = clickedRow.dataset.id;
-
         if (memberId) {
-            // For now, we just log the ID to the console to test that it's working.
-            console.log(`Clicked on member ID: ${memberId}`);
-            
-            // In the next steps, we will replace the line above with a function 
-            // that fetches and displays the details for this member.
+            // This now calls our new function instead of just logging to the console
+            fetchAndDisplayMemberDetails(memberId);
         }
     });
 }
