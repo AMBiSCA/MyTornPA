@@ -561,8 +561,22 @@ function claimTarget(memberId) {
         targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
     }
 }
-// NEW: Helper function to format time remaining from seconds
 
+function unclaimTarget(memberId) {
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+
+    if (claimBtn) {
+        // Change the button text and function back to 'Claim'
+        claimBtn.textContent = 'Claim';
+        claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
+    }
+
+    if (targetRow) {
+        // Reset the row's background color by removing the inline style
+        targetRow.style.backgroundColor = '';
+    }
+}
 
 // NEW: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
 // MODIFIED: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
@@ -1128,6 +1142,8 @@ function loadWarStatusForEdit(warData = {}) {
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
 }
+
+
 
 // NEW: Autocomplete setup for the Current Team Lead input
 function setupTeamLeadAutocomplete(allFactionMembers) {
