@@ -1,4 +1,4 @@
- ==========================================================================
+/* ==========================================================================
    War Page Hub Specific Styles (war_page_hub.css)
    ========================================================================== */
 
@@ -225,12 +225,11 @@
 }
 
 /* Left Panel: Holds the ops controls grid and enemy targets table */
-/* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-left-panel {
     display: flex;
     flex-direction: column;
     flex: 1; /* Allows it to grow and shrink */
-    min-width: 380px; /* Make sure this is updated */
+    min-width: 450px;
     margin-top: -25px;
 }
 
@@ -239,29 +238,29 @@
     display: flex;
     flex-direction: column; /* Stack chat elements vertically */
     flex: 1; /* Allows it to grow and shrink */
-    min-width: 380px; /* Make sure this is updated */
-
+    min-width: 300px; /* Minimum width for the chatbox side */
 }
+
 .chat-container {
-    background-color: #222; /* Dark background */
-    border: 1px solid black;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column; /* Stack tabs, display, input vertically */
-    height: auto; /* IMPORTANT: This needs to be 'auto' */
-    flex-grow: 1; /* IMPORTANT: This needs to be added */
-    min-height: 400px; /* IMPORTANT: Add this to prevent collapsing too small */
-    overflow: hidden; /* Ensures content stays within rounded borders */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+ 
+ background-color: #222;
+ border: 1px solid black;
+ border-radius: 8px;
+ display: flex;
+ flex-direction: column; /* Stack tabs, display, input vertically */
+ height: 475px; /* Crucial: Make chatbox fill available height of its parent .active-ops-right-panel */
+ overflow: hidden; /* Ensures content stays within rounded borders */
+ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
 }
 
 .chat-tabs-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
-    border-bottom: 1px solid #1e1e1e; /* Separator below tabs */
-    background-color: #333; /* Slightly lighter background for tabs bar */
-    border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
-    overflow: hidden; /* Contain inner elements within rounded corners */
+display: flex;
+flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+border-bottom: 1px solid #1e1e1e; /* Separator below tabs */ 
+background-color: #333; /* Slightly lighter background for tabs bar */
+border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
+overflow: hidden; /* Contain inner elements within rounded corners */    
+
 }
 
 .chat-tab {
@@ -377,18 +376,18 @@
     box-sizing: border-box;
 }
 
+
 .chat-send-btn {
- 
- flex-shrink: 0 ;    
- padding: 8px 15px;
- border: none;
- border-radius: 4px;
- background-color: #007bff; /* Blue send button */
- color: white;
- font-size: 0.9em;
- font-weight: bold;
- cursor: pointer;
- transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent button from shrinking */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff; /* Blue send button */
+    color: white;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .chat-send-btn:hover {
