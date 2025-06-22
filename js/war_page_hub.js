@@ -914,7 +914,6 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
@@ -992,8 +991,7 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
-    if (currentTeamLeadInput) {
-        currentTeamLeadInput.value = warData.currentTeamLead || '';
+	if (currentTeamLeadInput)  currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 // NEW: Autocomplete setup for the Current Team Lead input
