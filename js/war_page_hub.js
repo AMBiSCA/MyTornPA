@@ -1437,7 +1437,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-}
+
 
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
