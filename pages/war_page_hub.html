@@ -181,13 +181,43 @@
                         </div>
                     </div>
 
-                    <div class="enemy-targets-list-section">
-                        <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
-                            <p>Loading enemy targets...</p>
+                    <div class="active-ops-main-content-row">
+                        <div class="active-ops-left-panel">
+                            <div class="enemy-targets-list-section">
+                                <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
+                                    <p>Loading enemy targets...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="active-ops-right-panel">
+                            <div id="warChatBox" class="chat-container">
+                                <div class="chat-tabs-container">
+                                    <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
+                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
+                                    <button class="chat-tab" data-chat-tab="friends">Friends</button>
+                                    <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
+                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
+                                    <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
+                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
+                                </div>
+                                <div class="chat-display-area">
+                                    <p>Welcome to the chat! Messages will appear here...</p>
+                                </div>
+                                <div class="chat-input-area">
+                                    <div class="chat-input-buttons-top">
+                                        <button class="chat-action-btn siren-btn">🚨</button>
+                                        <button class="chat-action-btn blank-btn"></button>
+                                    </div>
+                                    <div class="chat-input-text-send">
+                                        <input type="text" class="chat-text-input" placeholder="Type your message...">
+                                        <button class="chat-send-btn">Send</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    </div>
+                </div>
 
                 <div id="friendly-status-tab" class="tab-pane">
                     <div id="faction-live-stats-header">
