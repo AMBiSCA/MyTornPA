@@ -61,8 +61,7 @@ const warTargetScore = document.getElementById('warTargetScore');
 const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
-
-// --- Utility Functions ---
+const currentTeamLeadDisplay = document.getElementById('currentTeamLeadDisplay'); // 
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -915,6 +914,7 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
+
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
@@ -992,6 +992,8 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
+    if (currentTeamLeadInput) {
+        currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 // NEW: Autocomplete setup for the Current Team Lead input
