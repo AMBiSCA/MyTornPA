@@ -61,7 +61,8 @@ const warTargetScore = document.getElementById('warTargetScore');
 const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
-const currentTeamLeadDisplay = document.getElementById('currentTeamLeadDisplay'); // 
+
+// --- Utility Functions ---
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -346,7 +347,13 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
      warStartedTime.textContent = 'N/A';
  }
 
-}
+ // --- REMOVED: This block was removed as it was a redundant call to fetchAndDisplayChainData ---
+ // if (userApiKey) {
+ //   fetchAndDisplayChainData(userApiKey);
+ // } else {
+ //   console.warn("API key not available. Cannot update chain timer.");
+ // }
+ }}
 
   // Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
@@ -372,7 +379,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
   } else if (warStartedTime) {
       warStartedTime.textContent = 'N/A';
   }
-
+}
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
@@ -980,9 +987,6 @@ function populateWarStatusDisplay(warData = {}) {
     if (warNoFlyingStatus) warNoFlyingStatus.textContent = warData.toggleNoFlying ? 'Yes' : 'No';
     if (warTurtleStatus) warTurtleStatus.textContent = warData.toggleTurtleMode ? 'Yes' : 'No';
     if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
-    if (currentTeamLeadDisplay)
-        currentTeamLeadDisplay.textContent = warData.currentTeamLead || 'N/A';
-    }
 }
 
 function loadWarStatusForEdit(warData = {}) {
@@ -994,7 +998,6 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
-	if (currentTeamLeadInput)  currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 // NEW: Autocomplete setup for the Current Team Lead input
