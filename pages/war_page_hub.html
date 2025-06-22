@@ -226,15 +226,35 @@
                             <span id="friendly-status-summary"></span>
                         </div>
                     </div>
-
+                
                     <div class="active-ops-main-content-row">
-
+                
                         <div class="active-ops-left-panel">
                             <div id="friendlyMembersListContainer">
-                                <p style="text-align: center; margin-top: 50px;">The member table will go here.</p>
+                                <table class="enemy-targets-table" id="friendly-members-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Level</th>
+                                            <th>Last Action</th>
+                                            <th>Strength</th>
+                                            <th>Dexterity</th>
+                                            <th>Speed</th>
+                                            <th>Defense</th>
+                                            <th>Status</th>
+                                            <th>Nerve</th>
+                                            <th>Energy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="friendly-members-tbody">
+                                        <tr>
+                                            <td colspan="10" style="text-align:center; padding: 20px;">Loading member data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-
+                
                         <div class="active-ops-right-panel">
                             <div id="selectedMemberDetailPanel" class="placeholder-panel">
                                 <h4>Member Details</h4>
@@ -242,7 +262,7 @@
                                 <p><i>Select a member on the left to view their details.</i></p>
                             </div>
                         </div>
-
+                
                     </div>
                 </div>
                 

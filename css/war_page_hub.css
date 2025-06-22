@@ -999,7 +999,46 @@ transition: background-color 0.2s ease;
     text-align: center;
     font-size: 0.85em; /* NEW: Reduced font size */
 }
+#friendly-status-tab .active-ops-left-panel {
+    flex: 2; 
+}
 
+#friendly-status-tab .active-ops-right-panel {
+    flex: 1;
+}
+
+.placeholder-panel {
+    padding: 20px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #222;
+    height: 100%; /* Makes the panel fill the vertical space */
+    box-sizing: border-box;
+
+    /* These center the content inside */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.placeholder-panel h4 {
+    color: #e0a71a; /* Gold color to match other titles */
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.placeholder-icon {
+    font-size: 6em; /* Makes the icon large */
+    color: rgba(240, 240, 240, 0.05); /* Makes the icon very faint */
+    margin: 20px 0;
+}
+
+.placeholder-panel p {
+    color: #888; /* Faded grey for the instructional text */
+    margin: 0;
+}
 .alert-btn:hover {
     background-color: #c9302c;
 }
