@@ -1399,7 +1399,7 @@ autocomplete-items {
     justify-content: center;   /* Centers the content horizontally */
     align-items: center;       /* Vertically aligns items like "Vs" with the faction info */
     gap: 15px;                 /* Adds space between the faction blocks and "Vs" */
-    
+    width: 100%;
     max-width: 900px;          /* Sets a maximum width for the box */
     margin: 20px auto;         /* Centers the box horizontally and adds vertical space */
     padding: 15px;             /* Adds internal spacing for the "box" effect */
