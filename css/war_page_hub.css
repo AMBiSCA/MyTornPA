@@ -241,10 +241,6 @@
     min-width: 300px; /* Minimum width for the chatbox side */
 }
 
-/* ==========================================================================
-   Chatbox Specific Styles
-   ========================================================================== */
-
 .chat-container {
     background-color: #222; /* Dark background */
     border: 1px solid black;
@@ -382,8 +378,8 @@
     box-sizing: border-box;
 }
 
-/* Chat Send button */
-.chat-send-btn {
+
+  .chat-send-btn {
     flex-shrink: 0; /* Prevent button from shrinking */
     padding: 8px 15px;
     border: none;
