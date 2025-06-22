@@ -61,8 +61,8 @@ const warTargetScore = document.getElementById('warTargetScore');
 const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
-const currentTeamLeadDisplay = document.getElementById('currentTeamLeadDisplay'); // 
-const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+
+// --- Utility Functions ---
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -122,7 +122,66 @@ function formatTime(seconds) {
     return result.trim();
 }
 
+async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
+  if (!factionApiFullData || !factionApiFullData.chain) {
+    console.warn("Chain data not fully available in factionApiFullData.chain.");
+    // Ensure display elements are reset if data is missing
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over'; // Also reset timer display
+    return;
+  }
 
+  const chainData = factionApiFullData; // Use the globally fetched full data
+  console.log("Chain API Data (from factionApiFullData):", chainData.chain); // Log for debugging
+
+  if (chainData && chainData.chain) {
+    // Store the relevant values globally for updateAllTimers to use
+    currentLiveChainSeconds = chainData.chain.timeout || 0;
+    lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+    globalChainStartedTimestamp = chainData.chain.start || 0;
+    globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+
+    // Update the chain number display directly here, as it's not a countdown
+    if (currentChainNumberDisplay) {
+      currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+    }
+
+    // Logic for Chain Started time display (no change from previous as requested)
+    if (chainStartedDisplay) {
+      const newChainStartedTimestamp = chainData.chain.start || 0;
+      if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+          globalChainStartedTimestamp = newChainStartedTimestamp;
+          chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+      } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+          globalChainStartedTimestamp = 0;
+          chainStartedDisplay.textContent = 'Started: N/A';
+      } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+          // No change needed
+      }
+    }
+
+  } else { // Should ideally not be hit if outer if (factionApiFullData.chain) handles it
+    console.warn("Chain data not found within factionApiFullData.chain.");
+    // Reset global variables if no chain data
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
+
+    // Ensure display elements are reset if data is missing/invalid
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+  }
+}
+
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
     // NEW: Debugging logs to check condition variables
@@ -290,6 +349,31 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
 }
 
+  // Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // Update Chain Started Time Display
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+
+  // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+  // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+  if (warStartedTime && globalWarStartedActualTime > 0) {
+      warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+  } else if (warStartedTime) {
+      warStartedTime.textContent = 'N/A';
+  }
+
 
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
@@ -451,7 +535,13 @@ async function fetchAndDisplayChainScore(apiKey) {
       // If no chain is active or data is reset, show 'Chain Over'
       chainTimerDisplay.textContent = 'Chain Over';
   }
-  
+
+  // --- ADD THIS NEW BLOCK BELOW YOUR EXISTING updateAllTimers LOGIC ---
+  if (userApiKey) {
+    fetchAndDisplayChainData(userApiKey);
+  } else {
+    console.warn("API key not available. Cannot update chain timer.");
+  }
   
 // NEW: Function to handle claiming a target
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
@@ -776,24 +866,22 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-      function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+        // CORRECTED: Use factionApiFullData.members.total for Total Members count
         if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
-        // This block now populates checkboxes AND the new friendly members table
+        // Populate friendly member checkboxes (from factionApiFullData.members)
+        // This condition should now be true as 'members' is fetched
         if (factionApiFullData.members) { 
             populateFriendlyMemberCheckboxes(
                 factionApiFullData.members,
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            
-            // --- NEW LINE ADDED HERE ---
-            displayFriendlyMembersTable(factionApiFullData.members); 
-
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -827,80 +915,63 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-function displayFriendlyMembersTable(members) {
-    if (!friendlyMembersTbody) {
-        console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
-        return;
+async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
+  if (!factionApiFullData || !factionApiFullData.chain) {
+    console.warn("Chain data not fully available in factionApiFullData.chain.");
+    // Ensure display elements are reset if data is missing
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over'; // Also reset timer display
+    return;
+  }
+
+  const chainData = factionApiFullData; // Use the globally fetched full data
+  console.log("Chain API Data (from factionApiFullData):", chainData.chain); // Log for debugging
+
+  if (chainData && chainData.chain) {
+    // Store the relevant values globally for updateAllTimers to use
+    currentLiveChainSeconds = chainData.chain.timeout || 0;
+    lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+    globalChainStartedTimestamp = chainData.chain.start || 0;
+    globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
+
+    // Update the chain number display directly here, as it's not a countdown
+    if (currentChainNumberDisplay) {
+      currentChainNumberDisplay.textContent = globalChainCurrentNumber;
     }
 
-    // Clear the "Loading..." message from the table body
-    friendlyMembersTbody.innerHTML = '';
-
-    if (!members || Object.keys(members).length === 0) {
-        friendlyMembersTbody.innerHTML = `<tr><td colspan="10">Member data not available.</td></tr>`;
-        return;
+    // Logic for Chain Started time display (no change from previous as requested)
+    if (chainStartedDisplay) {
+      const newChainStartedTimestamp = chainData.chain.start || 0;
+      if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+          globalChainStartedTimestamp = newChainStartedTimestamp;
+          chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+      } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+          globalChainStartedTimestamp = 0;
+          chainStartedDisplay.textContent = 'Started: N/A';
+      } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+          // No change needed
+      }
     }
 
-    // Convert the members object into an array and sort it alphabetically
-    const membersArray = Object.values(members);
-    membersArray.sort((a, b) => a.name.localeCompare(b.name));
+  } else { // Should ideally not be hit if outer if (factionApiFullData.chain) handles it
+    console.warn("Chain data not found within factionApiFullData.chain.");
+    // Reset global variables if no chain data
+    currentLiveChainSeconds = 0;
+    lastChainApiFetchTime = 0;
+    globalChainStartedTimestamp = 0;
+    globalChainCurrentNumber = 'N/A';
 
-    let allRowsHtml = '';
-    for (const member of membersArray) {
-        // Create the URL for the member's profile
-        const profileUrl = `https://www.torn.com/profiles.php?XID=${member.user_id}`;
-
-        // Get the data we have from the API call
-        const name = member.name;
-        const level = member.level;
-        const lastAction = formatRelativeTime(member.last_action.timestamp); // Use existing function to format time
-        const status = member.status.description;
-
-        // NOTE: As we discussed, the main faction API call does not provide live stats
-        // for other users. We will put "N/A" as a placeholder for now.
-        const strength = 'N/A';
-        const dexterity = 'N/A';
-        const speed = 'N/A';
-        const defense = 'N/A';
-        const nerve = 'N/A';
-        const energy = 'N/A';
-
-        // Build the HTML for one table row
-        allRowsHtml += `
-            <tr>
-                <td><a href="${profileUrl}" target="_blank">${name}</a></td>
-                <td>${level}</td>
-                <td>${lastAction}</td>
-                <td>${strength}</td>
-                <td>${dexterity}</td>
-                <td>${speed}</td>
-                <td>${defense}</td>
-                <td>${status}</td>
-                <td>${nerve}</td>
-                <td>${energy}</td>
-            </tr>
-        `;
-    }
-
-    // Add all the new rows to the table body at once
-    friendlyMembersTbody.innerHTML = allRowsHtml;
+    // Ensure display elements are reset if data is missing/invalid
+    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+  }
 }
-function filterProfanity(text) {
-    // IMPORTANT: You will need to customize this list with the specific words you want to filter.
-    // Example: const badWords = ["word1", "word2", "word3", ...];
-    const badWords = ["fuck", "shit", "bitch", "cunt", "asshole"]; // You can add more words here
-    const replacement = "****"; // Or any character(s) you prefer
-
-    if (badWords.length === 0) {
-        return text; // Return original text if no bad words are defined
-    }
-
-    // Create a regex from the bad words for global, case-insensitive replacement
-    const regex = new RegExp(badWords.join("|"), "gi");
-    return text.replace(regex, replacement);
-}
-
-
 
 function populateWarStatusDisplay(warData = {}) {
     if (warEnlistedStatus) warEnlistedStatus.textContent = warData.toggleEnlisted ? 'Yes' : 'No';
@@ -921,7 +992,6 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
-	if (currentTeamLeadInput)  currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 // NEW: Autocomplete setup for the Current Team Lead input
