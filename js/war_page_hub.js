@@ -982,8 +982,7 @@ function populateWarStatusDisplay(warData = {}) {
     if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
     if (currentTeamLeadDisplay)
         currentTeamLeadDisplay.textContent = warData.currentTeamLead || 'N/A';
-    }
-
+    
 
 function loadWarStatusForEdit(warData = {}) {
     if (toggleEnlisted) toggleEnlisted.checked = warData.toggleEnlisted || false;
