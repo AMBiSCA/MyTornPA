@@ -263,14 +263,16 @@ overflow: hidden; /* Contain inner elements within rounded corners */   
 
 }
 
-
-.chat-tab:last-child {
-border-right: none; /* No border on the very last tab */
+:ChatboxStyle.
 }
 
 .chat-tab:hover {
 background-color: #555;
 color: #00a8ff; /* Highlight on hover */
+}
+
+.chat-tab:last-child {
+border-right: none; /* No border on the very last tab */
 }
 
 .chat-tab.active {
@@ -424,6 +426,13 @@ transition: background-color 0.2s ease;
     border-radius: 4px; /* Slightly rounded corners for the box */
     padding: 6px 8px; /* Internal padding inside each member's box */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* A very subtle shadow for depth */
+}
+.enemy-targets-table thead th:not(:last-child) {
+    border-right: 1px solid #303030; /* Adds a thin, dark vertical line */
+}
+
+.enemy-targets-table tbody td:not(:last-child) {
+    border-right: 1px solid #303030; /* Adds a thin, dark vertical line */
 }
 
 .member-checkbox-list .member-selection-item label {
