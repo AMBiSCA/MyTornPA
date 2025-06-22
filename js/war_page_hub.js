@@ -1165,9 +1165,21 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
     };
 	
 	function setupMemberClickEvents() {
-    // This function is intended to set up click listeners for members in tables.
-    // If you have specific code for member clicks, please paste it here.
-    console.warn("setupMemberClickEvents is called but its full functionality is missing.");
+    if (!friendlyMembersTbody) {
+        console.error("Cannot set up click events, friendly members table body not found.");
+        return;
+    }
+
+    friendlyMembersTbody.addEventListener('click', (event) => {
+        const clickedRow = event.target.closest('tr');
+        if (!clickedRow) return; 
+
+        const memberId = clickedRow.dataset.id;
+        if (memberId) {
+            // This now calls our new function instead of just logging to the console
+            fetchAndDisplayMemberDetails(memberId);
+        }
+    });
 }
 	
 	function setupToggleSelectionEvents() {
