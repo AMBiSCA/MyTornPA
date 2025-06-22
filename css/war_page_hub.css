@@ -359,14 +359,12 @@
     color: #1e1e1e; /* Darken icon on hover */
 }
 
-/* Text input and Send button row */
 .chat-input-text-send {
     display: flex;
     gap: 5px; /* Space between input and send button */
     width: 100%;
 }
 
-/* Chat text input field */
 .chat-text-input {
     flex-grow: 1; /* Input field takes up available space */
     padding: 8px 10px;
@@ -395,7 +393,7 @@
 .chat-send-btn:hover {
     background-color: #00a8ff;
 }
-/* NEW: Style for the container holding Next Chain Time and Current Team Lead */
+
 .status-summary-two-col {
     display: flex; /* Use flexbox to arrange items horizontally */
     justify-content: space-around; /* Distribute space evenly around items */
@@ -1553,7 +1551,7 @@ autocomplete-items {
     box-sizing: border-box;
 }
 
-/* Chat Send button */
+
 .chat-send-btn {
     flex-shrink: 0; /* Prevent button from shrinking */
     padding: 8px 15px;
