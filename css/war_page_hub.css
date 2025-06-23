@@ -1492,6 +1492,26 @@ autocomplete-items {
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
 }
+/* NEW: Styles for chat content panels */
+.chat-content-panels {
+    flex-grow: 1; /* Allows this container to take up remaining vertical space */
+    position: relative; /* Needed for absolute positioning of inner panels if desired */
+    overflow: hidden; /* Ensures content stays within bounds */
+}
+
+.chat-panel {
+    display: none; /* Hides all chat panels by default */
+    position: absolute; /* Allows panels to overlap */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    flex-direction: column; /* Ensure inner display area is stacked vertically */
+}
+
+.chat-panel.active {
+    display: flex; /* Only show the active chat panel */
+}
 
 .war-status-toggles-grid .toggle-control {
     display: flex;           /* Make each control a flex container */
