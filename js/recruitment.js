@@ -113,6 +113,7 @@ async function enlistPlayer(factionId) {
         }
         const data = await response.json();
         if (data.error) {
+            // Specifically handle common API key errors
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Bars', 'Cooldowns', 'Travel', and 'Profile' are enabled.`);
             throw new Error(`Torn API error: ${data.error.error}`);
@@ -132,10 +133,10 @@ async function enlistPlayer(factionId) {
 
 
         const playerEnlistmentData = {
-            factionId: String(factionId),
+            factionId: String(factionId), // Ensure it's a string for consistency
             playerId: String(currentUserTornId),
-            playerName: profile.name || data.name || 'Unknown',
-            playerLevel: profile.level || data.level || 0,
+            playerName: profile.name || data.name || 'Unknown', // Fallback to top-level name from basic selection if profile.name is missing
+            playerLevel: profile.level || data.level || 0, // Fallback to top-level level from basic selection
             playerStrength: playerStrength, 
             playerDefense: playerDefense,   
             playerSpeed: playerSpeed,       
@@ -144,7 +145,7 @@ async function enlistPlayer(factionId) {
             totalAttacks: totalAttacks,     
             enlistmentTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid, 
-            status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown'
+            status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown' // Current status (from profile or basic)
         };
 
         const docRef = db.collection('recruitmentApplications').doc(`${factionId}_${currentUserTornId}`);
@@ -219,12 +220,11 @@ async function listSelfForRecruitment() {
             totalAttacks: totalAttacks,
             contactInfo: contactInfo.trim(),
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            firebaseUid: auth.currentUser.uid, // This is the key field for security rule matching
+            firebaseUid: auth.currentUser.uid, 
             isActive: true // Player can set this to false later if they find a faction
         };
 
-        // --- CRITICAL CORRECTION: Use Firebase UID as the document ID ---
-        const docRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
+        const docRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid); // Using Firebase UID as doc ID
         await docRef.set(playerListingData, { merge: true });
 
         alert(`Successfully listed yourself for recruitment!`);
@@ -301,10 +301,11 @@ async function advertiseFaction() {
     try {
         // Fetch current user's faction ID from their profile in Firebase
         const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
-        const userTornFactionId = userProfileDoc.data()?.tornFactionId; // Access the tornFactionId from the Firebase document
+        // --- CRITICAL CORRECTION: Accessing faction_id from userData ---
+        const userTornFactionId = userProfileDoc.data()?.faction_id; // Access the faction_id from the Firebase document
 
         if (!userTornFactionId) {
-            alert("Your Torn Faction ID is not registered in your profile. Please add it to your profile to advertise your faction.");
+            alert("Your Torn Faction ID (`faction_id`) is not registered in your profile. Please add it to your profile to advertise your faction.");
             return;
         }
 
@@ -368,9 +369,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornApiKey = userData.tornApiKey || null;
             
             // --- CRITICAL CORRECTION: Check for leader status using 'position' from Firestore userData ---
-            // Assuming 'position' field exists in the userProfile document in Firebase
+            // Assuming 'position' field exists in the userProfile document in Firebase as "Leader" or "Co-leader"
             currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
-            console.log(`User ${user.uid} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
+            console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
 
             // Show/hide button based on leader status
             if (advertiseFactionButton) { // Ensure button exists before trying to access style
@@ -397,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide if not logged in
             if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable if not logged in
             // Enlist buttons in table, they will be dynamically added and need their disabled state managed based on login/API key status.
-            // For now, they will show an alert if not logged in or missing API key (handled by enlistPlayer function).
+            // (Current logic for enlistPlayer handles this by alerting if not logged in/no API key)
         }
         
         // Always display initial listings, regardless of login status
