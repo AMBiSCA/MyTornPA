@@ -1192,8 +1192,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // --- CRITICAL CHANGE: Added 'basic' to the selections string ---
-        const selections = 'basic,profile,workstats,cooldowns,battlestats,nerve,energy'; // Re-added nerve/energy to test if 'basic' changes behavior
+        const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1227,7 +1226,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
              throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data Extraction (checking top-level for basic data first) ---
         const profile = tornApiData.profile || {};
         const battlestats = tornApiData.battlestats || {}; 
         const workStatsJobData = tornApiData.workstats || {}; 
@@ -1245,35 +1243,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
-        // --- Use basic data if profile is empty, else use profile data ---
-        const displayName = profile.name || tornApiData.name || 'Unknown';
-        const displayPlayerId = profile.player_id || tornApiData.player_id || 'N/A';
-        const displayLevel = profile.level || tornApiData.level || 'N/A';
-        const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
-        const lastActionText = formatRelativeTime(lastActionTimestamp);
 
-        let statusText = profile.status ? profile.status.description : tornApiData.status ? tornApiData.status.description : 'Unknown';
-        let statusClass = 'status-okay';
-
-        if (profile.status || tornApiData.status) { // Check both possible locations for status
-            const currentStatus = profile.status || tornApiData.status; // Use whichever is available
-            if (currentStatus.state === 'Hospital') {
-                const timeLeft = currentStatus.until - Math.floor(Date.now() / 1000);
-                statusText = `In Hospital (${formatTime(timeLeft)})`;
-                statusClass = 'status-hospital';
-            } else if (currentStatus.state === 'Traveling') {
-                const timeLeft = currentStatus.until - Math.floor(Date.now() / 1000);
-                statusText = `${currentStatus.description} (${formatTime(timeLeft)})`;
-                statusClass = 'status-traveling';
-            } else if (currentStatus.state !== 'Okay') {
-                statusText = currentStatus.description;
-                statusClass = 'status-other';
-            }
-        }
-        console.log(`[DEBUG] Final Profile Info: Name: ${displayName}, ID: ${displayPlayerId}, Level: ${displayLevel}, Last Action: ${lastActionText}, Status: ${statusText}`);
-
-
-        // Battle Stats - Robust access
         const strength = (battlestats.strength || 0).toLocaleString();
         const speed = (battlestats.speed || 0).toLocaleString();
         const dexterity = (battlestats.dexterity || 0).toLocaleString();
@@ -1281,7 +1251,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
         
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        // Work Stats (numerical are top-level, job info nested) - Robust access
         const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
         const intelligence = (tornApiData.intelligence || 0).toLocaleString();
         const endurance = (tornApiData.endurance || 0).toLocaleString();
@@ -1290,23 +1259,17 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
-        // Nerve and Energy Stats (will display 'Access Denied' if permissions missing)
         const currentNerve = (nerve.current || 'N/A');
         const maxNerve = (nerve.maximum || '');
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
-        // Check if nerve was requested but returned empty
-        if (currentNerve === 'N/A' && selections.includes('nerve') && !Object.keys(nerve).length) { nerveDisplay += ' (Access Denied)'; }
-        if (!nerveDisplay) nerveDisplay = 'N/A'; // Final fallback for display string
-
+        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
 
         const currentEnergy = (energy.current || 'N/A');
         const maxEnergy = (energy.maximum || '');
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
-        // Check if energy was requested but returned empty
-        if (currentEnergy === 'N/A' && selections.includes('energy') && !Object.keys(energy).length) { energyDisplay += ' (Access Denied)'; }
-        if (!energyDisplay) energyDisplay = 'N/A'; // Final fallback for display string
+        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
 
 
         let cooldownsHtml = '<ul>';
@@ -1325,11 +1288,32 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
         } else {
             cooldownsHtml += '<li>No active cooldowns.</li>';
-            if (selections.includes('cooldowns') && !Object.keys(cooldowns).length) { cooldownsHtml += ' (Access Denied)'; }
         }
         cooldownsHtml += '</ul>';
 
         console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
+
+        const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        let statusText = profile.status ? profile.status.description : 'Unknown';
+        let statusClass = 'status-okay';
+
+        if (profile.status) {
+            if (profile.status.state === 'Hospital') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `In Hospital (${formatTime(timeLeft)})`;
+                statusClass = 'status-hospital';
+            } else if (profile.status.state === 'Traveling') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `${profile.status.description} (${formatTime(timeLeft)})`;
+                statusClass = 'status-traveling';
+            } else if (profile.status.state !== 'Okay') {
+                statusText = profile.status.description;
+                statusClass = 'status-other';
+            }
+        }
+        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
 
         let overallAccessMessage = '';
         if (apiErrorMessage) {
@@ -1338,7 +1322,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
 
         const detailsHtml = `
-            <h4>${displayName} [${displayPlayerId}] (Level: ${displayLevel})</h4>
+            <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
             ${overallAccessMessage}
             <p>Last Action: ${lastActionText}</p>
             <p>Status: <span class="${statusClass}">${statusText}</span></p>
