@@ -62,6 +62,11 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+const chatDisplayArea = document.getElementById('chat-display-area');
+const chatTextInput = document.querySelector('.chat-text-input');
+const chatSendBtn = document.querySelector('.chat-send-btn');
+const chatTabsContainer = document.querySelector('.chat-tabs-container');
+const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
 
 // --- Utility Functions ---
 
@@ -849,6 +854,65 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
+// ... (Your existing Utility Functions like filterProfanity, formatTime, etc.) ...
+
+// NEW: Function to display a message in the chat area
+function displayChatMessage(messageObj) {
+    if (!chatDisplayArea) {
+        console.error("Chat display area not found.");
+        return;
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message'); // Add a class for styling messages
+
+    const timestamp = new Date(messageObj.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const senderName = messageObj.sender || 'Unknown';
+    const messageText = messageObj.text || '';
+
+    // Basic structure for a chat message
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[${timestamp}]</span>
+        <span class="chat-sender">${senderName}:</span>
+        <span class="chat-text">${messageText}</span>
+    `;
+
+    chatDisplayArea.appendChild(messageElement);
+
+    // Automatically scroll to the bottom of the chat
+    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+}
+
+// NEW: Function to handle sending a chat message
+async function sendChatMessage() {
+    if (!chatTextInput || !chatSendBtn || !auth.currentUser || !userApiKey) {
+        console.warn("Cannot send message: Chat elements, user, or API key not available.");
+        return;
+    }
+
+    const messageText = chatTextInput.value.trim();
+    if (messageText === '') {
+        return; // Don't send empty messages
+    }
+
+    // Apply profanity filter to the message text
+    const filteredMessage = filterProfanity(messageText);
+
+    // For now, we'll just simulate sending by displaying it locally.
+    // In a later step, we will integrate with Firebase to store and retrieve messages.
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: currentTornUserName, // Use the global variable for current Torn user's name
+        text: filteredMessage,
+        timestamp: Date.now() // Milliseconds since epoch
+    };
+
+    displayChatMessage(messageObj); // Display the message immediately
+
+    chatTextInput.value = ''; // Clear the input field
+    chatTextInput.focus(); // Keep focus on the input field
+}
+
 async function initializeAndLoadData(apiKey) {
     try {
         // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
@@ -1069,7 +1133,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // --- STRICTLY Use the selections you confirmed work ---
         const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
@@ -1109,41 +1172,58 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const stats = tornApiData.battlestats || {}; 
         const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
-        // Nerve and Energy variables are removed as they are not requested or displayed
+        const nerve = tornApiData.nerve || {}; 
+        const energy = tornApiData.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data:", stats);
-        console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
-        console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'stats' object):", stats);
+        console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
+        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
+        console.log("[DEBUG] Extracted Nerve Data:", nerve);
+        console.log("[DEBUG] Extracted Energy Data:", energy);
         console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
         console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
-        // Battle Stats - Robust access
         const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
         const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
         
-        // Work Stats (numerical are top-level, job info nested)
+        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
+
         const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
         const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
         const endurance = typeof tornApiData.endurance === 'number' ? tornApiData.endurance.toLocaleString() : 'N/A';
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
-        // Nerve and Energy display sections are removed
+        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
+
+        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
+        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
+        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
+
+        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
+        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
+        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
             for (const key in cooldowns) {
                 if (cooldowns.hasOwnProperty(key)) {
                     const timeLeft = cooldowns[key];
-                    if (timeLeft > 0) {
+                    if (typeof timeLeft === 'number' && timeLeft > 0) {
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
-                    } else {
+                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
+                    } else {
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: N/A</li>`;
                     }
                 }
             }
@@ -1152,7 +1232,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
         cooldownsHtml += '</ul>';
 
-        // Last Action and Status from 'profile' selection
+        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
+
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
@@ -1173,12 +1254,12 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 statusClass = 'status-other';
             }
         }
+        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
 
         let overallAccessMessage = '';
         if (apiErrorMessage) {
             overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
         }
-
 
         const detailsHtml = `
             <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
@@ -1200,12 +1281,14 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
+            <h5>Nerve:</h5>
+            <p>${nerveDisplay}</p>
+            <h5>Energy:</h5>
+            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
-                <a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Profile</a> |
-                <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}" target="_blank">Attack</a>
-            </p>
+                </p>
         `;
             
         detailPanel.innerHTML = detailsHtml;
