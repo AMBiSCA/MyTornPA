@@ -2276,7 +2276,7 @@ function handleChatTabClick(event) {
 
             nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
         }
-    }
+    
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
