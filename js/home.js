@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
     personalStatsModal.classList.add('visible');
 
-    // UPDATED: Added 'basic' and 'cooldowns' to selections to fetch dashboard quick stats
+    // Selections to fetch all dashboard quick stats and personal stats
     const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns"; 
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
         }
 
-        // --- Firebase Storage Logic ---
+        // --- NEW: Call Netlify Function for Secure Firebase Storage ---
         const userId = data.player_id; 
         if (userId) {
             const userDataToSave = {
@@ -323,19 +323,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for last update
             };
 
-            console.log(`[DEBUG] Prepared user data for Firebase:`, userDataToSave);
+            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
 
             try {
-                // Assuming 'db' is your Firestore instance available in this scope
-                await db.collection('users').doc(String(userId)).set(userDataToSave, { merge: true });
-                console.log(`[DEBUG] Successfully saved user ${userId} data to Firestore.`);
-            } catch (firebaseError) {
-                console.error(`[ERROR] Failed to save user ${userId} data to Firestore:`, firebaseError);
+                // Call the new Netlify Function to securely save data to Firestore
+                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: String(userId), // Ensure userId is a string
+                        userData: userDataToSave,
+                    }),
+                });
+
+                if (!netlifyFunctionResponse.ok) {
+                    const errorDetails = await netlifyFunctionResponse.json();
+                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
+                }
+
+                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
+            } catch (functionError) {
+                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
             }
         } else {
-            console.warn("[WARN] User ID not found in Torn API response. Cannot save data to Firestore.");
+            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
         }
-        // --- End Firebase Storage Logic ---
+        // --- END: Call Netlify Function for Secure Firebase Storage ---
 
 
         let htmlContent = '<h4>User Information</h4>';
