@@ -4,6 +4,7 @@
 
 
 /* Overall Container for the War Page Hub */
+/* Overall Container for the War Page Hub */
 #warPageHubContainer {
     /* Styles for the main container */
     background-color: #1e1e1e; /* Darker background */
@@ -18,45 +19,16 @@
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
     box-sizing: border-box; /* Include padding/border in width */
-
-    /* CHANGED: Use Grid for internal layout */
-    display: grid;
-    grid-template-columns: 1fr 350px; /* Main content takes 1fr, chatbox gets fixed 350px */
-    grid-template-rows: auto 1fr; /* Top row (title, tabs) auto, second row (content, chat) takes remaining space */
-    grid-template-areas:
-        "title title"
-        "tabs tabs"
-        "content chat"; /* Define named grid areas for easier placement */
-    gap: 20px; /* Gap between grid items */
-
+    
+    /* REVERTED: Use flexbox for internal layout, stack content vertically */
+    display: flex;
+    flex-direction: column; 
+    gap: 0px; /* REVERTED: Reduced space between main sections */
+    
     min-height: calc(100vh - 170px);
     border: 3px solid black;
 }
 
-#factionWarHubTitle {
-    grid-area: title; /* Assign title to its grid area */
-}
-
-.tab-navigation {
-    grid-area: tabs; /* Assign tab navigation to its grid area */
-    margin-bottom: 0; /* Keep this if you want no margin below the tabs */
-}
-
-.tab-content-container {
-    grid-area: content; /* Assign tab content to its grid area */
-    /* Remove any width or flex-grow properties here if they conflict with grid-area */
-    flex-grow: unset; /* Override flex-grow as grid handles sizing */
-    height: auto; /* Allow height to be determined by grid */
-    min-height: 400px; /* Keep minimum height for content */
-}
-
-#warChatBox {
-    grid-area: chat; /* Assign chat box to its grid area */
-    /* Adjust height and flex properties as grid will manage its size */
-    height: auto; /* Allow grid to manage height, or set specific height here if needed */
-    flex-grow: unset; /* Override flex-grow as grid handles sizing */
-    min-height: 475px; /* Maintain existing min-height for chatbox */
-}
 
 /* Script Title */
 .script-title {
@@ -1390,28 +1362,36 @@ autocomplete-items {
     /* ... other existing rules for toggle-control ... */
 }
 
+/* Class to hide the chat display and input when specific chat tabs are active */
+.chat-container .chat-display-area,
+.chat-container .chat-input-area {
+    display: block; /* Default to block, JavaScript will override for specific tabs */
+}
+
+.chat-container.hide-content .chat-display-area,
+.chat-container.hide-content .chat-input-area {
+    display: none;
+}
 
 /* Responsive Media Queries for the War Hub Container */
 @media (max-width: 992px) {
     #warPageHubContainer {
-        padding: 10px;
-        gap: 10px;
-
-        /* CHANGED: Stack content and chat vertically on smaller screens */
-        grid-template-columns: 1fr; /* Single column */
-        grid-template-rows: auto auto auto auto; /* Re-flow rows for title, tabs, content, chat */
-        grid-template-areas:
-            "title"
-            "tabs"
-            "content"
-            "chat"; /* Stack elements */
+        padding: 10px; /* NEW: Reduced padding */
+        gap: 10px; /* NEW: Reduced gap */
+    }
+    
+    .active-ops-main-content-row {
+        flex-direction: column; /* Stack panels vertically in active ops */
+        gap: 10px; /* Reduce gap when stacked */
     }
 
-    #warChatBox {
-        margin-top: 20px; /* Add some margin when stacked below content */
-        width: 100%; /* Ensure it takes full width when stacked */
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        min-width: unset; /* Remove min-width on smaller screens */
+        width: 100%; /* Take full width */
     }
-
+    /* ... rest of your existing rules within this media query ... */
+}
     .active-ops-main-content-row {
         flex-direction: column; /* Stack panels vertically in active ops */
         gap: 10px; /* Reduce gap when stacked */
