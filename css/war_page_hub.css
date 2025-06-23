@@ -130,17 +130,6 @@
 
 /* --- END LEADER CONFIG TAB SPECIFIC STYLES --- */
 
-/* You will also need to ensure this rule is correctly placed inside your @media (max-width: 992px) block: */
-@media (max-width: 992px) {
-    /* ... (your other existing rules in this media query) ... */
-
-    /* CORRECTED: This now targets .config-grid for responsive stacking */
-    .config-grid {
-        grid-template-columns: 1fr; /* Stack columns vertically on medium screens */
-        max-width: 600px; /* Limit width similar to other responsive sections */
-    }
-}
-
 /* War Announcement Section (Tab 1) */
 .war-announcement-section {
     margin-bottom: 15px; /* NEW: Reduced margin */
