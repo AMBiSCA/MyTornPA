@@ -188,13 +188,11 @@ async function listSelfForRecruitment() {
         }
         const data = await response.json();
         if (data.error) {
-            // Specifically handle common API key errors
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Profile', 'Personal Stats', and 'Battle Stats' are enabled.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
-        // Extract data
         const profile = data.profile || {};
         const personalStats = data.personalstats || {};
         const battleStats = data.battlestats || {};
@@ -362,20 +360,20 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornApiKey = userData.tornApiKey || null;
             
             // Check if user is a leader based on 'tab4Admins' in factionWars/currentWar
-            // This assumes current user's tornProfileId exists and can be matched to tab4Admins
-            if (currentUserTornId) { // Use currentUserTornId which is now defined
+            if (currentUserTornId) { // Ensure currentUserTornId is available for this check
                 try {
                     const warDoc = await db.collection('factionWars').doc('currentWar').get();
                     const warData = warDoc.exists ? warDoc.data() : {};
                     const tab4Admins = warData.tab4Admins || [];
                     currentUserIsLeader = tab4Admins.includes(String(currentUserTornId));
                     console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader}`);
-                    if (advertiseFactionButton && currentUserIsLeader) {
-                        advertiseFactionButton.style.display = 'block'; // Show button if leader
+                    if (advertiseFactionButton) { // Ensure button exists before trying to access style
+                        advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none'; // Show/hide based on leader status
                     }
                 } catch (error) {
                     console.error("Error checking leader status:", error);
                     currentUserIsLeader = false; // Default to false on error
+                    if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide on error
                 }
             }
 
@@ -386,17 +384,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn("User logged in but Torn ID or API Key missing from profile.");
                 alert("Please complete your profile (Torn ID & API Key) to use all recruitment features.");
                 if (listSelfButton) listSelfButton.disabled = true; // Disable if missing key
-                if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable if missing key
+                if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable advertise button too if missing key
             }
         } else {
             console.log("User not logged in on Recruitment page.");
             alert("Please log in to use the recruitment features.");
             // Disable all interactive buttons if not logged in
             if (listSelfButton) listSelfButton.disabled = true;
-            if (advertiseFactionButton) advertiseFactionButton.disabled = true;
-            // You might want to initially disable enlist buttons via HTML, or handle their disabled state in displayFactionsSeekingMembers
-            // For now, let's keep them enabled so anyone can click and be prompted to log in/register
-            // document.querySelectorAll('.enlist-button').forEach(btn => btn.disabled = true); 
+            if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide if not logged in
+            if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable if not logged in
+            // For enlist buttons in table, they will be dynamically added. We'll handle disabled state within displayFactionsSeekingMembers if user is not logged in.
         }
         
         // Always display initial listings, regardless of login status
