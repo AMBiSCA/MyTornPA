@@ -2108,95 +2108,150 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
 
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Basic tab navigation for main content tabs
+    const tabButtons = document.querySelectorAll('.tab-button'); // Assuming tabButtons is defined globally or earlier
     tabButtons.forEach(button => {
         button.addEventListener('click', (event) => showTab(event.currentTarget.dataset.tab + '-tab'));
     });
     showTab('announcements-tab');
     let listenersInitialized = false;
 
-    auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        // Define userProfileRef INSIDE this block, as 'user' is scoped here.
-        const userProfileRef = db.collection('userProfiles').doc(user.uid);
-        const doc = await userProfileRef.get(); // Fetch user profile doc from Firebase
-        const userData = doc.exists ? doc.data() : {};
-        const apiKey = userData.tornApiKey || null;
-        const playerId = userData.tornProfileId || null; // Get player ID
-        currentTornUserName = userData.preferredName || 'Unknown';
+    // --- Chat Tab Functionality Elements and Handler ---
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox'); // The main chat container
+    const chatDisplayArea = document.getElementById('chat-display-area');
+    const chatInputArea = document.querySelector('.chat-input-area'); // Selects the whole input area div
 
-        let warData = {}; // Initialize warData here to ensure it's always defined
-        try {
-            const warDoc = await db.collection('factionWars').doc('currentWar').get();
-            warData = warDoc.exists ? warDoc.data() : {}; 
-        } catch (firebaseError) {
-            console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
-        }
+    // Function to handle chat tab clicks
+    function handleChatTabClick(event) {
+        const clickedTab = event.currentTarget; // The button that was clicked
+        const targetTab = clickedTab.dataset.chatTab; // Get the data-chat-tab value
 
-        if (apiKey && playerId) {
-            userApiKey = apiKey;
+        // Remove 'active' class from all chat tabs
+        chatTabs.forEach(tab => tab.classList.remove('active'));
 
-            // Initial load of comprehensive faction data (basic, members, chain, wars)
-            await initializeAndLoadData(apiKey);
+        // Add 'active' class to the clicked chat tab
+        clickedTab.classList.add('active');
 
-            // Call populateUiComponents with fetched warData and apiKey
-            populateUiComponents(warData, apiKey);
-
-            // Explicit initial calls for API-driven displays
-            fetchAndDisplayChainData();
-            fetchAndDisplayRankedWarScores();
-            displayQuickFFTargets(userApiKey, playerId);
-			setupChatRealtimeListener();
-
-
-            if (!listenersInitialized) {
-                setupEventListeners(apiKey);
-                setupMemberClickEvents(); // <--- NEW LINE ADDED HERE
-                listenersInitialized = true;
-				
-				
-                // Start local timers (e.g., hospital/travel countdowns) every 1 second
-                setInterval(updateAllTimers, 1000);
-
-                // MODIFIED: Enemy Data API fetch every 2 seconds
-                setInterval(() => {
-                    if (userApiKey && globalEnemyFactionID) {
-                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                    } else {
-                        console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+        // Logic to show/hide chat display and input areas within the chat box
+        if (warChatBox) { // Ensure warChatBox exists before manipulating
+            if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
+                // If Faction Chat or Private Chat, ensure display and input are visible
+                warChatBox.classList.remove('hide-content');
+                
+                // Update the chat display area's content based on the selected tab
+                if (chatDisplayArea) {
+                    if (targetTab === 'faction-chat') {
+                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
+                    } else { // private-chat
+                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
                     }
-                }, 2000); 
-
-                // Start Quick FF Targets fetch every 60 seconds
-                setInterval(() => {
-                    if (userApiKey && playerId) {
-                        displayQuickFFTargets(userApiKey, playerId);
-                    } else {
-                        console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                    }
-                }, 60000);
-
-                // Start OUR Faction Data (Combined) fetch every 2 seconds
-                setInterval(() => {
-                    if (userApiKey) {
-                        initializeAndLoadData(userApiKey);
-                    } else {
-                        console.warn("API key not available for periodic comprehensive faction data refresh.");
-                    }
-                }, 2000);
-            } 
-        } else {
-            console.warn("API key or Player ID not found.");
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-            const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-            if (quickFFTargetsDisplay) {
-                quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Scroll to bottom
+                }
+            } else {
+                // For other tabs (Friends, Faction Members, Settings, etc.), hide display and input
+                warChatBox.classList.add('hide-content');
+                
+                // Update the chat display area with a relevant message for the non-chat tabs
+                if (chatDisplayArea) {
+                    chatDisplayArea.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+                }
             }
+            // TODO: Implement actual chat loading/display logic for each tab (e.g., fetch messages from Firebase)
         }
-    } else {
-        userApiKey = null;
-        listenersInitialized = false;
-        console.log("User not logged in.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-    } 
- });
+    }
+
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            const userData = doc.exists ? doc.data() : {};
+            const apiKey = userData.tornApiKey || null;
+            const playerId = userData.tornProfileId || null;
+            currentTornUserName = userData.preferredName || 'Unknown';
+
+            let warData = {};
+            try {
+                const warDoc = await db.collection('factionWars').doc('currentWar').get();
+                warData = warDoc.exists ? warDoc.data() : {};
+            } catch (firebaseError) {
+                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+            }
+
+            if (apiKey && playerId) {
+                userApiKey = apiKey;
+
+                await initializeAndLoadData(apiKey);
+                populateUiComponents(warData, apiKey);
+
+                fetchAndDisplayChainData();
+                fetchAndDisplayRankedWarScores();
+                displayQuickFFTargets(userApiKey, playerId);
+                setupChatRealtimeListener();
+
+
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    setupMemberClickEvents(); // <--- NEW LINE ADDED HERE
+
+                    // Add click listeners to all chat tab buttons for the chat box
+                    chatTabs.forEach(tab => {
+                        tab.addEventListener('click', handleChatTabClick);
+                    });
+
+                    // Initial setup for chat: Trigger click on the default active chat tab (Faction Chat)
+                    // This ensures correct state when the page first loads
+                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
+                    if (initialActiveChatTab) {
+                        handleChatTabClick({ currentTarget: initialActiveChatTab });
+                    }
+                    
+                    listenersInitialized = true;
+
+
+                    setInterval(updateAllTimers, 1000);
+
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 2000);
+
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        } else {
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                        }
+                    }, 60000);
+
+                    setInterval(() => {
+                        if (userApiKey) {
+                            initializeAndLoadData(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 2000);
+                }
+            } else {
+                console.warn("API key or Player ID not found.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle'); // Ensure this element is retrieved
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+                if (quickFFTargetsDisplay) {
+                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+                }
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle'); // Ensure this element is retrieved
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        }
+    });
 }); // Closes: document.addEventListener('DOMContentLoaded', ...)
