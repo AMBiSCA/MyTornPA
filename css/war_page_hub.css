@@ -727,7 +727,7 @@ transition: background-color 0.2s ease;
 
 /* Specific styling for Quick FF Targets container - Forces this item to align right */
 .ops-control-item.ops-quick-targets {
-    justify-content: flex-start; /* Aligns content (label and targets) to the top within this item */
+    justify-content: flex-end; /* Aligns content (label and targets) to the top within this item */
     margin-top: 0 !important; /* Aggressively removes any top margin */
     padding-top: 0 !important; /* Aggressively removes any top padding */
     height: auto !important; /* Ensures it doesn't take fixed or excessive height */
@@ -735,20 +735,14 @@ transition: background-color 0.2s ease;
 }
 
 .ops-control-item.ops-quick-targets label {
-    text-align: left; /* Aligns the label text to the left */
-    margin-top: 0 !important; /* Ensure no unintended margin */
-    padding-top: 0 !important; /* Ensure no unintended padding */
-}
-
-.ops-control-item.ops-quick-targets label {
-    text-align: left; /* Aligns the label text to the left */
+    text-align: right; /* Aligns the label text to the left */
     margin-top: 0 !important; /* Ensure no unintended margin */
     padding-top: 0 !important; /* Ensure no unintended padding */
 }
 
 .ops-control-item.ops-quick-targets .quick-ff-targets-container {
-    text-align: left; /* Aligns the names (Target 1, Target 2) to the left */
-    align-items: flex-start; /* Ensures internal flex children stick to the left */
+    text-align: right; /* Aligns the names (Target 1, Target 2) to the left */
+    align-items: flex-end; /* Ensures internal flex children stick to the left */
     margin-top: 0 !important; /* Ensure no unintended margin */
     padding-top: 0 !important; /* Ensure no unintended padding */
 }
