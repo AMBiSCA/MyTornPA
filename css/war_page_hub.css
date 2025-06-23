@@ -221,6 +221,91 @@
 .chat-settings-panel .save-settings-btn:hover {
     background-color: #00a8ff;
 }
+
+/* --- Styling for Faction Members Tab Content --- */
+
+.chat-dynamic-panel h3 {
+    text-align: center;
+    color: #00a8ff; /* Theme color for titles */
+    margin-bottom: 20px;
+}
+
+.members-list-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow members to wrap to new lines */
+    justify-content: center; /* Center members horizontally */
+    gap: 15px; /* Space between member items */
+    padding: 10px;
+}
+
+.member-item {
+    display: flex;
+    flex-direction: column; /* Stack image, name, rank vertically */
+    align-items: center; /* Center content horizontally within each member item */
+    width: 100px; /* Fixed width for each member item */
+    text-align: center;
+    background-color: #2a2a2a; /* Slightly lighter background */
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px 5px;
+    text-decoration: none; /* Remove underline from link */
+    color: #f0f0f0; /* Default text color */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.member-item:hover {
+    background-color: #333;
+    border-color: #00a8ff;
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.member-profile-pic {
+    width: 60px; /* Size of profile picture */
+    height: 60px;
+    border-radius: 50%; /* Make it circular */
+    object-fit: cover; /* Ensure image covers the area */
+    border: 2px solid #00a8ff; /* Blue border around pic */
+    margin-bottom: 8px;
+}
+
+.member-name {
+    font-weight: bold;
+    color: #f0f0f0;
+    font-size: 0.9em;
+    white-space: nowrap; /* Prevent name from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if name is too long */
+    max-width: 100%; /* Ensure it respects parent width */
+}
+
+.member-rank {
+    font-size: 0.75em; /* Smaller font for rank */
+    color: #aaa; /* Lighter color for rank */
+    margin-top: 3px;
+}
+
+/* --- Styling for Leader Members (for distinction and visual centering) --- */
+.member-item.leader-member {
+    background-color: #004d80; /* Darker blue background for leaders */
+    border-color: #00a8ff; /* Stronger blue border */
+    transform: scale(1.05); /* Slightly larger */
+    box-shadow: 0 4px 8px rgba(0, 168, 255, 0.3); /* Subtle glow */
+    order: -1; /* Ensures leaders appear first in the flex container */
+    margin-bottom: 25px; /* Add extra space below leader row, if they form their own line */
+}
+
+.member-item.leader-member .member-name {
+    color: #ffd700; /* Gold color for leader names */
+}
+
+.member-item.leader-member .member-rank {
+    color: #f0f0f0; /* White color for leader ranks */
+}
+
+/* Optional: If you want leaders to strictly form their own centered row regardless of quantity */
+/* You would need to structure leaders into a separate flex container within JS
+   or use more advanced CSS Grid techniques. For a simple flex wrap, the 'order: -1'
+   and 'justify-content: center' on .members-list-container will mostly handle it. */
 /* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 #leader-config-tab.active {
     /* This rule defines properties for the *overall tab pane*, not its internal grid */

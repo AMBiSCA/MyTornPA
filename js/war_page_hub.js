@@ -2222,6 +2222,62 @@ function handleChatTabClick(event) {
     }
 }
 
+} else if (targetTab === 'faction-members') {
+        if (nonChatContentPanel) { // Ensure the panel exists
+            nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; // Title
+
+            // ASSUMPTION: globalFactionMembers holds your array of member objects
+            // Each member object should ideally have: .name, .rank, .profile_image (hash), .id (Torn ID)
+            const members = globalFactionMembers || []; 
+            
+            // Define a custom order for ranks (leaders first)
+            const rankOrder = {
+                "Leader": 0,
+                "Co-leader": 1,
+                // Add other specific ranks here if you want a custom order
+                // e.g., "Lieutenant": 2, "Captain": 3, "Recruiter": 4, etc.
+                "Member": 99, // Default for unspecified ranks, puts them lower
+                "Applicant": 100 // Example
+            };
+
+            // Sort members by rank, then alphabetically by name
+            members.sort((a, b) => {
+                const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
+                const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
+
+                if (orderA !== orderB) {
+                    return orderA - orderB; // Sort by custom rank order
+                }
+                return a.name.localeCompare(b.name); // Then sort alphabetically by name
+            });
+
+            const membersListHtml = members.map(member => {
+                // Construct profile image URL. Torn API's profile_image is usually a hash.
+                // If member.profile_image is a full URL, use it directly.
+                // Otherwise, it's likely a hash, so construct the URL.
+                const profileImageUrl = member.profile_image 
+                    ? `https://www.torn.com/images/profile_images/${member.profile_image}_thumb.jpg` 
+                    : '../../images/default_profile_icon.png'; // Fallback to a default icon if no profile image
+
+                let memberClass = ''; 
+                // Apply 'leader-member' class for specific leader ranks for styling
+                if (member.rank === "Leader" || member.rank === "Co-leader") {
+                    memberClass = 'leader-member';
+                }
+
+                return `
+                    <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
+                        <img src="${profileImageUrl}" alt="${member.name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
+                        <span class="member-name">${member.name}</span>
+                        <span class="member-rank">${member.rank}</span>
+                    </a>
+                `;
+            }).join('');
+
+            nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
+        }
+    }
+
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
