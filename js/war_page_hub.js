@@ -1555,12 +1555,15 @@ async function fetchAndDisplayMemberDetails(memberId) {
                     </div>
                 </div>
                 <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
+                <div class="member-detail-level">(Level: ${memberLevel})</div>
             </div>
 
             ${overallAccessMessage}
 
-            <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
-            <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
+            <div class="member-detail-info-row"> // NEW CONTAINER FOR LAST ACTION AND STATUS
+                <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
+                <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
+            </div>
 
             <div class="member-stats-group-row">
                 <div class="member-stat-block">
