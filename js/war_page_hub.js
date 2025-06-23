@@ -1065,10 +1065,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // --- Selections for the Torn API call ---
-        // 'profile' is crucial for name, level, status, last_action.
-        // 'workstats', 'cooldowns', 'battlestats' for the specific details.
-        const selections = 'profile,workstats,cooldowns,battlestats';
+        const selections = 'profile,workstats,cooldowns,battlestats'; // Keep all selections
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1087,7 +1084,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
             
         const data = await response.json();
-        console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< IMPORTANT LOG
+        console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< Keep this for now, for verification
 
         if (data.error) {
             console.error(`[DEBUG] Torn API Data Error details:`, data.error);
@@ -1103,27 +1100,35 @@ async function fetchAndDisplayMemberDetails(memberId) {
             throw new Error(`Torn API Data Error: ${data.error.error}`);
         }
 
-        // --- Data Extraction (now with comprehensive logging) ---
+        // --- Data Extraction (Corrected Work Stats paths) ---
         const profile = data.profile || {};
         const stats = data.battlestats || {};
-        const workStats = data.workstats || {};
+        const workStatsJobData = data.workstats || {}; // Renamed to clarify it's only job-related workstats
         const cooldowns = data.cooldowns || {};
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Battlestats Data:", stats);
-        console.log("[DEBUG] Extracted WorkStats Data:", workStats);
+        console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
+        // Also log the top-level work stats directly for confirmation
+        console.log("[DEBUG] Top-level Manual Labor:", data.manual_labor);
+        console.log("[DEBUG] Top-level Intelligence:", data.intelligence);
+        console.log("[DEBUG] Top-level Endurance:", data.endurance);
+
 
         const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
         const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
         
-        const manuelLabor = workStats.manual_labor ? workStats.manual_labor.toLocaleString() : 'N/A';
-        const intelligence = workStats.intelligence ? workStats.intelligence.toLocaleString() : 'N/A';
-        const endurance = workStats.endurance ? workStats.endurance.toLocaleString() : 'N/A';
-        const job = workStats.job_company_name ? `${workStats.job_company_name} (${workStats.job_name})` : 'N/A';
-        const jobEfficiency = workStats.job_efficiency ? `${workStats.job_efficiency}%` : 'N/A';
+        // --- CORRECTED: Get manual_labor, intelligence, endurance directly from 'data' ---
+        const manuelLabor = data.manual_labor ? data.manual_labor.toLocaleString() : 'N/A';
+        const intelligence = data.intelligence ? data.intelligence.toLocaleString() : 'N/A';
+        const endurance = data.endurance ? data.endurance.toLocaleString() : 'N/A';
+
+        // --- Keep job details from the 'workStatsJobData' object ---
+        const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
+        const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
 
         let cooldownsHtml = '<ul>';
@@ -1143,7 +1148,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
         cooldownsHtml += '</ul>';
 
-        // --- Last Action and Status from 'profile' selection ---
+        // --- Last Action and Status from 'profile' selection (already correctly extracted) ---
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
