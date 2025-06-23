@@ -62,11 +62,6 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-const chatDisplayArea = document.getElementById('chat-display-area');
-const chatTextInput = document.querySelector('.chat-text-input');
-const chatSendBtn = document.querySelector('.chat-send-btn');
-const chatTabsContainer = document.querySelector('.chat-tabs-container');
-const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
 
 // --- Utility Functions ---
 
@@ -854,65 +849,6 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-// ... (Your existing Utility Functions like filterProfanity, formatTime, etc.) ...
-
-// NEW: Function to display a message in the chat area
-function displayChatMessage(messageObj) {
-    if (!chatDisplayArea) {
-        console.error("Chat display area not found.");
-        return;
-    }
-
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message'); // Add a class for styling messages
-
-    const timestamp = new Date(messageObj.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const senderName = messageObj.sender || 'Unknown';
-    const messageText = messageObj.text || '';
-
-    // Basic structure for a chat message
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[${timestamp}]</span>
-        <span class="chat-sender">${senderName}:</span>
-        <span class="chat-text">${messageText}</span>
-    `;
-
-    chatDisplayArea.appendChild(messageElement);
-
-    // Automatically scroll to the bottom of the chat
-    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-}
-
-// NEW: Function to handle sending a chat message
-async function sendChatMessage() {
-    if (!chatTextInput || !chatSendBtn || !auth.currentUser || !userApiKey) {
-        console.warn("Cannot send message: Chat elements, user, or API key not available.");
-        return;
-    }
-
-    const messageText = chatTextInput.value.trim();
-    if (messageText === '') {
-        return; // Don't send empty messages
-    }
-
-    // Apply profanity filter to the message text
-    const filteredMessage = filterProfanity(messageText);
-
-    // For now, we'll just simulate sending by displaying it locally.
-    // In a later step, we will integrate with Firebase to store and retrieve messages.
-    const messageObj = {
-        senderId: auth.currentUser.uid,
-        sender: currentTornUserName, // Use the global variable for current Torn user's name
-        text: filteredMessage,
-        timestamp: Date.now() // Milliseconds since epoch
-    };
-
-    displayChatMessage(messageObj); // Display the message immediately
-
-    chatTextInput.value = ''; // Clear the input field
-    chatTextInput.focus(); // Keep focus on the input field
-}
-
 async function initializeAndLoadData(apiKey) {
     try {
         // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
@@ -1080,10 +1016,11 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
+ 
 /**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it. It strictly requests: profile, workstats, cooldowns, battlestats.
+ * if they have registered it. It currently requests: profile, workstats, cooldowns, battlestats.
  * Includes detailed error handling and robust data extraction.
  * @param {string} memberId The Torn User ID of the clicked member.
  */
@@ -1099,7 +1036,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
-    let tornApiData = null;
+    // --- IMPORTANT CHANGE: Renamed 'data' to 'tornApiData' and 'specificAccessDeniedMessage' to 'apiErrorMessage' ---
+    let tornApiData = null; 
     let apiErrorMessage = ''; 
 
     try {
@@ -1132,7 +1070,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; 
+        const selections = 'profile,workstats,cooldowns,battlestats,nerve,energy'; // Re-added nerve/energy as they are desired.
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1149,13 +1087,23 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
+            // Assign to 'tornApiData'
             tornApiData = await response.json(); 
             console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
             if (tornApiData.error) {
                 console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
-                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
-                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
+                if (tornApiData.error.code === 2) {
+                    detailPanel.innerHTML = `
+                        <h4>API Key Error for ${preferredName} [${memberId}]</h4>
+                        <p>The registered API key for this member is invalid.</p>
+                        <p>Error: ${tornApiData.error.error}</p>
+                        <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+                    `;
+                    return;
+                } else if (tornApiData.error.code === 10) {
+                    // Assign to 'apiErrorMessage'
+                    apiErrorMessage = `The member's API key lacks permissions for some requested details. (Error: ${tornApiData.error.error})`;
                 } else {
                     throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
                 }
@@ -1166,19 +1114,18 @@ async function fetchAndDisplayMemberDetails(memberId) {
              throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data Extraction ---
+        // --- Data Extraction (using tornApiData) ---
         const profile = tornApiData.profile || {};
-        const battlestats = tornApiData.battlestats || {}; // Renamed 'stats' to 'battlestats' for clarity and direct access
-        const workStatsJobData = tornApiData.workstats || {}; 
+        const stats = tornApiData.battlestats || {};
+        const workStatsJobData = tornApiData.workstats || {};
         const cooldowns = tornApiData.cooldowns || {};
-        // Nerve and Energy variables are kept as N/A placeholders in case they are re-added
         const nerve = tornApiData.nerve || {}; 
         const energy = tornApiData.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); // Log with new name
-        console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
-        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
+        console.log("[DEBUG] Extracted Battlestats Data:", stats);
+        console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
+        console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
         console.log("[DEBUG] Extracted Energy Data:", energy);
         console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
@@ -1186,36 +1133,29 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
-        // Battle Stats - Direct access from 'battlestats' object
-        // Removed typeof check, assuming API always returns numbers for these. Use || 0 for safer toLocaleString
-        const strength = (battlestats.strength || 0).toLocaleString();
-        const speed = (battlestats.speed || 0).toLocaleString();
-        const dexterity = (battlestats.dexterity || 0).toLocaleString();
-        const defense = (battlestats.defense || 0).toLocaleString();
+        const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
+        const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
+        const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
+        const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
         
-        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
-
-        // Work Stats (numerical are top-level, job info nested)
-        const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
-        const intelligence = (tornApiData.intelligence || 0).toLocaleString();
-        const endurance = (tornApiData.endurance || 0).toLocaleString();
+        const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
+        const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
+        const endurance = typeof tornApiData.endurance === 'number' ? tornApiData.endurance.toLocaleString() : 'N/A';
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
-        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
-
-        // Nerve and Energy Stats (will be 'N/A' as not in current selections)
-        const currentNerve = (nerve.current || 'N/A');
-        const maxNerve = (nerve.maximum || '');
+        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
+        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
-        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
+        if (currentNerve === 'N/A' && selections.includes('nerve')) { nerveDisplay += ' (Access Denied)'; }
 
-        const currentEnergy = (energy.current || 'N/A');
-        const maxEnergy = (energy.maximum || '');
+
+        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
+        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
-        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
+        if (currentEnergy === 'N/A' && selections.includes('energy')) { energyDisplay += ' (Access Denied)'; }
 
 
         let cooldownsHtml = '<ul>';
@@ -1223,12 +1163,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
             for (const key in cooldowns) {
                 if (cooldowns.hasOwnProperty(key)) {
                     const timeLeft = cooldowns[key];
-                    if (typeof timeLeft === 'number' && timeLeft > 0) {
+                    if (timeLeft > 0) {
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
-                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
-                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
                     } else {
-                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: N/A</li>`;
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
                     }
                 }
             }
@@ -1236,8 +1174,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             cooldownsHtml += '<li>No active cooldowns.</li>';
         }
         cooldownsHtml += '</ul>';
-
-        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
 
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
@@ -1259,10 +1195,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 statusClass = 'status-other';
             }
         }
-        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
 
         let overallAccessMessage = '';
-        if (apiErrorMessage) {
+        if (apiErrorMessage) { // Changed from specificAccessDeniedMessage
             overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
         }
 
@@ -1294,7 +1229,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
-                </p>
+                <a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Profile</a> |
+                <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}" target="_blank">Attack</a>
+            </p>
         `;
             
         detailPanel.innerHTML = detailsHtml;
@@ -1714,7 +1651,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-
+    // NOTE: The typo in your original variable name is corrected here. 
     // Make sure your save button's ID in the HTML is "saveWatchlistSelectionsBtn"
     const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
     if (saveWatchlistSelectionsBtn) { 
