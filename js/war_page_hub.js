@@ -421,8 +421,8 @@ function displayChatMessage(messageObj) {
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
 
-// NEW sending a chat message
 
+async function sendChatMessage() {
     if (!chatTextInput || !auth.currentUser || !userApiKey) {
         console.warn("Cannot send message: Chat input, logged-in user, or API key not available.");
         // Optionally, show a user-friendly message on the UI if elements/data are missing
