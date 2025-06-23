@@ -1267,7 +1267,7 @@ transition: background-color 0.2s ease;
     border: 1px solid black;
     border-radius: 8px;
     overflow: hidden;
-    height: px; /* This explicitly matches the height of your chat-container */
+    height: 465px; /* This explicitly matches the height of your chat-container */
     display: flex;
     flex-direction: column;
 }
@@ -1615,7 +1615,7 @@ autocomplete-items {
     padding-bottom: 10px; /* Add some space between main header and info lines */
 }
 
-/* Container for the top row (Energy, Image, Nerve) */
+/* NEW: Container for the top row (Energy, Image, Nerve) */
 .member-header-top-row {
     display: flex;
     align-items: center; /* Vertically align items in the middle */
@@ -1626,14 +1626,14 @@ autocomplete-items {
 
 /* Adjustments to the profile image to fit in the new top row */
 .member-detail-profile-image {
-    width: 70px; /* Slightly adjusted size to fit better in a horizontal row */
-    height: 70px;
-    border-radius: 4px; /* Small radius for a slightly rounded square/rectangle */
-    object-fit: cover; /* Ensure image fills the area */
-    border: 3px solid #00a8ff; /* Nice blue border */
-    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Subtle glow */
-    flex-shrink: 0; /* Prevent it from shrinking */
-    margin: 0 10px; /* Add some horizontal margin around the image */
+    width: 80px; /* Keep size */
+    height: 80px; /* Keep size */
+    border-radius: 4px; /* MODIFIED: Change to a small radius for a slightly rounded square/rectangle */
+    object-fit: cover; /* Keep existing */
+    border: 3px solid #00a8ff; /* Keep existing */
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Keep existing */
+    flex-shrink: 0; /* Keep existing */
+    margin: 0 10px; /* Keep existing */
 }
 
 .member-detail-name-id {
@@ -1643,23 +1643,14 @@ autocomplete-items {
     margin-top: 5px; /* Space above name if image is first */
 }
 
-/* NEW: Container for Last Action and Status to sit side-by-side */
-.member-detail-info-row {
-    display: flex; /* Arrange children horizontally */
-    justify-content: space-around; /* Distribute space evenly between them */
-    align-items: center; /* Vertically center them */
-    gap: 15px; /* Space between the two items */
-    flex-wrap: wrap; /* Allow wrapping on very small screens */
-    margin-bottom: 10px; /* Space below this row */
-}
+/* Removed .member-detail-level style as requested */
 
 /* Common style for info paragraphs (Last Action, Status) */
 .member-detail-info-paragraph {
     font-size: 0.95em;
     color: #f0f0f0;
-    margin: 0; /* REMOVED vertical margin from individual paragraphs, as gap on parent handles spacing */
-    text-align: center; /* Keep text centered within its flexible item */
-    flex-shrink: 0; /* Prevent individual paragraphs from shrinking */
+    margin: 5px 0; /* Space above and below paragraphs */
+    text-align: center; /* Center these info lines */
 }
 
 /* Status specific colors (re-using existing, ensure these apply to new classes) */
@@ -1700,27 +1691,6 @@ autocomplete-items {
     border-bottom: 1px solid #3a3a3a; /* Separator below title */
     padding-bottom: 5px;
 }
-
-/* Adjustments for the small stat blocks (Energy/Nerve) to fit in the header */
-.member-stat-block.member-stat-block-small {
-    min-width: 80px; /* Make them smaller to fit horizontally */
-    max-width: 100px; /* Control their maximum width */
-    flex-grow: 0; /* Prevent them from growing too much */
-    flex-shrink: 0; /* Prevent them from shrinking too much */
-    padding: 8px; /* Slightly less padding */
-    gap: 3px; /* Smaller gap between title and value */
-    text-align: center; /* Center content within these small blocks */
-}
-.member-stat-block.member-stat-block-small h5 {
-    font-size: 0.9em; /* Smaller title font */
-    margin-bottom: 3px; /* Less margin below title */
-    padding-bottom: 3px;
-}
-.member-stat-block.member-stat-block-small p {
-    font-size: 0.9em; /* Smaller value font */
-    margin: 0; /* Remove default paragraph margin */
-}
-
 
 /* Styles for the inner grid of battle/work stats (label-value pairs) */
 .member-stats-grid { /* Re-using your existing class */
@@ -1793,11 +1763,6 @@ autocomplete-items {
     }
     .member-cooldowns-list {
         grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Adjust columns for smaller screens */
-    }
-    /* Responsive adjustment for Last Action/Status row */
-    .member-detail-info-row {
-        flex-direction: column; /* Stack vertically on very small screens */
-        gap: 5px; /* Smaller gap when stacked */
     }
 }
 /* Style for matched text */

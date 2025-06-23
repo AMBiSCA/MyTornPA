@@ -1349,7 +1349,259 @@ function switchChatTab(tabName) {
         console.error(`No chat panel found for tab: ${tabName}`);
     }
 }
+async function fetchAndDisplayMemberDetails(memberId) {
+    console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
+    const detailPanel = document.getElementById('selectedMemberDetailPanel');
+    if (!detailPanel) {
+        console.error("HTML Error: Cannot find the detail panel element.");
+        return;
+    }
+
+    detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
+    detailPanel.classList.add('detail-panel-loaded');
+
+    let tornApiData = null;
+    let apiErrorMessage = '';
+
+    try {
+        const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
+
+        if (querySnapshot.empty) {
+            detailPanel.innerHTML = `
+                <h4>Details Unavailable</h4>
+                <p>This member has not registered on this site, or their Torn ID is not linked in our database.</p>
+                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+            `;
+            console.warn(`[DEBUG] No Firebase userProfile found for Torn ID: ${memberId}.`);
+            return;
+        }
+
+        const userDoc = querySnapshot.docs[0];
+        const memberDataFromFirebase = userDoc.data();
+        const memberApiKey = memberDataFromFirebase.tornApiKey;
+        const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
+
+        console.log(`[DEBUG] Found Firebase profile for ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
+        console.log(`[DEBUG] Member API Key from Firebase: "${memberApiKey}"`); // Verify the key used
+
+        if (!memberApiKey) {
+            detailPanel.innerHTML = `
+                <h4>API Key Missing for ${preferredName} [${memberId}]</h4>
+                <p>This member has registered but has not provided their Torn API key (or it's invalid).</p>
+                <p>Cannot fetch detailed stats.</p>
+                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+            `;
+            return;
+        }
+
+        // Selections for the API call
+        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars'; // Keeping 'bars' to ensure Nerve/Energy are requested if needed from there.
+        const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
+
+        console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
+
+        const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
+            console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
+            let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
+            if (errorData && errorData.error && errorData.error.error) {
+                errorMessage += ` - ${errorData.error.error}`;
+            }
+            throw new Error(errorMessage);
+        } else {
+            tornApiData = await response.json();
+            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
+
+            if (tornApiData.error) {
+                console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
+                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
+                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
+                } else {
+                    throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
+                }
+            }
+        }
+
+        if (!tornApiData || Object.keys(tornApiData).length === 0) {
+            throw new Error("Failed to retrieve any meaningful data after API call.");
+        }
+
+        const personalStats = tornApiData.personalstats || {};
+        const jobData = tornApiData.job || {};
+        const cooldowns = tornApiData.cooldowns || {};
+        
+        // Extract nerve and energy from tornApiData.bars or directly if they appear there (fallback is handled below)
+        const barsData = tornApiData.bars || {};
+        const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
+        const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
+
+        // Access name, player_id, last_action, status directly from tornApiData (root)
+        const memberName = tornApiData.name || 'Unknown';
+        const memberPlayerId = tornApiData.player_id || 'N/A';
+        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
+        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
+
+        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
+        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
+
+        console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
+        console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
+        console.log("[DEBUG] Extracted Main Status Data:", mainStatusData);
+        console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
+        console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
+        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
+        console.log("[DEBUG] Extracted Nerve Data (from bars/root object):", nerve);
+        console.log("[DEBUG] Extracted Energy Data (from bars/root object):", energy);
+        console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
+        console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
+
+
+        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
+        const strength = (personalStats.strength || tornApiData.strength || 0).toLocaleString();
+        const speed = (personalStats.speed || tornApiData.speed || 0).toLocaleString();
+        const dexterity = (personalStats.dexterity || tornApiData.dexterity || 0).toLocaleString();
+        const defense = (personalStats.defense || tornApiData.defense || 0).toLocaleString();
+
+        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
+
+        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
+        const manuelLabor = (personalStats.manuallabor || tornApiData.manual_labor || 0).toLocaleString();
+        const intelligence = (personalStats.intelligence || tornApiData.intelligence || 0).toLocaleString();
+        const endurance = (personalStats.endurance || tornApiData.endurance || 0).toLocaleString();
+        
+        const job = jobData.company_name && jobData.job ? `${jobData.company_name} (${jobData.job})` : 'N/A';
+        const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A';
+
+        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
+
+        // Nerve and Energy display values
+        const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
+        const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
+
+        const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
+        const energyMax = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
+
+        let cooldownsHtml = ''; // Will build this as list items for 3 columns
+        if (Object.keys(cooldowns).length > 0) {
+            for (const key in cooldowns) {
+                if (cooldowns.hasOwnProperty(key)) {
+                    const timeLeft = cooldowns[key];
+                    let displayValue;
+                    if (typeof timeLeft === 'number' && timeLeft > 0) {
+                        displayValue = formatTime(timeLeft);
+                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
+                        displayValue = 'Ready';
+                    } else {
+                        displayValue = 'N/A';
+                    }
+                    cooldownsHtml += `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${displayValue}</li>`;
+                }
+            }
+        } else {
+            cooldownsHtml += '<li>No active cooldowns.</li>';
+        }
+
+        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
+
+        // Use the new lastActionData object directly
+        const lastActionTimestamp = lastActionData.timestamp ? lastActionData.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        // Use the new mainStatusData object directly
+        let statusText = mainStatusData.description || 'Unknown';
+        let statusClass = 'status-okay';
+
+        if (mainStatusData) { // Check if mainStatusData is not null/undefined
+            if (mainStatusData.state === 'Hospital') {
+                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
+                statusText = `In Hospital (${formatTime(timeLeft)})`;
+                statusClass = 'status-hospital';
+            } else if (mainStatusData.state === 'Traveling') {
+                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
+                statusText = `${mainStatusData.description} (${formatTime(timeLeft)})`;
+                statusClass = 'status-traveling';
+            } else if (mainStatusData.state !== 'Okay') {
+                statusText = mainStatusData.description;
+                statusClass = 'status-other';
+            }
+        }
+        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
+
+        let overallAccessMessage = '';
+        if (apiErrorMessage) {
+            overallAccessMessage = `<p class="member-detail-error-message">Note: ${apiErrorMessage}</p>`;
+        }
+
+        // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
+        const detailsHtml = `
+            <div class="member-detail-header">
+                <div class="member-header-top-row">
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Energy:</h5>
+                        <p>${energyDisplay}</p>
+                    </div>
+                    ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Nerve:</h5>
+                        <p>${nerveDisplay}</p>
+                    </div>
+                </div>
+                <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
+                <div class="member-detail-level">(Level: ${memberLevel})</div>
+            </div>
+
+            ${overallAccessMessage}
+
+            <div class="member-detail-info-row"> // NEW CONTAINER FOR LAST ACTION AND STATUS
+                <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
+                <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
+            </div>
+
+            <div class="member-stats-group-row">
+                <div class="member-stat-block">
+                    <h5>Battle Stats:</h5>
+                    <div class="member-stats-grid">
+                        <span>Strength:</span> <span>${strength}</span>
+                        <span>Defense:</span> <span>${defense}</span>
+                        <span>Speed:</span> <span>${speed}</span>
+                        <span>Dexterity:</span> <span>${dexterity}</span>
+                    </div>
+                </div>
+                <div class="member-stat-block">
+                    <h5>Work Stats:</h5>
+                    <div class="member-stats-grid">
+                        <span>Job:</span> <span>${job}</span>
+                        <span>Efficiency:</span> <span>${jobEfficiency}</span>
+                        <span>Manual Labor:</span> <span>${manuelLabor}</span>
+                        <span>Intelligence:</span> <span>${intelligence}</span>
+                        <span>Endurance:</span> <span>${endurance}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="member-cooldowns-block">
+                <h5>Cool downs</h5>
+                <ul class="member-cooldowns-list">
+                    ${cooldownsHtml}
+                </ul>
+            </div>
+        `;
+
+        detailPanel.innerHTML = detailsHtml;
+
+    } catch (error) {
+        console.error("Error fetching member details:", error);
+        detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
+    }
+}
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
