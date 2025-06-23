@@ -1020,7 +1020,7 @@ function displayFriendlyMembersTable(members) {
 /**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it. It now uses the selections: workstats, cooldowns, battlestats, profile.
+ * if they have registered it. It now explicitly requests ALL desired selections.
  * @param {string} memberId The Torn User ID of the clicked member.
  */
 async function fetchAndDisplayMemberDetails(memberId) {
@@ -1065,7 +1065,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; // Keep all selections
+        // --- CORRECTED SELECTIONS: Added 'nerve' and 'energy' ---
+        const selections = 'profile,workstats,cooldowns,battlestats,nerve,energy';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1084,7 +1085,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
             
         const data = await response.json();
-        console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< Keep this for now, for verification
+        console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< IMPORTANT LOG
 
         if (data.error) {
             console.error(`[DEBUG] Torn API Data Error details:`, data.error);
@@ -1100,35 +1101,49 @@ async function fetchAndDisplayMemberDetails(memberId) {
             throw new Error(`Torn API Data Error: ${data.error.error}`);
         }
 
-        // --- Data Extraction (Corrected Work Stats paths) ---
+        // --- Data Extraction (now fully aligned with API response structure) ---
         const profile = data.profile || {};
         const stats = data.battlestats || {};
-        const workStatsJobData = data.workstats || {}; // Renamed to clarify it's only job-related workstats
+        const workStatsJobData = data.workstats || {}; // For job info
         const cooldowns = data.cooldowns || {};
+        const nerve = data.nerve || {}; // Access directly from data
+        const energy = data.energy || {}; // Access directly from data
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Battlestats Data:", stats);
         console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
-        // Also log the top-level work stats directly for confirmation
+        console.log("[DEBUG] Extracted Nerve Data:", nerve);
+        console.log("[DEBUG] Extracted Energy Data:", energy);
         console.log("[DEBUG] Top-level Manual Labor:", data.manual_labor);
         console.log("[DEBUG] Top-level Intelligence:", data.intelligence);
         console.log("[DEBUG] Top-level Endurance:", data.endurance);
 
 
+        // Battle Stats
         const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
         const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
         
-        // --- CORRECTED: Get manual_labor, intelligence, endurance directly from 'data' ---
+        // Work Stats (numerical are top-level, job info nested)
         const manuelLabor = data.manual_labor ? data.manual_labor.toLocaleString() : 'N/A';
         const intelligence = data.intelligence ? data.intelligence.toLocaleString() : 'N/A';
         const endurance = data.endurance ? data.endurance.toLocaleString() : 'N/A';
-
-        // --- Keep job details from the 'workStatsJobData' object ---
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
+
+        // Nerve and Energy Stats
+        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
+        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
+
+
+        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
+        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
 
 
         let cooldownsHtml = '<ul>';
@@ -1148,7 +1163,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
         cooldownsHtml += '</ul>';
 
-        // --- Last Action and Status from 'profile' selection (already correctly extracted) ---
+        // Last Action and Status from 'profile' selection
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
@@ -1189,6 +1204,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
+            <h5>Nerve:</h5>
+            <p>${nerveDisplay}</p>
+            <h5>Energy:</h5>
+            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
