@@ -17,6 +17,7 @@ let globalRankedWarData = null;
 let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
 let unsubscribeFromChat = null; // <--- PASTE IT HERE
 
+
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
@@ -63,13 +64,31 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-const chatDisplayArea = document.getElementById('chat-display-area');
 const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
-const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
-const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
+const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus'); // Ensure this ID is correct in your HTML
+
+// NEW/UPDATED: Chatbox Element Getters (specific to each chat tab panel)
+const chatContentPanels = document.querySelector('.chat-content-panels'); // Main container for all chat panels
+
+const factionChatPanel = document.getElementById('faction-chat-panel');
+const privateChatPanel = document.getElementById('private-chat-panel');
+const friendsPanel = document.getElementById('friends-panel');
+const factionMembersPanel = document.getElementById('faction-members-panel');
+const recentlyMetPanel = document.getElementById('recently-met-panel');
+const blockedPeoplePanel = document.getElementById('blocked-people-panel');
+const settingsPanel = document.getElementById('settings-panel');
+
+// Specific display areas *within* each panel (messages will be appended to these)
+const factionChatDisplayArea = document.getElementById('factionChatDisplayArea');
+const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
+const friendsChatDisplayArea = document.getElementById('friendsChatDisplayArea');
+const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea'); // For the members list
+const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
+const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
+const settingsDisplayArea = document.getElementById('settingsDisplayArea');
 
 // --- Utility Functions ---
 

@@ -718,7 +718,7 @@ transition: background-color 0.2s ease;
     display: inline-block; /* Treat as block to accept width/padding, but allows content flow */
     background-color: #007bff; /* A standard blue color, matching other buttons */
     color: #ffffff; /* White text */
-    padding: 4px 12px;
+    padding: 6px 15px;
     border-radius: 4px;
     font-size: 0.8em;
     font-weight: bold;
