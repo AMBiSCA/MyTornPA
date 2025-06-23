@@ -466,9 +466,6 @@ async function sendChatMessage() {
     }
 }
 
-// NEW: Variable to hold the Firebase unsubscribe function for real-time listener
-let unsubscribeFromChat = null; // This variable also needs to be added as a global variable at the top (if not already there)
-
 // NEW: Function to set up real-time listener for chat messages
 function setupChatRealtimeListener() {
     if (!chatMessagesCollection) {
