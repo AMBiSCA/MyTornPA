@@ -1363,7 +1363,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.classList.add('detail-panel-loaded');
 
     let tornApiData = null;
-    let apiErrorMessage = ''; 
+    let apiErrorMessage = '';
 
     try {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
@@ -1396,9 +1396,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; 
+        // --- CHANGE HERE: Added 'basic' to selections ---
+        const selections = 'profile,workstats,cooldowns,battlestats,basic';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
-        
+
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
@@ -1413,8 +1414,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            tornApiData = await response.json(); 
-            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
+            tornApiData = await response.json();
+            // This is where you would double-check the console for the *full* object structure
+            console.log(`%c[DEBUG] Full Torn API Response Data for ${memberId}:`, 'color: #007bff; font-weight: bold;', tornApiData);
 
             if (tornApiData.error) {
                 console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
@@ -1425,39 +1427,48 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 }
             }
         }
-        
+
         if (!tornApiData || Object.keys(tornApiData).length === 0) {
-             throw new Error("Failed to retrieve any meaningful data after API call.");
+            throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
         const profile = tornApiData.profile || {};
-        const battlestats = tornApiData.battlestats || {}; 
-        const workStatsJobData = tornApiData.workstats || {}; 
+        const battlestats = tornApiData.battlestats || {};
+        const workStatsJobData = tornApiData.workstats || {};
         const cooldowns = tornApiData.cooldowns || {};
-        const nerve = tornApiData.nerve || {}; 
-        const energy = tornApiData.energy || {}; 
+        // --- CHANGE HERE: Access nerve and energy from tornApiData (now available with 'basic' selection) ---
+        const nerve = tornApiData.nerve || {};
+        const energy = tornApiData.energy || {};
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); 
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats);
         console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
         console.log("[DEBUG] Extracted Energy Data:", energy);
-        console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
-        console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
-        console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
+
+        // --- CHANGE HERE: Access manual_labor, intelligence, endurance from workStatsJobData ---
+        // Assuming they are directly under workstats, common names are also job_manual_labor etc.
+        // You might need to verify the exact property names in tornApiData.workstats
+        // For example, it could be `workStatsJobData.manual_labor` or `workStatsJobData.job_manual_labor`
+        console.log("[DEBUG] WorkStats - Manual Labor (expected):", workStatsJobData.manual_labor);
+        console.log("[DEBUG] WorkStats - Intelligence (expected):", workStatsJobData.intelligence);
+        console.log("[DEBUG] WorkStats - Endurance (expected):", workStatsJobData.endurance);
+        
+        // These variables are now correctly sourced from workStatsJobData
+        const manuelLabor = (workStatsJobData.manual_labor || 0).toLocaleString();
+        const intelligence = (workStatsJobData.intelligence || 0).toLocaleString();
+        const endurance = (workStatsJobData.endurance || 0).toLocaleString();
 
 
         const strength = (battlestats.strength || 0).toLocaleString();
         const speed = (battlestats.speed || 0).toLocaleString();
         const dexterity = (battlestats.dexterity || 0).toLocaleString();
         const defense = (battlestats.defense || 0).toLocaleString();
-        
+
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
-        const intelligence = (tornApiData.intelligence || 0).toLocaleString();
-        const endurance = (tornApiData.endurance || 0).toLocaleString();
+        // The job and jobEfficiency extraction seems correct if workStatsJobData.job_company_name and workStatsJobData.job_efficiency exist
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
@@ -1467,14 +1478,16 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const maxNerve = (nerve.maximum || '');
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
-        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
-
+        // Removed the '(Selection Missing)' check here as 'basic' is now included
+        
         const currentEnergy = (energy.current || 'N/A');
         const maxEnergy = (energy.maximum || '');
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
-        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
+        // Removed the '(Selection Missing)' check here as 'basic' is now included
 
+        console.log(`[DEBUG] Final Nerve Display: ${nerveDisplay}`);
+        console.log(`[DEBUG] Final Energy Display: ${energyDisplay}`);
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1552,9 +1565,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
-                </p>
+            </p>
         `;
-            
+
         detailPanel.innerHTML = detailsHtml;
 
     } catch (error) {
