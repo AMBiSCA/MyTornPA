@@ -1195,7 +1195,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.error("Error fetching member details:", error);
         detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
     }
-}
+
 
         const profile = data.profile || {};
         const stats = data.battlestats || {};
