@@ -1592,7 +1592,7 @@ autocomplete-items {
 #selectedMemberDetailPanel {
     background-color: #2a2a2a; /* Slightly lighter dark background */
     color: #f0f0f0; /* Light text */
-    padding: 15px; /* Comfortable padding inside the box */
+    padding: 5px; /* Comfortable padding inside the box */
     border-radius: 8px; /* Rounded corners */
     border: 1px solid #444; /* Subtle border */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Deeper shadow for depth */
@@ -1612,7 +1612,7 @@ autocomplete-items {
     align-items: center; /* Center horizontally */
     text-align: center; /* Center text within this block */
     gap: 5px; /* Space between elements in the header */
-    padding-bottom: 10px; /* Add some space between main header and info lines */
+    padding-bottom: 0px; /* Add some space between main header and info lines */
 }
 
 /* NEW: Container for the top row (Energy, Image, Nerve) */
@@ -1642,8 +1642,6 @@ autocomplete-items {
     color: #e0a71a; /* Gold color for name */
     margin-top: 5px; /* Space above name if image is first */
 }
-
-/* Removed .member-detail-level style as requested */
 
 /* Common style for info paragraphs (Last Action, Status) */
 .member-detail-info-paragraph {
