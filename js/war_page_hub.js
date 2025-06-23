@@ -446,8 +446,61 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
             }
         }
     });
+}
 
+ // Update Chain Timer Display (smooth 1-second countdown)
+ console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+ if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+     const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+     const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+     chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+ } else if (chainTimerDisplay) {
+     chainTimerDisplay.textContent = 'Chain Over';
+ }
 
+ // Update Chain Started Time Display
+ if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+     chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+ } else if (chainStartedDisplay) {
+     chainStartedDisplay.textContent = 'Started: N/A';
+ }
+
+ // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+ // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+ if (warStartedTime && globalWarStartedActualTime > 0) {
+     warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+ } else if (warStartedTime) {
+     warStartedTime.textContent = 'N/A';
+ }
+
+}
+
+  // Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // Update Chain Started Time Display
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+
+  // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+  // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+  if (warStartedTime && globalWarStartedActualTime > 0) {
+      warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+  } else if (warStartedTime) {
+      warStartedTime.textContent = 'N/A';
+  }
+
+// ... (Your existing Utility Functions, e.g., formatTime, formatTornTime, filterProfanity if present) ...
 
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
@@ -1736,7 +1789,10 @@ function setupMemberClickEvents() {
     });
 }
 
-
+function setupToggleSelectionEvents() {
+    // This function is currently not defined but is no longer causing an error.
+    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
+}
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
@@ -1902,28 +1958,28 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+	
+	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
+    // Send message on button click
+    chatSendBtn.addEventListener('click', sendChatMessage);
 
-    if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
-        // Send message on button click
-        chatSendBtn.addEventListener('click', sendChatMessage);
+    // Send message on Enter key press in the input field
+    chatTextInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent default browser behavior (like new line)
+            sendChatMessage(); // Call our send message function
+        }
+    });
+}
 
-        // Send message on Enter key press in the input field
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent default browser behavior (like new line)
-                sendChatMessage(); // Call our send message function
-            }
+if (chatTabsContainer && chatTabButtons.length > 0) {
+    chatTabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+            switchChatTab(tabName); // Call our new function to switch tabs
         });
-    }
-
-    if (chatTabsContainer && chatTabButtons.length > 0) {
-        chatTabButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
-                switchChatTab(tabName); // Call our new function to switch tabs
-            });
-        });
-    }
+    });
+}
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
@@ -1938,14 +1994,10 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
-    // Only ONE instance of saveWarStatusControlsBtn listener
+    
     if (saveWarStatusControlsBtn) {
         saveWarStatusControlsBtn.addEventListener('click', async () => {
             const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const rawTeamLead = currentTeamLeadInput ? currentTeamLeadInput.value.trim() : '';
-            const filteredTeamLead = typeof filterProfanity === 'function' ? filterProfanity(rawTeamLead) : rawTeamLead;
-
             const statusData = {
                 toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
                 toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
@@ -1954,8 +2006,7 @@ function setupEventListeners(apiKey) {
                 toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
                 toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
                 nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId,
-                currentTeamLead: filteredTeamLead // Save the filtered team lead
+                enemyFactionID: enemyId
             };
             try {
                 await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
@@ -1994,8 +2045,10 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn'); // Ensure this ID is correct in HTML
-    if (saveWatchlistSelectionsBtn) {
+    // NOTE: The typo in your original variable name is corrected here. 
+    // Make sure your save button's ID in the HTML is "saveWatchlistSelectionsBtn"
+    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
+    if (saveWatchlistSelectionsBtn) { 
         saveWatchlistSelectionsBtn.addEventListener('click', async () => {
             if (!bigHitterWatchlistContainer) return;
             const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
@@ -2008,6 +2061,72 @@ function setupEventListeners(apiKey) {
         });
     }
 }
+    
+    if (saveWarStatusControlsBtn) {
+        saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
+            try {
+                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+                alert('War status saved!');
+                populateWarStatusDisplay(statusData);
+                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
+            } catch (error) {
+                console.error('Error saving war status:', error);
+            }
+        });
+    }
+
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            if (!designatedAdminsContainer) return;
+            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+                alert('Admins saved!');
+            } catch (error) {
+                console.error("Error saving admins:", error);
+            }
+        });
+    }
+
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+                alert('Energy tracking members saved!');
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+            }
+        });
+    }
+
+    // NEW: Save button for Big Hitter Watchlist
+    if (saveSelectionsBtnBH) {
+        saveSelectionsBtnBH.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+                alert('Big Hitter Watchlist saved!');
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
+            }
+        });
+    }
+
+
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
