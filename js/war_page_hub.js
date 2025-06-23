@@ -2102,4 +2102,4 @@ document.addEventListener('DOMContentLoaded', () => {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
     } 
  });
-}); // Closes: document.addEventListener('DOMContentLoaded', ...)
+}); 
