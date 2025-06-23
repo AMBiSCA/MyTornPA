@@ -1585,6 +1585,176 @@ autocomplete-items {
     color: #1e1e1e; /* Dark text on highlight */
 }
 
+/* ==========================================================================
+   Member Details Panel Styles (#selectedMemberDetailPanel)
+   ========================================================================== */
+
+#selectedMemberDetailPanel {
+    background-color: #2a2a2a; /* Slightly lighter dark background */
+    color: #f0f0f0; /* Light text */
+    padding: 15px; /* Comfortable padding inside the box */
+    border-radius: 8px; /* Rounded corners */
+    border: 1px solid #444; /* Subtle border */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Deeper shadow for depth */
+    box-sizing: border-box; /* Include padding/border in width */
+    overflow-y: auto; /* Allow vertical scrolling if content is too long */
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    gap: 15px; /* Space between major sections */
+    height: 100%; /* Ensure it fills its parent's height */
+}
+
+/* Header Section for Image, Name, ID, Level */
+.member-detail-header {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center horizontally */
+    text-align: center; /* Center text within this block */
+    gap: 5px; /* Space between elements in the header */
+}
+
+.member-detail-profile-image {
+    width: 80px; /* A bit larger than table, adjust as needed */
+    height: 80px;
+    border-radius: 50%; /* Circular image */
+    object-fit: cover; /* Ensure image fills the circle */
+    border: 3px solid #00a8ff; /* Nice blue border */
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Subtle glow */
+}
+
+.member-detail-name-id {
+    font-size: 1.4em; /* Larger font for name */
+    font-weight: bold;
+    color: #e0a71a; /* Gold color for name */
+    margin-top: 5px; /* Space above name if image is first */
+}
+
+.member-detail-level {
+    font-size: 1em;
+    color: #aaa; /* Lighter color for level */
+}
+
+/* Common style for info paragraphs (Last Action, Status) */
+.member-detail-info-paragraph {
+    font-size: 0.95em;
+    color: #f0f0f0;
+    margin: 5px 0; /* Space above and below paragraphs */
+    text-align: center; /* Center these info lines */
+}
+
+/* Status specific colors (re-using existing, ensure these apply to new classes) */
+.member-detail-info-paragraph .status-hospital { color: #ff5c5c; font-weight: bold; }
+.member-detail-info-paragraph .status-traveling { color: #17a2b8; font-weight: bold; }
+.member-detail-info-paragraph .status-other { color: #ffb86c; font-weight: bold; }
+.member-detail-info-paragraph .status-okay { color: #28a745; font-weight: bold; }
+
+
+/* Container for Energy/Nerve (side-by-side) and Battle/Work Stats (side-by-side) */
+.member-stats-group-row {
+    display: flex;
+    gap: 15px; /* Space between the side-by-side blocks */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: center; /* Center groups if they wrap */
+}
+
+/* Individual Stat Blocks (Energy, Nerve, Battle Stats, Work Stats) */
+.member-stat-block {
+    background-color: #1e1e1e; /* Darker background for stat blocks */
+    border: 1px solid #3a3a3a; /* Darker border */
+    border-radius: 6px;
+    padding: 10px;
+    flex: 1; /* Allow blocks to grow and shrink */
+    min-width: 130px; /* Minimum width for small blocks like Energy/Nerve */
+    max-width: 48%; /* Adjust max-width to allow two columns on wider screens */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Space between elements inside the block */
+}
+
+.member-stat-block h5 {
+    color: #00a8ff; /* Blue for titles like "Battle Stats" */
+    font-size: 1.1em;
+    margin: 0 0 8px 0; /* Space below title */
+    text-align: center; /* Center the title */
+    border-bottom: 1px solid #3a3a3a; /* Separator below title */
+    padding-bottom: 5px;
+}
+
+/* Styles for the inner grid of battle/work stats (label-value pairs) */
+.member-stats-grid { /* Re-using your existing class */
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label auto-width, value takes rest */
+    gap: 3px 10px; /* Row gap 3px, Column gap 10px */
+    font-size: 0.9em;
+}
+
+.member-stats-grid span:first-child { /* Labels (Strength:, Speed:, etc.) */
+    color: #aaa; /* Lighter color for labels */
+    text-align: left; /* Align labels to the left */
+}
+
+.member-stats-grid span:last-child { /* Values (123,456) */
+    color: #f0f0f0; /* White color for values */
+    font-weight: bold;
+    text-align: right; /* Align values to the right */
+}
+
+/* Cooldowns Section */
+.member-cooldowns-block {
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between title and list */
+}
+
+.member-cooldowns-block h5 {
+    color: #00a8ff; /* Blue for cooldowns title */
+    font-size: 1.1em;
+    margin: 0;
+    text-align: center; /* Center the title */
+}
+
+/* Cooldowns List (3 columns) */
+.member-cooldowns-list {
+    list-style: none; /* Remove bullet points */
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 3 columns, responsive */
+    gap: 8px 10px; /* Vertical and horizontal gap */
+    font-size: 0.85em;
+    text-align: center; /* Center individual cooldown items */
+}
+
+.member-cooldowns-list li {
+    background-color: #333; /* Background for individual cooldown item */
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    white-space: nowrap; /* Prevent item text from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if too long */
+}
+
+/* Responsive adjustments for the detail panel */
+@media (max-width: 768px) {
+    .member-stats-group-row {
+        flex-direction: column; /* Stack stat groups vertically on smaller screens */
+        gap: 10px;
+    }
+    .member-stat-block {
+        max-width: 100%; /* Take full width when stacked */
+    }
+    .member-cooldowns-list {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Adjust columns for smaller screens */
+    }
+}
 /* Style for matched text */
 .autocomplete-items strong {
     color: #e0a71a; /* Gold color for matched text */

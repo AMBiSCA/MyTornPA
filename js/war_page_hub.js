@@ -1410,8 +1410,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
             if (errorData && errorData.error && errorData.error.error) {
                 errorMessage += ` - ${errorData.error.error}`;
-            (errorData && errorData.error && errorData.error.error) 
-                errorMessage += ` - ${errorData.error.error}`;
             }
             throw new Error(errorMessage);
         } else {
@@ -1432,15 +1430,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- MODIFICATION HERE: Access name, player_id, last_action, status directly from tornApiData (root) ---
-        const memberName = tornApiData.name || 'Unknown';
-        const memberPlayerId = tornApiData.player_id || 'N/A';
-        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
-        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
-
-        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
-        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
-
         const personalStats = tornApiData.personalstats || {};
         const jobData = tornApiData.job || {};
         const cooldowns = tornApiData.cooldowns || {};
@@ -1450,6 +1439,14 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
         const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
 
+        // Access name, player_id, last_action, status directly from tornApiData (root)
+        const memberName = tornApiData.name || 'Unknown';
+        const memberPlayerId = tornApiData.player_id || 'N/A';
+        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
+        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
+
+        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
+        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
 
         console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
         console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
@@ -1481,7 +1478,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
-        // Nerve and Energy display - will show "Not available" if data is missing
+        // Nerve and Energy display values
         const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
         const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
@@ -1492,25 +1489,25 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
 
-
-        let cooldownsHtml = '<ul>';
+        let cooldownsHtml = ''; // Will build this as list items for 3 columns
         if (Object.keys(cooldowns).length > 0) {
             for (const key in cooldowns) {
                 if (cooldowns.hasOwnProperty(key)) {
                     const timeLeft = cooldowns[key];
+                    let displayValue;
                     if (typeof timeLeft === 'number' && timeLeft > 0) {
-                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
+                        displayValue = formatTime(timeLeft);
                     } else if (typeof timeLeft === 'number' && timeLeft === 0) {
-                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
+                        displayValue = 'Ready';
                     } else {
-                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: N/A</li>`;
+                        displayValue = 'N/A';
                     }
+                    cooldownsHtml += `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${displayValue}</li>`;
                 }
             }
         } else {
             cooldownsHtml += '<li>No active cooldowns.</li>';
         }
-        cooldownsHtml += '</ul>';
 
         console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
 
@@ -1540,40 +1537,61 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         let overallAccessMessage = '';
         if (apiErrorMessage) {
-            overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
+            overallAccessMessage = `<p class="member-detail-error-message">Note: ${apiErrorMessage}</p>`;
         }
 
+        // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
         const detailsHtml = `
-            <h4>
-                ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-profile-image" width="50" height="50">` : ''}
-                ${memberName} [${memberPlayerId}] (Level: ${memberLevel})
-            </h4>
+            <div class="member-detail-header">
+                ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
+                <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
+                <div class="member-detail-level">(Level: ${memberLevel})</div>
+            </div>
+
             ${overallAccessMessage}
-            <p>Last Action: ${lastActionText}</p>
-            <p>Status: <span class="${statusClass}">${statusText}</span></p>
-            <h5>Battle Stats:</h5>
-            <div class="member-stats-grid">
-                <span>Strength:</span> <span>${strength}</span>
-                <span>Speed:</span> <span>${speed}</span>
-                <span>Dexterity:</span> <span>${dexterity}</span>
-                <span>Defense:</span> <span>${defense}</span>
+
+            <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
+            <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
+
+            <div class="member-stats-group-row">
+                <div class="member-stat-block member-stat-block-small">
+                    <h5>Energy:</h5>
+                    <p>${energyDisplay}</p>
+                </div>
+                <div class="member-stat-block member-stat-block-small">
+                    <h5>Nerve:</h5>
+                    <p>${nerveDisplay}</p>
+                </div>
             </div>
-            <h5>Work Stats:</h5>
-            <div class="member-stats-grid">
-                <span>Job:</span> <span>${job}</span>
-                <span>Efficiency:</span> <span>${jobEfficiency}</span>
-                <span>Manual Labor:</span> <span>${manuelLabor}</span>
-                <span>Intelligence:</span> <span>${intelligence}</span>
-                <span>Endurance:</span> <span>${endurance}</span>
+
+            <div class="member-stats-group-row">
+                <div class="member-stat-block">
+                    <h5>Battle Stats:</h5>
+                    <div class="member-stats-grid">
+                        <span>Strength:</span> <span>${strength}</span>
+                        <span>Defense:</span> <span>${defense}</span>
+                        <span>Speed:</span> <span>${speed}</span>
+                        <span>Dexterity:</span> <span>${dexterity}</span>
+                    </div>
+                </div>
+                <div class="member-stat-block">
+                    <h5>Work Stats:</h5>
+                    <div class="member-stats-grid">
+                        <span>Job:</span> <span>${job}</span>
+                        <span>Efficiency:</span> <span>${jobEfficiency}</span>
+                        <span>Manual Labor:</span> <span>${manuelLabor}</span>
+                        <span>Intelligence:</span> <span>${intelligence}</span>
+                        <span>Endurance:</span> <span>${endurance}</span>
+                    </div>
+                </div>
             </div>
-            <h5>Nerve:</h5>
-            <p>${nerveDisplay}</p>
-            <h5>Energy:</h5>
-            <p>${energyDisplay}</p>
-            <h5>Cooldowns:</h5>
-            ${cooldownsHtml}
-            <p>
-                </p>
+
+            <div class="member-cooldowns-block">
+                <h5>Cool downs</h5>
+                <ul class="member-cooldowns-list">
+                    ${cooldownsHtml}
+                </ul>
+            </div>
         `;
 
         detailPanel.innerHTML = detailsHtml;
