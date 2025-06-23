@@ -15,6 +15,7 @@ let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
 let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
 let globalRankedWarData = null;
 let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
+const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -420,9 +421,8 @@ function displayChatMessage(messageObj) {
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
 
-// NEW: Function to handle sending a chat message
-async function sendChatMessage() {
-    // Ensure chatTextInput, auth.currentUser, and userApiKey are available
+// NEW sending a chat message
+
     if (!chatTextInput || !auth.currentUser || !userApiKey) {
         console.warn("Cannot send message: Chat input, logged-in user, or API key not available.");
         // Optionally, show a user-friendly message on the UI if elements/data are missing
@@ -439,22 +439,29 @@ async function sendChatMessage() {
     // If you want profanity filtering, ensure the filterProfanity function is defined in your utilities.
     const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
 
-
-    // For now, we'll just simulate sending by displaying it locally.
-    // In a later step, we will integrate with Firebase to store and retrieve messages.
     const messageObj = {
         senderId: auth.currentUser.uid,
         sender: currentTornUserName, // This global variable should hold the logged-in Torn user's name
         text: filteredMessage,
-        timestamp: Date.now() // Use current timestamp for the message
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp for accuracy
     };
 
-    displayChatMessage(messageObj); // Display the message immediately in the chat area
+    try {
+        // Save the message to Firestore
+        await chatMessagesCollection.add(messageObj);
+        console.log("Message sent to Firebase:", messageObj);
 
-    chatTextInput.value = ''; // Clear the input field after sending
-    chatTextInput.focus(); // Keep focus on the input field for quick replies
+        // No longer display locally immediately here, as the real-time listener will handle it.
+        // displayChatMessage(messageObj); // REMOVED: Real-time listener will display
+
+        chatTextInput.value = ''; // Clear the input field after sending
+        chatTextInput.focus(); // Keep focus on the input field for quick replies
+
+    } catch (error) {
+        console.error("Error sending message to Firebase:", error);
+        alert("Failed to send message. See console for details.");
+    }
 }
-
   async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
