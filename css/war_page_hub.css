@@ -212,30 +212,46 @@
     margin-bottom: 8px; /* Space below the list, similar to inputs */
 }
 
+/* Ensure the main row within Active Ops lays out its panels side-by-side */
 .active-ops-main-content-row {
-    display: flex; /* Makes its children (left & right panels) go side-by-side */
-    flex-grow: 1; /* Allows this row to take up remaining vertical space */
+    display: flex; /* Makes its direct children (left & right panels) go side-by-side */
+    flex-grow: 1; /* Allows this row to take up available vertical space */
     gap: 20px; /* Space between the left and right panels */
     width: 100%; /* Ensures it spans the full width of its parent */
     align-items: flex-start; /* Aligns content to the top within the row */
-    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
+    flex-wrap: wrap; /* Allows panels to wrap to column layout on smaller screens */
 }
 
-/* Left Panel: Holds the ops controls grid and enemy targets table */
+/* Define how the left panel (enemy table) behaves */
 .active-ops-left-panel {
-    display: flex;
-    flex-direction: column;
-    flex: 1; /* Allows it to grow and shrink */
-    min-width: 450px;
-    margin-top: -25px;
+    display: flex; /* Makes content inside this panel also use flex layout if needed */
+    flex-direction: column; /* Stacks content vertically inside this panel */
+    flex: 1; /* Allows it to grow and shrink to take up available space */
+    min-width: 450px; /* Ensures it maintains a minimum width on wider screens */
+    /* Check this margin-top if it causes issues; adjust or remove as necessary */
+    /* margin-top: -25px; */
 }
 
-/* Right Panel: Holds the chatbox */
+/* Define how the right panel (chat box) behaves */
 .active-ops-right-panel {
-    display: flex;
-    flex-direction: column; /* Stack chat elements vertically */
-    flex: 1; /* Allows it to grow and shrink */
-    min-width: 300px; /* Minimum width for the chatbox side */
+    display: flex; /* Makes content inside this panel (the chat box) also use flex layout */
+    flex-direction: column; /* Stacks content vertically inside this panel */
+    flex: 1; /* Allows it to grow and shrink to take up available space */
+    min-width: 300px; /* Ensures it maintains a minimum width for the chatbox */
+}
+
+/* Responsive adjustment for when screens are too small for side-by-side */
+@media (max-width: 992px) {
+    .active-ops-main-content-row {
+        flex-direction: column; /* Stack panels vertically on smaller screens */
+        gap: 10px; /* Reduce gap when stacked */
+    }
+
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        min-width: unset; /* Remove min-width to allow full width stacking */
+        width: 100%; /* Take full width when stacked vertically */
+    }
 }
 
 .chat-container {
@@ -1396,29 +1412,6 @@ autocomplete-items {
         gap: 10px; /* NEW: Reduced gap */
     }
     
-    .active-ops-main-content-row {
-        flex-direction: column; /* Stack panels vertically in active ops */
-        gap: 10px; /* Reduce gap when stacked */
-    }
-
-    .active-ops-left-panel,
-    .active-ops-right-panel {
-        min-width: unset; /* Remove min-width on smaller screens */
-        width: 100%; /* Take full width */
-    }
-    /* ... rest of your existing rules within this media query ... */
-}
-    .active-ops-main-content-row {
-        flex-direction: column; /* Stack panels vertically in active ops */
-        gap: 10px; /* Reduce gap when stacked */
-    }
-
-    .active-ops-left-panel,
-    .active-ops-right-panel {
-        min-width: unset; /* Remove min-width on smaller screens */
-        width: 100%; /* Take full width */
-    }
-}
 
 /* Class to hide the chat display and input when specific chat tabs are active */
 .chat-container.chat-content-hidden .chat-display-area,
