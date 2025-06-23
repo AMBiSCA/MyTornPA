@@ -943,80 +943,6 @@ async function initializeAndLoadData(apiKey) {
 }
 
 /**
- * Builds and displays the table for the user's own faction members.
- * @param {object} members - The members object from the API.
- */
-function displayFriendlyMembersTable(members) {
-    if (!friendlyMembersTbody) {
-        console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
-        return;
-    }
-
-    // Clear the "Loading..." message from the table body
-    friendlyMembersTbody.innerHTML = '';
-
-    if (!members || Object.keys(members).length === 0) {
-        friendlyMembersTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px;">Member data not available.</td></tr>`;
-        return;
-    }
-
-    // This correctly gets an array of [ID, Data] pairs for each member
-    // The 'members' object's keys might be internal faction IDs,
-    // but the actual Torn Player ID is inside the member object itself.
-    const membersArray = Object.values(members); // Change: Use Object.values to get just the member objects
-
-    // Sort the array by the member's name
-    membersArray.sort((memberA, memberB) => memberA.name.localeCompare(memberB.name));
-
-    let allRowsHtml = '';
-
-    // Loop directly through the member objects
-    for (const member of membersArray) { // Change: Iterate directly over member objects
-        // The actual Torn User ID is inside the 'member' object, typically as 'id' or 'player_id'
-        // Based on your console log, it seems to be 'id' based on the 'file XXXXX' reference.
-        const tornPlayerId = member.id; // Corrected: Get the Torn Player ID from the member object
-
-        // --- DEBUG: Log the CORRECT Torn Player ID and the full member object ---
-        console.log("Friendly member data (corrected ID):", tornPlayerId, member);
-
-        if (!tornPlayerId) {
-            console.warn("Skipping friendly member due to missing Torn Player ID:", member);
-            continue; // Skip this member if ID is missing
-        }
-
-        const profileUrl = `https://www.com/profiles.php?XID=${tornPlayerId}`; // Use tornPlayerId
-        const name = member.name;
-        const level = member.level;
-        const lastAction = member.last_action ? formatRelativeTime(member.last_action.timestamp) : 'N/A';
-        const status = member.status ? member.status.description : 'N/A';
-
-        // Placeholders for stats (still N/A as they come from separate API call)
-        const strength = 'N/A';
-        const dexterity = 'N/A';
-        const speed = 'N/A';
-        const defense = 'N/A';
-        const nerve = 'N/A';
-        const energy = 'N/A';
-
-        allRowsHtml += `
-            <tr data-id="${tornPlayerId}">  <td><a href="${profileUrl}" target="_blank">${name} [${tornPlayerId}]</a></td> <td>${level}</td>
-                <td>${lastAction}</td>
-                <td>${strength}</td>
-                <td>${dexterity}</td>
-                <td>${speed}</td>
-                <td>${defense}</td>
-                <td>${status}</td>
-                <td>${nerve}</td>
-                <td>${energy}</td>
-            </tr>
-        `;
-    }
-
-    // Add all the new rows to the table body at once
-    friendlyMembersTbody.innerHTML = allRowsHtml;
-}
-
-/**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
  * if they have registered it. It strictly requests: profile, workstats, cooldowns, battlestats.
@@ -1035,7 +961,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
-    // Declare variables that might be reassigned
     let tornApiData = null;
     let apiErrorMessage = ''; 
 
@@ -1069,7 +994,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // --- STRICTLY Use the selections you confirmed work ---
         const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
@@ -1104,28 +1028,29 @@ async function fetchAndDisplayMemberDetails(memberId) {
              throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data Extraction ---
+        // --- Data Extraction and NEW Debugging Logs ---
         const profile = tornApiData.profile || {};
         const stats = tornApiData.battlestats || {}; 
         const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
-        // Nerve and Energy variables are removed as they are not requested or displayed
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data:", stats);
-        console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
-        console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
-        console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
-        console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
-        console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'stats' object):", stats);
+        console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
+        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
+        console.log("[DEBUG] Top-level Manual Labor (raw):", tornApiData.manual_labor);
+        console.log("[DEBUG] Top-level Intelligence (raw):", tornApiData.intelligence);
+        console.log("[DEBUG] Top-level Endurance (raw):", tornApiData.endurance);
 
 
-        // Battle Stats - Robust access
+        // Battle Stats
         const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
         const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
         
+        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
+
         // Work Stats (numerical are top-level, job info nested)
         const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
         const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
@@ -1133,17 +1058,19 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
-        // Nerve and Energy display sections are removed
+        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
             for (const key in cooldowns) {
                 if (cooldowns.hasOwnProperty(key)) {
                     const timeLeft = cooldowns[key];
-                    if (timeLeft > 0) {
+                    if (typeof timeLeft === 'number' && timeLeft > 0) { // Ensure timeLeft is a number
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
-                    } else {
+                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
+                    } else { // Handle cases where cooldowns[key] might not be a number
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: N/A</li>`;
                     }
                 }
             }
@@ -1151,6 +1078,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             cooldownsHtml += '<li>No active cooldowns.</li>';
         }
         cooldownsHtml += '</ul>';
+
+        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
+
 
         // Last Action and Status from 'profile' selection
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
@@ -1173,6 +1103,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 statusClass = 'status-other';
             }
         }
+        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
+
 
         let overallAccessMessage = '';
         if (apiErrorMessage) {
