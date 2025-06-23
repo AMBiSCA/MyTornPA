@@ -1099,7 +1099,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
-    // Declare variables that might be reassigned
     let tornApiData = null;
     let apiErrorMessage = ''; 
 
@@ -1169,14 +1168,15 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         // --- Data Extraction ---
         const profile = tornApiData.profile || {};
-        const stats = tornApiData.battlestats || {}; 
+        const battlestats = tornApiData.battlestats || {}; // Renamed 'stats' to 'battlestats' for clarity and direct access
         const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
+        // Nerve and Energy variables are kept as N/A placeholders in case they are re-added
         const nerve = tornApiData.nerve || {}; 
         const energy = tornApiData.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data (raw 'stats' object):", stats);
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); // Log with new name
         console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
@@ -1186,32 +1186,37 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
-        const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
-        const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
-        const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
-        const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
+        // Battle Stats - Direct access from 'battlestats' object
+        // Removed typeof check, assuming API always returns numbers for these. Use || 0 for safer toLocaleString
+        const strength = (battlestats.strength || 0).toLocaleString();
+        const speed = (battlestats.speed || 0).toLocaleString();
+        const dexterity = (battlestats.dexterity || 0).toLocaleString();
+        const defense = (battlestats.defense || 0).toLocaleString();
         
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
-        const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
-        const endurance = typeof tornApiData.endurance === 'number' ? tornApiData.endurance.toLocaleString() : 'N/A';
+        // Work Stats (numerical are top-level, job info nested)
+        const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
+        const intelligence = (tornApiData.intelligence || 0).toLocaleString();
+        const endurance = (tornApiData.endurance || 0).toLocaleString();
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
-        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
-        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
+        // Nerve and Energy Stats (will be 'N/A' as not in current selections)
+        const currentNerve = (nerve.current || 'N/A');
+        const maxNerve = (nerve.maximum || '');
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
         if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
 
-        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
-        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
+        const currentEnergy = (energy.current || 'N/A');
+        const maxEnergy = (energy.maximum || '');
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
         if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
+
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1260,6 +1265,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         if (apiErrorMessage) {
             overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
         }
+
 
         const detailsHtml = `
             <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
