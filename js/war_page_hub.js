@@ -1938,6 +1938,54 @@ function setupEventListeners(apiKey) {
         });
     }
 	
+	async function initializeAndLoadData(apiKey) {
+    if (!apiKey) {
+        console.warn("API Key is missing for initializeAndLoadData.");
+        return;
+    }
+
+    // Use the exact V2 URL provided for members data
+    const factionMembersApiUrlV2 = `https://api.torn.com/v2/faction/49028/members?key=${apiKey}`; // Hardcoded Faction ID 49028
+
+    try {
+        const response = await fetch(factionMembersApiUrlV2);
+        const data = await response.json(); // V2 API typically returns JSON directly in response.data
+
+        if (data.errors) { // V2 API uses 'errors' array for error messages
+            console.error("Torn API Error in initializeAndLoadData (V2):", data.errors);
+            // You might want to display an error message to the user here
+            return;
+        }
+
+        // V2 /faction/{id}/members endpoint returns an array of member objects directly.
+        if (Array.isArray(data)) { 
+            window.globalFactionMembers = data.map(member => {
+                return {
+                    id: member.id,
+                    name: member.name,
+                    rank: member.faction_rank ? member.faction_rank.name : 'N/A', // Assuming rank is nested under faction_rank.name
+                    level: member.level,
+                    last_action: member.last_action,
+                    status: member.status
+                    // profile_image is typically NOT in this V2 endpoint, so it remains undefined.
+                };
+            });
+            console.log("Faction members loaded from V2 API:", window.globalFactionMembers.length, "members.");
+        } else {
+            window.globalFactionMembers = [];
+            console.warn("V2 Faction members API did not return an array as expected.");
+        }
+
+        // Note: This specific V2 call only gets members. 
+        // window.globalFactionData will NOT be populated with basic faction details (name, tag, etc.)
+        // unless you make a separate V2 call to /v2/faction/49028?key=...
+
+    } catch (error) {
+        console.error("Error fetching faction data from V2 API:", error);
+        // Display a user-friendly error message
+    }
+}
+	
 	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
     // Send message on button click
     chatSendBtn.addEventListener('click', sendChatMessage);
@@ -2279,6 +2327,7 @@ function handleChatTabClick(event) {
         }
     }
 }
+
 
 
     auth.onAuthStateChanged(async (user) => {
