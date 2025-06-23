@@ -2103,7 +2103,9 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
                 console.error("Error saving big hitter watchlist:", error);
             }
         });
-	}
+    }
+
+
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
@@ -2122,104 +2124,157 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInputArea = document.querySelector('.chat-input-area'); // Selects the whole input area div
 
     // Function to handle chat tab clicks
-    // Function to handle chat tab clicks
-function handleChatTabClick(event) {
-    const clickedTab = event.currentTarget;
-    const targetTab = clickedTab.dataset.chatTab;
+    function handleChatTabClick(event) {
+        const clickedTab = event.currentTarget;
+        const targetTab = clickedTab.dataset.chatTab;
 
-    // Remove 'active' class from all chat tabs
-    chatTabs.forEach(tab => tab.classList.remove('active'));
+        // Remove 'active' class from all chat tabs
+        chatTabs.forEach(tab => tab.classList.remove('active'));
 
-    // Add 'active' class to the clicked chat tab
-    clickedTab.classList.add('active');
+        // Add 'active' class to the clicked chat tab
+        clickedTab.classList.add('active');
 
-    // Get a reference to the main chat box container
-    const warChatBox = document.getElementById('warChatBox');
+        // Get a reference to the main chat box container
+        // const warChatBox = document.getElementById('warChatBox'); // Already defined above, no need to redefine
 
-    // --- Manage dynamic content panel (for Settings, Friends, etc.) ---
-    let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
-    
-    // Remove any existing dynamic panel to start fresh
-    if (nonChatContentPanel) {
-        nonChatContentPanel.remove();
-    }
+        // --- Manage dynamic content panel (for Settings, Friends, etc.) ---
+        let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
+        
+        // Remove any existing dynamic panel to start fresh
+        if (nonChatContentPanel) {
+            nonChatContentPanel.remove();
+        }
 
-    // Determine if we are on a chat tab or a non-chat tab
-    if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
-        // --- CHAT TABS: Show chat display and input areas ---
-        if (warChatBox) {
-            warChatBox.classList.remove('hide-content'); // Remove the hiding class
-            // You might want to update the chat display area's content based on tab
-            if (chatDisplayArea) { // Ensure chatDisplayArea exists
-                if (targetTab === 'faction-chat') {
-                    chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
-                } else { // private-chat
-                    chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
+        // Determine if we are on a chat tab or a non-chat tab
+        if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
+            // --- CHAT TABS: Show chat display and input areas ---
+            if (warChatBox) {
+                warChatBox.classList.remove('hide-content'); // Remove the hiding class
+                // You might want to update the chat display area's content based on tab
+                if (chatDisplayArea) { // Ensure chatDisplayArea exists
+                    if (targetTab === 'faction-chat') {
+                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
+                    } else { // private-chat
+                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
+                    }
+                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Scroll to bottom
                 }
-                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Scroll to bottom
             }
-        }
-    } else {
-        // --- NON-CHAT TABS (Friends, Settings, etc.): Hide chat elements & show specific content ---
-        if (warChatBox) {
-            warChatBox.classList.add('hide-content'); // Add the hiding class to hide chat elements
+        } else {
+            // --- NON-CHAT TABS (Friends, Settings, Faction Members etc.): Hide chat elements & show specific content ---
+            if (warChatBox) {
+                warChatBox.classList.add('hide-content'); // Add the hiding class to hide chat elements
 
-            // Create a new dynamic panel for non-chat content
-            nonChatContentPanel = document.createElement('div');
-            nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
-            nonChatContentPanel.className = 'chat-dynamic-panel'; // Add a class for potential styling
-            
-            // Add basic styling to position and size the dynamic panel
-            // This ensures it fills the space where chat messages/input would be
-            nonChatContentPanel.style.position = 'absolute'; // Position over the hidden chat elements
-            nonChatContentPanel.style.top = '40px'; // Adjust based on height of chat-tabs-container (approx)
-            nonChatContentPanel.style.left = '0';
-            nonChatContentPanel.style.right = '0';
-            nonChatContentPanel.style.bottom = '0';
-            nonChatContentPanel.style.backgroundColor = '#1a1a1a'; // Match chat display background
-            nonChatContentPanel.style.padding = '10px';
-            nonChatContentPanel.style.overflowY = 'auto'; // Enable scrolling for content
-            nonChatContentPanel.style.color = '#f0f0f0'; // Default text color
-            nonChatContentPanel.style.boxSizing = 'border-box'; // Include padding in size
+                // Create a new dynamic panel for non-chat content
+                nonChatContentPanel = document.createElement('div');
+                nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
+                nonChatContentPanel.className = 'chat-dynamic-panel'; // Add a class for potential styling
+                
+                // Add basic styling to position and size the dynamic panel
+                nonChatContentPanel.style.position = 'absolute'; // Position over the hidden chat elements
+                nonChatContentPanel.style.top = '40px'; // Adjust based on height of chat-tabs-container (approx)
+                nonChatContentPanel.style.left = '0';
+                nonChatContentPanel.style.right = '0';
+                nonChatContentPanel.style.bottom = '0';
+                nonChatContentPanel.style.backgroundColor = '#1a1a1a'; // Match chat display background
+                nonChatContentPanel.style.padding = '10px';
+                nonChatContentPanel.style.overflowY = 'auto'; // Enable scrolling for content
+                nonChatContentPanel.style.color = '#f0f0f0'; // Default text color
+                nonChatContentPanel.style.boxSizing = 'border-box'; // Include padding in size
 
-            // Populate the dynamic panel based on the specific non-chat tab
-            if (targetTab === 'settings') {
-                nonChatContentPanel.innerHTML = `
-                    <div class="chat-settings-panel">
-                        <h3>Chat Settings</h3>
-                        <div class="setting-item">
-                            <label for="chatFontSize">Font Size:</label>
-                            <select id="chatFontSize">
-                                <option value="small">Small</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="large">Large</option>
-                            </select>
+                // Populate the dynamic panel based on the specific non-chat tab
+                if (targetTab === 'settings') {
+                    nonChatContentPanel.innerHTML = `
+                        <div class="chat-settings-panel">
+                            <h3>Chat Settings</h3>
+                            <div class="setting-item">
+                                <label for="chatFontSize">Font Size:</label>
+                                <select id="chatFontSize">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="notificationToggle">Notifications:</label>
+                                <input type="checkbox" id="notificationToggle" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="themeSelect">Chat Theme:</label>
+                                <select id="themeSelect">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light (Coming Soon)</option>
+                                </select>
+                            </div>
+                            <button class="save-settings-btn">Save Settings</button>
                         </div>
-                        <div class="setting-item">
-                            <label for="notificationToggle">Notifications:</label>
-                            <input type="checkbox" id="notificationToggle" checked>
-                        </div>
-                        <div class="setting-item">
-                            <label for="themeSelect">Chat Theme:</label>
-                            <select id="themeSelect">
-                                <option value="dark">Dark</option>
-                                <option value="light">Light (Coming Soon)</option>
-                            </select>
-                        </div>
-                        <button class="save-settings-btn">Save Settings</button>
-                    </div>
-                `;
-            } else {
-                // Generic content for other non-chat tabs
-                nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+                    `;
+                } else if (targetTab === 'faction-members') { // Faction Members Tab Content
+                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; // Title
+
+                    // ASSUMPTION: globalFactionMembers holds your array of member objects
+                    // Each member object should ideally have: .name, .rank, .profile_image (hash), .id (Torn ID)
+                    // You MUST ensure 'globalFactionMembers' is populated elsewhere in your JS
+                    const members = window.globalFactionMembers || []; 
+                    
+                    // Define a custom order for ranks (leaders first)
+                    const rankOrder = {
+                        "Leader": 0,
+                        "Co-leader": 1,
+                        // Add other specific ranks here if you want a custom order
+                        // e.g., "Lieutenant": 2, "Captain": 3, "Recruiter": 4, etc.
+                        "Member": 99, // Default for unspecified ranks, puts them lower
+                        "Applicant": 100 // Example
+                    };
+
+                    // Sort members by rank, then alphabetically by name
+                    members.sort((a, b) => {
+                        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
+                        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
+
+                        if (orderA !== orderB) {
+                            return orderA - orderB; // Sort by custom rank order
+                        }
+                        return a.name.localeCompare(b.name); // Then sort alphabetically by name
+                    });
+
+                    const membersListHtml = members.map(member => {
+                        // Construct profile image URL. Torn API's profile_image is usually a hash.
+                        // If member.profile_image is a full URL, use it directly.
+                        // Otherwise, it's likely a hash, so construct the URL.
+                        const profileImageUrl = member.profile_image 
+                            ? `https://www.torn.com/images/profile_images/${member.profile_image}_thumb.jpg` 
+                            : '../../images/default_profile_icon.png'; // Fallback to a default icon if no profile image
+
+                        let memberClass = ''; 
+                        // Apply 'leader-member' class for specific leader ranks for styling
+                        if (member.rank === "Leader" || member.rank === "Co-leader") {
+                            memberClass = 'leader-member';
+                        }
+
+                        return `
+                            <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
+                                <img src="${profileImageUrl}" alt="${member.name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
+                                <span class="member-name">${member.name}</span>
+                                <span class="member-rank">${member.rank}</span>
+                            </a>
+                        `;
+                    }).join('');
+
+                    nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
+                } else {
+                    // Generic content for other non-chat tabs (Friends, Recently Met, Blocked People)
+                    nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+                }
+                
+                // Append the new dynamic panel to the main chat box container
+                warChatBox.appendChild(nonChatContentPanel);
             }
-            
-            // Append the new dynamic panel to the main chat box container
-            warChatBox.appendChild(nonChatContentPanel);
         }
     }
 
-       auth.onAuthStateChanged(async (user) => {
+
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
@@ -2250,7 +2305,7 @@ function handleChatTabClick(event) {
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-                    setupMemberClickEvents(); // <--- NEW LINE ADDED HERE
+                    setupMemberClickEvents();
 
                     // Add click listeners to all chat tab buttons for the chat box
                     chatTabs.forEach(tab => {
@@ -2261,7 +2316,7 @@ function handleChatTabClick(event) {
                     // This ensures correct state when the page first loads
                     const initialActiveChatTab = document.querySelector('.chat-tab.active');
                     if (initialActiveChatTab) {
-                        handleChatTabClick({ currentTarget: initialActiveChatTab });
+                        handleChatTabClick({ currentTarget: initialActiveTab });
                     }
                     
                     listenersInitialized = true;
