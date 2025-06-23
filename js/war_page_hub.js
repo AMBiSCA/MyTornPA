@@ -1395,8 +1395,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // *** MODIFICATION HERE: Selections adjusted. Removing 'bars' as energy/nerve are at root. ***
-        const selections = 'profile,personalstats,battlestats,workstats,cooldowns'; // Re-included cooldowns for now, can remove if not needed.
+        // *** MODIFICATION HERE: Removed 'bars' from selections ***
+        const selections = 'profile,personalstats,battlestats,workstats,cooldowns';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
 
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1435,16 +1435,16 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const jobData = tornApiData.job || {};
         const cooldowns = tornApiData.cooldowns || {};
         
-        // *** MODIFICATION HERE: Extract nerve and energy directly from tornApiData ***
-        const nerve = tornApiData.nerve || {};
-        const energy = tornApiData.energy || {};
+        // *** MODIFICATION HERE: Removed extraction of nerve and energy objects ***
+        // const barsData = tornApiData.bars || {};
+        // const nerve = barsData.nerve || {};
+        // const energy = barsData.energy || {};
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
         console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
-        console.log("[DEBUG] Extracted Nerve Data (directly from root):", nerve);
-        console.log("[DEBUG] Extracted Energy Data (directly from root):", energy);
+        // Removed logs for Nerve/Energy extraction
         console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
         console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
 
@@ -1471,15 +1471,16 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const profileImage = tornApiData.profile_image || '';
         const userLevel = tornApiData.level || 'N/A';
 
-        const currentNerve = (nerve.current || 'N/A');
-        const maxNerve = (nerve.maximum || '');
-        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
-        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
+        // *** MODIFICATION HERE: Removed Nerve and Energy display sections ***
+        // const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
+        // const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
+        // const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        // const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
 
-        const currentEnergy = (energy.current || 'N/A');
-        const maxEnergy = (energy.maximum || '');
-        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
-        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
+        // const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
+        // const energyMax = energy.maximum !== undefined ? energy.maximum : '';
+        // const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        // const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1552,10 +1553,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
-            <h5>Nerve:</h5>
-            <p>${nerveDisplay}</p>
-            <h5>Energy:</h5>
-            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
