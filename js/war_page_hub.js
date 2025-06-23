@@ -1016,11 +1016,10 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
- 
 /**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it. It currently requests: profile, workstats, cooldowns, battlestats.
+ * if they have registered it. It strictly requests: profile, workstats, cooldowns, battlestats.
  * Includes detailed error handling and robust data extraction.
  * @param {string} memberId The Torn User ID of the clicked member.
  */
@@ -1036,8 +1035,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
-    // --- IMPORTANT CHANGE: Renamed 'data' to 'tornApiData' and 'specificAccessDeniedMessage' to 'apiErrorMessage' ---
-    let tornApiData = null; 
+    // Declare variables that might be reassigned
+    let tornApiData = null;
     let apiErrorMessage = ''; 
 
     try {
@@ -1070,7 +1069,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats,nerve,energy'; // Re-added nerve/energy as they are desired.
+        // --- STRICTLY Use the selections you confirmed work ---
+        const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1087,23 +1087,13 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            // Assign to 'tornApiData'
             tornApiData = await response.json(); 
             console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
             if (tornApiData.error) {
                 console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
-                if (tornApiData.error.code === 2) {
-                    detailPanel.innerHTML = `
-                        <h4>API Key Error for ${preferredName} [${memberId}]</h4>
-                        <p>The registered API key for this member is invalid.</p>
-                        <p>Error: ${tornApiData.error.error}</p>
-                        <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
-                    `;
-                    return;
-                } else if (tornApiData.error.code === 10) {
-                    // Assign to 'apiErrorMessage'
-                    apiErrorMessage = `The member's API key lacks permissions for some requested details. (Error: ${tornApiData.error.error})`;
+                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
+                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
                 } else {
                     throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
                 }
@@ -1114,49 +1104,36 @@ async function fetchAndDisplayMemberDetails(memberId) {
              throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data Extraction (using tornApiData) ---
+        // --- Data Extraction ---
         const profile = tornApiData.profile || {};
-        const stats = tornApiData.battlestats || {};
-        const workStatsJobData = tornApiData.workstats || {};
+        const stats = tornApiData.battlestats || {}; 
+        const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
-        const nerve = tornApiData.nerve || {}; 
-        const energy = tornApiData.energy || {}; 
+        // Nerve and Energy variables are removed as they are not requested or displayed
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Battlestats Data:", stats);
         console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
-        console.log("[DEBUG] Extracted Nerve Data:", nerve);
-        console.log("[DEBUG] Extracted Energy Data:", energy);
         console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
         console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
+        // Battle Stats - Robust access
         const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
         const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
         
+        // Work Stats (numerical are top-level, job info nested)
         const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
         const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
         const endurance = typeof tornApiData.endurance === 'number' ? tornApiData.endurance.toLocaleString() : 'N/A';
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
-        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
-        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
-        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
-        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
-        if (currentNerve === 'N/A' && selections.includes('nerve')) { nerveDisplay += ' (Access Denied)'; }
-
-
-        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
-        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
-        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
-        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
-        if (currentEnergy === 'N/A' && selections.includes('energy')) { energyDisplay += ' (Access Denied)'; }
-
+        // Nerve and Energy display sections are removed
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1175,6 +1152,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
         cooldownsHtml += '</ul>';
 
+        // Last Action and Status from 'profile' selection
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
@@ -1197,7 +1175,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
 
         let overallAccessMessage = '';
-        if (apiErrorMessage) { // Changed from specificAccessDeniedMessage
+        if (apiErrorMessage) {
             overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
         }
 
@@ -1222,10 +1200,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
-            <h5>Nerve:</h5>
-            <p>${nerveDisplay}</p>
-            <h5>Energy:</h5>
-            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
