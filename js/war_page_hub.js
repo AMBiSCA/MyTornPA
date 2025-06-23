@@ -15,7 +15,7 @@ let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
 let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
 let globalRankedWarData = null;
 let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
-const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
+let unsubscribeFromChat = null; // <--- PASTE IT HERE
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -69,6 +69,7 @@ const chatSendBtn = document.querySelector('.chat-send-btn');
 const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
+const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
 
 // --- Utility Functions ---
 
