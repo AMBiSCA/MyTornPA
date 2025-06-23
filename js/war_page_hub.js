@@ -1410,7 +1410,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
             if (errorData && errorData.error && errorData.error.error) {
                 errorMessage += ` - ${errorData.error.error}`;
-            (errorData && errorData.error && errorData.error.error) {
+            (errorData && errorData.error && errorData.error.error) 
                 errorMessage += ` - ${errorData.error.error}`;
             }
             throw new Error(errorMessage);
