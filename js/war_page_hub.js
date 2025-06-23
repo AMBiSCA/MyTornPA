@@ -1633,6 +1633,19 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+	
+	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
+    // Send message on button click
+    chatSendBtn.addEventListener('click', sendChatMessage);
+
+    // Send message on Enter key press in the input field
+    chatTextInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent default browser behavior (like new line)
+            sendChatMessage(); // Call our send message function
+        }
+    });
+}
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
