@@ -679,7 +679,7 @@ transition: background-color 0.2s ease;
 .ops-control-item button {
     width: 100%;
     box-sizing: border-box;
-    font-size: 0.9em;
+    font-size: 1em;
     padding: 6px;
 }
 
@@ -728,11 +728,12 @@ transition: background-color 0.2s ease;
     border: 1px solid #0056b3;
     box-sizing: border-box;
     width: 100%; /* Make them take full width of their container */
+	border: 1px solid black;
 }
 
 .quick-ff-target-btn:hover {
     background-color: #00a8ff;
-    border-color: #007bff;
+    border-color: black;
 }
 
 /* The #postAnnouncementBtn is now only on Leader Config tab, it does not apply to Announcements tab anymore. */
