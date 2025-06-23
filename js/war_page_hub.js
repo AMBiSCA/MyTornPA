@@ -1349,7 +1349,6 @@ function switchChatTab(tabName) {
         console.error(`No chat panel found for tab: ${tabName}`);
     }
 }
-
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
@@ -1396,9 +1395,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // *** MODIFICATION HERE: Selections now exactly match fetchDataForPersonalStatsModal ***
-        // Removed cooldowns, energy, nerve to align strictly with the template's selections.
-        const selections = 'profile,personalstats,battlestats,workstats';
+        // *** MODIFICATION HERE: Selections adjusted. Removing explicit 'battlestats' and 'workstats'
+        // and relying on 'personalstats' to provide those at the root, as seen in your working example.
+        const selections = 'profile,personalstats,cooldowns,energy,nerve';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
 
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1434,11 +1433,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         const profile = tornApiData.profile || {};
         const personalStats = tornApiData.personalstats || {};
-        // Removed workStatsRaw as it's not strictly used in the display logic below in this form
-        const jobData = tornApiData.job || {}; // <-- Now correctly pulling job details from 'data.job'
-        const cooldowns = tornApiData.cooldowns || {}; // Will likely be empty/N/A as 'cooldowns' is no longer in selections
-        const nerve = tornApiData.nerve || {}; // Will likely be empty/N/A as 'nerve' is no longer in selections
-        const energy = tornApiData.energy || {}; // Will likely be empty/N/A as 'energy' is no longer in selections
+        const jobData = tornApiData.job || {};
+        const cooldowns = tornApiData.cooldowns || {};
+        const nerve = tornApiData.nerve || {};
+        const energy = tornApiData.energy || {};
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
@@ -1450,25 +1448,26 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
 
 
-        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then battlestats) ---
-        const strength = (personalStats.strength || tornApiData.strength || tornApiData.battlestats?.strength || 0).toLocaleString();
-        const speed = (personalStats.speed || tornApiData.speed || tornApiData.battlestats?.speed || 0).toLocaleString();
-        const dexterity = (personalStats.dexterity || tornApiData.dexterity || tornApiData.battlestats?.dexterity || 0).toLocaleString();
-        const defense = (personalStats.defense || tornApiData.defense || tornApiData.battlestats?.defense || 0).toLocaleString();
+        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
+        // Removed `battlestats?.strength` fallback as 'battlestats' selection is no longer explicitly made.
+        const strength = (personalStats.strength || tornApiData.strength || 0).toLocaleString();
+        const speed = (personalStats.speed || tornApiData.speed || 0).toLocaleString();
+        const dexterity = (personalStats.dexterity || tornApiData.dexterity || 0).toLocaleString();
+        const defense = (personalStats.defense || tornApiData.defense || 0).toLocaleString();
 
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then workstats) ---
-        const manuelLabor = (personalStats.manual_labor || tornApiData.manual_labor || tornApiData.workstats?.manual_labor || 0).toLocaleString();
-        const intelligence = (personalStats.intelligence || tornApiData.intelligence || tornApiData.workstats?.intelligence || 0).toLocaleString();
-        const endurance = (personalStats.endurance || tornApiData.endurance || tornApiData.workstats?.endurance || 0).toLocaleString();
+        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
+        // Removed `workstats?.manual_labor` fallback as 'workstats' selection is no longer explicitly made.
+        const manuelLabor = (personalStats.manuallabor || tornApiData.manual_labor || 0).toLocaleString(); // Note: personalstats uses 'manuallabor'
+        const intelligence = (personalStats.intelligence || tornApiData.intelligence || 0).toLocaleString();
+        const endurance = (personalStats.endurance || tornApiData.endurance || 0).toLocaleString();
         
         const job = jobData.company_name && jobData.job ? `${jobData.company_name} (${jobData.job})` : 'N/A';
         const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A';
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
-        // These might now be 'N/A' if their respective selections are not requested.
         const currentNerve = (nerve.current || 'N/A');
         const maxNerve = (nerve.maximum || '');
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
@@ -1564,6 +1563,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
     }
 }
+
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
