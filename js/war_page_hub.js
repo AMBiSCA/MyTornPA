@@ -1022,7 +1022,7 @@ function displayFriendlyMembersTable(members) {
  * This function attempts to use the clicked member's *own* API key from Firebase
  * if they have registered it. It currently requests: profile, workstats, cooldowns, battlestats.
  * Includes detailed error handling and robust data extraction.
- * @param {string} memberId The Torn User ID of the clicked clicked member.
+ * @param {string} memberId The Torn User ID of the clicked member.
  */
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
@@ -1035,6 +1035,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
+
+    // --- IMPORTANT CHANGE: Declare data and specificAccessDeniedMessage outside the main try block ---
+    let data = null; 
+    let specificAccessDeniedMessage = ''; 
 
     try {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
@@ -1066,17 +1070,13 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; // Current selections based on your confirmation
+        const selections = 'profile,workstats,cooldowns,battlestats'; // Current selections
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
         console.log(`[DEBUG] Torn API HTTP Response Status: ${response.status} ${response.statusText}`);
-
-        // --- Changed 'const' to 'let' for 'data' and 'specificAccessDeniedMessage' ---
-        let data = null; 
-        let specificAccessDeniedMessage = ''; 
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
@@ -1087,7 +1087,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            data = await response.json();
+            // Assign to 'data' (already declared with 'let' above)
+            data = await response.json(); 
             console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data);
 
             if (data.error) {
@@ -1101,6 +1102,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
                     `;
                     return;
                 } else if (data.error.code === 10) {
+                    // Assign to 'specificAccessDeniedMessage' (already declared with 'let' above)
                     specificAccessDeniedMessage = `The member's API key lacks permissions for some requested details. (Error: ${data.error.error})`;
                 } else {
                     throw new Error(`Torn API Data Error: ${data.error.error}`);
@@ -1116,8 +1118,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const stats = data.battlestats || {};
         const workStatsJobData = data.workstats || {};
         const cooldowns = data.cooldowns || {};
-        const nerve = data.nerve || {}; // Will be empty/undefined if not in 'selections'
-        const energy = data.energy || {}; // Will be empty/undefined if not in 'selections'
+        const nerve = data.nerve || {}; 
+        const energy = data.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Battlestats Data:", stats);
