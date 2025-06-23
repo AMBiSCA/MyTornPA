@@ -1029,6 +1029,31 @@ transition: background-color 0.2s ease;
 
 #friendly-members-table {
     flex-grow: 1;
+    width: 100%; /* Ensure the table takes full width of its container */
+    table-layout: fixed; /* Crucial: Forces columns to fit within the table's width */
+}
+
+/* Define explicit column widths for Friendly Members Table to prevent overflow */
+#friendly-members-table thead th:nth-child(1),
+#friendly-members-table tbody td:nth-child(1) { width: 18%; } /* Name */
+#friendly-members-table thead th:nth-child(2),
+#friendly-members-table tbody td:nth-child(2) { width: 7%; }  /* Level */
+#friendly-members-table thead th:nth-child(3),
+#friendly-members-table tbody td:nth-child(3) { width: 15%; } /* Last Action */
+#friendly-members-table thead th:nth-child(4),
+#friendly-members-table tbody td:nth-child(4) { width: 9%; }  /* Strength */
+#friendly-members-table thead th:nth-child(5),
+#friendly-members-table tbody td:nth-child(5) { width: 9%; }  /* Dexterity */
+#friendly-members-table thead th:nth-child(6),
+#friendly-members-table tbody td:nth-child(6) { width: 9%; }  /* Speed */
+#friendly-members-table thead th:nth-child(7),
+#friendly-members-table tbody td:nth-child(7) { width: 9%; }  /* Defense */
+#friendly-members-table thead th:nth-child(8),
+#friendly-members-table tbody td:nth-child(8) { width: 8%; }  /* Status */
+#friendly-members-table thead th:nth-child(9),
+#friendly-members-table tbody td:nth-child(9) { width: 8%; }  /* Nerve */
+#friendly-members-table thead th:nth-child(10),
+#friendly-members-table tbody td:nth-child(10) { width: 8%; } /* Energy */
 }
 
 /* --- Placeholder for Member Details (Right Panel) --- */
