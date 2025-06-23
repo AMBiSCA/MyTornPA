@@ -1396,8 +1396,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // *** MODIFICATION HERE: Added 'personalstats' to selections ***
-        const selections = 'profile,personalstats,workstats,cooldowns,battlestats,energy,nerve';
+        // *** MODIFICATION HERE: Selections now exactly match fetchDataForPersonalStatsModal ***
+        // Removed cooldowns, energy, nerve to align strictly with the template's selections.
+        const selections = 'profile,personalstats,battlestats,workstats';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
 
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1432,15 +1433,15 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
 
         const profile = tornApiData.profile || {};
-        const personalStats = tornApiData.personalstats || {}; // New variable to hold personalstats
-        const workStatsRaw = tornApiData.workstats || {};
-        const jobData = tornApiData.job || {};
-        const cooldowns = tornApiData.cooldowns || {};
-        const nerve = tornApiData.nerve || {};
-        const energy = tornApiData.energy || {};
+        const personalStats = tornApiData.personalstats || {};
+        // Removed workStatsRaw as it's not strictly used in the display logic below in this form
+        const jobData = tornApiData.job || {}; // <-- Now correctly pulling job details from 'data.job'
+        const cooldowns = tornApiData.cooldowns || {}; // Will likely be empty/N/A as 'cooldowns' is no longer in selections
+        const nerve = tornApiData.nerve || {}; // Will likely be empty/N/A as 'nerve' is no longer in selections
+        const energy = tornApiData.energy || {}; // Will likely be empty/N/A as 'energy' is no longer in selections
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Personal Stats Data:", personalStats); // Log new variable
+        console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
         console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
@@ -1449,7 +1450,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
 
 
-        // --- BATTLE STATS EXTRACTION (now prioritizing personalstats or root, then battlestats) ---
+        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then battlestats) ---
         const strength = (personalStats.strength || tornApiData.strength || tornApiData.battlestats?.strength || 0).toLocaleString();
         const speed = (personalStats.speed || tornApiData.speed || tornApiData.battlestats?.speed || 0).toLocaleString();
         const dexterity = (personalStats.dexterity || tornApiData.dexterity || tornApiData.battlestats?.dexterity || 0).toLocaleString();
@@ -1457,7 +1458,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        // --- WORK STATS EXTRACTION (now prioritizing personalstats or root, then workstats) ---
+        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then workstats) ---
         const manuelLabor = (personalStats.manual_labor || tornApiData.manual_labor || tornApiData.workstats?.manual_labor || 0).toLocaleString();
         const intelligence = (personalStats.intelligence || tornApiData.intelligence || tornApiData.workstats?.intelligence || 0).toLocaleString();
         const endurance = (personalStats.endurance || tornApiData.endurance || tornApiData.workstats?.endurance || 0).toLocaleString();
@@ -1467,17 +1468,16 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
+        // These might now be 'N/A' if their respective selections are not requested.
         const currentNerve = (nerve.current || 'N/A');
         const maxNerve = (nerve.maximum || '');
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
-        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
 
         const currentEnergy = (energy.current || 'N/A');
         const maxEnergy = (energy.maximum || '');
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
-        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
