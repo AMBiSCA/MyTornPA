@@ -1708,7 +1708,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // NOTE: The typo in your original variable name is corrected here. 
+
     // Make sure your save button's ID in the HTML is "saveWatchlistSelectionsBtn"
     const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
     if (saveWatchlistSelectionsBtn) { 
