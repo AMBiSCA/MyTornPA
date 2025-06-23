@@ -1,9 +1,3 @@
-/* ==========================================================================
-   Recruitment Hub Specific Styles (recruitment.css)
-   Based on war_page_hub.css guidelines for consistency and side-by-side layout
-   ========================================================================== */
-
-/* Main content wrapper for the new recruitment page */
 .recruitment-main-content {
     /* Mimics #warPageHubContainer for overall page content structure */
     background-color: #1e1e1e; /* Darker background */
