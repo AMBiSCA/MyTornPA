@@ -1020,7 +1020,8 @@ function displayFriendlyMembersTable(members) {
 /**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it. It now uses the selections: workstats, cooldowns, battlestats, profile.
+ * if they have registered it. It currently requests: profile, workstats, cooldowns, battlestats.
+ * Includes detailed error handling and robust data extraction.
  * @param {string} memberId The Torn User ID of the clicked member.
  */
 async function fetchAndDisplayMemberDetails(memberId) {
@@ -1065,13 +1066,17 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; // Keep all selections
+        // Current selections based on your confirmation
+        const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
         console.log(`[DEBUG] Torn API HTTP Response Status: ${response.status} ${response.statusText}`);
+
+        let data = null;
+        let specificAccessDeniedMessage = ''; 
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
@@ -1081,54 +1086,80 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 errorMessage += ` - ${errorData.error.error}`;
             }
             throw new Error(errorMessage);
-        }
-            
-        const data = await response.json();
-        console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< Keep this for now, for verification
+        } else {
+            data = await response.json();
+            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< IMPORTANT LOG
 
-        if (data.error) {
-            console.error(`[DEBUG] Torn API Data Error details:`, data.error);
-            if (data.error.code === 2 || data.error.code === 10) {
-                detailPanel.innerHTML = `
-                    <h4>API Key Error for ${preferredName} [${memberId}]</h4>
-                    <p>The registered API key for this member is invalid or does not have sufficient permissions for the requested details.</p>
-                    <p>Error: ${data.error.error}</p>
-                    <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
-                `;
-                return;
+            if (data.error) {
+                console.error(`[DEBUG] Torn API Data Error details:`, data.error);
+                if (data.error.code === 2) {
+                    detailPanel.innerHTML = `
+                        <h4>API Key Error for ${preferredName} [${memberId}]</h4>
+                        <p>The registered API key for this member is invalid.</p>
+                        <p>Error: ${data.error.error}</p>
+                        <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+                    `;
+                    return;
+                } else if (data.error.code === 10) {
+                    specificAccessDeniedMessage = `The member's API key lacks permissions for some requested details. (Error: ${data.error.error})`;
+                } else {
+                    throw new Error(`Torn API Data Error: ${data.error.error}`);
+                }
             }
-            throw new Error(`Torn API Data Error: ${data.error.error}`);
+        }
+        
+        if (!data || Object.keys(data).length === 0) {
+             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data Extraction (Corrected Work Stats paths) ---
+        // --- Data Extraction (Corrected Work Stats paths & More Robust Battlestats) ---
         const profile = data.profile || {};
-        const stats = data.battlestats || {};
-        const workStatsJobData = data.workstats || {}; // Renamed to clarify it's only job-related workstats
+        const stats = data.battlestats || {}; // stats should now be the battlestats object
+        const workStatsJobData = data.workstats || {}; 
         const cooldowns = data.cooldowns || {};
+        // Nerve and Energy are NOT included in the 'selections' string you provided
+        // so they will be N/A. We keep the variables for consistency in HTML, but they'll be empty.
+        const nerve = data.nerve || {}; 
+        const energy = data.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data:", stats);
+        console.log("[DEBUG] Extracted Battlestats Data:", stats); // Expect this to be an object with strength, etc.
         console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
-        // Also log the top-level work stats directly for confirmation
+        console.log("[DEBUG] Extracted Nerve Data:", nerve); // Expect empty object or undefined if not in selections
+        console.log("[DEBUG] Extracted Energy Data:", energy); // Expect empty object or undefined if not in selections
         console.log("[DEBUG] Top-level Manual Labor:", data.manual_labor);
         console.log("[DEBUG] Top-level Intelligence:", data.intelligence);
         console.log("[DEBUG] Top-level Endurance:", data.endurance);
 
 
-        const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
-        const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
-        const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
-        const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
+        // Battle Stats - More robust access
+        // Ensure that stats.strength (etc.) is truly a number before calling toLocaleString()
+        const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
+        const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
+        const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
+        const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
         
-        // --- CORRECTED: Get manual_labor, intelligence, endurance directly from 'data' ---
-        const manuelLabor = data.manual_labor ? data.manual_labor.toLocaleString() : 'N/A';
-        const intelligence = data.intelligence ? data.intelligence.toLocaleString() : 'N/A';
-        const endurance = data.endurance ? data.endurance.toLocaleString() : 'N/A';
-
-        // --- Keep job details from the 'workStatsJobData' object ---
+        // Work Stats (numerical are top-level, job info nested)
+        const manuelLabor = typeof data.manual_labor === 'number' ? data.manual_labor.toLocaleString() : 'N/A';
+        const intelligence = typeof data.intelligence === 'number' ? data.intelligence.toLocaleString() : 'N/A';
+        const endurance = typeof data.endurance === 'number' ? data.endurance.toLocaleString() : 'N/A';
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
+
+        // Nerve and Energy Stats (will be 'N/A' as not in current selections)
+        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
+        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
+        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; } // Informative message
+
+
+        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
+        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
+        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; } // Informative message
 
 
         let cooldownsHtml = '<ul>';
@@ -1148,7 +1179,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
         cooldownsHtml += '</ul>';
 
-        // --- Last Action and Status from 'profile' selection (already correctly extracted) ---
+        // Last Action and Status from 'profile' selection
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
@@ -1170,8 +1201,15 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
         }
 
+        let overallAccessMessage = '';
+        if (specificAccessDeniedMessage) {
+            overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${specificAccessDeniedMessage}</p>`;
+        }
+
+
         const detailsHtml = `
             <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
+            ${overallAccessMessage}
             <p>Last Action: ${lastActionText}</p>
             <p>Status: <span class="${statusClass}">${statusText}</span></p>
             <h5>Battle Stats:</h5>
@@ -1189,6 +1227,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
+            <h5>Nerve:</h5>
+            <p>${nerveDisplay}</p>
+            <h5>Energy:</h5>
+            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
