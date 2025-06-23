@@ -1035,7 +1035,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
-    // Declare variables that might be reassigned
     let tornApiData = null;
     let apiErrorMessage = ''; 
 
@@ -1069,7 +1068,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // --- STRICTLY Use the selections you confirmed work ---
         const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
@@ -1106,44 +1104,50 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         // --- Data Extraction ---
         const profile = tornApiData.profile || {};
-        const stats = tornApiData.battlestats || {}; 
+        const battlestats = tornApiData.battlestats || {}; // Directly use 'battlestats' from tornApiData
         const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
-        // Nerve and Energy variables are removed as they are not requested or displayed
+        // Nerve and Energy variables are removed as per request
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data:", stats);
-        console.log("[DEBUG] Extracted WorkStats (Job) Data:", workStatsJobData);
-        console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); // Log with new name
+        console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
+        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
         console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
         console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
-        // Battle Stats - Robust access
-        const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
-        const speed = typeof stats.speed === 'number' ? stats.speed.toLocaleString() : 'N/A';
-        const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
-        const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
+        // Battle Stats - Simplified and robust access
+        const strength = (battlestats.strength || 0).toLocaleString();
+        const speed = (battlestats.speed || 0).toLocaleString();
+        const dexterity = (battlestats.dexterity || 0).toLocaleString();
+        const defense = (battlestats.defense || 0).toLocaleString();
         
-        // Work Stats (numerical are top-level, job info nested)
-        const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
-        const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
-        const endurance = typeof tornApiData.endurance === 'number' ? tornApiData.endurance.toLocaleString() : 'N/A';
+        console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
+
+        // Work Stats (numerical are top-level, job info nested) - Simplified and robust access
+        const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
+        const intelligence = (tornApiData.intelligence || 0).toLocaleString();
+        const endurance = (tornApiData.endurance || 0).toLocaleString();
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
-        // Nerve and Energy display sections are removed
+        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
+
+        // Nerve and Energy display sections are removed entirely
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
             for (const key in cooldowns) {
                 if (cooldowns.hasOwnProperty(key)) {
                     const timeLeft = cooldowns[key];
-                    if (timeLeft > 0) {
+                    if (typeof timeLeft === 'number' && timeLeft > 0) {
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
-                    } else {
+                    } else if (typeof timeLeft === 'number' && timeLeft === 0) {
                         cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
+                    } else {
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: N/A</li>`;
                     }
                 }
             }
@@ -1151,6 +1155,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             cooldownsHtml += '<li>No active cooldowns.</li>';
         }
         cooldownsHtml += '</ul>';
+
+        console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
 
         // Last Action and Status from 'profile' selection
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
@@ -1173,6 +1179,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 statusClass = 'status-other';
             }
         }
+        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
 
         let overallAccessMessage = '';
         if (apiErrorMessage) {
@@ -1203,9 +1210,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
-                <a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Profile</a> |
-                <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}" target="_blank">Attack</a>
-            </p>
+                </p>
         `;
             
         detailPanel.innerHTML = detailsHtml;
