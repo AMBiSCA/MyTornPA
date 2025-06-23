@@ -404,13 +404,15 @@ function displayChatMessage(messageObj) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
 
-    const timestamp = new Date(messageObj.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+   const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
+                  ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback if timestamp is missing or not a Firebase Timestamp
     const senderName = messageObj.sender || 'Unknown';
     const messageText = messageObj.text || '';
 
     // Basic structure for a chat message
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[<span class="math-inline">\{timestamp\}\]</span\>
+   messageElement.innerHTML = `
+    <span class="chat-timestamp">[<span class="math-inline">\{timestamp\}\]</span\>
 <span class="chat-sender">{senderName}:</span>
 <span class="chat-text">${messageText}</span>
 `;
