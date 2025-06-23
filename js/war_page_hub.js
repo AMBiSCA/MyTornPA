@@ -446,10 +446,9 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
             }
         }
     });
-}
 
 
-  
+
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
     if (!chatDisplayArea) {
