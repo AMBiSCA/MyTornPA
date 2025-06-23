@@ -230,101 +230,122 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
-        if (!personalStatsModal || !personalStatsModalBody) {
-            console.error("Personal Stats Modal elements not found!");
-            if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-            return;
-        }
-        personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-        personalStatsModal.classList.add('visible');
+    console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
-        const selections = "profile,personalstats,battlestats,workstats";
-        const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+    const personalStatsModal = document.getElementById('personalStatsModal');
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
 
-        function formatTcpAnniversaryDate(dateObject) {
-            if (!dateObject) return 'N/A';
-            let jsDate;
-            if (dateObject instanceof Date) {
-                jsDate = dateObject;
-            } else if (dateObject && typeof dateObject.toDate === 'function') {
-                jsDate = dateObject.toDate();
-            } else {
-                return 'N/A';
-            }
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return jsDate.toLocaleDateString(undefined, options);
-        }
-
-        try {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-
-            if (!response.ok) throw new Error(`API Error ${response.status}: ${data?.error?.error || response.statusText}`);
-            if (data.error) throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-
-            let htmlContent = '<h4>User Information</h4>';
-            htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
-            htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
-            htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
-
-            let xanaxDisplay = 'N/A';
-            if (data.personalstats && data.personalstats.xantaken !== undefined) {
-                xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
-            }
-            htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
-
-            const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
-            htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
-
-            htmlContent += '<h4>Battle Stats</h4>';
-            // Access battle stats directly from the root of the 'data' object as per your API response
-            if (typeof data.strength === 'number' && typeof data.defense === 'number' && typeof data.speed === 'number' && typeof data.dexterity === 'number') {
-                const bsStrength = data.strength;
-                const bsDefense = data.defense;
-                const bsSpeed = data.speed;
-                const bsDexterity = data.dexterity;
-                
-                // Use the modifiers from the root, or default to 0 if not present
-                const strengthModifier = data.strength_modifier || 0;
-                const defenseModifier = data.defense_modifier || 0;
-                const speedModifier = data.speed_modifier || 0;
-                const dexterityModifier = data.dexterity_modifier || 0;
-
-                const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
-                const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
-                const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
-                const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
-                
-                // Use 'data.total' if available, otherwise calculate it
-                const totalBs = data.total || (bsStrength + bsDefense + bsSpeed + bsDexterity);
-
-                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
-            } else {
-                htmlContent += '<p>Battle stats data not available.</p>';
-                console.warn("Battle stats (strength, defense, speed, dexterity) not found directly in API response data, or are not numbers.");
-            }
-
-            htmlContent += '<h4>Work Stats</h4>';
-            // Access work stats directly from the root of the 'data' object as per your API response
-            if (typeof data.manual_labor === 'number' && typeof data.intelligence === 'number' && typeof data.endurance === 'number') {
-                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${data.manual_labor.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${data.intelligence.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${data.endurance.toLocaleString()}</span></p>`;
-            } else {
-                htmlContent += '<p>Work stats data not available.</p>';
-                console.warn("Work stats (manual_labor, intelligence, endurance) not found directly in API response data, or are not numbers.");
-            }
-
-            personalStatsModalBody.innerHTML = htmlContent;
-        } catch (error) {
-            console.error("Error fetching/displaying personal stats in modal:", error);
-            personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
-        }
+    if (!personalStatsModal || !personalStatsModalBody) {
+        console.error("HTML Error: Personal Stats Modal elements not found!");
+        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        return;
     }
+
+    personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
+    personalStatsModal.classList.add('visible');
+
+    const selections = "profile,personalstats,battlestats,workstats"; // Explicitly defining selections
+    const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+
+    console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
+
+    function formatTcpAnniversaryDate(dateObject) {
+        if (!dateObject) return 'N/A';
+        let jsDate;
+        if (dateObject instanceof Date) {
+            jsDate = dateObject;
+        } else if (dateObject && typeof dateObject.toDate === 'function') {
+            jsDate = dateObject.toDate();
+        } else {
+            return 'N/A';
+        }
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return jsDate.toLocaleDateString(undefined, options);
+    }
+
+    try {
+        const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
+        const data = await response.json();
+        console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
+
+
+        if (!response.ok) {
+            const errorData = data || { message: "Failed to parse API error response." };
+            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
+            let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
+            throw new Error(errorMessage);
+        }
+        if (data.error) {
+            console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
+            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+        }
+
+        let htmlContent = '<h4>User Information</h4>';
+        htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
+        htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
+        htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
+
+        let xanaxDisplay = 'N/A';
+        if (data.personalstats && data.personalstats.xantaken !== undefined) {
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
+        }
+        htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
+
+        const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
+        htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
+
+        htmlContent += '<h4>Battle Stats</h4>';
+        // Access battle stats directly from the root of the 'data' object as per your API response
+        // Also added a fallback to `data.battlestats` in case API response structure changes
+        if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
+            const bsStrength = data.strength || data.battlestats?.strength;
+            const bsDefense = data.defense || data.battlestats?.defense;
+            const bsSpeed = data.speed || data.battlestats?.speed;
+            const bsDexterity = data.dexterity || data.battlestats?.dexterity;
+            
+            // Use the modifiers from the root, or default to 0 if not present
+            const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
+            const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
+            const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
+            const dexterityModifier = data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0;
+
+            const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
+            const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
+            const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
+            const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
+            
+            // Use 'data.total' if available, otherwise calculate it
+            const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpeed + bsDexterity);
+
+            htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></pレーター`;
+            htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
+        } else {
+            htmlContent += '<p>Battle stats data not available.</p>';
+            console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
+        }
+
+        htmlContent += '<h4>Work Stats</h4>';
+        // Access work stats directly from the root of the 'data' object as per your API response
+        // Also added a fallback to `data.workstats` in case API response structure changes
+        if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
+            htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${(data.endurance || data.workstats?.endurance).toLocaleString()}</span></p>`;
+        } else {
+            htmlContent += '<p>Work stats data not available.</p>';
+            console.warn("[DEBUG] Work stats (manual_labor, intelligence, endurance) not found directly in API response data or within 'workstats' object, or are not numbers.");
+        }
+
+        personalStatsModalBody.innerHTML = htmlContent;
+    } catch (error) {
+        console.error("Error fetching/displaying personal stats in modal:", error);
+        personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
+    }
+}
 
     async function fetchAllRequiredData(user, dbInstance) {
         if (!user || !dbInstance) {
