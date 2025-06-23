@@ -70,6 +70,7 @@ const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
 const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
+const chatInputArea = document.querySelector('.chat-input-area');
 
 // --- Utility Functions ---
 
@@ -117,6 +118,112 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
         const energyItemHtml = `<div class="member-selection-item"><input type="checkbox" id="energy-member-${memberId}" value="${memberId}" ${isEnergyChecked}><label for="energy-member-${memberId}">${memberName}</label></div>`;
         energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
     });
+}
+
+// NEW: Function to handle switching chat tabs (now hides input area for Settings)
+function switchChatTab(tabName) {
+    console.log(`Switching to chat tab: ${tabName}`);
+
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels || !chatInputArea) { // Added chatInputArea check
+        console.error("Chat elements not found for tab switching or content panels, or input area.");
+        return;
+    }
+
+    // Remove 'active' class from all tab buttons
+    chatTabButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+
+    // Hide all chat content panels
+    chatContentPanels.querySelectorAll('.chat-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+
+    // Unsubscribe from any active real-time chat listener by default when switching tabs
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous chat listener (tab switch).");
+    }
+
+    // Add 'active' class to the clicked tab button
+    const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
+    if (selectedChatTabButton) {
+        selectedChatTabButton.classList.add('active');
+        selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
+    }
+
+    // Show the selected content panel and perform tab-specific actions
+    let targetChatPanel = null;
+    let targetDisplayArea = null;
+    let showInputArea = true; // Default to showing input area
+
+    switch (tabName) {
+        case 'faction-chat':
+            targetChatPanel = factionChatPanel;
+            setupChatRealtimeListener();
+            break;
+        case 'faction-members':
+            targetChatPanel = factionMembersPanel;
+            targetDisplayArea = factionMembersDisplayArea;
+            if (factionApiFullData && factionApiFullData.members) {
+                displayFactionMembersInChatTab(factionApiFullData.members);
+            } else if (targetDisplayArea) {
+                targetDisplayArea.innerHTML = `<p>Loading faction member data...</p>`;
+            }
+            break;
+        case 'private-chat':
+            targetChatPanel = privateChatPanel;
+            targetDisplayArea = privateChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            break;
+        case 'friends':
+            targetChatPanel = friendsPanel;
+            targetDisplayArea = friendsChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Friends Chat! Functionality not implemented yet.</p>`;
+            break;
+        case 'recently-met':
+            targetChatPanel = recentlyMetPanel;
+            targetDisplayArea = recentlyMetDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Recently Met! Functionality not implemented yet.</p>`;
+            break;
+        case 'blocked-people':
+            targetChatPanel = blockedPeoplePanel;
+            targetDisplayArea = blockedPeopleDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
+            break;
+        case 'settings':
+            targetChatPanel = settingsPanel;
+            targetDisplayArea = settingsDisplayArea;
+            if (targetDisplayArea) {
+                targetDisplayArea.innerHTML = `
+                    <h4>Chat Settings</h4>
+                    <p><i>Settings functionality not yet implemented.</i></p>
+                    <p>Options for chat sound, notifications, font size, etc., would go here.</p>
+                `;
+            }
+            showInputArea = false; // Hide input area for Settings tab
+            break;
+        default:
+            console.warn(`Unknown chat tab: ${tabName}`);
+            if (factionChatDisplayArea) {
+                factionChatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            }
+            break;
+    }
+
+    if (targetChatPanel) {
+        targetChatPanel.classList.add('active'); // Show the selected panel
+    } else {
+        console.error(`No chat panel found for tab: ${tabName}`);
+    }
+
+    // Control visibility of the chat input area
+    if (showInputArea) {
+        chatInputArea.style.display = 'flex'; // Show input area (default flex)
+    } else {
+        chatInputArea.style.display = 'none'; // Hide input area
+    }
 }
 // NEW: Helper function to format time remaining from seconds (Moved for proper scope)
 function formatTime(seconds) {
