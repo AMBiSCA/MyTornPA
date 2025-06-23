@@ -1,22 +1,5 @@
 
 
-// --- Global Variables ---
-const db = firebase.firestore();
-const auth = firebase.auth();
-let userApiKey = null;
-let factionApiFullData = null;
-let currentTornUserName = 'Unknown';
-let apiCallCounter = 0; // Counter for API call intervals
-let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-let currentLiveChainSeconds = 0; // Stores the remaining chain timeout for local countdown
-let lastChainApiFetchTime = 0; // Stores the timestamp of the last chain API fetch
-let globalChainStartedTimestamp = 0; // Stores the actual chain start time from API
-let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
-let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
-let globalRankedWarData = null;
-let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
-let unsubscribeFromChat = null; // <--- PASTE IT HERE
-
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
@@ -63,14 +46,31 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-const chatDisplayArea = document.getElementById('chat-display-area');
 const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
-const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
-const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
-const chatInputArea = document.querySelector('.chat-input-area');
+const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus'); // Corrected ID getter
+
+// NEW/UPDATED: Chatbox Element Getters (specific to each chat tab panel)
+const chatContentPanels = document.querySelector('.chat-content-panels'); // Main container for all chat panels
+
+const factionChatPanel = document.getElementById('faction-chat-panel');
+const privateChatPanel = document.getElementById('private-chat-panel');
+const friendsPanel = document.getElementById('friends-panel');
+const factionMembersPanel = document.getElementById('faction-members-panel');
+const recentlyMetPanel = document.getElementById('recently-met-panel');
+const blockedPeoplePanel = document.getElementById('blocked-people-panel');
+const settingsPanel = document.getElementById('settings-panel');
+
+// Specific display areas *within* each panel (messages will be appended to these)
+const factionChatDisplayArea = document.getElementById('factionChatDisplayArea');
+const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
+const friendsChatDisplayArea = document.getElementById('friendsChatDisplayArea');
+const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea'); // For the members list
+const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
+const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
+const settingsDisplayArea = document.getElementById('settingsDisplayArea');
 
 // --- Utility Functions ---
 
@@ -448,60 +448,8 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     });
 }
 
- // Update Chain Timer Display (smooth 1-second countdown)
- console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
- if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-     const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
-     const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-     chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
- } else if (chainTimerDisplay) {
-     chainTimerDisplay.textContent = 'Chain Over';
- }
 
- // Update Chain Started Time Display
- if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-     chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
- } else if (chainStartedDisplay) {
-     chainStartedDisplay.textContent = 'Started: N/A';
- }
-
- // NEW: Update War Started Time Display (smooth 1-second relative countdown)
- // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
- if (warStartedTime && globalWarStartedActualTime > 0) {
-     warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
- } else if (warStartedTime) {
-     warStartedTime.textContent = 'N/A';
- }
-
-}
-
-  // Update Chain Timer Display (smooth 1-second countdown)
-  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
-  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
-      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-  } else if (chainTimerDisplay) {
-      chainTimerDisplay.textContent = 'Chain Over';
-  }
-
-  // Update Chain Started Time Display
-  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-  } else if (chainStartedDisplay) {
-      chainStartedDisplay.textContent = 'Started: N/A';
-  }
-
-  // NEW: Update War Started Time Display (smooth 1-second relative countdown)
-  // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
-  if (warStartedTime && globalWarStartedActualTime > 0) {
-      warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
-  } else if (warStartedTime) {
-      warStartedTime.textContent = 'N/A';
-  }
-
-// ... (Your existing Utility Functions, e.g., formatTime, formatTornTime, filterProfanity if present) ...
-
+  
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
     if (!chatDisplayArea) {
@@ -574,14 +522,9 @@ async function sendChatMessage() {
 
 // NEW: Function to set up real-time listener for chat messages
 function setupChatRealtimeListener() {
-    if (!chatMessagesCollection) {
-        console.error("Firebase chatMessagesCollection is not defined.");
+    if (!factionChatDisplayArea || !factionApiFullData || !factionApiFullData.ID) {
+        console.error("Cannot set up chat listener: Faction Chat Display Area or Faction ID not available.");
         return;
-    }
-
-    // Clear existing messages before setting up a new listener (important when switching tabs/channels later)
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = `<p>Loading messages...</p>`;
     }
 
     // Unsubscribe from any previous listener to avoid multiple listeners
@@ -589,37 +532,36 @@ function setupChatRealtimeListener() {
         unsubscribeFromChat();
         console.log("Unsubscribed from previous chat listener.");
     }
+    
+    // Get reference to the specific faction's messages subcollection
+    const factionChatMessagesRef = db.collection('factionChats').doc(String(factionApiFullData.ID)).collection('messages');
+
+    // Clear existing messages before setting up a new listener
+    factionChatDisplayArea.innerHTML = `<p>Loading messages...</p>`; // Clear the specific display area
 
     // Set up the real-time listener, ordered by timestamp
-    unsubscribeFromChat = chatMessagesCollection
-        .orderBy('timestamp', 'asc') // Order messages by timestamp
-        .limit(100) // Limit to the last 100 messages for performance
+    unsubscribeFromChat = factionChatMessagesRef
+        .orderBy('timestamp', 'asc')
+        .limit(100)
         .onSnapshot(snapshot => {
-            // Clear the chat display area to re-render all messages
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = '';
-            }
+            factionChatDisplayArea.innerHTML = ''; // Clear to re-render all messages
 
             if (snapshot.empty) {
-                if (chatDisplayArea) {
-                    chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
-                }
+                factionChatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
                 console.log("No messages in chat collection.");
                 return;
             }
 
             snapshot.forEach(doc => {
                 const message = doc.data();
-                displayChatMessage(message); // Use the existing function to display each message
+                displayChatMessage(message); // Display each message in the faction chat area
             });
             console.log("Chat messages updated in real-time.");
         }, error => {
             console.error("Error listening to chat messages:", error);
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
-            }
+            factionChatDisplayArea.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
         });
-    console.log("Chat real-time listener set up.");
+    console.log("Chat real-time listener set up for Faction ID:", factionApiFullData.ID);
 }
 
 // ... (Your existing claimTarget and unclaimTarget functions) ...
@@ -1254,11 +1196,12 @@ function displayFriendlyMembersTable(members) {
 }
 
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
+// NEW: Function to handle switching chat tabs (now manages panels and listeners)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
 
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels) {
-        console.error("Chat elements not found for tab switching or content panels.");
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels || !chatInputArea) {
+        console.error("Chat elements not found for tab switching or content panels, or input area.");
         return;
     }
 
@@ -1289,6 +1232,7 @@ function switchChatTab(tabName) {
     // Show the selected content panel and perform tab-specific actions
     let targetChatPanel = null;
     let targetDisplayArea = null; 
+    let showInputArea = true; // Default to showing input area
 
     switch (tabName) {
         case 'faction-chat':
@@ -1324,7 +1268,7 @@ function switchChatTab(tabName) {
             targetDisplayArea = blockedPeopleDisplayArea;
             if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
             break;
-        case 'settings': // NEW: Case for the Settings tab
+        case 'settings': 
             targetChatPanel = settingsPanel;
             targetDisplayArea = settingsDisplayArea;
             if (targetDisplayArea) {
@@ -1334,6 +1278,7 @@ function switchChatTab(tabName) {
                     <p>Options for chat sound, notifications, font size, etc., would go here.</p>
                 `;
             }
+            showInputArea = false; // Hide input area for Settings tab
             break;
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
@@ -1348,8 +1293,14 @@ function switchChatTab(tabName) {
     } else {
         console.error(`No chat panel found for tab: ${tabName}`);
     }
-}
 
+    // Control visibility of the chat input area
+    if (showInputArea) {
+        chatInputArea.style.display = 'flex'; // Show input area (default flex)
+    } else {
+        chatInputArea.style.display = 'none'; // Hide input area
+    }
+}
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
@@ -1641,6 +1592,10 @@ function populateWarStatusDisplay(warData = {}) {
     if (warNoFlyingStatus) warNoFlyingStatus.textContent = warData.toggleNoFlying ? 'Yes' : 'No';
     if (warTurtleStatus) warTurtleStatus.textContent = warData.toggleTurtleMode ? 'Yes' : 'No';
     if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
+    // NEW: Display Current Team Lead
+    if (currentTeamLeadDisplay) {
+        currentTeamLeadDisplay.textContent = warData.currentTeamLead || 'N/A';
+    }
 }
 
 function loadWarStatusForEdit(warData = {}) {
@@ -1652,6 +1607,7 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
+    if (currentTeamLeadInput) currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 
@@ -1781,10 +1737,7 @@ function setupMemberClickEvents() {
     });
 }
 
-function setupToggleSelectionEvents() {
-    // This function is currently not defined but is no longer causing an error.
-    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
-}
+
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
@@ -1950,28 +1903,28 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-	
-	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
-    // Send message on button click
-    chatSendBtn.addEventListener('click', sendChatMessage);
 
-    // Send message on Enter key press in the input field
-    chatTextInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent default browser behavior (like new line)
-            sendChatMessage(); // Call our send message function
-        }
-    });
-}
+    if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
+        // Send message on button click
+        chatSendBtn.addEventListener('click', sendChatMessage);
 
-if (chatTabsContainer && chatTabButtons.length > 0) {
-    chatTabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
-            switchChatTab(tabName); // Call our new function to switch tabs
+        // Send message on Enter key press in the input field
+        chatTextInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default browser behavior (like new line)
+                sendChatMessage(); // Call our send message function
+            }
         });
-    });
-}
+    }
+
+    if (chatTabsContainer && chatTabButtons.length > 0) {
+        chatTabButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+                switchChatTab(tabName); // Call our new function to switch tabs
+            });
+        });
+    }
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
@@ -1986,10 +1939,14 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
             }
         });
     }
-    
+
+    // Only ONE instance of saveWarStatusControlsBtn listener
     if (saveWarStatusControlsBtn) {
         saveWarStatusControlsBtn.addEventListener('click', async () => {
             const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const rawTeamLead = currentTeamLeadInput ? currentTeamLeadInput.value.trim() : '';
+            const filteredTeamLead = typeof filterProfanity === 'function' ? filterProfanity(rawTeamLead) : rawTeamLead;
+
             const statusData = {
                 toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
                 toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
@@ -1998,7 +1955,8 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
                 toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
                 toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
                 nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
+                enemyFactionID: enemyId,
+                currentTeamLead: filteredTeamLead // Save the filtered team lead
             };
             try {
                 await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
@@ -2037,10 +1995,8 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
         });
     }
 
-    // NOTE: The typo in your original variable name is corrected here. 
-    // Make sure your save button's ID in the HTML is "saveWatchlistSelectionsBtn"
-    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
-    if (saveWatchlistSelectionsBtn) { 
+    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn'); // Ensure this ID is correct in HTML
+    if (saveWatchlistSelectionsBtn) {
         saveWatchlistSelectionsBtn.addEventListener('click', async () => {
             if (!bigHitterWatchlistContainer) return;
             const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
@@ -2053,72 +2009,6 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
         });
     }
 }
-    
-    if (saveWarStatusControlsBtn) {
-        saveWarStatusControlsBtn.addEventListener('click', async () => {
-            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = {
-                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-                toggleChaining: toggleChaining ? toggleChaining.checked : false,
-                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
-            };
-            try {
-                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                alert('War status saved!');
-                populateWarStatusDisplay(statusData);
-                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
-            } catch (error) {
-                console.error('Error saving war status:', error);
-            }
-        });
-    }
-
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                alert('Admins saved!');
-            } catch (error) {
-                console.error("Error saving admins:", error);
-            }
-        });
-    }
-
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                alert('Energy tracking members saved!');
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-            }
-        });
-    }
-
-    // NEW: Save button for Big Hitter Watchlist
-    if (saveSelectionsBtnBH) {
-        saveSelectionsBtnBH.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                alert('Big Hitter Watchlist saved!');
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-            }
-        });
-    }
-
-
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(button => {
