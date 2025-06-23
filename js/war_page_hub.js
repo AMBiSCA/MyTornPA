@@ -1362,7 +1362,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.classList.add('detail-panel-loaded');
 
     let tornApiData = null;
-    let apiErrorMessage = '';
+    let apiErrorMessage = ''; 
 
     try {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
@@ -1395,10 +1395,11 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // Selections for the API call
-        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars'; // Keeping 'bars' to ensure Nerve/Energy are requested if needed from there.
+        // --- Corrected selections to match what's shown working in image_332775.jpg ---
+        // Assuming this key has permissions for all these selections
+        const selections = 'profile,battlestats,workstats,cooldowns,bars'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
-
+        
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
@@ -1413,7 +1414,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            tornApiData = await response.json();
+            tornApiData = await response.json(); 
             console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
             if (tornApiData.error) {
@@ -1425,176 +1426,142 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 }
             }
         }
-
+        
         if (!tornApiData || Object.keys(tornApiData).length === 0) {
-            throw new Error("Failed to retrieve any meaningful data after API call.");
+             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        const personalStats = tornApiData.personalstats || {};
-        const jobData = tornApiData.job || {};
-        const cooldowns = tornApiData.cooldowns || {};
+        // --- Data Extraction based on image_332775.jpg's implied structure ---
+        const profile = tornApiData.profile || {}; // Has name, level, last_action, status
+        const battlestats = tornApiData.battlestats || {}; // Has strength, speed, etc.
+        const workstats = tornApiData.workstats || {}; // Has manual_labor, intelligence, endurance, job info
+        const cooldowns = tornApiData.cooldowns || {}; // Has drug, medical, booster
+        const bars = tornApiData.bars || {}; // Has nerve, energy
+
+        console.log("[DEBUG] Extracted Profile Data:", profile);
+        console.log("[DEBUG] Extracted Battlestats Data:", battlestats);
+        console.log("[DEBUG] Extracted WorkStats Data (full object):", workstats);
+        console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
+        console.log("[DEBUG] Extracted Bars Data (Nerve/Energy):", bars);
+
+        // --- Extracting and formatting data for display ---
+
+        // Profile Info (Name, Level, Player ID)
+        const displayName = profile.name || 'Unknown';
+        const displayPlayerId = profile.player_id || 'N/A';
+        const displayLevel = profile.level || 'N/A';
         
-        // Extract nerve and energy from tornApiData.bars or directly if they appear there (fallback is handled below)
-        const barsData = tornApiData.bars || {};
-        const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
-        const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
+        // Last Action
+        const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
 
-        // Access name, player_id, last_action, status directly from tornApiData (root)
-        const memberName = tornApiData.name || 'Unknown';
-        const memberPlayerId = tornApiData.player_id || 'N/A';
-        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
-        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
-
-        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
-        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
-
-        console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
-        console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
-        console.log("[DEBUG] Extracted Main Status Data:", mainStatusData);
-        console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
-        console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
-        console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
-        console.log("[DEBUG] Extracted Nerve Data (from bars/root object):", nerve);
-        console.log("[DEBUG] Extracted Energy Data (from bars/root object):", energy);
-        console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
-        console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
+        // Status
+        let statusText = profile.status ? profile.status.description : 'Unknown';
+        let statusClass = 'status-okay'; // Default
+        if (profile.status) {
+            if (profile.status.state === 'Hospital') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `In Hospital (${formatTime(timeLeft)})`;
+                statusClass = 'status-hospital';
+            } else if (profile.status.state === 'Traveling') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `${profile.status.description} (${formatTime(timeLeft)})`;
+                statusClass = 'status-traveling';
+            } else if (profile.status.state !== 'Okay') {
+                statusText = profile.status.description;
+                statusClass = 'status-other';
+            }
+        }
+        console.log(`[DEBUG] Final Profile Info: Name: ${displayName}, ID: ${displayPlayerId}, Level: ${displayLevel}, Last Action: ${lastActionText}, Status: ${statusText}`);
 
 
-        // --- BATTLE STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
-        const strength = (personalStats.strength || tornApiData.strength || 0).toLocaleString();
-        const speed = (personalStats.speed || tornApiData.speed || 0).toLocaleString();
-        const dexterity = (personalStats.dexterity || tornApiData.dexterity || 0).toLocaleString();
-        const defense = (personalStats.defense || tornApiData.defense || 0).toLocaleString();
-
+        // Battle Stats
+        const strength = (battlestats.strength || 0).toLocaleString();
+        const speed = (battlestats.speed || 0).toLocaleString();
+        const dexterity = (battlestats.dexterity || 0).toLocaleString();
+        const defense = (battlestats.defense || 0).toLocaleString();
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        // --- WORK STATS EXTRACTION (Prioritizing personalstats or root, then default 0) ---
-        const manuelLabor = (personalStats.manuallabor || tornApiData.manual_labor || 0).toLocaleString();
-        const intelligence = (personalStats.intelligence || tornApiData.intelligence || 0).toLocaleString();
-        const endurance = (personalStats.endurance || tornApiData.endurance || 0).toLocaleString();
+
+        // Work Stats
+        const job = workstats.job_company_name ? `${workstats.job_company_name} (${workstats.job_name})` : 'N/A';
+        const jobEfficiency = workstats.job_efficiency ? `${workstats.job_efficiency}%` : 'N/A';
+        const manualLabor = (workstats.manual_labor || 0).toLocaleString(); // These are nested under 'workstats'
+        const intelligence = (workstats.intelligence || 0).toLocaleString();
+        const endurance = (workstats.endurance || 0).toLocaleString();
+        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manualLabor}, Int: ${intelligence}, End: ${endurance}`);
+
+        // Nerve and Energy Stats (from 'bars' selection)
+        const currentNerve = (bars.nerve?.current || 'N/A');
+        const maxNerve = (bars.nerve?.maximum || '');
+        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''}`.trim() || 'N/A';
         
-        const job = jobData.company_name && jobData.job ? `${jobData.company_name} (${jobData.job})` : 'N/A';
-        const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A';
+        const currentEnergy = (bars.energy?.current || 'N/A');
+        const maxEnergy = (bars.energy?.maximum || '');
+        const energyGain = bars.energy?.energy_regen !== undefined ? `+${bars.energy.energy_regen}/10min` : ''; // Get regen from bars.energy
+        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
 
-        console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
+        console.log(`[DEBUG] Final Nerve: ${nerveDisplay}, Energy: ${energyDisplay}`);
 
-        // Nerve and Energy display values
-        const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
-        const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
-        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
-        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
 
-        const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
-        const energyMax = energy.maximum !== undefined ? energy.maximum : '';
-        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
-        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
-
-        let cooldownsHtml = ''; // Will build this as list items for 3 columns
+        // Cooldowns
+        let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
             for (const key in cooldowns) {
                 if (cooldowns.hasOwnProperty(key)) {
                     const timeLeft = cooldowns[key];
-                    let displayValue;
                     if (typeof timeLeft === 'number' && timeLeft > 0) {
-                        displayValue = formatTime(timeLeft);
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
                     } else if (typeof timeLeft === 'number' && timeLeft === 0) {
-                        displayValue = 'Ready';
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
                     } else {
-                        displayValue = 'N/A';
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: N/A</li>`;
                     }
-                    cooldownsHtml += `<li><strong>${key.replace(/_/g, ' ')}:</strong> ${displayValue}</li>`;
                 }
             }
         } else {
             cooldownsHtml += '<li>No active cooldowns.</li>';
         }
-
+        cooldownsHtml += '</ul>';
         console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
 
-        // Use the new lastActionData object directly
-        const lastActionTimestamp = lastActionData.timestamp ? lastActionData.timestamp : null;
-        const lastActionText = formatRelativeTime(lastActionTimestamp);
-
-        // Use the new mainStatusData object directly
-        let statusText = mainStatusData.description || 'Unknown';
-        let statusClass = 'status-okay';
-
-        if (mainStatusData) { // Check if mainStatusData is not null/undefined
-            if (mainStatusData.state === 'Hospital') {
-                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
-                statusText = `In Hospital (${formatTime(timeLeft)})`;
-                statusClass = 'status-hospital';
-            } else if (mainStatusData.state === 'Traveling') {
-                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
-                statusText = `${mainStatusData.description} (${formatTime(timeLeft)})`;
-                statusClass = 'status-traveling';
-            } else if (mainStatusData.state !== 'Okay') {
-                statusText = mainStatusData.description;
-                statusClass = 'status-other';
-            }
-        }
-        console.log(`[DEBUG] Final Profile Info: Last Action: ${lastActionText}, Status: ${statusText}`);
 
         let overallAccessMessage = '';
         if (apiErrorMessage) {
-            overallAccessMessage = `<p class="member-detail-error-message">Note: ${apiErrorMessage}</p>`;
+            overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
         }
 
-        // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
+
         const detailsHtml = `
-            <div class="member-detail-header">
-                <div class="member-header-top-row">
-                    <div class="member-stat-block member-stat-block-small">
-                        <h5>Energy:</h5>
-                        <p>${energyDisplay}</p>
-                    </div>
-                    ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
-                    <div class="member-stat-block member-stat-block-small">
-                        <h5>Nerve:</h5>
-                        <p>${nerveDisplay}</p>
-                    </div>
-                </div>
-                <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
-                <div class="member-detail-level">(Level: ${memberLevel})</div>
-            </div>
-
+            <h4>${displayName} [${displayPlayerId}] (Level: ${displayLevel})</h4>
             ${overallAccessMessage}
-
-            <div class="member-detail-info-row"> // NEW CONTAINER FOR LAST ACTION AND STATUS
-                <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
-                <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
+            <p>Last Action: ${lastActionText}</p>
+            <p>Status: <span class="${statusClass}">${statusText}</span></p>
+            <h5>Battle Stats:</h5>
+            <div class="member-stats-grid">
+                <span>Strength:</span> <span>${strength}</span>
+                <span>Speed:</span> <span>${speed}</span>
+                <span>Dexterity:</span> <span>${dexterity}</span>
+                <span>Defense:</span> <span>${defense}</span>
             </div>
-
-            <div class="member-stats-group-row">
-                <div class="member-stat-block">
-                    <h5>Battle Stats:</h5>
-                    <div class="member-stats-grid">
-                        <span>Strength:</span> <span>${strength}</span>
-                        <span>Defense:</span> <span>${defense}</span>
-                        <span>Speed:</span> <span>${speed}</span>
-                        <span>Dexterity:</span> <span>${dexterity}</span>
-                    </div>
-                </div>
-                <div class="member-stat-block">
-                    <h5>Work Stats:</h5>
-                    <div class="member-stats-grid">
-                        <span>Job:</span> <span>${job}</span>
-                        <span>Efficiency:</span> <span>${jobEfficiency}</span>
-                        <span>Manual Labor:</span> <span>${manuelLabor}</span>
-                        <span>Intelligence:</span> <span>${intelligence}</span>
-                        <span>Endurance:</span> <span>${endurance}</span>
-                    </div>
-                </div>
+            <h5>Work Stats:</h5>
+            <div class="member-stats-grid">
+                <span>Job:</span> <span>${job}</span>
+                <span>Efficiency:</span> <span>${jobEfficiency}</span>
+                <span>Manual Labor:</span> <span>${manualLabor}</span>
+                <span>Intelligence:</span> <span>${intelligence}</span>
+                <span>Endurance:</span> <span>${endurance}</span>
             </div>
-
-            <div class="member-cooldowns-block">
-                <h5>Cool downs</h5>
-                <ul class="member-cooldowns-list">
-                    ${cooldownsHtml}
-                </ul>
-            </div>
+            <h5>Nerve:</h5>
+            <p>${nerveDisplay}</p>
+            <h5>Energy:</h5>
+            <p>${energyDisplay}</p>
+            <h5>Cooldowns:</h5>
+            ${cooldownsHtml}
+            <p>
+                </p>
         `;
-
+            
         detailPanel.innerHTML = detailsHtml;
 
     } catch (error) {
