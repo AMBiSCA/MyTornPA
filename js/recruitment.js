@@ -1,273 +1,133 @@
-/* ==========================================================================
-   Recruitment Hub Specific Styles (recruitment.css)
-   Based on war_page_hub.css guidelines for consistency
-   ========================================================================== */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - Recruitment Hub</title>
 
-/* Main content wrapper for the new recruitment page */
-.recruitment-main-content {
-    /* Mimics #warPageHubContainer for overall page content structure */
-    background-color: #1e1e1e; /* Darker background */
-    color: #f0f0f0; /* Light text */
-    padding: 10px; /* Consistent padding */
-    border-radius: 8px;
-    margin-top: 15px;
-    margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    width: 98%;
-    max-width: 1800px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 20px; /* Increased gap between sections for clarity on new page */
-    min-height: calc(100vh - 170px); /* Adjust as needed for new page height */
-    border: 3px solid black; /* Consistent border */
-}
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/war_page_hub.css"> <link rel="stylesheet" href="../../css/recruitment.css"> </head>
+<body>
 
-/* Page Title (h1) */
-.page-title {
-    /* Mimics .script-title from war_page_hub.css */
-    color: #00a8ff; /* Blue theme color */
-    text-align: center;
-    margin-bottom: 15px; /* Slightly more margin for a main title */
-    margin-top: 5px;
-    font-size: 2.2em; /* Slightly larger for a main page title */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    border-bottom: 2px solid #00a8ff; /* Add a bottom border for emphasis */
-    padding-bottom: 10px;
-}
+    <header>
+        <div class="header-left">
+            <a href="#" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-user-display" id="logged-in-user-display" style="display: none;">
+            </div>
 
-.description-text {
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 1.1em;
-    color: #ccc;
-}
+            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
 
-/* Section Containers (Factions Seeking, Players Seeking) */
-.recruitment-section {
-    /* Mimics .config-section or .war-announcement-section */
-    background-color: #222; /* Consistent dark background */
-    border: 1px solid black;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    padding: 15px; /* Consistent padding */
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Space between elements within a section */
-}
+            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+                <button class="btn" id="homeButtonHeader">
+                    <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
+                </button>
 
-/* Section Headings (h2) */
-.recruitment-section h2 {
-    /* Consistent heading style */
-    color: #00a8ff;
-    text-align: center;
-    margin-bottom: 10px;
-    margin-top: 0;
-    font-size: 1.8em;
-    border-bottom: 1px solid #00a8ff; /* Lighter border than page title */
-    padding-bottom: 5px;
-}
+                <div class="dropdown align-right" id="usefulLinksDropdownContainer">
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗</span></button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
 
-.recruitment-section p {
-    color: #f0f0f0;
-    font-size: 0.95em;
-    text-align: center;
-}
+                <div class="dropdown align-right" id="contactUsDropdownContainer">
+                    <button class="btn header-btn" id="contactUsBtn">
+                        <span class="btn-text">Contact:</span><span class="btn-icon">💬</span></button>
+                    <div class="dropdown-content" id="contactUsDropdown">
+                        <a href="report.html">Report an Issue</a> <a href="#">Live Chat (Soon™)</a>
+                        <a href="FAQ.html">F.A.Q</a> </div>
+                </div>
 
-/* Table Styles (Faction and Player listings) */
-.recruitment-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #f0f0f0; /* Light text for table content */
-    background-color: #2a2a2a; /* Slightly lighter background for the table itself */
-    border-radius: 4px; /* Slight rounding for tables */
-    overflow: hidden; /* Ensures rounded corners are respected */
-}
+                <button class="btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+                </button>
+            </div>
 
-.recruitment-table th,
-.recruitment-table td {
-    border: 1px solid #3a3a40; /* Consistent border from enemy-targets-table */
-    padding: 10px;
-    text-align: left;
-    white-space: nowrap; /* Prevent wrapping unless explicit break */
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+        </div>
+    </header>
 
-.recruitment-table thead th {
-    background-color: #00a8ff; /* Blue header background */
-    color: #1e1e1e; /* Dark text on blue */
-    font-weight: bold;
-    text-align: center;
-    font-size: 0.95em;
-    border-bottom: 2px solid #1e1e1e;
-}
+    <main class="recruitment-main-content">
+        <h1 class="page-title">MyTornPA Recruitment Hub</h1>
+        <p class="description-text">Connect with factions seeking members and players looking for a new home.</p>
 
-.recruitment-table tbody tr:nth-child(even) {
-    background-color: #333; /* Alternate row color */
-}
+        <section class="recruitment-section">
+            <h2>Factions Seeking Members</h2>
+            <p>Browse factions currently looking for new recruits. Click 'Enlist' to send them your profile.</p>
+            <table class="recruitment-table">
+                <thead>
+                    <tr>
+                        <th>Faction Name [ID]</th>
+                        <th>Members</th>
+                        <th>Contact Info</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="factions-seeking-members-tbody">
+                    <tr><td colspan="4">Loading recruiting factions...</td></tr>
+                    </tbody>
+            </table>
+        </section>
 
-.recruitment-table tbody tr:hover {
-    background-color: #444; /* Hover effect */
-}
+        <section class="recruitment-section">
+            <h2>Players Seeking Factions</h2>
+            <p>Players can list themselves here to find a faction.</p>
+            <button id="list-self-button" class="action-button">List Myself</button>
+            <button id="advertise-faction-button" class="action-button" style="display:none;">Advertise My Faction</button> 
+            
+            <table class="recruitment-table">
+                <thead>
+                    <tr>
+                        <th>Player Name [ID]</th>
+                        <th>Level</th>
+                        <th>Battle Stats</th>
+                        <th>Xanax Taken</th>
+                        <th>Total Attacks</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="players-seeking-factions-tbody">
+                    <tr><td colspan="6">Players looking for factions will appear here...</td></tr>
+                    </tbody>
+            </table>
+        </section>
+    </main>
 
-/* Specific button style for Enlist/Contact/List Myself/Advertise */
-.action-button {
-    /* Mimics .config-section .action-btn and .quick-ff-target-btn */
-    display: inline-block;
-    background-color: #007bff; /* Blue */
-    color: white;
-    padding: 8px 15px;
-    border: 2px solid black; /* Consistent border */
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.95em;
-    font-weight: bold;
-    text-align: center;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    text-decoration: none; /* In case it's an <a> acting as a button */
-    white-space: nowrap;
-    margin-right: 10px; /* Space between multiple buttons in the same section */
-}
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
 
-.action-button:hover {
-    background-color: #00a8ff;
-    border-color: black;
-}
-
-.action-button:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-    border-color: #555;
-    color: #ccc;
-}
-
-/* Styles for the "Player Name [ID]" link within tables */
-.recruitment-table a {
-    color: #8ab4f4; /* Consistent blue for links, slightly lighter for better visibility on dark bg */
-    text-decoration: none;
-}
-
-.recruitment-table a:hover {
-    text-decoration: underline;
-}
-
-/* Responsive adjustments - applying principles from war_page_hub.css */
-@media (max-width: 992px) {
-    .recruitment-main-content {
-        padding: 10px;
-        gap: 15px;
-    }
-    .recruitment-section {
-        padding: 10px;
-    }
-    .recruitment-table th,
-    .recruitment-table td {
-        padding: 8px;
-        font-size: 0.85em;
-    }
-    .action-button {
-        padding: 6px 12px;
-        font-size: 0.9em;
-        margin-bottom: 5px; /* Add vertical space when buttons stack */
-    }
-}
-
-@media (max-width: 768px) {
-    .recruitment-main-content h1 {
-        font-size: 1.8em;
-    }
-    .recruitment-section h2 {
-        font-size: 1.5em;
-    }
-    .recruitment-table th,
-    .recruitment-table td {
-        padding: 6px;
-        font-size: 0.8em;
-    }
-    .action-button {
-        padding: 5px 10px;
-        font-size: 0.85em;
-    }
-}
-
-@media (max-width: 480px) {
-    .recruitment-main-content {
-        padding: 5px;
-        gap: 10px;
-    }
-    .recruitment-main-content h1 {
-        font-size: 1.5em;
-        margin-bottom: 10px;
-    }
-    .recruitment-section {
-        padding: 8px;
-        gap: 10px;
-    }
-    .recruitment-section h2 {
-        font-size: 1.3em;
-    }
-    .recruitment-table th,
-    .recruitment-table td {
-        padding: 4px;
-        font-size: 0.75em;
-    }
-    .action-button {
-        padding: 4px 8px;
-        font-size: 0.8em;
-        width: 100%; /* Force buttons to stack vertically */
-        margin-right: 0;
-    }
-}
-
-/* Ensure common header/footer styles from war_page_hub.css apply if imported */
-/* (Assuming global.css or war_page_hub.css contains these, or you copy them here if not) */
-/* Example copied from your war_page_hub.html's header/footer structure */
-.main-header {
-    background-color: #1a1a1a;
-    color: #f0f0f0;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.main-header .logo {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #00bcd4; /* Assuming a primary theme blue */
-}
-
-.main-header nav a {
-    color: #f0f0f0;
-    text-decoration: none;
-    margin-left: 20px;
-    font-size: 1.1em;
-    transition: color 0.2s;
-}
-
-.main-header nav a:hover {
-    color: #00bcd4;
-}
-
-.footer {
-    background-color: #1a1a1a;
-    color: #999;
-    text-align: center;
-    padding: 15px 20px;
-    margin-top: 30px; /* Ensure space above footer */
-    border-top: 1px solid #333;
-}
-
-.footer-links a {
-    color: #8ab4f8; /* Consistent link color in footer */
-    text-decoration: none;
-    margin: 0 10px;
-}
-.footer-links a:hover {
-    text-decoration: underline;
-}
+    <script src="../../js/firebase-init.js"></script>
+    <script src="../../js/globalheader.js"></script>
+    <script src="../../js/recruitment.js"></script>
+</body>
+</html>
