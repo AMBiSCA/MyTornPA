@@ -67,6 +67,7 @@ const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
+const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
 
 // --- Utility Functions ---
 
@@ -1644,6 +1645,15 @@ function setupEventListeners(apiKey) {
             event.preventDefault(); // Prevent default browser behavior (like new line)
             sendChatMessage(); // Call our send message function
         }
+    });
+}
+
+if (chatTabsContainer && chatTabButtons.length > 0) {
+    chatTabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+            switchChatTab(tabName); // Call our new function to switch tabs
+        });
     });
 }
 
