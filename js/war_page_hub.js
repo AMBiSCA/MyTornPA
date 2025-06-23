@@ -2218,11 +2218,8 @@ function handleChatTabClick(event) {
             warChatBox.appendChild(nonChatContentPanel);
         }
     }
-}
 
-
-
-    auth.onAuthStateChanged(async (user) => {
+       auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
