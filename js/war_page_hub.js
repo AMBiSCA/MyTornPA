@@ -642,7 +642,7 @@ function displayEnemyTargetsTable(members) {
             if (timeLeft <= 0) {
                 statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
             } else {
-                statusText = member.status.description;
+                statusText = `${member.status.description} (${formatTime(timeLeft)})`; // <-- MODIFIED LINE
             }
         } else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
@@ -653,12 +653,12 @@ function displayEnemyTargetsTable(members) {
         const lastActionText = formatRelativeTime(lastActionTimestamp); // Use the new function here
 
         tableHtml += `<tr id="target-row-${memberId}">
-                             <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
-                             <td class="col-level">${member.level}</td>
-                             <td class="col-last-action">${lastActionText}</td> <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
-                             <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
-                             <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
-                         </tr>`;
+                               <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                               <td class="col-level">${member.level}</td>
+                               <td class="col-last-action">${lastActionText}</td> <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                               <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                               <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                           </tr>`;
     }
     tableHtml += `</tbody></table>`;
 
