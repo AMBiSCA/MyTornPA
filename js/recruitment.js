@@ -103,9 +103,9 @@ async function enlistPlayer(factionId) {
     }
 
     try {
-        // Fetch player's personal stats, battle stats, and profile using their own API key
-        const selections = 'profile,personalstats,battlestats'; // Including profile for name, level
-        const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitEnlist`;
+        // --- Use selections for 'bars,cooldowns,travel,profile' ---
+        const selections = 'bars,cooldowns,travel,profile'; // As requested
+        const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
         
         console.log(`Fetching player data for enlistment: ${apiUrl}`);
         const response = await fetch(apiUrl);
@@ -116,29 +116,35 @@ async function enlistPlayer(factionId) {
         if (data.error) {
             // Specifically handle common API key errors
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Profile', 'Personal Stats', and 'Battle Stats' are enabled.`);
+            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Bars', 'Cooldowns', 'Travel', and 'Profile' are enabled.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
-        // Extract data
+        // Extract data based on new selections
         const profile = data.profile || {};
-        const personalStats = data.personalstats || {};
-        const battleStats = data.battlestats || {};
+        const bars = data.bars || {}; // Health, Nerve, Energy bars
+        const cooldowns = data.cooldowns || {}; // Drug, Medical, Booster cooldowns
+        const travel = data.travel || {}; // Travel status
+        
+        const xanaxTaken = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
+        const totalAttacks = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
+        const playerStrength = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
+        const playerDefense = 'N/A';   // Cannot get from 'bars,cooldowns,travel,profile'
+        const playerSpeed = 'N/A';       // Cannot get from 'bars,cooldowns,travel,profile'
+        const playerDexterity = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
 
-        const xanaxTaken = personalStats.xantaken || 0;
-        const totalAttacks = personalStats.total_attacks || 0;
 
         const playerEnlistmentData = {
-            factionId: String(factionId), // Ensure it's a string for consistency
+            factionId: String(factionId),
             playerId: String(currentUserTornId),
             playerName: profile.name || data.name || 'Unknown', // Fallback to top-level name from basic selection if profile.name is missing
             playerLevel: profile.level || data.level || 0, // Fallback to top-level level from basic selection
-            playerStrength: (battleStats.strength || 0),
-            playerDefense: (battleStats.defense || 0),
-            playerSpeed: (battleStats.speed || 0),
-            playerDexterity: (battleStats.dexterity || 0),
-            xanaxTaken: xanaxTaken,
-            totalAttacks: totalAttacks,
+            playerStrength: playerStrength, 
+            playerDefense: playerDefense,   
+            playerSpeed: playerSpeed,       
+            playerDexterity: playerDexterity, 
+            xanaxTaken: xanaxTaken,         
+            totalAttacks: totalAttacks,     
             enlistmentTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid, // Link back to their Firebase account
             status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown' // Current status (from profile or basic)
@@ -177,9 +183,9 @@ async function listSelfForRecruitment() {
     }
 
     try {
-        // Fetch player's personal stats, battle stats, and profile using their own API key
-        const selections = 'profile,personalstats,battlestats'; // Including profile for name, level
-        const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitListSelf`;
+        // --- Use selections for 'bars,cooldowns,travel,profile' ---
+        const selections = 'bars,cooldowns,travel,profile'; // As requested
+        const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
         
         console.log(`Fetching player data for self-listing: ${apiUrl}`);
         const response = await fetch(apiUrl);
@@ -189,31 +195,39 @@ async function listSelfForRecruitment() {
         const data = await response.json();
         if (data.error) {
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Profile', 'Personal Stats', and 'Battle Stats' are enabled.`);
+            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Bars', 'Cooldowns', 'Travel', and 'Profile' are enabled.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
         const profile = data.profile || {};
-        const personalStats = data.personalstats || {};
-        const battleStats = data.battlestats || {};
+        const bars = data.bars || {}; // Health, Nerve, Energy bars
+        const cooldowns = data.cooldowns || {}; // Drug, Medical, Booster cooldowns
+        const travel = data.travel || {}; // Travel status
+
+        const xanaxTaken = 'N/A'; // Will be N/A based on current selections
+        const totalAttacks = 'N/A'; // Will be N/A based on current selections
+        const playerStrength = 'N/A'; // Will be N/A based on current selections
+        const playerDefense = 'N/A';   // Will be N/A based on current selections
+        const playerSpeed = 'N/A';       // Will be N/A based on current selections
+        const playerDexterity = 'N/A'; // Will be N/A based on current selections
+
 
         const playerListingData = {
             playerId: String(currentUserTornId),
             playerName: profile.name || data.name || 'Unknown',
             playerLevel: profile.level || data.level || 0,
-            playerStrength: (battleStats.strength || 0),
-            playerDefense: (battleStats.defense || 0),
-            playerSpeed: (battleStats.speed || 0),
-            playerDexterity: (battleStats.dexterity || 0),
-            xanaxTaken: (personalStats.xantaken || 0),
-            totalAttacks: (personalStats.total_attacks || 0),
+            playerStrength: playerStrength, 
+            playerDefense: playerDefense,   
+            playerSpeed: playerSpeed,       
+            playerDexterity: playerDexterity, 
+            xanaxTaken: xanaxTaken,
+            totalAttacks: totalAttacks,
             contactInfo: contactInfo.trim(),
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true // Player can set this to false later if they find a faction
         };
 
-        // Save to Firestore in 'playersSeekingFactions' collection
         const docRef = db.collection('playersSeekingFactions').doc(String(currentUserTornId));
         await docRef.set(playerListingData, { merge: true });
 
@@ -272,7 +286,6 @@ async function displayPlayersSeekingFactions() {
 
 
 // --- NEW FUNCTION: To allow a Faction Leader to advertise their faction ---
-// --- NEW FUNCTION: To allow a Faction Leader to advertise their faction ---
 async function advertiseFaction() {
     console.log("Attempting to advertise faction.");
     if (!auth.currentUser) {
@@ -301,7 +314,6 @@ async function advertiseFaction() {
 
         // Fetch current user's faction data using their API key
         const selections = 'basic,members'; // Basic info + member count
-        // --- CRITICAL CORRECTION: Changed API URL to /v2/faction/ ---
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
 
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
@@ -361,32 +373,56 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornId = userData.tornProfileId || null;
             currentUserTornApiKey = userData.tornApiKey || null;
             
-            // Check if user is a leader based on 'tab4Admins' in factionWars/currentWar
-            if (currentUserTornId) { // Ensure currentUserTornId is available for this check
+            // Check if user is a leader based on Torn API (faction rank)
+            if (currentUserTornId && currentUserTornApiKey) { 
                 try {
-                    const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                    const warData = warDoc.exists ? warDoc.data() : {};
-                    const tab4Admins = warData.tab4Admins || [];
-                    currentUserIsLeader = tab4Admins.includes(String(currentUserTornId));
-                    console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader}`);
-                    if (advertiseFactionButton) { // Ensure button exists before trying to access style
-                        advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none'; // Show/hide based on leader status
+                    // Fetch user's own faction data to check rank
+                    const userFactionApiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=faction&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitLeaderCheck`;
+                    const response = await fetch(userFactionApiUrl);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        console.warn(`Error fetching user's faction data for leader check: ${data.error.error}`);
+                        // If error code 10 (Access denied), it's likely a limited key. Don't set as leader.
+                        if (data.error.code === 10) {
+                            currentUserIsLeader = false;
+                        } else {
+                            // For other errors, log and default to non-leader
+                            console.error("General error during leader check API call:", data.error);
+                            currentUserIsLeader = false;
+                        }
+                    } else if (data.faction && (data.faction.position === 'Leader' || data.faction.position === 'Co-leader')) {
+                        currentUserIsLeader = true;
+                    } else {
+                        currentUserIsLeader = false;
                     }
+                    console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader} (via Torn API check).`);
+                    
+                    // Show/hide button based on leader status
+                    if (advertiseFactionButton) {
+                        advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
+                    }
+
                 } catch (error) {
-                    console.error("Error checking leader status:", error);
-                    currentUserIsLeader = false; // Default to false on error
+                    console.error("Error checking leader status via Torn API:", error);
+                    currentUserIsLeader = false; // Default to false on any API error
                     if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide on error
                 }
+            } else {
+                 // If no Torn ID or API key, can't check leader status, so hide button
+                if (advertiseFactionButton) advertiseFactionButton.style.display = 'none';
             }
 
 
-            if (currentUserTornId && currentUserTornApiKey) {
-                console.log(`User ${user.uid} (${currentUserTornId}) logged in for Recruitment page.`);
-            } else {
-                console.warn("User logged in but Torn ID or API Key missing from profile.");
+            if (!currentUserTornId || !currentUserTornApiKey) {
+                console.warn("User logged in but Torn ID or API Key missing from profile. Disabling enlist/advertise buttons.");
                 alert("Please complete your profile (Torn ID & API Key) to use all recruitment features.");
-                if (listSelfButton) listSelfButton.disabled = true; // Disable if missing key
-                if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable advertise button too if missing key
+                if (listSelfButton) listSelfButton.disabled = true;
+                if (advertiseFactionButton) advertiseFactionButton.disabled = true;
+            } else {
+                 // Ensure buttons are enabled if key/ID are present and leader status checked
+                 if (listSelfButton) listSelfButton.disabled = false;
+                 // advertiseFactionButton display/disabled status already handled by currentUserIsLeader logic
             }
         } else {
             console.log("User not logged in on Recruitment page.");
@@ -395,7 +431,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (listSelfButton) listSelfButton.disabled = true;
             if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide if not logged in
             if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable if not logged in
-            // For enlist buttons in table, they will be dynamically added. We'll handle disabled state within displayFactionsSeekingMembers if user is not logged in.
+            // Enlist buttons in table should also be disabled/alert on click
+            // (Current logic for enlistPlayer handles this by alerting if not logged in/no API key)
         }
         
         // Always display initial listings, regardless of login status
