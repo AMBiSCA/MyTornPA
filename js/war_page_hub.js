@@ -462,6 +462,61 @@ async function sendChatMessage() {
         alert("Failed to send message. See console for details.");
     }
 }
+
+// NEW: Variable to hold the Firebase unsubscribe function for real-time listener
+let unsubscribeFromChat = null; // This variable also needs to be added as a global variable at the top (if not already there)
+
+// NEW: Function to set up real-time listener for chat messages
+function setupChatRealtimeListener() {
+    if (!chatMessagesCollection) {
+        console.error("Firebase chatMessagesCollection is not defined.");
+        return;
+    }
+
+    // Clear existing messages before setting up a new listener (important when switching tabs/channels later)
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = `<p>Loading messages...</p>`;
+    }
+
+    // Unsubscribe from any previous listener to avoid multiple listeners
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        console.log("Unsubscribed from previous chat listener.");
+    }
+
+    // Set up the real-time listener, ordered by timestamp
+    unsubscribeFromChat = chatMessagesCollection
+        .orderBy('timestamp', 'asc') // Order messages by timestamp
+        .limit(100) // Limit to the last 100 messages for performance
+        .onSnapshot(snapshot => {
+            // Clear the chat display area to re-render all messages
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = '';
+            }
+
+            if (snapshot.empty) {
+                if (chatDisplayArea) {
+                    chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
+                }
+                console.log("No messages in chat collection.");
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const message = doc.data();
+                displayChatMessage(message); // Use the existing function to display each message
+            });
+            console.log("Chat messages updated in real-time.");
+        }, error => {
+            console.error("Error listening to chat messages:", error);
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+            }
+        });
+    console.log("Chat real-time listener set up.");
+}
+
+// ... (Your existing claimTarget and unclaimTarget functions) ...
   async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
@@ -1092,13 +1147,6 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
-/**
- * Fetches and displays detailed stats for a selected member in the right-side panel.
- * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it. It strictly requests: profile, workstats, cooldowns, battlestats.
- * Includes detailed error handling and robust data extraction.
- * @param {string} memberId The Torn User ID of the clicked member.
- */
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
@@ -1133,6 +1181,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
 
         console.log(`[DEBUG] Found Firebase profile for ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
+        console.log(`[DEBUG] Member API Key from Firebase: "${memberApiKey}"`); // Verify the key used
 
         if (!memberApiKey) {
             detailPanel.innerHTML = `
@@ -1178,23 +1227,24 @@ async function fetchAndDisplayMemberDetails(memberId) {
              throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- Data Extraction ---
         const profile = tornApiData.profile || {};
-        const battlestats = tornApiData.battlestats || {}; // Directly use 'battlestats' from tornApiData
+        const battlestats = tornApiData.battlestats || {}; 
         const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
-        // Nerve and Energy variables are removed as per request
+        const nerve = tornApiData.nerve || {}; 
+        const energy = tornApiData.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); // Log with new name
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); 
         console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
+        console.log("[DEBUG] Extracted Nerve Data:", nerve);
+        console.log("[DEBUG] Extracted Energy Data:", energy);
         console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
         console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
         console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
-        // Battle Stats - Simplified and robust access
         const strength = (battlestats.strength || 0).toLocaleString();
         const speed = (battlestats.speed || 0).toLocaleString();
         const dexterity = (battlestats.dexterity || 0).toLocaleString();
@@ -1202,7 +1252,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
         
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        // Work Stats (numerical are top-level, job info nested) - Simplified and robust access
         const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
         const intelligence = (tornApiData.intelligence || 0).toLocaleString();
         const endurance = (tornApiData.endurance || 0).toLocaleString();
@@ -1211,7 +1260,18 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
-        // Nerve and Energy display sections are removed entirely
+        const currentNerve = (nerve.current || 'N/A');
+        const maxNerve = (nerve.maximum || '');
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
+        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
+
+        const currentEnergy = (energy.current || 'N/A');
+        const maxEnergy = (energy.maximum || '');
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
+        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
+
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1234,7 +1294,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
 
-        // Last Action and Status from 'profile' selection
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
@@ -1283,6 +1342,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
+            <h5>Nerve:</h5>
+            <p>${nerveDisplay}</p>
+            <h5>Energy:</h5>
+            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
