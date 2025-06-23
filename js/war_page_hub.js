@@ -1020,11 +1020,11 @@ function displayFriendlyMembersTable(members) {
 /**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it. It now uses the selections: workstats, cooldowns, battlestats.
+ * if they have registered it. It now uses the selections: workstats, cooldowns, battlestats, profile.
  * @param {string} memberId The Torn User ID of the clicked member.
  */
 async function fetchAndDisplayMemberDetails(memberId) {
-    console.log(`Fetching details for Torn User ID: "${memberId}"`);
+    console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
     const detailPanel = document.getElementById('selectedMemberDetailPanel');
     if (!detailPanel) {
@@ -1032,7 +1032,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
         return;
     }
 
-    // Immediately show a loading state in the panel
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
@@ -1045,7 +1044,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <p>This member has not registered on this site, or their Torn ID is not linked in our database.</p>
                 <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
             `;
-            console.log(`No Firebase userProfile found for Torn ID: ${memberId}`);
+            console.warn(`[DEBUG] No Firebase userProfile found for Torn ID: ${memberId}.`);
             return;
         }
 
@@ -1054,63 +1053,72 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const memberApiKey = memberDataFromFirebase.tornApiKey;
         const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
 
-        console.log(`Found Firebase profile for clicked member: ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
+        console.log(`[DEBUG] Found Firebase profile for ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
 
         if (!memberApiKey) {
             detailPanel.innerHTML = `
                 <h4>API Key Missing for ${preferredName} [${memberId}]</h4>
                 <p>This member has registered but has not provided their Torn API key (or it's invalid).</p>
-                <p>Cannot fetch detailed stats (work stats, cooldowns, battlestats).</p>
+                <p>Cannot fetch detailed stats.</p>
                 <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
             `;
             return;
         }
 
-        // --- UPDATED SELECTIONS HERE ---
-        const selections = 'workstats,cooldowns,battlestats,profile'; // Added 'profile' for basic info like name, level, status
+        // --- Selections for the Torn API call ---
+        // 'profile' is crucial for name, level, status, last_action.
+        // 'workstats', 'cooldowns', 'battlestats' for the specific details.
+        const selections = 'profile,workstats,cooldowns,battlestats';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
-        console.log(`Fetching Torn API with selections: ${selections}`);
+        console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            let errorMessage = `Torn API Error: ${response.status}`;
+            const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
+            console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
+            let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
             if (errorData && errorData.error && errorData.error.error) {
                 errorMessage += ` - ${errorData.error.error}`;
-            } else {
-                errorMessage += ` - ${response.statusText}`;
             }
             throw new Error(errorMessage);
         }
             
         const data = await response.json();
+        console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data); // <<< IMPORTANT LOG
+
         if (data.error) {
+            console.error(`[DEBUG] Torn API Data Error details:`, data.error);
             if (data.error.code === 2 || data.error.code === 10) {
                 detailPanel.innerHTML = `
                     <h4>API Key Error for ${preferredName} [${memberId}]</h4>
-                    <p>The registered API key for this member is invalid or does not have sufficient permissions for the requested details (work stats, cooldowns, battlestats).</p>
+                    <p>The registered API key for this member is invalid or does not have sufficient permissions for the requested details.</p>
                     <p>Error: ${data.error.error}</p>
                     <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
                 `;
-                console.error(`Torn API Error for ${memberId}:`, data.error.error);
                 return;
             }
             throw new Error(`Torn API Data Error: ${data.error.error}`);
         }
 
-        const profile = data.profile || {}; // Added back 'profile' for name, level, status
+        // --- Data Extraction (now with comprehensive logging) ---
+        const profile = data.profile || {};
         const stats = data.battlestats || {};
-        const workStats = data.workstats || {}; // New: Get work stats
+        const workStats = data.workstats || {};
         const cooldowns = data.cooldowns || {};
+
+        console.log("[DEBUG] Extracted Profile Data:", profile);
+        console.log("[DEBUG] Extracted Battlestats Data:", stats);
+        console.log("[DEBUG] Extracted WorkStats Data:", workStats);
+        console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
 
         const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
         const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
         
-        // --- Extracting and formatting Work Stats ---
         const manuelLabor = workStats.manual_labor ? workStats.manual_labor.toLocaleString() : 'N/A';
         const intelligence = workStats.intelligence ? workStats.intelligence.toLocaleString() : 'N/A';
         const endurance = workStats.endurance ? workStats.endurance.toLocaleString() : 'N/A';
@@ -1135,6 +1143,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
         cooldownsHtml += '</ul>';
 
+        // --- Last Action and Status from 'profile' selection ---
         const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
