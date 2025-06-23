@@ -1086,139 +1086,36 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-// Ensure window.globalFactionMembers and window.globalFactionData are declared globally or in an accessible scope
-// e.g., at the top of your war_page_hub.js file (outside any functions):
-// window.globalFactionMembers = [];
-// window.globalFactionData = {}; // This will store the combined data from V2 calls
-
 async function initializeAndLoadData(apiKey) {
-    if (!apiKey) {
-        console.warn("API Key is missing for initializeAndLoadData.");
-        // Clear any previous data on error
-        window.globalFactionMembers = [];
-        window.globalFactionData = {};
-        return;
-    }
-
-    // Hardcoded Faction ID as per your request. You might want to make this dynamic later.
-    const FACTION_ID = '49028'; 
-
-    // Define the V2 API URLs for different selections
-    const basicApiUrl = `https://api.torn.com/v2/faction/${FACTION_ID}?key=${apiKey}&comment=MyTornPA_V2_Basic`;
-    const membersApiUrl = `https://api.torn.com/v2/faction/${FACTION_ID}/members?key=${apiKey}&comment=MyTornPA_V2_Members`;
-    const chainApiUrl = `https://api.torn.com/v2/faction/${FACTION_ID}/chain?key=${apiKey}&comment=MyTornPA_V2_Chain`;
-    const warsApiUrl = `https://api.torn.com/v2/faction/${FACTION_ID}/wars?key=${apiKey}&comment=MyTornPA_V2_Wars`;
-
-    console.log("[DEBUG V2 Init] Starting multiple V2 API fetches...");
-
     try {
-        // Fetch all data concurrently
-        const [basicResponse, membersResponse, chainResponse, warsResponse] = await Promise.all([
-            fetch(basicApiUrl),
-            fetch(membersApiUrl),
-            fetch(chainApiUrl),
-            fetch(warsApiUrl)
-        ]);
+        // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
-        // Parse JSON for all responses
-        const basicData = await basicResponse.json();
-        const membersData = await membersResponse.json();
-        const chainData = await chainResponse.json();
-        const warsData = await warsResponse.json();
+        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
-        console.log("[DEBUG V2 Init] V2 Responses:", { basicData, membersData, chainData, warsData });
+        const userFactionResponse = await fetch(userFactionApiUrl);
 
-        // Check for API errors in any response
-        if (basicData.errors || membersData.errors || chainData.errors || warsData.errors) {
-            console.error("Torn API V2 Error during initialization:", { basicErrors: basicData.errors, membersErrors: membersData.errors, chainErrors: chainData.errors, warsErrors: warsData.errors });
-            throw new Error("One or more Torn API V2 calls failed.");
+        if (!userFactionResponse.ok) {
+            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
         }
 
-        // --- Populate window.globalFactionMembers from V2 /members response ---
-        window.globalFactionMembers = []; // Initialize as an empty array
-        if (Array.isArray(membersData)) { // V2 /members endpoint typically returns an array directly
-            membersData.forEach(member => {
-                window.globalFactionMembers.push({
-                    id: member.id,
-                    name: member.name,
-                    // V2 rank is typically under faction_rank.name (e.g., "Leader", "Member")
-                    rank: member.faction_rank ? member.faction_rank.name : 'N/A', 
-                    level: member.level,
-                    days_in_faction: member.days_in_faction, // Assuming this field name from V2
-                    last_action: member.last_action,
-                    status: member.status
-                    // profile_image is typically NOT in V2 /members endpoint, so it remains undefined here
-                });
-            });
-            console.log("[DEBUG V2 Init] Populated window.globalFactionMembers with", window.globalFactionMembers.length, "members.");
-        } else {
-            console.warn("[DEBUG V2 Init] V2 /members API did not return an array as expected for members data.");
+        factionApiFullData = await userFactionResponse.json();
+        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
+
+        if (factionApiFullData.error) {
+            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // --- Reconstruct factionApiFullData to resemble V1 structure for downstream compatibility ---
-        const factionApiFullData = {
-            ID: basicData.id,
-            name: basicData.name,
-            tag: basicData.tag,
-            leader: basicData.leader_id,
-            'co-leader': basicData.co_leader_id,
-            respect: basicData.respect,
-            age: basicData.age,
-            capacity: basicData.capacity,
-            best_chain: basicData.best_chain,
-            rank: basicData.rank, // V2 basic provides 'rank' object
-
-            // Populate 'members' as an object (V1 format) from the globalFactionMembers array
-            members: {} 
-        };
-
-        // Convert array of members (window.globalFactionMembers) back to object {id:member_object} for factionApiFullData.members
-        window.globalFactionMembers.forEach(member => {
-            factionApiFullData.members[member.id] = {
-                name: member.name,
-                level: member.level,
-                days_in_faction: member.days_in_faction,
-                last_action: member.last_action,
-                status: member.status,
-                position: member.rank, // Use the 'rank' already parsed from V2, mapping it to 'position' for V1 compatibility
-                profile_image: member.profile_image || undefined // Will still be undefined here
-            };
-        });
-        
-        // Assign chain and wars data
-        factionApiFullData.chain = chainData.chain || {}; 
-        factionApiFullData.wars = warsData.wars || {}; 
-
-        // Store the combined data globally
-        window.globalFactionData = factionApiFullData; 
-        console.log("[DEBUG V2 Init] Combined faction data for window.globalFactionData:", window.globalFactionData);
-
-        // --- Existing logic to populate UI components ---
-        // Note: warData here refers to your Firebase war data, not Torn API war data directly from this call.
+        // Pass warData and apiKey to populateUiComponents
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey);
+        populateUiComponents(warData, apiKey); // Pass warData and apiKey
 
     } catch (error) {
-        console.error("Error during comprehensive V2 data initialization:", error);
-        // Reset global data on error
-        window.globalFactionMembers = [];
-        window.globalFactionData = {};
-
-        // Update UI elements with error/N/A messages
-        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+        console.error("Error during comprehensive data initialization:", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
-        
-        const currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
-        const chainStartedDisplay = document.getElementById('chainStartedDisplay');
-        const chainTimerDisplay = document.getElementById('chainTimerDisplay');
-        const yourFactionRankedScore = document.getElementById('yourFactionRankedScore');
-        const opponentFactionRankedScore = document.getElementById('opponentFactionRankedScore');
-        const warTargetScore = document.getElementById('warTargetScore');
-        const warStartedTime = document.getElementById('warStartedTime');
-        const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
-        const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
-
+        // Reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
