@@ -734,14 +734,25 @@ transition: background-color 0.2s ease;
     min-height: unset !important; /* Ensures no min-height forces it to stretch */
 }
 
-.ops-control-item.ops-quick-targets label,
-.ops-control-item.ops-quick-targets .quick-ff-targets-container {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-    width: 100%; 
-    text-align: center;
-    box-sizing: border-box;
+.ops-control-item.ops-quick-targets label {
+    text-align: left; /* Aligns the label text to the left */
+    margin-top: 0 !important; /* Ensure no unintended margin */
+    padding-top: 0 !important; /* Ensure no unintended padding */
 }
+
+.ops-control-item.ops-quick-targets label {
+    text-align: left; /* Aligns the label text to the left */
+    margin-top: 0 !important; /* Ensure no unintended margin */
+    padding-top: 0 !important; /* Ensure no unintended padding */
+}
+
+.ops-control-item.ops-quick-targets .quick-ff-targets-container {
+    text-align: left; /* Aligns the names (Target 1, Target 2) to the left */
+    align-items: flex-start; /* Ensures internal flex children stick to the left */
+    margin-top: 0 !important; /* Ensure no unintended margin */
+    padding-top: 0 !important; /* Ensure no unintended padding */
+}
+
 
 /* Container for the Quick FF Target buttons - ensures vertical stacking and full width */
 .ops-control-item .quick-ff-targets-container {
@@ -1438,9 +1449,9 @@ autocomplete-items {
 }
     .ops-controls-grid {
     align-items: start; /* Forces all direct children in the grid to align their tops */
-    margin-top: 5px; /* Example: Reduce from 10px to pull the whole box closer to the tabs */
-    margin-bottom: 10px; /* Example: Adjust if it's contributing to overall column height */
-    }
+    margin-top: 5px; /* Adjust this value to move the whole box closer to the tabs */
+    margin-bottom: 10px; /* Adjust this value if it affects overall column height */
+}
 	
 	.ops-controls-grid .ops-control-item {
     align-self: start;
