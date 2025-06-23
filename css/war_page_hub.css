@@ -2,6 +2,8 @@
    War Page Hub Specific Styles (war_page_hub.css)
    ========================================================================== */
 
+
+/* Overall Container for the War Page Hub */
 /* Overall Container for the War Page Hub */
 #warPageHubContainer {
     /* Styles for the main container */
@@ -17,9 +19,40 @@
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
     box-sizing: border-box; /* Include padding/border in width */
-   
+    
+    /* REVERTED: Use flexbox for internal layout, stack content vertically */
+    display: flex;
+    flex-direction: column; 
+    gap: 0px; /* REVERTED: Reduced space between main sections */
+    
+    min-height: calc(100vh - 170px);
+    border: 3px solid black;
 }
 
+#factionWarHubTitle {
+    grid-area: title; /* Assign title to its grid area */
+}
+
+.tab-navigation {
+    grid-area: tabs; /* Assign tab navigation to its grid area */
+    margin-bottom: 0; /* Keep this if you want no margin below the tabs */
+}
+
+.tab-content-container {
+    grid-area: content; /* Assign tab content to its grid area */
+    /* Remove any width or flex-grow properties here if they conflict with grid-area */
+    flex-grow: unset; /* Override flex-grow as grid handles sizing */
+    height: auto; /* Allow height to be determined by grid */
+    min-height: 400px; /* Keep minimum height for content */
+}
+
+#warChatBox {
+    grid-area: chat; /* Assign chat box to its grid area */
+    /* Adjust height and flex properties as grid will manage its size */
+    height: auto; /* Allow grid to manage height, or set specific height here if needed */
+    flex-grow: unset; /* Override flex-grow as grid handles sizing */
+    min-height: 475px; /* Maintain existing min-height for chatbox */
+}
 
 /* Script Title */
 .script-title {
@@ -1029,31 +1062,6 @@ transition: background-color 0.2s ease;
 
 #friendly-members-table {
     flex-grow: 1;
-    width: 100%; /* Ensure the table takes full width of its container */
-    table-layout: fixed; /* Crucial: Forces columns to fit within the table's width */
-}
-
-/* Define explicit column widths for Friendly Members Table to prevent overflow */
-#friendly-members-table thead th:nth-child(1),
-#friendly-members-table tbody td:nth-child(1) { width: 18%; } /* Name */
-#friendly-members-table thead th:nth-child(2),
-#friendly-members-table tbody td:nth-child(2) { width: 7%; }  /* Level */
-#friendly-members-table thead th:nth-child(3),
-#friendly-members-table tbody td:nth-child(3) { width: 15%; } /* Last Action */
-#friendly-members-table thead th:nth-child(4),
-#friendly-members-table tbody td:nth-child(4) { width: 9%; }  /* Strength */
-#friendly-members-table thead th:nth-child(5),
-#friendly-members-table tbody td:nth-child(5) { width: 9%; }  /* Dexterity */
-#friendly-members-table thead th:nth-child(6),
-#friendly-members-table tbody td:nth-child(6) { width: 9%; }  /* Speed */
-#friendly-members-table thead th:nth-child(7),
-#friendly-members-table tbody td:nth-child(7) { width: 9%; }  /* Defense */
-#friendly-members-table thead th:nth-child(8),
-#friendly-members-table tbody td:nth-child(8) { width: 8%; }  /* Status */
-#friendly-members-table thead th:nth-child(9),
-#friendly-members-table tbody td:nth-child(9) { width: 8%; }  /* Nerve */
-#friendly-members-table thead th:nth-child(10),
-#friendly-members-table tbody td:nth-child(10) { width: 8%; } /* Energy */
 }
 
 /* --- Placeholder for Member Details (Right Panel) --- */
@@ -1396,6 +1404,29 @@ autocomplete-items {
         gap: 10px; /* NEW: Reduced gap */
     }
     
+    .active-ops-main-content-row {
+        flex-direction: column; /* Stack panels vertically in active ops */
+        gap: 10px; /* Reduce gap when stacked */
+    }
+
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        min-width: unset; /* Remove min-width on smaller screens */
+        width: 100%; /* Take full width */
+    }
+    /* ... rest of your existing rules within this media query ... */
+}
+    .active-ops-main-content-row {
+        flex-direction: column; /* Stack panels vertically in active ops */
+        gap: 10px; /* Reduce gap when stacked */
+    }
+
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        min-width: unset; /* Remove min-width on smaller screens */
+        width: 100%; /* Take full width */
+    }
+}
 
 /* Class to hide the chat display and input when specific chat tabs are active */
 .chat-container.chat-content-hidden .chat-display-area,
