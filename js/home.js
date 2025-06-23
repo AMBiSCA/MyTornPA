@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
-    async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+   async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
     const personalStatsModal = document.getElementById('personalStatsModal');
@@ -244,7 +244,8 @@ document.addEventListener('DOMContentLoaded', function() {
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
     personalStatsModal.classList.add('visible');
 
-    const selections = "profile,personalstats,battlestats,workstats"; // Explicitly defining selections
+    // UPDATED: Added 'basic' and 'cooldowns' to selections to fetch dashboard quick stats
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns"; 
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
     console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
@@ -281,6 +282,62 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
         }
 
+        // --- Firebase Storage Logic ---
+        const userId = data.player_id; 
+        if (userId) {
+            const userDataToSave = {
+                name: data.name,
+                level: data.level,
+                // Quick Stats from 'basic' selection and status object
+                nerve: data.nerve || 0,
+                energy: data.energy || 0,
+                happy: data.happy || 0,
+                life: data.life || 0,
+                traveling: data.status?.state === 'Traveling' || false,
+                hospitalized: data.status?.state === 'Hospital' || false,
+                // Cooldowns from 'cooldowns' selection
+                cooldowns: {
+                    drug: data.cooldowns?.drug || 0,
+                    booster: data.cooldowns?.booster || 0,
+                },
+                // Personal Stats
+                personalstats: data.personalstats || {},
+                // Battle Stats
+                battlestats: {
+                    strength: data.strength || data.battlestats?.strength || 0,
+                    defense: data.defense || data.battlestats?.defense || 0,
+                    speed: data.speed || data.battlestats?.speed || 0,
+                    dexterity: data.dexterity || data.battlestats?.dexterity || 0, 
+                    total: data.total || data.battlestats?.total || 0,
+                    strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
+                    defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
+                    speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
+                    dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
+                },
+                // Work Stats
+                workstats: {
+                    manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
+                    intelligence: data.intelligence || data.workstats?.intelligence || 0,
+                    endurance: data.endurance || data.workstats?.endurance || 0,
+                },
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for last update
+            };
+
+            console.log(`[DEBUG] Prepared user data for Firebase:`, userDataToSave);
+
+            try {
+                // Assuming 'db' is your Firestore instance available in this scope
+                await db.collection('users').doc(String(userId)).set(userDataToSave, { merge: true });
+                console.log(`[DEBUG] Successfully saved user ${userId} data to Firestore.`);
+            } catch (firebaseError) {
+                console.error(`[ERROR] Failed to save user ${userId} data to Firestore:`, firebaseError);
+            }
+        } else {
+            console.warn("[WARN] User ID not found in Torn API response. Cannot save data to Firestore.");
+        }
+        // --- End Firebase Storage Logic ---
+
+
         let htmlContent = '<h4>User Information</h4>';
         htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
         htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
@@ -296,15 +353,12 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
 
         htmlContent += '<h4>Battle Stats</h4>';
-        // Access battle stats directly from the root of the 'data' object as per your API response
-        // Also added a fallback to `data.battlestats` in case API response structure changes
         if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
             const bsStrength = data.strength || data.battlestats?.strength;
             const bsDefense = data.defense || data.battlestats?.defense;
             const bsSpeed = data.speed || data.battlestats?.speed;
             const bsDexterity = data.dexterity || data.battlestats?.dexterity;
             
-            // Use the modifiers from the root, or default to 0 if not present
             const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
             const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
             const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
@@ -315,12 +369,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
             const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
             
-            // Use 'data.total' if available, otherwise calculate it
-            const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpeed + bsDexterity);
+            const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpd + bsDexterity);
 
             htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
             htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></pレーター`;
+            htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
             htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
             htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
         } else {
@@ -329,8 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         htmlContent += '<h4>Work Stats</h4>';
-        // Access work stats directly from the root of the 'data' object as per your API response
-        // Also added a fallback to `data.workstats` in case API response structure changes
         if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
             htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
             htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
