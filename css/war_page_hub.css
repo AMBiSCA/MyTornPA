@@ -717,15 +717,15 @@ transition: background-color 0.2s ease;
 .quick-ff-target-btn {
     display: inline-block; /* Treat as block to accept width/padding, but allows content flow */
     background-color: #007bff; /* A standard blue color, matching other buttons */
-    color: black; /* White text */
-    padding: 8px 12px;
+    color: #ffffff; /* White text */
+    padding: 6px 15px;
     border-radius: 4px;
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: bold;
     text-decoration: none;
     text-align: center;
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    border: 1px solid black;
+    border: 1px solid #0056b3;
     box-sizing: border-box;
     width: 100%; /* Make them take full width of their container */
 }
