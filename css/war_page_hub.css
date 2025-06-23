@@ -302,6 +302,38 @@
     color: #f0f0f0; /* White color for leader ranks */
 }
 
+/* New style for the container holding the "List Myself" and "Advertise My Faction" buttons */
+.recruitment-section .buttons-container {
+    display: flex;          /* Use flexbox */
+    justify-content: center; /* Center the buttons horizontally */
+    gap: 20px;              /* Space between the buttons */
+    flex-wrap: wrap;        /* Allow buttons to wrap to the next line on smaller screens */
+    margin-bottom: 15px;    /* Add some space below the buttons before the table */
+}
+
+/* Adjust the existing .action-button rule to remove its default margin-right */
+/* As the gap on the container will handle spacing */
+.action-button {
+    /* ... existing action-button styles ... */
+    margin-right: 0; /* Remove this from individual buttons, as gap on parent will handle spacing */
+}
+
+/* You might want to override the default action-button margin for buttons that are NOT in this container */
+/* Or adjust other places where action-button is used if this causes unwanted changes. */
+/* For now, this makes buttons within .buttons-container behave as intended. */
+
+/* Small screen adjustments for the buttons container */
+@media (max-width: 768px) {
+    .recruitment-section .buttons-container {
+        flex-direction: column; /* Stack buttons vertically on smaller screens */
+        gap: 10px; /* Adjust vertical gap */
+    }
+    .recruitment-section .buttons-container .action-button {
+        width: 100%; /* Make buttons full width when stacked */
+        margin-right: 0; /* Ensure no residual margin pushes them */
+    }
+}
+
 /* Optional: If you want leaders to strictly form their own centered row regardless of quantity */
 /* You would need to structure leaders into a separate flex container within JS
    or use more advanced CSS Grid techniques. For a simple flex wrap, the 'order: -1'
