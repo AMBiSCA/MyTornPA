@@ -1800,26 +1800,26 @@ autocomplete-items {
 }
 .faction-versus-section {
     display: flex;
-    justify-content: center;
+    justify-content: space-evenly; /* Distribute space more evenly */
     align-items: center;
-    gap: 30px; /* Larger gap to emphasize "VS" space */
+    gap: 40px; /* Increased gap for elegance */
     
     width: 100%;
     max-width: 900px;
     margin: 20px auto;
-    padding: 25px; /* More padding for a substantial feel */
+    padding: 30px; /* Generous padding */
     
-    background-color: #121212; /* Very dark background */
-    border: 3px solid #660000; /* Deep red border */
-    border-radius: 6px; /* Sharper corners */
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 8px 16px rgba(0, 0, 0, 0.7); /* Inner and outer strong shadow */
+    background-color: #333333; /* Slightly lighter dark background */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Very subtle white border */
+    border-radius: 12px; /* More rounded, softer look */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.05); /* Soft, subtle shadow */
     
     box-sizing: border-box;
-    font-size: 1.3em; /* Larger text */
-    font-weight: 900; /* Extra bold */
-    text-transform: uppercase; /* All caps for intensity */
-    letter-spacing: 1px; /* Slight letter spacing */
-    color: #ffd700; /* Gold text for contrast */
+    font-size: 1.1em;
+    font-weight: bold;
+    font-family: 'Segoe UI', sans-serif; /* A more modern font */
+    color: #e0e0e0; /* Softer light text */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle text shadow */
 }
 .ops-chain-score .score-faction-name {
     font-size: 0.8em;
