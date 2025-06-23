@@ -1015,9 +1015,14 @@ function displayFriendlyMembersTable(members) {
     // Add all the new rows to the table body at once
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
+/**
+ * Fetches and displays detailed stats for a selected member in the right-side panel.
+ * This function attempts to use the clicked member's *own* API key from Firebase
+ * if they have registered it.
+ * @param {string} memberId The Torn User ID of the clicked member.
+ */
 async function fetchAndDisplayMemberDetails(memberId) {
-    // --- NEW DEBUGGING LINE ---
-    console.log(`Searching Firebase for tornProfileId that matches: "${memberId}"`);
+    console.log(`Searching Firebase for Torn User ID (tornProfileId) that matches: "${memberId}"`);
 
     const detailPanel = document.getElementById('selectedMemberDetailPanel');
     if (!detailPanel) {
@@ -1027,49 +1032,148 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
     // Immediately show a loading state in the panel
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
-    detailPanel.classList.add('detail-panel-loaded'); 
+    detailPanel.classList.add('detail-panel-loaded');
 
     try {
+        // Ensure 'tornProfileId' is treated as a string literal for the Firestore query
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
 
         if (querySnapshot.empty) {
-            detailPanel.innerHTML = `<h4>Details Unavailable</h4><p>This member has not registered on this site, or their Torn ID is not in the database.</p>`;
+            detailPanel.innerHTML = `
+                <h4>Details Unavailable</h4>
+                <p>This member has not registered on this site, or their Torn ID is not linked in our database.</p>
+                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+            `;
+            console.log(`No Firebase userProfile found for Torn ID: ${memberId}`);
             return;
         }
 
         const userDoc = querySnapshot.docs[0];
-        const memberApiKey = userDoc.data().tornApiKey;
-		
-		onsole.log("Found API Key For Clicked Member:", memberApiKey);
+        const memberDataFromFirebase = userDoc.data(); // Get all data from the document
+        const memberApiKey = memberDataFromFirebase.tornApiKey;
+        const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
+
+        console.log("Found Firebase profile for clicked member. API Key available:", memberApiKey ? 'Yes' : 'No');
 
         if (!memberApiKey) {
-            detailPanel.innerHTML = `<h4>API Key Missing</h4><p>This member has not provided their API key.</p>`;
+            detailPanel.innerHTML = `
+                <h4>API Key Missing for ${preferredName} [${memberId}]</h4>
+                <p>This member has registered but has not provided their Torn API key (or it's invalid).</p>
+                <p>Cannot fetch detailed stats (nerve, energy, cooldowns).</p>
+                <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+            `;
             return;
         }
 
-        const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile,battlestats&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
+        // Use the member's own API key to fetch their detailed data
+        const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile,battlestats,cooldowns,nerve,energy&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`Torn API Error: ${response.status}`);
-        
-        const data = await response.json();
-        if (data.error) throw new Error(`Torn API Error: ${data.error.error}`);
 
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            let errorMessage = `Torn API Error: ${response.status}`;
+            if (errorData && errorData.error && errorData.error.error) {
+                errorMessage += ` - ${errorData.error.error}`;
+            } else {
+                errorMessage += ` - ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+        }
+            
+        const data = await response.json();
+        if (data.error) {
+            if (data.error.code === 2 || data.error.code === 10) {
+                detailPanel.innerHTML = `
+                    <h4>API Key Error for ${preferredName} [${memberId}]</h4>
+                    <p>The registered API key for this member is invalid or does not have sufficient permissions to fetch full details.</p>
+                    <p>Error: ${data.error.error}</p>
+                    <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
+                `;
+                console.error(`Torn API Error for ${memberId}:`, data.error.error);
+                return;
+            }
+            throw new Error(`Torn API Error: ${data.error.error}`);
+        }
+
+        const profile = data.profile || {};
         const stats = data.battlestats || {};
+        const nerve = data.nerve || {};
+        const energy = data.energy || {};
+        const cooldowns = data.cooldowns || {};
+
         const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
         const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
         const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
 
+        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A';
+        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : 'N/A';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = `${currentNerve}/${maxNerve} ${nerveGain}`;
+
+        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
+        const maxEnergy = energy.maximum !== undefined ? energy.maximum : 'N/A';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = `${currentEnergy}/${maxEnergy} ${energyGain}`;
+
+        let cooldownsHtml = '<ul>';
+        if (Object.keys(cooldowns).length > 0) {
+            for (const key in cooldowns) {
+                if (cooldowns.hasOwnProperty(key)) {
+                    const timeLeft = cooldowns[key];
+                    if (timeLeft > 0) {
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
+                    } else {
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
+                    }
+                }
+            }
+        } else {
+            cooldownsHtml += '<li>No active cooldowns.</li>';
+        }
+        cooldownsHtml += '</ul>';
+
+        const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        let statusText = profile.status ? profile.status.description : 'Unknown';
+        let statusClass = 'status-okay';
+
+        if (profile.status) {
+            if (profile.status.state === 'Hospital') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `In Hospital (${formatTime(timeLeft)})`;
+                statusClass = 'status-hospital';
+            } else if (profile.status.state === 'Traveling') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `${profile.status.description} (${formatTime(timeLeft)})`;
+                statusClass = 'status-traveling';
+            } else if (profile.status.state !== 'Okay') {
+                statusText = profile.status.description;
+                statusClass = 'status-other';
+            }
+        }
+
         const detailsHtml = `
-            <h4>${data.name || 'Unknown'} [${data.level || 'N/A'}]</h4>
+            <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
+            <p>Last Action: ${lastActionText}</p>
+            <p>Status: <span class="${statusClass}">${statusText}</span></p>
             <div class="member-stats-grid">
                 <span>Strength:</span> <span>${strength}</span>
                 <span>Speed:</span> <span>${speed}</span>
                 <span>Dexterity:</span> <span>${dexterity}</span>
                 <span>Defense:</span> <span>${defense}</span>
+                <span>Nerve:</span> <span>${nerveDisplay}</span>
+                <span>Energy:</span> <span>${energyDisplay}</span>
             </div>
+            <h5>Cooldowns:</h5>
+            ${cooldownsHtml}
+            <p>
+                <a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Profile</a> |
+                <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}" target="_blank">Attack</a>
+            </p>
         `;
-        
+            
         detailPanel.innerHTML = detailsHtml;
 
     } catch (error) {
@@ -1077,7 +1181,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
         detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
     }
 }
-
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
