@@ -1555,7 +1555,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
                     </div>
                 </div>
                 <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
-                <div class="member-detail-level">(Level: ${memberLevel})</div>
             </div>
 
             ${overallAccessMessage}
