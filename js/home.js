@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-        personalStatsModal.classList.add('visible');
+        personalStatsModal.classList.add('visible');
 
         const selections = "profile,personalstats,battlestats,workstats";
         const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
@@ -277,31 +277,46 @@ document.addEventListener('DOMContentLoaded', function() {
             htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
 
             htmlContent += '<h4>Battle Stats</h4>';
-            const bsObject = data.battlestats;
-            if (bsObject && typeof bsObject.strength === 'number') {
-                const effStr = Math.floor(bsObject.strength * (1 + (bsObject.strength_modifier || 0) / 100));
-                const effDef = Math.floor(bsObject.defense * (1 + (bsObject.defense_modifier || 0) / 100));
-                const effSpd = Math.floor(bsObject.speed * (1 + (bsObject.speed_modifier || 0) / 100));
-                const effDex = Math.floor(bsObject.dexterity * (1 + (bsObject.dexterity_modifier || 0) / 100));
-                const totalBs = bsObject.total || (bsObject.strength + bsObject.defense + bsObject.speed + bsObject.dexterity);
+            // Access battle stats directly from the root of the 'data' object as per your API response
+            if (typeof data.strength === 'number' && typeof data.defense === 'number' && typeof data.speed === 'number' && typeof data.dexterity === 'number') {
+                const bsStrength = data.strength;
+                const bsDefense = data.defense;
+                const bsSpeed = data.speed;
+                const bsDexterity = data.dexterity;
+                
+                // Use the modifiers from the root, or default to 0 if not present
+                const strengthModifier = data.strength_modifier || 0;
+                const defenseModifier = data.defense_modifier || 0;
+                const speedModifier = data.speed_modifier || 0;
+                const dexterityModifier = data.dexterity_modifier || 0;
 
-                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsObject.strength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.strength_modifier || 0}%) Eff: ${effStr.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsObject.defense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.defense_modifier || 0}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsObject.speed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.speed_modifier || 0}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsObject.dexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${bsObject.dexterity_modifier || 0}%) Eff: ${effDex.toLocaleString()}</span></p>`;
+                const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
+                const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
+                const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
+                const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
+                
+                // Use 'data.total' if available, otherwise calculate it
+                const totalBs = data.total || (bsStrength + bsDefense + bsSpeed + bsDexterity);
+
+                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
                 htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
             } else {
                 htmlContent += '<p>Battle stats data not available.</p>';
+                console.warn("Battle stats (strength, defense, speed, dexterity) not found directly in API response data, or are not numbers.");
             }
 
             htmlContent += '<h4>Work Stats</h4>';
-            const wsObject = data.workstats || data.job;
-            if (wsObject && typeof wsObject.manual_labor === 'number') {
-                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${wsObject.manual_labor.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${wsObject.intelligence.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${wsObject.endurance.toLocaleString()}</span></p>`;
+            // Access work stats directly from the root of the 'data' object as per your API response
+            if (typeof data.manual_labor === 'number' && typeof data.intelligence === 'number' && typeof data.endurance === 'number') {
+                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${data.manual_labor.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${data.intelligence.toLocaleString()}</span></p>`;
+                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${data.endurance.toLocaleString()}</span></p>`;
             } else {
                 htmlContent += '<p>Work stats data not available.</p>';
+                console.warn("Work stats (manual_labor, intelligence, endurance) not found directly in API response data, or are not numbers.");
             }
 
             personalStatsModalBody.innerHTML = htmlContent;
