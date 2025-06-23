@@ -1488,6 +1488,22 @@ autocomplete-items {
     }
 }
 
+/* 1. Ensure content within the top control grid aligns to the top */
+.ops-controls-grid .ops-control-item {
+    align-self: start; /* This makes both the Chain Timer and Quick FairFight align to the top of their row */
+}
+
+/* 2. Adjust the top margin of the Quick FairFight section itself */
+.ops-control-item.ops-quick-targets {
+    margin-top: 0 !important; /* Removes any top margin pushing it down */
+    /* If it's still too low, you could try a small negative margin, e.g., margin-top: -10px; */
+}
+
+/* 3. Reduce the top margin of the entire 'ops controls grid' container if needed */
+.ops-controls-grid {
+    margin-top: 5px; /* Current is 10px. Reduce this to pull the entire box (Chain Timer + Quick Targets) closer to the tabs */
+    margin-bottom: 10px; /* Slightly reduce bottom margin too, if it makes the column massive */
+}
 /* Layout for the Friendly Status tab: Members List and Member Details */
 .friendly-status-layout-row {
     display: flex; /* Arranges children (panels) side-by-side */
