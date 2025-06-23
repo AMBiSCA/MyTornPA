@@ -1560,7 +1560,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
             ${overallAccessMessage}
 
-            <div class="member-detail-info-row"> // NEW CONTAINER FOR LAST ACTION AND STATUS
+            <div class="member-detail-info-row"> 
                 <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
                 <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
             </div>
