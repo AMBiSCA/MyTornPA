@@ -1267,7 +1267,7 @@ transition: background-color 0.2s ease;
     border: 1px solid black;
     border-radius: 8px;
     overflow: hidden;
-    height: 400px; /* This explicitly matches the height of your chat-container */
+    height: px; /* This explicitly matches the height of your chat-container */
     display: flex;
     flex-direction: column;
 }
