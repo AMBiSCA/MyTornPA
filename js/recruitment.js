@@ -126,12 +126,12 @@ async function enlistPlayer(factionId) {
         const cooldowns = data.cooldowns || {}; // Drug, Medical, Booster cooldowns
         const travel = data.travel || {}; // Travel status
         
-        const xanaxTaken = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
-        const totalAttacks = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
-        const playerStrength = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
-        const playerDefense = 'N/A';   // Cannot get from 'bars,cooldowns,travel,profile'
-        const playerSpeed = 'N/A';       // Cannot get from 'bars,cooldowns,travel,profile'
-        const playerDexterity = 'N/A'; // Cannot get from 'bars,cooldowns,travel,profile'
+        const xanaxTaken = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
+        const totalAttacks = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
+        const playerStrength = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
+        const playerDefense = 'N/A';   // Cannot get from 'battlestats' which is NOT in new selections
+        const playerSpeed = 'N/A';       // Cannot get from 'battlestats' which is NOT in new selections
+        const playerDexterity = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
 
 
         const playerEnlistmentData = {
@@ -373,45 +373,15 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornId = userData.tornProfileId || null;
             currentUserTornApiKey = userData.tornApiKey || null;
             
-            // Check if user is a leader based on Torn API (faction rank)
-            if (currentUserTornId && currentUserTornApiKey) { 
-                try {
-                    // Fetch user's own faction data to check rank
-                    const userFactionApiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=faction&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitLeaderCheck`;
-                    const response = await fetch(userFactionApiUrl);
-                    const data = await response.json();
+            // --- CRITICAL CORRECTION: Check for leader status using 'position' from Firestore userData ---
+            currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
+            console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
 
-                    if (data.error) {
-                        console.warn(`Error fetching user's faction data for leader check: ${data.error.error}`);
-                        // If error code 10 (Access denied), it's likely a limited key. Don't set as leader.
-                        if (data.error.code === 10) {
-                            currentUserIsLeader = false;
-                        } else {
-                            // For other errors, log and default to non-leader
-                            console.error("General error during leader check API call:", data.error);
-                            currentUserIsLeader = false;
-                        }
-                    } else if (data.faction && (data.faction.position === 'Leader' || data.faction.position === 'Co-leader')) {
-                        currentUserIsLeader = true;
-                    } else {
-                        currentUserIsLeader = false;
-                    }
-                    console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader} (via Torn API check).`);
-                    
-                    // Show/hide button based on leader status
-                    if (advertiseFactionButton) {
-                        advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
-                    }
-
-                } catch (error) {
-                    console.error("Error checking leader status via Torn API:", error);
-                    currentUserIsLeader = false; // Default to false on any API error
-                    if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide on error
-                }
-            } else {
-                 // If no Torn ID or API key, can't check leader status, so hide button
-                if (advertiseFactionButton) advertiseFactionButton.style.display = 'none';
+            // Show/hide button based on leader status
+            if (advertiseFactionButton) { // Ensure button exists before trying to access style
+                advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
             }
+            // --- END CRITICAL CORRECTION ---
 
 
             if (!currentUserTornId || !currentUserTornApiKey) {
