@@ -1363,7 +1363,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.classList.add('detail-panel-loaded');
 
     let tornApiData = null;
-    let apiErrorMessage = ''; 
+    let apiErrorMessage = '';
 
     try {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
@@ -1396,9 +1396,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; 
+        // We explicitly ask for battlestats and workstats, but the API may return them at the root level.
+        const selections = 'profile,workstats,cooldowns,battlestats,energy,nerve'; // Added energy and nerve to selections for clarity
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
-        
+
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
@@ -1413,7 +1414,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            tornApiData = await response.json(); 
+            tornApiData = await response.json();
             console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
             if (tornApiData.error) {
@@ -1425,41 +1426,46 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 }
             }
         }
-        
+
         if (!tornApiData || Object.keys(tornApiData).length === 0) {
-             throw new Error("Failed to retrieve any meaningful data after API call.");
+            throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
         const profile = tornApiData.profile || {};
-        const battlestats = tornApiData.battlestats || {}; 
-        const workStatsJobData = tornApiData.workstats || {}; 
+        // Note: tornApiData.battlestats might be an empty object if stats are at root.
+        // We'll pull battle stats directly from tornApiData for robustness.
+        const workStatsRaw = tornApiData.workstats || {}; // Keep this if 'workstats' selection returns other details
+        const jobData = tornApiData.job || {}; // <-- Now correctly pulling job details from 'data.job'
         const cooldowns = tornApiData.cooldowns || {};
-        const nerve = tornApiData.nerve || {}; 
-        const energy = tornApiData.energy || {}; 
+        const nerve = tornApiData.nerve || {};
+        const energy = tornApiData.energy || {};
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); 
-        console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
+        console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
         console.log("[DEBUG] Extracted Energy Data:", energy);
-        console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
-        console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
-        console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
+        console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
+        console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
 
 
-        const strength = (battlestats.strength || 0).toLocaleString();
-        const speed = (battlestats.speed || 0).toLocaleString();
-        const dexterity = (battlestats.dexterity || 0).toLocaleString();
-        const defense = (battlestats.defense || 0).toLocaleString();
-        
+        // --- CORRECTED BATTLE STATS EXTRACTION ---
+        // Access battle stats directly from the root of tornApiData, or fall back to a nested 'battlestats' object if it exists and contains data.
+        const strength = (tornApiData.strength || tornApiData.battlestats?.strength || 0).toLocaleString();
+        const speed = (tornApiData.speed || tornApiData.battlestats?.speed || 0).toLocaleString();
+        const dexterity = (tornApiData.dexterity || tornApiData.battlestats?.dexterity || 0).toLocaleString();
+        const defense = (tornApiData.defense || tornApiData.battlestats?.defense || 0).toLocaleString();
+
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
+        // --- CORRECTED WORK STATS EXTRACTION (Manual Labor, Intelligence, Endurance are already from root, good!) ---
         const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
         const intelligence = (tornApiData.intelligence || 0).toLocaleString();
         const endurance = (tornApiData.endurance || 0).toLocaleString();
-        const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
-        const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
+        
+        // Use jobData for job name and company name
+        const job = jobData.company_name && jobData.job ? `${jobData.company_name} (${jobData.job})` : 'N/A';
+        const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A'; // Assuming 'company_efficiency' based on common Torn API job data. If it's 'job_efficiency' keep your original.
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
@@ -1554,7 +1560,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             <p>
                 </p>
         `;
-            
+
         detailPanel.innerHTML = detailsHtml;
 
     } catch (error) {
