@@ -1543,26 +1543,24 @@ async function fetchAndDisplayMemberDetails(memberId) {
         // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
         const detailsHtml = `
             <div class="member-detail-header">
-                ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
+                <div class="member-header-top-row">
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Energy:</h5>
+                        <p>${energyDisplay}</p>
+                    </div>
+                    ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-detail-profile-image">` : ''}
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Nerve:</h5>
+                        <p>${nerveDisplay}</p>
+                    </div>
+                </div>
                 <div class="member-detail-name-id">${memberName} [${memberPlayerId}]</div>
-                <div class="member-detail-level">(Level: ${memberLevel})</div>
             </div>
 
             ${overallAccessMessage}
 
             <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
             <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
-
-            <div class="member-stats-group-row">
-                <div class="member-stat-block member-stat-block-small">
-                    <h5>Energy:</h5>
-                    <p>${energyDisplay}</p>
-                </div>
-                <div class="member-stat-block member-stat-block-small">
-                    <h5>Nerve:</h5>
-                    <p>${nerveDisplay}</p>
-                </div>
-            </div>
 
             <div class="member-stats-group-row">
                 <div class="member-stat-block">

@@ -1612,15 +1612,28 @@ autocomplete-items {
     align-items: center; /* Center horizontally */
     text-align: center; /* Center text within this block */
     gap: 5px; /* Space between elements in the header */
+    padding-bottom: 10px; /* Add some space between main header and info lines */
 }
 
+/* NEW: Container for the top row (Energy, Image, Nerve) */
+.member-header-top-row {
+    display: flex;
+    align-items: center; /* Vertically align items in the middle */
+    justify-content: space-around; /* Distribute space between items */
+    width: 100%; /* Take full width of its parent header */
+    margin-bottom: 10px; /* Space between this row and the name/level below */
+}
+
+/* Adjustments to the profile image to fit in the new top row */
 .member-detail-profile-image {
-    width: 80px; /* A bit larger than table, adjust as needed */
-    height: 80px;
-    border-radius: 50%; /* Circular image */
-    object-fit: cover; /* Ensure image fills the circle */
-    border: 3px solid #00a8ff; /* Nice blue border */
-    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Subtle glow */
+    width: 70px; /* Keep size */
+    height: 70px; /* Keep size */
+    border-radius: 4px; /* MODIFIED: Change to a small radius for a slightly rounded square/rectangle */
+    object-fit: cover; /* Keep existing */
+    border: 3px solid #00a8ff; /* Keep existing */
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Keep existing */
+    flex-shrink: 0; /* Keep existing */
+    margin: 0 10px; /* Keep existing */
 }
 
 .member-detail-name-id {
@@ -1630,10 +1643,7 @@ autocomplete-items {
     margin-top: 5px; /* Space above name if image is first */
 }
 
-.member-detail-level {
-    font-size: 1em;
-    color: #aaa; /* Lighter color for level */
-}
+/* Removed .member-detail-level style as requested */
 
 /* Common style for info paragraphs (Last Action, Status) */
 .member-detail-info-paragraph {
