@@ -1015,10 +1015,12 @@ function displayFriendlyMembersTable(members) {
     // Add all the new rows to the table body at once
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
+
+ 
 /**
  * Fetches and displays detailed stats for a selected member in the right-side panel.
  * This function attempts to use the clicked member's *own* API key from Firebase
- * if they have registered it.
+ * if they have registered it. It includes a retry mechanism for Torn API 'Wrong fields' errors.
  * @param {string} memberId The Torn User ID of the clicked member.
  */
 async function fetchAndDisplayMemberDetails(memberId) {
@@ -1035,7 +1037,6 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.classList.add('detail-panel-loaded');
 
     try {
-        // Ensure 'tornProfileId' is treated as a string literal for the Firestore query
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
 
         if (querySnapshot.empty) {
@@ -1049,7 +1050,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
 
         const userDoc = querySnapshot.docs[0];
-        const memberDataFromFirebase = userDoc.data(); // Get all data from the document
+        const memberDataFromFirebase = userDoc.data();
         const memberApiKey = memberDataFromFirebase.tornApiKey;
         const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
 
@@ -1065,35 +1066,136 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // Use the member's own API key to fetch their detailed data
-        const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile,battlestats,cooldowns,nerve,energy&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
-        const response = await fetch(apiUrl);
+        let data = null;
+        let selectionAttempt = 'profile,battlestats,cooldowns,nerve,energy';
+        let originalError = null;
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            let errorMessage = `Torn API Error: ${response.status}`;
-            if (errorData && errorData.error && errorData.error.error) {
-                errorMessage += ` - ${errorData.error.error}`;
+        // --- FIRST ATTEMPT: Fetch with all desired selections ---
+        try {
+            let apiUrl = `https://api.torn.com/user/${memberId}?selections=${selectionAttempt}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
+            let response = await fetch(apiUrl);
+
+            if (!response.ok) {
+                originalError = await response.json().catch(() => ({}));
+                throw new Error(`Torn API HTTP Error: ${response.status} ${response.statusText}`);
+            }
+            data = await response.json();
+            if (data.error) {
+                throw new Error(`Torn API Data Error: ${JSON.stringify(data.error)}`);
+            }
+        } catch (initialError) {
+            // If the error is 'Wrong fields' (code 10), attempt with basic selections
+            if (originalError && originalError.error && originalError.error.code === 10) {
+                console.warn(`Torn API 'Wrong fields' error for ${memberId}. Retrying with basic selections.`);
+                selectionAttempt = 'profile,battlestats'; // Fallback to basic selections
+                let basicApiUrl = `https://api.torn.com/user/${memberId}?selections=${selectionAttempt}&key=${memberApiKey}&comment=MyTornPA_MemberDetails_Fallback`;
+                let basicResponse = await fetch(basicApiUrl);
+
+                if (!basicResponse.ok) {
+                    throw new Error(`Torn API HTTP Error (Fallback): ${basicResponse.status} ${basicResponse.statusText}`);
+                }
+                data = await basicResponse.json();
+                if (data.error) {
+                    throw new Error(`Torn API Data Error (Fallback): ${JSON.stringify(data.error)}`);
+                }
             } else {
-                errorMessage += ` - ${response.statusText}`;
+                // Re-throw other types of errors
+                throw initialError;
             }
-            throw new Error(errorMessage);
         }
+        
+        // At this point, 'data' should be populated either from full or basic selections
+        if (!data) {
+             throw new Error("Failed to fetch any member data.");
+        }
+
+        const profile = data.profile || {};
+        const stats = data.battlestats || {};
+        const nerve = data.nerve || {}; // Will be empty/undefined if not fetched
+        const energy = data.energy || {}; // Will be empty/undefined if not fetched
+        const cooldowns = data.cooldowns || {}; // Will be empty/undefined if not fetched
+
+        const strength = stats.strength ? stats.strength.toLocaleString() : 'N/A';
+        const speed = stats.speed ? stats.speed.toLocaleString() : 'N/A';
+        const dexterity = stats.dexterity ? stats.dexterity.toLocaleString() : 'N/A';
+        const defense = stats.defense ? stats.defense.toLocaleString() : 'N/A';
+
+        // Conditional display for Nerve, Energy, Cooldowns based on whether they were fetched
+        const currentNerve = nerve.current !== undefined ? nerve.current : 'N/A (Access Denied)';
+        const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
+
+        const currentEnergy = energy.current !== undefined ? energy.current : 'N/A (Access Denied)';
+        const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
+
+        let cooldownsHtml = '<ul>';
+        if (Object.keys(cooldowns).length > 0) {
+            for (const key in cooldowns) {
+                if (cooldowns.hasOwnProperty(key)) {
+                    const timeLeft = cooldowns[key];
+                    if (timeLeft > 0) {
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: ${formatTime(timeLeft)}</li>`;
+                    } else {
+                        cooldownsHtml += `<li>${key.replace(/_/g, ' ')}: Ready</li>`;
+                    }
+                }
+            }
+        } else {
+            cooldownsHtml += '<li>No active cooldowns or access denied.</li>'; // Indicate if not fetched
+        }
+        cooldownsHtml += '</ul>';
+
+        const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        let statusText = profile.status ? profile.status.description : 'Unknown';
+        let statusClass = 'status-okay';
+
+        if (profile.status) {
+            if (profile.status.state === 'Hospital') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `In Hospital (${formatTime(timeLeft)})`;
+                statusClass = 'status-hospital';
+            } else if (profile.status.state === 'Traveling') {
+                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+                statusText = `${profile.status.description} (${formatTime(timeLeft)})`;
+                statusClass = 'status-traveling';
+            } else if (profile.status.state !== 'Okay') {
+                statusText = profile.status.description;
+                statusClass = 'status-other';
+            }
+        }
+
+        const detailsHtml = `
+            <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
+            <p>Last Action: ${lastActionText}</p>
+            <p>Status: <span class="${statusClass}">${statusText}</span></p>
+            <div class="member-stats-grid">
+                <span>Strength:</span> <span>${strength}</span>
+                <span>Speed:</span> <span>${speed}</span>
+                <span>Dexterity:</span> <span>${dexterity}</span>
+                <span>Defense:</span> <span>${defense}</span>
+                <span>Nerve:</span> <span>${nerveDisplay}</span>
+                <span>Energy:</span> <span>${energyDisplay}</span>
+            </div>
+            <h5>Cooldowns:</h5>
+            ${cooldownsHtml}
+            <p>
+                <a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Profile</a> |
+                <a href="https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}" target="_blank">Attack</a>
+            </p>
+        `;
             
-        const data = await response.json();
-        if (data.error) {
-            if (data.error.code === 2 || data.error.code === 10) {
-                detailPanel.innerHTML = `
-                    <h4>API Key Error for ${preferredName} [${memberId}]</h4>
-                    <p>The registered API key for this member is invalid or does not have sufficient permissions to fetch full details.</p>
-                    <p>Error: ${data.error.error}</p>
-                    <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
-                `;
-                console.error(`Torn API Error for ${memberId}:`, data.error.error);
-                return;
-            }
-            throw new Error(`Torn API Error: ${data.error.error}`);
-        }
+        detailPanel.innerHTML = detailsHtml;
+
+    } catch (error) {
+        console.error("Error fetching member details:", error);
+        detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
+    }
+}
 
         const profile = data.profile || {};
         const stats = data.battlestats || {};
