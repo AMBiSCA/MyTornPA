@@ -1626,8 +1626,8 @@ autocomplete-items {
 
 /* Adjustments to the profile image to fit in the new top row */
 .member-detail-profile-image {
-    width: 70px; /* Keep size */
-    height: 70px; /* Keep size */
+    width: 80px; /* Keep size */
+    height: 80px; /* Keep size */
     border-radius: 4px; /* MODIFIED: Change to a small radius for a slightly rounded square/rectangle */
     object-fit: cover; /* Keep existing */
     border: 3px solid #00a8ff; /* Keep existing */
