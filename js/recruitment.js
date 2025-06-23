@@ -103,7 +103,6 @@ async function enlistPlayer(factionId) {
     }
 
     try {
-        // --- Use selections for 'bars,cooldowns,travel,profile' ---
         const selections = 'bars,cooldowns,travel,profile'; // As requested
         const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
         
@@ -114,31 +113,29 @@ async function enlistPlayer(factionId) {
         }
         const data = await response.json();
         if (data.error) {
-            // Specifically handle common API key errors
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Bars', 'Cooldowns', 'Travel', and 'Profile' are enabled.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
-        // Extract data based on new selections
         const profile = data.profile || {};
-        const bars = data.bars || {}; // Health, Nerve, Energy bars
-        const cooldowns = data.cooldowns || {}; // Drug, Medical, Booster cooldowns
-        const travel = data.travel || {}; // Travel status
+        const bars = data.bars || {}; 
+        const cooldowns = data.cooldowns || {}; 
+        const travel = data.travel || {}; 
         
-        const xanaxTaken = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
-        const totalAttacks = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
-        const playerStrength = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
-        const playerDefense = 'N/A';   // Cannot get from 'battlestats' which is NOT in new selections
-        const playerSpeed = 'N/A';       // Cannot get from 'battlestats' which is NOT in new selections
-        const playerDexterity = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
+        const xanaxTaken = 'N/A'; 
+        const totalAttacks = 'N/A'; 
+        const playerStrength = 'N/A';
+        const playerDefense = 'N/A';   
+        const playerSpeed = 'N/A';       
+        const playerDexterity = 'N/A'; 
 
 
         const playerEnlistmentData = {
             factionId: String(factionId),
             playerId: String(currentUserTornId),
-            playerName: profile.name || data.name || 'Unknown', // Fallback to top-level name from basic selection if profile.name is missing
-            playerLevel: profile.level || data.level || 0, // Fallback to top-level level from basic selection
+            playerName: profile.name || data.name || 'Unknown',
+            playerLevel: profile.level || data.level || 0,
             playerStrength: playerStrength, 
             playerDefense: playerDefense,   
             playerSpeed: playerSpeed,       
@@ -146,11 +143,10 @@ async function enlistPlayer(factionId) {
             xanaxTaken: xanaxTaken,         
             totalAttacks: totalAttacks,     
             enlistmentTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            firebaseUid: auth.currentUser.uid, // Link back to their Firebase account
-            status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown' // Current status (from profile or basic)
+            firebaseUid: auth.currentUser.uid, 
+            status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown'
         };
 
-        // Save to Firestore
         const docRef = db.collection('recruitmentApplications').doc(`${factionId}_${currentUserTornId}`);
         await docRef.set(playerEnlistmentData, { merge: true });
 
@@ -183,7 +179,6 @@ async function listSelfForRecruitment() {
     }
 
     try {
-        // --- Use selections for 'bars,cooldowns,travel,profile' ---
         const selections = 'bars,cooldowns,travel,profile'; // As requested
         const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
         
@@ -200,9 +195,9 @@ async function listSelfForRecruitment() {
         }
 
         const profile = data.profile || {};
-        const bars = data.bars || {}; // Health, Nerve, Energy bars
-        const cooldowns = data.cooldowns || {}; // Drug, Medical, Booster cooldowns
-        const travel = data.travel || {}; // Travel status
+        const bars = data.bars || {}; 
+        const cooldowns = data.cooldowns || {}; 
+        const travel = data.travel || {}; 
 
         const xanaxTaken = 'N/A'; // Will be N/A based on current selections
         const totalAttacks = 'N/A'; // Will be N/A based on current selections
@@ -224,11 +219,12 @@ async function listSelfForRecruitment() {
             totalAttacks: totalAttacks,
             contactInfo: contactInfo.trim(),
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            firebaseUid: auth.currentUser.uid,
+            firebaseUid: auth.currentUser.uid, // This is the key field for security rule matching
             isActive: true // Player can set this to false later if they find a faction
         };
 
-        const docRef = db.collection('playersSeekingFactions').doc(String(currentUserTornId));
+        // --- CRITICAL CORRECTION: Use Firebase UID as the document ID ---
+        const docRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
         await docRef.set(playerListingData, { merge: true });
 
         alert(`Successfully listed yourself for recruitment!`);
@@ -293,7 +289,7 @@ async function advertiseFaction() {
         return;
     }
     // Check if the current user is a leader (this flag is set in auth.onAuthStateChanged)
-    if (!currentUserIsLeader) {
+    if (!currentUserIsLeader) { 
         alert("Only designated faction leaders can advertise factions.");
         return;
     }
@@ -303,16 +299,15 @@ async function advertiseFaction() {
     }
 
     try {
-        // Fetch current user's faction ID from their profile
+        // Fetch current user's faction ID from their profile in Firebase
         const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
-        const userTornFactionId = userProfileDoc.data()?.tornFactionId; // Using optional chaining for safety
+        const userTornFactionId = userProfileDoc.data()?.tornFactionId; // Access the tornFactionId from the Firebase document
 
         if (!userTornFactionId) {
-            alert("Your Torn Faction ID is not registered in your profile. Cannot advertise.");
+            alert("Your Torn Faction ID is not registered in your profile. Please add it to your profile to advertise your faction.");
             return;
         }
 
-        // Fetch current user's faction data using their API key
         const selections = 'basic,members'; // Basic info + member count
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
 
@@ -338,7 +333,7 @@ async function advertiseFaction() {
         }
 
         const factionListingData = {
-            factionId: String(userTornFactionId),
+            factionId: String(userTornFactionId), 
             factionName: factionName,
             totalMembers: totalMembers,
             contactInfo: contactInfo.trim(),
@@ -347,7 +342,6 @@ async function advertiseFaction() {
             isActive: true // Faction can manage this later
         };
 
-        // Save to Firestore in 'recruitingFactions' collection
         const docRef = db.collection('recruitingFactions').doc(String(userTornFactionId));
         await docRef.set(factionListingData, { merge: true });
 
@@ -374,8 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornApiKey = userData.tornApiKey || null;
             
             // --- CRITICAL CORRECTION: Check for leader status using 'position' from Firestore userData ---
+            // Assuming 'position' field exists in the userProfile document in Firebase
             currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
-            console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
+            console.log(`User ${user.uid} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
 
             // Show/hide button based on leader status
             if (advertiseFactionButton) { // Ensure button exists before trying to access style
@@ -401,8 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (listSelfButton) listSelfButton.disabled = true;
             if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide if not logged in
             if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable if not logged in
-            // Enlist buttons in table should also be disabled/alert on click
-            // (Current logic for enlistPlayer handles this by alerting if not logged in/no API key)
+            // Enlist buttons in table, they will be dynamically added and need their disabled state managed based on login/API key status.
+            // For now, they will show an alert if not logged in or missing API key (handled by enlistPlayer function).
         }
         
         // Always display initial listings, regardless of login status
