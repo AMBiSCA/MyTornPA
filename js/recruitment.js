@@ -272,6 +272,7 @@ async function displayPlayersSeekingFactions() {
 
 
 // --- NEW FUNCTION: To allow a Faction Leader to advertise their faction ---
+// --- NEW FUNCTION: To allow a Faction Leader to advertise their faction ---
 async function advertiseFaction() {
     console.log("Attempting to advertise faction.");
     if (!auth.currentUser) {
@@ -300,7 +301,8 @@ async function advertiseFaction() {
 
         // Fetch current user's faction data using their API key
         const selections = 'basic,members'; // Basic info + member count
-        const apiUrl = `https://api.torn.com/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
+        // --- CRITICAL CORRECTION: Changed API URL to /v2/faction/ ---
+        const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
 
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
         const response = await fetch(apiUrl);
