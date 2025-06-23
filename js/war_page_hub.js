@@ -2103,7 +2103,7 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
                 console.error("Error saving big hitter watchlist:", error);
             }
         });
-  
+	}
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
