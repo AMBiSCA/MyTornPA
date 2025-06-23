@@ -946,6 +946,10 @@ async function initializeAndLoadData(apiKey) {
  * Builds and displays the table for the user's own faction members.
  * @param {object} members - The members object from the API.
  */
+/**
+ * Builds and displays the table for the user's own faction members.
+ * @param {object} members - The members object from the API.
+ */
 function displayFriendlyMembersTable(members) {
     if (!friendlyMembersTbody) {
         console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
@@ -967,10 +971,12 @@ function displayFriendlyMembersTable(members) {
     membersArray.sort(([, memberA], [, memberB]) => memberA.name.localeCompare(memberB.name));
 
     let allRowsHtml = '';
-    
+
     // This correctly loops through the array getting both the memberId and the member object
     for (const [memberId, member] of membersArray) {
-        
+        // --- DEBUG: Log the memberId and the full member object to the console ---
+        console.log("Friendly member data:", memberId, member);
+
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
 
         const name = member.name;
@@ -1006,11 +1012,6 @@ function displayFriendlyMembersTable(members) {
     // Add all the new rows to the table body at once
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
-
-/**
- * Fetches and displays detailed stats for a selected member in the right-side panel.
- * @param {string} memberId The Torn User ID of the clicked member.
- */
 async function fetchAndDisplayMemberDetails(memberId) {
     // --- NEW DEBUGGING LINE ---
     console.log(`Searching Firebase for tornProfileId that matches: "${memberId}"`);
