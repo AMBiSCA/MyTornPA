@@ -727,13 +727,19 @@ transition: background-color 0.2s ease;
 
 /* Specific styling for Quick FF Targets container - Forces this item to align right */
 .ops-control-item.ops-quick-targets {
-    justify-self: end; /* Aligns the entire quick targets block to the right of its grid cell */
-    /* text-align: right; IS NOT NEEDED here for the block, its label will handle its own centering */
+    justify-content: flex-start; /* Aligns content (label and targets) to the top within this item */
+    margin-top: 0 !important; /* Aggressively removes any top margin */
+    padding-top: 0 !important; /* Aggressively removes any top padding */
+    height: auto !important; /* Ensures it doesn't take fixed or excessive height */
+    min-height: unset !important; /* Ensures no min-height forces it to stretch */
 }
 
-.ops-control-item.ops-quick-targets label {
-    width: 100%; /* Ensures the label spans the full width of its container */
-    text-align: center; /* Centers the label text horizontally */
+.ops-control-item.ops-quick-targets label,
+.ops-control-item.ops-quick-targets .quick-ff-targets-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    width: 100%; 
+    text-align: center;
     box-sizing: border-box;
 }
 
@@ -1431,8 +1437,21 @@ autocomplete-items {
     display: none;
 }
     .ops-controls-grid {
-        grid-template-columns: 1fr; /* Stack controls vertically */
+    align-items: start; /* Forces all direct children in the grid to align their tops */
+    margin-top: 5px; /* Example: Reduce from 10px to pull the whole box closer to the tabs */
+    margin-bottom: 10px; /* Example: Adjust if it's contributing to overall column height */
+    grid-template-columns: 1fr; /* Stack controls vertically */
     }
+	
+	.ops-controls-grid .ops-control-item {
+    align-self: start;
+    padding-top: 0; /* Remove top padding within grid item */
+    padding-bottom: 0; /* Remove bottom padding within grid item */
+    height: auto; /* Ensure no fixed height prevents shrinking */
+    min-height: unset; /* Ensure no min-height prevents shrinking */
+}
+
+
     .enemy-targets-header, .enemy-target-row {
         grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
         font-size: 0.8em; /* NEW: Reduced base font size */
