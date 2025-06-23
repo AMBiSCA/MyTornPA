@@ -1800,26 +1800,32 @@ autocomplete-items {
 }
 .faction-versus-section {
     display: flex;
-    justify-content: space-evenly; /* Distribute space more evenly */
+    justify-content: center;
     align-items: center;
-    gap: 40px; /* Increased gap for elegance */
+    gap: 20px; /* Space between elements */
     
     width: 100%;
     max-width: 900px;
     margin: 20px auto;
-    padding: 30px; /* Generous padding */
+    padding: 20px; /* Comfortable padding */
     
-    background-color: #333333; /* Slightly lighter dark background */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Very subtle white border */
-    border-radius: 12px; /* More rounded, softer look */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.05); /* Soft, subtle shadow */
+    background-color: #1c1c1c; /* Very dark almost black */
+    border: 2px solid #3a3a3a; /* Dark gray border */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 0 8px rgba(0, 0, 0, 0.4); /* Deep, layered shadow */
     
     box-sizing: border-box;
-    font-size: 1.1em;
-    font-weight: bold;
-    font-family: 'Segoe UI', sans-serif; /* A more modern font */
-    color: #e0e0e0; /* Softer light text */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle text shadow */
+    font-size: 1.2em; /* Makes all text content slightly larger */
+    font-weight: bold; /* Makes all text content bolder */
+    color: #e0e0e0; /* Off-white text */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Subtle text shadow for depth */
+    transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
+}
+
+.faction-versus-section:hover {
+    transform: translateY(-3px) scale(1.01); /* Slight lift and subtle enlargement on hover */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 168, 255, 0.4); /* Stronger shadow with a blue glow */
+    border-color: #00a8ff; /* Highlight border with blue */
 }
 .ops-chain-score .score-faction-name {
     font-size: 0.8em;

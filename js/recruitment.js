@@ -103,6 +103,7 @@ async function enlistPlayer(factionId) {
     }
 
     try {
+        // --- Use selections for 'bars,cooldowns,travel,profile' ---
         const selections = 'bars,cooldowns,travel,profile'; // As requested
         const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
         
@@ -119,17 +120,18 @@ async function enlistPlayer(factionId) {
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
+        // Extract data based on new selections
         const profile = data.profile || {};
         const bars = data.bars || {}; 
         const cooldowns = data.cooldowns || {}; 
         const travel = data.travel || {}; 
         
-        const xanaxTaken = 'N/A'; 
-        const totalAttacks = 'N/A'; 
-        const playerStrength = 'N/A';
-        const playerDefense = 'N/A';   
-        const playerSpeed = 'N/A';       
-        const playerDexterity = 'N/A'; 
+        const xanaxTaken = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
+        const totalAttacks = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
+        const playerStrength = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
+        const playerDefense = 'N/A';   // Cannot get from 'battlestats' which is NOT in new selections
+        const playerSpeed = 'N/A';       // Cannot get from 'battlestats' which is NOT in new selections
+        const playerDexterity = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
 
 
         const playerEnlistmentData = {
@@ -325,7 +327,7 @@ async function advertiseFaction() {
         }
 
         const factionName = data.basic ? data.basic.name : 'Unknown Faction';
-        const totalMembers = data.members ? data.members.total : 'N/A';
+        const totalMembers = data.members ? data.members.total : null; // Ensure null for Firestore if missing
 
         const contactInfo = prompt(`Please provide contact info for ${factionName} (e.g., Discord Tag, Torn Mail ID for recruiters):`);
         if (!contactInfo || contactInfo.trim() === '') {
@@ -368,10 +370,11 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornId = userData.tornProfileId || null;
             currentUserTornApiKey = userData.tornApiKey || null;
             
-            // --- CRITICAL CORRECTION: Check for leader status using 'position' from Firestore userData ---
+            // --- CRITICAL CORRECTION: Check for leader status using 'position' from Firebase userData ---
             // Assuming 'position' field exists in the userProfile document in Firebase as "Leader" or "Co-leader"
+            // This is the check for the button's visibility
             currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
-            console.log(`User ${currentUserTornId} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
+            console.log(`User ${user.uid} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
 
             // Show/hide button based on leader status
             if (advertiseFactionButton) { // Ensure button exists before trying to access style
@@ -384,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn("User logged in but Torn ID or API Key missing from profile. Disabling enlist/advertise buttons.");
                 alert("Please complete your profile (Torn ID & API Key) to use all recruitment features.");
                 if (listSelfButton) listSelfButton.disabled = true;
-                if (advertiseFactionButton) advertiseFactionButton.disabled = true;
+                if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Also disable advertise button
             } else {
                  // Ensure buttons are enabled if key/ID are present and leader status checked
                  if (listSelfButton) listSelfButton.disabled = false;
