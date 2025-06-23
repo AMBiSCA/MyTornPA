@@ -135,10 +135,92 @@
     display: block;
 }
 
-/* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
+/* --- Styling for the dynamically created non-chat content panel --- */
+/* This ensures it positions correctly over the chat display/input areas */
+.chat-container {
+    position: relative; /* Needed for absolute positioning of its children */
+}
 
-/* --- LEADER CONFIG TAB SPECIFIC STYLES (TAB 4) --- */
+/* Base styling for the dynamic panel itself (its position handled by JS inline styles) */
+.chat-dynamic-panel {
+    /* Additional styling if needed, e.g., borders or shadows */
+    z-index: 10; /* Ensures it appears above other hidden content */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    justify-content: flex-start; /* Align content to the top */
+    gap: 15px; /* Space between settings items */
+}
 
+/* Styling for the settings content structure */
+.chat-settings-panel {
+    width: 90%;
+    max-width: 400px;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #222;
+    border-radius: 8px;
+    border: 1px solid #00a8ff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.chat-settings-panel h3 {
+    color: #e0a71a;
+    margin-bottom: 15px;
+}
+
+.chat-settings-panel .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+.chat-settings-panel .setting-item:last-child {
+    border-bottom: none;
+}
+
+.chat-settings-panel label {
+    flex-grow: 1;
+    text-align: left;
+    color: #f0f0f0;
+}
+
+.chat-settings-panel select,
+.chat-settings-panel input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.chat-settings-panel select {
+    padding: 5px;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+    border: 1px solid #555;
+}
+
+.chat-settings-panel input[type="checkbox"] {
+    transform: scale(1.2);
+    accent-color: #00a8ff;
+}
+
+.chat-settings-panel .save-settings-btn {
+    margin-top: 20px;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.chat-settings-panel .save-settings-btn:hover {
+    background-color: #00a8ff;
+}
 /* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 #leader-config-tab.active {
     /* This rule defines properties for the *overall tab pane*, not its internal grid */
