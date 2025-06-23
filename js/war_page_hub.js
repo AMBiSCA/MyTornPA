@@ -1395,8 +1395,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // *** MODIFICATION HERE: Removed 'bars' from selections ***
-        const selections = 'profile,personalstats,battlestats,workstats,cooldowns';
+        // Selections for the API call
+        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars'; // Keeping 'bars' to ensure Nerve/Energy are requested if needed from there.
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
 
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1409,6 +1409,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
             let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
             if (errorData && errorData.error && errorData.error.error) {
+                errorMessage += ` - ${errorData.error.error}`;
+            (errorData && errorData.error && errorData.error.error) {
                 errorMessage += ` - ${errorData.error.error}`;
             }
             throw new Error(errorMessage);
@@ -1430,21 +1432,33 @@ async function fetchAndDisplayMemberDetails(memberId) {
             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        const profile = tornApiData.profile || {};
+        // --- MODIFICATION HERE: Access name, player_id, last_action, status directly from tornApiData (root) ---
+        const memberName = tornApiData.name || 'Unknown';
+        const memberPlayerId = tornApiData.player_id || 'N/A';
+        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
+        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
+
+        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
+        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
+
         const personalStats = tornApiData.personalstats || {};
         const jobData = tornApiData.job || {};
         const cooldowns = tornApiData.cooldowns || {};
         
-        // *** MODIFICATION HERE: Removed extraction of nerve and energy objects ***
-        // const barsData = tornApiData.bars || {};
-        // const nerve = barsData.nerve || {};
-        // const energy = barsData.energy || {};
+        // Extract nerve and energy from tornApiData.bars or directly if they appear there (fallback is handled below)
+        const barsData = tornApiData.bars || {};
+        const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
+        const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
 
-        console.log("[DEBUG] Extracted Profile Data:", profile);
+
+        console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
+        console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
+        console.log("[DEBUG] Extracted Main Status Data:", mainStatusData);
         console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
         console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
-        // Removed logs for Nerve/Energy extraction
+        console.log("[DEBUG] Extracted Nerve Data (from bars/root object):", nerve);
+        console.log("[DEBUG] Extracted Energy Data (from bars/root object):", energy);
         console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
         console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
 
@@ -1467,20 +1481,17 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
 
-        // Extract profile_image and level directly from root
-        const profileImage = tornApiData.profile_image || '';
-        const userLevel = tornApiData.level || 'N/A';
+        // Nerve and Energy display - will show "Not available" if data is missing
+        const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
+        const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
+        const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
+        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
 
-        // *** MODIFICATION HERE: Removed Nerve and Energy display sections ***
-        // const nerveCurrent = nerve.current !== undefined ? nerve.current : 'N/A';
-        // const nerveMax = nerve.maximum !== undefined ? nerve.maximum : '';
-        // const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
-        // const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveGain}`.trim();
+        const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
+        const energyMax = energy.maximum !== undefined ? energy.maximum : '';
+        const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
+        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
 
-        // const energyCurrent = energy.current !== undefined ? energy.current : 'N/A';
-        // const energyMax = energy.maximum !== undefined ? energy.maximum : '';
-        // const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
-        // const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyGain}`.trim();
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1503,23 +1514,25 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         console.log(`[DEBUG] Final Cooldowns HTML: ${cooldownsHtml}`);
 
-        const lastActionTimestamp = profile.last_action ? profile.last_action.timestamp : null;
+        // Use the new lastActionData object directly
+        const lastActionTimestamp = lastActionData.timestamp ? lastActionData.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
-        let statusText = profile.status ? profile.status.description : 'Unknown';
+        // Use the new mainStatusData object directly
+        let statusText = mainStatusData.description || 'Unknown';
         let statusClass = 'status-okay';
 
-        if (profile.status) {
-            if (profile.status.state === 'Hospital') {
-                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
+        if (mainStatusData) { // Check if mainStatusData is not null/undefined
+            if (mainStatusData.state === 'Hospital') {
+                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
                 statusText = `In Hospital (${formatTime(timeLeft)})`;
                 statusClass = 'status-hospital';
-            } else if (profile.status.state === 'Traveling') {
-                const timeLeft = profile.status.until - Math.floor(Date.now() / 1000);
-                statusText = `${profile.status.description} (${formatTime(timeLeft)})`;
+            } else if (mainStatusData.state === 'Traveling') {
+                const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
+                statusText = `${mainStatusData.description} (${formatTime(timeLeft)})`;
                 statusClass = 'status-traveling';
-            } else if (profile.status.state !== 'Okay') {
-                statusText = profile.status.description;
+            } else if (mainStatusData.state !== 'Okay') {
+                statusText = mainStatusData.description;
                 statusClass = 'status-other';
             }
         }
@@ -1532,8 +1545,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         const detailsHtml = `
             <h4>
-                ${profileImage ? `<img src="${profileImage}" alt="${profile.name}" class="member-profile-image" width="50" height="50">` : ''}
-                ${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${userLevel})
+                ${memberProfileImage ? `<img src="${memberProfileImage}" alt="${memberName}" class="member-profile-image" width="50" height="50">` : ''}
+                ${memberName} [${memberPlayerId}] (Level: ${memberLevel})
             </h4>
             ${overallAccessMessage}
             <p>Last Action: ${lastActionText}</p>
@@ -1553,6 +1566,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 <span>Intelligence:</span> <span>${intelligence}</span>
                 <span>Endurance:</span> <span>${endurance}</span>
             </div>
+            <h5>Nerve:</h5>
+            <p>${nerveDisplay}</p>
+            <h5>Energy:</h5>
+            <p>${energyDisplay}</p>
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
