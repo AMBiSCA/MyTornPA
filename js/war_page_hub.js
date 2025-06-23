@@ -1395,8 +1395,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // Selections now include 'bars' for Nerve/Energy, and retain others.
-        const selections = 'profile,personalstats,battlestats,workstats,bars,cooldowns';
+        // *** MODIFICATION HERE: Selections adjusted. Removing 'bars' as energy/nerve are at root. ***
+        const selections = 'profile,personalstats,battlestats,workstats,cooldowns'; // Re-included cooldowns for now, can remove if not needed.
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
 
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1435,17 +1435,16 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const jobData = tornApiData.job || {};
         const cooldowns = tornApiData.cooldowns || {};
         
-        // Extract nerve and energy from tornApiData.bars
-        const barsData = tornApiData.bars || {};
-        const nerve = barsData.nerve || {};
-        const energy = barsData.energy || {};
+        // *** MODIFICATION HERE: Extract nerve and energy directly from tornApiData ***
+        const nerve = tornApiData.nerve || {};
+        const energy = tornApiData.energy || {};
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Personal Stats Data:", personalStats);
         console.log("[DEBUG] Extracted Job Data (from 'tornApiData.job'):", jobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
-        console.log("[DEBUG] Extracted Nerve Data (from bars):", nerve);
-        console.log("[DEBUG] Extracted Energy Data (from bars):", energy);
+        console.log("[DEBUG] Extracted Nerve Data (directly from root):", nerve);
+        console.log("[DEBUG] Extracted Energy Data (directly from root):", energy);
         console.log("[DEBUG] Top-level Strength (for battle stats):", tornApiData.strength);
         console.log("[DEBUG] Top-level Manual Labor (for work stats):", tornApiData.manual_labor);
 
@@ -1467,6 +1466,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const jobEfficiency = jobData.company_efficiency ? `${jobData.company_efficiency}%` : 'N/A';
 
         console.log(`[DEBUG] Final Work Stats: Job: ${job}, Efficiency: ${jobEfficiency}, ML: ${manuelLabor}, Int: ${intelligence}, End: ${endurance}`);
+
+        // Extract profile_image and level directly from root
+        const profileImage = tornApiData.profile_image || '';
+        const userLevel = tornApiData.level || 'N/A';
 
         const currentNerve = (nerve.current || 'N/A');
         const maxNerve = (nerve.maximum || '');
@@ -1527,7 +1530,10 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
 
         const detailsHtml = `
-            <h4>${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${profile.level || 'N/A'})</h4>
+            <h4>
+                ${profileImage ? `<img src="${profileImage}" alt="${profile.name}" class="member-profile-image" width="50" height="50">` : ''}
+                ${profile.name || 'Unknown'} [${profile.player_id || 'N/A'}] (Level: ${userLevel})
+            </h4>
             ${overallAccessMessage}
             <p>Last Action: ${lastActionText}</p>
             <p>Status: <span class="${statusClass}">${statusText}</span></p>
