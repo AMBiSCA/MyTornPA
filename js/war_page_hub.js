@@ -1036,9 +1036,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
     detailPanel.classList.add('detail-panel-loaded');
 
-    // --- IMPORTANT CHANGE: Declare data and specificAccessDeniedMessage outside the main try block ---
-    let data = null; 
-    let specificAccessDeniedMessage = ''; 
+    // --- IMPORTANT CHANGE: Renamed 'data' to 'tornApiData' and 'specificAccessDeniedMessage' to 'apiErrorMessage' ---
+    let tornApiData = null; 
+    let apiErrorMessage = ''; 
 
     try {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
@@ -1070,7 +1070,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        const selections = 'profile,workstats,cooldowns,battlestats'; // Current selections
+        const selections = 'profile,workstats,cooldowns,battlestats,nerve,energy'; // Re-added nerve/energy as they are desired.
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
         
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -1087,39 +1087,40 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            // Assign to 'data' (already declared with 'let' above)
-            data = await response.json(); 
-            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, data);
+            // Assign to 'tornApiData'
+            tornApiData = await response.json(); 
+            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
-            if (data.error) {
-                console.error(`[DEBUG] Torn API Data Error details:`, data.error);
-                if (data.error.code === 2) {
+            if (tornApiData.error) {
+                console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
+                if (tornApiData.error.code === 2) {
                     detailPanel.innerHTML = `
                         <h4>API Key Error for ${preferredName} [${memberId}]</h4>
                         <p>The registered API key for this member is invalid.</p>
-                        <p>Error: ${data.error.error}</p>
+                        <p>Error: ${tornApiData.error.error}</p>
                         <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
                     `;
                     return;
-                } else if (data.error.code === 10) {
-                    // Assign to 'specificAccessDeniedMessage' (already declared with 'let' above)
-                    specificAccessDeniedMessage = `The member's API key lacks permissions for some requested details. (Error: ${data.error.error})`;
+                } else if (tornApiData.error.code === 10) {
+                    // Assign to 'apiErrorMessage'
+                    apiErrorMessage = `The member's API key lacks permissions for some requested details. (Error: ${tornApiData.error.error})`;
                 } else {
-                    throw new Error(`Torn API Data Error: ${data.error.error}`);
+                    throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
                 }
             }
         }
         
-        if (!data || Object.keys(data).length === 0) {
+        if (!tornApiData || Object.keys(tornApiData).length === 0) {
              throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        const profile = data.profile || {};
-        const stats = data.battlestats || {};
-        const workStatsJobData = data.workstats || {};
-        const cooldowns = data.cooldowns || {};
-        const nerve = data.nerve || {}; 
-        const energy = data.energy || {}; 
+        // --- Data Extraction (using tornApiData) ---
+        const profile = tornApiData.profile || {};
+        const stats = tornApiData.battlestats || {};
+        const workStatsJobData = tornApiData.workstats || {};
+        const cooldowns = tornApiData.cooldowns || {};
+        const nerve = tornApiData.nerve || {}; 
+        const energy = tornApiData.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
         console.log("[DEBUG] Extracted Battlestats Data:", stats);
@@ -1127,9 +1128,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
         console.log("[DEBUG] Extracted Cooldowns Data:", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
         console.log("[DEBUG] Extracted Energy Data:", energy);
-        console.log("[DEBUG] Top-level Manual Labor:", data.manual_labor);
-        console.log("[DEBUG] Top-level Intelligence:", data.intelligence);
-        console.log("[DEBUG] Top-level Endurance:", data.endurance);
+        console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
+        console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
+        console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
         const strength = typeof stats.strength === 'number' ? stats.strength.toLocaleString() : 'N/A';
@@ -1137,9 +1138,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const dexterity = typeof stats.dexterity === 'number' ? stats.dexterity.toLocaleString() : 'N/A';
         const defense = typeof stats.defense === 'number' ? stats.defense.toLocaleString() : 'N/A';
         
-        const manuelLabor = typeof data.manual_labor === 'number' ? data.manual_labor.toLocaleString() : 'N/A';
-        const intelligence = typeof data.intelligence === 'number' ? data.intelligence.toLocaleString() : 'N/A';
-        const endurance = typeof data.endurance === 'number' ? data.endurance.toLocaleString() : 'N/A';
+        const manuelLabor = typeof tornApiData.manual_labor === 'number' ? tornApiData.manual_labor.toLocaleString() : 'N/A';
+        const intelligence = typeof tornApiData.intelligence === 'number' ? tornApiData.intelligence.toLocaleString() : 'N/A';
+        const endurance = typeof tornApiData.endurance === 'number' ? tornApiData.endurance.toLocaleString() : 'N/A';
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
@@ -1147,14 +1148,14 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const maxNerve = nerve.maximum !== undefined ? nerve.maximum : '';
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim() || 'N/A';
-        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
+        if (currentNerve === 'N/A' && selections.includes('nerve')) { nerveDisplay += ' (Access Denied)'; }
 
 
         const currentEnergy = energy.current !== undefined ? energy.current : 'N/A';
         const maxEnergy = energy.maximum !== undefined ? energy.maximum : '';
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim() || 'N/A';
-        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
+        if (currentEnergy === 'N/A' && selections.includes('energy')) { energyDisplay += ' (Access Denied)'; }
 
 
         let cooldownsHtml = '<ul>';
@@ -1196,8 +1197,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
         }
 
         let overallAccessMessage = '';
-        if (specificAccessDeniedMessage) {
-            overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${specificAccessDeniedMessage}</p>`;
+        if (apiErrorMessage) { // Changed from specificAccessDeniedMessage
+            overallAccessMessage = `<p style="color: #ffcc00; font-weight: bold;">Note: ${apiErrorMessage}</p>`;
         }
 
 
