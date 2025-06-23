@@ -1461,6 +1461,12 @@ autocomplete-items {
     min-height: unset; /* Ensure no min-height prevents shrinking */
 }
 
+.quick-ff-target-btn {
+    width: auto; /* Allows the button to shrink to the width of its content (text + padding) */
+    padding: 4px 10px; /* Reduces the internal spacing (padding) around the text */
+    font-size: 0.85em; /* Makes the text inside the button slightly smaller */
+    /* Keep other properties like background-color, border, etc., as they are */
+}
 
     .enemy-targets-header, .enemy-target-row {
         grid-template-columns: 1.5fr 0.8fr 1fr 1.5fr 1fr 0.8fr 0.8fr;
