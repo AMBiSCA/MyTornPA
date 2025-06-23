@@ -62,6 +62,11 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+const chatDisplayArea = document.getElementById('chat-display-area');
+const chatTextInput = document.querySelector('.chat-text-input');
+const chatSendBtn = document.querySelector('.chat-send-btn');
+const chatTabsContainer = document.querySelector('.chat-tabs-container');
+const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
 
 // --- Utility Functions ---
 
@@ -385,7 +390,70 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
       warStartedTime.textContent = 'N/A';
   }
 
+// ... (Your existing Utility Functions, e.g., formatTime, formatTornTime, filterProfanity if present) ...
 
+// NEW: Function to display a message in the chat area
+function displayChatMessage(messageObj) {
+    if (!chatDisplayArea) {
+        console.error("Chat display area not found in displayChatMessage function.");
+        return;
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
+
+    const timestamp = new Date(messageObj.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const senderName = messageObj.sender || 'Unknown';
+    const messageText = messageObj.text || '';
+
+    // Basic structure for a chat message
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[<span class="math-inline">\{timestamp\}\]</span\>
+<span class="chat-sender">{senderName}:</span>
+<span class="chat-text">${messageText}</span>
+`;
+
+    chatDisplayArea.appendChild(messageElement);
+
+    // Automatically scroll to the bottom of the chat to show the latest message
+    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+}
+
+// NEW: Function to handle sending a chat message
+async function sendChatMessage() {
+    // Ensure chatTextInput, auth.currentUser, and userApiKey are available
+    if (!chatTextInput || !auth.currentUser || !userApiKey) {
+        console.warn("Cannot send message: Chat input, logged-in user, or API key not available.");
+        // Optionally, show a user-friendly message on the UI if elements/data are missing
+        return;
+    }
+
+    const messageText = chatTextInput.value.trim();
+    if (messageText === '') {
+        return; // Don't send empty messages
+    }
+
+    // --- IMPORTANT: Ensure filterProfanity function is present in your file ---
+    // If you deleted filterProfanity previously, this line will cause an error.
+    // If you want profanity filtering, ensure the filterProfanity function is defined in your utilities.
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+
+    // For now, we'll just simulate sending by displaying it locally.
+    // In a later step, we will integrate with Firebase to store and retrieve messages.
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: currentTornUserName, // This global variable should hold the logged-in Torn user's name
+        text: filteredMessage,
+        timestamp: Date.now() // Use current timestamp for the message
+    };
+
+    displayChatMessage(messageObj); // Display the message immediately in the chat area
+
+    chatTextInput.value = ''; // Clear the input field after sending
+    chatTextInput.focus(); // Keep focus on the input field for quick replies
+}
+```
 async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
