@@ -412,12 +412,11 @@ function displayChatMessage(messageObj) {
     const messageText = messageObj.text || '';
 
     // Basic structure for a chat message
-   messageElement.innerHTML = `
-    <span class="chat-timestamp">[<span class="math-inline">\{timestamp\}\]</span\>
-<span class="chat-sender">{senderName}:</span>
-<span class="chat-text">${messageText}</span>
+  messageElement.innerHTML = `
+    <span class="chat-timestamp">[${timestamp}]</span>
+    <span class="chat-sender">${senderName}:</span>
+    <span class="chat-text">${messageText}</span>
 `;
-
     chatDisplayArea.appendChild(messageElement);
 
     // Automatically scroll to the bottom of the chat to show the latest message
@@ -1942,12 +1941,15 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchAndDisplayChainData();
             fetchAndDisplayRankedWarScores();
             displayQuickFFTargets(userApiKey, playerId);
+			setupChatRealtimeListener();
+
 
             if (!listenersInitialized) {
                 setupEventListeners(apiKey);
                 setupMemberClickEvents(); // <--- NEW LINE ADDED HERE
                 listenersInitialized = true;
-
+				
+				
                 // Start local timers (e.g., hospital/travel countdowns) every 1 second
                 setInterval(updateAllTimers, 1000);
 
