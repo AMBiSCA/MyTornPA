@@ -2128,6 +2128,8 @@ function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
 
+    console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`); // Debug 1: Which tab was clicked
+
     // Remove 'active' class from all chat tabs
     chatTabs.forEach(tab => tab.classList.remove('active'));
 
@@ -2210,6 +2212,8 @@ function handleChatTabClick(event) {
                     </div>
                 `;
             } else if (targetTab === 'faction-members') { // Faction Members Tab Content
+                console.log("[Chat Tab Debug] Faction Members tab selected."); // Debug 2: Confirms entry to this block
+
                 nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; // Title
 
                 // ASSUMPTION: window.globalFactionMembers holds your array of member objects
@@ -2217,6 +2221,8 @@ function handleChatTabClick(event) {
                 // please change 'window.globalFactionMembers' below to match it.
                 const members = window.globalFactionMembers || []; 
                 
+                console.log("[Chat Tab Debug] Members array before sorting:", members); // Debug 3: Crucial check for data
+
                 // Define a custom order for ranks (leaders first)
                 const rankOrder = {
                     "Leader": 0,
@@ -2262,6 +2268,7 @@ function handleChatTabClick(event) {
                 }).join('');
 
                 nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
+                console.log("[Chat Tab Debug] Generated Members HTML length:", membersListHtml.length); // Debug 4: Check if HTML was generated
             } else {
                 // Generic content for other non-chat tabs (Friends, Recently Met, Blocked People)
                 nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
