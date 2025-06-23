@@ -1,5 +1,22 @@
 
 
+// --- Global Variables ---
+const db = firebase.firestore();
+const auth = firebase.auth();
+let userApiKey = null;
+let factionApiFullData = null;
+let currentTornUserName = 'Unknown';
+let apiCallCounter = 0; // Counter for API call intervals
+let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
+let currentLiveChainSeconds = 0; // Stores the remaining chain timeout for local countdown
+let lastChainApiFetchTime = 0; // Stores the timestamp of the last chain API fetch
+let globalChainStartedTimestamp = 0; // Stores the actual chain start time from API
+let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
+let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
+let globalRankedWarData = null;
+let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
+let unsubscribeFromChat = null; // <--- PASTE IT HERE
+
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
@@ -46,31 +63,14 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+const chatDisplayArea = document.getElementById('chat-display-area');
 const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
-const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus'); // Corrected ID getter
-
-// NEW/UPDATED: Chatbox Element Getters (specific to each chat tab panel)
-const chatContentPanels = document.querySelector('.chat-content-panels'); // Main container for all chat panels
-
-const factionChatPanel = document.getElementById('faction-chat-panel');
-const privateChatPanel = document.getElementById('private-chat-panel');
-const friendsPanel = document.getElementById('friends-panel');
-const factionMembersPanel = document.getElementById('faction-members-panel');
-const recentlyMetPanel = document.getElementById('recently-met-panel');
-const blockedPeoplePanel = document.getElementById('blocked-people-panel');
-const settingsPanel = document.getElementById('settings-panel');
-
-// Specific display areas *within* each panel (messages will be appended to these)
-const factionChatDisplayArea = document.getElementById('factionChatDisplayArea');
-const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
-const friendsChatDisplayArea = document.getElementById('friendsChatDisplayArea');
-const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea'); // For the members list
-const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
-const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
-const settingsDisplayArea = document.getElementById('settingsDisplayArea');
+const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
+const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
+const chatInputArea = document.querySelector('.chat-input-area');
 
 // --- Utility Functions ---
 
@@ -574,9 +574,14 @@ async function sendChatMessage() {
 
 // NEW: Function to set up real-time listener for chat messages
 function setupChatRealtimeListener() {
-    if (!factionChatDisplayArea || !factionApiFullData || !factionApiFullData.ID) {
-        console.error("Cannot set up chat listener: Faction Chat Display Area or Faction ID not available.");
+    if (!chatMessagesCollection) {
+        console.error("Firebase chatMessagesCollection is not defined.");
         return;
+    }
+
+    // Clear existing messages before setting up a new listener (important when switching tabs/channels later)
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = `<p>Loading messages...</p>`;
     }
 
     // Unsubscribe from any previous listener to avoid multiple listeners
@@ -584,36 +589,37 @@ function setupChatRealtimeListener() {
         unsubscribeFromChat();
         console.log("Unsubscribed from previous chat listener.");
     }
-    
-    // Get reference to the specific faction's messages subcollection
-    const factionChatMessagesRef = db.collection('factionChats').doc(String(factionApiFullData.ID)).collection('messages');
-
-    // Clear existing messages before setting up a new listener
-    factionChatDisplayArea.innerHTML = `<p>Loading messages...</p>`; // Clear the specific display area
 
     // Set up the real-time listener, ordered by timestamp
-    unsubscribeFromChat = factionChatMessagesRef
-        .orderBy('timestamp', 'asc')
-        .limit(100)
+    unsubscribeFromChat = chatMessagesCollection
+        .orderBy('timestamp', 'asc') // Order messages by timestamp
+        .limit(100) // Limit to the last 100 messages for performance
         .onSnapshot(snapshot => {
-            factionChatDisplayArea.innerHTML = ''; // Clear to re-render all messages
+            // Clear the chat display area to re-render all messages
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = '';
+            }
 
             if (snapshot.empty) {
-                factionChatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
+                if (chatDisplayArea) {
+                    chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
+                }
                 console.log("No messages in chat collection.");
                 return;
             }
 
             snapshot.forEach(doc => {
                 const message = doc.data();
-                displayChatMessage(message); // Display each message in the faction chat area
+                displayChatMessage(message); // Use the existing function to display each message
             });
             console.log("Chat messages updated in real-time.");
         }, error => {
             console.error("Error listening to chat messages:", error);
-            factionChatDisplayArea.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+            }
         });
-    console.log("Chat real-time listener set up for Faction ID:", factionApiFullData.ID);
+    console.log("Chat real-time listener set up.");
 }
 
 // ... (Your existing claimTarget and unclaimTarget functions) ...
@@ -1248,12 +1254,11 @@ function displayFriendlyMembersTable(members) {
 }
 
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
-// NEW: Function to handle switching chat tabs (now manages panels and listeners)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
 
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels || !chatInputArea) {
-        console.error("Chat elements not found for tab switching or content panels, or input area.");
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels) {
+        console.error("Chat elements not found for tab switching or content panels.");
         return;
     }
 
@@ -1284,7 +1289,6 @@ function switchChatTab(tabName) {
     // Show the selected content panel and perform tab-specific actions
     let targetChatPanel = null;
     let targetDisplayArea = null; 
-    let showInputArea = true; // Default to showing input area
 
     switch (tabName) {
         case 'faction-chat':
@@ -1320,7 +1324,7 @@ function switchChatTab(tabName) {
             targetDisplayArea = blockedPeopleDisplayArea;
             if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
             break;
-        case 'settings': 
+        case 'settings': // NEW: Case for the Settings tab
             targetChatPanel = settingsPanel;
             targetDisplayArea = settingsDisplayArea;
             if (targetDisplayArea) {
@@ -1330,7 +1334,6 @@ function switchChatTab(tabName) {
                     <p>Options for chat sound, notifications, font size, etc., would go here.</p>
                 `;
             }
-            showInputArea = false; // Hide input area for Settings tab
             break;
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
@@ -1345,14 +1348,8 @@ function switchChatTab(tabName) {
     } else {
         console.error(`No chat panel found for tab: ${tabName}`);
     }
-
-    // Control visibility of the chat input area
-    if (showInputArea) {
-        chatInputArea.style.display = 'flex'; // Show input area (default flex)
-    } else {
-        chatInputArea.style.display = 'none'; // Hide input area
-    }
 }
+
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
@@ -1366,7 +1363,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
     detailPanel.classList.add('detail-panel-loaded');
 
     let tornApiData = null;
-    let apiErrorMessage = '';
+    let apiErrorMessage = ''; 
 
     try {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
@@ -1399,10 +1396,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             return;
         }
 
-        // --- CHANGE HERE: Added 'basic' to selections ---
-        const selections = 'profile,workstats,cooldowns,battlestats,basic';
+        const selections = 'profile,workstats,cooldowns,battlestats'; 
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
-
+        
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl);
@@ -1417,9 +1413,8 @@ async function fetchAndDisplayMemberDetails(memberId) {
             }
             throw new Error(errorMessage);
         } else {
-            tornApiData = await response.json();
-            // This is where you would double-check the console for the *full* object structure
-            console.log(`%c[DEBUG] Full Torn API Response Data for ${memberId}:`, 'color: #007bff; font-weight: bold;', tornApiData);
+            tornApiData = await response.json(); 
+            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
             if (tornApiData.error) {
                 console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
@@ -1430,48 +1425,39 @@ async function fetchAndDisplayMemberDetails(memberId) {
                 }
             }
         }
-
+        
         if (!tornApiData || Object.keys(tornApiData).length === 0) {
-            throw new Error("Failed to retrieve any meaningful data after API call.");
+             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
         const profile = tornApiData.profile || {};
-        const battlestats = tornApiData.battlestats || {};
-        const workStatsJobData = tornApiData.workstats || {};
+        const battlestats = tornApiData.battlestats || {}; 
+        const workStatsJobData = tornApiData.workstats || {}; 
         const cooldowns = tornApiData.cooldowns || {};
-        // --- CHANGE HERE: Access nerve and energy from tornApiData (now available with 'basic' selection) ---
-        const nerve = tornApiData.nerve || {};
-        const energy = tornApiData.energy || {};
+        const nerve = tornApiData.nerve || {}; 
+        const energy = tornApiData.energy || {}; 
 
         console.log("[DEBUG] Extracted Profile Data:", profile);
-        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats);
+        console.log("[DEBUG] Extracted Battlestats Data (raw 'battlestats' object):", battlestats); 
         console.log("[DEBUG] Extracted WorkStats (Job) Data (raw 'workStatsJobData' object):", workStatsJobData);
         console.log("[DEBUG] Extracted Cooldowns Data (raw 'cooldowns' object):", cooldowns);
         console.log("[DEBUG] Extracted Nerve Data:", nerve);
         console.log("[DEBUG] Extracted Energy Data:", energy);
-
-        // --- CHANGE HERE: Access manual_labor, intelligence, endurance from workStatsJobData ---
-        // Assuming they are directly under workstats, common names are also job_manual_labor etc.
-        // You might need to verify the exact property names in tornApiData.workstats
-        // For example, it could be `workStatsJobData.manual_labor` or `workStatsJobData.job_manual_labor`
-        console.log("[DEBUG] WorkStats - Manual Labor (expected):", workStatsJobData.manual_labor);
-        console.log("[DEBUG] WorkStats - Intelligence (expected):", workStatsJobData.intelligence);
-        console.log("[DEBUG] WorkStats - Endurance (expected):", workStatsJobData.endurance);
-        
-        // These variables are now correctly sourced from workStatsJobData
-        const manuelLabor = (workStatsJobData.manual_labor || 0).toLocaleString();
-        const intelligence = (workStatsJobData.intelligence || 0).toLocaleString();
-        const endurance = (workStatsJobData.endurance || 0).toLocaleString();
+        console.log("[DEBUG] Top-level Manual Labor:", tornApiData.manual_labor);
+        console.log("[DEBUG] Top-level Intelligence:", tornApiData.intelligence);
+        console.log("[DEBUG] Top-level Endurance:", tornApiData.endurance);
 
 
         const strength = (battlestats.strength || 0).toLocaleString();
         const speed = (battlestats.speed || 0).toLocaleString();
         const dexterity = (battlestats.dexterity || 0).toLocaleString();
         const defense = (battlestats.defense || 0).toLocaleString();
-
+        
         console.log(`[DEBUG] Final Battle Stats: Strength: ${strength}, Speed: ${speed}, Dexterity: ${dexterity}, Defense: ${defense}`);
 
-        // The job and jobEfficiency extraction seems correct if workStatsJobData.job_company_name and workStatsJobData.job_efficiency exist
+        const manuelLabor = (tornApiData.manual_labor || 0).toLocaleString();
+        const intelligence = (tornApiData.intelligence || 0).toLocaleString();
+        const endurance = (tornApiData.endurance || 0).toLocaleString();
         const job = workStatsJobData.job_company_name ? `${workStatsJobData.job_company_name} (${workStatsJobData.job_name})` : 'N/A';
         const jobEfficiency = workStatsJobData.job_efficiency ? `${workStatsJobData.job_efficiency}%` : 'N/A';
 
@@ -1481,16 +1467,14 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const maxNerve = (nerve.maximum || '');
         const nerveGain = nerve.nerve_regen !== undefined ? `+${nerve.nerve_regen}/5min` : '';
         const nerveDisplay = `${currentNerve}${maxNerve ? '/' + maxNerve : ''} ${nerveGain}`.trim();
-        // Removed the '(Selection Missing)' check here as 'basic' is now included
-        
+        if (currentNerve === 'N/A' && !selections.includes('nerve')) { nerveDisplay += ' (Selection Missing)'; }
+
         const currentEnergy = (energy.current || 'N/A');
         const maxEnergy = (energy.maximum || '');
         const energyGain = energy.energy_regen !== undefined ? `+${energy.energy_regen}/10min` : '';
         const energyDisplay = `${currentEnergy}${maxEnergy ? '/' + maxEnergy : ''} ${energyGain}`.trim();
-        // Removed the '(Selection Missing)' check here as 'basic' is now included
+        if (currentEnergy === 'N/A' && !selections.includes('energy')) { energyDisplay += ' (Selection Missing)'; }
 
-        console.log(`[DEBUG] Final Nerve Display: ${nerveDisplay}`);
-        console.log(`[DEBUG] Final Energy Display: ${energyDisplay}`);
 
         let cooldownsHtml = '<ul>';
         if (Object.keys(cooldowns).length > 0) {
@@ -1568,9 +1552,9 @@ async function fetchAndDisplayMemberDetails(memberId) {
             <h5>Cooldowns:</h5>
             ${cooldownsHtml}
             <p>
-            </p>
+                </p>
         `;
-
+            
         detailPanel.innerHTML = detailsHtml;
 
     } catch (error) {
@@ -1644,10 +1628,6 @@ function populateWarStatusDisplay(warData = {}) {
     if (warNoFlyingStatus) warNoFlyingStatus.textContent = warData.toggleNoFlying ? 'Yes' : 'No';
     if (warTurtleStatus) warTurtleStatus.textContent = warData.toggleTurtleMode ? 'Yes' : 'No';
     if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
-    // NEW: Display Current Team Lead
-    if (currentTeamLeadDisplay) {
-        currentTeamLeadDisplay.textContent = warData.currentTeamLead || 'N/A';
-    }
 }
 
 function loadWarStatusForEdit(warData = {}) {
@@ -1659,7 +1639,6 @@ function loadWarStatusForEdit(warData = {}) {
     if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
     if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
     if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
-    if (currentTeamLeadInput) currentTeamLeadInput.value = warData.currentTeamLead || '';
 }
 
 
