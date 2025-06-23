@@ -2124,44 +2124,103 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInputArea = document.querySelector('.chat-input-area'); // Selects the whole input area div
 
     // Function to handle chat tab clicks
-    function handleChatTabClick(event) {
-        const clickedTab = event.currentTarget; // The button that was clicked
-        const targetTab = clickedTab.dataset.chatTab; // Get the data-chat-tab value
+    // Function to handle chat tab clicks
+function handleChatTabClick(event) {
+    const clickedTab = event.currentTarget;
+    const targetTab = clickedTab.dataset.chatTab;
 
-        // Remove 'active' class from all chat tabs
-        chatTabs.forEach(tab => tab.classList.remove('active'));
+    // Remove 'active' class from all chat tabs
+    chatTabs.forEach(tab => tab.classList.remove('active'));
 
-        // Add 'active' class to the clicked chat tab
-        clickedTab.classList.add('active');
+    // Add 'active' class to the clicked chat tab
+    clickedTab.classList.add('active');
 
-        // Logic to show/hide chat display and input areas within the chat box
-        if (warChatBox) { // Ensure warChatBox exists before manipulating
-            if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
-                // If Faction Chat or Private Chat, ensure display and input are visible
-                warChatBox.classList.remove('hide-content');
-                
-                // Update the chat display area's content based on the selected tab
-                if (chatDisplayArea) {
-                    if (targetTab === 'faction-chat') {
-                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
-                    } else { // private-chat
-                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
-                    }
-                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Scroll to bottom
-                }
-            } else {
-                // For other tabs (Friends, Faction Members, Settings, etc.), hide display and input
-                warChatBox.classList.add('hide-content');
-                
-                // Update the chat display area with a relevant message for the non-chat tabs
-                if (chatDisplayArea) {
-                    chatDisplayArea.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
-                }
-            }
-            // TODO: Implement actual chat loading/display logic for each tab (e.g., fetch messages from Firebase)
-        }
+    // Get a reference to the main chat box container
+    const warChatBox = document.getElementById('warChatBox');
+
+    // --- Manage dynamic content panel (for Settings, Friends, etc.) ---
+    let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
+    
+    // Remove any existing dynamic panel to start fresh
+    if (nonChatContentPanel) {
+        nonChatContentPanel.remove();
     }
 
+    // Determine if we are on a chat tab or a non-chat tab
+    if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
+        // --- CHAT TABS: Show chat display and input areas ---
+        if (warChatBox) {
+            warChatBox.classList.remove('hide-content'); // Remove the hiding class
+            // You might want to update the chat display area's content based on tab
+            if (chatDisplayArea) { // Ensure chatDisplayArea exists
+                if (targetTab === 'faction-chat') {
+                    chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
+                } else { // private-chat
+                    chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
+                }
+                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Scroll to bottom
+            }
+        }
+    } else {
+        // --- NON-CHAT TABS (Friends, Settings, etc.): Hide chat elements & show specific content ---
+        if (warChatBox) {
+            warChatBox.classList.add('hide-content'); // Add the hiding class to hide chat elements
+
+            // Create a new dynamic panel for non-chat content
+            nonChatContentPanel = document.createElement('div');
+            nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
+            nonChatContentPanel.className = 'chat-dynamic-panel'; // Add a class for potential styling
+            
+            // Add basic styling to position and size the dynamic panel
+            // This ensures it fills the space where chat messages/input would be
+            nonChatContentPanel.style.position = 'absolute'; // Position over the hidden chat elements
+            nonChatContentPanel.style.top = '40px'; // Adjust based on height of chat-tabs-container (approx)
+            nonChatContentPanel.style.left = '0';
+            nonChatContentPanel.style.right = '0';
+            nonChatContentPanel.style.bottom = '0';
+            nonChatContentPanel.style.backgroundColor = '#1a1a1a'; // Match chat display background
+            nonChatContentPanel.style.padding = '10px';
+            nonChatContentPanel.style.overflowY = 'auto'; // Enable scrolling for content
+            nonChatContentPanel.style.color = '#f0f0f0'; // Default text color
+            nonChatContentPanel.style.boxSizing = 'border-box'; // Include padding in size
+
+            // Populate the dynamic panel based on the specific non-chat tab
+            if (targetTab === 'settings') {
+                nonChatContentPanel.innerHTML = `
+                    <div class="chat-settings-panel">
+                        <h3>Chat Settings</h3>
+                        <div class="setting-item">
+                            <label for="chatFontSize">Font Size:</label>
+                            <select id="chatFontSize">
+                                <option value="small">Small</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="notificationToggle">Notifications:</label>
+                            <input type="checkbox" id="notificationToggle" checked>
+                        </div>
+                        <div class="setting-item">
+                            <label for="themeSelect">Chat Theme:</label>
+                            <select id="themeSelect">
+                                <option value="dark">Dark</option>
+                                <option value="light">Light (Coming Soon)</option>
+                            </select>
+                        </div>
+                        <button class="save-settings-btn">Save Settings</button>
+                    </div>
+                `;
+            } else {
+                // Generic content for other non-chat tabs
+                nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+            }
+            
+            // Append the new dynamic panel to the main chat box container
+            warChatBox.appendChild(nonChatContentPanel);
+        }
+    }
+}
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
