@@ -453,8 +453,8 @@ async function sendChatMessage() {
     chatTextInput.value = ''; // Clear the input field after sending
     chatTextInput.focus(); // Keep focus on the input field for quick replies
 }
-```
-async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+
+  async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
     try {
         const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
