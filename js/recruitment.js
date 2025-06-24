@@ -358,87 +358,261 @@ async function advertiseFaction() {
     }
 }
 
-
-// --- Main Initialization for Recruitment Page ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Basic tab navigation for main content tabs
+    const tabButtons = document.querySelectorAll('.tab-button'); 
+    const mainTabPanes = document.querySelectorAll('.tab-pane');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
+
+            showTab(targetTabId);
+
+            // --- NEW PART: Call updateFriendlyMembersTable when 'friendly-status' tab is active ---
+            if (targetTabDataset === 'friendly-status') {
+                const user = firebase.auth().currentUser;
+                // apiKey will be set below in auth.onAuthStateChanged
+                // We need to make sure userApiKey is defined and accessible here.
+                // It's already handled by userApiKey from the outer scope if populated.
+            }
+            // --- END NEW PART ---
+        });
+    });
+    showTab('announcements-tab');
+    let listenersInitialized = false;
+
+    // --- Chat Tab Functionality Elements and Handler ---
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox');
+    const chatDisplayArea = document.getElementById('chat-display-area');
+    const chatInputArea = document.querySelector('.chat-input-area');
+
+    // Function to handle chat tab clicks
+    function handleChatTabClick(event) {
+        const clickedTab = event.currentTarget;
+        const targetTab = clickedTab.dataset.chatTab;
+
+        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
+
+        chatTabs.forEach(tab => tab.classList.remove('active'));
+
+        if (warChatBox) {
+             warChatBox.classList.remove('chat-content-hidden');
+        }
+
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null;
+            console.log("Unsubscribed from previous chat listener (tab switch).");
+        }
+
+        const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${targetTab}"]`);
+        if (selectedChatTabButton) {
+            selectedChatTabButton.classList.add('active');
+            selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
+        }
+
+        let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
+        if (nonChatContentPanel) {
+            nonChatContentPanel.remove();
+        }
+
+        if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
+            if (warChatBox) {
+                warChatBox.classList.remove('hide-content'); 
+                if (chatDisplayArea) {
+                    if (targetTab === 'faction-chat') {
+                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
+                        setupChatRealtimeListener();
+                    } else {
+                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
+                    }
+                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+                }
+            }
+        } else {
+            if (warChatBox) {
+                warChatBox.classList.add('hide-content');
+
+                nonChatContentPanel = document.createElement('div');
+                nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
+                nonChatContentPanel.className = 'chat-dynamic-panel'; 
+                
+                nonChatContentPanel.style.position = 'absolute';
+                nonChatContentPanel.style.top = '40px'; 
+                nonChatContentPanel.style.left = '0';
+                nonChatContentPanel.style.right = '0';
+                nonChatContentPanel.style.bottom = '0';
+                nonChatContentPanel.style.backgroundColor = '#1a1a1a';
+                nonChatContentPanel.style.padding = '10px';
+                nonChatContentPanel.style.overflowY = 'auto';
+                nonChatContentPanel.style.color = '#f0f0f0';
+                nonChatContentPanel.style.boxSizing = 'border-sizing'; // Corrected from 'border-box' in prev paste
+
+                if (targetTab === 'settings') {
+                    nonChatContentPanel.innerHTML = `
+                        <div class="chat-settings-panel">
+                            <h3>Chat Settings</h3>
+                            <div class="setting-item">
+                                <label for="chatFontSize">Font Size:</label>
+                                <select id="chatFontSize">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="notificationToggle">Notifications:</label>
+                                <input type="checkbox" id="notificationToggle" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="themeSelect">Chat Theme:</label>
+                                <select id="themeSelect">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light (Coming Soon)</option>
+                                </select>
+                            </div>
+                            <button class="save-settings-btn">Save Settings</button>
+                        </div>
+                    `;
+                } else if (targetTab === 'faction-members') {
+                    console.log("[Chat Tab Debug] Faction Members tab selected.");
+
+                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; 
+
+                    const members = window.globalFactionMembers || [];
+                    
+                    console.log("[Chat Tab Debug] Members array before sorting:", members);
+
+                    const rankOrder = {
+                        "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100
+                    };
+
+                    members.sort((a, b) => {
+                        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
+                        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
+
+                        if (orderA !== orderB) { return orderA - orderB; }
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    const membersListHtml = members.map(member => {
+                        const profileImageUrl = member.profile_image 
+                            ? `https://www.torn.com/images/profile_images/${member.profile_image}_thumb.jpg` 
+                            : '../../images/default_profile_icon.png';
+
+                        let memberClass = ''; 
+                        if (member.rank === "Leader" || member.rank === "Co-leader") { memberClass = 'leader-member'; }
+
+                        return `
+                            <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
+                                <img src="${profileImageUrl}" alt="${member.name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
+                                <span class="member-name">${member.name}</span>
+                                <span class="member-rank">${member.rank}</span>
+                            </a>
+                        `;
+                    }).join('');
+
+                    nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
+                    console.log("[Chat Tab Debug] Generated Members HTML length:", membersListHtml.length);
+                } else {
+                    nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+                }
+                
+                warChatBox.appendChild(nonChatContentPanel);
+            }
+        }
+    }
+
+
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
             
-            currentUserTornId = userData.tornProfileId || null;
-            currentUserTornApiKey = userData.tornApiKey || null;
-            
-            // --- CRITICAL CORRECTION: Check for leader status using 'position' from Firebase userData ---
-            // Assuming 'position' field exists in the userProfile document in Firebase as "Leader" or "Co-leader"
-            // This is the check for the button's visibility
-            currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
-            console.log(`User ${user.uid} is leader: ${currentUserIsLeader} (via Firebase userProfile.position).`);
+            // --- UPDATED: Correctly retrieve Torn API Key from userData ---
+            const apiKey = userData.tornApiKey || null; // Read tornApiKey from userProfiles
+            // --- END UPDATED ---
 
-            // Show/hide button based on leader status
-            if (advertiseFactionButton) { // Ensure button exists before trying to access style
-                advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
+            const playerId = userData.tornProfileId || null;
+            currentTornUserName = userData.preferredName || 'Unknown';
+
+            let warData = {};
+            try {
+                const warDoc = await db.collection('factionWars').doc('currentWar').get();
+                warData = warDoc.exists ? warDoc.data() : {};
+            } catch (firebaseError) {
+                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
             }
-            // --- END CRITICAL CORRECTION ---
 
+            if (apiKey && playerId) {
+                userApiKey = apiKey; // Assign to global userApiKey for other functions
 
-            if (!currentUserTornId || !currentUserTornApiKey) {
-                console.warn("User logged in but Torn ID or API Key missing from profile. Disabling enlist/advertise buttons.");
-                alert("Please complete your profile (Torn ID & API Key) to use all recruitment features.");
-                if (listSelfButton) listSelfButton.disabled = true;
-                if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Also disable advertise button
+                await initializeAndLoadData(apiKey);
+                populateUiComponents(warData, apiKey);
+
+                fetchAndDisplayChainData();
+                fetchAndDisplayRankedWarScores();
+                displayQuickFFTargets(userApiKey, playerId);
+                setupChatRealtimeListener();
+
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    setupMemberClickEvents();
+
+                    chatTabs.forEach(tab => {
+                        tab.addEventListener('click', handleChatTabClick);
+                    });
+
+                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
+                    if (initialActiveChatTab) {
+                        handleChatTabClick({ currentTarget: initialActiveChatTab });
+                    }
+                    
+                    listenersInitialized = true;
+
+                    setInterval(updateAllTimers, 1000);
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 2000);
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        } else {
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                        }
+                    }, 60000);
+                    setInterval(() => {
+                        if (userApiKey) {
+                            initializeAndLoadData(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 2000);
+                }
             } else {
-                 // Ensure buttons are enabled if key/ID are present and leader status checked
-                 if (listSelfButton) listSelfButton.disabled = false;
-                 // advertiseFactionButton display/disabled status already handled by currentUserIsLeader logic
+                console.warn("API key or Player ID not found.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+                if (quickFFTargetsDisplay) {
+                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+                }
             }
         } else {
-            console.log("User not logged in on Recruitment page.");
-            alert("Please log in to use the recruitment features.");
-            // Disable all interactive buttons if not logged in
-            if (listSelfButton) listSelfButton.disabled = true;
-            if (advertiseFactionButton) advertiseFactionButton.style.display = 'none'; // Hide if not logged in
-            if (advertiseFactionButton) advertiseFactionButton.disabled = true; // Disable if not logged in
-            // Enlist buttons in table, they will be dynamically added and need their disabled state managed based on login/API key status.
-            // (Current logic for enlistPlayer handles this by alerting if not logged in/no API key)
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
         }
-        
-        // Always display initial listings, regardless of login status
-        displayFactionsSeekingMembers();
-        displayPlayersSeekingFactions();
     });
-
-    // Event listener for enlist buttons (delegated for dynamically added buttons)
-    if (factionsSeekingMembersTbody) {
-        factionsSeekingMembersTbody.addEventListener('click', (event) => {
-            const button = event.target.closest('.enlist-button');
-            if (button && !button.disabled) { // Ensure button is not disabled
-                const factionId = button.dataset.factionId;
-                enlistPlayer(factionId);
-            }
-        });
-    }
-
-    // Event listener for "List Myself" button
-    if (listSelfButton) {
-        listSelfButton.addEventListener('click', listSelfForRecruitment);
-    }
-
-    // NEW: Event listener for "Advertise My Faction" button
-    if (advertiseFactionButton) {
-        advertiseFactionButton.addEventListener('click', advertiseFaction);
-    }
-
-    // Event listener for "Contact" player buttons (delegated)
-    if (playersSeekingFactionsTbody) {
-        playersSeekingFactionsTbody.addEventListener('click', (event) => {
-            const button = event.target.closest('.contact-player-button');
-            if (button) {
-                const playerId = button.dataset.playerId;
-                const contactInfo = button.dataset.contactInfo;
-                alert(`To contact player ${playerId}:\nContact Info: ${contactInfo}`);
-            }
-        });
-    }
 });
