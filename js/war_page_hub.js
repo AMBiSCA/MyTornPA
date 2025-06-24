@@ -3229,89 +3229,107 @@ function handleChatTabClick(event) {
     }
 }
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            const userData = doc.exists ? doc.data() : {};
-            
-            const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null;
-            currentTornUserName = userData.preferredName || 'Unknown';
+    if (user) {
+        const userProfileRef = db.collection('userProfiles').doc(user.uid);
+        const doc = await userProfileRef.get();
+        const userData = doc.exists ? doc.data() : {};
+        
+        const apiKey = userData.tornApiKey || null;
+        const playerId = userData.tornProfileId || null;
+        const userFactionId = userData.faction_id || null; // <-- NEW LINE: Extract faction ID
+        currentTornUserName = userData.preferredName || 'Unknown';
 
-            let warData = {};
-            try {
-                const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warDoc.data() : {};
-            } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
-            }
-			
-			console.log(firebase.auth().currentUser);
-
-            if (apiKey && playerId) {
-                userApiKey = apiKey; // Assign to global userApiKey for other functions
-
-                await initializeAndLoadData(apiKey);
-                populateUiComponents(warData, apiKey);
-
-                fetchAndDisplayChainData();
-                fetchAndDisplayRankedWarScores();
-                displayQuickFFTargets(userApiKey, playerId);
-                setupChatRealtimeListener();
-
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    setupMemberClickEvents();
-
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
-                    });
-
-                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
-                    if (initialActiveChatTab) {
-                        handleChatTabClick({ currentTarget: initialActiveChatTab });
-                    }
-                    
-                    listenersInitialized = true;
-
-                    setInterval(updateAllTimers, 1000);
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
-                        }
-                    }, 2000);
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        } else {
-                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                        }
-                    }, 60000);
-                    setInterval(() => {
-                        if (userApiKey) {
-                            initializeAndLoadData(userApiKey);
-                        } else {
-                            console.warn("API key not available for periodic comprehensive faction data refresh.");
-                        }
-                    }, 2000);
-                }
-            } else {
-                console.warn("API key or Player ID not found.");
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-                if (quickFFTargetsDisplay) {
-                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
-                }
-            }
-        } else {
-            userApiKey = null;
-            listenersInitialized = false;
-            console.log("User not logged in.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        let warData = {};
+        try {
+            const warDoc = await db.collection('factionWars').doc('currentWar').get();
+            warData = warDoc.exists ? warDoc.data() : {};
+        } catch (firebaseError) {
+            console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
         }
-    });
+        
+        console.log(firebase.auth().currentUser);
+
+        // --- MODIFIED CONDITION AND FUNCTION CALLS ---
+        if (apiKey && playerId && userFactionId) { // <-- MODIFIED: Now also checks for userFactionId
+            userApiKey = apiKey; // Assign to global userApiKey for other functions
+
+            await initializeAndLoadData(apiKey, userFactionId); // <-- MODIFIED: Pass userFactionId
+            populateUiComponents(warData, apiKey, factionApiFullData?.wars?.ranked || null); // Ensure ranked data is correctly passed if needed here.
+
+            fetchAndDisplayChainData(); // This function now directly uses factionApiFullData.chain
+            fetchAndDisplayRankedWarScores(); // This function now directly uses factionApiFullData.wars.ranked
+            displayQuickFFTargets(userApiKey, playerId);
+            setupChatRealtimeListener();
+
+            if (!listenersInitialized) {
+                setupEventListeners(apiKey);
+                setupMemberClickEvents();
+
+                chatTabs.forEach(tab => {
+                    tab.addEventListener('click', handleChatTabClick);
+                });
+
+                const initialActiveChatTab = document.querySelector('.chat-tab.active');
+                if (initialActiveChatTab) {
+                    handleChatTabClick({ currentTarget: initialActiveChatTab });
+                }
+                
+                listenersInitialized = true;
+
+                setInterval(updateAllTimers, 1000);
+                setInterval(() => {
+                    if (userApiKey && globalEnemyFactionID) {
+                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                    } else {
+                        console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                    }
+                }, 2000);
+                setInterval(() => {
+                    if (userApiKey && playerId) {
+                        displayQuickFFTargets(userApiKey, playerId);
+                    } else {
+                        console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                    }
+                }, 60000);
+                // Removed the unnecessary initializeAndLoadData interval here, as populateUiComponents should ensure data is fresh
+                // The main populateUiComponents will be called on specific tab clicks and initial load.
+            }
+        } else { // <-- MODIFIED: Now handles missing API Key, Player ID, or Faction ID
+            console.warn("API key, Player ID, or Faction ID not found in user profile. Cannot load full War Hub data.");
+            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key/ID Needed)";
+            const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+            if (quickFFTargetsDisplay) {
+                quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+            }
+            // Clear other displays
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+            if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+            if (warTargetScore) warTargetScore.textContent = 'N/A';
+            if (warStartedTime) warStartedTime.textContent = 'N/A';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        }
+    } else { // User not logged in
+        userApiKey = null;
+        listenersInitialized = false;
+        console.log("User not logged in.");
+        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        // Clear all displays when logged out
+        if (quickFFTargetsDisplay) quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login required.</span>';
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+    }
 });
+// >>> END REPLACE auth.onAuthStateChanged <<<
