@@ -3074,6 +3074,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // MODIFIED: Function to handle chat tab clicks (uses globalNonChatContentPanel)
 // FINAL REWRITTEN: Function to handle chat tab clicks (correctly manages existing .chat-panel divs within warChatBox)
 function handleChatTabClick(event) {
+    debugger; // <--- ADD THIS LINE HERE, at the very start of the function
     const clickedTab = event.currentTarget;
     const targetTabId = clickedTab.dataset.chatTab;
 
