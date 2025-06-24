@@ -2554,14 +2554,6 @@ if (pmSendBtn) {
     });
 }y
 
-if (chatTabsContainer && chatTabButtons.length > 0) {
-    chatTabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
-            switchChatTab(tabName); // Call our new function to switch tabs
-        });
-    });
-}
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
