@@ -283,15 +283,38 @@ color: #1e1e1e; /* Dark text on active tab */
 }
 
 /* Chat Display Area (where messages appear) */
-.chat-display-area {
-flex-grow: 1; /* Crucial: Makes message area take up all remaining vertical space */
-background-color: #1a1a1a; /* Very dark background for message display */
-padding: 10px;
-overflow-y: auto; /* Enable scrolling for messages */
-word-wrap: break-word; /* Prevents long words from breaking layout */
-font-size: 0.9em;
-line-height: 1.4;
-color: #f0f0f0; /* Light text for messages */
+/* Styles for the chat messages display area */
+#chat-display-area {
+    max-height: 400px; /* Adjust this height as needed for your layout */
+    overflow-y: auto;  /* Enables vertical scrolling */
+    padding: 10px;
+    display: flex;
+    flex-direction: column; /* Stacks messages from top to bottom */
+    gap: 8px; /* Space between messages */
+    background-color: #2d3748; /* Example background, adjust to match your theme */
+    border-radius: 8px;
+    margin-bottom: 10px; /* Space between messages area and input */
+    
+    /* --- NEW/UPDATED STYLE TO PREVENT JOLTING --- */
+    scrollbar-gutter: stable; /* This is the key: reserves space for the scrollbar */
+    /* You can also use 'stable both-edges;' if you also anticipate horizontal scrollbars */
+    /* --- END NEW/UPDATED STYLE --- */
+}
+
+/* Scrollbar styling for a cleaner look (keep these as they are) */
+#chat-display-area::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-display-area::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb:hover {
+    background: #6a7488;
 }
 
         /* Left Panel: Holds the ops controls grid and enemy targets table */
