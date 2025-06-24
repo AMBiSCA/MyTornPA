@@ -236,49 +236,62 @@ async function advertiseFaction() {
         alert("Your Torn API key is required to advertise your faction. Please register it in your profile.");
         return;
     }
+
     try {
-        // THIS IS THE LINE I HAVE CORRECTED. NO SPACE BETWEEN ? AND .
         const userTornFactionId = currentUserData?.faction_id;
         if (!userTornFactionId) {
             alert("Your Torn Faction ID (`faction_id`) is not registered in your profile. Please add it to your profile to advertise your faction.");
             return;
         }
-        const selections = 'basic,members';
+
+        // UPDATED: Include 'respect' and 'war' selections for rank tier
+        const selections = 'basic,members,respect,war'; 
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
+        
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
         const response = await fetch(apiUrl);
+
         if (!response.ok) {
-            throw new Error(`Torn API HTTP error: ${response.status} ${response.statusText}`);
+            const errorText = await response.text().catch(() => "Could not read error text");
+            throw new Error(`Torn API HTTP error: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 100)}`);
         }
+        
         const data = await response.json();
+
         if (data.error) {
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`);
+            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic', 'Members', 'Respect', and 'War' are enabled for your faction API key.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
+        
         const factionName = data.name || 'Unknown Faction';
         const totalMembers = data.members ? Object.keys(data.members).length : 0;
-        const contactInfo = prompt(`Please provide contact info for ${factionName} (e.g., Discord Tag, Torn Mail ID for recruiters):`);
-        if (!contactInfo || contactInfo.trim() === '') {
-            alert("Faction advertisement cancelled. Contact info is required.");
-            return;
-        }
+        const factionRespect = data.respect || 0; // NEW: Get faction respect
+        const factionRankTier = data.war?.ranked_wars?.tier || 'N/A'; // NEW: Get faction ranked war tier
+
+        // TEMPORARY: For now, contactInfo is empty as UI is being sorted later
+        const contactInfo = ''; // Temporarily empty, will be added via a UI later
+
         const factionListingData = {
             factionId: String(userTornFactionId),
             factionName: factionName,
             totalMembers: totalMembers,
-            contactInfo: contactInfo.trim(),
+            factionRespect: factionRespect, // NEW: Store respect
+            factionRankTier: factionRankTier, // NEW: Store rank tier
+            contactInfo: contactInfo.trim(), // Stored as empty for now
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true
         };
+
         const docRef = db.collection('recruitingFactions').doc(String(userTornFactionId));
         await docRef.set(factionListingData, {
             merge: true
         });
+
         alert(`Successfully advertised ${factionName} for recruitment!`);
         console.log("Faction advertisement data saved:", factionListingData);
-        displayFactionsSeekingMembers();
+        displayFactionsSeekingMembers(); // Refresh the list
     } catch (error) {
         console.error("Error during faction advertisement:", error);
         alert(`Failed to advertise faction: ${error.message}`);
