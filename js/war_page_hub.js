@@ -490,7 +490,7 @@ async function fetchAndDisplayRankedWarScores() {
         if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
-}
+
 
  function updateAllTimers() {
  console.count('updateAllTimers called');
