@@ -280,7 +280,7 @@ min-width: 300px; /* Minimum width for the chatbox side */
 
 .chat-container {
  
- background-color: #222;
+background-color: #222;
 border: 1px solid black;
 border-radius: 8px;
 display: flex;
