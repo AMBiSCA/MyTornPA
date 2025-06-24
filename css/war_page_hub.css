@@ -1854,15 +1854,15 @@ autocomplete-items {
         max-height: 400px; /* NEW: Adjusted max height */
     }
 	
-	/* Layout for the Active Ops tab: Enemy Targets and Chat Box */
+	
 .active-ops-layout-row {
-    display: flex; /* Arranges children (panels) side-by-side */
-    flex-grow: 1; /* Allows this row to take up available vertical space */
-    gap: 20px; /* Space between the left and right panels */
-    width: 100%; /* Ensures it spans the full width of its parent */
-    align-items: flex-start; /* Aligns both panels to the top */
-    flex-wrap: wrap; /* Allows panels to wrap to a column layout on smaller screens */
-	margin-top: 20px; 
+    display: flex; /* Arranges children (panels) side-by-side */
+    flex-grow: 1; /* Allows this row to take up available vertical space */
+    gap: 20px; /* Space between the left and right panels */
+    width: 100%; /* Ensures it spans the full width of its parent */
+    align-items: stretch; /* MODIFIED: This forces panels to be equal height, enabling overflow */
+    flex-wrap: wrap; /* Allows panels to wrap to a column layout on smaller screens */
+	margin-top: 20px; 
 }
 
 .active-ops-targets-panel {
