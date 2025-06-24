@@ -9,7 +9,7 @@ let isCurrentlyListed = false;
 let currentUserIsLeader = false;
 
 // Add any user IDs here that should be exempt from the faction check.
-const EXEMPT_USER_IDS = ['2662550']; 
+const EXEMPT_USER_IDS = ['2662550'];
 
 // --- DOM Elements ---
 const factionsSeekingMembersTbody = document.getElementById('factions-seeking-members-tbody');
@@ -35,32 +35,44 @@ function formatNumber(num) {
     return num.toString();
 }
 
-// --- Reusable Confirmation Modal Function ---
+// --- 🔺 NEW REUSABLE FUNCTION: Confirmation Modal 🔺 ---
+// This function shows the confirmation pop-up and returns a Promise that resolves with the user's choice.
 function showConfirmation(title, text, preferenceKey) {
+    // Check if the user has chosen to remember their choice for this action
     if (localStorage.getItem(preferenceKey) === 'true') {
         return Promise.resolve({ confirmed: true, remember: true });
     }
+
     return new Promise(resolve => {
+        // Populate the modal with the correct text
         modalTitle.textContent = title;
         modalText.textContent = text;
-        modalRememberCheckbox.checked = false;
-        modalOverlay.style.display = 'flex';
+        modalRememberCheckbox.checked = false; // Reset checkbox
+        modalOverlay.style.display = 'flex'; // Show the modal
+
+        // Create one-time event listeners for the buttons
         const handleConfirm = () => {
-            if (modalRememberCheckbox.checked) {
+            const remember = modalRememberCheckbox.checked;
+            if (remember) {
                 localStorage.setItem(preferenceKey, 'true');
             }
-            cleanup();
-            resolve({ confirmed: true });
-        };
-        const handleCancel = () => {
-            cleanup();
-            resolve({ confirmed: false });
-        };
-        const cleanup = () => {
             modalOverlay.style.display = 'none';
+            cleanup();
+            resolve({ confirmed: true, remember: remember });
+        };
+
+        const handleCancel = () => {
+            modalOverlay.style.display = 'none';
+            cleanup();
+            resolve({ confirmed: false, remember: false });
+        };
+
+        // Function to remove listeners once a choice is made
+        const cleanup = () => {
             modalConfirmBtn.removeEventListener('click', handleConfirm);
             modalCancelBtn.removeEventListener('click', handleCancel);
         };
+
         modalConfirmBtn.addEventListener('click', handleConfirm);
         modalCancelBtn.addEventListener('click', handleCancel);
     });
@@ -145,7 +157,7 @@ async function advertiseFaction() {
         if (data.error) throw new Error(`Torn API: ${data.error.error}`);
         
         const contactInfo = prompt(`Please provide contact info for ${data.name} (e.g., Discord Tag, Torn Mail ID):`);
-        if (!contactInfo) {
+        if (!contactInfo) { // User clicked cancel
              advertiseFactionButton.disabled = false;
              advertiseFactionButton.textContent = 'Advertise My Faction';
              return;
@@ -174,7 +186,7 @@ async function advertiseFaction() {
 }
 
 
-// --- Main Initialization for Page ---
+// --- Main Initialization for Page (UPDATED with Confirmation Modal Logic) ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -212,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } else {
+            // Reset state if not logged in
             Object.assign(this, { currentUserTornId: null, currentUserTornApiKey: null, currentUserData: null, isCurrentlyListed: false, currentUserIsLeader: false });
             if(listSelfButton) {
                 listSelfButton.disabled = true;
@@ -221,8 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         displayFactionsSeekingMembers();
-        // 🔺 THIS CORRECTED 🔺
-        displayPlayersSeekingFactions(); 
+        displayPlayersSeekingFactions();
     });
 
     // --- EVENT LISTENERS ---
@@ -230,26 +242,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (listSelfButton) {
         listSelfButton.addEventListener('click', async () => {
             if (isCurrentlyListed) {
+                // For removing, we ask for confirmation as well, but with a different preference key.
                 const prefKey = 'mytornpa_confirm_remove_self';
                 const result = await showConfirmation('Remove Listing', 'Are you sure you want to remove your listing?', prefKey);
                 if (result.confirmed) {
                     await removeSelfFromRecruitment();
-                    isCurrentlyListed = false;
+                    isCurrentlyListed = false; // Update state
                     listSelfButton.textContent = 'List Myself';
                     listSelfButton.classList.remove('remove');
                     listSelfButton.disabled = false;
-                    displayPlayersSeekingFactions();
+                    displayPlayersSeekingFactions(); // Refresh list
                 }
             } else {
                 const prefKey = 'mytornpa_confirm_list_self';
                 const result = await showConfirmation('Confirm Listing', 'Are you sure you want to list yourself? Anyone will be able to view your live stats.', prefKey);
                 if (result.confirmed) {
                     await listSelfForRecruitment();
-                    isCurrentlyListed = true;
+                    isCurrentlyListed = true; // Update state
                     listSelfButton.textContent = 'Remove Listing';
                     listSelfButton.classList.add('remove');
                     listSelfButton.disabled = false;
-                    displayPlayersSeekingFactions();
+                    displayPlayersSeekingFactions(); // Refresh list
                 }
             }
         });
@@ -260,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const prefKey = 'mytornpa_confirm_advertise_faction';
             const result = await showConfirmation('Advertise Faction', 'Are you sure you want to advertise your faction?', prefKey);
             if (result.confirmed) {
-                advertiseFaction();
+                advertiseFaction(); // This will show the prompt for contact info
             }
         });
     }
