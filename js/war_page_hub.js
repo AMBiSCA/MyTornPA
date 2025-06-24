@@ -88,7 +88,6 @@ const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
 const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
-const chatInputArea = document.querySelector('.chat-input-area');
 const MAX_MESSAGES_VISIBLE = 7;
 const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
