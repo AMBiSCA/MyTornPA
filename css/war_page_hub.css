@@ -1461,7 +1461,7 @@ autocomplete-items {
 .active-ops-chat-panel {
     position: fixed; /* This takes the element out of the normal document flow */
     top: 20px; /* Adjust this value to set the distance from the top of the browser window */
-    right: 20px; /* Adjust this value to set the distance from the right of the browser window */
+    right: 50px; /* Adjust this value to set the distance from the right of the browser window */
     width: 350px; /* Set a fixed width for your chatbox */
     height: 500px; /* Set a fixed height for your chatbox */
     z-index: 1000; /* Ensures it appears on top of other content. Use a high number. */
