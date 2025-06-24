@@ -1986,10 +1986,6 @@ function setupMemberClickEvents() {
     });
 }
 
-function setupToggleSelectionEvents() {
-    // This function is currently not defined but is no longer causing an error.
-    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
-}
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
