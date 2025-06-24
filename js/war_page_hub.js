@@ -1326,9 +1326,6 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
-    // Add all the new rows to the table body at once
-    friendlyMembersTbody.innerHTML = allRowsHtml;
-}
 
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     if (!targetDisplayElement) {
