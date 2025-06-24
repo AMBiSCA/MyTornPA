@@ -253,11 +253,11 @@ async function advertiseFaction() {
             return;
         }
 
-        // UPDATED: Use Torn API v1 URL and selections
-        // 'basic' includes name, respect, and faction ID
-        // 'members' allows us to count total members
+        // CORRECTED: Use Torn API v2 URL with 'basic' and 'members' selections
+        // 'basic' includes faction name, ID, respect, and the 'rank' object.
+        // 'members' includes the list of faction members for counting.
         const selections = 'basic,members'; 
-        const apiUrl = `https://api.torn.com/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
+        const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
         
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
         const response = await fetch(apiUrl);
@@ -271,15 +271,16 @@ async function advertiseFaction() {
 
         if (data.error) {
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`); // Updated permissions message
+            // Ensure your API key has 'Basic' and 'Members' permissions enabled for Faction access!
+            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
         
         const factionName = data.name || 'Unknown Faction';
         // Member count remains the same logic: count keys in the members object
         const totalMembers = data.members ? Object.keys(data.members).length : 0; 
-        const factionRespect = data.respect || 0; // Access 'respect' directly from 'basic' selection
-        // NEW: Get faction rank name from data.rank.name
+        const factionRespect = data.respect || 0; // 'respect' comes from the 'basic' selection
+        // CORRECTED: Access faction rank name from data.rank.name (as seen in your JSON screenshot)
         const factionRankTier = data.rank?.name || 'N/A'; 
 
         const contactInfo = ''; // Temporarily empty, will be added via a UI later
