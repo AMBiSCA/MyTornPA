@@ -182,16 +182,15 @@ async function listSelfForRecruitment() {
         const battleStats = userData.battlestats || {};
         const personalStats = userData.personalstats || {};
 
-        // This object now contains all the final fields for display.
         const playerListingData = {
             playerId: String(currentUserTornId),
             playerName: userData.name || 'Unknown',
             playerLevel: userData.level || 0,
-            totalStats: battleStats.total || 0, // Using the 'total' field for battle stats.
+            totalStats: battleStats.total || 0,
             xanaxTaken: personalStats.xantaken || 0,
-            warHits: personalStats.rankedwarhits || 0,    // Using 'rankedwarhits'.
-            energyRefills: personalStats.refills || 0,      // Using 'refills'.
-            bestActiveStreak: personalStats.bestactivestreak || 0, // NEW FIELD
+            warHits: personalStats.rankedwarhits || 0,
+            energyRefills: personalStats.refills || 0,
+            bestActiveStreak: personalStats.bestactivestreak || 0,
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true
@@ -200,9 +199,10 @@ async function listSelfForRecruitment() {
         const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
         await listingDocRef.set(playerListingData, { merge: true });
 
-        alert(`Successfully listed yourself for recruitment!`);
+        // alert(`Successfully listed yourself for recruitment!`); // ALERT TEMPORARILY REMOVED FOR TESTING
+
         console.log("Player self-listing data saved:", playerListingData);
-        displayPlayersSeekingFactions();
+        displayPlayersSeekingFactions(); // This should run immediately now.
 
     } catch (error) {
         console.error("Error during self-listing:", error);
@@ -212,7 +212,6 @@ async function listSelfForRecruitment() {
         listSelfButton.textContent = 'List Myself';
     }
 }
-
 
 // --- 🔺 FINAL UPDATED FUNCTION 🔺 ---
 // Displays the final 7-column layout.
