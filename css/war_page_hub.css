@@ -1466,7 +1466,10 @@ autocomplete-items {
     right: 90px; /* Adjust this value to set the distance from the right of the browser window */
     width:825px; /* Set a fixed width for your chatbox */
     height: 477px; /* Set a fixed height for your chatbox */
-    z-index: 1000; /* Ensures it appears on top of other content. Use a high number. */
+    z-index: 1000; 
+	border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+	/* Ensures it appears on top of other content. Use a high number. */
     /* You may need to remove or override any 'flex', 'min-width', or 'height: 100%' properties
        that were previously on .active-ops-chat-panel from its old layout. */
 }
