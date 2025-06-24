@@ -13,6 +13,25 @@
     margin-bottom: 0; /* Keep this if you want no margin below the tabs */
 }
 
+.tab-content-container {
+    grid-area: content; /* Assign tab content to its grid area */
+    /* Remove any width or flex-grow properties here if they conflict with grid-area */
+    flex-grow: unset; /* Override flex-grow as grid handles sizing */
+    height: auto; /* Allow height to be determined by grid */
+    min-height: 400px; /* Keep minimum height for content */
+}
+
+#warChatBox {
+    grid-area: chat; /* Assign chat box to its grid area */
+    /* Adjust height and flex properties as grid will manage its size */
+    height: auto; /* Allow grid to manage height, or set specific height here if needed */
+    flex-grow: unset; /* Override flex-grow as grid handles sizing */
+    min-height: 475px; /* Maintain existing min-height for chatbox */
+}
+
+
+
+/* Script Title */
 .script-title {
     /* Styles for the main title */
     color: #00a8ff; /* NEW: Changed to blue theme color */
@@ -238,6 +257,26 @@ background-color: #00a8ff; /* Active tab color */
 color: #1e1e1e; /* Dark text on active tab */
 }
 
+#chat-display-area {
+    /* These properties are now managed by .chat-messages-scroll-wrapper, so we REMOVE them here:
+       - max-height
+       - overflow-y
+       - scrollbar-gutter
+       - background-color (if you want it only on the wrapper)
+       - border-radius (if you want it only on the wrapper)
+       - margin-bottom (if you want it only on the wrapper)
+    */
+    
+    display: flex;
+    flex-direction: column; /* Stacks messages from top to bottom */
+    gap: 8px; /* Space between messages */
+    padding: 10px; /* Keep padding for internal spacing of messages */
+    box-sizing: border-box;
+
+    /* Keep any other visual styles you want *inside* this specific div.
+       If your background/border/margin are for the scrollable area,
+       they should be on .chat-messages-scroll-wrapper now. */
+}
 /* Scrollbar styling for a cleaner look (keep these as they are) */
 #chat-display-area::-webkit-scrollbar {
     width: 8px;
