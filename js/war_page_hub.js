@@ -1176,7 +1176,237 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
     }
 }
+async function populateUiComponents(warData, apiKey, rankedWarData) { // rankedWarData is now passed in
+    // Basic Faction Info (from global factionApiFullData)
+    if (factionApiFullData) {
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
+        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
+        // This block now populates checkboxes AND the new friendly members table
+        if (factionApiFullData.members) {
+            populateFriendlyMemberCheckboxes(
+                factionApiFullData.members,
+                warData.tab4Admins || [],
+                warData.energyTrackingMembers || []
+            );
+            
+            // --- NEW LINE ADDED HERE ---
+            displayFriendlyMembersTable(factionApiFullData.members);
+
+        } else {
+            console.warn("factionApiFullData.members not available for friendly member checkboxes.");
+            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
+        }
+    } else {
+        console.warn("factionApiFullData not available in populateUiComponents.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
+        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
+    }
+    
+    // Game Plan & Announcements (from Firebase warData)
+    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
+    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
+    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
+
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData); // Uses warData (Firebase)
+
+    // Store enemy faction ID globally (from Firebase warData)
+    globalEnemyFactionID = warData.enemyFactionID || null;
+
+    // Display enemy targets table (still needs enemyData via separate fetch)
+    if (warData.enemyFactionID) {
+        fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []);
+        displayEnemyTargetsTable(null); // This clears the table
+    }
+
+    // --- NEW LINE: Call to display live ranked war status ---
+    // This will display the actual ranked war details in the "Active Ops" tab
+    displayLiveWarStatus(rankedWarData, factionApiFullData.ID);
+}
+
+// >>> REPLACE YOUR ENTIRE EXISTING 'populateUiComponents' FUNCTION WITH THE CODE ABOVE <<<
+
+
+// >>> ADD THIS NEW FUNCTION BELOW YOUR EXISTING FUNCTIONS (e.g., after populateWarStatusDisplay) <<<
+// NEW: Function to display the live ranked war status (in Active Ops tab)
+async function displayLiveWarStatus(rankedWarData, yourFactionId) {
+    const activeOpsTab = document.getElementById('active-ops-tab'); // The container for Active Ops tab
+    let warStatusLiveDisplayElement = document.getElementById('warStatusLiveDisplay');
+
+    if (!activeOpsTab) {
+        console.error("HTML Error: Active Ops tab container not found!");
+        return;
+    }
+
+    // Create the war status display container if it doesn't exist
+    if (!warStatusLiveDisplayElement) {
+        warStatusLiveDisplayElement = document.createElement('div');
+        warStatusLiveDisplayElement.id = 'warStatusLiveDisplay';
+        warStatusLiveDisplayElement.classList.add('war-status-live-display');
+        
+        // Insert it right after the ops-controls-grid
+        const opsControlsGrid = document.querySelector('#active-ops-tab .ops-controls-grid');
+        if (opsControlsGrid) {
+            opsControlsGrid.parentNode.insertBefore(warStatusLiveDisplayElement, opsControlsGrid.nextSibling);
+        } else {
+            activeOpsTab.prepend(warStatusLiveDisplayElement); // As a fallback, add to the top
+        }
+    }
+
+    // Clear previous content
+    warStatusLiveDisplayElement.innerHTML = '';
+
+    if (!rankedWarData || !rankedWarData.factions || rankedWarData.factions.length < 2) {
+        warStatusLiveDisplayElement.innerHTML = `
+            <div class="war-status-message">Your Faction is NOT currently in a Ranked War.</div>
+            <div class="war-countdown-display">No active or upcoming ranked war detected.</div>
+        `;
+        return;
+    }
+
+    const yourFactionInfo = rankedWarData.factions.find(f => f.id === yourFactionId);
+    const opponentFactionInfo = rankedWarData.factions.find(f => f.id !== yourFactionId);
+
+    if (!yourFactionInfo || !opponentFactionInfo) {
+        warStatusLiveDisplayElement.innerHTML = `
+            <div class="war-status-message">Could not determine factions for Ranked War.</div>
+            <div class="war-countdown-display">Error in faction data.</div>
+        `;
+        return;
+    }
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const warStartTime = rankedWarData.start;
+    const warEndTime = rankedWarData.end;
+
+    let warStatusMessage = '';
+    let countdownOrUp = '';
+    let isWarActive = false;
+    let isWarConcluded = false;
+
+    if (warEndTime === null && warStartTime > nowSeconds) {
+        warStatusMessage = 'UPCOMING WAR!';
+        countdownOrUp = `War Starts In: ${formatTimeHMS(warStartTime - nowSeconds)}`; // Custom format without 's'
+    } else if (warEndTime === null && warStartTime <= nowSeconds) {
+        warStatusMessage = 'ACTIVE RANKED WAR!';
+        countdownOrUp = `War Active For: ${formatTimeHMS(nowSeconds - warStartTime)}`; // Count up
+        isWarActive = true;
+    } else if (warEndTime !== null && warEndTime > nowSeconds) {
+        warStatusMessage = 'ACTIVE RANKED WAR!'; // War is active and has a set end time
+        countdownOrUp = `War Ends In: ${formatTimeHMS(warEndTime - nowSeconds)}`; // Count down to end
+        isWarActive = true;
+    } else if (warEndTime !== null && warEndTime <= nowSeconds) {
+        warStatusMessage = 'RANKED WAR CONCLUDED!';
+        countdownOrUp = `War Ended: ${formatTimeHMS(nowSeconds - warEndTime)} ago`; // Count up since end
+        isWarConcluded = true;
+    }
+
+
+    // Calculate progress for the bar
+    let yourScore = yourFactionInfo.score || 0;
+    let opponentScore = opponentFactionInfo.score || 0;
+    let totalScore = yourScore + opponentScore;
+    let yourPercentage = totalScore > 0 ? (yourScore / totalScore) * 100 : 50; // Default to 50% if no score
+    let opponentPercentage = 100 - yourPercentage;
+
+    let winnerColorClass = '';
+    if (isWarActive || isWarConcluded) {
+        if (yourScore > opponentScore) {
+            winnerColorClass = 'winner-left'; // CSS class for winning side color
+        } else if (opponentScore > yourScore) {
+            winnerColorClass = 'winner-right'; // CSS class for winning side color
+        }
+    }
+
+
+    warStatusLiveDisplayElement.innerHTML = `
+        <div class="war-status-message">${warStatusMessage}</div>
+        
+        <div class="war-factions-display">
+            <div class="war-faction-info">
+                <div class="war-faction-name">${yourFactionInfo.name || 'Your Faction'}</div>
+                <div class="war-faction-score">Score: ${yourScore.toLocaleString()}</div>
+                <div class="war-faction-chain">Chain: ${yourFactionInfo.chain?.toLocaleString() || 'N/A'}</div>
+            </div>
+            <div class="war-vs-text">- VS -</div>
+            <div class="war-faction-info">
+                <div class="war-faction-name">${opponentFactionInfo.name || 'Opponent'}</div>
+                <div class="war-faction-score">Score: ${opponentScore.toLocaleString()}</div>
+                <div class="war-faction-chain">Chain: ${opponentFactionInfo.chain?.toLocaleString() || 'N/A'}</div>
+            </div>
+        </div>
+
+        <div class="war-progress-bar-container">
+            <div class="war-progress-bar-fill ${winnerColorClass}" style="width: ${yourPercentage}%;"></div>
+            <div class="war-progress-bar-text">
+                <span><span class="score-label">Your Score:</span> ${yourScore.toLocaleString()}</span>
+                <span><span class="score-label">Opponent:</span> ${opponentScore.toLocaleString()}</span>
+            </div>
+        </div>
+
+        <div class="war-countdown-display" id="liveWarCountdownDisplay">${countdownOrUp}</div>
+    `;
+
+    // Initialize/Update the countdown timer for the war
+    // This will run every second
+    if (!isWarConcluded) {
+        const updateWarTimer = () => {
+            const now = Math.floor(Date.now() / 1000);
+            let timeRemaining = 0;
+            let displayMessage = '';
+
+            if (warEndTime === null && warStartTime > now) { // Upcoming
+                timeRemaining = warStartTime - now;
+                displayMessage = `War Starts In: ${formatTimeHMS(timeRemaining)}`;
+            } else if (warEndTime === null && warStartTime <= now) { // Active, no end time
+                timeRemaining = now - warStartTime; // Time since start
+                displayMessage = `War Active For: ${formatTimeHMS(timeRemaining)}`;
+            } else if (warEndTime !== null && warEndTime > now) { // Active, with end time
+                timeRemaining = warEndTime - now;
+                displayMessage = `War Ends In: ${formatTimeHMS(timeRemaining)}`;
+            } else { // Concluded
+                timeRemaining = now - warEndTime;
+                displayMessage = `War Ended: ${formatTimeHMS(timeRemaining)} ago`;
+                clearInterval(warTimerInterval); // Stop interval
+            }
+            if (warStatusLiveDisplayElement) {
+                const countdownEl = warStatusLiveDisplayElement.querySelector('#liveWarCountdownDisplay');
+                if (countdownEl) countdownEl.textContent = displayMessage;
+            }
+        };
+
+        // Clear any existing interval to prevent multiple timers running
+        if (window.warTimerInterval) clearInterval(window.warTimerInterval);
+        window.warTimerInterval = setInterval(updateWarTimer, 1000); // Update every second
+        updateWarTimer(); // Call immediately to avoid 1-second delay on first render
+    } else {
+        // Ensure interval is cleared if war is already concluded
+        if (window.warTimerInterval) clearInterval(window.warTimerInterval);
+    }
+}
+
+// NEW: Helper function to format time (Hours, Minutes, without Seconds)
+function formatTimeHMS(totalSeconds) {
+    if (totalSeconds < 0) totalSeconds = 0; // Ensure no negative time
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    // const seconds = totalSeconds % 60; // Removed seconds as requested
+
+    let parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0 || hours > 0) parts.push(`${minutes}m`); // Always show minutes if hours are shown or minutes are present
+    // if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`); // Show seconds if nothing else, or if > 0
+
+    return parts.length > 0 ? parts.join(' ') : '0m'; // Default to '0m' if totalSeconds is 0
+}
 
 
 function formatRelativeTime(timestampInSeconds) {
@@ -1230,9 +1460,20 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-async function initializeAndLoadData(apiKey) {
+// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
+async function initializeAndLoadData(apiKey) { // Removed factionId parameter here, as it's part of factionApiFullData
+    if (!apiKey) {
+        console.warn("API Key is missing for initializeAndLoadData.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key';
+        return;
+    }
     try {
-        // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
+        // CORRECTED & CONFIRMED URL: Now uses the global faction ID for user's faction.
+        // This means factionApiFullData.ID needs to be correctly available *before* this call if you only want your faction's data.
+        // However, the common practice is to let the API detect your faction from your API key if you don't specify factionID.
+        // Let's assume for now, your API key alone resolves your faction data correctly, or you pass YOUR factionID.
+        // For current setup, the API selection 'wars' is on the general faction endpoint.
+
         const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
         console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
@@ -1248,13 +1489,19 @@ async function initializeAndLoadData(apiKey) {
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
+            // Specific handling for API errors like invalid key (error code 2, 10) or access denied (code 11)
+            if (factionApiFullData.error.code === 2 || factionApiFullData.error.code === 10 || factionApiFullData.error.code === 11) {
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `API Error: ${factionApiFullData.error.error}`;
+                alert(`Torn API Error: ${factionApiFullData.error.error}. Please check your API key and permissions.`);
+            }
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
         // Pass warData and apiKey to populateUiComponents
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // Pass warData and apiKey
+        // Pass factionApiFullData.wars.ranked directly to populateUiComponents
+        populateUiComponents(warData, apiKey, factionApiFullData.wars.ranked || null); // Pass ranked war data
 
     } catch (error) {
         console.error("Error during comprehensive data initialization:", error);
@@ -1271,7 +1518,7 @@ async function initializeAndLoadData(apiKey) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-
+// >>> END REPLACE initializeAndLoadData <<<
       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
