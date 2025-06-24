@@ -18,7 +18,8 @@ let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for l
 let unsubscribeFromChat = null; // <--- PASTE IT HERE
 let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
-
+let currentPrivateChatRecipientId = null;   // ADD THIS NEW GLOBAL VARIABLE
+let currentPrivateChatRecipientName = null; // ADD THIS NEW GLOBAL VARIABLE
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -78,6 +79,7 @@ const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be vi
 const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
 const memberProfileCache = {}; // Cache for storing fetched member profile images
 const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
+const pmSendBtn = document.getElementById('pmSendBtn'); // ADD THIS NEW LINE
 
 
 // --- Utility Functions ---
@@ -1325,14 +1327,12 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
-async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) { // ADDED targetDisplayElement parameter
-    // IMPORTANT: Use targetDisplayElement instead of trying to get it by ID here
+async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for faction members list.");
         return;
     }
 
-    // Clear the provided targetDisplayElement and show a loading message
     targetDisplayElement.innerHTML = `<p>Loading faction members details...</p>`;
 
     if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
@@ -1342,29 +1342,26 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     const membersArray = Object.values(factionMembersApiData);
 
-    // Sort members by rank (Leader, Co-leader, Member, Applicant) then alphabetically by name
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
-        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
-        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"]; // <-- CORRECTED LINE
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
         if (orderA !== orderB) { return orderA - orderB; }
         return a.name.localeCompare(b.name);
     });
 
-    const fetchPromises = []; // Array to hold promises for fetching Firebase data
+    const fetchPromises = [];
 
-    // Create a container for the members list to better control layout
     const membersListContainer = document.createElement('div');
     membersListContainer.classList.add('members-list-container');
-    targetDisplayElement.innerHTML = ''; // Clear initial loading message
-    targetDisplayElement.appendChild(membersListContainer); // Add the container to the CORRECT element
+    targetDisplayElement.innerHTML = '';
+    targetDisplayElement.appendChild(membersListContainer);
 
     for (const member of membersArray) {
-        const tornPlayerId = member.id; // The Torn Player ID from the API data
+        const tornPlayerId = member.id;
         const memberName = member.name;
-        const memberRank = member.rank;
+        const memberRank = member.position;
 
-        // Create the member item element with a placeholder image immediately
         const memberItemDiv = document.createElement('a');
         memberItemDiv.href = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
         memberItemDiv.target = '_blank';
@@ -1379,9 +1376,17 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             <span class="member-name">${memberName}</span>
             <span class="member-rank">${memberRank}</span>
         `;
-        membersListContainer.appendChild(memberItemDiv); // Append to DOM immediately
+        membersListContainer.appendChild(memberItemDiv);
 
-        // Asynchronously fetch detailed data (including profile image) from Firebase
+        // ADD THIS CLICK LISTENER TO EACH MEMBER ITEM
+        memberItemDiv.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent opening the Torn profile link directly
+            console.log(`[PM Select] Selected ${memberName} (${tornPlayerId}) for private chat.`);
+            currentPrivateChatRecipientId = tornPlayerId;
+            currentPrivateChatRecipientName = memberName;
+            switchChatTab('private-chat'); // Switch to the private chat tab
+        });
+
         if (db) {
             fetchPromises.push((async () => {
                 try {
@@ -2539,6 +2544,15 @@ async function initializeAndLoadData(apiKey, factionId) { // Added factionId par
         }
     });
 }
+
+if (pmSendBtn) {
+    pmSendBtn.addEventListener('click', () => {
+        // This will switch to the private chat tab
+        switchChatTab('private-chat');
+        // The message currently in the input field will be sent to the selected private recipient
+        // We need to define *who* the selected private recipient is in the next steps!
+    });
+}y
 
 if (chatTabsContainer && chatTabButtons.length > 0) {
     chatTabButtons.forEach(button => {
