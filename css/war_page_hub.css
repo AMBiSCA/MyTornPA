@@ -47,12 +47,7 @@
 }
 
 #warChatBox {
-	position: fixed; /* Makes the element stay in place relative to the viewport */
-    bottom: 20px;    /* Distance from the bottom of the viewport */
-    right: 20px;     /* Distance from the right of the viewport */
-    width: 350px;    /* Set a fixed width for the chatbox */
-    height: 500px;   /* Set a fixed height for the chatbox */
-    z-index: 1000;   /* Ensures the chatbox stays on top of other content */
+	position: fixed;
     grid-area: chat; /* Assign chat box to its grid area */
     /* Adjust height and flex properties as grid will manage its size */
     height: auto; /* Allow grid to manage height, or set specific height here if needed */
