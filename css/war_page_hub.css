@@ -513,6 +513,71 @@ transition: background-color 0.2s ease;
     }
 }
 
+/* --- Chatbox Specific Styles for Dynamic Messages and Animation --- */
+
+/* Styles for the chat messages display area */
+#chat-display-area {
+    max-height: 400px; /* Adjust this height as needed for your layout */
+    overflow-y: auto;  /* Enables vertical scrolling */
+    padding: 10px;
+    display: flex;
+    flex-direction: column; /* Stacks messages from top to bottom */
+    gap: 8px; /* Space between messages */
+    background-color: #2d3748; /* Example background, adjust to match your theme */
+    border-radius: 8px;
+    margin-bottom: 10px; /* Space between messages area and input */
+}
+
+/* Scrollbar styling for a cleaner look */
+#chat-display-area::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-display-area::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb:hover {
+    background: #6a7488;
+}
+
+/* Base style for dynamically added chat messages */
+.chat-message {
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%; /* Messages won't take full width */
+    word-wrap: break-word; /* Crucial: breaks long words to fit container */
+    overflow-wrap: break-word; /* Modern alternative */
+    white-space: normal; /* Ensures normal text wrapping */
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Animation properties */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for user's own messages */
+.chat-message.user-message {
+    background-color: #3182ce; /* Distinct blue for user messages */
+    color: #ffffff;
+    align-self: flex-end; /* Align to the right */
+    border-bottom-right-radius: 5px; /* Slightly different corner for visual distinction */
+}
+
+/* Style for bot/other messages */
+.chat-message.bot-message {
+    background-color: #63b3ed; /* Lighter blue for bot messages */
+    color: #1a202c; /* Darker text for contrast on light background */
+    align-self: flex-start; /* Align to the left */
+    border-bottom-left-radius: 5px; /* Slightly different corner */
+}
+
+/* Animation class for messages that are about to disappear */
+.chat-message.fade-out {
+    opacity: 0;
+    transform: translateY(-20px); /* Moves the message up as it fades */
+}
+
 /* --- Status-Specific Colors --- */
 .enemy-targets-table .status-hospital {
     color: #ff5c5c; /* Red for hospital */
