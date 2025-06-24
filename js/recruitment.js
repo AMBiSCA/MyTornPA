@@ -6,6 +6,7 @@ let currentUserTornId = null;
 let currentUserTornApiKey = null;
 let currentUserData = null; // To store the currently logged-in user's fetched Torn data
 let currentUserIsLeader = false; // Flag to check if current user is a leader
+let isCurrentlyListed = false; // NEW: To track if the user is already listed
 
 // DOM Elements for this page (from recruitment.html)
 const factionsSeekingMembersTbody = document.getElementById('factions-seeking-members-tbody');
@@ -137,6 +138,37 @@ async function listSelfForRecruitment() {
     }
 }
 
+async function removeSelfFromRecruitment() {
+    console.log("Attempting to remove player from recruitment.");
+    if (!auth.currentUser) {
+        alert("You must be logged in to do this.");
+        return;
+    }
+
+    // Disable the button to prevent multiple clicks
+    listSelfButton.disabled = true;
+    listSelfButton.textContent = 'Removing...';
+
+    try {
+        // The document ID is the user's Firebase UID, so we know exactly which one to delete.
+        const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
+        
+        await listingDocRef.delete();
+
+        alert("Your listing has been successfully removed.");
+        console.log("Player listing removed for user:", auth.currentUser.uid);
+
+        // Refresh the player list to show the change
+        displayPlayersSeekingFactions();
+
+    } catch (error) {
+        console.error("Error removing self from listing:", error);
+        alert(`Failed to remove your listing: ${error.message}`);
+    } 
+    // We don't need a 'finally' block to re-enable the button,
+    // because the next step will handle setting its text and state correctly.
+}
+
 // THIS IS THE FUNCTION WITH ALL THE DEBUG LOGS.
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) {
@@ -253,7 +285,7 @@ async function advertiseFaction() {
     }
 }
 
-// --- Main Initialization for Page ---
+// --- Main Initialization for Page (UPDATED) ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -264,9 +296,26 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserTornId = userData.tornProfileId || null;
             currentUserTornApiKey = userData.tornApiKey || null;
             currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
+            
             if (advertiseFactionButton) {
                 advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
             }
+
+            // --- NEW LOGIC TO CHECK LISTING STATUS ---
+            // Check if the user is already in the playersSeekingFactions collection
+            const listingDocRef = db.collection('playersSeekingFactions').doc(user.uid);
+            const listingDoc = await listingDocRef.get();
+            isCurrentlyListed = listingDoc.exists; // Update our global variable
+
+            if (listSelfButton) {
+                if (isCurrentlyListed) {
+                    listSelfButton.textContent = 'Remove Listing';
+                } else {
+                    listSelfButton.textContent = 'List Myself';
+                }
+            }
+            // --- END NEW LOGIC ---
+
             if (!currentUserTornId || !currentUserTornApiKey) {
                 if (listSelfButton) listSelfButton.disabled = true;
                 if (advertiseFactionButton) advertiseFactionButton.disabled = true;
@@ -274,20 +323,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (listSelfButton) listSelfButton.disabled = false;
                 if (advertiseFactionButton) advertiseFactionButton.disabled = !currentUserIsLeader;
             }
+
         } else {
+            // Reset everything if user is not logged in
             currentUserTornId = null;
             currentUserTornApiKey = null;
             currentUserData = null;
             currentUserIsLeader = false;
-            if (listSelfButton) listSelfButton.disabled = true;
+            isCurrentlyListed = false;
+            if (listSelfButton) {
+                listSelfButton.textContent = 'List Myself';
+                listSelfButton.disabled = true;
+            }
             if (advertiseFactionButton) {
                 advertiseFactionButton.style.display = 'none';
                 advertiseFactionButton.disabled = true;
             }
         }
+        
+        // This will show the initial state of the lists
         displayFactionsSeekingMembers();
         displayPlayersSeekingFactions();
     });
+
+    // Event listener for "Enlist" buttons
     if (factionsSeekingMembersTbody) {
         factionsSeekingMembersTbody.addEventListener('click', (event) => {
             const button = event.target.closest('.enlist-button');
@@ -297,9 +356,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- UPDATED 'List/Remove' BUTTON EVENT LISTENER ---
     if (listSelfButton) {
-        listSelfButton.addEventListener('click', listSelfForRecruitment);
+        listSelfButton.addEventListener('click', () => {
+            // This now smartly calls the correct function based on the user's status
+            if (isCurrentlyListed) {
+                removeSelfFromRecruitment().then(() => {
+                    // After removing, update state and button text
+                    isCurrentlyListed = false;
+                    listSelfButton.textContent = 'List Myself';
+                    listSelfButton.disabled = false;
+                });
+            } else {
+                listSelfForRecruitment().then(() => {
+                     // After listing, update state and button text
+                    isCurrentlyListed = true;
+                    listSelfButton.textContent = 'Remove Listing';
+                    listSelfButton.disabled = false;
+                });
+            }
+        });
     }
+
+    // Event listener for "Advertise My Faction" button
     if (advertiseFactionButton) {
         advertiseFactionButton.addEventListener('click', advertiseFaction);
     }
