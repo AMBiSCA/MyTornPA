@@ -3332,4 +3332,3 @@ function handleChatTabClick(event) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 });
-// >>> END REPLACE auth.onAuthStateChanged <<<
