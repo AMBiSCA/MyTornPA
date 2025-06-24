@@ -301,8 +301,9 @@ flex-direction: column;
 flex: 1; /* Allows it to grow and shrink */
 min-width: 450px;
 margin-top: -25px;
-height: 475px; /* ADDED: Set a fixed height */
+height: 475px; /* This line is currently missing */
 }
+
 
 /* Right Panel: Holds the chatbox */
 .active-ops-right-panel {

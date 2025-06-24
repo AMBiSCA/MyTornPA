@@ -202,7 +202,9 @@ async function listSelfForRecruitment() {
         // alert(`Successfully listed yourself for recruitment!`); // ALERT TEMPORARILY REMOVED FOR TESTING
 
         console.log("Player self-listing data saved:", playerListingData);
-        displayPlayersSeekingFactions(); // This should run immediately now.
+        console.log("DEBUG: About to call the display function...");
+        displayPlayersSeekingFactions();
+        console.log("DEBUG: The call to the display function has been made.");
 
     } catch (error) {
         console.error("Error during self-listing:", error);
