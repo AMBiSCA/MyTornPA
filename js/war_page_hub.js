@@ -1265,15 +1265,16 @@ function displayFriendlyMembersTable(members) {
     // Clear the "Loading..." message from the table body
     friendlyMembersTbody.innerHTML = '';
 
-    if (!members || Object.keys(members).length === 0) {
+    // Check if members array is empty or null/undefined
+    if (!members || members.length === 0) { // Changed Object.keys(members).length === 0 to members.length === 0 for arrays
         friendlyMembersTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px;">Member data not available.</td></tr>`;
         return;
     }
 
-    // This correctly gets an array of [ID, Data] pairs for each member
-    // The 'members' object's keys might be internal faction IDs,
-    // but the actual Torn Player ID is inside the member object itself.
-    const membersArray = Object.values(members); // Change: Use Object.values to get just the member objects
+    // Since 'members' is already an array from the API response,
+    // we can directly use it, no need for Object.values(members)
+    // if it's consistently an array.
+    const membersArray = members; 
 
     // Sort the array by the member's name
     membersArray.sort((memberA, memberB) => memberA.name.localeCompare(memberB.name));
@@ -1281,26 +1282,24 @@ function displayFriendlyMembersTable(members) {
     let allRowsHtml = '';
 
     // Loop directly through the member objects
-    for (const member of membersArray) { // Change: Iterate directly over member objects
-        // The actual Torn User ID is inside the 'member' object, typically as 'id' or 'player_id'
-        // Based on your console log, it seems to be 'id' based on the 'file XXXXX' reference.
-        const tornPlayerId = member.id; // Corrected: Get the Torn Player ID from the member object
+    for (const member of membersArray) {
+        const tornPlayerId = member.id;
 
-        // --- DEBUG: Log the CORRECT Torn Player ID and the full member object ---
-        console.log("Friendly member data (corrected ID):", tornPlayerId, member);
+        console.log("Friendly member data:", tornPlayerId, member); // Keep this debug log
 
         if (!tornPlayerId) {
             console.warn("Skipping friendly member due to missing Torn Player ID:", member);
-            continue; // Skip this member if ID is missing
+            continue;
         }
 
-        const profileUrl = `https://www.com/profiles.php?XID=${tornPlayerId}`; // Use tornPlayerId
+        // CORRECTED URL: Changed www.com to www.torn.com
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
         const name = member.name;
         const level = member.level;
         const lastAction = member.last_action ? formatRelativeTime(member.last_action.timestamp) : 'N/A';
         const status = member.status ? member.status.description : 'N/A';
 
-        // Placeholders for stats (still N/A as they come from separate API call)
+        // Placeholders for stats
         const strength = 'N/A';
         const dexterity = 'N/A';
         const speed = 'N/A';
@@ -1309,7 +1308,9 @@ function displayFriendlyMembersTable(members) {
         const energy = 'N/A';
 
         allRowsHtml += `
-            <tr data-id="${tornPlayerId}">  <td><a href="${profileUrl}" target="_blank">${name} [${tornPlayerId}]</a></td> <td>${level}</td>
+            <tr data-id="${tornPlayerId}">
+                <td><a href="${profileUrl}" target="_blank">${name} [${tornPlayerId}]</a></td>
+                <td>${level}</td>
                 <td>${lastAction}</td>
                 <td>${strength}</td>
                 <td>${dexterity}</td>
@@ -1321,6 +1322,9 @@ function displayFriendlyMembersTable(members) {
             </tr>
         `;
     }
+
+    friendlyMembersTbody.innerHTML = allRowsHtml;
+}
 
     // Add all the new rows to the table body at once
     friendlyMembersTbody.innerHTML = allRowsHtml;
