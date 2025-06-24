@@ -1325,6 +1325,94 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
+async function displayFactionMembersInChatTab(factionMembersApiData) {
+    const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea'); // Ensure this DOM element exists in your HTML
+    if (!factionMembersDisplayArea) {
+        console.error("HTML Error: Cannot find element with ID 'factionMembersDisplayArea'.");
+        return;
+    }
+
+    // Clear the display area and show a loading message
+    factionMembersDisplayArea.innerHTML = `<p>Loading faction members details...</p>`;
+
+    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
+        factionMembersDisplayArea.innerHTML = `<p>No faction members found.</p>`;
+        return;
+    }
+
+    const membersArray = Object.values(factionMembersApiData);
+
+    // Sort members by rank (Leader, Co-leader, Member, Applicant) then alphabetically by name
+    const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
+    membersArray.sort((a, b) => {
+        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
+        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
+        if (orderA !== orderB) { return orderA - orderB; }
+        return a.name.localeCompare(b.name);
+    });
+
+    const fetchPromises = []; // Array to hold promises for fetching Firebase data
+
+    // Create a container for the members list to better control layout
+    const membersListContainer = document.createElement('div');
+    membersListContainer.classList.add('members-list-container');
+    factionMembersDisplayArea.innerHTML = ''; // Clear initial loading message
+    factionMembersDisplayArea.appendChild(membersListContainer); // Add the container
+
+    for (const member of membersArray) {
+        const tornPlayerId = member.id; // The Torn Player ID from the API data
+        const memberName = member.name;
+        const memberRank = member.rank;
+
+        // Create the member item element with a placeholder image immediately
+        const memberItemDiv = document.createElement('a');
+        memberItemDiv.href = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
+        memberItemDiv.target = '_blank';
+        memberItemDiv.rel = 'noopener noreferrer';
+        memberItemDiv.classList.add('member-item');
+        if (memberRank === "Leader" || memberRank === "Co-leader") {
+            memberItemDiv.classList.add('leader-member');
+        }
+
+        memberItemDiv.innerHTML = `
+            <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+            <span class="member-name">${memberName}</span>
+            <span class="member-rank">${memberRank}</span>
+        `;
+        membersListContainer.appendChild(memberItemDiv); // Append to DOM immediately
+
+        // Asynchronously fetch detailed data (including profile image) from Firebase
+        // Assumes 'db' (Firestore instance) is globally accessible
+        if (db) {
+            fetchPromises.push((async () => {
+                try {
+                    const docRef = db.collection('users').doc(String(tornPlayerId));
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        const firebaseMemberData = docSnap.data();
+                        const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                        // Update the image source once data is fetched
+                        const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                        if (imgElement) {
+                            imgElement.src = profileImageUrl;
+                        }
+                    } else {
+                        console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
+                        // Default image will remain
+                    }
+                } catch (error) {
+                    console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
+                    // Default image will remain
+                }
+            })());
+        }
+    }
+
+    // Wait for all asynchronous profile image fetches to complete (or fail)
+    await Promise.all(fetchPromises);
+    console.log("Faction members list populated with available profile images from database.");
+}
+
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
