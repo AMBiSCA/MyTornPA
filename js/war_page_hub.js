@@ -529,79 +529,23 @@ function displayChatMessage(messageObj) {
 }
 
 function manageChatMessages() {
-    // Corrected: Use the global chatDisplayArea DOM element
-    if (!chatDisplayArea) { // This now correctly refers to the global chatDisplayArea
+    if (!chatMessagesDisplay) {
         console.error("Chat display area not found. Cannot manage messages.");
         return;
     }
-    const messages = chatDisplayArea.querySelectorAll('.chat-message'); // Correctly targets chatDisplayArea
+    const messages = chatMessagesDisplay.querySelectorAll('.chat-message');
     if (messages.length > MAX_MESSAGES_VISIBLE) {
         const messagesToRemoveCount = messages.length - MAX_MESSAGES_VISIBLE;
         for (let i = 0; i < messagesToRemoveCount; i++) {
             const messageToFade = messages[i];
             messageToFade.classList.add('fade-out');
             setTimeout(() => {
-                if (messageToFade.parentNode === chatDisplayArea) { // Corrected: Use chatDisplayArea
-                    chatDisplayArea.removeChild(messageToFade); // Corrected: Use chatDisplayArea
+                if (messageToFade.parentNode === chatMessagesDisplay) {
+                    chatMessagesDisplay.removeChild(messageToFade);
                 }
             }, REMOVAL_DELAY_MS);
         }
     }
-}
-
-// NEW: Function to set up real-time listener for chat messages
-function setupChatRealtimeListener() {
-    if (!chatMessagesCollection) {
-        console.error("Firebase chatMessagesCollection is not defined.");
-        return;
-    }
-
-    // Clear existing messages before setting up a new listener (important when switching tabs/channels later)
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = `<p>Loading messages...</p>`;
-    }
-
-    // Unsubscribe from any previous listener to avoid multiple listeners
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-        console.log("Unsubscribed from previous chat listener.");
-    }
-
-    // Set up the real-time listener, ordered by timestamp
-    unsubscribeFromChat = chatMessagesCollection
-        .orderBy('timestamp', 'asc') // Order messages by timestamp
-        .limit(100) // Limit to the last 100 messages for performance (before local management)
-        .onSnapshot(snapshot => {
-            // Clear the chat display area to re-render all messages
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = '';
-            }
-
-            if (snapshot.empty) {
-                if (chatDisplayArea) {
-                    chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
-                }
-                console.log("No messages in chat collection.");
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const message = doc.data();
-                displayChatMessage(message); // Use the existing function to display each message
-            });
-            
-            // NEW LINE ADDED HERE:
-            manageChatMessages(); // Call this to enforce the MAX_MESSAGES_VISIBLE limit
-
-            console.log("Chat messages updated in real-time.");
-        }, error => {
-            console.error("Error listening to chat messages:", error);
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
-            }
-        });
-    console.log("Chat real-time listener set up.");
 }
 
 
