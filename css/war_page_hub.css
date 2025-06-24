@@ -47,11 +47,22 @@
 }
 
 #warChatBox {
-    grid-area: chat; /* Assign chat box to its grid area */
-    /* Adjust height and flex properties as grid will manage its size */
-    height: auto; /* Allow grid to manage height, or set specific height here if needed */
-    flex-grow: unset; /* Override flex-grow as grid handles sizing */
-    min-height: 475px; /* Maintain existing min-height for chatbox */
+    position: fixed; /* Makes the element stay in place relative to the viewport */
+    bottom: 20px;    /* Distance from the bottom of the viewport */
+    right: 20px;     /* Distance from the right of the viewport */
+    width: 350px;    /* Set a fixed width for the chatbox */
+    height: 500px;   /* Set a fixed height for the chatbox */
+    z-index: 1000;   /* Ensures the chatbox stays on top of other content */
+
+    /* Inherit existing styles or re-apply them if they were part of .chat-container or a parent */
+    background-color: #1f2937; /* Example: Darker background */
+    border: 1px solid #374151; /* Example: Border */
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+
+    /* Ensure flex properties for its children if it's acting as a flex container */
+    display: flex;
+    flex-direction: column;
 }
 
 
