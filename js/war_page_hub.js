@@ -20,7 +20,7 @@ let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
 let currentPrivateChatRecipientId = null;   // ADD THIS NEW GLOBAL VARIABLE
 let currentPrivateChatRecipientName = null; // ADD THIS NEW GLOBAL VARIABLE
-
+let globalNonChatContentPanel = null;
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
