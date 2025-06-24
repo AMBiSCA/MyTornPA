@@ -285,7 +285,7 @@ async function advertiseFaction() {
     }
 }
 
-// --- Main Initialization for Page (UPDATED) ---
+// --- Main Initialization for Page (UPDATED for button color) ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -301,21 +301,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
             }
 
-            // --- NEW LOGIC TO CHECK LISTING STATUS ---
-            // Check if the user is already in the playersSeekingFactions collection
+            // --- LOGIC TO CHECK LISTING STATUS ---
             const listingDocRef = db.collection('playersSeekingFactions').doc(user.uid);
             const listingDoc = await listingDocRef.get();
-            isCurrentlyListed = listingDoc.exists; // Update our global variable
+            isCurrentlyListed = listingDoc.exists; 
 
             if (listSelfButton) {
                 if (isCurrentlyListed) {
                     listSelfButton.textContent = 'Remove Listing';
+                    listSelfButton.classList.add('remove'); // NEW: Add the red style
                 } else {
                     listSelfButton.textContent = 'List Myself';
+                    listSelfButton.classList.remove('remove'); // NEW: Remove the red style
                 }
             }
-            // --- END NEW LOGIC ---
-
+            
             if (!currentUserTornId || !currentUserTornApiKey) {
                 if (listSelfButton) listSelfButton.disabled = true;
                 if (advertiseFactionButton) advertiseFactionButton.disabled = true;
@@ -334,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (listSelfButton) {
                 listSelfButton.textContent = 'List Myself';
                 listSelfButton.disabled = true;
+                listSelfButton.classList.remove('remove'); // Also remove style on logout
             }
             if (advertiseFactionButton) {
                 advertiseFactionButton.style.display = 'none';
@@ -341,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // This will show the initial state of the lists
         displayFactionsSeekingMembers();
         displayPlayersSeekingFactions();
     });
@@ -357,22 +357,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- UPDATED 'List/Remove' BUTTON EVENT LISTENER ---
+    // UPDATED 'List/Remove' BUTTON EVENT LISTENER
     if (listSelfButton) {
         listSelfButton.addEventListener('click', () => {
-            // This now smartly calls the correct function based on the user's status
             if (isCurrentlyListed) {
                 removeSelfFromRecruitment().then(() => {
-                    // After removing, update state and button text
                     isCurrentlyListed = false;
                     listSelfButton.textContent = 'List Myself';
+                    listSelfButton.classList.remove('remove'); // NEW: Remove the red style
                     listSelfButton.disabled = false;
                 });
             } else {
                 listSelfForRecruitment().then(() => {
-                     // After listing, update state and button text
                     isCurrentlyListed = true;
                     listSelfButton.textContent = 'Remove Listing';
+                    listSelfButton.classList.add('remove'); // NEW: Add the red style
                     listSelfButton.disabled = false;
                 });
             }
