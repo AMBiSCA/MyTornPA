@@ -4,7 +4,7 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
-    margin-top: 0px;
+    margin-top: -50px;
     margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
