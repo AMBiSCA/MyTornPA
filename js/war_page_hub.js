@@ -373,7 +373,8 @@ async function populateBlockedPeopleTab() {
     }
     if (ignoresScrollableList) {
         ignoresScrollableList.innerHTML = '<p style="text-align:center; padding: 10px;">Loading ignores...</p>';
-    }
+  }
+}
 
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
     // NEW: Debugging logs to check condition variables
