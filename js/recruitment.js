@@ -253,9 +253,11 @@ async function advertiseFaction() {
             return;
         }
 
-        // UPDATED: Include 'respect' and 'war' selections for rank tier
-        const selections = 'basic,members,respect,war'; 
-        const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
+        // UPDATED: Use Torn API v1 URL and selections
+        // 'basic' includes name, respect, and faction ID
+        // 'members' allows us to count total members
+        const selections = 'basic,members'; 
+        const apiUrl = `https://api.torn.com/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
         
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
         const response = await fetch(apiUrl);
@@ -269,25 +271,26 @@ async function advertiseFaction() {
 
         if (data.error) {
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic', 'Members', 'Respect', and 'War' are enabled for your faction API key.`);
+            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`); // Updated permissions message
             throw new Error(`Torn API error: ${data.error.error}`);
         }
         
         const factionName = data.name || 'Unknown Faction';
-        const totalMembers = data.members ? Object.keys(data.members).length : 0;
-        const factionRespect = data.respect || 0; // NEW: Get faction respect
-        const factionRankTier = data.war?.ranked_wars?.tier || 'N/A'; // NEW: Get faction ranked war tier
+        // Member count remains the same logic: count keys in the members object
+        const totalMembers = data.members ? Object.keys(data.members).length : 0; 
+        const factionRespect = data.respect || 0; // Access 'respect' directly from 'basic' selection
+        // NEW: Get faction rank name from data.rank.name
+        const factionRankTier = data.rank?.name || 'N/A'; 
 
-        // TEMPORARY: For now, contactInfo is empty as UI is being sorted later
         const contactInfo = ''; // Temporarily empty, will be added via a UI later
 
         const factionListingData = {
             factionId: String(userTornFactionId),
             factionName: factionName,
             totalMembers: totalMembers,
-            factionRespect: factionRespect, // NEW: Store respect
-            factionRankTier: factionRankTier, // NEW: Store rank tier
-            contactInfo: contactInfo.trim(), // Stored as empty for now
+            factionRespect: factionRespect, 
+            factionRankTier: factionRankTier, 
+            contactInfo: contactInfo.trim(), 
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true
@@ -300,7 +303,7 @@ async function advertiseFaction() {
 
         alert(`Successfully advertised ${factionName} for recruitment!`);
         console.log("Faction advertisement data saved:", factionListingData);
-        displayFactionsSeekingMembers(); // Refresh the list
+        displayFactionsSeekingMembers(); 
     } catch (error) {
         console.error("Error during faction advertisement:", error);
         alert(`Failed to advertise faction: ${error.message}`);
