@@ -1477,7 +1477,7 @@ autocomplete-items {
 
 /* Only display the currently active chat panel */
 .chat-panel.active {
-    display: block; /* Or 'flex' or 'grid' depending on the internal layout you want for each panel */
+    display: flex; /* Or 'flex' or 'grid' depending on the internal layout you want for each panel */
     height: 100%; /* Important: Make sure the active panel takes up available height */
     overflow-y: auto; /* Allow scrolling if content overflows */
 }
@@ -1553,6 +1553,7 @@ autocomplete-items {
     height: calc(100% - 40px - 80px); /* Example: 100% minus height of tabs and input area */
     /* Adjust height based on your layout, or set a fixed height */
     min-height: 200px; /* Example minimum height */
+	position: relative;
 }
 
 /* Optional: Styles for chat tabs to make them clickable and active */
