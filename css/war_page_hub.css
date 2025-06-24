@@ -299,7 +299,7 @@ color: #f0f0f0; /* Light text for messages */
 display: flex;
 flex-direction: column;
 flex: 1; /* Allows it to grow and shrink */
-min-width: 300px;
+min-width: 450px;
 height: 475px; /* This line is currently missing */
 }
 
@@ -1390,6 +1390,9 @@ autocomplete-items {
     color: #e0a71a; /* Gold color for matched text */
 }
 
+/* IMPORTANT: Ensure the parent container of the input has position: relative;
+   This makes `top: 100%`, `left: 0`, `right: 0` in `.autocomplete-items`
+   position correctly relative to the input field. */
 .war-status-toggles-grid .toggle-control {
     position: relative; /* ADD THIS LINE to your existing .war-status-toggles-grid .toggle-control rule */
     /* ... other existing rules for toggle-control ... */
@@ -1407,7 +1410,30 @@ autocomplete-items {
         padding: 10px; /* NEW: Reduced padding */
         gap: 10px; /* NEW: Reduced gap */
     }
+    
+    .active-ops-main-content-row {
+        flex-direction: column; /* Stack panels vertically in active ops */
+        gap: 10px; /* Reduce gap when stacked */
+    }
 
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        min-width: unset; /* Remove min-width on smaller screens */
+        width: 100%; /* Take full width */
+    }
+    /* ... rest of your existing rules within this media query ... */
+}
+    .active-ops-main-content-row {
+        flex-direction: column; /* Stack panels vertically in active ops */
+        gap: 10px; /* Reduce gap when stacked */
+    }
+
+    .active-ops-left-panel,
+    .active-ops-right-panel {
+        min-width: unset; /* Remove min-width on smaller screens */
+        width: 100%; /* Take full width */
+    }
+}
 
 /* Class to hide the chat display and input when specific chat tabs are active */
 .chat-container.chat-content-hidden .chat-display-area,
