@@ -507,37 +507,26 @@ function displayChatMessage(messageObj) {
     }
 
     const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message'); // Add a base class for all messages
+    messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
 
-    // Determine if it's a user's message (based on senderId matching current user)
-    // You'll need `currentUserId` defined globally for this check, which should be from your Firebase auth init.
-    const isCurrentUserMessage = (messageObj.senderId === currentUserId); // Assuming currentUserId is available
-
-    if (isCurrentUserMessage) {
-        messageElement.classList.add('user-message'); // Apply user-specific styling
-    } else {
-        messageElement.classList.add('bot-message'); // Apply bot/other-user specific styling
-    }
-
-    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function'
-                            ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback
+   const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
+                  ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback if timestamp is missing or not a Firebase Timestamp
     const senderName = messageObj.sender || 'Unknown';
     const messageText = messageObj.text || '';
 
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[${timestamp}]</span>
-        <span class="chat-sender">${senderName}:</span>
-        <span class="chat-text">${messageText}</span>
-    `;
+    // Basic structure for a chat message
+  messageElement.innerHTML = `
+    <span class="chat-timestamp">[${timestamp}]</span>
+    <span class="chat-sender">${senderName}:</span>
+    <span class="chat-text">${messageText}</span>
+`;
     chatDisplayArea.appendChild(messageElement);
 
     // Automatically scroll to the bottom of the chat to show the latest message
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-
-    // --- CRITICAL: Call the message management function after adding each message ---
-    manageChatMessages();
 }
+
 
 async function sendChatMessage() {
     if (!chatTextInput || !auth.currentUser || !userApiKey) {
