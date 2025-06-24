@@ -76,6 +76,7 @@ const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) f
 
 
 
+
 // --- Utility Functions ---
 
 
@@ -525,6 +526,26 @@ function displayChatMessage(messageObj) {
 
     // Automatically scroll to the bottom of the chat to show the latest message
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+}
+
+function manageChatMessages() {
+    if (!chatMessagesDisplay) {
+        console.error("Chat display area not found. Cannot manage messages.");
+        return;
+    }
+    const messages = chatMessagesDisplay.querySelectorAll('.chat-message');
+    if (messages.length > MAX_MESSAGES_VISIBLE) {
+        const messagesToRemoveCount = messages.length - MAX_MESSAGES_VISIBLE;
+        for (let i = 0; i < messagesToRemoveCount; i++) {
+            const messageToFade = messages[i];
+            messageToFade.classList.add('fade-out');
+            setTimeout(() => {
+                if (messageToFade.parentNode === chatMessagesDisplay) {
+                    chatMessagesDisplay.removeChild(messageToFade);
+                }
+            }, REMOVAL_DELAY_MS);
+        }
+    }
 }
 
 
