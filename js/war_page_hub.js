@@ -2470,17 +2470,12 @@ function setupEventListeners(apiKey) {
 	
 	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
 
-async function initializeAndLoadData(apiKey, factionId) { // Added factionId parameter
-    if (!apiKey || !factionId) {
-        console.warn("API Key or Faction ID is missing for initializeAndLoadData.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID';
-        return;
-    }
+async function initializeAndLoadData(apiKey) {
     try {
-        // CORRECTED & CONFIRMED URL: Now includes the factionId
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        // UPDATED: Removed 'wars' selection from the URL
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
-        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
+        console.log("Attempting to fetch faction data with specified selections (no wars):", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
@@ -2489,15 +2484,10 @@ async function initializeAndLoadData(apiKey, factionId) { // Added factionId par
         }
 
         factionApiFullData = await userFactionResponse.json();
-        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
+        console.log("Faction API Full Data (basic,members,chain):", factionApiFullData); // Log the full response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            // Specific handling for API errors like invalid key (error code 2, 10) or access denied (code 11)
-            if (factionApiFullData.error.code === 2 || factionApiFullData.error.code === 10 || factionApiFullData.error.code === 11) {
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `API Error: ${factionApiFullData.error.error}`;
-                alert(`Torn API Error: ${factionApiFullData.error.error}. Please check your API key and permissions.`);
-            }
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
@@ -2513,6 +2503,7 @@ async function initializeAndLoadData(apiKey, factionId) { // Added factionId par
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+        // These will now likely show N/A or be removed if 'wars' data is no longer fetched
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
         if (warTargetScore) warTargetScore.textContent = 'N/A';
@@ -2521,7 +2512,6 @@ async function initializeAndLoadData(apiKey, factionId) { // Added factionId par
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-
 // >>> END REPLACE initializeAndLoadData <<<
 	
 	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
