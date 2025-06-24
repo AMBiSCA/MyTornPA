@@ -243,56 +243,17 @@
 
     margin-bottom: 8px; /* Space below the list, similar to inputs */
 }
-/* ==========================================================================
-   REVISED LAYOUT FOR ACTIVE OPS TAB (USING CSS GRID)
-   ========================================================================== */
 
-/* This is now a Grid container */
+
 .active-ops-main-content-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Defines two equal-width columns */
-    gap: 20px;
-    width: 100%;
+    display: flex; /* Makes its children (left & right panels) go side-by-side */
+    flex-grow: 1; /* Allows this row to take up remaining vertical space */
+    gap: 20px; /* Space between the left and right panels */
+    width: 100%; /* Ensures it spans the full width of its parent */
+    align-items: flex-start; /* Aligns content to the top within the row */
+    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
 }
 
-/* The Left Panel as a Grid Item */
-.active-ops-left-panel {
-    display: flex;
-    flex-direction: column;
-    height: 475px; /* MODIFIED: Set a fixed height */
-    min-width: 450px;
-    margin-top: -25px;
-}
-
-/* The Right Panel as a Grid Item */
-.active-ops-right-panel {
-    display: flex;
-    flex-direction: column;
-    height: 475px; /* MODIFIED: Set a fixed height */
-    min-width: 300px;
-}
-
-/* Inner container for the enemy targets table */
-.enemy-targets-list-section {
-    max-width: 900px;
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 8px;
-    overflow: hidden;
-    height: 100%; /* MODIFIED: Fills the 475px height of its parent panel */
-}
-
-/* Inner container for the chat box */
-.chat-container {
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* MODIFIED: Fills the 475px height of its parent panel */
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
 
 .chat-tabs-container {
 display: flex;
@@ -331,6 +292,48 @@ word-wrap: break-word; /* Prevents long words from breaking layout */
 font-size: 0.9em;
 line-height: 1.4;
 color: #f0f0f0; /* Light text for messages */
+}
+
+        /* Left Panel: Holds the ops controls grid and enemy targets table */
+.active-ops-left-panel {
+display: flex;
+flex-direction: column;
+flex: 1; /* Allows it to grow and shrink */
+min-width: 300px;
+height: 475px; /* This line is currently missing */
+}
+
+
+/* Right Panel: Holds the chatbox */
+.active-ops-right-panel {
+display: flex;
+flex-direction: column; /* Stack chat elements vertically */
+flex: 1; /* Allows it to grow and shrink */
+min-width: 300px; /* Minimum width for the chatbox side */
+height: 475px; /* ADDED: Set a fixed height */
+}
+
+.chat-container {
+ 
+ background-color: #222;
+border: 1px solid black;
+border-radius: 8px;
+display: flex;
+flex-direction: column; /* Stack tabs, display, input vertically */
+height: 100%; /* MODIFIED: Fill the parent panel's new height */
+overflow: hidden; /* Ensures content stays within rounded borders */
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
+}
+
+/* Outer wrapper for the fixed header table setup */
+/* This matches your HTML: <div class="enemy-targets-list-section"> */
+.enemy-targets-list-section {
+max-width: 900px; /* Adjust as needed */
+background-color: #222;
+border: 1px solid black;
+border-radius: 8px;
+overflow: hidden; /* Ensures rounded corners are respected and content is clipped */
+	height: 100%; /* MODIFIED: Fill the parent panel's new height */
 }
 
 /* Custom scrollbar for chat display area */
