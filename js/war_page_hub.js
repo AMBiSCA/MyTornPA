@@ -551,7 +551,7 @@ async function fetchAndDisplayRankedWarScores() {
                         const destination = originalDescription.replace('Traveling to ', '').replace('Traveling ', '');
                         cell.textContent = `In ${destination}`;
                         // The class list is intentionally not changed here to keep the orange 'traveling' style.
-                    }
+                    
                 } else {
                     cell.textContent = `${statusState} (Time Up)`;
                     cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
