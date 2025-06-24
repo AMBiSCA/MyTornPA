@@ -1453,21 +1453,15 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
-async function initializeAndLoadData(apiKey) { // Removed factionId parameter here, as it's part of factionApiFullData
-    if (!apiKey) {
-        console.warn("API Key is missing for initializeAndLoadData.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key';
+async function initializeAndLoadData(apiKey, yourFactionId) { // Added yourFactionId parameter
+    if (!apiKey || !yourFactionId) {
+        console.warn("API Key or Faction ID is missing for initializeAndLoadData.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID';
         return;
     }
     try {
-        // CORRECTED & CONFIRMED URL: Now uses the global faction ID for user's faction.
-        // This means factionApiFullData.ID needs to be correctly available *before* this call if you only want your faction's data.
-        // However, the common practice is to let the API detect your faction from your API key if you don't specify factionID.
-        // Let's assume for now, your API key alone resolves your faction data correctly, or you pass YOUR factionID.
-        // For current setup, the API selection 'wars' is on the general faction endpoint.
-
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        // MODIFIED: Explicitly including the factionId in the URL path as requested
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${yourFactionId}?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
         console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
@@ -1477,7 +1471,7 @@ async function initializeAndLoadData(apiKey) { // Removed factionId parameter he
             throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
         }
 
-        factionApiFullData = await userFactionResponse.json();
+        factionApiFullData = await userFactionApiData.json(); // Data from your faction's API call
         console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
 
         if (factionApiFullData.error) {
@@ -1511,6 +1505,7 @@ async function initializeAndLoadData(apiKey) { // Removed factionId parameter he
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
+// >>> END REPLACE initializeAndLoadData <<<
 // >>> END REPLACE initializeAndLoadData <<<
       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
