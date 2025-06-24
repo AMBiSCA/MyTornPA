@@ -238,8 +238,23 @@ background-color: #00a8ff; /* Active tab color */
 color: #1e1e1e; /* Dark text on active tab */
 }
 
+/* Scrollbar styling for a cleaner look (keep these as they are) */
+#chat-display-area::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-display-area::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb:hover {
+    background: #6a7488;
+}
 
- /* Left Panel: Holds the ops controls grid and enemy targets table */
+        /* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-left-panel {
 display: flex;
 flex-direction: column;
