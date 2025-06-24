@@ -13,7 +13,7 @@ const factionsSeekingMembersTbody = document.getElementById('factions-seeking-me
 const playersSeekingFactionsTbody = document.getElementById('players-seeking-factions-tbody');
 const listSelfButton = document.getElementById('list-self-button');
 const advertiseFactionButton = document.getElementById('advertise-faction-button');
-
+const EXEMPT_USER_IDS = ['2662550'];
 
 // --- Utility Functions ---
 function formatNumber(num) {
@@ -284,8 +284,7 @@ async function advertiseFaction() {
         alert(`Failed to advertise faction: ${error.message}`);
     }
 }
-
-// --- Main Initialization for Page (UPDATED with Faction Check) ---
+// --- Main Initialization for Page (UPDATED with User ID Exemption) ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -301,20 +300,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
             }
 
-            // --- NEW FACTION CHECK LOGIC ---
-            const isInFaction = userData.faction_id && userData.faction_id != 0; // Checks for a valid faction ID
+            // --- NEW EXEMPTION LOGIC ---
+            const hasFaction = userData.faction_id && userData.faction_id != 0;
+            // Check if the current user's ID is in our exemption list
+            const isExemptUser = EXEMPT_USER_IDS.includes(String(currentUserTornId));
+
+            // A user is in a 'disallowed' faction if they have a faction AND they are NOT an exempt user.
+            const isInDisallowedFaction = hasFaction && !isExemptUser;
 
             if (listSelfButton) {
-                if (isInFaction) {
-                    // If user is in a faction, disable the button completely
+                if (isInDisallowedFaction) {
+                    // If user is in a non-exempt faction, disable the button
                     listSelfButton.disabled = true;
                     listSelfButton.textContent = 'In a Faction';
                     listSelfButton.title = 'You cannot list yourself for recruitment while in a faction.';
-                    listSelfButton.classList.remove('remove'); // Ensure red style is off
+                    listSelfButton.classList.remove('remove');
                 } else {
-                    // If user is NOT in a faction, proceed with the normal add/remove logic
+                    // If user is NOT in a faction, OR they ARE an exempt user, proceed normally
                     listSelfButton.disabled = false;
-                    listSelfButton.title = ''; // Clear the tooltip
+                    listSelfButton.title = ''; 
 
                     const listingDocRef = db.collection('playersSeekingFactions').doc(user.uid);
                     const listingDoc = await listingDocRef.get();
@@ -329,13 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            // --- END NEW FACTION CHECK LOGIC ---
+            // --- END NEW EXEMPTION LOGIC ---
             
             if (!currentUserTornId || !currentUserTornApiKey) {
-                if (listSelfButton && !isInFaction) listSelfButton.disabled = true; // Only disable if not already disabled by faction check
+                // Also check isInDisallowedFaction here to avoid re-enabling a disabled button
+                if (listSelfButton && !isInDisallowedFaction) listSelfButton.disabled = true;
                 if (advertiseFactionButton) advertiseFactionButton.disabled = true;
             } else {
-                if (listSelfButton && !isInFaction) listSelfButton.disabled = false;
+                if (listSelfButton && !isInDisallowedFaction) listSelfButton.disabled = false;
                 if (advertiseFactionButton) advertiseFactionButton.disabled = !currentUserIsLeader;
             }
 
@@ -372,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // UPDATED 'List/Remove' BUTTON EVENT LISTENER
+    // "List/Remove" BUTTON EVENT LISTENER
     if (listSelfButton) {
         listSelfButton.addEventListener('click', () => {
             if (isCurrentlyListed) {
