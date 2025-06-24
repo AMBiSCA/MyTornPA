@@ -78,8 +78,22 @@ const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be vi
 const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
 const memberProfileCache = {}; // Cache for storing fetched member profile images
 const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
-
-
+const factionChatPanel = document.getElementById('faction-chat-panel');
+const privateChatPanel = document.getElementById('private-chat-panel');
+const factionMembersPanel = document.getElementById('faction-members-panel');
+const friendsPanel = document.getElementById('friends-panel');
+const recentlyMetPanel = document.getElementById('recently-met-panel');
+const blockedPeoplePanel = document.getElementById('blocked-people-panel');
+const settingsPanel = document.getElementById('settings-panel');
+const chatContentPanels = document.getElementById('chat-content-panels'); // Assuming you have a container for all panels
+const factionChatDisplayArea = document.getElementById('chat-display-area'); // Already exists, but good to clarify
+const factionChatPanel = document.getElementById('faction-chat');
+const privateChatPanel = document.getElementById('private-chat');
+const friendsPanel = document.getElementById('friends');
+const factionMembersPanel = document.getElementById('faction-members'); // This one is important for the "Faction Members" tab
+const recentlyMetPanel = document.getElementById('recently-met');
+const blockedPeoplePanel = document.getElementById('blocked-people');
+const settingsPanel = document.getElementById('settings');
 
 // --- Utility Functions ---
 
