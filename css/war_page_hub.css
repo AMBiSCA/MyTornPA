@@ -1794,6 +1794,31 @@ autocomplete-items {
     color: #a9a9a9; /* Greyish color for progress numbers */
 }
 
+@media (max-width: 768px) {
+    .tab-navigation {
+        flex-direction: column; margin-bottom: 0px;
+    }
+    .tab-button {
+        border-radius: 5px;
+        margin-bottom: 5px;
+        font-size: 0.9em; /* NEW: Adjusted font size */
+        padding: 6px 10px; /* NEW: Adjusted padding */
+    }
+    .tab-content-container {
+        border-radius: 8px;
+    }
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1.2fr 0.5fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
+        font-size: 0.75em; /* NEW: Reduced base font size */
+    }
+    .alert-buttons-grid {
+        flex-direction: column;
+    }
+    .alert-btn {
+        margin-bottom: 8px; /* NEW: Reduced margin */
+        padding: 6px 10px; /* NEW: Reduced padding */
+        font-size: 0.85em; /* NEW: Reduced font size */
+    }
     .config-section h4 {
         font-size: 1.3em; /* NEW: Adjusted font size */
     }
