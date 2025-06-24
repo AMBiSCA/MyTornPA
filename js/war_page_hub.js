@@ -3222,4 +3222,3 @@ function handleChatTabClick(event) {
     } else {
         console.error(`No panel found to show for tab: ${targetTabId}`);
     }
-}
