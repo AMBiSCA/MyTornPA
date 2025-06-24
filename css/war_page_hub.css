@@ -282,25 +282,26 @@ background-color: #00a8ff; /* Active tab color */
 color: #1e1e1e; /* Dark text on active tab */
 }
 
-/* Chat Display Area (where messages appear) */
-/* Styles for the chat messages display area */
 #chat-display-area {
-    max-height: 400px; /* Adjust this height as needed for your layout */
-    overflow-y: auto;  /* Enables vertical scrolling */
-    padding: 10px;
+    /* These properties are now managed by .chat-messages-scroll-wrapper, so we REMOVE them here:
+       - max-height
+       - overflow-y
+       - scrollbar-gutter
+       - background-color (if you want it only on the wrapper)
+       - border-radius (if you want it only on the wrapper)
+       - margin-bottom (if you want it only on the wrapper)
+    */
+    
     display: flex;
     flex-direction: column; /* Stacks messages from top to bottom */
     gap: 8px; /* Space between messages */
-    background-color: #2d3748; /* Example background, adjust to match your theme */
-    border-radius: 8px;
-    margin-bottom: 10px; /* Space between messages area and input */
-    
-    /* --- NEW/UPDATED STYLE TO PREVENT JOLTING --- */
-    scrollbar-gutter: stable; /* This is the key: reserves space for the scrollbar */
-    /* You can also use 'stable both-edges;' if you also anticipate horizontal scrollbars */
-    /* --- END NEW/UPDATED STYLE --- */
-}
+    padding: 10px; /* Keep padding for internal spacing of messages */
+    box-sizing: border-box;
 
+    /* Keep any other visual styles you want *inside* this specific div.
+       If your background/border/margin are for the scrollable area,
+       they should be on .chat-messages-scroll-wrapper now. */
+}
 /* Scrollbar styling for a cleaner look (keep these as they are) */
 #chat-display-area::-webkit-scrollbar {
     width: 8px;
@@ -1482,29 +1483,21 @@ autocomplete-items {
     /* Remove background, border, shadow from here if they are now on .active-ops-chat-panel */
 }
 
-
-/* NEW: This wrapper controls the visible height and scrolling of messages */
+/* CONFIRM THIS RULE IS PRESENT AND CORRECT IN war_page_hub.css */
 .chat-messages-scroll-wrapper {
     flex-grow: 1; /* Allow it to take up available height within #warChatBox */
-    /* CRITICAL: Calculate its height. Adjust '80px' based on the combined
-       height of your chat tabs container (.chat-tabs-container)
-       and chat input area (.chat-input-area).
-       You might need to fine-tune this value (e.g., 90px, 100px). */
     height: calc(100% - 80px); /* Ensures a fixed height for scrolling */
-    overflow-y: auto; /* Force vertical scrollbar for messages */
-    scrollbar-gutter: stable; /* Still crucial to prevent the 'jolt' */
-    
-    padding: 10px; /* Internal padding for the scrollable area */
-    background-color: #2d3748; /* Background for the scrollable area */
+    overflow-y: scroll; /* Force vertical scrollbar for messages */
+    scrollbar-gutter: stable;
+    padding: 10px;
+    background-color: #2d3748; /
     border-radius: 8px;
-    margin-bottom: 10px; /* Space above input */
+    margin-bottom: 10px;
     box-sizing: border-box;
+
 }
 
-/* Styles for the actual chat messages display area, now inside the scroll wrapper */
 #chat-display-area {
-    /* REMOVE flex-grow, overflow-y, scrollbar-gutter, height/max-height from here */
-    /* These are now managed by .chat-messages-scroll-wrapper */
     
     display: flex;
     flex-direction: column; /* Stacks messages from top to bottom */
