@@ -71,6 +71,9 @@ const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the indivi
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
 const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
 const chatInputArea = document.querySelector('.chat-input-area');
+const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be visible at a time
+const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
+
 
 
 // --- Utility Functions ---
@@ -504,26 +507,37 @@ function displayChatMessage(messageObj) {
     }
 
     const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
+    messageElement.classList.add('chat-message'); // Add a base class for all messages
 
-   const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
-                  ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback if timestamp is missing or not a Firebase Timestamp
+    // Determine if it's a user's message (based on senderId matching current user)
+    // You'll need `currentUserId` defined globally for this check, which should be from your Firebase auth init.
+    const isCurrentUserMessage = (messageObj.senderId === currentUserId); // Assuming currentUserId is available
+
+    if (isCurrentUserMessage) {
+        messageElement.classList.add('user-message'); // Apply user-specific styling
+    } else {
+        messageElement.classList.add('bot-message'); // Apply bot/other-user specific styling
+    }
+
+    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function'
+                            ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback
     const senderName = messageObj.sender || 'Unknown';
     const messageText = messageObj.text || '';
 
-    // Basic structure for a chat message
-  messageElement.innerHTML = `
-    <span class="chat-timestamp">[${timestamp}]</span>
-    <span class="chat-sender">${senderName}:</span>
-    <span class="chat-text">${messageText}</span>
-`;
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[${timestamp}]</span>
+        <span class="chat-sender">${senderName}:</span>
+        <span class="chat-text">${messageText}</span>
+    `;
     chatDisplayArea.appendChild(messageElement);
 
     // Automatically scroll to the bottom of the chat to show the latest message
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-}
 
+    // --- CRITICAL: Call the message management function after adding each message ---
+    manageChatMessages();
+}
 
 async function sendChatMessage() {
     if (!chatTextInput || !auth.currentUser || !userApiKey) {
@@ -563,6 +577,32 @@ async function sendChatMessage() {
     } catch (error) {
         console.error("Error sending message to Firebase:", error);
         alert("Failed to send message. See console for details.");
+    }
+}
+
+function manageChatMessages() {
+    if (!chatDisplayArea) {
+        console.error("Chat display area not found in manageChatMessages function.");
+        return;
+    }
+
+    const messages = chatDisplayArea.querySelectorAll('.chat-message');
+
+    // If there are more messages than allowed (7), process the oldest ones for removal
+    if (messages.length > MAX_MESSAGES_VISIBLE) {
+        const messagesToRemoveCount = messages.length - MAX_MESSAGES_VISIBLE;
+        for (let i = 0; i < messagesToRemoveCount; i++) {
+            const messageToFade = messages[i];
+            messageToFade.classList.add('fade-out'); // Add CSS class to trigger animation
+
+            // Remove the element from the DOM after the animation completes
+            setTimeout(() => {
+                // Double-check if the element is still a child before attempting to remove it
+                if (messageToFade.parentNode === chatDisplayArea) {
+                    chatDisplayArea.removeChild(messageToFade);
+                }
+            }, REMOVAL_DELAY_MS);
+        }
     }
 }
 
