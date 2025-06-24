@@ -218,8 +218,8 @@ async function listSelfForRecruitment() {
 // Displays the final 7-column layout.
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) return;
-
-    // Colspan is now 7 for the new column layout
+    
+    console.log("1. Starting to display players."); // DEBUG
     playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="7">Loading player listings...</td></tr>';
 
     try {
@@ -229,17 +229,22 @@ async function displayPlayersSeekingFactions() {
             .limit(50)
             .get();
 
+        console.log("2. Fetch successful. Found " + snapshot.size + " documents."); // DEBUG
+
         if (snapshot.empty) {
+            console.log("3. Snapshot is empty, showing 'No players' message."); // DEBUG
             playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="7">No players currently seeking factions.</td></tr>';
             return;
         }
 
+        console.log("4. Snapshot has data, building table rows..."); // DEBUG
         let tableHtml = '';
         snapshot.docs.forEach(doc => {
             const player = doc.data();
+            console.log("5. Adding row for player: ", player.playerName); // DEBUG
+
             const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
 
-            // This HTML now matches the 7-column layout exactly.
             tableHtml += `
                 <tr>
                     <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
@@ -252,10 +257,12 @@ async function displayPlayersSeekingFactions() {
                 </tr>
             `;
         });
+        
+        console.log("6. Finished building HTML. Final content length:", tableHtml.length); // DEBUG
         playersSeekingFactionsTbody.innerHTML = tableHtml;
 
     } catch (error) {
-        console.error("Error fetching players seeking factions:", error);
+        console.error("7. Error fetching players:", error); // DEBUG
         playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="7">Error loading player listings.</td></tr>`;
     }
 }
