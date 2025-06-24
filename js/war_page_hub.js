@@ -16,6 +16,9 @@ let enemyDataGlobal = null; // Stores enemy faction data globally for access by 
 let globalRankedWarData = null;
 let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
 let unsubscribeFromChat = null; // <--- PASTE IT HERE
+let profileFetchQueue = []; // Queue for processing profile image fetches
+let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
+
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -73,8 +76,8 @@ const chatMessagesCollection = db.collection('factionChatMessages'); // This is 
 const chatInputArea = document.querySelector('.chat-input-area');
 const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be visible at a time
 const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
-
-
+const memberProfileCache = {}; // Cache for storing fetched member profile images
+const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
 
 
 // --- Utility Functions ---
@@ -85,6 +88,57 @@ function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
     return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
 }
+
+async function processProfileFetchQueue() {
+    if (isProcessingQueue || profileFetchQueue.length === 0) {
+        return; // Already processing or nothing in queue
+    }
+
+    isProcessingQueue = true;
+    while (profileFetchQueue.length > 0) {
+        const { memberId, apiKey, itemElement } = profileFetchQueue.shift();
+
+        // Check cache before fetching
+        if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
+            console.log(`[Cache Hit] Profile for ${memberId} already in cache.`);
+            updateMemberItemDisplay(itemElement, memberProfileCache[memberId].profile_image);
+            continue; // Skip fetch, move to next item
+        }
+
+        try {
+            const apiUrl = `https://api.torn.com/user/${memberId}?selections=profile&key=${apiKey}&comment=MyTornPA_MemberProfilePic`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                console.error(`Error fetching profile for member ${memberId}:`, data.error?.error || response.statusText);
+                updateMemberItemDisplay(itemElement, '../../images/default_profile_icon.png'); // Show default on error
+            } else {
+                const profileImage = data.profile_image || '../../images/default_profile_icon.png';
+                memberProfileCache[memberId] = { profile_image: profileImage, name: data.name }; // Cache the result
+                updateMemberItemDisplay(itemElement, profileImage);
+            }
+        } catch (error) {
+            console.error(`Network error fetching profile for member ${memberId}:`, error);
+            updateMemberItemDisplay(itemElement, '../../images/default_profile_icon.png'); // Show default on network error
+        }
+
+        // Introduce delay before the next fetch, unless it's the last one
+        if (profileFetchQueue.length > 0) {
+            await new Promise(resolve => setTimeout(resolve, FETCH_DELAY_MS));
+        }
+    }
+    isProcessingQueue = false;
+    console.log("Profile fetch queue finished processing.");
+}
+
+function updateMemberItemDisplay(itemElement, profileImageUrl) {
+    const imgElement = itemElement.querySelector('.member-profile-pic');
+    if (imgElement) {
+        imgElement.src = profileImageUrl;
+    }
+}
+
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
@@ -1296,6 +1350,95 @@ function switchChatTab(tabName) {
         unsubscribeFromChat = null;
         console.log("Unsubscribed from previous chat listener (tab switch).");
     }
+	
+	/**
+ * Populates the "Faction Members" chat tab with names and profile pictures.
+ * Fetches profile pictures individually with a delay and caches them.
+ * @param {object} members - The members object from factionApiFullData.members.
+ */
+async function displayFactionMembersInChatTab(members) {
+    const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea');
+    if (!factionMembersDisplayArea) {
+        console.error("HTML Error: Cannot find 'factionMembersDisplayArea'.");
+        return;
+    }
+
+    // Clear previous content and show initial loading message
+    factionMembersDisplayArea.innerHTML = `<p class="loading-message">Loading faction members... (Images loading slowly)</p>`;
+
+    if (!members || Object.keys(members).length === 0) {
+        factionMembersDisplayArea.innerHTML = `<p>No faction members to display.</p>`;
+        return;
+    }
+
+    // Convert members object to array for sorting
+    const membersArray = Object.values(members);
+    membersArray.sort((a, b) => {
+        // Sort by rank first (Leader, Co-leader, Member, Applicant), then alphabetically by name
+        const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
+        const orderA = rankOrder[a.rank?.name] !== undefined ? rankOrder[a.rank.name] : rankOrder["Member"];
+        const orderB = rankOrder[b.rank?.name] !== undefined ? rankOrder[b.rank.name] : rankOrder["Member"];
+
+        if (orderA !== orderB) {
+            return orderA - orderB;
+        }
+        return a.name.localeCompare(b.name);
+    });
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.className = 'members-list-container'; // Add a class for styling this container
+    factionMembersDisplayArea.appendChild(membersListContainer);
+
+    const currentApiKey = userApiKey; // Use the global user's API key
+
+    if (!currentApiKey) {
+        factionMembersDisplayArea.innerHTML = `<p class="error-message">Cannot load member profiles: Your API Key is missing.</p>`;
+        console.error("User API key not available for fetching member profiles.");
+        return;
+    }
+
+    // Prepare list items with placeholders and add them to the DOM immediately
+    membersArray.forEach(member => {
+        const memberId = member.id;
+        const name = member.name;
+        const rank = member.rank?.name || 'Member'; // Get rank from faction members data, default to 'Member'
+
+        // Use cached image if available, otherwise use default placeholder
+        const profileImageUrl = memberProfileCache[memberId]?.profile_image || '../../images/default_profile_icon.png';
+        const memberClass = (rank === "Leader" || rank === "Co-leader") ? 'leader-member' : '';
+
+        // Construct the HTML with only name and profile picture (no ID in visible text)
+        const memberItemHtml = `
+            <a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}" data-member-id="${memberId}">
+                <img src="${profileImageUrl}" alt="${name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
+                <span class="member-name">${name}</span>
+                <span class="member-rank">${rank}</span>
+            </a>
+        `;
+        membersListContainer.insertAdjacentHTML('beforeend', memberItemHtml);
+
+        // Get the actual DOM element that was just inserted
+        const itemElement = membersListContainer.lastElementChild;
+
+        // Enqueue the fetch for the profile image if not already cached
+        if (!memberProfileCache[memberId]) {
+            profileFetchQueue.push({
+                memberId,
+                apiKey: currentApiKey,
+                itemElement: itemElement // Pass the DOM element to update later
+            });
+        }
+    });
+
+    // Start processing the queue if it's not already running
+    if (!isProcessingQueue) {
+        processProfileFetchQueue();
+    }
+
+    // Remove the initial loading message now that the basic list is rendered
+    const loadingMessage = factionMembersDisplayArea.querySelector('.loading-message');
+    if (loadingMessage) loadingMessage.remove();
+}
 
     // Add 'active' class to the clicked tab button
     const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
