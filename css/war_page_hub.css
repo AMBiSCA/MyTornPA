@@ -1980,3 +1980,71 @@ autocomplete-items {
     select[multiple] { height: 100px; } /* NEW: Reduced height */
     .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
 }
+
+ /*friends and enemies*/
+ 
+ .blockedPeopleContainer {
+  display: flex;
+  width: 100%; /* Fills the width of its container */
+  height: 100%; /* Fills the height of its container */
+}
+
+.friendsListContainer,
+.ignoresListContainer {
+  flex: 1; /* Each takes up 50% of the container */
+  border: 1px solid #ccc; /* Example border */
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+}
+
+.headerBox {
+  background-color: #f0f0f0; /* Example header background */
+  padding: 10px;
+  text-align: center;
+}
+
+.searchBar {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.searchBar input[type="text"] {
+  flex: 1; /* Input takes up available space */
+  padding: 5px;
+}
+
+.searchIcon {
+  margin-left: 5px;
+}
+
+.scrollableList {
+  overflow-y: auto; /* Enables vertical scrolling */
+  flex: 1; /* Takes up remaining space */
+}
+
+.friendEntry,
+.ignoreEntry {
+  padding: 10px;
+  border-bottom: 1px solid #eee; /* Separates entries */
+  display: flex;
+  align-items: center;
+}
+
+.profilePic {
+  width: 30px; /* Example profile pic size */
+  height: 30px;
+  border-radius: 50%; /* Makes it circular */
+  margin-right: 10px;
+}
+
+.factionIcon {
+    font-size: 2em; /* Adjust as needed */
+    margin-right: 10px;
+}
+
+.letterButton,
+.trashButton {
+  margin-left: 5px;
+}

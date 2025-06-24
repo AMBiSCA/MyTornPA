@@ -233,8 +233,54 @@
 
                                     <div id="blocked-people-panel" class="chat-panel">
                                         <div id="blockedPeopleDisplayArea" class="chat-display-area">
-                                            <p>Welcome to Blocked People! Functionality not implemented yet.</p>
-                                        </div>
+                                            <div class="blocked-people-layout">
+                                                <div class="friends-list-section">
+                                                    <div class="header-box">
+                                                        <b>Friends</b>
+                                                    </div>
+                                                    <div class="search-bar">
+                                                        <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                                                        <span class="search-icon">🔍</span>
+                                                    </div>
+                                                    <div id="friendsScrollableList" class="scrollable-list">
+                                                        <div class="list-item friend-entry">
+                                                            <img src="../../images/default_profile_icon.png" alt="Profile Pic" class="profile-pic">
+                                                            <span class="item-name">Friend Name</span>
+                                                            <button class="item-button letter-button">✉️</button>
+                                                            <button class="item-button trash-button">🗑️</button>
+                                                        </div>
+                                                        <div class="list-item friend-entry">
+                                                            <img src="../../images/default_profile_icon.png" alt="Profile Pic" class="profile-pic">
+                                                            <span class="item-name">Another Friend</span>
+                                                            <button class="item-button letter-button">✉️</button>
+                                                            <button class="item-button trash-button">🗑️</button>
+                                                        </div>
+                                                        </div>
+                                                </div>
+
+                                                <div class="ignores-list-section">
+                                                    <div class="header-box">
+                                                        <b>Ignores / Blocked</b>
+                                                    </div>
+                                                    <div class="search-bar">
+                                                        <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                                                        <span class="search-icon">🔍</span>
+                                                    </div>
+                                                    <div id="ignoresScrollableList" class="scrollable-list">
+                                                        <div class="list-item ignore-entry">
+                                                            <img src="../../images/default_profile_icon.png" alt="Profile Pic" class="profile-pic">
+                                                            <span class="item-name">User 123 [12345]</span>
+                                                            <button class="item-button trash-button">🗑️</button>
+                                                        </div>
+                                                        <div class="list-item ignore-entry">
+                                                            <span class="item-icon faction-icon">🏢</span>
+                                                            <span class="item-name">Faction ABC [67890]</span>
+                                                            <button class="item-button trash-button">🗑️</button>
+                                                        </div>
+                                                        </div>
+                                                </div>
+                                            </div>
+                                            </div>
                                     </div>
 
                                     <div id="settings-panel" class="chat-panel">

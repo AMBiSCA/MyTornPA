@@ -1,8 +1,8 @@
-
-
 // --- Global Variables ---
+
 const db = firebase.firestore();
 const auth = firebase.auth();
+
 let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
@@ -90,12 +90,13 @@ const friendsPanel = document.getElementById('friends');
 const warChatPanel = document.getElementById('war-chat-panel');
 const warChatDisplayArea = document.getElementById('warChatDisplayArea');
 const chatContentPanelsWrapper = document.getElementById('chat-content-panels-wrapper'); 
-
-
-
-// --- Utility Functions ---
-
-
+const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea'); // The main display area for this tab
+const friendsListSection = document.getElementById('friends-list-section'); // The left container div
+const friendsSearchInput = document.getElementById('friendsSearchInput'); // Input for friends search
+const friendsScrollableList = document.getElementById('friendsScrollableList'); // Div to populate friends
+const ignoresListSection = document.getElementById('ignores-list-section'); // The right container div
+const ignoresSearchInput = document.getElementById('ignoresSearchInput'); // Input for ignores search
+const ignoresScrollableList = document.getElementById('ignoresScrollableList'); // Div to populate ignores
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -253,9 +254,11 @@ function switchChatTab(tabName) {
             if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Recently Met! Functionality not implemented yet.</p>`;
             break;
         case 'blocked-people':
-            targetChatPanel = blockedPeoplePanel;
-            targetDisplayArea = blockedPeopleDisplayArea;
-            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
+            if (blockedPeoplePanel) blockedPeoplePanel.classList.add('active'); // Activate the Blocked People panel
+            // targetDisplayArea is not used here directly as content is managed internally by populateBlockedPeopleTab
+            // Call a new function to handle populating this complex tab
+            populateBlockedPeopleTab(); // NEW FUNCTION CALL
+            showInputArea = false; // Hide global chat input as this tab has its own search inputs
             break;
         case 'settings':
             targetChatPanel = settingsPanel;
@@ -361,6 +364,16 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
   }
 }
 
+async function populateBlockedPeopleTab() {
+    console.log("[Blocked People Tab] Populating tab...");
+
+    // Set initial loading messages for the specific display areas
+    if (friendsScrollableList) {
+        friendsScrollableList.innerHTML = '<p style="text-align:center; padding: 10px;">Loading friends...</p>';
+    }
+    if (ignoresScrollableList) {
+        ignoresScrollableList.innerHTML = '<p style="text-align:center; padding: 10px;">Loading ignores...</p>';
+    }
 
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
     // NEW: Debugging logs to check condition variables
