@@ -1571,7 +1571,8 @@ autocomplete-items {
 
 /* The row containing both targets and chat panels */
 .active-ops-layout-row {
-    display: flex; /* Makes its children (left & right panels) go side-by-side */
+    display: flex;
+	align-items: stretch;
     flex-grow: 1; /* Allows this row to take up remaining vertical space in active-ops-tab */
     gap: 20px; /* Space between the left and right panels */
     width: 100%; /* Ensures it spans the full width of its parent */
