@@ -89,8 +89,9 @@ const factionMembersPanel = document.getElementById('faction-members');
 const recentlyMetPanel = document.getElementById('recently-met');
 const blockedPeoplePanel = document.getElementById('blocked-people');
 const settingsPanel = document.getElementById('settings');
+const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+const friendlyMembersListContainer = document.getElementById('friendlyMembersListContainer'); // Ensure this ID is on the div containing your friendly members table
 const selectedMemberDetailPanel = document.getElementById('selectedMemberDetailPanel'); // This is your member detail display panel
-
 // --- Utility Functions ---
 
 
@@ -2023,45 +2024,32 @@ function setupTeamLeadAutocomplete(allFactionMembers) {
 }
 
 function setupMemberClickEvents() {
-    // Ensure all necessary elements are found
-    if (!friendlyMembersTbody || !friendlyMembersListContainer || !selectedMemberDetailPanel) {
-        console.error("Cannot set up click events: one or more friendly members related elements not found in HTML.");
+    if (!friendlyMembersTbody) {
+        console.error("Cannot set up click events, friendly members table body not found.");
         return;
     }
 
-    // Initially ensure the detail panel is hidden when the page loads
-    // (This might be in your CSS too, but setting it here ensures JS control)
-    selectedMemberDetailPanel.style.display = 'none';
-
     friendlyMembersTbody.addEventListener('click', (event) => {
-        // Find the closest table row (<tr>) that was clicked
+        // This finds the specific table row (tr) that you clicked on
         const clickedRow = event.target.closest('tr');
         if (!clickedRow) {
-            return; // If click wasn't on a row, do nothing
+            return; 
         }
 
-        // Get the member ID from the data-id attribute of the clicked row
+        // This reads the ID from the 'data-id' attribute of that row
         const memberId = clickedRow.dataset.id;
 
         if (memberId) {
-            // Hide the main member list table
-            friendlyMembersListContainer.style.display = 'none';
-
-            // Show the member detail panel
-            selectedMemberDetailPanel.style.display = 'block'; // Use 'block' or 'flex' based on your CSS layout for this panel
-
-            // Fetch and display the member's details in the now visible panel
+            // If it finds an ID, it calls the function to fetch the details
             fetchAndDisplayMemberDetails(memberId);
         } else {
-            console.error("Clicked row is missing the 'data-id' attribute. Cannot display member details.");
+            // If you see this error in the F12 console, it means the 'data-id' 
+            // attribute is missing from your <tr> elements in the HTML.
+            console.error("Clicked row is missing the 'data-id' attribute.");
         }
     });
-
-    // IMPORTANT: You will likely need a "Back to List" button on your selectedMemberDetailPanel
-    // that, when clicked, sets selectedMemberDetailPanel.style.display = 'none';
-    // and friendlyMembersListContainer.style.display = 'block';
-    // This is a crucial UI element for your users to navigate back.
 }
+
 function setupToggleSelectionEvents() {
     // This function is currently not defined but is no longer causing an error.
     console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
