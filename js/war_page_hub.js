@@ -504,6 +504,60 @@ async function fetchAndDisplayRankedWarScores() {
     });
 }
 
+ // Update Chain Timer Display (smooth 1-second countdown)
+ console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+ if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+     const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+     const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+     chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+ } else if (chainTimerDisplay) {
+     chainTimerDisplay.textContent = 'Chain Over';
+ }
+
+ // Update Chain Started Time Display
+ if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+     chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+ } else if (chainStartedDisplay) {
+     chainStartedDisplay.textContent = 'Started: N/A';
+ }
+
+ // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+ // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+ if (warStartedTime && globalWarStartedActualTime > 0) {
+     warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+ } else if (warStartedTime) {
+     warStartedTime.textContent = 'N/A';
+ }
+
+}
+
+  // Update Chain Timer Display (smooth 1-second countdown)
+  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
+  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+      const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+      const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+      chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+  } else if (chainTimerDisplay) {
+      chainTimerDisplay.textContent = 'Chain Over';
+  }
+
+  // Update Chain Started Time Display
+  if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+      chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+  } else if (chainStartedDisplay) {
+      chainStartedDisplay.textContent = 'Started: N/A';
+  }
+
+  // NEW: Update War Started Time Display (smooth 1-second relative countdown)
+  // This uses globalWarStartedActualTime set by fetchAndDisplayRankedWarScores
+  if (warStartedTime && globalWarStartedActualTime > 0) {
+      warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
+  } else if (warStartedTime) {
+      warStartedTime.textContent = 'N/A';
+  }
+
+// ... (Your existing Utility Functions, e.g., formatTime, formatTornTime, filterProfanity if present) ...
+
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
     if (!chatDisplayArea) {
@@ -1912,7 +1966,10 @@ function setupMemberClickEvents() {
     });
 }
 
-
+function setupToggleSelectionEvents() {
+    // This function is currently not defined but is no longer causing an error.
+    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
+}
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
