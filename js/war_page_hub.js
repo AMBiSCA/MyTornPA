@@ -80,7 +80,6 @@ const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be vi
 const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
 const memberProfileCache = {}; // Cache for storing fetched member profile images
 const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
-const pmSendBtn = document.getElementById('pmSendBtn'); // ADD THIS NEW LINE
 const chatContentPanels = document.querySelectorAll('.chat-panel'); // All chat content divs
 const factionChatPanel = document.getElementById('faction-chat');
 const privateChatPanel = document.getElementById('private-chat'); // This is your War Chat content panel
@@ -2870,14 +2869,7 @@ async function initializeAndLoadData(apiKey, factionId) { // Added factionId par
     });
 }
 
-if (pmSendBtn) {
-    pmSendBtn.addEventListener('click', () => {
-        // This will switch to the private chat tab
-        switchChatTab('private-chat');
-        // The message currently in the input field will be sent to the selected private recipient
-        // We need to define *who* the selected private recipient is in the next steps!
-    });
-}
+
 
 
     if (postAnnouncementBtn) {
