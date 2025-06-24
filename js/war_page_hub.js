@@ -580,32 +580,6 @@ async function sendChatMessage() {
     }
 }
 
-function manageChatMessages() {
-    if (!chatDisplayArea) {
-        console.error("Chat display area not found in manageChatMessages function.");
-        return;
-    }
-
-    const messages = chatDisplayArea.querySelectorAll('.chat-message');
-
-    // If there are more messages than allowed (7), process the oldest ones for removal
-    if (messages.length > MAX_MESSAGES_VISIBLE) {
-        const messagesToRemoveCount = messages.length - MAX_MESSAGES_VISIBLE;
-        for (let i = 0; i < messagesToRemoveCount; i++) {
-            const messageToFade = messages[i];
-            messageToFade.classList.add('fade-out'); // Add CSS class to trigger animation
-
-            // Remove the element from the DOM after the animation completes
-            setTimeout(() => {
-                // Double-check if the element is still a child before attempting to remove it
-                if (messageToFade.parentNode === chatDisplayArea) {
-                    chatDisplayArea.removeChild(messageToFade);
-                }
-            }, REMOVAL_DELAY_MS);
-        }
-    }
-}
-
 // NEW: Function to set up real-time listener for chat messages
 function setupChatRealtimeListener() {
     if (!chatMessagesCollection) {
