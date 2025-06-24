@@ -74,14 +74,7 @@ const chatInputArea = document.querySelector('.chat-input-area');
 
 // --- Utility Functions ---
 
-function showTab(tabId) {
-    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-    document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-    const selectedTab = document.getElementById(tabId);
-    if (selectedTab) selectedTab.classList.add('active');
-    const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab', '')}"]`);
-    if (selectedButton) selectedButton.classList.add('active');
-}
+
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -1929,8 +1922,147 @@ function setupToggleSelectionEvents() {
         closeAllLists(e.target);
     });
 
-// ... (Your existing chat message functions like displayChatMessage, sendChatMessage) ...
+function formatLastAction(secondsAgo) {
+    if (typeof secondsAgo !== 'number') return 'N/A';
+    if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
+    const minutes = Math.floor(secondsAgo / 60);
+    if (minutes < 60) return `${minutes} minutes ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} days ago`;
+}
+async function updateFriendlyMembersTable(apiKey, currentUserId) {
+    const tbody = document.getElementById('friendly-members-tbody');
+    if (!tbody) {
+        console.error("HTML Error: Friendly members table body (tbody) not found!");
+        return;
+    }
 
+    // Display a loading message while data is being fetched
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>';
+
+    try {
+        // Step 1: Get the current user's faction ID from your Firebase 'users' collection
+        // This assumes your user's document in 'users' contains their 'faction_id'
+        const userDocRef = db.collection('users').doc(String(currentUserId));
+        const userDoc = await userDocRef.get();
+        if (!userDoc.exists) {
+            console.error("Firebase Error: User document not found for ID:", currentUserId);
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: red;">Error: Your user data not found in Firebase.</td></tr>';
+            return;
+        }
+        const userData = userDoc.data();
+        const userFactionId = userData.faction_id; // Retrieve faction_id from your Firebase user document
+
+        if (!userFactionId) {
+            console.warn("Faction ID not found for current user in Firebase. Cannot fetch faction members.");
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Not in a faction or Faction ID not stored in Firebase.</td></tr>';
+            return;
+        }
+
+        // Step 2: Fetch the list of all members in the user's faction from the Torn API
+        const factionMembersApiUrl = `https://api.torn.com/faction/?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers`;
+        console.log(`[DEBUG] Fetching faction members from: ${factionMembersApiUrl}`);
+        const factionResponse = await fetch(factionMembersApiUrl);
+        const factionData = await factionResponse.json();
+
+        if (!factionResponse.ok || factionData.error) {
+            console.error("Error fetching faction members:", factionData.error || factionResponse.statusText);
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px; color: red;">Error loading faction members: ${factionData.error?.error || 'API Error'}.</td></tr>`;
+            return;
+        }
+
+        const members = factionData.members; // Object of members from Torn API
+        if (!members || Object.keys(members).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>';
+            return;
+        }
+
+        let tableRowsHtml = '';
+        const memberPromises = []; // Array to hold promises for fetching each member's Firebase data
+
+        // Step 3: For each faction member, fetch their detailed user stats from your Firebase 'users' collection
+        for (const memberId in members) {
+            if (members.hasOwnProperty(memberId)) {
+                // Fetch from Firebase 'users' collection (where fetchDataForPersonalStatsModal saved the data)
+                const memberDocRef = db.collection('users').doc(String(memberId));
+                memberPromises.push(memberDocRef.get().then(doc => {
+                    const memberTornData = members[memberId]; // Basic data from Torn Faction API
+                    const memberFirebaseData = doc.exists ? doc.data() : null; // Detailed data from your Firebase
+
+                    // Combine and format the data for display
+                    const name = memberTornData.name || 'Unknown';
+                    const level = memberTornData.level || 'N/A';
+                    const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
+                    const statusState = memberTornData.status?.state || 'N/A';
+                    const statusDescription = memberTornData.status?.description || 'N/A';
+
+                    // Detailed stats from Firebase (will be 'N/A' if not found or incomplete)
+                    const strength = memberFirebaseData?.battlestats?.strength?.toLocaleString() || 'N/A';
+                    const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
+                    const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
+                    const defense = memberFirebaseData?.battlestats?.defense?.toLocaleString() || 'N/A';
+                    const nerve = memberFirebaseData?.nerve !== undefined && memberFirebaseData?.nerve_full !== undefined ? `${memberFirebaseData.nerve}/${memberFirebaseData.nerve_full}` : 'N/A';
+                    const energy = memberFirebaseData?.energy !== undefined && memberFirebaseData?.energy_full !== undefined ? `${memberFirebaseData.energy}/${memberFirebaseData.energy_full}` : 'N/A';
+                    
+                    // Determine status class for styling
+                    let statusClass = '';
+                    if (statusState === 'Hospital') statusClass = 'status-hospital';
+                    else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
+                    else if (statusState === 'Okay') statusClass = 'status-okay';
+
+                    // Return the HTML for a table row
+                    return `
+                        <tr>
+                            <td>${name} (${memberId})</td>
+                            <td>${level}</td>
+                            <td>${lastAction}</td>
+                            <td>${strength}</td>
+                            <td>${dexterity}</td>
+                            <td>${speed}</td>
+                            <td>${defense}</td>
+                            <td class="${statusClass}">${statusDescription}</td>
+                            <td>${nerve}</td>
+                            <td>${energy}</td>
+                        </tr>
+                    `;
+                }).catch(error => {
+                    console.error(`Error fetching Firebase data for member ${memberId}:`, error);
+                    // Return a row with N/A for stats if Firebase data fetch fails for a member
+                    const memberTornData = members[memberId];
+                    const name = memberTornData.name || 'Unknown';
+                    const level = memberTornData.level || 'N/A';
+                    const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
+                    const statusDescription = memberTornData.status?.description || 'N/A';
+                    return `
+                        <tr>
+                            <td>${name} (${memberId})</td>
+                            <td>${level}</td>
+                            <td>${lastAction}</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td class="${statusClass}">${statusDescription}</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                        </tr>
+                    `;
+                }));
+            }
+        }
+
+        // Wait for all member data to be fetched and processed, then update the table
+        const resolvedRows = await Promise.all(memberPromises);
+        tableRowsHtml = resolvedRows.join('');
+        tbody.innerHTML = tableRowsHtml;
+
+    } catch (error) {
+        console.error("Error updating friendly members table:", error);
+        tbody.innerHTML = `<p style="color:red;">Error loading faction list: ${error.message}. Check API key and console.</p>`;
+    }
+}
 // NEW: Function to handle switching chat tabs
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
@@ -2192,6 +2324,14 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
         });
     }
 
+function showTab(tabId) {
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) selectedTab.classList.add('active');
+    const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab', '')}"]`);
+    if (selectedButton) selectedButton.classList.add('active');
+}
 
 // --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
