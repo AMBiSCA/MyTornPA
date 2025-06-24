@@ -1640,7 +1640,7 @@ autocomplete-items {
     font-size: 1.4em; /* Larger font for name */
     font-weight: bold;
     color: #e0a71a; /* Gold color for name */
-    margin-top: 5px; /* Space above name if image is first */
+    margin-top: 5px; /* Space above name  image is first */
 }
 
 
