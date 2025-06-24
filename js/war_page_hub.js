@@ -80,6 +80,7 @@ const memberProfileCache = {}; // Cache for storing fetched member profile image
 const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
 
 
+
 // --- Utility Functions ---
 
 
@@ -1325,6 +1326,87 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
+async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for faction members list.");
+        return;
+    }
+
+    targetDisplayElement.innerHTML = `<p>Loading faction members details...</p>`;
+
+    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
+        targetDisplayElement.innerHTML = `<p>No faction members found.</p>`;
+        return;
+    }
+
+    const membersArray = Object.values(factionMembersApiData);
+
+    // Sort members by rank (Leader, Co-leader, Member, Applicant) then alphabetically by name
+    const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
+    membersArray.sort((a, b) => {
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"]; // Changed 'a.rank' to 'a.position'
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"]; // Changed 'b.rank' to 'b.position'
+        if (orderA !== orderB) { return orderA - orderB; }
+        return a.name.localeCompare(b.name);
+    });
+
+    const fetchPromises = [];
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.classList.add('members-list-container');
+    targetDisplayElement.innerHTML = '';
+    targetDisplayElement.appendChild(membersListContainer);
+
+    for (const member of membersArray) {
+        const tornPlayerId = member.id;
+        const memberName = member.name;
+        const memberRank = member.position; // <--- CORRECTED THIS LINE: Used 'position' instead of 'rank'
+
+        const memberItemDiv = document.createElement('a');
+        memberItemDiv.href = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
+        memberItemDiv.target = '_blank';
+        memberItemDiv.rel = 'noopener noreferrer';
+        memberItemDiv.classList.add('member-item');
+        if (memberRank === "Leader" || memberRank === "Co-leader") {
+            memberItemDiv.classList.add('leader-member');
+        }
+
+        memberItemDiv.innerHTML = `
+            <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+            <span class="member-name">${memberName}</span>
+            <span class="member-rank">${memberRank}</span>
+        `;
+        membersListContainer.appendChild(memberItemDiv);
+
+        if (db) {
+            fetchPromises.push((async () => {
+                try {
+                    const docRef = db.collection('users').doc(String(tornPlayerId));
+                    const docSnap = await docRef.get();
+
+                    console.log(`[Firestore Debug] For member ${tornPlayerId}, docSnap.exists: ${docSnap.exists}`);
+
+                    if (docSnap.exists) {
+                        const firebaseMemberData = docSnap.data();
+                        const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                        const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                        if (imgElement) {
+                            imgElement.src = profileImageUrl;
+                            console.log(`[Firestore Debug] Updated image for ${tornPlayerId} with URL: ${profileImageUrl}`);
+                        }
+                    } else {
+                        console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
+                    }
+                } catch (error) {
+                    console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
+                }
+            })());
+        }
+    }
+
+    await Promise.all(fetchPromises);
+    console.log("Faction members list populated with available profile images from database.");
+}
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
@@ -2385,53 +2467,61 @@ function setupEventListeners(apiKey) {
         });
     }
 	
-	async function initializeAndLoadData(apiKey) {
-    if (!apiKey) {
-        console.warn("API Key is missing for initializeAndLoadData.");
+	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
+
+async function initializeAndLoadData(apiKey, factionId) { // Added factionId parameter
+    if (!apiKey || !factionId) {
+        console.warn("API Key or Faction ID is missing for initializeAndLoadData.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID';
         return;
     }
-
-    // Use the exact V2 URL provided for members data
-    const factionMembersApiUrlV2 = `https://api.torn.com/v2/faction/49028/members?key=${apiKey}`; // Hardcoded Faction ID 49028
-
     try {
-        const response = await fetch(factionMembersApiUrlV2);
-        const data = await response.json(); // V2 API typically returns JSON directly in response.data
+        // CORRECTED & CONFIRMED URL: Now includes the factionId
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
-        if (data.errors) { // V2 API uses 'errors' array for error messages
-            console.error("Torn API Error in initializeAndLoadData (V2):", data.errors);
-            // You might want to display an error message to the user here
-            return;
+        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
+
+        const userFactionResponse = await fetch(userFactionApiUrl);
+
+        if (!userFactionResponse.ok) {
+            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
         }
 
-        // V2 /faction/{id}/members endpoint returns an array of member objects directly.
-        if (Array.isArray(data)) { 
-            window.globalFactionMembers = data.map(member => {
-                return {
-                    id: member.id,
-                    name: member.name,
-                    rank: member.faction_rank ? member.faction_rank.name : 'N/A', // Assuming rank is nested under faction_rank.name
-                    level: member.level,
-                    last_action: member.last_action,
-                    status: member.status
-                    // profile_image is typically NOT in this V2 endpoint, so it remains undefined.
-                };
-            });
-            console.log("Faction members loaded from V2 API:", window.globalFactionMembers.length, "members.");
-        } else {
-            window.globalFactionMembers = [];
-            console.warn("V2 Faction members API did not return an array as expected.");
+        factionApiFullData = await userFactionResponse.json();
+        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
+
+        if (factionApiFullData.error) {
+            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
+            // Specific handling for API errors like invalid key (error code 2, 10) or access denied (code 11)
+            if (factionApiFullData.error.code === 2 || factionApiFullData.error.code === 10 || factionApiFullData.error.code === 11) {
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `API Error: ${factionApiFullData.error.error}`;
+                alert(`Torn API Error: ${factionApiFullData.error.error}. Please check your API key and permissions.`);
+            }
+            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // Note: This specific V2 call only gets members. 
-        // window.globalFactionData will NOT be populated with basic faction details (name, tag, etc.)
-        // unless you make a separate V2 call to /v2/faction/49028?key=...
+        // Pass warData and apiKey to populateUiComponents
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        populateUiComponents(warData, apiKey); // Pass warData and apiKey
 
     } catch (error) {
-        console.error("Error fetching faction data from V2 API:", error);
-        // Display a user-friendly error message
+        console.error("Error during comprehensive data initialization:", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
+        // Reset related displays on error
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
+
+// >>> END REPLACE initializeAndLoadData <<<
 	
 	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
     // Send message on button click
@@ -2652,143 +2742,116 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInputArea = document.querySelector('.chat-input-area');
 
     // Function to handle chat tab clicks
-    function handleChatTabClick(event) {
-        const clickedTab = event.currentTarget;
-        const targetTab = clickedTab.dataset.chatTab;
+   // Function to handle chat tab clicks
+    // Function to handle chat tab clicks
+function handleChatTabClick(event) {
+    const clickedTab = event.currentTarget;
+    const targetTab = clickedTab.dataset.chatTab;
 
-        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
+    console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
 
-        chatTabs.forEach(tab => tab.classList.remove('active'));
+    // Remove 'active' class from all tab buttons
+    chatTabs.forEach(tab => tab.classList.remove('active'));
+    clickedTab.classList.add('active'); // Add active class to the clicked tab
 
-        if (warChatBox) {
-             warChatBox.classList.remove('chat-content-hidden');
-        }
+    // Scroll the active tab into view
+    if (chatTabsContainer && clickedTab) {
+        chatTabsContainer.scrollLeft = clickedTab.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (clickedTab.offsetWidth / 2);
+    }
 
-        if (unsubscribeFromChat) {
-            unsubscribeFromChat();
-            unsubscribeFromChat = null;
-            console.log("Unsubscribed from previous chat listener (tab switch).");
-        }
+    // Hide existing dynamic content panel if it exists
+    let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
+    if (nonChatContentPanel) {
+        nonChatContentPanel.remove();
+    }
 
-        const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${targetTab}"]`);
-        if (selectedChatTabButton) {
-            selectedChatTabButton.classList.add('active');
-            selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
-        }
+    // Unsubscribe from any active real-time chat listener by default when switching tabs
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous chat listener (tab switch).");
+    }
 
-        let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
-        if (nonChatContentPanel) {
-            nonChatContentPanel.remove();
-        }
-
+    // Hide the main warChatBox content if it's not a direct chat tab
+    if (warChatBox) {
         if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
-            if (warChatBox) {
-                warChatBox.classList.remove('hide-content'); 
-                if (chatDisplayArea) {
-                    if (targetTab === 'faction-chat') {
-                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
-                        setupChatRealtimeListener();
-                    } else {
-                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
-                    }
-                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-                }
-            }
-        } else {
-            if (warChatBox) {
-                warChatBox.classList.add('hide-content');
-
-                nonChatContentPanel = document.createElement('div');
-                nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
-                nonChatContentPanel.className = 'chat-dynamic-panel'; 
-                
-                nonChatContentPanel.style.position = 'absolute';
-                nonChatContentPanel.style.top = '40px'; 
-                nonChatContentPanel.style.left = '0';
-                nonChatContentPanel.style.right = '0';
-                nonChatContentPanel.style.bottom = '0';
-                nonChatContentPanel.style.backgroundColor = '#1a1a1a';
-                nonChatContentPanel.style.padding = '10px';
-                nonChatContentPanel.style.overflowY = 'auto';
-                nonChatContentPanel.style.color = '#f0f0f0';
-                nonChatContentPanel.style.boxSizing = 'border-box'; // Corrected from 'border-sizing' in prev paste
-
-                if (targetTab === 'settings') {
-                    nonChatContentPanel.innerHTML = `
-                        <div class="chat-settings-panel">
-                            <h3>Chat Settings</h3>
-                            <div class="setting-item">
-                                <label for="chatFontSize">Font Size:</label>
-                                <select id="chatFontSize">
-                                    <option value="small">Small</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="large">Large</option>
-                                </select>
-                            </div>
-                            <div class="setting-item">
-                                <label for="notificationToggle">Notifications:</label>
-                                <input type="checkbox" id="notificationToggle" checked>
-                            </div>
-                            <div class="setting-item">
-                                <label for="themeSelect">Chat Theme:</label>
-                                <select id="themeSelect">
-                                    <option value="dark">Dark</option>
-                                    <option value="light">Light (Coming Soon)</option>
-                                </select>
-                            </div>
-                            <button class="save-settings-btn">Save Settings</button>
-                        </div>
-                    `;
-                } else if (targetTab === 'faction-members') {
-                    console.log("[Chat Tab Debug] Faction Members tab selected.");
-
-                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; 
-
-                    const members = window.globalFactionMembers || [];
-                    
-                    console.log("[Chat Tab Debug] Members array before sorting:", members);
-
-                    const rankOrder = {
-                        "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100
-                    };
-
-                    members.sort((a, b) => {
-                        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
-                        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
-
-                        if (orderA !== orderB) { return orderA - orderB; }
-                        return a.name.localeCompare(b.name);
-                    });
-
-                    const membersListHtml = members.map(member => {
-                        const profileImageUrl = member.profile_image 
-                            ? `https://www.torn.com/images/profile_images/${member.profile_image}_thumb.jpg` 
-                            : '../../images/default_profile_icon.png';
-
-                        let memberClass = ''; 
-                        if (member.rank === "Leader" || member.rank === "Co-leader") { memberClass = 'leader-member'; }
-
-                        return `
-                            <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
-                                <img src="${profileImageUrl}" alt="${member.name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
-                                <span class="member-name">${member.name}</span>
-                                <span class="member-rank">${member.rank}</span>
-                            </a>
-                        `;
-                    }).join('');
-
-                    nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
-                    console.log("[Chat Tab Debug] Generated Members HTML length:", membersListHtml.length);
+            warChatBox.classList.remove('hide-content');
+            // Ensure chatDisplayArea is cleared and ready for real-time messages
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = ''; // Clear old messages
+                if (targetTab === 'faction-chat') {
+                    setupChatRealtimeListener(); // Start real-time listener for faction chat
                 } else {
-                    nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+                    chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Functionality not implemented yet.</p>';
                 }
-                
-                warChatBox.appendChild(nonChatContentPanel);
+                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+            }
+            // Ensure chat input area is visible for chat tabs
+            if (chatInputArea) chatInputArea.style.display = 'flex';
+        } else {
+            warChatBox.classList.add('hide-content'); // Hide the main chat box
+
+            // Create and append the dynamic content panel for non-chat tabs
+            nonChatContentPanel = document.createElement('div');
+            nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
+            nonChatContentPanel.className = 'chat-dynamic-panel'; 
+            nonChatContentPanel.style.position = 'absolute';
+            nonChatContentPanel.style.top = '40px'; 
+            nonChatContentPanel.style.left = '0';
+            nonChatContentPanel.style.right = '0';
+            nonChatContentPanel.style.bottom = '0';
+            nonChatContentPanel.style.backgroundColor = '#1a1a1a';
+            nonChatContentPanel.style.padding = '10px';
+            nonChatContentPanel.style.overflowY = 'auto';
+            nonChatContentPanel.style.color = '#f0f0f0';
+            nonChatContentPanel.style.boxSizing = 'border-box';
+
+            // Append the dynamic panel before populating content
+            warChatBox.parentNode.appendChild(nonChatContentPanel);
+
+            // Hide chat input area for non-chat tabs
+            if (chatInputArea) chatInputArea.style.display = 'none';
+
+            if (targetTab === 'faction-members') {
+                console.log("[Chat Tab Debug] Faction Members tab selected - calling displayFactionMembersInChatTab.");
+                if (factionApiFullData && factionApiFullData.members) {
+                    // *** CRUCIAL CHANGE HERE: Pass the correct element to render into ***
+                    displayFactionMembersInChatTab(factionApiFullData.members, nonChatContentPanel); 
+                } else {
+                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+                }
+            } else if (targetTab === 'settings') {
+                nonChatContentPanel.innerHTML = `
+                    <div class="chat-settings-panel">
+                        <h3>Chat Settings</h3>
+                        <div class="setting-item">
+                            <label for="chatFontSize">Font Size:</label>
+                            <select id="chatFontSize">
+                                <option value="small">Small</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="notificationToggle">Notifications:</label>
+                            <input type="checkbox" id="notificationToggle" checked>
+                        </div>
+                        <div class="setting-item">
+                            <label for="themeSelect">Chat Theme:</label>
+                            <select id="themeSelect">
+                                <option value="dark">Dark</option>
+                                <option value="light">Light (Coming Soon)</option>
+                            </select>
+                        </div>
+                        <button class="save-settings-btn">Save Settings</button>
+                    </div>
+                `;
+            } else {
+                nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
             }
         }
     }
-
-
+}
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
