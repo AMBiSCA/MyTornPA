@@ -2595,17 +2595,27 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
 
 
-        if (!response.ok) {
-            const errorData = data || { message: "Failed to parse API error response." };
-            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
-            let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
+       if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
+            console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
+            let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
+            if (errorData && errorData.error && errorData.error.error) {
+                errorMessage += ` - ${errorData.error.error}`;
+            }
             throw new Error(errorMessage);
-        }
-        if (data.error) {
-            console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-        }
+        } else {
+            tornApiData = await response.json();
+            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
 
+            if (tornApiData.error) {
+                console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
+                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
+                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
+                } else {
+                    throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
+                }
+            }
+        }
         // --- Call Netlify Function for Secure Firebase Storage ---
         const userId = data.player_id; 
         if (userId) {
