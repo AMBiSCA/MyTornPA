@@ -193,7 +193,7 @@
                             <div id="warChatBox" class="chat-container">
                                 <div class="chat-tabs-container">
                                     <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
-                                    <button class class="chat-tab" data-chat-tab="war-chat">War Chat</button> 
+                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
                                     <button class="chat-tab" data-chat-tab="friends">Friends</button>
                                     <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
                                     <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
@@ -210,7 +210,7 @@
 
                                     <div id="private-chat" class="chat-panel">
                                         <div id="privateChatDisplayArea" class="chat-display-area">
-                                            <p>Welcome to War Chat! Content will be loaded when you select a faction.</p>
+                                            <p>Welcome to Private Chat! Functionality not implemented yet.</p>
                                         </div>
                                     </div>
 
@@ -249,8 +249,10 @@
                                         <button class="chat-action-btn siren-btn">🚨</button>
                                         <button class="chat-action-btn blank-btn"></button>
                                     </div>
-                                    <input type="text" class="chat-text-input" placeholder="Type a message...">
-                                    <button class="chat-send-btn">Send</button>
+                                    <div class="chat-input-text-send">
+                                        <input type="text" class="chat-text-input" placeholder="Type your message...">
+                                        <button class="chat-send-btn">Send</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -265,7 +267,7 @@
                             <span id="friendly-status-summary"></span>
                         </div>
                     </div>
-                    
+                
                     <div class="friendly-status-layout-row">
                         <div class="friendly-members-panel">
                             <div id="friendlyMembersListContainer">
@@ -292,7 +294,7 @@
                                 </table>
                             </div>
                         </div>
-                        
+                
                         <div class="friendly-details-panel">
                             <div id="selectedMemberDetailPanel" class="detail-panel-placeholder">
                                 <h4>Member Details</h4>
@@ -300,7 +302,7 @@
                                 <p><i>Select a member on the left to view their details.</i></p>
                             </div>
                         </div>
-                        
+                
                     </div>
                 </div>
                 
