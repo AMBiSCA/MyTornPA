@@ -1346,7 +1346,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
         const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
-        const orderB = rankOrder[b.rank] !== undefined ? rankRanks[b.rank] : rankRanks["Member"];
+        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"]; // <-- CORRECTED LINE
         if (orderA !== orderB) { return orderA - orderB; }
         return a.name.localeCompare(b.name);
     });
