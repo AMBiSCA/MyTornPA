@@ -89,8 +89,6 @@ const factionMembersPanel = document.getElementById('faction-members');
 const recentlyMetPanel = document.getElementById('recently-met');
 const blockedPeoplePanel = document.getElementById('blocked-people');
 const settingsPanel = document.getElementById('settings');
-const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
-const friendlyMembersListContainer = document.getElementById('friendlyMembersListContainer'); // Ensure this ID is on the div containing your friendly members table
 const selectedMemberDetailPanel = document.getElementById('selectedMemberDetailPanel'); // This is your member detail display panel
 
 // --- Utility Functions ---
