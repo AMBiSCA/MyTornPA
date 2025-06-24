@@ -48,6 +48,16 @@
     min-height: 400px; /* Keep minimum height for content */
 }
 
+#warChatBox {
+    grid-area: chat; /* Assign chat box to its grid area */
+    /* Adjust height and flex properties as grid will manage its size */
+    height: auto; /* Allow grid to manage height, or set specific height here if needed */
+    flex-grow: unset; /* Override flex-grow as grid handles sizing */
+    min-height: 475px; /* Maintain existing min-height for chatbox */
+}
+
+
+
 /* Script Title */
 .script-title {
     /* Styles for the main title */
@@ -246,6 +256,17 @@
     flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
 }
 
+
+.chat-tabs-container {
+display: flex;
+flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+border-bottom: 1px solid #1e1e1e; /* Separator below tabs */ 
+background-color: #333; /* Slightly lighter background for tabs bar */
+border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
+overflow: hidden; /* Contain inner elements within rounded corners */    
+:
+}
+
 .chat-tab:hover {
 background-color: #555;
 color: #00a8ff; /* Highlight on hover */
@@ -260,6 +281,43 @@ background-color: #00a8ff; /* Active tab color */
 color: #1e1e1e; /* Dark text on active tab */
 }
 
+#chat-display-area {
+    /* These properties are now managed by .chat-messages-scroll-wrapper, so we REMOVE them here:
+       - max-height
+       - overflow-y
+       - scrollbar-gutter
+       - background-color (if you want it only on the wrapper)
+       - border-radius (if you want it only on the wrapper)
+       - margin-bottom (if you want it only on the wrapper)
+    */
+    
+    display: flex;
+    flex-direction: column; /* Stacks messages from top to bottom */
+    gap: 8px; /* Space between messages */
+    padding: 10px; /* Keep padding for internal spacing of messages */
+    box-sizing: border-box;
+
+    /* Keep any other visual styles you want *inside* this specific div.
+       If your background/border/margin are for the scrollable area,
+       they should be on .chat-messages-scroll-wrapper now. */
+}
+/* Scrollbar styling for a cleaner look (keep these as they are) */
+#chat-display-area::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-display-area::-webkit-scrollbar-track {
+    background: #1a202c;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 10px;
+}
+#chat-display-area::-webkit-scrollbar-thumb:hover {
+    background: #6a7488;
+}
+
+        /* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-left-panel {
 display: flex;
 flex-direction: column;
@@ -318,6 +376,17 @@ overflow: hidden;
 text-overflow: ellipsis;
 flex-grow: 1; /* Add ellipsis if tab text is too long */
 
+}
+
+/* Chat Input Area (bottom section with buttons and text input) */
+.chat-input-area {
+flex-shrink: 0; /* Prevent this area from shrinking */
+background-color: #333; /* Background for the input bar */
+padding: 10px;
+border-top: 1px solid #1e1e1e; /* Separator above input area */
+display: flex;
+flex-direction: column; /* Stack top buttons above input+send */
+gap: 5px; /* Space between the two rows of controls */
 }
 
 /* Top row of smaller buttons (siren, blank) */
@@ -388,91 +457,6 @@ transition: background-color 0.2s ease;
 
 .chat-send-btn:hover {
   background-color: #00a8ff;
-}
-
-#warChatBox {
-    display: flex;
-    flex-direction: column; /* Stack children vertically */
-    flex-grow: 1; /* Allows it to fill the height of its parent (.active-ops-chat-panel) */
-    height: 100%; /* Explicitly take 100% of its parent's height */
-    overflow: hidden; /* CRUCIAL: Ensures content stays within its rounded borders and clips children */
-    box-sizing: border-box; /* Include padding/border in total dimensions */
-
-    /* Keep existing visual styles for #warChatBox frame if they were here */
-    background-color: #222; /* Example: Dark background */
-    border: 1px solid black; /* Example: Border */
-    border-radius: 8px; /* Example: Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Example: Shadow */
-}
-
-/* Container for chat tabs (e.g., Faction Chat, Private Chat) */
-.chat-tabs-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
-    flex-shrink: 0; /* CRITICAL: Prevent this area from shrinking */
-    height: 40px; /* FIXED HEIGHT for the tabs bar (adjust if your tabs are taller/shorter) */
-    border-bottom: 1px solid #1e1e1e; /* Separator below tabs */
-    background-color: #333; /* Slightly lighter background for tabs bar */
-    border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
-    overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
-    white-space: nowrap; /* Keep tabs in a single line if overflowing */
-    box-sizing: border-box; /* Include padding/border */
-}
-
-/* NEW: This wrapper controls the visible height and scrolling of messages */
-/* This is the key element for forcing the messages to scroll within a defined height */
-.chat-messages-scroll-wrapper {
-    flex-grow: 1; /* CRITICAL: Allows this to take up all remaining vertical space in #warChatBox */
-    /* This height calculates the remaining space after tabs and input area take their fixed height */
-    height: calc(100% - 80px); /* ADJUST '80px' if your .chat-tabs-container (40px) + .chat-input-area's height (approx 40-50px) is different */
-    overflow-y: scroll; /* FORCES vertical scrollbar (prevents jolt by always reserving space) */
-    scrollbar-gutter: stable; /* Helps prevent browser layout shifts when scrollbar appears/disappears */
-    
-    padding: 10px; /* Internal padding for the scrollable area */
-    background-color: #2d3748; /* Background for the scrollable messages area */
-    border-radius: 8px; /* Rounded corners for the scrollable area */
-    margin-bottom: 10px; /* Space between messages scroll area and input */
-    box-sizing: border-box; /* Include padding/border */
-}
-
-/* Styles for the actual chat messages display area, *inside* the scroll wrapper */
-/* This div should NOT control its own height or overflow; its parent wrapper does. */
-#chat-display-area {
-    display: flex;
-    flex-direction: column; /* Stacks messages from top to bottom */
-    gap: 8px; /* Space between individual messages */
-    box-sizing: border-box;
-    /* REMOVED: max-height, overflow-y, scrollbar-gutter, background-color, border-radius, margin-bottom */
-    /* These are now correctly managed by .chat-messages-scroll-wrapper */
-}
-
-/* Chat Input Area (bottom section with buttons and text input) */
-.chat-input-area {
-    display: flex;
-    flex-direction: column; /* Stack top buttons above input+send */
-    flex-shrink: 0; /* CRITICAL: Prevent this area from shrinking */
-    background-color: #333; /* Background for the input bar */
-    padding: 10px;
-    border-top: 1px solid #1e1e1e; /* Separator above input area */
-    gap: 5px; /* Space between the two rows of controls */
-    box-sizing: border-box; /* Include padding/border */
-}
-
-/* --- SCROLLBAR STYLING FOR CHAT MESSAGES (Applied to .chat-messages-scroll-wrapper) --- */
-/* (Ensure these are present and only for .chat-messages-scroll-wrapper) */
-.chat-messages-scroll-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
-.chat-messages-scroll-wrapper::-webkit-scrollbar-track {
-    background: #1a202c;
-    border-radius: 10px;
-}
-.chat-messages-scroll-wrapper::-webkit-scrollbar-thumb {
-    background: #4a5568;
-    border-radius: 10px;
-}
-.chat-messages-scroll-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #6a7488;
 }
 
 .status-summary-two-col {
@@ -1470,6 +1454,56 @@ autocomplete-items {
     overflow: hidden; /* Crucial: ensures nothing inside spills out */
 }
 
+#warChatBox {
+    /* Remove any fixed heights from here. This should now just be a flex container */
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow it to fill the height of active-ops-chat-panel */
+    box-sizing: border-box;
+    /* Remove background, border, shadow from here if they are now on .active-ops-chat-panel */
+}
+
+/* CONFIRM THIS RULE IS PRESENT AND CORRECT IN war_page_hub.css */
+.chat-messages-scroll-wrapper {
+    flex-grow: 1; /* Allow it to take up available height within #warChatBox */
+    height: calc(100% - 80px); /* Ensures a fixed height for scrolling */
+    overflow-y: scroll; /* Force vertical scrollbar for messages */
+    scrollbar-gutter: stable;
+    padding: 10px;
+    background-color: #2d3748; /
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+
+}
+
+#chat-display-area {
+    
+    display: flex;
+    flex-direction: column; /* Stacks messages from top to bottom */
+    gap: 8px; /* Space between messages */
+    box-sizing: border-box;
+    /* Remove background/border-radius if they are now on the wrapper */
+}
+
+/* Ensure these are flex-shrink: 0 to maintain their size */
+.chat-tabs-container {
+    flex-shrink: 0;
+    /* Add your existing height, padding, etc. here */
+    height: 40px; /* Example fixed height for tabs */
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.chat-input-area {
+    flex-shrink: 0;
+    margin-top: auto; /* Push to bottom if #warChatBox is column flex */
+    /* Add your existing height, padding, etc. here */
+}
+
+/* --- Keep all other CSS for .chat-message, .chat-message.user-message, .chat-message.bot-message, .chat-message.fade-out as they are --- */
+/* (These were provided in previous steps and are crucial for message appearance and animation) */
+
 .autocomplete-items div {
     padding: 10px;
     cursor: pointer;
@@ -1565,51 +1599,6 @@ autocomplete-items {
     .friendly-members-scroll-area {
         max-height: 400px; /* NEW: Adjusted max height */
     }
-	
-	/* --- Positioning for the Active Ops Tab Panels --- */
-/* This block ensures your left (targets) and right (chat) panels are positioned correctly. */
-
-/* The row containing both targets and chat panels */
-.active-ops-layout-row {
-    display: flex; /* Makes its children (left & right panels) go side-by-side */
-    flex-grow: 1; /* Allows this row to take up remaining vertical space in active-ops-tab */
-    gap: 20px; /* Space between the left and right panels */
-    width: 100%; /* Ensures it spans the full width of its parent */
-    align-items: stretch; /* CRITICAL: Makes flex items (panels) stretch to fill the container's height */
-    flex-wrap: wrap; /* Allows wrapping to column layout on smaller screens */
-    overflow: hidden; /* IMPORTANT: Prevents its children from overflowing horizontally/vertically */
-    box-sizing: border-box;
-}
-
-/* Left Panel: Holds the ops controls grid and enemy targets table */
-.active-ops-targets-panel {
-    display: flex;
-    flex-direction: column;
-    flex: 1; /* Allows it to grow and shrink, taking 1 unit of space */
-    flex-basis: 0; /* Ensures even distribution when growing */
-    min-width: 450px; /* Minimum width for your table content (adjust as needed) */
-    height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
-    overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
-    box-sizing: border-box;
-}
-
-/* Right Panel: Holds the entire chatbox structure */
-.active-ops-chat-panel {
-    display: flex;
-    flex-direction: column; /* Stack chat elements vertically */
-    flex: 1; /* Allows it to grow and shrink, taking 1 unit of space */
-    flex-basis: 0; /* Ensures even distribution when growing */
-    min-width: 320px; /* Minimum width for the chatbox side (adjust as needed) */
-    height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
-    overflow: hidden; /* CRUCIAL: Ensures content doesn't spill out of this panel */
-    
-    /* Keep existing visual styles for the panel (these were from your input) */
-    background-color: #1f2937; /* Example: Darker background for the panel */
-    border: 1px solid #374151; /* Example: Border for the panel */
-    border-radius: 10px; /* Example: Rounded corners for the panel */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Example: Shadow for the panel */
-    box-sizing: border-box;
-}
 
 /* Responsive adjustments for Active Ops tab layout */
 @media (max-width: 992px) {
