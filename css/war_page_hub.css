@@ -1060,7 +1060,6 @@ transition: background-color 0.2s ease;
 
 /* --- Styling for Table & Placeholder Containers --- */
 #friendlyMembersListContainer {
-    margin-top: 20px;
     background-color: #222;
     border: 1px solid black;
     border-radius: 8px;
