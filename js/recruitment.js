@@ -2,8 +2,8 @@
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-let currentUserTornId = null; 
-let currentUserTornApiKey = null; 
+let currentUserTornId = null;
+let currentUserTornApiKey = null;
 let currentUserData = null; // To store the currently logged-in user's fetched Torn data
 let currentUserIsLeader = false; // Flag to check if current user is a leader
 
@@ -14,7 +14,16 @@ const listSelfButton = document.getElementById('list-self-button');
 const advertiseFactionButton = document.getElementById('advertise-faction-button');
 
 
-// --- Utility Functions (Copied from your war_page_hub.js for self-containment) ---
+// --- Utility Functions ---
+
+// UPDATED: Added a function to format large numbers for display
+function formatNumber(num) {
+    if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
 
 function formatTime(seconds) {
     if (seconds <= 0) return '0s';
@@ -59,9 +68,9 @@ async function displayFactionsSeekingMembers() {
 
     try {
         const snapshot = await db.collection('recruitingFactions') // NEW Collection
-                                .where('isActive', '==', true)
-                                .orderBy('listingTimestamp', 'desc')
-                                .get();
+            .where('isActive', '==', true)
+            .orderBy('listingTimestamp', 'desc')
+            .get();
 
         if (snapshot.empty) {
             factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="4">No factions currently seeking members.</td></tr>';
@@ -72,10 +81,10 @@ async function displayFactionsSeekingMembers() {
         snapshot.docs.forEach(doc => {
             const faction = doc.data();
             const profileUrl = `https://www.torn.com/factions.php?step=profile&ID=${faction.factionId}`;
-            
+
             tableHtml += `
                 <tr>
-                    <td><a href="${profileUrl}" target="_blank">${faction.factionName} [${faction.factionId}]</a></td>
+                    <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${faction.factionName} [${faction.factionId}]</a></td>
                     <td>${faction.totalMembers || 'N/A'}</td>
                     <td>${faction.contactInfo || 'N/A'}</td>
                     <td><button class="action-button enlist-button" data-faction-id="${faction.factionId}">Enlist</button></td>
@@ -103,10 +112,10 @@ async function enlistPlayer(factionId) {
     }
 
     try {
-        // --- Use selections for 'bars,cooldowns,travel,profile' ---
-        const selections = 'bars,cooldowns,travel,profile'; // As requested
+        // NOTE: The /user/ endpoint is the correct one for Torn player data. /v2/ is used for other things like faction data.
+        const selections = 'bars,cooldowns,travel,profile';
         const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
-        
+
         console.log(`Fetching player data for enlistment: ${apiUrl}`);
         const response = await fetch(apiUrl);
         if (!response.ok) {
@@ -114,44 +123,27 @@ async function enlistPlayer(factionId) {
         }
         const data = await response.json();
         if (data.error) {
-            // Specifically handle common API key errors
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Bars', 'Cooldowns', 'Travel', and 'Profile' are enabled.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
-        // Extract data based on new selections
         const profile = data.profile || {};
-        const bars = data.bars || {}; 
-        const cooldowns = data.cooldowns || {}; 
-        const travel = data.travel || {}; 
-        
-        const xanaxTaken = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
-        const totalAttacks = 'N/A'; // Cannot get from 'personalstats' which is NOT in new selections
-        const playerStrength = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
-        const playerDefense = 'N/A';   // Cannot get from 'battlestats' which is NOT in new selections
-        const playerSpeed = 'N/A';       // Cannot get from 'battlestats' which is NOT in new selections
-        const playerDexterity = 'N/A'; // Cannot get from 'battlestats' which is NOT in new selections
-
 
         const playerEnlistmentData = {
-            factionId: String(factionId), // Ensure it's a string for consistency
+            factionId: String(factionId),
             playerId: String(currentUserTornId),
-            playerName: profile.name || data.name || 'Unknown', // Fallback to top-level name from basic selection if profile.name is missing
-            playerLevel: profile.level || data.level || 0, // Fallback to top-level level from basic selection
-            playerStrength: playerStrength, 
-            playerDefense: playerDefense,   
-            playerSpeed: playerSpeed,       
-            playerDexterity: playerDexterity, 
-            xanaxTaken: xanaxTaken,         
-            totalAttacks: totalAttacks,     
+            playerName: profile.name || data.name || 'Unknown',
+            playerLevel: profile.level || data.level || 0,
             enlistmentTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            firebaseUid: auth.currentUser.uid, 
-            status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown' // Current status (from profile or basic)
+            firebaseUid: auth.currentUser.uid,
+            status: profile.status ? profile.status.description : data.status ? data.status.description : 'Unknown'
         };
 
         const docRef = db.collection('recruitmentApplications').doc(`${factionId}_${currentUserTornId}`);
-        await docRef.set(playerEnlistmentData, { merge: true });
+        await docRef.set(playerEnlistmentData, {
+            merge: true
+        });
 
         alert(`Successfully enlisted for Faction ${factionId}! Your profile has been sent.`);
         console.log("Player enlistment data saved:", playerEnlistmentData);
@@ -163,98 +155,95 @@ async function enlistPlayer(factionId) {
 }
 
 
-// --- NEW FUNCTION: To list current user in 'Players Seeking Factions' ---
+// --- 🔺 UPDATED FUNCTION 🔺 ---
+// This function now reads from your 'users' collection in Firestore to create a listing.
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
         alert("You must be logged in to list yourself.");
         return;
     }
-    if (!currentUserTornId || !currentUserTornApiKey) {
-        alert("Your Torn ID and API key are required to list yourself. Please register them in your profile.");
+    if (!currentUserTornId) {
+        alert("Your Torn ID is missing. Please ensure your profile is set up correctly.");
         return;
     }
 
-    const contactInfo = prompt("Please provide contact info (e.g., Discord Tag, Torn Mail ID) for factions to reach you:");
-    if (!contactInfo || contactInfo.trim() === '') {
-        alert("Listing cancelled. Contact info is required.");
-        return;
-    }
+    // Disable button to prevent multiple clicks
+    listSelfButton.disabled = true;
+    listSelfButton.textContent = 'Listing...';
 
     try {
-        const selections = 'bars,cooldowns,travel,profile'; // As requested
-        const apiUrl = `https://api.torn.com/user/${currentUserTornId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_Recruitment`;
-        
-        console.log(`Fetching player data for self-listing: ${apiUrl}`);
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`Torn API HTTP error: ${response.status} ${response.statusText}`);
+        // 1. Get user data from the 'users' collection in Firestore
+        const userDocRef = db.collection('users').doc(String(currentUserTornId));
+        const userDoc = await userDocRef.get();
+
+        if (!userDoc.exists) {
+            throw new Error(`Your user data could not be found in the 'users' collection. Please ensure it has been saved correctly.`);
         }
-        const data = await response.json();
-        if (data.error) {
-            if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Bars', 'Cooldowns', 'Travel', and 'Profile' are enabled.`);
-            throw new Error(`Torn API error: ${data.error.error}`);
-        }
+        const userData = userDoc.data();
 
-        const profile = data.profile || {};
-        const bars = data.bars || {}; 
-        const cooldowns = data.cooldowns || {}; 
-        const travel = data.travel || {}; 
+        // 2. Extract the necessary stats using the field names from your data structure
+        const battleStats = userData.battlestats || {};
+        const personalStats = userData.personalstats || {};
 
-        const xanaxTaken = 'N/A'; // Will be N/A based on current selections
-        const totalAttacks = 'N/A'; // Will be N/A based on current selections
-        const playerStrength = 'N/A'; // Will be N/A based on current selections
-        const playerDefense = 'N/A';   // Will be N/A based on current selections
-        const playerSpeed = 'N/A';       // Will be N/A based on current selections
-        const playerDexterity = 'N/A'; // Will be N/A based on current selections
+        const totalAttacks = (personalStats.attackswon || 0) + (personalStats.attackslost || 0) + (personalStats.attacksdraw || 0);
 
-
+        // 3. Create the object to save to the 'playersSeekingFactions' collection
         const playerListingData = {
             playerId: String(currentUserTornId),
-            playerName: profile.name || data.name || 'Unknown',
-            playerLevel: profile.level || data.level || 0,
-            playerStrength: playerStrength, 
-            playerDefense: playerDefense,   
-            playerSpeed: playerSpeed,       
-            playerDexterity: playerDexterity, 
-            xanaxTaken: xanaxTaken,
+            playerName: userData.name || 'Unknown',
+            playerLevel: userData.level || 0,
+            // Battle Stats
+            strength: battleStats.strength || 0,
+            defense: battleStats.defense || 0,
+            speed: battleStats.speed || 0,
+            dexterity: battleStats.dexterity || 0,
+            // Personal Stats
+            xanaxTaken: personalStats.xantaken || 0,
             totalAttacks: totalAttacks,
-            contactInfo: contactInfo.trim(),
+            // Metadata
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            firebaseUid: auth.currentUser.uid, 
-            isActive: true // Player can set this to false later if they find a faction
+            firebaseUid: auth.currentUser.uid,
+            isActive: true
         };
 
-        const docRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid); // Using Firebase UID as doc ID
-        await docRef.set(playerListingData, { merge: true });
+        // 4. Save the data
+        const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid); // Using Firebase UID as doc ID is good for uniqueness
+        await listingDocRef.set(playerListingData, {
+            merge: true
+        });
 
         alert(`Successfully listed yourself for recruitment!`);
         console.log("Player self-listing data saved:", playerListingData);
-        displayPlayersSeekingFactions(); // Refresh the list after listing self
+        displayPlayersSeekingFactions(); // Refresh the list
 
     } catch (error) {
         console.error("Error during self-listing:", error);
         alert(`Failed to list yourself: ${error.message}`);
+    } finally {
+        // Re-enable the button
+        listSelfButton.disabled = false;
+        listSelfButton.textContent = 'List Myself';
     }
 }
 
 
-// --- NEW FUNCTION: To display 'Players Seeking Factions' ---
+// --- 🔺 UPDATED FUNCTION 🔺 ---
+// This function now displays the player data in a "card" format.
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) return;
 
-    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="6">Loading player listings...</td></tr>';
+    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="5">Loading player listings...</td></tr>';
 
     try {
         const snapshot = await db.collection('playersSeekingFactions')
-                                .where('isActive', '==', true)
-                                .orderBy('listingTimestamp', 'desc') // Show most recent first
-                                .limit(50) // Limit to 50 listings
-                                .get();
+            .where('isActive', '==', true)
+            .orderBy('listingTimestamp', 'desc')
+            .limit(50)
+            .get();
 
         if (snapshot.empty) {
-            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="6">No players currently seeking factions.</td></tr>';
+            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="5">No players currently seeking factions.</td></tr>';
             return;
         }
 
@@ -262,15 +251,15 @@ async function displayPlayersSeekingFactions() {
         snapshot.docs.forEach(doc => {
             const player = doc.data();
             const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
-            
+
+            // The whole row can be made clickable, but for accessibility, a clear link is better.
             tableHtml += `
                 <tr>
-                    <td><a href="${profileUrl}" target="_blank">${player.playerName} [${player.playerId}]</a></td>
+                    <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName} [${player.playerId}]</a></td>
                     <td>${player.playerLevel}</td>
-                    <td>S:${player.playerStrength.toLocaleString()} D:${player.playerDefense.toLocaleString()} Sp:${player.playerSpeed.toLocaleString()} Dx:${player.playerDexterity.toLocaleString()}</td>
+                    <td>S: ${formatNumber(player.strength)} | D: ${formatNumber(player.defense)} | Sp: ${formatNumber(player.speed)} | Dx: ${formatNumber(player.dexterity)}</td>
                     <td>${player.xanaxTaken.toLocaleString()}</td>
                     <td>${player.totalAttacks.toLocaleString()}</td>
-                    <td><button class="action-button contact-player-button" data-player-id="${player.playerId}" data-contact-info="${player.contactInfo}">Contact</button></td>
                 </tr>
             `;
         });
@@ -278,20 +267,19 @@ async function displayPlayersSeekingFactions() {
 
     } catch (error) {
         console.error("Error fetching players seeking factions:", error);
-        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="6">Error loading player listings.</td></tr>`;
+        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="5">Error loading player listings.</td></tr>`;
     }
 }
 
 
-// --- NEW FUNCTION: To allow a Faction Leader to advertise their faction ---
+// Function to allow a Faction Leader to advertise their faction
 async function advertiseFaction() {
     console.log("Attempting to advertise faction.");
     if (!auth.currentUser) {
         alert("You must be logged in to advertise your faction.");
         return;
     }
-    // Check if the current user is a leader (this flag is set in auth.onAuthStateChanged)
-    if (!currentUserIsLeader) { 
+    if (!currentUserIsLeader) {
         alert("Only designated faction leaders can advertise factions.");
         return;
     }
@@ -301,17 +289,15 @@ async function advertiseFaction() {
     }
 
     try {
-        // Fetch current user's faction ID from their profile in Firebase
-        const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
-        // --- CRITICAL CORRECTION: Accessing faction_id from userData ---
-        const userTornFactionId = userProfileDoc.data()?.faction_id; // Access the faction_id from the Firebase document
+        const userTornFactionId = currentUserData?.faction_id;
 
         if (!userTornFactionId) {
             alert("Your Torn Faction ID (`faction_id`) is not registered in your profile. Please add it to your profile to advertise your faction.");
             return;
         }
 
-        const selections = 'basic,members'; // Basic info + member count
+        // NOTE: The /v2/faction/ endpoint is correct for faction data.
+        const selections = 'basic,members';
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
 
         console.log(`Fetching faction data for advertisement: ${apiUrl}`);
@@ -326,8 +312,8 @@ async function advertiseFaction() {
             throw new Error(`Torn API error: ${data.error.error}`);
         }
 
-        const factionName = data.basic ? data.basic.name : 'Unknown Faction';
-        const totalMembers = data.members ? data.members.total : null; // Ensure null for Firestore if missing
+        const factionName = data.name || 'Unknown Faction';
+        const totalMembers = data.members ? Object.keys(data.members).length : 0; // Correct way to get member count from V2 endpoint
 
         const contactInfo = prompt(`Please provide contact info for ${factionName} (e.g., Discord Tag, Torn Mail ID for recruiters):`);
         if (!contactInfo || contactInfo.trim() === '') {
@@ -336,21 +322,23 @@ async function advertiseFaction() {
         }
 
         const factionListingData = {
-            factionId: String(userTornFactionId), 
+            factionId: String(userTornFactionId),
             factionName: factionName,
             totalMembers: totalMembers,
             contactInfo: contactInfo.trim(),
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            firebaseUid: auth.currentUser.uid, // Link to leader's Firebase UID
-            isActive: true // Faction can manage this later
+            firebaseUid: auth.currentUser.uid,
+            isActive: true
         };
 
         const docRef = db.collection('recruitingFactions').doc(String(userTornFactionId));
-        await docRef.set(factionListingData, { merge: true });
+        await docRef.set(factionListingData, {
+            merge: true
+        });
 
         alert(`Successfully advertised ${factionName} for recruitment!`);
         console.log("Faction advertisement data saved:", factionListingData);
-        displayFactionsSeekingMembers(); // Refresh the list after advertising
+        displayFactionsSeekingMembers(); // Refresh the list
 
     } catch (error) {
         console.error("Error during faction advertisement:", error);
@@ -358,261 +346,79 @@ async function advertiseFaction() {
     }
 }
 
+
+// --- Main Initialization for Page ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button'); 
-    const mainTabPanes = document.querySelectorAll('.tab-pane');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const targetTabDataset = event.currentTarget.dataset.tab;
-            const targetTabId = targetTabDataset + '-tab';
-
-            showTab(targetTabId);
-
-            // --- NEW PART: Call updateFriendlyMembersTable when 'friendly-status' tab is active ---
-            if (targetTabDataset === 'friendly-status') {
-                const user = firebase.auth().currentUser;
-                // apiKey will be set below in auth.onAuthStateChanged
-                // We need to make sure userApiKey is defined and accessible here.
-                // It's already handled by userApiKey from the outer scope if populated.
-            }
-            // --- END NEW PART ---
-        });
-    });
-    showTab('announcements-tab');
-    let listenersInitialized = false;
-
-    // --- Chat Tab Functionality Elements and Handler ---
-    const chatTabsContainer = document.querySelector('.chat-tabs-container');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox');
-    const chatDisplayArea = document.getElementById('chat-display-area');
-    const chatInputArea = document.querySelector('.chat-input-area');
-
-    // Function to handle chat tab clicks
-    function handleChatTabClick(event) {
-        const clickedTab = event.currentTarget;
-        const targetTab = clickedTab.dataset.chatTab;
-
-        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
-
-        chatTabs.forEach(tab => tab.classList.remove('active'));
-
-        if (warChatBox) {
-             warChatBox.classList.remove('chat-content-hidden');
-        }
-
-        if (unsubscribeFromChat) {
-            unsubscribeFromChat();
-            unsubscribeFromChat = null;
-            console.log("Unsubscribed from previous chat listener (tab switch).");
-        }
-
-        const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${targetTab}"]`);
-        if (selectedChatTabButton) {
-            selectedChatTabButton.classList.add('active');
-            selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
-        }
-
-        let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
-        if (nonChatContentPanel) {
-            nonChatContentPanel.remove();
-        }
-
-        if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
-            if (warChatBox) {
-                warChatBox.classList.remove('hide-content'); 
-                if (chatDisplayArea) {
-                    if (targetTab === 'faction-chat') {
-                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
-                        setupChatRealtimeListener();
-                    } else {
-                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
-                    }
-                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-                }
-            }
-        } else {
-            if (warChatBox) {
-                warChatBox.classList.add('hide-content');
-
-                nonChatContentPanel = document.createElement('div');
-                nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
-                nonChatContentPanel.className = 'chat-dynamic-panel'; 
-                
-                nonChatContentPanel.style.position = 'absolute';
-                nonChatContentPanel.style.top = '40px'; 
-                nonChatContentPanel.style.left = '0';
-                nonChatContentPanel.style.right = '0';
-                nonChatContentPanel.style.bottom = '0';
-                nonChatContentPanel.style.backgroundColor = '#1a1a1a';
-                nonChatContentPanel.style.padding = '10px';
-                nonChatContentPanel.style.overflowY = 'auto';
-                nonChatContentPanel.style.color = '#f0f0f0';
-                nonChatContentPanel.style.boxSizing = 'border-sizing'; // Corrected from 'border-box' in prev paste
-
-                if (targetTab === 'settings') {
-                    nonChatContentPanel.innerHTML = `
-                        <div class="chat-settings-panel">
-                            <h3>Chat Settings</h3>
-                            <div class="setting-item">
-                                <label for="chatFontSize">Font Size:</label>
-                                <select id="chatFontSize">
-                                    <option value="small">Small</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="large">Large</option>
-                                </select>
-                            </div>
-                            <div class="setting-item">
-                                <label for="notificationToggle">Notifications:</label>
-                                <input type="checkbox" id="notificationToggle" checked>
-                            </div>
-                            <div class="setting-item">
-                                <label for="themeSelect">Chat Theme:</label>
-                                <select id="themeSelect">
-                                    <option value="dark">Dark</option>
-                                    <option value="light">Light (Coming Soon)</option>
-                                </select>
-                            </div>
-                            <button class="save-settings-btn">Save Settings</button>
-                        </div>
-                    `;
-                } else if (targetTab === 'faction-members') {
-                    console.log("[Chat Tab Debug] Faction Members tab selected.");
-
-                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; 
-
-                    const members = window.globalFactionMembers || [];
-                    
-                    console.log("[Chat Tab Debug] Members array before sorting:", members);
-
-                    const rankOrder = {
-                        "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100
-                    };
-
-                    members.sort((a, b) => {
-                        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
-                        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
-
-                        if (orderA !== orderB) { return orderA - orderB; }
-                        return a.name.localeCompare(b.name);
-                    });
-
-                    const membersListHtml = members.map(member => {
-                        const profileImageUrl = member.profile_image 
-                            ? `https://www.torn.com/images/profile_images/${member.profile_image}_thumb.jpg` 
-                            : '../../images/default_profile_icon.png';
-
-                        let memberClass = ''; 
-                        if (member.rank === "Leader" || member.rank === "Co-leader") { memberClass = 'leader-member'; }
-
-                        return `
-                            <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
-                                <img src="${profileImageUrl}" alt="${member.name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
-                                <span class="member-name">${member.name}</span>
-                                <span class="member-rank">${member.rank}</span>
-                            </a>
-                        `;
-                    }).join('');
-
-                    nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
-                    console.log("[Chat Tab Debug] Generated Members HTML length:", membersListHtml.length);
-                } else {
-                    nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
-                }
-                
-                warChatBox.appendChild(nonChatContentPanel);
-            }
-        }
-    }
-
-
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
-            
-            // --- UPDATED: Correctly retrieve Torn API Key from userData ---
-            const apiKey = userData.tornApiKey || null; // Read tornApiKey from userProfiles
-            // --- END UPDATED ---
 
-            const playerId = userData.tornProfileId || null;
-            currentTornUserName = userData.preferredName || 'Unknown';
+            // Store all user data globally for other functions to use
+            currentUserData = userData;
+            currentUserTornId = userData.tornProfileId || null;
+            currentUserTornApiKey = userData.tornApiKey || null;
 
-            let warData = {};
-            try {
-                const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warDoc.data() : {};
-            } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+            // Check for leader status
+            currentUserIsLeader = (userData.position === 'Leader' || userData.position === 'Co-leader');
+            console.log(`User ${user.uid} is leader: ${currentUserIsLeader}.`);
+
+            // Show/hide "Advertise Faction" button based on leader status
+            if (advertiseFactionButton) {
+                advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
             }
 
-            if (apiKey && playerId) {
-                userApiKey = apiKey; // Assign to global userApiKey for other functions
-
-                await initializeAndLoadData(apiKey);
-                populateUiComponents(warData, apiKey);
-
-                fetchAndDisplayChainData();
-                fetchAndDisplayRankedWarScores();
-                displayQuickFFTargets(userApiKey, playerId);
-                setupChatRealtimeListener();
-
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    setupMemberClickEvents();
-
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
-                    });
-
-                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
-                    if (initialActiveChatTab) {
-                        handleChatTabClick({ currentTarget: initialActiveChatTab });
-                    }
-                    
-                    listenersInitialized = true;
-
-                    setInterval(updateAllTimers, 1000);
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
-                        }
-                    }, 2000);
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        } else {
-                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                        }
-                    }, 60000);
-                    setInterval(() => {
-                        if (userApiKey) {
-                            initializeAndLoadData(userApiKey);
-                        } else {
-                            console.warn("API key not available for periodic comprehensive faction data refresh.");
-                        }
-                    }, 2000);
-                }
+            // Enable/disable buttons based on whether profile is complete
+            if (!currentUserTornId || !currentUserTornApiKey) {
+                console.warn("User logged in but Torn ID or API Key missing from profile.");
+                if (listSelfButton) listSelfButton.disabled = true;
+                if (advertiseFactionButton) advertiseFactionButton.disabled = true;
             } else {
-                console.warn("API key or Player ID not found.");
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-                if (quickFFTargetsDisplay) {
-                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
-                }
+                if (listSelfButton) listSelfButton.disabled = false;
+                if (advertiseFactionButton) advertiseFactionButton.disabled = !currentUserIsLeader;
             }
         } else {
-            userApiKey = null;
-            listenersInitialized = false;
-            console.log("User not logged in.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+            console.log("User not logged in on Recruitment page.");
+            // Reset all global variables and disable/hide buttons
+            currentUserTornId = null;
+            currentUserTornApiKey = null;
+            currentUserData = null;
+            currentUserIsLeader = false;
+
+            if (listSelfButton) listSelfButton.disabled = true;
+            if (advertiseFactionButton) {
+                advertiseFactionButton.style.display = 'none';
+                advertiseFactionButton.disabled = true;
+            }
         }
+
+        // Always display initial listings, regardless of login status
+        displayFactionsSeekingMembers();
+        displayPlayersSeekingFactions();
     });
+
+    // --- Event Listeners ---
+
+    // Event listener for "Enlist" buttons (in Factions table)
+    if (factionsSeekingMembersTbody) {
+        factionsSeekingMembersTbody.addEventListener('click', (event) => {
+            const button = event.target.closest('.enlist-button');
+            if (button && !button.disabled) {
+                const factionId = button.dataset.factionId;
+                enlistPlayer(factionId);
+            }
+        });
+    }
+
+    // Event listener for "List Myself" button
+    if (listSelfButton) {
+        listSelfButton.addEventListener('click', listSelfForRecruitment);
+    }
+
+    // Event listener for "Advertise My Faction" button
+    if (advertiseFactionButton) {
+        advertiseFactionButton.addEventListener('click', advertiseFaction);
+    }
+
 });
