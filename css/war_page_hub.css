@@ -135,209 +135,7 @@
     display: block;
 }
 
-/* --- Styling for the dynamically created non-chat content panel --- */
-/* This ensures it positions correctly over the chat display/input areas */
-.chat-container {
-    position: relative; /* Needed for absolute positioning of its children */
-}
 
-/* Base styling for the dynamic panel itself (its position handled by JS inline styles) */
-.chat-dynamic-panel {
-    /* Additional styling if needed, e.g., borders or shadows */
-    z-index: 10; /* Ensures it appears above other hidden content */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center content horizontally */
-    justify-content: flex-start; /* Align content to the top */
-    gap: 15px; /* Space between settings items */
-}
-
-/* Styling for the settings content structure */
-.chat-settings-panel {
-    width: 90%;
-    max-width: 400px;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #222;
-    border-radius: 8px;
-    border: 1px solid #00a8ff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    text-align: center;
-}
-
-.chat-settings-panel h3 {
-    color: #e0a71a;
-    margin-bottom: 15px;
-}
-
-.chat-settings-panel .setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #333;
-}
-
-.chat-settings-panel .setting-item:last-child {
-    border-bottom: none;
-}
-
-.chat-settings-panel label {
-    flex-grow: 1;
-    text-align: left;
-    color: #f0f0f0;
-}
-
-.chat-settings-panel select,
-.chat-settings-panel input[type="checkbox"] {
-    flex-shrink: 0;
-    margin-left: 10px;
-}
-
-.chat-settings-panel select {
-    padding: 5px;
-    border-radius: 4px;
-    background-color: #333;
-    color: #f0f0f0;
-    border: 1px solid #555;
-}
-
-.chat-settings-panel input[type="checkbox"] {
-    transform: scale(1.2);
-    accent-color: #00a8ff;
-}
-
-.chat-settings-panel .save-settings-btn {
-    margin-top: 20px;
-    padding: 8px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.chat-settings-panel .save-settings-btn:hover {
-    background-color: #00a8ff;
-}
-
-/* --- Styling for Faction Members Tab Content --- */
-
-.chat-dynamic-panel h3 {
-    text-align: center;
-    color: #00a8ff; /* Theme color for titles */
-    margin-bottom: 20px;
-}
-
-.members-list-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow members to wrap to new lines */
-    justify-content: center; /* Center members horizontally */
-    gap: 15px; /* Space between member items */
-    padding: 10px;
-}
-
-.member-item {
-    display: flex;
-    flex-direction: column; /* Stack image, name, rank vertically */
-    align-items: center; /* Center content horizontally within each member item */
-    width: 100px; /* Fixed width for each member item */
-    text-align: center;
-    background-color: #2a2a2a; /* Slightly lighter background */
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 10px 5px;
-    text-decoration: none; /* Remove underline from link */
-    color: #f0f0f0; /* Default text color */
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.member-item:hover {
-    background-color: #333;
-    border-color: #00a8ff;
-    transform: translateY(-2px); /* Slight lift on hover */
-}
-
-.member-profile-pic {
-    width: 60px; /* Size of profile picture */
-    height: 60px;
-    border-radius: 50%; /* Make it circular */
-    object-fit: cover; /* Ensure image covers the area */
-    border: 2px solid #00a8ff; /* Blue border around pic */
-    margin-bottom: 8px;
-}
-
-.member-name {
-    font-weight: bold;
-    color: #f0f0f0;
-    font-size: 0.9em;
-    white-space: nowrap; /* Prevent name from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if name is too long */
-    max-width: 100%; /* Ensure it respects parent width */
-}
-
-.member-rank {
-    font-size: 0.75em; /* Smaller font for rank */
-    color: #aaa; /* Lighter color for rank */
-    margin-top: 3px;
-}
-
-/* --- Styling for Leader Members (for distinction and visual centering) --- */
-.member-item.leader-member {
-    background-color: #004d80; /* Darker blue background for leaders */
-    border-color: #00a8ff; /* Stronger blue border */
-    transform: scale(1.05); /* Slightly larger */
-    box-shadow: 0 4px 8px rgba(0, 168, 255, 0.3); /* Subtle glow */
-    order: -1; /* Ensures leaders appear first in the flex container */
-    margin-bottom: 25px; /* Add extra space below leader row, if they form their own line */
-}
-
-.member-item.leader-member .member-name {
-    color: #ffd700; /* Gold color for leader names */
-}
-
-.member-item.leader-member .member-rank {
-    color: #f0f0f0; /* White color for leader ranks */
-}
-
-/* New style for the container holding the "List Myself" and "Advertise My Faction" buttons */
-.recruitment-section .buttons-container {
-    display: flex;          /* Use flexbox */
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 20px;              /* Space between the buttons */
-    flex-wrap: wrap;        /* Allow buttons to wrap to the next line on smaller screens */
-    margin-bottom: 15px;    /* Add some space below the buttons before the table */
-}
-
-/* Adjust the existing .action-button rule to remove its default margin-right */
-/* As the gap on the container will handle spacing */
-.action-button {
-    /* ... existing action-button styles ... */
-    margin-right: 0; /* Remove this from individual buttons, as gap on parent will handle spacing */
-}
-
-/* You might want to override the default action-button margin for buttons that are NOT in this container */
-/* Or adjust other places where action-button is used if this causes unwanted changes. */
-/* For now, this makes buttons within .buttons-container behave as intended. */
-
-/* Small screen adjustments for the buttons container */
-@media (max-width: 768px) {
-    .recruitment-section .buttons-container {
-        flex-direction: column; /* Stack buttons vertically on smaller screens */
-        gap: 10px; /* Adjust vertical gap */
-    }
-    .recruitment-section .buttons-container .action-button {
-        width: 100%; /* Make buttons full width when stacked */
-        margin-right: 0; /* Ensure no residual margin pushes them */
-    }
-}
-
-/* Optional: If you want leaders to strictly form their own centered row regardless of quantity */
-/* You would need to structure leaders into a separate flex container within JS
-   or use more advanced CSS Grid techniques. For a simple flex wrap, the 'order: -1'
-   and 'justify-content: center' on .members-list-container will mostly handle it. */
 /* Styles for the Leader Config Tab's content pane (the one with id="leader-config-tab" in your HTML) */
 #leader-config-tab.active {
     /* This rule defines properties for the *overall tab pane*, not its internal grid */
@@ -1267,7 +1065,7 @@ transition: background-color 0.2s ease;
     border: 1px solid black;
     border-radius: 8px;
     overflow: hidden;
-    height: 465px; /* This explicitly matches the height of your chat-container */
+    height: 475px; /* This explicitly matches the height of your chat-container */
     display: flex;
     flex-direction: column;
 }
@@ -1585,185 +1383,6 @@ autocomplete-items {
     color: #1e1e1e; /* Dark text on highlight */
 }
 
-/* ==========================================================================
-   Member Details Panel Styles (#selectedMemberDetailPanel)
-   ========================================================================== */
-
-#selectedMemberDetailPanel {
-    background-color: #2a2a2a; /* Slightly lighter dark background */
-    color: #f0f0f0; /* Light text */
-    padding: 15px; /* Comfortable padding inside the box */
-    border-radius: 8px; /* Rounded corners */
-    border: 1px solid #444; /* Subtle border */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Deeper shadow for depth */
-    box-sizing: border-box; /* Include padding/border in width */
-    overflow-y: auto; /* Allow vertical scrolling if content is too long */
-    overflow-x: hidden; /* Prevent horizontal scrollbar */
-    display: flex;
-    flex-direction: column; /* Stack content vertically */
-    gap: 15px; /* Space between major sections */
-    height: 100%; /* Ensure it fills its parent's height */
-}
-
-/* Header Section for Image, Name, ID, Level */
-.member-detail-header {
-    display: flex;
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center horizontally */
-    text-align: center; /* Center text within this block */
-    gap: 5px; /* Space between elements in the header */
-    padding-bottom: 10px; /* Add some space between main header and info lines */
-}
-
-/* NEW: Container for the top row (Energy, Image, Nerve) */
-.member-header-top-row {
-    display: flex;
-    align-items: center; /* Vertically align items in the middle */
-    justify-content: space-around; /* Distribute space between items */
-    width: 100%; /* Take full width of its parent header */
-    margin-bottom: 10px; /* Space between this row and the name/level below */
-}
-
-/* Adjustments to the profile image to fit in the new top row */
-.member-detail-profile-image {
-    width: 80px; /* Keep size */
-    height: 80px; /* Keep size */
-    border-radius: 4px; /* MODIFIED: Change to a small radius for a slightly rounded square/rectangle */
-    object-fit: cover; /* Keep existing */
-    border: 3px solid #00a8ff; /* Keep existing */
-    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Keep existing */
-    flex-shrink: 0; /* Keep existing */
-    margin: 0 10px; /* Keep existing */
-}
-
-.member-detail-name-id {
-    font-size: 1.4em; /* Larger font for name */
-    font-weight: bold;
-    color: #e0a71a; /* Gold color for name */
-    margin-top: 5px; /* Space above name  image is first */
-}
-
-
-/* Common style for info paragraphs (Last Action, Status) */
-.member-detail-info-paragraph {
-    font-size: 0.95em;
-    color: #f0f0f0;
-    margin: 5px 0; /* Space above and below paragraphs */
-    text-align: center; /* Center these info lines */
-}
-
-/* Status specific colors (re-using existing, ensure these apply to new classes) */
-.member-detail-info-paragraph .status-hospital { color: #ff5c5c; font-weight: bold; }
-.member-detail-info-paragraph .status-traveling { color: #17a2b8; font-weight: bold; }
-.member-detail-info-paragraph .status-other { color: #ffb86c; font-weight: bold; }
-.member-detail-info-paragraph .status-okay { color: #28a745; font-weight: bold; }
-
-
-/* Container for Energy/Nerve (side-by-side) and Battle/Work Stats (side-by-side) */
-.member-stats-group-row {
-    display: flex;
-    gap: 15px; /* Space between the side-by-side blocks */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: center; /* Center groups if they wrap */
-}
-
-/* Individual Stat Blocks (Energy, Nerve, Battle Stats, Work Stats) */
-.member-stat-block {
-    background-color: #1e1e1e; /* Darker background for stat blocks */
-    border: 1px solid #3a3a3a; /* Darker border */
-    border-radius: 6px;
-    padding: 10px;
-    flex: 1; /* Allow blocks to grow and shrink */
-    min-width: 130px; /* Minimum width for small blocks like Energy/Nerve */
-    max-width: 48%; /* Adjust max-width to allow two columns on wider screens */
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 5px; /* Space between elements inside the block */
-}
-
-.member-stat-block h5 {
-    color: #00a8ff; /* Blue for titles like "Battle Stats" */
-    font-size: 1.1em;
-    margin: 0 0 8px 0; /* Space below title */
-    text-align: center; /* Center the title */
-    border-bottom: 1px solid #3a3a3a; /* Separator below title */
-    padding-bottom: 5px;
-}
-
-/* Styles for the inner grid of battle/work stats (label-value pairs) */
-.member-stats-grid { /* Re-using your existing class */
-    display: grid;
-    grid-template-columns: auto 1fr; /* Label auto-width, value takes rest */
-    gap: 3px 10px; /* Row gap 3px, Column gap 10px */
-    font-size: 0.9em;
-}
-
-.member-stats-grid span:first-child { /* Labels (Strength:, Speed:, etc.) */
-    color: #aaa; /* Lighter color for labels */
-    text-align: left; /* Align labels to the left */
-}
-
-.member-stats-grid span:last-child { /* Values (123,456) */
-    color: #f0f0f0; /* White color for values */
-    font-weight: bold;
-    text-align: right; /* Align values to the right */
-}
-
-/* Cooldowns Section */
-.member-cooldowns-block {
-    background-color: #1e1e1e;
-    border: 1px solid #3a3a3a;
-    border-radius: 6px;
-    padding: 10px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Space between title and list */
-}
-
-.member-cooldowns-block h5 {
-    color: #00a8ff; /* Blue for cooldowns title */
-    font-size: 1.1em;
-    margin: 0;
-    text-align: center; /* Center the title */
-}
-
-/* Cooldowns List (3 columns) */
-.member-cooldowns-list {
-    list-style: none; /* Remove bullet points */
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 3 columns, responsive */
-    gap: 8px 10px; /* Vertical and horizontal gap */
-    font-size: 0.85em;
-    text-align: center; /* Center individual cooldown items */
-}
-
-.member-cooldowns-list li {
-    background-color: #333; /* Background for individual cooldown item */
-    padding: 6px 8px;
-    border-radius: 4px;
-    border: 1px solid #555;
-    white-space: nowrap; /* Prevent item text from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if too long */
-}
-
-/* Responsive adjustments for the detail panel */
-@media (max-width: 768px) {
-    .member-stats-group-row {
-        flex-direction: column; /* Stack stat groups vertically on smaller screens */
-        gap: 10px;
-    }
-    .member-stat-block {
-        max-width: 100%; /* Take full width when stacked */
-    }
-    .member-cooldowns-list {
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Adjust columns for smaller screens */
-    }
-}
 /* Style for matched text */
 .autocomplete-items strong {
     color: #e0a71a; /* Gold color for matched text */
@@ -1981,31 +1600,21 @@ autocomplete-items {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px; /* Space between elements */
+    gap: 15px;
     
     width: 100%;
     max-width: 900px;
     margin: 20px auto;
-    padding: 20px; /* Comfortable padding */
+    padding: 15px;
     
-    background-color: #1c1c1c; /* Very dark almost black */
-    border: 2px solid #3a3a3a; /* Dark gray border */
+    background-color: #2a2a2a;
+    border: 1px solid #444;
     border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 0 8px rgba(0, 0, 0, 0.4); /* Deep, layered shadow */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     
-    box-sizing: border-box;
-    font-size: 1.2em; /* Makes all text content slightly larger */
-    font-weight: bold; /* Makes all text content bolder */
-    color: #e0e0e0; /* Off-white text */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Subtle text shadow for depth */
-    transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
+    box-sizing: border-box; /* ADD THIS LINE */
 }
 
-.faction-versus-section:hover {
-    transform: translateY(-3px) scale(1.01); /* Slight lift and subtle enlargement on hover */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 168, 255, 0.4); /* Stronger shadow with a blue glow */
-    border-color: #00a8ff; /* Highlight border with blue */
-}
 .ops-chain-score .score-faction-name {
     font-size: 0.8em;
     color: #f0f0f0; /* Light text for names */
