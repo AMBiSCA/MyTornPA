@@ -1,3 +1,5 @@
+
+
 // --- Global Variables ---
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -12,33 +14,13 @@ let globalChainStartedTimestamp = 0; // Stores the actual chain start time from 
 let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
 let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
 let globalRankedWarData = null;
-let globalWarStartedActualTime = 0; // Stores the war start timestamp for live relative update
-let unsubscribeFromChat = null; 
+let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
+let unsubscribeFromChat = null; // <--- PASTE IT HERE
 let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
-let currentPrivateChatRecipientId = null;
-let currentPrivateChatRecipientName = null;
-let globalNonChatContentPanel = null;
-
-// NEW: Declare chat panel related DOM elements with 'let' globally, assigned in DOMContentLoaded
-let chatTabsContainer = null;
-let chatTabButtons = null;
-let warChatBox = null;
-let chatDisplayArea = null;
-let chatInputArea = null;
-let chatContentPanels = null; 
-let factionChatPanel = null;
-let privateChatPanel = null;
-let friendsPanel = null;
-let factionMembersPanel = null;
-let recentlyMetPanel = null;
-let blockedPeoplePanel = null;
-let settingsPanel = null;
-let privateMessagesContainer = null;
 
 
 // --- DOM Element Getters ---
-// These are elements that can typically be retrieved immediately without issue, or are general.
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
 const warEnlistedStatus = document.getElementById('warEnlistedStatus');
@@ -84,15 +66,18 @@ const warStartedTime = document.getElementById('warStartedTime');
 const yourFactionNameScoreLabel = document.getElementById('yourFactionNameScoreLabel');
 const opponentFactionNameScoreLabel = document.getElementById('opponentFactionNameScoreLabel');
 const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
+const chatDisplayArea = document.getElementById('chat-display-area');
 const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
+const chatTabsContainer = document.querySelector('.chat-tabs-container');
+const chatTabButtons = document.querySelectorAll('.chat-tab'); // For the individual tab buttons
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
 const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
-const MAX_MESSAGES_VISIBLE = 7;
-const REMOVAL_DELAY_MS = 500;
-const memberProfileCache = {};
-const FETCH_DELAY_MS = 500;
-const pmSendBtn = document.getElementById('pmSendBtn'); // Add this here, as it was in previous code.
+const chatInputArea = document.querySelector('.chat-input-area');
+const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be visible at a time
+const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
+const memberProfileCache = {}; // Cache for storing fetched member profile images
+const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
 
 
 // --- Utility Functions ---
@@ -188,13 +173,11 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 }
 
 // NEW: Function to handle switching chat tabs (now hides input area for Settings)
-// NEW/MODIFIED: Function to handle switching chat tabs (now handles private chat display and listeners)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
 
-    // Ensure main chat display and input area elements are available
-    if (!chatDisplayArea || !chatInputArea) {
-        console.error("Chat display area or input area elements not found for tab switching.");
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels || !chatInputArea) { // Added chatInputArea check
+        console.error("Chat elements not found for tab switching or content panels, or input area.");
         return;
     }
 
@@ -203,6 +186,18 @@ function switchChatTab(tabName) {
         button.classList.remove('active');
     });
 
+    // Hide all chat content panels
+    chatContentPanels.querySelectorAll('.chat-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+
+    // Unsubscribe from any active real-time chat listener by default when switching tabs
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous chat listener (tab switch).");
+    }
+
     // Add 'active' class to the clicked tab button
     const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
     if (selectedChatTabButton) {
@@ -210,156 +205,76 @@ function switchChatTab(tabName) {
         selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
     }
 
-    // Unsubscribe from ANY active real-time chat listener (faction or private) when switching tabs
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-        console.log("Unsubscribed from previous chat listener (tab switch).");
-    }
+    // Show the selected content panel and perform tab-specific actions
+    let targetChatPanel = null;
+    let targetDisplayArea = null;
+    let showInputArea = true; // Default to showing input area
 
-    // Determine target content area for non-chat tabs (re-using your existing dynamic panel logic)
-    let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
-    if (nonChatContentPanel) {
-        nonChatContentPanel.remove(); // Remove old dynamic panel content
-    }
-
-    // Control visibility of the main chat box and input area
-    if (tabName === 'faction-chat' || tabName === 'private-chat') {
-        if (warChatBox) warChatBox.classList.remove('hide-content'); // Show main chat box
-        if (chatInputArea) chatInputArea.style.display = 'flex'; // Show input area
-        chatDisplayArea.innerHTML = ''; // Clear chat display for the new chat
-    } else {
-        if (warChatBox) warChatBox.classList.add('hide-content'); // Hide main chat box
-        if (chatInputArea) chatInputArea.style.display = 'none'; // Hide input area
-
-        // Create and append the dynamic content panel for non-chat tabs
-        nonChatContentPanel = document.createElement('div');
-        nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
-        nonChatContentPanel.className = 'chat-dynamic-panel';
-        nonChatContentPanel.style.position = 'absolute';
-        nonChatContentPanel.style.top = '40px';
-        nonChatContentPanel.style.left = '0';
-        nonChatContentPanel.style.right = '0';
-        nonChatContentPanel.style.bottom = '0';
-        nonChatContentPanel.style.backgroundColor = '#1a1a1a';
-        nonChatContentPanel.style.padding = '10px';
-        nonChatContentPanel.style.overflowY = 'auto';
-        nonChatContentPanel.style.color = '#f0f0f0';
-        nonChatContentPanel.style.boxSizing = 'border-box';
-        // Ensure warChatBox.parentNode exists before appending
-        if (warChatBox && warChatBox.parentNode) {
-            warChatBox.parentNode.appendChild(nonChatContentPanel);
-        } else {
-            console.error("warChatBox or its parent not found, cannot append dynamic panel.");
-            return;
-        }
-    }
-
-    // Handle content based on selected tab
     switch (tabName) {
         case 'faction-chat':
-            // The `chatDisplayArea` is already prepared above
-            setupChatRealtimeListener(); // This function now directly controls `chatDisplayArea` content
+            targetChatPanel = factionChatPanel;
+            setupChatRealtimeListener();
             break;
-
-        case 'private-chat':
-            if (!currentPrivateChatRecipientId || !currentPrivateChatRecipientName) {
-                chatDisplayArea.innerHTML = `
-                    <p style="text-align: center; margin-top: 20px;">
-                        Please select a member from the 'Faction Members' tab to start a private chat.
-                    </p>`;
-                if (chatInputArea) chatInputArea.style.display = 'none'; // Hide input if no recipient
-            } else {
-                chatDisplayArea.innerHTML = `
-                    <h4 class="private-chat-recipient-header">Private chat with: <span>${currentPrivateChatRecipientName}</span></h4>
-                    <div id="privateMessagesContainer" class="chat-messages-container"></div>
-                `;
-                if (chatInputArea) chatInputArea.style.display = 'flex'; // Show input
-
-                const privateMessagesContainer = document.getElementById('privateMessagesContainer');
-
-                if (privateMessagesContainer && currentTornPlayerId) {
-                    const participantIds = [String(currentTornPlayerId), String(currentPrivateChatRecipientId)].sort();
-                    const chatRoomId = participantIds.join('_'); // e.g., "12345_67890"
-
-                    // Set up real-time listener for the private chat room
-                    unsubscribeFromChat = db.collection('privateChats').doc(chatRoomId).collection('messages')
-                        .orderBy('timestamp', 'asc')
-                        .limit(100) // Limit to last 100 messages
-                        .onSnapshot(snapshot => {
-                            if (privateMessagesContainer) privateMessagesContainer.innerHTML = ''; // Clear for fresh display
-                            if (snapshot.empty) {
-                                privateMessagesContainer.innerHTML = `<p>No messages yet with ${currentPrivateChatRecipientName}. Say hello!</p>`;
-                            } else {
-                                snapshot.forEach(doc => {
-                                    const message = doc.data();
-                                    displayChatMessage(message, privateMessagesContainer); // Use flexible displayChatMessage
-                                });
-                                privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight; // Scroll to bottom
-                            }
-                            console.log(`Private chat messages for room ${chatRoomId} updated in real-time.`);
-                        }, error => {
-                            console.error("Error listening to private chat messages:", error);
-                            if (privateMessagesContainer) privateMessagesContainer.innerHTML = `<p style="color: red;">Error loading private messages: ${error.message}</p>`;
-                        });
-                } else {
-                    console.error("Cannot set up private chat listener: Private messages container or currentTornPlayerId is missing.");
-                }
-            }
-            break;
-
         case 'faction-members':
-            // nonChatContentPanel is created and appended above if not 'faction-chat' or 'private-chat'
-            console.log("[Chat Tab Debug] Faction Members tab selected - calling displayFactionMembersInChatTab.");
+            targetChatPanel = factionMembersPanel;
+            targetDisplayArea = factionMembersDisplayArea;
             if (factionApiFullData && factionApiFullData.members) {
-                displayFactionMembersInChatTab(factionApiFullData.members, nonChatContentPanel);
-            } else {
-                if (nonChatContentPanel) nonChatContentPanel.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+                displayFactionMembersInChatTab(factionApiFullData.members);
+            } else if (targetDisplayArea) {
+                targetDisplayArea.innerHTML = `<p>Loading faction member data...</p>`;
             }
             break;
-
+        case 'private-chat':
+            targetChatPanel = privateChatPanel;
+            targetDisplayArea = privateChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            break;
         case 'friends':
-        case 'recently-met':
-        case 'blocked-people':
-        case 'settings':
-            // nonChatContentPanel is already prepared and appended above
-            if (nonChatContentPanel) {
-                if (tabName === 'settings') {
-                    nonChatContentPanel.innerHTML = `
-                        <div class="chat-settings-panel">
-                            <h3>Chat Settings</h3>
-                            <div class="setting-item">
-                                <label for="chatFontSize">Font Size:</label>
-                                <select id="chatFontSize">
-                                    <option value="small">Small</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="large">Large</option>
-                                </select>
-                            </div>
-                            <div class="setting-item">
-                                <label for="notificationToggle">Notifications:</label>
-                                <input type="checkbox" id="notificationToggle" checked>
-                            </div>
-                            <div class="setting-item">
-                                <label for="themeSelect">Chat Theme:</label>
-                                <select id="themeSelect">
-                                    <option value="dark">Dark</option>
-                                    <option value="light">Light (Coming Soon)</option>
-                                </select>
-                            </div>
-                            <button class="save-settings-btn">Save Settings</button>
-                        </div>
-                    `;
-                } else {
-                    nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${tabName.replace('-', ' ')}" will go here.</p>`;
-                }
-            }
+            targetChatPanel = friendsPanel;
+            targetDisplayArea = friendsChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Friends Chat! Functionality not implemented yet.</p>`;
             break;
-
+        case 'recently-met':
+            targetChatPanel = recentlyMetPanel;
+            targetDisplayArea = recentlyMetDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Recently Met! Functionality not implemented yet.</p>`;
+            break;
+        case 'blocked-people':
+            targetChatPanel = blockedPeoplePanel;
+            targetDisplayArea = blockedPeopleDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
+            break;
+        case 'settings':
+            targetChatPanel = settingsPanel;
+            targetDisplayArea = settingsDisplayArea;
+            if (targetDisplayArea) {
+                targetDisplayArea.innerHTML = `
+                    <h4>Chat Settings</h4>
+                    <p><i>Settings functionality not yet implemented.</i></p>
+                    <p>Options for chat sound, notifications, font size, etc., would go here.</p>
+                `;
+            }
+            showInputArea = false; // Hide input area for Settings tab
+            break;
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            if (factionChatDisplayArea) {
+                factionChatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            }
             break;
+    }
+
+    if (targetChatPanel) {
+        targetChatPanel.classList.add('active'); // Show the selected panel
+    } else {
+        console.error(`No chat panel found for tab: ${tabName}`);
+    }
+
+    // Control visibility of the chat input area
+    if (showInputArea) {
+        chatInputArea.style.display = 'flex'; // Show input area (default flex)
+    } else {
+        chatInputArea.style.display = 'none'; // Hide input area
     }
 }
 // NEW: Helper function to format time remaining from seconds (Moved for proper scope)
@@ -435,18 +350,28 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 // REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
+// REPLACE YOUR ENTIRE EXISTING 'fetchAndDisplayRankedWarScores' FUNCTION WITH THIS ONE
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
-    // Debugging logs
+    // NEW: Debugging logs to check condition variables
     console.log("DEBUG_RANKED_FINAL: Calling fetchAndDisplayRankedWarScores");
     console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
-    console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars.ranked (object being checked):", factionApiFullData && factionApiFullData.wars ? factionApiFullData.wars.ranked : 'Path not found: wars.ranked');
+    // URGENTLY CORRECTED: Logging the exact path requested by the user
+    console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars.ranked.faction (as urgently requested):", factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked ? factionApiFullData.wars.ranked.faction : 'Path not found: wars.ranked.faction');
+    console.log("DEBUG_RANKED_FINAL: factionApiFullData.ID:", factionApiFullData ? factionApiFullData.ID : 'N/A');
 
-    const rankedWarObject = factionApiFullData?.wars?.ranked || null; // Use const here as it's a single assignment
+    // URGENTLY CORRECTED: Primary data source now uses the user-specified path: factionApiFullData.wars.ranked.faction
+    let activeWar = null; // Renamed from rankedWarData to activeWar directly based on new path assumption
+    // Check for the full path factionApiFullData.wars.ranked.faction before proceeding
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked && factionApiFullData.wars.ranked.faction) { 
+        activeWar = factionApiFullData.wars.ranked.faction; // Directly assign the assumed war object
+    } else {
+        console.warn("Ranked War Data (factionApiFullData.wars.ranked.faction) not available or path incorrect. Defaulting to 'N/A' display.");
+    }
     
-    // Condition now correctly checks if 'rankedWarObject' is populated and if it has the expected war details and factions array
-    if (!rankedWarObject || !rankedWarObject.war_id || !rankedWarObject.factions || rankedWarObject.factions.length < 2 || !factionApiFullData?.ID) {
-        console.warn("Ranked War Data not fully available or structure incorrect. Defaulting to 'N/A' display.");
+    // Condition now checks if 'activeWar' (from the new direct path) is populated and if it has the expected war/factions structure
+    if (!factionApiFullData || !factionApiFullData.wars || !factionApiFullData.wars.ranked || !factionApiFullData.wars.ranked.faction || !factionApiFullData.ID || !activeWar.factions || !activeWar.war) { 
+        console.warn("Ranked War Data not fully available (condition failed based on 'wars.ranked.faction' property or its content).");
         // Reset display if data is missing
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
@@ -458,39 +383,44 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     }
 
     try {
-        console.log("Ranked War API Data (from factionApiFullData.wars.ranked):", rankedWarObject); // Log the data being used
+        console.log("Ranked War API Data (from assumed factionApiFullData.wars.ranked.faction):", activeWar); // Log the data being used
 
+        // No loop needed, as 'activeWar' is assumed to be the direct war object now
         const yourFactionId = factionApiFullData.ID; // Get our faction ID from full data
 
-        const yourFactionInfo = rankedWarObject.factions.find(f => f.id === yourFactionId);
-        const opponentFactionInfo = rankedWarObject.factions.find(f => f.id !== yourFactionId);
+        // Now activeWar is directly the war object that contains factions and war details
+        if (activeWar.factions && activeWar.war && activeWar.factions[yourFactionId]) {
+            const opponentFactionId = Object.keys(activeWar.factions).find(id => id !== String(yourFactionId));
+            const yourFactionInfo = activeWar.factions[yourFactionId];
+            const opponentFactionInfo = activeWar.factions[opponentFactionId];
 
-        if (!yourFactionInfo || !opponentFactionInfo) {
-            console.warn("Could not find your faction or opponent faction info within ranked war data.");
+            // Update HTML elements
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score || 'N/A' : 'N/A';
+            if (yourFactionNameScoreLabel && yourFactionInfo) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
+
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score || 'N/A' : 'N/A';
+            if (opponentFactionNameScoreLabel && opponentFactionInfo) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
+
+            if (warTargetScore) warTargetScore.textContent = activeWar.war.target || 'N/A';
+            // Store globalWarStartedActualTime for updateAllTimers
+            globalWarStartedActualTime = activeWar.war.start || 0;
+            // warStartedTime.textContent will be handled by updateAllTimers for live relative display
+            
+
+        } else {
+            // Data structure not as expected within the activeWar object or our faction not found
+            console.warn("Active war data structure within 'wars.ranked.faction' not as expected or our faction not a participant.");
             if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
             if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
             if (warTargetScore) warTargetScore.textContent = 'N/A';
+            globalWarStartedActualTime = 0; 
             if (warStartedTime) warStartedTime.textContent = 'N/A';
             if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
             if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
-            return;
         }
 
-        // Update HTML elements
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score?.toLocaleString() || 'N/A' : 'N/A';
-        if (yourFactionNameScoreLabel && yourFactionInfo) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
-
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score?.toLocaleString() || 'N/A' : 'N/A';
-        if (opponentFactionNameScoreLabel && opponentFactionInfo) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
-
-        if (warTargetScore) warTargetScore.textContent = rankedWarObject.target?.toLocaleString() || 'N/A';
-        
-        // Store globalWarStartedActualTime for updateAllTimers
-        globalWarStartedActualTime = rankedWarObject.start || 0;
-        // warStartedTime.textContent will be handled by updateAllTimers for live relative display
-        
     } catch (error) {
-        console.error("Error processing ranked war data:", error);
+        console.error("Error processing ranked war data from factionApiFullData.wars.ranked.faction:", error);
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
         if (warTargetScore) warTargetScore.textContent = 'Error';
@@ -499,8 +429,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-// >>> END REPLACE fetchAndDisplayRankedWarScores <<<
-// >>> END REPLACE fetchAndDisplayRankedWarScores <<<
+
  function updateAllTimers() {
  console.count('updateAllTimers called');
  const nowInSeconds = Math.floor(Date.now() / 1000);
@@ -626,32 +555,33 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 // ... (Your existing Utility Functions, e.g., formatTime, formatTornTime, filterProfanity if present) ...
 
 // NEW: Function to display a message in the chat area
-// MODIFIED: Function to display a message in the chat area (now accepts an optional container)
-function displayChatMessage(messageObj, containerElement = chatDisplayArea) { // Defaults to chatDisplayArea
-    if (!containerElement) {
-        console.error("Chat display area container not found in displayChatMessage function.");
+function displayChatMessage(messageObj) {
+    if (!chatDisplayArea) {
+        console.error("Chat display area not found in displayChatMessage function.");
         return;
     }
 
     const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message'); // Add a class for styling messages
+    messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
 
-    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function'
-        ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+   const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
+                  ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback if timestamp is missing or not a Firebase Timestamp
     const senderName = messageObj.sender || 'Unknown';
     const messageText = messageObj.text || '';
 
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[${timestamp}]</span>
-        <span class="chat-sender">${senderName}:</span>
-        <span class="chat-text">${messageText}</span>
-    `;
-    containerElement.appendChild(messageElement);
+    // Basic structure for a chat message
+  messageElement.innerHTML = `
+    <span class="chat-timestamp">[${timestamp}]</span>
+    <span class="chat-sender">${senderName}:</span>
+    <span class="chat-text">${messageText}</span>
+`;
+    chatDisplayArea.appendChild(messageElement);
 
     // Automatically scroll to the bottom of the chat to show the latest message
-    containerElement.scrollTop = containerElement.scrollHeight;
+    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
+
 function manageChatMessages() {
     if (!chatMessagesDisplay) {
         console.error("Chat display area not found. Cannot manage messages.");
@@ -1174,237 +1104,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
     }
 }
-async function populateUiComponents(warData, apiKey, rankedWarData) { // rankedWarData is now passed in
-    // Basic Faction Info (from global factionApiFullData)
-    if (factionApiFullData) {
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
-        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
-        // This block now populates checkboxes AND the new friendly members table
-        if (factionApiFullData.members) {
-            populateFriendlyMemberCheckboxes(
-                factionApiFullData.members,
-                warData.tab4Admins || [],
-                warData.energyTrackingMembers || []
-            );
-            
-            // --- NEW LINE ADDED HERE ---
-            displayFriendlyMembersTable(factionApiFullData.members);
-
-        } else {
-            console.warn("factionApiFullData.members not available for friendly member checkboxes.");
-            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
-        }
-    } else {
-        console.warn("factionApiFullData not available in populateUiComponents.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
-        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
-    }
-    
-    // Game Plan & Announcements (from Firebase warData)
-    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
-    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
-    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
-
-    populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData); // Uses warData (Firebase)
-
-    // Store enemy faction ID globally (from Firebase warData)
-    globalEnemyFactionID = warData.enemyFactionID || null;
-
-    // Display enemy targets table (still needs enemyData via separate fetch)
-    if (warData.enemyFactionID) {
-        fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []);
-        displayEnemyTargetsTable(null); // This clears the table
-    }
-
-    // --- NEW LINE: Call to display live ranked war status ---
-    // This will display the actual ranked war details in the "Active Ops" tab
-    displayLiveWarStatus(rankedWarData, factionApiFullData.ID);
-}
-
-// >>> REPLACE YOUR ENTIRE EXISTING 'populateUiComponents' FUNCTION WITH THE CODE ABOVE <<<
-
-
-// >>> ADD THIS NEW FUNCTION BELOW YOUR EXISTING FUNCTIONS (e.g., after populateWarStatusDisplay) <<<
-// NEW: Function to display the live ranked war status (in Active Ops tab)
-async function displayLiveWarStatus(rankedWarData, yourFactionId) {
-    const activeOpsTab = document.getElementById('active-ops-tab'); // The container for Active Ops tab
-    let warStatusLiveDisplayElement = document.getElementById('warStatusLiveDisplay');
-
-    if (!activeOpsTab) {
-        console.error("HTML Error: Active Ops tab container not found!");
-        return;
-    }
-
-    // Create the war status display container if it doesn't exist
-    if (!warStatusLiveDisplayElement) {
-        warStatusLiveDisplayElement = document.createElement('div');
-        warStatusLiveDisplayElement.id = 'warStatusLiveDisplay';
-        warStatusLiveDisplayElement.classList.add('war-status-live-display');
-        
-        // Insert it right after the ops-controls-grid
-        const opsControlsGrid = document.querySelector('#active-ops-tab .ops-controls-grid');
-        if (opsControlsGrid) {
-            opsControlsGrid.parentNode.insertBefore(warStatusLiveDisplayElement, opsControlsGrid.nextSibling);
-        } else {
-            activeOpsTab.prepend(warStatusLiveDisplayElement); // As a fallback, add to the top
-        }
-    }
-
-    // Clear previous content
-    warStatusLiveDisplayElement.innerHTML = '';
-
-    if (!rankedWarData || !rankedWarData.factions || rankedWarData.factions.length < 2) {
-        warStatusLiveDisplayElement.innerHTML = `
-            <div class="war-status-message">Your Faction is NOT currently in a Ranked War.</div>
-            <div class="war-countdown-display">No active or upcoming ranked war detected.</div>
-        `;
-        return;
-    }
-
-    const yourFactionInfo = rankedWarData.factions.find(f => f.id === yourFactionId);
-    const opponentFactionInfo = rankedWarData.factions.find(f => f.id !== yourFactionId);
-
-    if (!yourFactionInfo || !opponentFactionInfo) {
-        warStatusLiveDisplayElement.innerHTML = `
-            <div class="war-status-message">Could not determine factions for Ranked War.</div>
-            <div class="war-countdown-display">Error in faction data.</div>
-        `;
-        return;
-    }
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    const warStartTime = rankedWarData.start;
-    const warEndTime = rankedWarData.end;
-
-    let warStatusMessage = '';
-    let countdownOrUp = '';
-    let isWarActive = false;
-    let isWarConcluded = false;
-
-    if (warEndTime === null && warStartTime > nowSeconds) {
-        warStatusMessage = 'UPCOMING WAR!';
-        countdownOrUp = `War Starts In: ${formatTimeHMS(warStartTime - nowSeconds)}`; // Custom format without 's'
-    } else if (warEndTime === null && warStartTime <= nowSeconds) {
-        warStatusMessage = 'ACTIVE RANKED WAR!';
-        countdownOrUp = `War Active For: ${formatTimeHMS(nowSeconds - warStartTime)}`; // Count up
-        isWarActive = true;
-    } else if (warEndTime !== null && warEndTime > nowSeconds) {
-        warStatusMessage = 'ACTIVE RANKED WAR!'; // War is active and has a set end time
-        countdownOrUp = `War Ends In: ${formatTimeHMS(warEndTime - nowSeconds)}`; // Count down to end
-        isWarActive = true;
-    } else if (warEndTime !== null && warEndTime <= nowSeconds) {
-        warStatusMessage = 'RANKED WAR CONCLUDED!';
-        countdownOrUp = `War Ended: ${formatTimeHMS(nowSeconds - warEndTime)} ago`; // Count up since end
-        isWarConcluded = true;
-    }
-
-
-    // Calculate progress for the bar
-    let yourScore = yourFactionInfo.score || 0;
-    let opponentScore = opponentFactionInfo.score || 0;
-    let totalScore = yourScore + opponentScore;
-    let yourPercentage = totalScore > 0 ? (yourScore / totalScore) * 100 : 50; // Default to 50% if no score
-    let opponentPercentage = 100 - yourPercentage;
-
-    let winnerColorClass = '';
-    if (isWarActive || isWarConcluded) {
-        if (yourScore > opponentScore) {
-            winnerColorClass = 'winner-left'; // CSS class for winning side color
-        } else if (opponentScore > yourScore) {
-            winnerColorClass = 'winner-right'; // CSS class for winning side color
-        }
-    }
-
-
-    warStatusLiveDisplayElement.innerHTML = `
-        <div class="war-status-message">${warStatusMessage}</div>
-        
-        <div class="war-factions-display">
-            <div class="war-faction-info">
-                <div class="war-faction-name">${yourFactionInfo.name || 'Your Faction'}</div>
-                <div class="war-faction-score">Score: ${yourScore.toLocaleString()}</div>
-                <div class="war-faction-chain">Chain: ${yourFactionInfo.chain?.toLocaleString() || 'N/A'}</div>
-            </div>
-            <div class="war-vs-text">- VS -</div>
-            <div class="war-faction-info">
-                <div class="war-faction-name">${opponentFactionInfo.name || 'Opponent'}</div>
-                <div class="war-faction-score">Score: ${opponentScore.toLocaleString()}</div>
-                <div class="war-faction-chain">Chain: ${opponentFactionInfo.chain?.toLocaleString() || 'N/A'}</div>
-            </div>
-        </div>
-
-        <div class="war-progress-bar-container">
-            <div class="war-progress-bar-fill ${winnerColorClass}" style="width: ${yourPercentage}%;"></div>
-            <div class="war-progress-bar-text">
-                <span><span class="score-label">Your Score:</span> ${yourScore.toLocaleString()}</span>
-                <span><span class="score-label">Opponent:</span> ${opponentScore.toLocaleString()}</span>
-            </div>
-        </div>
-
-        <div class="war-countdown-display" id="liveWarCountdownDisplay">${countdownOrUp}</div>
-    `;
-
-    // Initialize/Update the countdown timer for the war
-    // This will run every second
-    if (!isWarConcluded) {
-        const updateWarTimer = () => {
-            const now = Math.floor(Date.now() / 1000);
-            let timeRemaining = 0;
-            let displayMessage = '';
-
-            if (warEndTime === null && warStartTime > now) { // Upcoming
-                timeRemaining = warStartTime - now;
-                displayMessage = `War Starts In: ${formatTimeHMS(timeRemaining)}`;
-            } else if (warEndTime === null && warStartTime <= now) { // Active, no end time
-                timeRemaining = now - warStartTime; // Time since start
-                displayMessage = `War Active For: ${formatTimeHMS(timeRemaining)}`;
-            } else if (warEndTime !== null && warEndTime > now) { // Active, with end time
-                timeRemaining = warEndTime - now;
-                displayMessage = `War Ends In: ${formatTimeHMS(timeRemaining)}`;
-            } else { // Concluded
-                timeRemaining = now - warEndTime;
-                displayMessage = `War Ended: ${formatTimeHMS(timeRemaining)} ago`;
-                clearInterval(warTimerInterval); // Stop interval
-            }
-            if (warStatusLiveDisplayElement) {
-                const countdownEl = warStatusLiveDisplayElement.querySelector('#liveWarCountdownDisplay');
-                if (countdownEl) countdownEl.textContent = displayMessage;
-            }
-        };
-
-        // Clear any existing interval to prevent multiple timers running
-        if (window.warTimerInterval) clearInterval(window.warTimerInterval);
-        window.warTimerInterval = setInterval(updateWarTimer, 1000); // Update every second
-        updateWarTimer(); // Call immediately to avoid 1-second delay on first render
-    } else {
-        // Ensure interval is cleared if war is already concluded
-        if (window.warTimerInterval) clearInterval(window.warTimerInterval);
-    }
-}
-
-// NEW: Helper function to format time (Hours, Minutes, without Seconds)
-function formatTimeHMS(totalSeconds) {
-    if (totalSeconds < 0) totalSeconds = 0; // Ensure no negative time
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    // const seconds = totalSeconds % 60; // Removed seconds as requested
-
-    let parts = [];
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0 || hours > 0) parts.push(`${minutes}m`); // Always show minutes if hours are shown or minutes are present
-    // if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`); // Show seconds if nothing else, or if > 0
-
-    return parts.length > 0 ? parts.join(' ') : '0m'; // Default to '0m' if totalSeconds is 0
-}
 
 
 function formatRelativeTime(timestampInSeconds) {
@@ -1458,15 +1158,10 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-async function initializeAndLoadData(apiKey, yourFactionId) { // Added yourFactionId parameter
-    if (!apiKey || !yourFactionId) {
-        console.warn("API Key or Faction ID is missing for initializeAndLoadData.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID';
-        return;
-    }
+async function initializeAndLoadData(apiKey) {
     try {
-        // MODIFIED: Explicitly including the factionId in the URL path as requested
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${yourFactionId}?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
         console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
@@ -1476,24 +1171,18 @@ async function initializeAndLoadData(apiKey, yourFactionId) { // Added yourFacti
             throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
         }
 
-        factionApiFullData = await userFactionApiData.json(); // Data from your faction's API call
+        factionApiFullData = await userFactionResponse.json();
         console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            // Specific handling for API errors like invalid key (error code 2, 10) or access denied (code 11)
-            if (factionApiFullData.error.code === 2 || factionApiFullData.error.code === 10 || factionApiFullData.error.code === 11) {
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `API Error: ${factionApiFullData.error.error}`;
-                alert(`Torn API Error: ${factionApiFullData.error.error}. Please check your API key and permissions.`);
-            }
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
         // Pass warData and apiKey to populateUiComponents
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        // Pass factionApiFullData.wars.ranked directly to populateUiComponents
-        populateUiComponents(warData, apiKey, factionApiFullData.wars.ranked || null); // Pass ranked war data
+        populateUiComponents(warData, apiKey); // Pass warData and apiKey
 
     } catch (error) {
         console.error("Error during comprehensive data initialization:", error);
@@ -1510,8 +1199,7 @@ async function initializeAndLoadData(apiKey, yourFactionId) { // Added yourFacti
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-// >>> END REPLACE initializeAndLoadData <<<
-// >>> END REPLACE initializeAndLoadData <<<
+
       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
@@ -1637,95 +1325,6 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
-async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
-    if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for faction members list.");
-        return;
-    }
-
-    targetDisplayElement.innerHTML = `<p>Loading faction members details...</p>`;
-
-    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
-        targetDisplayElement.innerHTML = `<p>No faction members found.</p>`;
-        return;
-    }
-
-    const membersArray = Object.values(factionMembersApiData);
-
-    const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
-    membersArray.sort((a, b) => {
-        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
-        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
-        if (orderA !== orderB) { return orderA - orderB; }
-        return a.name.localeCompare(b.name);
-    });
-
-    const fetchPromises = [];
-
-    const membersListContainer = document.createElement('div');
-    membersListContainer.classList.add('members-list-container');
-    targetDisplayElement.innerHTML = '';
-    targetDisplayElement.appendChild(membersListContainer);
-
-    for (const member of membersArray) {
-        const tornPlayerId = member.id;
-        const memberName = member.name;
-        const memberRank = member.position;
-
-        const memberItemDiv = document.createElement('a');
-        memberItemDiv.href = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
-        memberItemDiv.target = '_blank';
-        memberItemDiv.rel = 'noopener noreferrer';
-        memberItemDiv.classList.add('member-item');
-        if (memberRank === "Leader" || memberRank === "Co-leader") {
-            memberItemDiv.classList.add('leader-member');
-        }
-
-        memberItemDiv.innerHTML = `
-            <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
-            <span class="member-name">${memberName}</span>
-            <span class="member-rank">${memberRank}</span>
-        `;
-        membersListContainer.appendChild(memberItemDiv);
-
-        // ADD THIS CLICK LISTENER TO EACH MEMBER ITEM
-        memberItemDiv.addEventListener('click', (event) => {
-            event.preventDefault(); // Prevent opening the Torn profile link directly
-            console.log(`[PM Select] Selected ${memberName} (${tornPlayerId}) for private chat.`);
-            currentPrivateChatRecipientId = tornPlayerId;
-            currentPrivateChatRecipientName = memberName;
-            switchChatTab('private-chat'); // Switch to the private chat tab
-        });
-
-        if (db) {
-            fetchPromises.push((async () => {
-                try {
-                    const docRef = db.collection('users').doc(String(tornPlayerId));
-                    const docSnap = await docRef.get();
-
-                    console.log(`[Firestore Debug] For member ${tornPlayerId}, docSnap.exists: ${docSnap.exists}`);
-
-                    if (docSnap.exists) {
-                        const firebaseMemberData = docSnap.data();
-                        const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                        const imgElement = memberItemDiv.querySelector('.member-profile-pic');
-                        if (imgElement) {
-                            imgElement.src = profileImageUrl;
-                            console.log(`[Firestore Debug] Updated image for ${tornPlayerId} with URL: ${profileImageUrl}`);
-                        }
-                    } else {
-                        console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
-                    }
-                } catch (error) {
-                    console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
-                }
-            })());
-        }
-    }
-
-    await Promise.all(fetchPromises);
-    console.log("Faction members list populated with available profile images from database.");
-}
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
@@ -2595,27 +2194,17 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
 
 
-       if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: "Failed to parse API error response." }));
-            console.error(`[DEBUG] Torn API HTTP Error details:`, errorData);
-            let errorMessage = `Torn API Error: ${response.status} ${response.statusText}`;
-            if (errorData && errorData.error && errorData.error.error) {
-                errorMessage += ` - ${errorData.error.error}`;
-            }
+        if (!response.ok) {
+            const errorData = data || { message: "Failed to parse API error response." };
+            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
+            let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
             throw new Error(errorMessage);
-        } else {
-            tornApiData = await response.json();
-            console.log(`[DEBUG] Full Torn API Response Data for ${memberId}:`, tornApiData);
-
-            if (tornApiData.error) {
-                console.error(`[DEBUG] Torn API Data Error details:`, tornApiData.error);
-                if (tornApiData.error.code === 2 || tornApiData.error.code === 10) {
-                    apiErrorMessage = `The member's API key is invalid or lacks sufficient permissions. (Error: ${tornApiData.error.error})`;
-                } else {
-                    throw new Error(`Torn API Data Error: ${tornApiData.error.error}`);
-                }
-            }
         }
+        if (data.error) {
+            console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
+            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+        }
+
         // --- Call Netlify Function for Secure Firebase Storage ---
         const userId = data.player_id; 
         if (userId) {
@@ -2796,61 +2385,53 @@ function setupEventListeners(apiKey) {
         });
     }
 	
-	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
-
-async function initializeAndLoadData(apiKey, factionId) { // Added factionId parameter
-    if (!apiKey || !factionId) {
-        console.warn("API Key or Faction ID is missing for initializeAndLoadData.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID';
+	async function initializeAndLoadData(apiKey) {
+    if (!apiKey) {
+        console.warn("API Key is missing for initializeAndLoadData.");
         return;
     }
+
+    // Use the exact V2 URL provided for members data
+    const factionMembersApiUrlV2 = `https://api.torn.com/v2/faction/49028/members?key=${apiKey}`; // Hardcoded Faction ID 49028
+
     try {
-        // CORRECTED & CONFIRMED URL: Now includes the factionId
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        const response = await fetch(factionMembersApiUrlV2);
+        const data = await response.json(); // V2 API typically returns JSON directly in response.data
 
-        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
-
-        const userFactionResponse = await fetch(userFactionApiUrl);
-
-        if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+        if (data.errors) { // V2 API uses 'errors' array for error messages
+            console.error("Torn API Error in initializeAndLoadData (V2):", data.errors);
+            // You might want to display an error message to the user here
+            return;
         }
 
-        factionApiFullData = await userFactionResponse.json();
-        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
-
-        if (factionApiFullData.error) {
-            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            // Specific handling for API errors like invalid key (error code 2, 10) or access denied (code 11)
-            if (factionApiFullData.error.code === 2 || factionApiFullData.error.code === 10 || factionApiFullData.error.code === 11) {
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `API Error: ${factionApiFullData.error.error}`;
-                alert(`Torn API Error: ${factionApiFullData.error.error}. Please check your API key and permissions.`);
-            }
-            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+        // V2 /faction/{id}/members endpoint returns an array of member objects directly.
+        if (Array.isArray(data)) { 
+            window.globalFactionMembers = data.map(member => {
+                return {
+                    id: member.id,
+                    name: member.name,
+                    rank: member.faction_rank ? member.faction_rank.name : 'N/A', // Assuming rank is nested under faction_rank.name
+                    level: member.level,
+                    last_action: member.last_action,
+                    status: member.status
+                    // profile_image is typically NOT in this V2 endpoint, so it remains undefined.
+                };
+            });
+            console.log("Faction members loaded from V2 API:", window.globalFactionMembers.length, "members.");
+        } else {
+            window.globalFactionMembers = [];
+            console.warn("V2 Faction members API did not return an array as expected.");
         }
 
-        // Pass warData and apiKey to populateUiComponents
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // Pass warData and apiKey
+        // Note: This specific V2 call only gets members. 
+        // window.globalFactionData will NOT be populated with basic faction details (name, tag, etc.)
+        // unless you make a separate V2 call to /v2/faction/49028?key=...
 
     } catch (error) {
-        console.error("Error during comprehensive data initialization:", error);
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
-        // Reset related displays on error
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'N/A';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        console.error("Error fetching faction data from V2 API:", error);
+        // Display a user-friendly error message
     }
 }
-
-// >>> END REPLACE initializeAndLoadData <<<
 	
 	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
     // Send message on button click
@@ -2865,8 +2446,14 @@ async function initializeAndLoadData(apiKey, factionId) { // Added factionId par
     });
 }
 
-
-
+if (chatTabsContainer && chatTabButtons.length > 0) {
+    chatTabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+            switchChatTab(tabName); // Call our new function to switch tabs
+        });
+    });
+}
 
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
@@ -3026,7 +2613,7 @@ function showTab(tabId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabButtons = document.querySelectorAll('.tab-button'); 
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
     tabButtons.forEach(button => {
@@ -3042,7 +2629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // NOW CORRECTLY USING THE GLOBALLY SCOPED 'userApiKey'
                 
                 if (user && userApiKey) { // Check for userApiKey which is set by auth.onAuthStateChanged
-                    await updateFriendlyMembersTable(userApiKey, user.uid);
+                    await updateFriendlyMembersTable(userApiKey, user.uid); 
                 } else {
                     console.warn("User not logged in or API Key missing. Cannot update friendly members table.");
                     const tbody = document.getElementById('friendly-members-tbody');
@@ -3057,155 +2644,77 @@ document.addEventListener('DOMContentLoaded', () => {
     showTab('announcements-tab');
     let listenersInitialized = false;
 
-    // --- Assign chat panel elements here, after DOM is ready ---
-    chatTabsContainer = document.querySelector('.chat-tabs-container');
-    chatTabButtons = document.querySelectorAll('.chat-tab');
-    warChatBox = document.getElementById('warChatBox');
-    chatDisplayArea = document.getElementById('chat-display-area');
-    chatInputArea = document.querySelector('.chat-input-area');
-    chatContentPanels = document.querySelectorAll('.chat-panel');
+    // --- Chat Tab Functionality Elements and Handler ---
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox');
+    const chatDisplayArea = document.getElementById('chat-display-area');
+    const chatInputArea = document.querySelector('.chat-input-area');
 
-    factionChatPanel = document.getElementById('faction-chat');
-    privateChatPanel = document.getElementById('private-chat');
-    friendsPanel = document.getElementById('friends');
-    factionMembersPanel = document.getElementById('faction-members');
-    recentlyMetPanel = document.getElementById('recently-met');
-    blockedPeoplePanel = document.getElementById('blocked-people');
-    settingsPanel = document.getElementById('settings');
-    privateMessagesContainer = document.getElementById('privateMessagesContainer');
-
-
-    // --- Chat Tab Functionality Event Listener ---
     // Function to handle chat tab clicks
     function handleChatTabClick(event) {
-        debugger; // <--- ADD THIS LINE HERE, at the very start of the function
         const clickedTab = event.currentTarget;
-        const targetTabId = clickedTab.dataset.chatTab;
+        const targetTab = clickedTab.dataset.chatTab;
 
-        console.log(`[Chat Tab Debug] Clicked tab: ${targetTabId}`);
+        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
 
-        // Remove 'active' class from all tab buttons
-        chatTabButtons.forEach(button => {
-            button.classList.remove('active');
-        });
-        clickedTab.classList.add('active'); // Add active class to the clicked tab button
+        chatTabs.forEach(tab => tab.classList.remove('active'));
 
-        // Scroll the active tab button into view
-        if (chatTabsContainer && clickedTab) {
-            chatTabsContainer.scrollLeft = clickedTab.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (clickedTab.offsetWidth / 2);
+        if (warChatBox) {
+             warChatBox.classList.remove('chat-content-hidden');
         }
 
-        // Unsubscribe from ANY active real-time chat listener (faction or private)
         if (unsubscribeFromChat) {
             unsubscribeFromChat();
             unsubscribeFromChat = null;
             console.log("Unsubscribed from previous chat listener (tab switch).");
         }
 
-        // Hide ALL chat content panels first (all elements with class 'chat-panel')
-        chatContentPanels.forEach(panel => {
-            panel.style.display = 'none'; // Attempt to hide
-            panel.classList.remove('active'); // Remove 'active' class
-            console.trace(`[TRACE] Hidden panel: #${panel.id}. Current display: ${panel.style.display}`); // TRACE 1
-        });
-
-        // Control visibility of the global chat input area
-        let showInputArea = true;
-        if (!(targetTabId === 'faction-chat' || targetTabId === 'private-chat')) {
-            showInputArea = false;
+        const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${targetTab}"]`);
+        if (selectedChatTabButton) {
+            selectedChatTabButton.classList.add('active');
+            selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
         }
-        if (chatInputArea) chatInputArea.style.display = showInputArea ? 'flex' : 'none';
 
-        let panelToShow = null;
+        let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
+        if (nonChatContentPanel) {
+            nonChatContentPanel.remove();
+        }
 
-        switch (targetTabId) {
-            case 'faction-chat':
-                panelToShow = factionChatPanel;
-                if (chatDisplayArea) chatDisplayArea.innerHTML = '';
-                setupChatRealtimeListener();
-                break;
-
-            case 'war-chat': // <--- CHANGE THIS LINE FROM 'private-chat'
-                panelToShow = privateChatPanel; // This is the static panel for war chat (you might rename privateChatPanel to warChatPanel for clarity later if you wish)
-
-                // Check if both your faction ID and the enemy faction ID are available
-                if (!factionApiFullData || !factionApiFullData.ID || !globalEnemyFactionID || !enemyDataGlobal || !enemyDataGlobal.basic) {
-                    if (privateChatPanel) {
-                        privateChatPanel.innerHTML = `
-                            <p style="text-align: center; margin-top: 20px;">
-                                War Chat requires an active war and a set enemy faction ID in 'Leader Config'.
-                            </p>`;
-                    }
-                    showInputArea = false; // Hide input if no war data
-                } else {
-                    // Set the 'recipient' variables to represent the enemy faction for War Chat
-                    currentPrivateChatRecipientId = globalEnemyFactionID;
-                    currentPrivateChatRecipientName = enemyDataGlobal.basic.name; // Use the enemy's name
-
-                    if (privateChatPanel) {
-                        privateChatPanel.innerHTML = `
-                            <h4 class="private-chat-recipient-header">War Chat: <span>${factionApiFullData.basic.name} vs ${currentPrivateChatRecipientName}</span></h4>
-                            <div id="privateMessagesContainer" class="chat-messages-container"></div>
-                        `;
-                    }
-                    showInputArea = true; // Show input area for war chat
-
-                    const privateMessagesContainer = document.getElementById('privateMessagesContainer');
-
-                    if (privateMessagesContainer && currentTornPlayerId) {
-                        // Construct the chat room ID using the two faction IDs (sorted for consistency)
-                        const participantIds = [String(factionApiFullData.ID), String(currentPrivateChatRecipientId)].sort();
-                        const chatRoomId = participantIds.join('_'); // This will be like "FACTIONID1_FACTIONID2"
-
-                        // Set up real-time listener for the War Chat room
-                        unsubscribeFromChat = db.collection('warChats').doc(chatRoomId).collection('messages') // Store messages in 'warChats'
-                            .orderBy('timestamp', 'asc')
-                            .limit(100)
-                            .onSnapshot(snapshot => {
-                                if (privateMessagesContainer) privateMessagesContainer.innerHTML = '';
-                                if (snapshot.empty) {
-                                    privateMessagesContainer.innerHTML = `<p>No messages yet in War Chat. Be the first to strike!</p>`;
-                                } else {
-                                    snapshot.forEach(doc => {
-                                        const message = doc.data();
-                                        displayChatMessage(message, privateMessagesContainer);
-                                    });
-                                    privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
-                                }
-                                console.log(`War chat messages for room ${chatRoomId} updated in real-time.`);
-                            }, error => {
-                                console.error("Error listening to war chat messages:", error);
-                                if (privateMessagesContainer) privateMessagesContainer.innerHTML = `<p style="color: red;">Error loading war messages: ${error.message}</p>`;
-                            });
+        if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
+            if (warChatBox) {
+                warChatBox.classList.remove('hide-content'); 
+                if (chatDisplayArea) {
+                    if (targetTab === 'faction-chat') {
+                        chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
+                        setupChatRealtimeListener();
                     } else {
-                        console.error("Cannot set up war chat listener: Private messages container, your faction ID, or enemy faction ID is missing.");
+                        chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
                     }
+                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
                 }
-                break;
+            }
+        } else {
+            if (warChatBox) {
+                warChatBox.classList.add('hide-content');
 
-            case 'faction-members':
-                panelToShow = factionMembersPanel;
-                console.log("[Chat Tab Debug] Faction Members tab selected - calling displayFactionMembersInChatTab.");
-                if (factionApiFullData && factionApiFullData.members) {
-                    displayFactionMembersInChatTab(factionApiFullData.members, factionMembersPanel);
-                } else {
-                    if (factionMembersPanel) factionMembersPanel.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
-                }
-                break;
+                nonChatContentPanel = document.createElement('div');
+                nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
+                nonChatContentPanel.className = 'chat-dynamic-panel'; 
+                
+                nonChatContentPanel.style.position = 'absolute';
+                nonChatContentPanel.style.top = '40px'; 
+                nonChatContentPanel.style.left = '0';
+                nonChatContentPanel.style.right = '0';
+                nonChatContentPanel.style.bottom = '0';
+                nonChatContentPanel.style.backgroundColor = '#1a1a1a';
+                nonChatContentPanel.style.padding = '10px';
+                nonChatContentPanel.style.overflowY = 'auto';
+                nonChatContentPanel.style.color = '#f0f0f0';
+                nonChatContentPanel.style.boxSizing = 'border-box'; // Corrected from 'border-sizing' in prev paste
 
-            case 'friends':
-            case 'recently-met':
-            case 'blocked-people':
-                panelToShow = friendsPanel; // Assuming friendsPanel is the target for these generic messages
-                if (panelToShow) { // Check if the target panel exists
-                    panelToShow.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTabId.replace('-', ' ')}" will go here.</p>`;
-                }
-                break;
-
-            case 'settings':
-                panelToShow = settingsPanel;
-                if (settingsPanel) {
-                    settingsPanel.innerHTML = `
+                if (targetTab === 'settings') {
+                    nonChatContentPanel.innerHTML = `
                         <div class="chat-settings-panel">
                             <h3>Chat Settings</h3>
                             <div class="setting-item">
@@ -3230,38 +2739,56 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="save-settings-btn">Save Settings</button>
                         </div>
                     `;
+                } else if (targetTab === 'faction-members') {
+                    console.log("[Chat Tab Debug] Faction Members tab selected.");
+
+                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; 
+
+                    const members = window.globalFactionMembers || [];
+                    
+                    console.log("[Chat Tab Debug] Members array before sorting:", members);
+
+                    const rankOrder = {
+                        "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100
+                    };
+
+                    members.sort((a, b) => {
+                        const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
+                        const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
+
+                        if (orderA !== orderB) { return orderA - orderB; }
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    const membersListHtml = members.map(member => {
+                        const profileImageUrl = member.profile_image 
+                            ? `https://www.torn.com/images/profile_images/${member.profile_image}_thumb.jpg` 
+                            : '../../images/default_profile_icon.png';
+
+                        let memberClass = ''; 
+                        if (member.rank === "Leader" || member.rank === "Co-leader") { memberClass = 'leader-member'; }
+
+                        return `
+                            <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
+                                <img src="${profileImageUrl}" alt="${member.name}'s profile picture" class="member-profile-pic" onerror="this.onerror=null;this.src='../../images/default_profile_icon.png';">
+                                <span class="member-name">${member.name}</span>
+                                <span class="member-rank">${member.rank}</span>
+                            </a>
+                        `;
+                    }).join('');
+
+                    nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
+                    console.log("[Chat Tab Debug] Generated Members HTML length:", membersListHtml.length);
+                } else {
+                    nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
                 }
-                break;
-
-            default:
-                console.warn(`Unknown chat tab: ${targetTabId}`);
-                panelToShow = factionChatPanel;
-                if (factionChatPanel) factionChatPanel.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-                break;
+                
+                warChatBox.appendChild(nonChatContentPanel);
+            }
         }
+    }
 
-        // Show the determined panel
-        if (panelToShow) {
-            panelToShow.style.display = 'flex'; // TRACE 2: Attempt to show
-            panelToShow.classList.add('active'); // Add active class
-            console.trace(`[TRACE] Shown panel: #${panelToShow.id}. Current display: ${panelToShow.style.display}`); // TRACE 2.1
-        } else {
-            console.error(`No panel found to show for tab: ${targetTabId}`);
-        }
-    
-    // No closing brace for handleChatTabClick here. This is where it was missing.
 
-    // This is the original place for event listeners, including chat tabs.
-    // Ensure chatTabs.forEach is here if it was meant to be within DOMContentLoaded
-    // Example: chatTabs.forEach(tab => { tab.addEventListener('click', handleChatTabClick); });
-    
-    // The rest of your DOMContentLoaded content including auth.onAuthStateChanged
-    // ...
-    // Note: The rest of the DOMContentLoaded content and auth.onAuthStateChanged
-    // are expected to be here based on previous full file submissions.
-    // This is just a partial view of the file.
-
-    // Start of auth.onAuthStateChanged listener (was part of original DOMContentLoaded)
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -3270,7 +2797,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const apiKey = userData.tornApiKey || null;
             const playerId = userData.tornProfileId || null;
-            const userFactionId = userData.faction_id || null; // <-- NEW LINE: Extract faction ID
             currentTornUserName = userData.preferredName || 'Unknown';
 
             let warData = {};
@@ -3280,15 +2806,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (firebaseError) {
                 console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
             }
-            
-            console.log(firebase.auth().currentUser);
+			
+			console.log(firebase.auth().currentUser);
 
-            // --- MODIFIED CONDITION AND FUNCTION CALLS ---
-            if (apiKey && playerId && userFactionId) {
-                userApiKey = apiKey;
+            if (apiKey && playerId) {
+                userApiKey = apiKey; // Assign to global userApiKey for other functions
 
-                await initializeAndLoadData(apiKey, userFactionId);
-                populateUiComponents(warData, apiKey, factionApiFullData?.wars?.ranked || null);
+                await initializeAndLoadData(apiKey);
+                populateUiComponents(warData, apiKey);
 
                 fetchAndDisplayChainData();
                 fetchAndDisplayRankedWarScores();
@@ -3325,24 +2850,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
                     }, 60000);
+                    setInterval(() => {
+                        if (userApiKey) {
+                            initializeAndLoadData(userApiKey);
+                        } else {
+                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 2000);
                 }
             } else {
-                console.warn("API key, Player ID, or Faction ID not found in user profile. Cannot load full War Hub data.");
+                console.warn("API key or Player ID not found.");
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key/ID Needed)";
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
                 const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
                 }
-                if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-                if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-                if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
-                if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-                if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-                if (warTargetScore) warTargetScore.textContent = 'N/A';
-                if (warStartedTime) warStartedTime.textContent = 'N/A';
-                if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-                if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
             }
         } else {
             userApiKey = null;
@@ -3350,16 +2873,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User not logged in.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-            if (quickFFTargetsDisplay) quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login required.</span>';
-            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-            if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
-            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-            if (warTargetScore) warTargetScore.textContent = 'N/A';
-            if (warStartedTime) warStartedTime.textContent = 'N/A';
-            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
         }
     });
 });
