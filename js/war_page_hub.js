@@ -72,6 +72,7 @@ const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus
 const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
 const chatInputArea = document.querySelector('.chat-input-area');
 
+
 // --- Utility Functions ---
 
 
@@ -2726,6 +2727,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (firebaseError) {
                 console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
             }
+			
+			console.log(firebase.auth().currentUser);
 
             if (apiKey && playerId) {
                 userApiKey = apiKey; // Assign to global userApiKey for other functions

@@ -359,46 +359,6 @@
     <script src="../../js/globalheader.js"></script>
     <script src="../../js/war_page_hub.js"></script>
 	
-	   <script>
-        function alignWarHubPanels() {
-            // Find the left and right panels on the "Active Ops" tab
-            const leftPanel = document.querySelector('.active-ops-left-panel');
-            const rightPanel = document.querySelector('.active-ops-right-panel');
-
-            // If we're not on the Active Ops tab (panels don't exist), do nothing.
-            if (!leftPanel || !rightPanel) {
-                return;
-            }
-
-            // Temporarily reset heights to auto to measure the natural content height
-            leftPanel.style.height = 'auto';
-            rightPanel.style.height = 'auto';
-
-            // Get the height of both panels
-            const leftHeight = leftPanel.offsetHeight;
-            const rightHeight = rightPanel.offsetHeight;
-
-            // Find out which panel is taller
-            const maxHeight = Math.max(leftHeight, rightHeight);
-
-            // Set both panels to be the same height as the taller one
-            leftPanel.style.height = `${maxHeight}px`;
-            rightPanel.style.height = `${maxHeight}px`;
-        }
-
-        // --- Triggers ---
-
-        // Run the function when the page first loads
-        window.addEventListener('DOMContentLoaded', alignWarHubPanels);
-
-        // Re-run the function if the browser window is resized
-        window.addEventListener('resize', alignWarHubPanels);
-        
-        // It's also a good idea to call this function whenever you switch to the "Active Ops" tab.
-        // For example, if your "Active Ops" tab has an ID like `active-ops-tab-button`, you could add:
-        // document.getElementById('active-ops-tab-button').addEventListener('click', alignWarHubPanels);
-
-    </script>
+	   
 </body>
 </html>
-<
