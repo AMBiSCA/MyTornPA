@@ -3120,35 +3120,46 @@ function handleChatTabClick(event) {
             setupChatRealtimeListener();
             break;
 
-        case 'private-chat':
-            panelToShow = privateChatPanel;
-            if (!currentPrivateChatRecipientId || !currentPrivateChatRecipientName) {
+        case 'war-chat': // <--- CHANGE THIS LINE FROM 'private-chat'
+            panelToShow = privateChatPanel; // This is the static panel for war chat (you might rename privateChatPanel to warChatPanel for clarity later if you wish)
+
+            // Check if both your faction ID and the enemy faction ID are available
+            if (!factionApiFullData || !factionApiFullData.ID || !globalEnemyFactionID || !enemyDataGlobal || !enemyDataGlobal.basic) {
                 if (privateChatPanel) {
                     privateChatPanel.innerHTML = `
                         <p style="text-align: center; margin-top: 20px;">
-                            Please select a member from the 'Faction Members' tab to start a private chat.
+                            War Chat requires an active war and a set enemy faction ID in 'Leader Config'.
                         </p>`;
                 }
+                showInputArea = false; // Hide input if no war data
             } else {
+                // Set the 'recipient' variables to represent the enemy faction for War Chat
+                currentPrivateChatRecipientId = globalEnemyFactionID;
+                currentPrivateChatRecipientName = enemyDataGlobal.basic.name; // Use the enemy's name
+
                 if (privateChatPanel) {
                     privateChatPanel.innerHTML = `
-                        <h4 class="private-chat-recipient-header">Private chat with: <span>${currentPrivateChatRecipientName}</span></h4>
+                        <h4 class="private-chat-recipient-header">War Chat: <span>${factionApiFullData.basic.name} vs ${currentPrivateChatRecipientName}</span></h4>
                         <div id="privateMessagesContainer" class="chat-messages-container"></div>
                     `;
                 }
+                showInputArea = true; // Show input area for war chat
 
                 const privateMessagesContainer = document.getElementById('privateMessagesContainer');
-                if (privateMessagesContainer && currentTornPlayerId) {
-                    const participantIds = [String(currentTornPlayerId), String(currentPrivateChatRecipientId)].sort();
-                    const chatRoomId = participantIds.join('_');
 
-                    unsubscribeFromChat = db.collection('privateChats').doc(chatRoomId).collection('messages')
+                if (privateMessagesContainer && currentTornPlayerId) {
+                    // Construct the chat room ID using the two faction IDs (sorted for consistency)
+                    const participantIds = [String(factionApiFullData.ID), String(currentPrivateChatRecipientId)].sort();
+                    const chatRoomId = participantIds.join('_'); // This will be like "FACTIONID1_FACTIONID2"
+
+                    // Set up real-time listener for the War Chat room
+                    unsubscribeFromChat = db.collection('warChats').doc(chatRoomId).collection('messages') // Store messages in 'warChats'
                         .orderBy('timestamp', 'asc')
                         .limit(100)
                         .onSnapshot(snapshot => {
                             if (privateMessagesContainer) privateMessagesContainer.innerHTML = '';
                             if (snapshot.empty) {
-                                privateMessagesContainer.innerHTML = `<p>No messages yet with ${currentPrivateChatRecipientName}. Say hello!</p>`;
+                                privateMessagesContainer.innerHTML = `<p>No messages yet in War Chat. Be the first to strike!</p>`;
                             } else {
                                 snapshot.forEach(doc => {
                                     const message = doc.data();
@@ -3156,16 +3167,18 @@ function handleChatTabClick(event) {
                                 });
                                 privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
                             }
-                            console.log(`Private chat messages for room ${chatRoomId} updated in real-time.`);
+                            console.log(`War chat messages for room ${chatRoomId} updated in real-time.`);
                         }, error => {
-                            console.error("Error listening to private chat messages:", error);
-                            if (privateMessagesContainer) privateMessagesContainer.innerHTML = `<p style="color: red;">Error loading private messages: ${error.message}</p>`;
+                            console.error("Error listening to war chat messages:", error);
+                            if (privateMessagesContainer) privateMessagesContainer.innerHTML = `<p style="color: red;">Error loading war messages: ${error.message}</p>`;
                         });
                 } else {
-                    console.error("Cannot set up private chat listener: Private messages container or currentTornPlayerId is missing.");
+                    console.error("Cannot set up war chat listener: Private messages container, your faction ID, or enemy faction ID is missing.");
                 }
             }
             break;
+
+    // ... (rest of your switch statement) ...
 
         case 'faction-members':
             panelToShow = factionMembersPanel;
