@@ -1793,6 +1793,8 @@ autocomplete-items {
     flex-grow: 1; /* Allows this container to take up remaining vertical space */
     position: relative; /* Needed for absolute positioning of inner panels if desired */
     overflow: hidden; /* Ensures content stays within bounds */
+	border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 .chat-panel {
