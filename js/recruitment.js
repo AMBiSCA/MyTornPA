@@ -285,7 +285,7 @@ async function advertiseFaction() {
     }
 }
 
-// --- Main Initialization for Page (UPDATED for button color) ---
+// --- Main Initialization for Page (UPDATED with Faction Check) ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -301,26 +301,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 advertiseFactionButton.style.display = currentUserIsLeader ? 'block' : 'none';
             }
 
-            // --- LOGIC TO CHECK LISTING STATUS ---
-            const listingDocRef = db.collection('playersSeekingFactions').doc(user.uid);
-            const listingDoc = await listingDocRef.get();
-            isCurrentlyListed = listingDoc.exists; 
+            // --- NEW FACTION CHECK LOGIC ---
+            const isInFaction = userData.faction_id && userData.faction_id != 0; // Checks for a valid faction ID
 
             if (listSelfButton) {
-                if (isCurrentlyListed) {
-                    listSelfButton.textContent = 'Remove Listing';
-                    listSelfButton.classList.add('remove'); // NEW: Add the red style
+                if (isInFaction) {
+                    // If user is in a faction, disable the button completely
+                    listSelfButton.disabled = true;
+                    listSelfButton.textContent = 'In a Faction';
+                    listSelfButton.title = 'You cannot list yourself for recruitment while in a faction.';
+                    listSelfButton.classList.remove('remove'); // Ensure red style is off
                 } else {
-                    listSelfButton.textContent = 'List Myself';
-                    listSelfButton.classList.remove('remove'); // NEW: Remove the red style
+                    // If user is NOT in a faction, proceed with the normal add/remove logic
+                    listSelfButton.disabled = false;
+                    listSelfButton.title = ''; // Clear the tooltip
+
+                    const listingDocRef = db.collection('playersSeekingFactions').doc(user.uid);
+                    const listingDoc = await listingDocRef.get();
+                    isCurrentlyListed = listingDoc.exists; 
+
+                    if (isCurrentlyListed) {
+                        listSelfButton.textContent = 'Remove Listing';
+                        listSelfButton.classList.add('remove');
+                    } else {
+                        listSelfButton.textContent = 'List Myself';
+                        listSelfButton.classList.remove('remove');
+                    }
                 }
             }
+            // --- END NEW FACTION CHECK LOGIC ---
             
             if (!currentUserTornId || !currentUserTornApiKey) {
-                if (listSelfButton) listSelfButton.disabled = true;
+                if (listSelfButton && !isInFaction) listSelfButton.disabled = true; // Only disable if not already disabled by faction check
                 if (advertiseFactionButton) advertiseFactionButton.disabled = true;
             } else {
-                if (listSelfButton) listSelfButton.disabled = false;
+                if (listSelfButton && !isInFaction) listSelfButton.disabled = false;
                 if (advertiseFactionButton) advertiseFactionButton.disabled = !currentUserIsLeader;
             }
 
@@ -334,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (listSelfButton) {
                 listSelfButton.textContent = 'List Myself';
                 listSelfButton.disabled = true;
-                listSelfButton.classList.remove('remove'); // Also remove style on logout
+                listSelfButton.classList.remove('remove');
             }
             if (advertiseFactionButton) {
                 advertiseFactionButton.style.display = 'none';
@@ -364,14 +379,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 removeSelfFromRecruitment().then(() => {
                     isCurrentlyListed = false;
                     listSelfButton.textContent = 'List Myself';
-                    listSelfButton.classList.remove('remove'); // NEW: Remove the red style
+                    listSelfButton.classList.remove('remove');
                     listSelfButton.disabled = false;
                 });
             } else {
                 listSelfForRecruitment().then(() => {
                     isCurrentlyListed = true;
                     listSelfButton.textContent = 'Remove Listing';
-                    listSelfButton.classList.add('remove'); // NEW: Add the red style
+                    listSelfButton.classList.add('remove');
                     listSelfButton.disabled = false;
                 });
             }
