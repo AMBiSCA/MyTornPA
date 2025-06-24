@@ -288,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const userDataToSave = {
                 name: data.name,
                 level: data.level,
+                profile_image: data.profile_image || null, // <--- ADDED THIS LINE
                 // Quick Stats from 'basic' selection and status object
                 nerve: data.nerve || 0,
                 energy: data.energy || 0,
@@ -412,7 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
         personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
     }
 }
-
     async function fetchAllRequiredData(user, dbInstance) {
         if (!user || !dbInstance) {
             console.error("fetchAllRequiredData: User or DB not provided.");
