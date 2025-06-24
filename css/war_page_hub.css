@@ -1462,7 +1462,7 @@ autocomplete-items {
     position: fixed; /* This takes the element out of the normal document flow */
     top: 320px; /* Adjust this value to set the distance from the top of the browser window */
     right: 92px; /* Adjust this value to set the distance from the right of the browser window */
-    width:600px; /* Set a fixed width for your chatbox */
+    width:1100px; /* Set a fixed width for your chatbox */
     height: 480px; /* Set a fixed height for your chatbox */
     z-index: 1000; /* Ensures it appears on top of other content. Use a high number. */
     /* You may need to remove or override any 'flex', 'min-width', or 'height: 100%' properties
