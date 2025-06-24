@@ -154,8 +154,7 @@ async function enlistPlayer(factionId) {
     }
 }
 
-
-/// --- 🔺 FINAL UPDATED FUNCTION 🔺 ---
+// --- 🔺 FINAL UPDATED FUNCTION 🔺 ---
 // Saves the correct data including Total Stats and Best Active Streak.
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
@@ -260,47 +259,7 @@ async function displayPlayersSeekingFactions() {
         playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="7">Error loading player listings.</td></tr>`;
     }
 }
-async function displayPlayersSeekingFactions() {
-    if (!playersSeekingFactionsTbody) return;
 
-    // Colspan is now 6 for the new column layout
-    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="6">Loading player listings...</td></tr>';
-
-    try {
-        const snapshot = await db.collection('playersSeekingFactions')
-            .where('isActive', '==', true)
-            .orderBy('listingTimestamp', 'desc')
-            .limit(50)
-            .get();
-
-        if (snapshot.empty) {
-            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="6">No players currently seeking factions.</td></tr>';
-            return;
-        }
-
-        let tableHtml = '';
-        snapshot.docs.forEach(doc => {
-            const player = doc.data();
-            const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
-
-            tableHtml += `
-                <tr>
-                    <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
-                    <td>${player.playerLevel}</td>
-                    <td>S: ${formatNumber(player.strength)} | D: ${formatNumber(player.defense)} | Sp: ${formatNumber(player.speed)} | Dx: ${formatNumber(player.dexterity)}</td>
-                    <td>${(player.xanaxTaken || 0).toLocaleString()}</td>
-                    <td>${(player.warHits || 0).toLocaleString()}</td>
-                    <td>${(player.energyRefills || 0).toLocaleString()}</td>
-                </tr>
-            `;
-        });
-        playersSeekingFactionsTbody.innerHTML = tableHtml;
-
-    } catch (error) {
-        console.error("Error fetching players seeking factions:", error);
-        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="6">Error loading player listings.</td></tr>`;
-    }
-}
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) return;
 

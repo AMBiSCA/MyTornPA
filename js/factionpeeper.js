@@ -452,10 +452,10 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/// IMPORTANT: Modified fetchData to accept the user object
+// IMPORTANT: Modified fetchData to accept the user object
 async function fetchData(user) { // <--- Added 'user' parameter
     const factionIdError = document.getElementById('factionIdError');
-    const apiKeyError = document.getElementById('apiKeyError'); 
+    const apiKeyError = document.getElementById('apiKeyError'); // This element now primarily shows messages related to fetching key from profile
     const statsError = document.getElementById('statsError');
 
     // Clear all feedback messages at the start of a new fetch attempt
@@ -466,69 +466,73 @@ async function fetchData(user) { // <--- Added 'user' parameter
     if (existingMainInputError) existingMainInputError.remove();
 
 
-    const factionIdInput = document.getElementById('factionId'); 
-    const factionId = factionIdInput ? factionIdInput.value.trim() : ''; 
+    const factionIdInput = document.getElementById('factionId');
+    const factionId = factionIdInput ? factionIdInput.value.trim() : '';
 
-    let hasError = false; 
-    let currentApiKey = ''; 
+    let hasError = false;
+    let currentApiKey = ''; // Variable to hold the fetched API key
 
-    // --- AUTHENTICATION AND API KEY FETCH FROM FIRESTORE --- 
-    if (!user || !db) { 
-        let errorMessage = 'Authentication error: Not signed in or Firebase/Firestore not initialized. Please sign in and try again.'; 
-        if (apiKeyError) apiKeyError.textContent = errorMessage; 
-        else showMainError(errorMessage); 
-        hasError = true; 
-        hideLoadingSpinner(); 
-        return; 
-    } else { 
-        showLoadingSpinner(); 
-        try { 
-            const userDocRef = db.collection('userProfiles').doc(user.uid); 
-            const userDoc = await userDocRef.get(); 
+    // --- AUTHENTICATION AND API KEY FETCH FROM FIRESTORE ---
+    // Now, we check the 'user' object passed directly
+    if (!user || !db) { // Check if user object is provided and db is initialized
+        let errorMessage = 'Authentication error: Not signed in or Firebase/Firestore not initialized. Please sign in and try again.';
+        if (apiKeyError) apiKeyError.textContent = errorMessage; // Using apiKeyError div for this general message
+        else showMainError(errorMessage); // Display a prominent error
+        hasError = true;
+        hideLoadingSpinner(); // Ensure spinner is hidden if error occurs early
+        return; // Exit early if no user or db
+    } else {
+        showLoadingSpinner(); // Show spinner while fetching API key from Firestore
+        try {
+            const userDocRef = db.collection('userProfiles').doc(user.uid); // Use the passed user.uid
+            const userDoc = await userDocRef.get();
 
-            if (userDoc.exists) { 
-                const userData = userDoc.data(); 
-                currentApiKey = userData.tornApiKey; 
-                if (!currentApiKey) { 
-                    let errorMessage = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid API key.'; 
-                    if (apiKeyError) apiKeyError.textContent = errorMessage; 
-                    else showMainError(errorMessage); 
-                    hasError = true; 
-                    hideLoadingSpinner(); 
-                    return; 
-                } 
-            } else { 
-                let errorMessage = 'User profile not found in database. Please ensure your profile is set up.'; 
-                if (apiKeyError) apiKeyError.textContent = errorMessage; 
-                else showMainError(errorMessage); 
-                hasError = true; 
-                hideLoadingSpinner(); 
-                return; 
-            } 
-        } catch (error) { 
-            let errorMessage = `Error fetching API Key from profile: ${error.message}. Check console for details.`; 
-            if (apiKeyError) apiKeyError.textContent = errorMessage; 
-            else showMainError(errorMessage); 
-            hasError = true; 
-            hideLoadingSpinner(); 
-            return; 
-        } 
-    } 
-    // --- END AUTHENTICATION AND API KEY FETCH --- 
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                currentApiKey = userData.tornApiKey; // Changed to lowercase 'k' here
+                console.log("DEBUG: Value of currentApiKey retrieved from Firestore:", currentApiKey);
+                console.log("DEBUG: Type of currentApiKey:", typeof currentApiKey);
+                console.log("DEBUG: Is currentApiKey truthy?", !!currentApiKey);
+                if (!currentApiKey) { // This check became true
+                    let errorMessage = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid API key.';
+                    if (apiKeyError) apiKeyError.textContent = errorMessage;
+                    else showMainError(errorMessage);
+                    hasError = true;
+                    hideLoadingSpinner(); // Hide spinner on this error
+                    return; // Exit early if API key is missing
+                }
+            } else {
+                let errorMessage = 'User profile not found in database. Please ensure your profile is set up.';
+                if (apiKeyError) apiKeyError.textContent = errorMessage;
+                else showMainError(errorMessage);
+                hasError = true;
+                hideLoadingSpinner(); // Hide spinner on this error
+                return; // Exit early if profile not found
+            }
+        } catch (error) {
+            let errorMessage = `Error fetching API Key from profile: ${error.message}. Check console for details.`;
+            if (apiKeyError) apiKeyError.textContent = errorMessage;
+            else showMainError(errorMessage);
+            hasError = true;
+            hideLoadingSpinner(); // Hide spinner on this error
+            return; // Exit early on fetch error
+        }
+    }
+    // --- END AUTHENTICATION AND API KEY FETCH ---
 
 
-    if (!factionId || isNaN(factionId)) { 
-        if (factionIdError) factionIdError.textContent = 'Faction ID is required and must be a number.'; hasError = true; 
-    } 
+    if (!factionId || isNaN(factionId)) {
+        if (factionIdError) factionIdError.textContent = 'Faction ID is required and must be a number.'; hasError = true;
+    }
 
-    if (selected.size === 0) { 
-        if (statsError) statsError.textContent = 'Please select at least one stat.'; hasError = true; 
-    } else if (selected.size > maxSelection) { 
-        if (statsError) statsError.textContent = `Maximum ${maxSelection} stats selected.`; hasError = true; 
-    } 
+    if (selected.size === 0) {
+        if (statsError) statsError.textContent = 'Please select at least one stat.'; hasError = true;
+    } else if (selected.size > maxSelection) {
+        if (statsError) statsError.textContent = `Maximum ${maxSelection} stats selected.`; hasError = true;
+    }
 
-    if (hasError) { 
-        hideLoadingSpinner(); 
+    if (hasError) {
+        hideLoadingSpinner(); // Ensure spinner is hidden if an error occurred before API calls
         const mainPageStatus = document.createElement('div');
         mainPageStatus.textContent = 'Error: Please correct the input fields above and ensure your API key is set in your profile.';
         mainPageStatus.className = 'main-input-error-feedback';
@@ -536,7 +540,8 @@ async function fetchData(user) { // <--- Added 'user' parameter
         mainPageStatus.style.color = 'red';
         mainPageStatus.style.padding = '10px 0';
         let errorAnchor = document.getElementById('statSelectionArea') || document.querySelector('.input-group');
-        if (!document.querySelector('.main-input-error-feedback')) {
+        // Only append if it's not the primary API key error message that was already shown
+        if (!document.querySelector('.main-input-error-feedback')) { // Prevent duplicate message if showMainError already displayed one
             if (statsError && statsError.parentNode && (selected.size === 0 || selected.size > maxSelection)) {
                 statsError.parentNode.insertBefore(mainPageStatus, statsError.nextSibling);
             } else if (errorAnchor) {
@@ -550,390 +555,203 @@ async function fetchData(user) { // <--- Added 'user' parameter
         return;
     }
 
-    try { 
-        const personalStatsCheckList = [ 
-            'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned' 
-        ]; 
-        const personalStatsNeeded = Array.from(selected).some(s => personalStatsCheckList.includes(s)); 
+    try {
+        // Spinner is already shown from the Firestore fetch above, no need to show again unless hidden by previous errors
+        const personalStatsCheckList = [
+            'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned'
+        ];
+        const personalStatsNeeded = Array.from(selected).some(s => personalStatsCheckList.includes(s));
 
-        // Use the fetched API key 
-        // CORRECTED: Added /v2/ to the Torn API endpoint
-        const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=basic&key=${currentApiKey}`; 
-        const factionResponse = await fetch(factionApiUrl); 
-        if (!factionResponse.ok) { 
-            const errorText = await factionResponse.text().catch(() => "Could not read error text"); 
-            throw new Error(`Torn API Error (Faction HTTP ${factionResponse.status}): ${factionResponse.statusText}. Response: ${errorText.substring(0, 100)}`); 
-        } 
-        const factionData = await factionResponse.json(); 
-        if (factionData.error) throw new Error(`Torn API Error (Faction): ${factionData.error.error}`); 
-        if (!factionData || !factionData.members || Object.keys(factionData.members).length === 0) { 
-            throw new Error('No members found for this faction or invalid Faction ID/API Key for faction access.'); 
-        } 
+        // Use the fetched API key
+        const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${currentApiKey}`;
+        const factionResponse = await fetch(factionApiUrl);
+        if (!factionResponse.ok) {
+            const errorText = await factionResponse.text().catch(() => "Could not read error text");
+            throw new Error(`Torn API Error (Faction HTTP ${factionResponse.status}): ${factionResponse.statusText}. Response: ${errorText.substring(0, 100)}`);
+        }
+        const factionData = await factionResponse.json();
+        if (factionData.error) throw new Error(`Torn API Error (Faction): ${factionData.error.error}`);
+        if (!factionData || !factionData.members || Object.keys(factionData.members).length === 0) {
+            throw new Error('No members found for this faction or invalid Faction ID/API Key for faction access.');
+        }
 
-        const members = factionData.members; 
-        const modalFactionName = document.getElementById('modal-faction-name'); 
-        const modalMemberCount = document.getElementById('modal-member-count'); 
-        if (modalFactionName) modalFactionName.textContent = factionData.name || 'Unknown Faction'; 
-        if (modalMemberCount) modalMemberCount.textContent = Object.keys(members).length; 
+        const members = factionData.members;
+        const modalFactionName = document.getElementById('modal-faction-name');
+        const modalMemberCount = document.getElementById('modal-member-count');
+        if (modalFactionName) modalFactionName.textContent = factionData.name || 'Unknown Faction';
+        if (modalMemberCount) modalMemberCount.textContent = Object.keys(members).length;
 
-        const displayHeaders = ["Name", "User ID"].concat(Array.from(selected)); 
-        const modalTableHeader = document.getElementById('modal-results-table-header'); 
-        if (modalTableHeader) modalTableHeader.innerHTML = ''; 
-        const tableHeaderRow = document.createElement('tr'); 
-        displayHeaders.forEach(headerText => { 
-            const th = document.createElement('th'); 
-            th.textContent = headerText; tableHeaderRow.appendChild(th); 
-        }); 
-        if (modalTableHeader) modalTableHeader.appendChild(tableHeaderRow); 
+        const displayHeaders = ["Name", "User ID"].concat(Array.from(selected));
+        const modalTableHeader = document.getElementById('modal-results-table-header');
+        if (modalTableHeader) modalTableHeader.innerHTML = '';
+        const tableHeaderRow = document.createElement('tr');
+        displayHeaders.forEach(headerText => {
+            const th = document.createElement('th');
+            th.textContent = headerText; tableHeaderRow.appendChild(th);
+        });
+        if (modalTableHeader) modalTableHeader.appendChild(tableHeaderRow);
 
-        const factionMembersIds = Object.keys(members); 
-        const allUserResults = []; 
+        const factionMembersIds = Object.keys(members);
+        const allUserResults = []; // Array to store results for display
 
-        const modalTableBody = document.getElementById('modal-results-table-body'); 
-        if (modalTableBody) modalTableBody.innerHTML = ''; 
+        const modalTableBody = document.getElementById('modal-results-table-body');
+        if (modalTableBody) modalTableBody.innerHTML = ''; // Clear table body before populating
 
-        const batchSize = 5; 
-        const delayBetweenBatchesMs = 1000; 
+        // BATCH PROCESSING CONFIGURATION
+        const batchSize = 5; // Number of users to fetch concurrently in each batch
+        const delayBetweenBatchesMs = 1000; // Delay in milliseconds between batches (increased to 1 second)
 
-        for (let i = 0; i < factionMembersIds.length; i += batchSize) { 
-            const batchMemberIds = factionMembersIds.slice(i, i + batchSize); 
+        for (let i = 0; i < factionMembersIds.length; i += batchSize) {
+            const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
 
-            const batchPromises = batchMemberIds.map(async (memberId) => { 
-                let combinedData = { member_id_for_table: memberId }; 
-                let errors = []; 
-                
-                // CORRECTED & COMBINED: Make a single API call for all necessary user data
-                // Combine basic, profile, and personalstats into one selection
-                const allUserSelections = 'basic,profile,personalstats'; // Add other selections if needed
-                const userDataUrl = `https://api.torn.com/v2/user/${memberId}?selections=${allUserSelections}&key=${currentApiKey}`; // CORRECTED /v2/
+            // Create an array of promises for the current batch
+            const batchPromises = batchMemberIds.map(async (memberId) => {
+                let combinedData = { member_id_for_table: memberId };
+                let overallStatus = true;
+                let errors = [];
+                const primarySelections = 'basic,profile';
+                const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${currentApiKey}`;
 
                 try {
-                    const response = await fetch(userDataUrl);
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        errors.push(`User Data Fetch (HTTP ${response.status}): ${errorData.error?.error || response.statusText}`);
+                    const response1 = await fetch(primaryDataUrl);
+                    if (!response1.ok) {
+                        // Log the specific error from Torn API if available
+                        const errorData = await response1.json().catch(() => ({}));
+                        errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status}): ${errorData.error?.error || response1.statusText}`);
+                        overallStatus = false;
                     } else {
-                        const data = await response.json();
-                        if (data.error) {
-                            errors.push(`User Data API: ${data.error.error}`);
+                        const data1 = await response1.json();
+                        if (data1.error) {
+                            errors.push(`Primary API (basic,profile): ${data1.error.error}`);
+                            overallStatus = false;
                         } else {
-                            combinedData = { ...combinedData, ...data };
+                            combinedData = { ...combinedData, ...data1 };
                         }
                     }
                 } catch (e) {
-                    errors.push(`User Data Network Err: ${e.message.substring(0, 50)}`);
+                    errors.push(`Primary Network Err (basic,profile): ${e.message.substring(0, 50)}`);
+                    overallStatus = false;
+                }
+
+                if (personalStatsNeeded && overallStatus) {
+                    const personalStatsSelection = 'personalstats';
+                    const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${currentApiKey}`;
+                    try {
+                        const response2 = await fetch(personalStatsDataUrl);
+                        if (!response2.ok) {
+                             // Log the specific error from Torn API if available
+                            const errorData = await response2.json().catch(() => ({}));
+                            errors.push(`PersonalStats Fetch (HTTP ${response2.status}): ${errorData.error?.error || response2.statusText}`);
+                        } else {
+                            const data2 = await response2.json();
+                            console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
+                            if (data2.error) {
+                                errors.push(`PersonalStats API: ${data2.error.error}`);
+                            } else {
+                                combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
+                            }
+                        }
+                    } catch (e) {
+                        errors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
+                    }
+                } else if (personalStatsNeeded && !overallStatus) {
+                    errors.push("Skipped personalstats due to primary fetch error.");
                 }
 
                 if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
-                // Fallback for name if API call fails
                 if (!combinedData.name && members[memberId] && members[memberId].name) {
                     combinedData.name = members[memberId].name;
                 }
-                
+
+                if (personalStatsNeeded) {
+                    console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
+                }
                 return { memberId, data: combinedData, status: !combinedData.error };
             });
 
-            const batchResults = await Promise.allSettled(batchPromises); 
-            batchResults.forEach(result => { 
-                if (result.status === 'fulfilled') { 
-                    allUserResults.push(result.value); 
-                } else { 
-                    console.error("Batch promise rejected:", result.reason); 
-                    const failedMemberId = result.reason?.memberId || 'Unknown ID'; 
-                    allUserResults.push({ memberId: failedMemberId, data: { error: { error: `Request rejected for User ${failedMemberId}: ${result.reason?.message || 'Unknown error'}` } }, status: false }); 
-                } 
-            }); 
+            // Wait for all promises in the current batch to settle
+            const batchResults = await Promise.allSettled(batchPromises);
+            batchResults.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    allUserResults.push(result.value);
+                } else {
+                    // Handle rejected promises from the batch
+                    console.error("Batch promise rejected:", result.reason);
+                    // Provide a more informative error message for the table if a promise rejects
+                    const failedMemberId = result.reason?.memberId || 'Unknown ID';
+                    allUserResults.push({ memberId: failedMemberId, data: { error: { error: `Request rejected for User ${failedMemberId}: ${result.reason?.message || 'Unknown error'}` } }, status: false });
+                }
+            });
 
-            if (i + batchSize < factionMembersIds.length) { 
-                await sleep(delayBetweenBatchesMs); 
-            } 
-        } 
+            // Introduce a delay after each batch, if it's not the last batch
+            if (i + batchSize < factionMembersIds.length) {
+                await sleep(delayBetweenBatchesMs);
+            }
+        }
 
-        allUserResults.sort((a, b) => { 
-            const nameA = (a.data.name || members[a.memberId]?.name || `User ${a.memberId}`).toLowerCase(); 
-            const nameB = (b.data.name || members[b.memberId]?.name || `User ${b.memberId}`).toLowerCase(); 
-            return nameA.localeCompare(nameB); 
-        }); 
-
-
-        for (const userResult of allUserResults) { 
-            let userData; 
-            let currentMemberIdFromPromise; 
-
-            if (userResult.status === true) { 
-                currentMemberIdFromPromise = userResult.memberId; 
-                userData = userResult.data; 
-            } else { 
-                const errorRow = document.createElement('tr'); 
-                const failedMemberId = userResult.memberId || 'Unknown ID'; 
-                const memberName = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Failed Fetch)`; 
-                errorRow.insertCell().textContent = memberName; 
-                errorRow.insertCell().textContent = failedMemberId; 
-                const msgCell = errorRow.insertCell(); 
-                msgCell.textContent = `Error: ${userResult.data.error?.error || 'Unknown Issue'}`; 
-                msgCell.colSpan = selected.size > 0 ? selected.size : 1; 
-                msgCell.style.color = 'red'; 
-                if (modalTableBody) modalTableBody.appendChild(errorRow); 
-                continue; 
-            } 
-
-            const memberName = userData.name || `User ${currentMemberIdFromPromise}`; 
-            const memberIdForTable = userData.member_id_for_table || currentMemberIdFromPromise || 'N/A'; 
-
-            const tr = document.createElement('tr'); 
-            tr.insertCell().textContent = memberName; 
-            tr.insertCell().textContent = memberIdForTable; 
-
-            if (userData.error) { 
-                const errorCell = tr.insertCell(); 
-                errorCell.textContent = `Error: ${userData.error.error || 'Unknown data fetch issue'}`; 
-                errorCell.style.color = 'red'; 
-                errorCell.colSpan = selected.size > 0 ? selected.size : 1; 
-            } else { 
-                Array.from(selected).forEach(statDisplayName => { 
-                    const td = tr.insertCell(); 
-                    td.textContent = getValueForStat(statDisplayName, userData); 
-                }); 
-            } 
-            if (modalTableBody) modalTableBody.appendChild(tr); 
-        } 
-        hideLoadingSpinner(); 
-        showResultsModal(); 
-    } catch (error) { 
-        console.error("Overall Fetch Error:", error); 
-        hideLoadingSpinner(); 
-        showMainError(`Error: ${error.message}`); 
-    } 
- } 
-
- // Removed the direct fetchDataButton.addEventListener here. 
- // It will now be added inside onAuthStateChanged or after user state is known. 
-
- // Added this helper function to simplify error message display 
- function showMainError(message) { 
-     // ADDED THIS CHECK 
-     if (!message || message.trim() === '') { 
-         const existingMainInputError = document.querySelector('.main-input-error-feedback'); 
-         if (existingMainInputError) { 
-             existingMainInputError.remove(); 
-         } 
-         return; // Exit if message is empty 
-     } 
-     // END ADDITION 
-
-     const existingMainInputError = document.querySelector('.main-input-error-feedback'); 
-     if (existingMainInputError) { 
-         existingMainInputError.remove(); 
-     } 
-     const mainPageStatus = document.createElement('div'); 
-     mainPageStatus.textContent = message; 
-     mainPageStatus.className = 'main-input-error-feedback'; 
-     mainPageStatus.style.textAlign = 'center'; 
-     mainPageStatus.style.padding = '10px'; 
-     mainPageStatus.style.backgroundColor = 'rgba(255,0,0,0.1)'; 
-     mainPageStatus.style.border = '1px solid red'; 
-     mainPageStatus.style.borderRadius = '5px'; 
-     mainPageStatus.style.marginTop = '15px'; 
-     const containerDiv = document.querySelector('.faction-peeper-tool-container'); 
-     if (containerDiv) { 
-         const buttonsContainer = containerDiv.querySelector('.action-buttons-container'); 
-         if (buttonsContainer && buttonsContainer.parentNode === containerDiv) { 
-             buttonsContainer.insertAdjacentElement('afterend', mainPageStatus); 
-         } else { 
-             containerDiv.appendChild(mainPageStatus); 
-         } 
-     } 
-     setTimeout(() => { if (mainPageStatus.parentElement) mainPageStatus.remove(); }, 7000); 
- } 
+        // Now populate the table with collected results
+        // Sort results by member ID or name for consistent display, especially if some requests failed
+        allUserResults.sort((a, b) => {
+            const nameA = (a.data.name || members[a.memberId]?.name || `User ${a.memberId}`).toLowerCase();
+            const nameB = (b.data.name || members[b.memberId]?.name || `User ${b.memberId}`).toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
 
 
- document.addEventListener('DOMContentLoaded', function() { 
-     // Corrected: Target the container for the Useful Links dropdown 
-     const usefulLinksBtn = document.getElementById('usefulLinksBtn'); 
-     const usefulLinksDropdownContainer = document.getElementById('usefulLinksDropdownContainer'); // Changed from usefulLinksDropdown 
+        for (const userResult of allUserResults) {
+            let userData;
+            let currentMemberIdFromPromise;
 
-     // This function helps close other dropdowns if they are open 
-     function closeOtherDropdowns(currentDropdown, currentButton) { 
-         const allDropdowns = document.querySelectorAll('.dropdown-content.show'); // This might also include the Useful Links dropdown if it uses .dropdown-content.show 
-         allDropdowns.forEach(dropdown => { 
-             // Check if the dropdown's parent container is not the currentDropdownContainer 
-             if (dropdown.parentNode !== currentDropdown && dropdown.parentNode !== usefulLinksDropdownContainer) { // Added condition for usefulLinksDropdownContainer 
-                 dropdown.classList.remove('show'); 
-                 // Remove 'active' class from its associated button if found 
-                 const associatedButton = dropdown.previousElementSibling; // Assuming button is always before dropdown 
-                 if (associatedButton && associatedButton.classList.contains('active')) { 
-                     associatedButton.classList.remove('active'); 
-                 } 
-             } 
-         }); 
-     } 
+            if (userResult.status === true) { // Check the custom 'status' flag from our object
+                currentMemberIdFromPromise = userResult.memberId;
+                userData = userResult.data;
+            } else {
+                const errorRow = document.createElement('tr');
+                const failedMemberId = userResult.memberId || 'Unknown ID';
+                // Try to get the name from the initial faction data if the user data fetch failed
+                const memberName = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Failed Fetch)`;
+                errorRow.insertCell().textContent = memberName;
+                errorRow.insertCell().textContent = failedMemberId;
+                const msgCell = errorRow.insertCell();
+                msgCell.textContent = `Error: ${userResult.data.error?.error || 'Unknown Issue'}`; // Use the error message from data
+                msgCell.colSpan = selected.size > 0 ? selected.size : 1;
+                msgCell.style.color = 'red';
+                if (modalTableBody) modalTableBody.appendChild(errorRow);
+                continue;
+            }
 
+            const memberName = userData.name || `User ${currentMemberIdFromPromise}`;
+            const memberIdForTable = userData.member_id_for_table || currentMemberIdFromPromise || 'N/A';
 
-     if (usefulLinksBtn && usefulLinksDropdownContainer) { // Check for the container 
-         usefulLinksBtn.addEventListener('click', function(event) { 
-             event.stopPropagation(); 
-             const currentlyOpen = usefulLinksDropdownContainer.classList.contains('show'); // Check if the container is open 
-             closeOtherDropdowns(usefulLinksDropdownContainer, usefulLinksBtn); // Close others 
+            const tr = document.createElement('tr');
+            tr.insertCell().textContent = memberName;
+            tr.insertCell().textContent = memberIdForTable;
 
-             if (!currentlyOpen) { // If it was not open, open it 
-                 usefulLinksDropdownContainer.classList.add('show'); // Toggle class on container 
-                 usefulLinksBtn.classList.add('active'); 
-             } else { 
-                 usefulLinksDropdownContainer.classList.remove('show'); // Toggle class on container 
-                 usefulLinksBtn.classList.remove('active'); 
-             } 
-         }); 
-     } 
+            if (userData.error) {
+                const errorCell = tr.insertCell();
+                errorCell.textContent = `Error: ${userData.error.error || 'Unknown data fetch issue'}`;
+                errorCell.style.color = 'red';
+                errorCell.colSpan = selected.size > 0 ? selected.size : 1;
+            } else {
+                Array.from(selected).forEach(statDisplayName => {
+                    const td = tr.insertCell();
+                    td.textContent = getValueForStat(statDisplayName, userData);
+                });
+            }
+            if (modalTableBody) modalTableBody.appendChild(tr);
+        }
+        hideLoadingSpinner();
+        showResultsModal();
+    } catch (error) {
+        console.error("Overall Fetch Error:", error);
+        hideLoadingSpinner();
+        // Centralized error display function
+        showMainError(`Error: ${error.message}`);
+    }
+}
 
-     window.addEventListener('click', function(event) { 
-         // This global listener should also check the container 
-         if (usefulLinksDropdownContainer && usefulLinksDropdownContainer.classList.contains('show')) { 
-             if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdownContainer.contains(event.target)) { 
-                 usefulLinksDropdownContainer.classList.remove('show'); 
-                 usefulLinksBtn.classList.remove('active'); 
-             } 
-         } 
-
-         // Assuming contactUsBtn and contactUsDropdown are globally accessible or defined here 
-         const contactUsBtn = document.getElementById('contactUsBtn'); 
-         const contactUsDropdown = document.getElementById('contactUsDropdown'); 
-         if (contactUsDropdown && contactUsDropdown.classList.contains('show')) { 
-             if (!contactUsBtn.contains(event.target) && !contactUsDropdown.contains(event.target)) { 
-                 contactUsDropdown.classList.remove('show'); 
-                 contactUsBtn.classList.remove('active'); 
-             } 
-         } 
-     }); 
-
-     const headerButtonsContainer = document.getElementById('headerButtonsContainer'); 
-     const signUpButtonHeader = document.getElementById('signUpButtonHeader'); 
-     const homeButtonFooter = document.getElementById('homeButtonFooter'); 
-     const logoutButtonHeader = document.getElementById('logoutButtonHeader'); 
-     const fetchDataButton = document.getElementById('fetchData'); // Get the button reference here 
-     const apiKeyErrorDiv = document.getElementById('apiKeyError'); // Get reference to the API key error div 
-
-     // --- Initial Setup for Login Status Feedback --- 
-     // The problematic lines are removed from here. 
-     if (fetchDataButton) { 
-         fetchDataButton.disabled = true; // Still disable button until login status is known 
-     } 
-
-     if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; 
-     if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; 
-     if (homeButtonFooter) homeButtonFooter.style.display = 'none'; 
-     if (logoutButtonHeader) logoutButtonHeader.style.display = 'none'; 
-
-
-     if (typeof auth !== 'undefined' && auth) { 
-         // This listener is crucial for handling the asynchronous Firebase login state 
-         auth.onAuthStateChanged(function(user) { 
-             const currentPagePath = window.location.pathname; 
-             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase() || 'index.html'; 
-             const indexPages = ['index.html', 'home.html', '']; 
-             const isThisPageIndexPage = indexPages.includes(pageName); 
-
-             if (user) { 
-                 console.log("User is signed in:", user.uid); // Confirm user is logged in 
-                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex'; 
-                 if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; 
-                 if (homeButtonFooter) homeButtonFooter.style.display = 'inline'; 
-
-                 if (isThisPageIndexPage && logoutButtonHeader) { 
-                     logoutButtonHeader.style.display = 'none'; 
-                 } else if (logoutButtonHeader) { 
-                     logoutButtonHeader.style.display = 'inline-flex'; 
-                 } 
-                 // Add this inside your document.addEventListener('DOMContentLoaded', function() { ... }); block 
-                 const headerLogoLink = document.getElementById('headerLogoLink'); 
-                 if (headerLogoLink) { 
-                     headerLogoLink.addEventListener('click', function(event) { 
-                         event.preventDefault(); // Prevent the default link behavior (navigating to '#') 
-                         window.location.href = 'home.html'; // Redirect to home.html 
-                     }); 
-                 } 
-                 // Enable the fetchData button and set its listener with the user object 
-                 if (fetchDataButton) { 
-                     fetchDataButton.disabled = false; // Enable the button 
-                     if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = ''; // Clear the message here 
-                     else showMainError(''); // Clear fallback message too 
-
-                     // It's good practice to remove any old listeners before adding new ones 
-                     // This prevents the handler from being attached multiple times if onAuthStateChanged fires again. 
-                     // We need a named function reference to remove it correctly. 
-                     const existingListener = fetchDataButton._authClickListener; // Check if we stored a reference 
-                     if (existingListener) { 
-                         fetchDataButton.removeEventListener('click', existingListener); 
-                     } 
-                     const newListener = () => fetchData(user); 
-                     fetchDataButton.addEventListener('click', newListener); 
-                     fetchDataButton._authClickListener = newListener; // Store reference for future removal 
-                 } 
-
-             } else { 
-                 console.log("No user is signed in."); // Confirm no user is logged in 
-                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; 
-                 if (signUpButtonHeader) { 
-                     if (!isThisPageIndexPage) { 
-                         signUpButtonHeader.style.display = 'inline-flex'; 
-                     } else { 
-                         signUpButtonHeader.style.display = 'none'; 
-                     } 
-                 } 
-                 if (homeButtonFooter) homeButtonFooter.style.display = 'none'; 
-                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'none'; 
-
-                 const allowedNonAuthPages = ['index.html', 'home.html', 'faq.html', 'terms.html', 'signup.html', 'report.html', 'about.html', '']; 
-                 if (!allowedNonAuthPages.includes(pageName)) { 
-                     // This is where you might redirect if a non-logged-in user is on an auth-required page 
-                     // window.location.href = 'home.html'; 
-                 } 
-                 // If no user, disable fetchData button and show login prompt 
-                 if (fetchDataButton) { 
-                     fetchDataButton.disabled = true; 
-                     if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Firebase is not loaded. Cannot check login status.'; 
-                     else showMainError('Firebase is not ready. Cannot fetch data.'); 
-                     fetchDataButton.addEventListener('click', () => showMainError('Firebase is not ready. Cannot fetch data.')); 
-                 } 
-             } 
-         }); 
-         if (logoutButtonHeader) { 
-             logoutButtonHeader.onclick = function() { 
-                 auth.signOut().then(() => { 
-                     console.log('User signed out'); 
-                     window.location.href = 'home.html'; 
-                 }).catch((error) => { 
-                     console.error('Sign out error', error); 
-                 }); 
-             }; 
-         } 
-     } else { 
-         console.warn("Firebase auth object is not available when DOMContentLoaded. Header/footer UI might not reflect auth state correctly."); 
-         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; 
-         if (signUpButtonHeader) { 
-             const currentPagePath = window.location.pathname; 
-             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase() || 'index.html'; 
-             const indexPages = ['index.html', 'home.html', '']; 
-             if (!indexPages.includes(pageName)) { 
-                 signUpButtonHeader.style.display = 'inline-flex'; 
-             } else { 
-                 signUpButtonHeader.style.display = 'none'; 
-             } 
-         } 
-         if (homeButtonFooter) homeButtonFooter.style.display = 'none'; 
-         if (logoutButtonHeader) { 
-             logoutButtonHeader.style.display = 'none'; 
-             logoutButtonHeader.onclick = function() { alert('Logout functionality (Firebase) not ready or auth not loaded.'); }; 
-         } 
-         // If Firebase Auth itself isn't loaded, disable button and show error 
-         if (fetchDataButton) { 
-             fetchDataButton.disabled = true; 
-             if (apiKeyErrorDiv) apiKeyErrorDiv.textContent = 'Firebase is not loaded. Cannot check login status.'; 
-             else showMainError('Firebase is not ready. Cannot fetch data.'); 
-             fetchDataButton.addEventListener('click', () => showMainError('Firebase is not ready. Cannot fetch data.')); 
-         } 
-     } 
- });                  
-
+// Removed the direct fetchDataButton.addEventListener here.
+// It will now be added inside onAuthStateChanged or after user state is known.
 
 // Added this helper function to simplify error message display
 function showMainError(message) {
