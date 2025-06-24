@@ -17,7 +17,9 @@
     display: flex;
     flex-direction: row;     /* Arranges children horizontally */
     flex-wrap: wrap;         /* Allows sections to wrap to the next line on smaller screens */
-    gap: 20px;               /* Space between the sections */
+    gap: 20px;  
+    align-items: stretch; 
+ 	/* Space between the sections */
     align-items: flex-start; /* Aligns items to the start of the cross-axis (top) */
     /* --- END CRITICAL CHANGE --- */
 
