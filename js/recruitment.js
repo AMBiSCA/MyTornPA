@@ -126,11 +126,7 @@ async function listSelfForRecruitment() {
             merge: true
         });
         console.log("Player self-listing data saved:", playerListingData);
-
-        // This is the test code from the last step. It proves the call is being made.
-        console.log("DEBUG: About to call the display function...");
         displayPlayersSeekingFactions();
-        console.log("DEBUG: The call to the display function has been made.");
 
     } catch (error) {
         console.error("Error during self-listing:", error);
@@ -209,7 +205,8 @@ async function advertiseFaction() {
         return;
     }
     try {
-        const userTornFactionId = currentUserData ? .faction_id;
+        // THIS IS THE LINE I HAVE CORRECTED. NO SPACE BETWEEN ? AND .
+        const userTornFactionId = currentUserData?.faction_id;
         if (!userTornFactionId) {
             alert("Your Torn Faction ID (`faction_id`) is not registered in your profile. Please add it to your profile to advertise your faction.");
             return;
