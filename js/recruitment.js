@@ -61,33 +61,42 @@ function formatRelativeTime(timestampInSeconds) {
 
 async function displayFactionsSeekingMembers() {
     if (!factionsSeekingMembersTbody) return;
-    factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="4">Loading recruiting factions...</td></tr>';
+    factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Loading recruiting factions...</td></tr>'; // Adjusted colspan
     try {
         const snapshot = await db.collection('recruitingFactions').where('isActive', '==', true).orderBy('listingTimestamp', 'desc').get();
         if (snapshot.empty) {
-            factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="4">No factions currently seeking members.</td></tr>';
+            factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">No factions currently seeking members.</td></tr>'; // Adjusted colspan
             return;
         }
         let tableHtml = '';
         snapshot.docs.forEach(doc => {
             const faction = doc.data();
             const profileUrl = `https://www.torn.com/factions.php?step=profile&ID=${faction.factionId}`;
+            
+            // Format respect to be more readable (e.g., 1,234,567)
+            const formattedRespect = (faction.factionRespect || 0).toLocaleString(); 
+            
+            // Ensure rank tier is capitalized for display
+            const displayedRankTier = faction.factionRankTier ? 
+                                      faction.factionRankTier.charAt(0).toUpperCase() + faction.factionRankTier.slice(1) : 
+                                      'N/A';
+
             tableHtml += `
                 <tr>
                     <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${faction.factionName} [${faction.factionId}]</a></td>
+                    <td>${formattedRespect}</td>
+                    <td>${displayedRankTier}</td>
                     <td>${faction.totalMembers || 'N/A'}</td>
-                    <td>${faction.contactInfo || 'N/A'}</td>
-                    <td><button class="action-button enlist-button" data-faction-id="${faction.factionId}">Enlist</button></td>
+                    <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="action-button apply-link">Apply</a></td>
                 </tr>
             `;
         });
         factionsSeekingMembersTbody.innerHTML = tableHtml;
     } catch (error) {
         console.error("Error displaying factions seeking members:", error);
-        factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="4">Error loading factions.</td></tr>';
+        factionsSeekingMembersTbody.innerHTML = '<tr><td colspan="5">Error loading factions.</td></tr>'; // Adjusted colspan
     }
 }
-
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
