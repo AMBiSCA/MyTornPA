@@ -1582,6 +1582,17 @@ autocomplete-items {
     box-sizing: border-box;
 }
 
+.active-ops-targets-panel,
+.active-ops-chat-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* This property makes both panels take up an equal share of the available width. */
+    flex-basis: 0; /* Ensures even distribution when growing. */
+    height: 100%; /* This makes each panel fill the height provided by their parent (due to `align-items: stretch`). */
+    overflow: hidden; /* Important to prevent internal content from spilling out. */
+    box-sizing: border-box;
+    /* ... other existing properties */
+
 /* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-targets-panel {
     display: flex;
