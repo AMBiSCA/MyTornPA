@@ -295,6 +295,84 @@
     border-color: #a52714;
 }
 
+/* --- Styles for Confirmation Modal --- */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #00bfff;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #00bfff;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    color: #f0f0f0;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.modal-actions .action-button {
+    min-width: 100px;
+}
+
+/* Make the 'Yes' button have a green 'confirm' style */
+#modal-confirm-btn {
+    background-color: #2e7d32; /* A nice green */
+    border-color: #1b5e20;
+}
+#modal-confirm-btn:hover {
+    background-color: #388e3c;
+}
+
+/* Make the 'No' button have a red 'cancel' style */
+#modal-cancel-btn {
+    background-color: #d32f2f; /* A nice red */
+    border-color: #b71c1c;
+}
+#modal-cancel-btn:hover {
+    background-color: #e53935;
+}
+
+.modal-preference {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.modal-preference label {
+    margin-left: 8px;
+    color: #ccc;
+    font-size: 0.9em;
+}
 .btn {
     /* You might have these in global.css or war_page_hub.css already */
     background-color: #333;
