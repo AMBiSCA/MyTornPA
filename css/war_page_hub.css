@@ -245,6 +245,7 @@ display: flex;
 flex-direction: column;
 flex: 1; /* Allows it to grow and shrink */
 min-width: 450px;
+height: 475px; /* This line is currently missing */
 }
 
 
@@ -254,6 +255,7 @@ display: flex;
 flex-direction: column; /* Stack chat elements vertically */
 flex: 1; /* Allows it to grow and shrink */
 min-width: 300px; /* Minimum width for the chatbox side */
+height: 475px; /* ADDED: Set a fixed height */
 }
 
 .chat-container {
