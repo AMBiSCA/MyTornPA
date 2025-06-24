@@ -81,6 +81,14 @@ const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) f
 const memberProfileCache = {}; // Cache for storing fetched member profile images
 const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
 const pmSendBtn = document.getElementById('pmSendBtn'); // ADD THIS NEW LINE
+const chatContentPanels = document.querySelectorAll('.chat-panel'); // All chat content divs
+const factionChatPanel = document.getElementById('faction-chat');
+const privateChatPanel = document.getElementById('private-chat'); // This is your War Chat content panel
+const friendsPanel = document.getElementById('friends');
+const factionMembersPanel = document.getElementById('faction-members');
+const recentlyMetPanel = document.getElementById('recently-met');
+const blockedPeoplePanel = document.getElementById('blocked-people');
+const settingsPanel = document.getElementById('settings');
 
 
 // --- Utility Functions ---
