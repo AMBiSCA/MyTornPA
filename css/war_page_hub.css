@@ -1457,17 +1457,16 @@ autocomplete-items {
 /* In your war_page_hub.css: REPLACE existing rules for these elements */
 
 /* Revisit the main chatbox containers to ensure flexibility */
+/* Styles for the chatbox to make it a fixed-position overlay */
 .active-ops-chat-panel {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* Allow it to take up space in .active-ops-layout-row */
-    min-width: 320px; /* Ensure a minimum width for the chat panel */
-    background-color: #1f2937; /* Background from #warChatBox, applied here */
-    border: 1px solid #374151; /* Border from #warChatBox, applied here */
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    box-sizing: border-box;
-    overflow: hidden; /* Crucial: ensures nothing inside spills out */
+    position: fixed; /* This takes the element out of the normal document flow */
+    top: 20px; /* Adjust this value to set the distance from the top of the browser window */
+    right: 20px; /* Adjust this value to set the distance from the right of the browser window */
+    width: 350px; /* Set a fixed width for your chatbox */
+    height: 500px; /* Set a fixed height for your chatbox */
+    z-index: 1000; /* Ensures it appears on top of other content. Use a high number. */
+    /* You may need to remove or override any 'flex', 'min-width', or 'height: 100%' properties
+       that were previously on .active-ops-chat-panel from its old layout. */
 }
 
 .autocomplete-items div {
@@ -1594,23 +1593,6 @@ autocomplete-items {
     box-sizing: border-box;
 }
 
-/* Right Panel: Holds the entire chatbox structure */
-.active-ops-chat-panel {
-    display: flex;
-    flex-direction: column; /* Stack chat elements vertically */
-    flex: 1; /* Allows it to grow and shrink, taking 1 unit of space */
-    flex-basis: 0; /* Ensures even distribution when growing */
-    min-width: 320px; /* Minimum width for the chatbox side (adjust as needed) */
-    height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
-    overflow: hidden; /* CRUCIAL: Ensures content doesn't spill out of this panel */
-    
-    /* Keep existing visual styles for the panel (these were from your input) */
-    background-color: #1f2937; /* Example: Darker background for the panel */
-    border: 1px solid #374151; /* Example: Border for the panel */
-    border-radius: 10px; /* Example: Rounded corners for the panel */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Example: Shadow for the panel */
-    box-sizing: border-box;
-}
 
 /* Responsive adjustments for Active Ops tab layout */
 @media (max-width: 992px) {
