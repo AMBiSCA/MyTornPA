@@ -1932,7 +1932,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>';
 
     try {
-        // Step 1: Get the current user's Torn Player ID and Faction ID from their userProfiles document
         const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
         const userProfileDoc = await userProfileDocRef.get();
         if (!userProfileDoc.exists) {
@@ -1942,7 +1941,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
         const userProfileData = userProfileDoc.data();
         const currentUserTornId = userProfileData.tornProfileId; 
-        const userFactionId = userProfileData.faction_id; // CORRECTED: Changed from userProfileData.factionId
+        const userFactionId = userProfileData.faction_id; 
 
         if (!currentUserTornId) {
             console.warn("Torn Player ID not found in your user profile. Cannot fetch user data.");
@@ -1956,7 +1955,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-        // Step 2: Now that we have the Torn Player ID, fetch the current user's full data from the 'users' collection
         const currentUserDataRef = db.collection('users').doc(String(currentUserTornId));
         const currentUserDataDoc = await currentUserDataRef.get();
         const currentUsersFullData = currentUserDataDoc.exists ? currentUserDataDoc.data() : null;
@@ -1969,9 +1967,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-
-        // Step 3: Fetch the list of all members in the user's faction from the Torn API
-        const factionMembersApiUrl = `https://api.torn.com/faction/?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers&factionID=${actualUserFactionId}`;
+        // CORRECTED URL: Added /v2/ to the Torn API endpoint
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers&factionID=${actualUserFactionId}`;
         console.log(`[DEBUG] Fetching faction members from: ${factionMembersApiUrl}`);
         const factionResponse = await fetch(factionMembersApiUrl);
         const factionData = await factionResponse.json();
@@ -1991,7 +1988,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         let tableRowsHtml = '';
         const memberPromises = []; 
 
-        // Step 4: For each faction member, fetch their detailed user stats from your Firebase 'users' collection
         for (const memberId in members) {
             if (members.hasOwnProperty(memberId)) {
                 const memberDocRef = db.collection('users').doc(String(memberId));
@@ -1999,14 +1995,12 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     const memberTornData = members[memberId]; 
                     const memberFirebaseData = doc.exists ? doc.data() : null; 
 
-                    // Combine and format the data for display
                     const name = memberTornData.name || 'Unknown';
                     const level = memberTornData.level || 'N/A';
                     const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
                     const statusState = memberTornData.status?.state || 'N/A';
                     const statusDescription = memberTornData.status?.description || 'N/A';
 
-                    // Detailed stats from Firebase (will be 'N/A' if not found or incomplete)
                     const strength = memberFirebaseData?.battlestats?.strength?.toLocaleString() || 'N/A';
                     const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
                     const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
@@ -2014,13 +2008,11 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     const nerve = memberFirebaseData?.nerve !== undefined && memberFirebaseData?.nerve_full !== undefined ? `${memberFirebaseData.nerve}/${memberFirebaseData.nerve_full}` : 'N/A';
                     const energy = memberFirebaseData?.energy !== undefined && memberFirebaseData?.energy_full !== undefined ? `${memberFirebaseData.energy}/${memberFirebaseData.energy_full}` : 'N/A';
                     
-                    // Determine status class for styling
                     let statusClass = '';
                     if (statusState === 'Hospital') statusClass = 'status-hospital';
                     else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
                     else if (statusState === 'Okay') statusClass = 'status-okay';
 
-                    // Return the HTML for a table row
                     return `
                         <tr>
                             <td>${name} (${memberId})</td>
@@ -2037,7 +2029,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     `;
                 }).catch(error => {
                     console.error(`Error fetching Firebase data for member ${memberId}:`, error);
-                    // Return a row with N/A for stats if Firebase data fetch fails for a member
                     const memberTornData = members[memberId];
                     const name = memberTornData.name || 'Unknown';
                     const level = memberTornData.level || 'N/A';
