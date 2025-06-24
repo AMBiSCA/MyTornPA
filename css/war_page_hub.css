@@ -410,6 +410,10 @@ transition: background-color 0.2s ease;
     margin-right: 5px;
     white-space: nowrap; /* Prevent sender name from wrapping */
 }
+/* Optional: Add some padding to chat display area if messages look too cramped */
+.chat-display-area {
+    padding: 5px; /* Adds a little breathing room inside the chat box */
+}
 
 /* Ensure the main chat text also picks up the color if not inherited */
 .chat-text {
