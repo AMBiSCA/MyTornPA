@@ -113,7 +113,7 @@ async function listSelfForRecruitment() {
             isActive: true
         };
         await db.collection('playersSeekingFactions').doc(auth.currentUser.uid).set(data, { merge: true });
-        console.log("Player listed:", auth.currentUser.uid);
+       console.log("SUCCESS V4 - Player listed:", auth.currentUser.uid);
     } catch (error) {
         console.error("Error during self-listing:", error);
         alert(`Failed to list yourself: ${error.message}`);
