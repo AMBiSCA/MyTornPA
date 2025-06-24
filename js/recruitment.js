@@ -253,9 +253,6 @@ async function advertiseFaction() {
             return;
         }
 
-        // CORRECTED: Use Torn API v2 URL with 'basic' and 'members' selections
-        // 'basic' includes faction name, ID, respect, and the 'rank' object.
-        // 'members' includes the list of faction members for counting.
         const selections = 'basic,members'; 
         const apiUrl = `https://api.torn.com/v2/faction/${userTornFactionId}?selections=${selections}&key=${currentUserTornApiKey}&comment=MyTornPA_RecruitAdvertiseFaction`;
         
@@ -271,22 +268,20 @@ async function advertiseFaction() {
 
         if (data.error) {
             if (data.error.code === 2) throw new Error(`Torn API: Invalid API Key. Please check your key permissions.`);
-            // Ensure your API key has 'Basic' and 'Members' permissions enabled for Faction access!
             if (data.error.code === 10) throw new Error(`Torn API: Insufficient API Key Permissions. Ensure 'Basic' and 'Members' are enabled for your faction API key.`);
             throw new Error(`Torn API error: ${data.error.error}`);
         }
         
-        const factionName = data.name || 'Unknown Faction';
-        // Member count remains the same logic: count keys in the members object
+        // CORRECTED: Access properties from 'data.basic' object
+        const factionName = data.basic?.name || 'Unknown Faction'; 
         const totalMembers = data.members ? Object.keys(data.members).length : 0; 
-        const factionRespect = data.respect || 0; // 'respect' comes from the 'basic' selection
-        // CORRECTED: Access faction rank name from data.rank.name (as seen in your JSON screenshot)
-        const factionRankTier = data.rank?.name || 'N/A'; 
+        const factionRespect = data.basic?.respect || 0; 
+        const factionRankTier = data.basic?.rank?.name || 'N/A'; // Access rank.name from data.basic.rank
 
         const contactInfo = ''; // Temporarily empty, will be added via a UI later
 
         const factionListingData = {
-            factionId: String(userTornFactionId),
+            factionId: String(userTornFactionId), // Faction ID is at top-level data.ID, but also in data.basic.ID
             factionName: factionName,
             totalMembers: totalMembers,
             factionRespect: factionRespect, 
