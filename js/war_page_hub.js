@@ -2552,7 +2552,7 @@ if (pmSendBtn) {
         // The message currently in the input field will be sent to the selected private recipient
         // We need to define *who* the selected private recipient is in the next steps!
     });
-}y
+}
 
 
     if (postAnnouncementBtn) {
