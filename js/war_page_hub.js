@@ -2538,50 +2538,45 @@ function showTab(tabId) {
     if (selectedButton) selectedButton.classList.add('active');
 }
 
-// --- Main Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane'); // Added: Selects the main content panels
+    const tabButtons = document.querySelectorAll('.tab-button'); 
+    const mainTabPanes = document.querySelectorAll('.tab-pane');
 
     tabButtons.forEach(button => {
-        button.addEventListener('click', async (event) => { // IMPORTANT: Made the function 'async'
-            const targetTabDataset = event.currentTarget.dataset.tab; // e.g., 'announcements', 'friendly-status'
-            const targetTabId = targetTabDataset + '-tab'; // e.g., 'announcements-tab', 'friendly-status-tab'
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
 
-            // Call your existing showTab function to switch visibility
-            // Assuming showTab handles removing/adding 'active' classes to mainTabPanes
-            showTab(targetTabId); 
+            showTab(targetTabId);
 
-            // --- NEW PART: Call updateFriendlyMembersTable when 'friendly-status' tab is active ---
+            // --- CORRECTED PART: Call updateFriendlyMembersTable using the global 'userApiKey' ---
             if (targetTabDataset === 'friendly-status') {
-                const user = firebase.auth().currentUser; // Get the current authenticated Firebase user
-                const apiKey = 'YOUR_TORN_API_KEY_HERE'; // Replace with your actual Torn API Key
-                                                          // (or fetch it securely from Firebase/user profile)
-
-                if (user && apiKey) {
-                    await updateFriendlyMembersTable(apiKey, user.uid);
+                const user = firebase.auth().currentUser;
+                // NOW CORRECTLY USING THE GLOBALLY SCOPED 'userApiKey'
+                
+                if (user && userApiKey) { // Check for userApiKey which is set by auth.onAuthStateChanged
+                    await updateFriendlyMembersTable(userApiKey, user.uid); 
                 } else {
                     console.warn("User not logged in or API Key missing. Cannot update friendly members table.");
-                    // Display a message in the table if user/API key is not available
                     const tbody = document.getElementById('friendly-members-tbody');
                     if (tbody) {
                         tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
                     }
                 }
             }
-            // --- END NEW PART ---
+            // --- END CORRECTED PART ---
         });
     });
-    showTab('announcements-tab'); // Initial tab to show on page load
+    showTab('announcements-tab');
     let listenersInitialized = false;
 
     // --- Chat Tab Functionality Elements and Handler ---
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox'); // The main chat container
+    const warChatBox = document.getElementById('warChatBox');
     const chatDisplayArea = document.getElementById('chat-display-area');
-    const chatInputArea = document.querySelector('.chat-input-area'); // Selects the whole input area div
+    const chatInputArea = document.querySelector('.chat-input-area');
 
     // Function to handle chat tab clicks
     function handleChatTabClick(event) {
@@ -2590,66 +2585,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
 
-        // Remove 'active' class from all chat tabs
         chatTabs.forEach(tab => tab.classList.remove('active'));
 
-        // Hide all chat content panels (assuming this is handled by a class on warChatBox or specific panels)
-        // Adjust this part based on how your chat panels are actually hidden/shown
-        // For example, if you have a class on warChatBox like 'chat-content-hidden'
         if (warChatBox) {
-             warChatBox.classList.remove('chat-content-hidden'); // Ensure chat content is visible initially
+             warChatBox.classList.remove('chat-content-hidden');
         }
 
-        // Unsubscribe from any active real-time chat listener by default when switching tabs
         if (unsubscribeFromChat) {
             unsubscribeFromChat();
             unsubscribeFromChat = null;
             console.log("Unsubscribed from previous chat listener (tab switch).");
         }
 
-        // Add 'active' class to the clicked tab button
         const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${targetTab}"]`);
         if (selectedChatTabButton) {
             selectedChatTabButton.classList.add('active');
             selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
         }
 
-        // Show the selected content panel and perform tab-specific actions
         let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
-        // Remove any existing dynamic panel to start fresh
         if (nonChatContentPanel) {
             nonChatContentPanel.remove();
         }
 
-        // Determine if we are on a chat tab or a non-chat tab
         if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
-            // --- CHAT TABS: Show chat display and input areas ---
             if (warChatBox) {
-                // Assuming 'hide-content' class on warChatBox hides chat display/input areas
                 warChatBox.classList.remove('hide-content'); 
                 if (chatDisplayArea) {
                     if (targetTab === 'faction-chat') {
                         chatDisplayArea.innerHTML = '<p>Welcome to Faction Chat! Messages will appear here...</p>';
-                        // You'd call your specific faction chat listener here, e.g., setupFactionChatListener();
-                        setupChatRealtimeListener(); // As per your original code
-                    } else { // private-chat
+                        setupChatRealtimeListener();
+                    } else {
                         chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Messages will appear here...</p>';
-                        // Call your specific private chat listener here
                     }
-                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Scroll to bottom
+                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
                 }
             }
         } else {
-            // --- NON-CHAT TABS (Friends, Settings, Faction Members etc.): Hide chat elements & show specific content ---
             if (warChatBox) {
-                warChatBox.classList.add('hide-content'); // Add the hiding class to hide chat elements
+                warChatBox.classList.add('hide-content');
 
-                // Create a new dynamic panel for non-chat content
                 nonChatContentPanel = document.createElement('div');
                 nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
-                nonChatContentPanel.className = 'chat-dynamic-panel'; // Add a class for potential styling
+                nonChatContentPanel.className = 'chat-dynamic-panel'; 
                 
-                // Add basic styling to position and size the dynamic panel
                 nonChatContentPanel.style.position = 'absolute';
                 nonChatContentPanel.style.top = '40px'; 
                 nonChatContentPanel.style.left = '0';
@@ -2659,9 +2638,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 nonChatContentPanel.style.padding = '10px';
                 nonChatContentPanel.style.overflowY = 'auto';
                 nonChatContentPanel.style.color = '#f0f0f0';
-                nonChatContentPanel.style.boxSizing = 'border-box';
+                nonChatContentPanel.style.boxSizing = 'border-box'; // Corrected from 'border-sizing' in prev paste
 
-                // Populate the dynamic panel based on the specific non-chat tab
                 if (targetTab === 'settings') {
                     nonChatContentPanel.innerHTML = `
                         <div class="chat-settings-panel">
@@ -2688,32 +2666,24 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="save-settings-btn">Save Settings</button>
                         </div>
                     `;
-                } else if (targetTab === 'faction-members') { // Faction Members Tab Content
+                } else if (targetTab === 'faction-members') {
                     console.log("[Chat Tab Debug] Faction Members tab selected.");
 
-                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; // Title
+                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3>`; 
 
-                    // ASSUMPTION: window.globalFactionMembers holds your array of member objects
                     const members = window.globalFactionMembers || [];
                     
                     console.log("[Chat Tab Debug] Members array before sorting:", members);
 
-                    // Define a custom order for ranks (leaders first)
                     const rankOrder = {
-                        "Leader": 0,
-                        "Co-leader": 1,
-                        "Member": 99,
-                        "Applicant": 100
+                        "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100
                     };
 
-                    // Sort members by rank, then alphabetically by name
                     members.sort((a, b) => {
                         const orderA = rankOrder[a.rank] !== undefined ? rankOrder[a.rank] : rankOrder["Member"];
                         const orderB = rankOrder[b.rank] !== undefined ? rankOrder[b.rank] : rankOrder["Member"];
 
-                        if (orderA !== orderB) {
-                            return orderA - orderB;
-                        }
+                        if (orderA !== orderB) { return orderA - orderB; }
                         return a.name.localeCompare(b.name);
                     });
 
@@ -2723,9 +2693,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             : '../../images/default_profile_icon.png';
 
                         let memberClass = ''; 
-                        if (member.rank === "Leader" || member.rank === "Co-leader") {
-                            memberClass = 'leader-member';
-                        }
+                        if (member.rank === "Leader" || member.rank === "Co-leader") { memberClass = 'leader-member'; }
 
                         return `
                             <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" rel="noopener noreferrer" class="member-item ${memberClass}">
@@ -2739,11 +2707,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     nonChatContentPanel.innerHTML += `<div class="members-list-container">${membersListHtml}</div>`;
                     console.log("[Chat Tab Debug] Generated Members HTML length:", membersListHtml.length);
                 } else {
-                    // Generic content for other non-chat tabs (Friends, Recently Met, Blocked People)
                     nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
                 }
                 
-                // Append the new dynamic panel to the main chat box container
                 warChatBox.appendChild(nonChatContentPanel);
             }
         }
@@ -2755,6 +2721,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
+            
             const apiKey = userData.tornApiKey || null;
             const playerId = userData.tornProfileId || null;
             currentTornUserName = userData.preferredName || 'Unknown';
@@ -2768,9 +2735,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (apiKey && playerId) {
-                userApiKey = apiKey;
+                userApiKey = apiKey; // Assign to global userApiKey for other functions
 
-                await initializeAndLoadData(apiKey); // This seems to fetch some main data
+                await initializeAndLoadData(apiKey);
                 populateUiComponents(warData, apiKey);
 
                 fetchAndDisplayChainData();
@@ -2782,12 +2749,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     setupEventListeners(apiKey);
                     setupMemberClickEvents();
 
-                    // Add click listeners to all chat tab buttons for the chat box
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
                     });
 
-                    // Initial setup for chat: Trigger click on the default active chat tab (Faction Chat)
                     const initialActiveChatTab = document.querySelector('.chat-tab.active');
                     if (initialActiveChatTab) {
                         handleChatTabClick({ currentTarget: initialActiveChatTab });
@@ -2795,7 +2760,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     listenersInitialized = true;
 
-                    // Periodic updates
                     setInterval(updateAllTimers, 1000);
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
