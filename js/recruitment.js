@@ -156,7 +156,7 @@ async function enlistPlayer(factionId) {
 
 
 // --- 🔺 UPDATED FUNCTION 🔺 ---
-// This function now reads from your 'users' collection in Firestore to create a listing.
+// This function now reads the new fields from your 'users' collection.
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
@@ -168,60 +168,48 @@ async function listSelfForRecruitment() {
         return;
     }
 
-    // Disable button to prevent multiple clicks
     listSelfButton.disabled = true;
     listSelfButton.textContent = 'Listing...';
 
     try {
-        // 1. Get user data from the 'users' collection in Firestore
         const userDocRef = db.collection('users').doc(String(currentUserTornId));
         const userDoc = await userDocRef.get();
 
         if (!userDoc.exists) {
-            throw new Error(`Your user data could not be found in the 'users' collection. Please ensure it has been saved correctly.`);
+            throw new Error(`Your user data could not be found in the 'users' collection.`);
         }
         const userData = userDoc.data();
 
-        // 2. Extract the necessary stats using the field names from your data structure
         const battleStats = userData.battlestats || {};
         const personalStats = userData.personalstats || {};
 
-        const totalAttacks = (personalStats.attackswon || 0) + (personalStats.attackslost || 0) + (personalStats.attacksdraw || 0);
-
-        // 3. Create the object to save to the 'playersSeekingFactions' collection
         const playerListingData = {
             playerId: String(currentUserTornId),
             playerName: userData.name || 'Unknown',
             playerLevel: userData.level || 0,
-            // Battle Stats
             strength: battleStats.strength || 0,
             defense: battleStats.defense || 0,
             speed: battleStats.speed || 0,
             dexterity: battleStats.dexterity || 0,
-            // Personal Stats
             xanaxTaken: personalStats.xantaken || 0,
-            totalAttacks: totalAttacks,
-            // Metadata
+            warHits: personalStats.rankedwarhits || 0,    // NEW FIELD
+            energyRefills: personalStats.refills || 0,      // NEW FIELD
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true
         };
 
-        // 4. Save the data
-        const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid); // Using Firebase UID as doc ID is good for uniqueness
-        await listingDocRef.set(playerListingData, {
-            merge: true
-        });
+        const listingDocRef = db.collection('playersSeekingFactions').doc(auth.currentUser.uid);
+        await listingDocRef.set(playerListingData, { merge: true });
 
         alert(`Successfully listed yourself for recruitment!`);
         console.log("Player self-listing data saved:", playerListingData);
-        displayPlayersSeekingFactions(); // Refresh the list
+        displayPlayersSeekingFactions();
 
     } catch (error) {
         console.error("Error during self-listing:", error);
         alert(`Failed to list yourself: ${error.message}`);
     } finally {
-        // Re-enable the button
         listSelfButton.disabled = false;
         listSelfButton.textContent = 'List Myself';
     }
@@ -229,7 +217,48 @@ async function listSelfForRecruitment() {
 
 
 // --- 🔺 UPDATED FUNCTION 🔺 ---
-// This function now displays the player data in a "card" format.
+// This function now displays the new columns and data.
+async function displayPlayersSeekingFactions() {
+    if (!playersSeekingFactionsTbody) return;
+
+    // Colspan is now 6 for the new column layout
+    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="6">Loading player listings...</td></tr>';
+
+    try {
+        const snapshot = await db.collection('playersSeekingFactions')
+            .where('isActive', '==', true)
+            .orderBy('listingTimestamp', 'desc')
+            .limit(50)
+            .get();
+
+        if (snapshot.empty) {
+            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="6">No players currently seeking factions.</td></tr>';
+            return;
+        }
+
+        let tableHtml = '';
+        snapshot.docs.forEach(doc => {
+            const player = doc.data();
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
+
+            tableHtml += `
+                <tr>
+                    <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
+                    <td>${player.playerLevel}</td>
+                    <td>S: ${formatNumber(player.strength)} | D: ${formatNumber(player.defense)} | Sp: ${formatNumber(player.speed)} | Dx: ${formatNumber(player.dexterity)}</td>
+                    <td>${(player.xanaxTaken || 0).toLocaleString()}</td>
+                    <td>${(player.warHits || 0).toLocaleString()}</td>
+                    <td>${(player.energyRefills || 0).toLocaleString()}</td>
+                </tr>
+            `;
+        });
+        playersSeekingFactionsTbody.innerHTML = tableHtml;
+
+    } catch (error) {
+        console.error("Error fetching players seeking factions:", error);
+        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="6">Error loading player listings.</td></tr>`;
+    }
+}
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) return;
 
