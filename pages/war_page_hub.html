@@ -136,211 +136,218 @@
                             </div>
                         </div>
 
-                        <div class="announcement-section-item">
-                            <div class="war-announcement-section">
-                                <h3>Faction Announcements:</h3>
-                                <div id="factionAnnouncementsDisplay" class="game-plan-display">
-                                    <p>No current announcements.</p>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
-                    <div class="faction-versus-section">
-                        <div class="faction-info-block">
-                            <h4 id="factionOneName">Faction 1 Name</h4>
-                            <p><span id="factionOneMembers">N/A</span></p>
-                        </div>
-                        <div class="faction-images">
-                            <div id="factionOnePic" class="faction-logo faction-emblem-placeholder" alt="Faction 1 Logo Placeholder"></div>
-                            <span class="versus-text">Vs</span>
-                            <div id="factionTwoPic" class="faction-logo faction-emblem-placeholder" alt="Faction 2 Logo Placeholder"></div>
-                        </div>
-                        <div class="faction-info-block">
-                            <h4 id="factionTwoName">Faction 2 Name</h4>
-                            <p><span id="factionTwoMembers">N/A</span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="active-ops-tab" class="tab-pane">
-                    <div class="ops-controls-grid">
-                        <div class="ops-control-item ops-timer">
-                            <label>Chain Timer:</label>
-                            <span id="chainTimerDisplay">00:00:00</span>
-                            <span id="chainStartedDisplay">Started: N/A</span>
-                            <span id="currentChainNumberDisplay">N/A</span>
-                        </div>
-                        <div class="ops-control-item ops-quick-targets">
-                            <label>Quick FairFight Chain saver:</label>
-                            <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
-                                <span>Target 1</span>
-                                <span>Target 2</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="active-ops-layout-row"> <div class="active-ops-targets-panel"> <div class="enemy-targets-list-section">
-                                <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
-                                    <p>Loading enemy targets...</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="active-ops-chat-panel"> <div id="warChatBox" class="chat-container">
-                                <div class="chat-tabs-container">
-                                    <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
-                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
-                                    <button class="chat-tab" data-chat-tab="friends">Friends</button>
-                                    <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
-                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
-                                    <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
-                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
-                                </div>
-                                <div id="chat-display-area" class="chat-display-area">
-                                   <p>Welcome to the chat! Messages will appear here...</p>
-                                </div>
-                                <div class="chat-input-area">
-                                    <div class="chat-input-buttons-top">
-                                        <button class="chat-action-btn siren-btn">🚨</button>
-                                        <button class="chat-action-btn blank-btn"></button>
-                                    </div>
-                                    <div class="chat-input-text-send">
-                                        <input type="text" class="chat-text-input" placeholder="Type your message...">
-                                        <button class="chat-send-btn">Send</button>
-                                    </div>
-                                </div>
+                    <div class="announcement-section-item">
+                        <div class="war-announcement-section">
+                            <h3>Faction Announcements:</h3>
+                            <div id="factionAnnouncementsDisplay" class="game-plan-display">
+                                <p>No current announcements.</p>
                             </div>
                         </div>
                     </div>
 
                 </div>
 
-                <div id="friendly-status-tab" class="tab-pane">
-                    <div class="ops-controls-grid">
-                        <div class="ops-control-item">
-                            <label>Faction Live Status</label>
-                            <span id="friendly-status-summary"></span>
-                        </div>
+                <div class="faction-versus-section">
+                    <div class="faction-info-block">
+                        <h4 id="factionOneName">Faction 1 Name</h4>
+                        <p><span id="factionOneMembers">N/A</span></p>
                     </div>
-                
-                    <div class="friendly-status-layout-row"> <div class="friendly-members-panel"> <div id="friendlyMembersListContainer">
-                                <table class="enemy-targets-table" id="friendly-members-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Level</th>
-                                            <th>Last Action</th>
-                                            <th>Strength</th>
-                                            <th>Dexterity</th>
-                                            <th>Speed</th>
-                                            <th>Defense</th>
-                                            <th>Status</th>
-                                            <th>Nerve</th>
-                                            <th>Energy</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="friendly-members-tbody">
-                                        <tr>
-                                            <td colspan="10" style="text-align:center; padding: 20px;">Loading member data...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                
-                        <div class="friendly-details-panel"> <div id="selectedMemberDetailPanel" class="detail-panel-placeholder">
-                                <h4>Member Details</h4>
-                                <div class="detail-panel-icon">👤</div>
-                                <p><i>Select a member on the left to view their details.</i></p>
-                            </div>
-                        </div>
-                
+                    <div class="faction-images">
+                        <div id="factionOnePic" class="faction-logo faction-emblem-placeholder" alt="Faction 1 Logo Placeholder"></div>
+                        <span class="versus-text">Vs</span>
+                        <div id="factionTwoPic" class="faction-logo faction-emblem-placeholder" alt="Faction 2 Logo Placeholder"></div>
                     </div>
-                </div>
-                
-                <div id="leader-config-tab" class="tab-pane">
-                    <div class="config-grid">
-                        <div class="config-section">
-                            <h4>Edit Game Plan:</h4>
-                            <textarea id="gamePlanEditArea"></textarea>
-                            <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>War Status Controls:</h4>
-                            <div class="war-status-toggles-grid">
-                                <div class="toggle-control">
-                                    <label for="toggleEnlisted">Enlisted:</label>
-                                    <input type="checkbox" id="toggleEnlisted">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleTermedWar">Termed War:</label>
-                                    <input type="checkbox" id="toggleTermedWar">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleTermedWinLoss">Win/Loss Termed:</label>
-                                    <input type="checkbox" id="toggleTermedWinLoss">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleChaining">Chaining:</label>
-                                    <input type="checkbox" id="toggleChaining">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleNoFlying">No Flying:</label>
-                                    <input type="checkbox" id="toggleNoFlying">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="toggleTurtleMode">Turtle Mode:</label>
-                                    <input type="checkbox" id="toggleTurtleMode">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="enemyFactionIDInputLeaderConfig">Enemy Faction ID:</label>
-                                    <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="nextChainTimeInput">Next Chain Time:</label>
-                                    <input type="text" id="nextChainTimeInput" placeholder="e.g., 00:00:00">
-                                </div>
-                                <div class="toggle-control">
-                                    <label for="currentTeamLeadInput">Current Team Lead:</label>
-                                    <input type="text" id="currentTeamLeadInput" placeholder="Enter name">
-                                </div>
-                            </div>
-                            <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Faction Announcements:</h4> <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
-                            <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Designated Tab 4 Admins:</h4>
-                            <p>Select members to designate as admins:</p>
-                            <div id="designatedAdminsContainer" class="member-checkbox-list"></div>
-                            <div id="designateAdminError" class="error-message"></div>
-                            <button id="saveAdminSelectionsBtn" class="action-btn">Save Admins</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Big Hitter Watchlist:</h4>
-                            <p>Select enemies to watch:</p>
-                            <div id="bigHitterWatchlistContainer" class="member-checkbox-list"></div>
-                            <button id="saveWatchlistSelectionsBtn" class="action-btn">Save Selections</button>
-                        </div>
-
-                        <div class="config-section">
-                            <h4>Energy Tracking Members:</h4>
-                            <p>Select members whose energy contributes to faction totals.</p>
-                            <div id="energyTrackingContainer" class="member-checkbox-list"></div>
-                            <button id="saveEnergyTrackMembersBtn" class="action-btn">Save Selections</button>
-                        </div>
-
+                    <div class="faction-info-block">
+                        <h4 id="factionTwoName">Faction 2 Name</h4>
+                        <p><span id="factionTwoMembers">N/A</span></p>
                     </div>
                 </div>
             </div>
+
+            <div id="active-ops-tab" class="tab-pane">
+                <div class="ops-controls-grid">
+                    <div class="ops-control-item ops-timer">
+                        <label>Chain Timer:</label>
+                        <span id="chainTimerDisplay">00:00:00</span>
+                        <span id="chainStartedDisplay">Started: N/A</span>
+                        <span id="currentChainNumberDisplay">N/A</span>
+                    </div>
+                    <div class="ops-control-item ops-quick-targets">
+                        <label>Quick FairFight Chain saver:</label>
+                        <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
+                            <span>Target 1</span>
+                            <span>Target 2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="active-ops-layout-row">
+                    <div class="active-ops-targets-panel">
+                        <div class="enemy-targets-list-section">
+                            <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
+                                <p>Loading enemy targets...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="active-ops-chat-panel">
+                        <div id="warChatBox" class="chat-container">
+                            <div class="chat-tabs-container">
+                                <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
+                                <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
+                                <button class="chat-tab" data-chat-tab="friends">Friends</button>
+                                <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
+                                <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
+                                <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
+                                <button class="chat-tab" data-chat-tab="settings">Settings</button>
+                            </div>
+                            <div id="chat-display-area" class="chat-display-area">
+                               <p>Welcome to the chat! Messages will appear here...</p>
+                            </div>
+                            <div class="chat-input-area">
+                                <div class="chat-input-buttons-top">
+                                    <button class="chat-action-btn siren-btn">🚨</button>
+                                    <button class="chat-action-btn blank-btn"></button>
+                                </div>
+                                <div class="chat-input-text-send">
+                                    <input type="text" class="chat-text-input" placeholder="Type your message...">
+                                    <button class="chat-send-btn">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="friendly-status-tab" class="tab-pane">
+                <div class="ops-controls-grid">
+                    <div class="ops-control-item">
+                        <label>Faction Live Status</label>
+                        <span id="friendly-status-summary"></span>
+                    </div>
+                </div>
+
+                <div class="friendly-status-layout-row">
+                    <div class="friendly-members-panel">
+                        <div id="friendlyMembersListContainer">
+                            <table class="enemy-targets-table" id="friendly-members-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Level</th>
+                                        <th>Last Action</th>
+                                        <th>Strength</th>
+                                        <th>Dexterity</th>
+                                        <th>Speed</th>
+                                        <th>Defense</th>
+                                        <th>Status</th>
+                                        <th>Nerve</th>
+                                        <th>Energy</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="friendly-members-tbody">
+                                    <tr>
+                                        <td colspan="10" style="text-align:center; padding: 20px;">Loading member data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="friendly-details-panel">
+                        <div id="selectedMemberDetailPanel" class="detail-panel-placeholder">
+                            <h4>Member Details</h4>
+                            <div class="detail-panel-icon">👤</div>
+                            <p><i>Select a member on the left to view their details.</i></p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="leader-config-tab" class="tab-pane">
+                <div class="config-grid">
+                    <div class="config-section">
+                        <h4>Edit Game Plan:</h4>
+                        <textarea id="gamePlanEditArea"></textarea>
+                        <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>War Status Controls:</h4>
+                        <div class="war-status-toggles-grid">
+                            <div class="toggle-control">
+                                <label for="toggleEnlisted">Enlisted:</label>
+                                <input type="checkbox" id="toggleEnlisted">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="toggleTermedWar">Termed War:</label>
+                                <input type="checkbox" id="toggleTermedWar">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="toggleTermedWinLoss">Win/Loss Termed:</label>
+                                <input type="checkbox" id="toggleTermedWinLoss">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="toggleChaining">Chaining:</label>
+                                <input type="checkbox" id="toggleChaining">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="toggleNoFlying">No Flying:</label>
+                                <input type="checkbox" id="toggleNoFlying">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="toggleTurtleMode">Turtle Mode:</label>
+                                <input type="checkbox" id="toggleTurtleMode">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="enemyFactionIDInputLeaderConfig">Enemy Faction ID:</label>
+                                <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="nextChainTimeInput">Next Chain Time:</label>
+                                <input type="text" id="nextChainTimeInput" placeholder="e.g., 00:00:00">
+                            </div>
+                            <div class="toggle-control">
+                                <label for="currentTeamLeadInput">Current Team Lead:</label>
+                                <input type="text" id="currentTeamLeadInput" placeholder="Enter name">
+                            </div>
+                        </div>
+                        <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Faction Announcements:</h4> <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
+                        <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Designated Tab 4 Admins:</h4>
+                        <p>Select members to designate as admins:</p>
+                        <div id="designatedAdminsContainer" class="member-checkbox-list"></div>
+                        <div id="designateAdminError" class="error-message"></div>
+                        <button id="saveAdminSelectionsBtn" class="action-btn">Save Admins</button>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Big Hitter Watchlist:</h4>
+                        <p>Select enemies to watch:</p>
+                        <div id="bigHitterWatchlistContainer" class="member-checkbox-list"></div>
+                        <button id="saveWatchlistSelectionsBtn" class="action-btn">Save Selections</button>
+                    </div>
+
+                    <div class="config-section">
+                        <h4>Energy Tracking Members:</h4>
+                        <p>Select members whose energy contributes to faction totals.</p>
+                        <div id="energyTrackingContainer" class="member-checkbox-list"></div>
+                        <button id="saveEnergyTrackMembersBtn" class="action-btn">Save Selections</button>
+                    </div>
+
+                </div>
+            </div>
         </div>
+    </div>
     </div>
     <footer class="footer">
         <div class="footer-links">
@@ -358,5 +365,46 @@
     <script src="../../js/firebase-init.js"></script>
     <script src="../../js/globalheader.js"></script>
     <script src="../../js/war_page_hub.js"></script>
+
+    <script>
+        function alignWarHubPanels() {
+            // Find the left and right panels on the "Active Ops" tab
+            const leftPanel = document.querySelector('.active-ops-left-panel');
+            const rightPanel = document.querySelector('.active-ops-right-panel');
+
+            // If we're not on the Active Ops tab (panels don't exist), do nothing.
+            if (!leftPanel || !rightPanel) {
+                return;
+            }
+
+            // Temporarily reset heights to auto to measure the natural content height
+            leftPanel.style.height = 'auto';
+            rightPanel.style.height = 'auto';
+
+            // Get the height of both panels
+            const leftHeight = leftPanel.offsetHeight;
+            const rightHeight = rightPanel.offsetHeight;
+
+            // Find out which panel is taller
+            const maxHeight = Math.max(leftHeight, rightHeight);
+
+            // Set both panels to be the same height as the taller one
+            leftPanel.style.height = `${maxHeight}px`;
+            rightPanel.style.height = `${maxHeight}px`;
+        }
+
+        // --- Triggers ---
+
+        // Run the function when the page first loads
+        window.addEventListener('DOMContentLoaded', alignWarHubPanels);
+
+        // Re-run the function if the browser window is resized
+        window.addEventListener('resize', alignWarHubPanels);
+        
+        // It's also a good idea to call this function whenever you switch to the "Active Ops" tab.
+        // For example, if your "Active Ops" tab has an ID like `active-ops-tab-button`, you could add:
+        // document.getElementById('active-ops-tab-button').addEventListener('click', alignWarHubPanels);
+
+    </script>
 </body>
 </html>
