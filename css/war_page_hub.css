@@ -326,7 +326,7 @@ display: flex;
 flex-direction: column;
 flex: 1; /* Allows it to grow and shrink */
 min-width: 450px;
-height: 475px; /* This line is currently missing */
+
 }
 
 
@@ -336,7 +336,7 @@ display: flex;
 flex-direction: column; /* Stack chat elements vertically */
 flex: 1; /* Allows it to grow and shrink */
 min-width: 300px; /* Minimum width for the chatbox side */
-height: 475px; /* ADDED: Set a fixed height */
+
 }
 
 .chat-container {
@@ -361,12 +361,6 @@ border-radius: 8px;
 overflow: hidden; /* Ensures rounded corners are respected and content is clipped */
 	height: 100%; /* MODIFIED: Fill the parent panel's new height */
 }
-
-/* Custom scrollbar for chat display area */
-.chat-display-area::-webkit-scrollbar { width: 10px; }
-.chat-display-area::-webkit-scrollbar-track { background: #1a1a1a; }
-.chat-display-area::-webkit-scrollbar-thumb { background-color: #007acc; border-radius: 5px; border: 2px solid #1a1a1a; }
-.chat-display-area::-webkit-scrollbar-thumb:hover { background-color: #00a8ff; }
 
 .chat-tab {
 
@@ -539,20 +533,7 @@ transition: background-color 0.2s ease;
     }
 }
 
-/* --- Chatbox Specific Styles for Dynamic Messages and Animation --- */
 
-/* Styles for the chat messages display area */
-#chat-display-area {
-    max-height: 400px; /* Adjust this height as needed for your layout */
-    overflow-y: auto;  /* Enables vertical scrolling */
-    padding: 10px;
-    display: flex;
-    flex-direction: column; /* Stacks messages from top to bottom */
-    gap: 8px; /* Space between messages */
-    background-color: #2d3748; /* Example background, adjust to match your theme */
-    border-radius: 8px;
-    margin-bottom: 10px; /* Space between messages area and input */
-}
 
 /* Scrollbar styling for a cleaner look */
 #chat-display-area::-webkit-scrollbar {
@@ -1568,18 +1549,7 @@ autocomplete-items {
         gap: 10px; /* NEW: Reduced gap */
     }
     
-    .active-ops-main-content-row {
-        flex-direction: column; /* Stack panels vertically in active ops */
-        gap: 10px; /* Reduce gap when stacked */
-    }
-
-    .active-ops-left-panel,
-    .active-ops-right-panel {
-        min-width: unset; /* Remove min-width on smaller screens */
-        width: 100%; /* Take full width */
-    }
-    /* ... rest of your existing rules within this media query ... */
-}
+   
     .active-ops-main-content-row {
         flex-direction: column; /* Stack panels vertically in active ops */
         gap: 10px; /* Reduce gap when stacked */
