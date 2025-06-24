@@ -2824,6 +2824,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to handle chat tab clicks
    // Function to handle chat tab clicks
     // Function to handle chat tab clicks
+// MODIFIED: Function to handle chat tab clicks (uses globalNonChatContentPanel)
 function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
@@ -2839,69 +2840,126 @@ function handleChatTabClick(event) {
         chatTabsContainer.scrollLeft = clickedTab.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (clickedTab.offsetWidth / 2);
     }
 
-    // Hide existing dynamic content panel if it exists
-    let nonChatContentPanel = document.getElementById('non-chat-dynamic-content-panel');
-    if (nonChatContentPanel) {
-        nonChatContentPanel.remove();
-    }
-
-    // Unsubscribe from any active real-time chat listener by default when switching tabs
+    // Unsubscribe from ANY active real-time chat listener (faction or private) when switching tabs
     if (unsubscribeFromChat) {
         unsubscribeFromChat();
         unsubscribeFromChat = null;
         console.log("Unsubscribed from previous chat listener (tab switch).");
     }
 
-    // Hide the main warChatBox content if it's not a direct chat tab
-    if (warChatBox) {
-        if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
-            warChatBox.classList.remove('hide-content');
-            // Ensure chatDisplayArea is cleared and ready for real-time messages
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = ''; // Clear old messages
-                if (targetTab === 'faction-chat') {
-                    setupChatRealtimeListener(); // Start real-time listener for faction chat
-                } else {
-                    chatDisplayArea.innerHTML = '<p>Welcome to Private Chat! Functionality not implemented yet.</p>';
-                }
-                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-            }
-            // Ensure chat input area is visible for chat tabs
-            if (chatInputArea) chatInputArea.style.display = 'flex';
+    // --- NEW: Consolidated panel management logic ---
+    // First, remove any existing dynamic non-chat panel from the DOM
+    if (globalNonChatContentPanel) {
+        globalNonChatContentPanel.remove();
+        globalNonChatContentPanel = null; // Clear the reference
+    }
+
+    // Now, manage visibility of the main chat box and input area, and create a new dynamic panel if needed
+    if (targetTab === 'faction-chat' || targetTab === 'private-chat') {
+        if (warChatBox) warChatBox.classList.remove('hide-content'); // Show main chat box
+        if (chatInputArea) chatInputArea.style.display = 'flex'; // Show input area
+        chatDisplayArea.innerHTML = ''; // Clear chat display area for fresh messages
+    } else { // Non-chat tabs like 'faction-members', 'settings', etc.
+        if (warChatBox) warChatBox.classList.add('hide-content'); // Hide main chat box
+        if (chatInputArea) chatInputArea.style.display = 'none'; // Hide input area
+
+        // Create the new dynamic content panel and append it (will be populated below in switch statement)
+        globalNonChatContentPanel = document.createElement('div');
+        globalNonChatContentPanel.id = 'non-chat-dynamic-content-panel'; // Keep consistent ID
+        globalNonChatContentPanel.className = 'chat-dynamic-panel';
+        globalNonChatContentPanel.style.position = 'absolute';
+        globalNonChatContentPanel.style.top = '40px';
+        globalNonChatContentPanel.style.left = '0';
+        globalNonChatContentPanel.style.right = '0';
+        globalNonChatContentPanel.style.bottom = '0';
+        globalNonChatContentPanel.style.backgroundColor = '#1a1a1a'; // Match theme
+        globalNonChatContentPanel.style.padding = '10px';
+        globalNonChatContentPanel.style.overflowY = 'auto';
+        globalNonChatContentPanel.style.color = '#f0f0f0';
+        globalNonChatContentPanel.style.boxSizing = 'border-box';
+
+        if (warChatBox && warChatBox.parentNode) {
+            warChatBox.parentNode.appendChild(globalNonChatContentPanel);
         } else {
-            warChatBox.classList.add('hide-content'); // Hide the main chat box
+            console.error("warChatBox or its parent not found, cannot append global dynamic panel.");
+            return; // Exit if we can't append the panel
+        }
+    }
+    // --- END NEW: Consolidated panel management logic ---
 
-            // Create and append the dynamic content panel for non-chat tabs
-            nonChatContentPanel = document.createElement('div');
-            nonChatContentPanel.id = 'non-chat-dynamic-content-panel';
-            nonChatContentPanel.className = 'chat-dynamic-panel'; 
-            nonChatContentPanel.style.position = 'absolute';
-            nonChatContentPanel.style.top = '40px'; 
-            nonChatContentPanel.style.left = '0';
-            nonChatContentPanel.style.right = '0';
-            nonChatContentPanel.style.bottom = '0';
-            nonChatContentPanel.style.backgroundColor = '#1a1a1a';
-            nonChatContentPanel.style.padding = '10px';
-            nonChatContentPanel.style.overflowY = 'auto';
-            nonChatContentPanel.style.color = '#f0f0f0';
-            nonChatContentPanel.style.boxSizing = 'border-box';
 
-            // Append the dynamic panel before populating content
-            warChatBox.parentNode.appendChild(nonChatContentPanel);
+    // Handle content based on selected tab
+    switch (targetTab) {
+        case 'faction-chat':
+            // chatDisplayArea is already prepared and visible above
+            setupChatRealtimeListener(); // Set up the listener for faction chat
+            break;
 
-            // Hide chat input area for non-chat tabs
-            if (chatInputArea) chatInputArea.style.display = 'none';
+        case 'private-chat':
+            // chatDisplayArea is already prepared and visible above
+            if (!currentPrivateChatRecipientId || !currentPrivateChatRecipientName) {
+                chatDisplayArea.innerHTML = `
+                    <p style="text-align: center; margin-top: 20px;">
+                        Please select a member from the 'Faction Members' tab to start a private chat.
+                    </p>`;
+                if (chatInputArea) chatInputArea.style.display = 'none'; // Hide input if no recipient
+            } else {
+                chatDisplayArea.innerHTML = `
+                    <h4 class="private-chat-recipient-header">Private chat with: <span>${currentPrivateChatRecipientName}</span></h4>
+                    <div id="privateMessagesContainer" class="chat-messages-container"></div>
+                `;
+                const privateMessagesContainer = document.getElementById('privateMessagesContainer');
 
-            if (targetTab === 'faction-members') {
-                console.log("[Chat Tab Debug] Faction Members tab selected - calling displayFactionMembersInChatTab.");
-                if (factionApiFullData && factionApiFullData.members) {
-                    // *** CRUCIAL CHANGE HERE: Pass the correct element to render into ***
-                    displayFactionMembersInChatTab(factionApiFullData.members, nonChatContentPanel); 
+                if (privateMessagesContainer && currentTornPlayerId) {
+                    const participantIds = [String(currentTornPlayerId), String(currentPrivateChatRecipientId)].sort();
+                    const chatRoomId = participantIds.join('_');
+
+                    unsubscribeFromChat = db.collection('privateChats').doc(chatRoomId).collection('messages')
+                        .orderBy('timestamp', 'asc')
+                        .limit(100)
+                        .onSnapshot(snapshot => {
+                            if (privateMessagesContainer) privateMessagesContainer.innerHTML = '';
+                            if (snapshot.empty) {
+                                privateMessagesContainer.innerHTML = `<p>No messages yet with ${currentPrivateChatRecipientName}. Say hello!</p>`;
+                            } else {
+                                snapshot.forEach(doc => {
+                                    const message = doc.data();
+                                    displayChatMessage(message, privateMessagesContainer);
+                                });
+                                privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
+                            }
+                            console.log(`Private chat messages for room ${chatRoomId} updated in real-time.`);
+                        }, error => {
+                            console.error("Error listening to private chat messages:", error);
+                            if (privateMessagesContainer) privateMessagesContainer.innerHTML = `<p style="color: red;">Error loading private messages: ${error.message}</p>`;
+                        });
                 } else {
-                    nonChatContentPanel.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+                    console.error("Cannot set up private chat listener: Private messages container or currentTornPlayerId is missing.");
                 }
-            } else if (targetTab === 'settings') {
-                nonChatContentPanel.innerHTML = `
+            }
+            break;
+
+        case 'faction-members':
+            console.log("[Chat Tab Debug] Faction Members tab selected - calling displayFactionMembersInChatTab.");
+            if (factionApiFullData && factionApiFullData.members) {
+                // Pass the new global dynamic panel here
+                displayFactionMembersInChatTab(factionApiFullData.members, globalNonChatContentPanel);
+            } else {
+                if (globalNonChatContentPanel) globalNonChatContentPanel.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+            }
+            break;
+
+        case 'friends':
+        case 'recently-met':
+        case 'blocked-people':
+            if (globalNonChatContentPanel) { // Populate the global dynamic panel
+                globalNonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
+            }
+            break;
+
+        case 'settings':
+            if (globalNonChatContentPanel) { // Populate the global dynamic panel
+                globalNonChatContentPanel.innerHTML = `
                     <div class="chat-settings-panel">
                         <h3>Chat Settings</h3>
                         <div class="setting-item">
@@ -2926,10 +2984,13 @@ function handleChatTabClick(event) {
                         <button class="save-settings-btn">Save Settings</button>
                     </div>
                 `;
-            } else {
-                nonChatContentPanel.innerHTML = `<p style="text-align: center; margin-top: 20px;">Content for "${targetTab.replace('-', ' ')}" will go here.</p>`;
             }
-        }
+            break;
+
+        default:
+            console.warn(`Unknown chat tab: ${targetTab}`);
+            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            break;
     }
 }
     auth.onAuthStateChanged(async (user) => {
