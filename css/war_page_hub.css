@@ -47,6 +47,7 @@
 }
 
 #warChatBox {
+	position: fixed;
     grid-area: chat; /* Assign chat box to its grid area */
     /* Adjust height and flex properties as grid will manage its size */
     height: auto; /* Allow grid to manage height, or set specific height here if needed */
