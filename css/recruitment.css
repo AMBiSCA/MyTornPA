@@ -284,12 +284,17 @@
     }
 }
 
+/* Style for the 'Remove Listing' button to make it red */
+.action-button.remove {
+    background-color: #d93025; /* A standard red color */
+    border-color: #a52714;
+}
 
-/* --- Styles for elements copied from war_page_hub.css that maintain the consistent theme --- */
-/* (Assuming global.css or war_page_hub.css contains general site-wide styling for header/footer and buttons) */
-/* The following are explicitly included to match common elements you had in war_page_hub.css */
+.action-button.remove:hover {
+    background-color: #c5221f; /* A slightly darker red for hover */
+    border-color: #a52714;
+}
 
-/* General button styles for header/footer (if not already globally defined) */
 .btn {
     /* You might have these in global.css or war_page_hub.css already */
     background-color: #333;
