@@ -155,8 +155,8 @@ async function enlistPlayer(factionId) {
 }
 
 
-// --- 🔺 UPDATED FUNCTION 🔺 ---
-// This function now reads the new fields from your 'users' collection.
+/// --- 🔺 FINAL UPDATED FUNCTION 🔺 ---
+// Saves the correct data including Total Stats and Best Active Streak.
 async function listSelfForRecruitment() {
     console.log("Attempting to list player for recruitment.");
     if (!auth.currentUser) {
@@ -183,17 +183,16 @@ async function listSelfForRecruitment() {
         const battleStats = userData.battlestats || {};
         const personalStats = userData.personalstats || {};
 
+        // This object now contains all the final fields for display.
         const playerListingData = {
             playerId: String(currentUserTornId),
             playerName: userData.name || 'Unknown',
             playerLevel: userData.level || 0,
-            strength: battleStats.strength || 0,
-            defense: battleStats.defense || 0,
-            speed: battleStats.speed || 0,
-            dexterity: battleStats.dexterity || 0,
+            totalStats: battleStats.total || 0, // Using the 'total' field for battle stats.
             xanaxTaken: personalStats.xantaken || 0,
-            warHits: personalStats.rankedwarhits || 0,    // NEW FIELD
-            energyRefills: personalStats.refills || 0,      // NEW FIELD
+            warHits: personalStats.rankedwarhits || 0,    // Using 'rankedwarhits'.
+            energyRefills: personalStats.refills || 0,      // Using 'refills'.
+            bestActiveStreak: personalStats.bestactivestreak || 0, // NEW FIELD
             listingTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
             firebaseUid: auth.currentUser.uid,
             isActive: true
@@ -216,8 +215,51 @@ async function listSelfForRecruitment() {
 }
 
 
-// --- 🔺 UPDATED FUNCTION 🔺 ---
-// This function now displays the new columns and data.
+// --- 🔺 FINAL UPDATED FUNCTION 🔺 ---
+// Displays the final 7-column layout.
+async function displayPlayersSeekingFactions() {
+    if (!playersSeekingFactionsTbody) return;
+
+    // Colspan is now 7 for the new column layout
+    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="7">Loading player listings...</td></tr>';
+
+    try {
+        const snapshot = await db.collection('playersSeekingFactions')
+            .where('isActive', '==', true)
+            .orderBy('listingTimestamp', 'desc')
+            .limit(50)
+            .get();
+
+        if (snapshot.empty) {
+            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="7">No players currently seeking factions.</td></tr>';
+            return;
+        }
+
+        let tableHtml = '';
+        snapshot.docs.forEach(doc => {
+            const player = doc.data();
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
+
+            // This HTML now matches the 7-column layout exactly.
+            tableHtml += `
+                <tr>
+                    <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
+                    <td>${player.playerLevel}</td>
+                    <td>${formatNumber(player.totalStats)}</td>
+                    <td>${(player.xanaxTaken || 0).toLocaleString()}</td>
+                    <td>${(player.warHits || 0).toLocaleString()}</td>
+                    <td>${(player.energyRefills || 0).toLocaleString()}</td>
+                    <td>${(player.bestActiveStreak || 0).toLocaleString()}</td>
+                </tr>
+            `;
+        });
+        playersSeekingFactionsTbody.innerHTML = tableHtml;
+
+    } catch (error) {
+        console.error("Error fetching players seeking factions:", error);
+        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="7">Error loading player listings.</td></tr>`;
+    }
+}
 async function displayPlayersSeekingFactions() {
     if (!playersSeekingFactionsTbody) return;
 
