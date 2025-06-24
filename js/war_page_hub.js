@@ -1158,10 +1158,15 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-async function initializeAndLoadData(apiKey) {
+async function initializeAndLoadData(apiKey, factionId) { // Added factionId parameter
+    if (!apiKey || !factionId) {
+        console.warn("API Key or Faction ID is missing for initializeAndLoadData.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID';
+        return;
+    }
     try {
-        // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        // CORRECTED & CONFIRMED URL: Now includes the factionId
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
 
         console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
 
@@ -1176,6 +1181,11 @@ async function initializeAndLoadData(apiKey) {
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
+            // Specific handling for API errors like invalid key (error code 2, 10) or access denied (code 11)
+            if (factionApiFullData.error.code === 2 || factionApiFullData.error.code === 10 || factionApiFullData.error.code === 11) {
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `API Error: ${factionApiFullData.error.error}`;
+                alert(`Torn API Error: ${factionApiFullData.error.error}. Please check your API key and permissions.`);
+            }
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
@@ -1199,6 +1209,7 @@ async function initializeAndLoadData(apiKey) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
+
 
       function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
@@ -2877,90 +2888,164 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            const userData = doc.exists ? doc.data() : {};
-            
-            const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null;
-            currentTornUserName = userData.preferredName || 'Unknown';
+   auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        const userProfileRef = db.collection('userProfiles').doc(user.uid);
+        const doc = await userProfileRef.get();
+        const userData = doc.exists ? doc.data() : {};
+        
+        userApiKey = userData.tornApiKey || null; // Assign to global userApiKey
+        const firebaseUserTornId = userData.tornProfileId || null; // The user's Torn ID stored in Firebase
+        let currentUsersFactionId = userData.faction_id || null; // Try to get faction_id from userProfile
 
-            let warData = {};
+        if (!userApiKey) {
+            console.warn("API Key is missing for the current user. Cannot fetch Torn data.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key Needed)";
+            return; // Stop execution if API key is missing
+        }
+
+        // --- IMPORTANT: Fetch current user's full Torn data to get their actual faction ID
+        // This is done if faction_id isn't already in Firebase, or to refresh it.
+        if (firebaseUserTornId) { // Only proceed if we have a Torn Player ID from Firebase
             try {
-                const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warDoc.data() : {};
-            } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
-            }
-			
-			console.log(firebase.auth().currentUser);
+                // Use the user's own API key and Torn ID to get their profile, which contains their faction ID
+                const userTornDataUrl = `https://api.torn.com/user/${firebaseUserTornId}?selections=profile&key=${userApiKey}&comment=MyTornPA_FetchFactionID`;
+                console.log(`[DEBUG] Attempting to fetch user's Torn profile for faction ID: ${userTornDataUrl}`);
+                const userTornResponse = await fetch(userTornDataUrl);
+                const userTornJson = await userTornResponse.json();
 
-            if (apiKey && playerId) {
-                userApiKey = apiKey; // Assign to global userApiKey for other functions
-
-                await initializeAndLoadData(apiKey);
-                populateUiComponents(warData, apiKey);
-
-                fetchAndDisplayChainData();
-                fetchAndDisplayRankedWarScores();
-                displayQuickFFTargets(userApiKey, playerId);
-                setupChatRealtimeListener();
-
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    setupMemberClickEvents();
-
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
-                    });
-
-                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
-                    if (initialActiveChatTab) {
-                        handleChatTabClick({ currentTarget: initialActiveChatTab });
+                if (userTornResponse.ok && !userTornJson.error && userTornJson.faction?.faction_id) {
+                    currentUsersFactionId = userTornJson.faction.faction_id;
+                    // Optionally update Firebase profile with faction_id if it was missing or different
+                    if (currentUsersFactionId !== userData.faction_id) {
+                        await userProfileRef.set({ faction_id: currentUsersFactionId, faction_name: userTornJson.faction.faction_name }, { merge: true });
+                        console.log(`[Firebase Update] User's Firebase profile updated with Faction ID: ${currentUsersFactionId} and Name: ${userTornJson.faction.faction_name}`);
                     }
-                    
-                    listenersInitialized = true;
-
-                    setInterval(updateAllTimers, 1000);
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
-                        }
-                    }, 2000);
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        } else {
-                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                        }
-                    }, 60000);
-                    setInterval(() => {
-                        if (userApiKey) {
-                            initializeAndLoadData(userApiKey);
-                        } else {
-                            console.warn("API key not available for periodic comprehensive faction data refresh.");
-                        }
-                    }, 2000);
+                    // Update currentTornUserName global variable
+                    currentTornUserName = userTornJson.name || 'Unknown';
+                } else {
+                    console.error("Failed to fetch user's faction ID from Torn API or API returned error:", userTornJson.error?.error || "Unknown error", userTornJson);
+                    if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Error: Failed to get Faction ID from Torn API.";
+                    return; // Stop if we can't get the faction ID
                 }
-            } else {
-                console.warn("API key or Player ID not found.");
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-                if (quickFFTargetsDisplay) {
-                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
-                }
+            } catch (error) {
+                console.error("Network or other error fetching user's Torn profile for faction ID:", error);
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Error: Network issue getting Faction ID.";
+                return; // Stop if network error
             }
         } else {
-            userApiKey = null;
-            listenersInitialized = false;
-            console.log("User not logged in.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+            console.warn("Current user's Torn Player ID is missing in Firebase. Cannot fetch Torn API user data to determine Faction ID.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Player ID Needed in Profile)";
+            return; // Stop if Torn Player ID is missing
         }
-    });
+
+        if (!currentUsersFactionId) {
+            console.warn("Current user's Faction ID could not be determined. Cannot fetch faction data.");
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Faction ID Needed)";
+            return; // Stop if Faction ID is still missing
+        }
+
+        // Now call initializeAndLoadData with the actual current user's faction ID
+        await initializeAndLoadData(userApiKey, currentUsersFactionId);
+
+        let warData = {};
+        try {
+            const warDoc = await db.collection('factionWars').doc('currentWar').get();
+            warData = warDoc.exists ? warDoc.data() : {};
+        } catch (firebaseError) {
+            console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+        }
+
+        populateUiComponents(warData, userApiKey);
+
+        fetchAndDisplayChainData();
+        fetchAndDisplayRankedWarScores();
+        displayQuickFFTargets(userApiKey, firebaseUserTornId);
+        setupChatRealtimeListener();
+
+        if (!listenersInitialized) {
+            setupEventListeners(userApiKey);
+            setupMemberClickEvents();
+            // Only set up autocomplete if factionApiFullData.members is available and valid
+            if (factionApiFullData && factionApiFullData.members) {
+                 setupTeamLeadAutocomplete(factionApiFullData.members);
+            } else {
+                 console.warn("Faction members data not available for autocomplete setup.");
+            }
+
+            chatTabButtons.forEach(tab => {
+                tab.addEventListener('click', (event) => {
+                    const tabName = event.currentTarget.dataset.chatTab;
+                    switchChatTab(tabName);
+                });
+            });
+
+            // Trigger content load for the initially active chat tab
+            const initialActiveChatTab = document.querySelector('.chat-tab.active');
+            if (initialActiveChatTab) {
+                switchChatTab(initialActiveChatTab.dataset.chatTab); // Call switchChatTab for the current active tab
+            }
+            
+            // Set up all intervals after initial load
+            setInterval(updateAllTimers, 1000); // Main timers update
+            // Interval for enemy faction data (if enemy ID is set)
+            setInterval(() => {
+                if (userApiKey && globalEnemyFactionID) {
+                    fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                } else {
+                    console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                }
+            }, 5000); // Fetches every 5 seconds for enemy data, can adjust
+            // Interval for Quick FF targets (if API key and player ID are set)
+            setInterval(() => {
+                if (userApiKey && firebaseUserTornId) {
+                    displayQuickFFTargets(userApiKey, firebaseUserTornId);
+                } else {
+                    console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                }
+            }, 60000); // Every 60 seconds
+            // Interval for comprehensive faction data refresh (less frequent)
+            setInterval(() => {
+                if (userApiKey && currentUsersFactionId) {
+                    initializeAndLoadData(userApiKey, currentUsersFactionId);
+                } else {
+                    console.warn("API key or Faction ID not available for periodic comprehensive faction data refresh.");
+                }
+            }, 300000); // Every 5 minutes (300,000 ms)
+
+            listenersInitialized = true;
+        }
+    } else {
+        userApiKey = null;
+        listenersInitialized = false;
+        console.log("User not logged in.");
+        // Reset UI if user logs out
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        if (quickFFTargetsDisplay) {
+            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+        }
+        // Clear data and displays on logout
+        factionApiFullData = null;
+        enemyDataGlobal = null;
+        Object.keys(memberProfileCache).forEach(key => delete memberProfileCache[key]); // Clear cache
+        profileFetchQueue = [];
+        isProcessingQueue = false;
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>`;
+        if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in to view enemy targets.</div>';
+        if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+        if (chatInputArea) chatInputArea.style.display = 'none'; // Hide chat input
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null;
+        }
+    }
 });
