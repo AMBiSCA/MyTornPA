@@ -456,6 +456,8 @@ transition: background-color 0.2s ease;
     border-top: 1px solid #1e1e1e; /* Separator above input area */
     gap: 5px; /* Space between the two rows of controls */
     box-sizing: border-box; /* Include padding/border */
+	border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 /* --- SCROLLBAR STYLING FOR CHAT MESSAGES (Applied to .chat-messages-scroll-wrapper) --- */
