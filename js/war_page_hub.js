@@ -1382,37 +1382,37 @@ async function displayFactionMembersInChatTab(factionMembersApiData) {
         membersListContainer.appendChild(memberItemDiv); // Append to DOM immediately
 
         // Asynchronously fetch detailed data (including profile image) from Firebase
-        // Assumes 'db' (Firestore instance) is globally accessible
         if (db) {
             fetchPromises.push((async () => {
                 try {
                     const docRef = db.collection('users').doc(String(tornPlayerId));
                     const docSnap = await docRef.get();
+
+                    // --- NEW DEBUG LOG ---
+                    console.log(`[Firestore Debug] For member ${tornPlayerId}, docSnap.exists: ${docSnap.exists}`);
+                    // --- END NEW DEBUG LOG ---
+
                     if (docSnap.exists) {
                         const firebaseMemberData = docSnap.data();
                         const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                        // Update the image source once data is fetched
                         const imgElement = memberItemDiv.querySelector('.member-profile-pic');
                         if (imgElement) {
                             imgElement.src = profileImageUrl;
+                            console.log(`[Firestore Debug] Updated image for ${tornPlayerId} with URL: ${profileImageUrl}`); // Confirm image update
                         }
                     } else {
                         console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
-                        // Default image will remain
                     }
                 } catch (error) {
                     console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
-                    // Default image will remain
                 }
             })());
         }
     }
 
-    // Wait for all asynchronous profile image fetches to complete (or fail)
     await Promise.all(fetchPromises);
     console.log("Faction members list populated with available profile images from database.");
 }
-
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
