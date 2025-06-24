@@ -460,3 +460,13 @@
 .header-text-link:hover {
     text-decoration: underline;
 }
+
+
+/* --- Centering for action buttons within sections --- */
+.buttons-container {
+    display: flex;
+    justify-content: center; /* Centers items horizontally */
+    align-items: center;     /* Centers items vertically (if they have different heights) */
+    margin-top: 15px;        /* Adds some space above the button */
+    margin-bottom: 15px;     /* Adds some space below the button */
+}
