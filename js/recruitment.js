@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         displayFactionsSeekingMembers();
-        // 🔺 THIS IS THE LINE I HAVE CORRECTED 🔺
+        // 🔺 THIS CORRECTED 🔺
         displayPlayersSeekingFactions(); 
     });
 
