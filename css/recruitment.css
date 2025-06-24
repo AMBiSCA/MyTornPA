@@ -68,7 +68,7 @@
     min-width: 450px;  /* Minimum width before wrapping to the next line */
     box-sizing: border-box; /* Include padding and border in width calculation */
     /* --- END NEW --- */
-	margin-top: -10px;
+	margin-top: -50px;
 }
 
 /* Section Headings (h2) */
