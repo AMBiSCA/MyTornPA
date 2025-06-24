@@ -1916,7 +1916,6 @@ autocomplete-items {
 
 .chat-panel {
     display: none; /* Hides all chat panels by default */
-    position: absolute; /* Allows panels to overlap */
     top: 0;
     left: 0;
     width: 100%;
