@@ -187,36 +187,97 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="active-ops-chat-panel"> <div id="warChatBox" class="chat-container">
-                                <div class="chat-tabs-container">
-                                   <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
-                                   <button class="chat-tab" data-chat-tab="war-chat">War Chat</button>
-                                   <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
-                                   <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
-                                   <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
-                                   <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
-                                   <button class="chat-tab" data-chat-tab="settings">Settings</button>
-                                 </div>
-                                <div class="chat-messages-scroll-wrapper">
-                                    <div id="chat-display-area" class="chat-display-area">
-                                        <!-- Messages will be added here dynamically by JavaScript -->
-                                    </div>
-                                </div>
-                                <div class="chat-input-area">
-                                    <div class="chat-input-buttons-top">
-                                        <button class="chat-action-btn siren-btn">🚨</button>
-                                        <button class="chat-action-btn blank-btn"></button>
-                                    </div>
-                                    <div class="chat-input-text-send">
-                                        <input type="text" class="chat-text-input" placeholder="Type your message...">
-                                        <button class="chat-send-btn">Send</button>
-                                    </div>
-                                </div>
-                            </div>
+                        <div id="warChatBox" class="chat-container">
+    <div class="chat-tabs-container">
+        <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
+        <button class="chat-tab" data-chat-tab="war-chat">War Chat</button>
+        <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
+        <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
+        <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
+        <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
+        <button class="chat-tab" data-chat-tab="settings">Settings</button>
+    </div>
+    
+    <div id="chat-content-panels-wrapper" class="chat-messages-scroll-wrapper">
+        <div id="faction-chat-panel" class="chat-panel active">
+            <div id="chat-display-area" class="chat-display-area">
+                <p>Welcome to Faction Chat! Messages will appear here...</p>
+            </div>
+        </div>
+
+        <div id="war-chat-panel" class="chat-panel">
+            <div id="warChatDisplayArea" class="chat-display-area">
+                <p>Welcome to War Chat! Functionality not implemented yet.</p>
+            </div>
+        </div>
+
+        <div id="private-chat-panel" class="chat-panel">
+            <div id="privateChatDisplayArea" class="chat-display-area">
+                <p>Welcome to Private Chat! Functionality not implemented yet.</p>
+            </div>
+        </div>
+
+        <div id="faction-members-panel" class="chat-panel">
+            <div id="factionMembersDisplayArea" class="members-list-display-area">
+                <p>Click "Faction Members" tab to load list.</p>
+            </div>
+        </div>
+
+        <div id="recently-met-panel" class="chat-panel">
+            <div id="recentlyMetDisplayArea" class="chat-display-area">
+                <p>Welcome to Recently Met! Functionality not implemented yet.</p>
+            </div>
+        </div>
+
+        <div id="blocked-people-panel" class="chat-panel">
+            <div id="blockedPeopleDisplayArea" class="chat-display-area">
+                <div class="blocked-people-layout">
+                    <div class="friends-list-section">
+                        <div class="header-box">
+                            <b>Friends</b>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div id="friendsScrollableList" class="scrollable-list">
+                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
                         </div>
                     </div>
 
+                    <div class="ignores-list-section">
+                        <div class="header-box">
+                            <b>Ignores / Blocked</b>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div id="ignoresScrollableList" class="scrollable-list">
+                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="settings-panel" class="chat-panel">
+            <div id="settingsDisplayArea" class="chat-display-area">
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <div class="chat-input-buttons-top">
+            <button class="chat-action-btn siren-btn">🚨</button>
+            <button class="chat-action-btn blank-btn"></button>
+        </div>
+        <div class="chat-input-text-send">
+            <input type="text" class="chat-text-input" placeholder="Type your message...">
+            <button class="chat-send-btn">Send</button>
+        </div>
+    </div>
+</div>
 
                 <div id="friendly-status-tab" class="tab-pane">
                     <div class="ops-controls-grid">
