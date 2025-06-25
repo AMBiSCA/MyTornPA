@@ -21,8 +21,6 @@ let isProcessingQueue = false; // Flag to indicate if the queue is currently bei
 let lastEmojiIndex = -1; // To keep track of the last emoji used
 let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
-let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
-let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
