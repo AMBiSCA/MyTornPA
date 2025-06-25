@@ -2218,13 +2218,18 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     else if (statusState === 'Okay') statusClass = 'status-okay';
 
                     return `
-                        <tr data-id="${memberId}"> <td>${name} (${memberId})</td>
+                        <tr>
+                            <td>${name} (${memberId})</td>
                             <td>${level}</td>
                             <td>${lastAction}</td>
+                            <td>${strength}</td>
+                            <td>${dexterity}</td>
+                            <td>${speed}</td>
+                            <td>${defense}</td>
                             <td class="${statusClass}">${statusDescription}</td>
                             <td>${nerve}</td>
                             <td>${energy}</td>
-                            </tr>
+                        </tr>
                     `;
                 }).catch(error => {
                     console.error(`Error fetching Firebase data for member ${memberId}:`, error);
@@ -2864,79 +2869,8 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
         </div>
     `;
 
-// NEW FUNCTION: Populates the content of the Recently Met tab
-async function populateRecentlyMetTab(targetDisplayElement) {
-    console.log("[Recently Met Tab] Populating tab...");
-
-    if (!targetDisplayElement) {
-        console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
-        return;
-    }
-
-    targetDisplayElement.innerHTML = `
-        <div class="recently-met-layout">
-            <div class="header-box">
-                <b>RECENTLY MET IN WAR</b>
-            </div>
-            <div id="recentlyMetTableContainer" class="scrollable-table-container">
-                <table class="recently-met-table">
-                    <thead>
-                        <tr>
-                            <th class="col-name">NAME (ID)</th>
-                            <th class="col-level">LEVEL</th>
-                            <th class="col-faction">FACTION</th>
-                            <th class="col-last-action">LAST ACTION</th>
-                            <th class="col-status">STATUS</th>
-                            <th class="col-actions">ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recentlyMetTbody">
-                        <tr><td colspan="6" style="text-align:center; padding: 10px;">Loading recently met players...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-
-    // Re-get elements after HTML is injected
-    const recentlyMetTbody = document.getElementById('recentlyMetTbody');
-
-    if (!recentlyMetTbody) {
-        console.error("HTML Error: recentlyMetTbody not found after injection.");
-        return;
-    }
-
-    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
-
-    let tableRowsHtml = '';
-    dummyRecentlyMet.forEach(player => {
-        const profileUrl = `https://www.torn.com/profiles.php?XID=${player.id}`;
-        const lastActionText = formatRelativeTime(player.last_action_timestamp); // Re-use existing formatRelativeTime
-        const statusClass = player.status_description.toLowerCase().replace(' ', '-'); // For CSS styling
-
-        tableRowsHtml += `
-            <tr data-id="${player.id}">
-                <td class="col-name">
-                    <img src="${player.profile_image}" alt="Pic" class="profile-pic-small">
-                    <a href="${profileUrl}" target="_blank">${player.name} [${player.id.split('_')[2]}]</a>
-                </td>
-                <td class="col-level">${player.level}</td>
-                <td class="col-faction">${player.faction_tag}</td>
-                <td class="col-last-action">${lastActionText}</td>
-                <td class="col-status status-${statusClass}">${player.status_description}</td>
-                <td class="col-actions">
-                    <button class="item-button letter-button">✉️</button>
-                    <button class="item-button trash-button">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
-    recentlyMetTbody.innerHTML = tableRowsHtml;
-
-    // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
-    // using event delegation on recentlyMetTbody.
 }
-// Populates the content of the Blocked People tab with dummy data
+
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab with dummy data...");
 
@@ -3100,12 +3034,14 @@ function handleChatTabClick(event) {
             break;
 
         case 'recently-met':
-            // Call the populateRecentlyMetTab function, passing the main dynamic display area
-            populateRecentlyMetTab(chatDisplayArea); // <--- CHANGE IS HERE: Passing chatDisplayArea
-            showInputArea = false; // Hide input for non-chat tabs
+            // Dynamically generate Recently Met content into chatDisplayArea
+            chatDisplayArea.innerHTML = `
+                <p>Welcome to Recently Met!</p>
+                <p>Functionality not implemented yet for this dynamic tab.</p>
+            `;
+            showInputArea = false;
             break;
-			
-			
+
         case 'blocked-people':
             // Dynamically generate the full Blocked People layout into chatDisplayArea
             chatDisplayArea.innerHTML = `
