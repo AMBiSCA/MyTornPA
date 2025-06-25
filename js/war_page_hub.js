@@ -1052,6 +1052,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ensure the main chat display area scrolls to bottom after content is injected
         chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
     } // CLOSES handleChatTabClick
+	
+	function showTab(tabId) {
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) selectedTab.classList.add('active');
+    const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab', '')}"]`);
+    if (selectedButton) selectedButton.classList.add('active');
+}
+
 
     // --- Authentication State Change Listener ---
     auth.onAuthStateChanged(async (user) => {
