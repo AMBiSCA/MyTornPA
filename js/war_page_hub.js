@@ -151,6 +151,41 @@ function updateMemberItemDisplay(itemElement, profileImageUrl) {
     }
 }
 
+// Helper function to generate dummy friend data
+function generateDummyFriends(count) {
+    const dummyFriends = [];
+    for (let i = 1; i <= count; i++) {
+        dummyFriends.push({
+            id: `friend_${i}`, // Dummy ID
+            name: `Test Friend ${i}`,
+            profile_image: `../../images/default_profile_icon.png` // Use a default icon
+        });
+    }
+    return dummyFriends;
+}
+
+// Helper function to generate dummy ignore data
+function generateDummyIgnores(count) {
+    const dummyIgnores = [];
+    for (let i = 1; i <= count; i++) {
+        if (i % 2 === 0) { // Alternate between user and faction for variety
+            dummyIgnores.push({
+                type: 'faction',
+                id: `faction_${i}`, // Dummy ID
+                name: `Blocked Faction ${i}`,
+                icon: '🏢' // Use a building icon for factions
+            });
+        } else {
+            dummyIgnores.push({
+                type: 'user',
+                id: `user_${i}`, // Dummy ID
+                name: `Blocked User ${i}`,
+                profile_image: `../../images/default_profile_icon.png` // Use a default icon
+            });
+        }
+    }
+    return dummyIgnores;
+}
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
@@ -2865,26 +2900,65 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
 }
 // NEW FUNCTION: Orchestrates populating the Blocked People tab
 // Now accepts dynamic elements as arguments
+// Populates the content of the Blocked People tab with dummy data
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
-    console.log("[Blocked People Tab] Populating tab...");
+    console.log("[Blocked People Tab] Populating tab with dummy data...");
 
-    // Set initial loading messages for the specific display areas
+    // Generate 50 dummy friend entries and 50 dummy ignore entries
+    const dummyFriends = generateDummyFriends(50);
+    const dummyIgnores = generateDummyIgnores(50);
+
+    // Render dummy friend data into the Friends list container
     if (friendsListEl) {
-        friendsListEl.innerHTML = '<p style="text-align:center; padding: 10px;">Loading friends...</p>';
+        let friendsHtml = '';
+        dummyFriends.forEach(friend => {
+            friendsHtml += `
+                <div class="list-item friend-entry">
+                    <img src="${friend.profile_image}" alt="Profile Pic" class="profile-pic">
+                    <span class="item-name">${friend.name}</span>
+                    <button class="item-button letter-button">✉️</button>
+                    <button class="item-button trash-button">🗑️</button>
+                </div>
+            `;
+        });
+        friendsListEl.innerHTML = friendsHtml;
+    } else {
+        console.error("HTML Error: friendsScrollableList not found for populating dummy friends.");
     }
+
+    // Render dummy ignore data into the Ignores list container
     if (ignoresListEl) {
-        ignoresListEl.innerHTML = '<p style="text-align:center; padding: 10px;">Loading ignores...</p>';
+        let ignoresHtml = '';
+        dummyIgnores.forEach(ignore => {
+            // Display ID from dummy data for demonstration
+            const displayId = ignore.id.split('_')[1]; // Extracts the number from "user_1" or "faction_1"
+
+            if (ignore.type === 'user') {
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            } else { // type === 'faction'
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <span class="item-icon faction-icon">${ignore.icon}</span>
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            }
+        });
+        ignoresListEl.innerHTML = ignoresHtml;
+    } else {
+        console.error("HTML Error: ignoresScrollableList not found for populating dummy ignores.");
     }
 
-    // The next steps will involve fetching data and rendering it here.
-    // TODO: Step 1: Fetch friends data (from Firebase userProfile.friends or Torn API)
-    // TODO: Step 2: Render friends data into friendsListEl
-    // TODO: Step 3: Fetch ignores/blocked data (from Firebase userProfile.blocked or a dedicated collection)
-    // TODO: Step 4: Render ignores/blocked data into ignoresListEl
-    // TODO: Step 5: Implement search/filter functionality (will need search inputs passed too)
-    // TODO: Step 6: Implement action buttons (message, unfriend, block, unblock)
+    // TODO: In a real scenario, you'd add event listeners here for the dynamically created buttons (letter, trash)
+    // using event delegation on friendsListEl and ignoresListEl.
 }
-
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button'); 
@@ -3031,16 +3105,17 @@ function handleChatTabClick(event) {
             `;
             
             // Re-get elements after they are injected into the DOM
+            // These dynamic elements exist *within* the chatDisplayArea content.
             const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
             const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
             // Call your populate function, passing dynamically found elements
             populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
 
             showInputArea = false; // Hide input for non-chat tabs
-            break; // <--- THIS CRITICAL 'break;' IS NOW IN PLACE
+            break; 
 
         case 'settings':
-            populateSettingsTab(); 
+            populateSettingsTab(chatDisplayArea); // <--- This line is correct
             showInputArea = false; 
             break;
 
@@ -3051,6 +3126,16 @@ function handleChatTabClick(event) {
             break;
     }
 
+    // Control visibility of the separate chat input area
+    if (showInputArea) {
+        if (chatInputArea) chatInputArea.style.display = 'flex';
+    } else {
+        if (chatInputArea) chatInputArea.style.display = 'none';
+    }
+
+    // Ensure the main chat display area scrolls to bottom after content is injected
+    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+}
     // Control visibility of the separate chat input area
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
