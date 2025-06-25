@@ -1181,6 +1181,61 @@ function displayFriendlyMembersTable(members) {
     friendlyMembersTbody.innerHTML = allRowsHtml;
 }
 
+async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+    if (!factionID || !apiKey) {
+        console.warn("Enemy Faction Data: Faction ID or API key is missing. Cannot fetch enemy data.");
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy ID Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []);
+        displayEnemyTargetsTable(null);
+        return;
+    }
+    
+    try {
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        console.log("Enemy Faction API: Attempting to fetch enemy faction data from URL:", enemyApiUrl);
+
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API HTTP Error for enemy faction: ${response.status} ${response.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
+        }
+        
+        enemyDataGlobal = await response.json(); // Store enemy data globally
+        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
+        console.log("Enemy Faction API Data fetched:", enemyData);
+
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
+
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
+
+        // Fetch saved watchlist members from Firebase to check checkboxes
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
+        if (enemyData.members) {
+            displayEnemyTargetsTable(enemyData.members); // Display the enemy targets table
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers); // Populate checkboxes for watchlist
+        } else {
+            console.warn("Enemy faction members data not found in API response.");
+            displayEnemyTargetsTable(null); // Clear the table if no member data
+            populateEnemyMemberCheckboxes({}, []); // Clear checkboxes
+        }
+    } catch (error) {
+        console.error('Error fetching enemy faction data:', error);
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Error: Invalid Enemy ID';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []);
+        displayEnemyTargetsTable(null);
+    }
+}
+
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
