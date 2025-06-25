@@ -1378,10 +1378,10 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         return;
     }
 
-    targetDisplayElement.innerHTML = `<p>Loading faction members details...</p>`;
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
 
     if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
-        targetDisplayElement.innerHTML = `<p>No faction members found.</p>`;
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
         return;
     }
 
@@ -1390,8 +1390,8 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     // Sort members by rank (Leader, Co-leader, Member, Applicant) then alphabetically by name
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
-        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"]; // Changed 'a.rank' to 'a.position'
-        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"]; // Changed 'b.rank' to 'b.position'
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
         if (orderA !== orderB) { return orderA - orderB; }
         return a.name.localeCompare(b.name);
     });
@@ -1400,58 +1400,57 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     const membersListContainer = document.createElement('div');
     membersListContainer.classList.add('members-list-container');
+    
     targetDisplayElement.innerHTML = '';
     targetDisplayElement.appendChild(membersListContainer);
 
     for (const member of membersArray) {
         const tornPlayerId = member.id;
         const memberName = member.name;
-        const memberRank = member.position; // <--- CORRECTED THIS LINE: Used 'position' instead of 'rank'
+        const memberRank = member.position;
 
-        const memberItemDiv = document.createElement('a');
-        memberItemDiv.href = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
-        memberItemDiv.target = '_blank';
-        memberItemDiv.rel = 'noopener noreferrer';
+        const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
+
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
 
         memberItemDiv.innerHTML = `
-            <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+            <span class="member-rank">${memberRank}</span> <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
             <span class="member-name">${memberName}</span>
-            <span class="member-rank">${memberRank}</span>
-        `;
+            <button class="add-member-button" data-member-id="${tornPlayerId}">
+                👤<span class="plus-sign">+</span>
+            </button>
+            <button class="item-button message-button" data-member-id="${tornPlayerId}">✉️</button> `;
         membersListContainer.appendChild(memberItemDiv);
 
-        if (db) {
-            fetchPromises.push((async () => {
-                try {
-                    const docRef = db.collection('users').doc(String(tornPlayerId));
-                    const docSnap = await docRef.get();
+        // Fetch profile image from Firebase (asynchronously)
+        fetchPromises.push((async () => {
+            try {
+                const docRef = db.collection('users').doc(String(tornPlayerId));
+                const docSnap = await docRef.get();
 
-                    console.log(`[Firestore Debug] For member ${tornPlayerId}, docSnap.exists: ${docSnap.exists}`);
-
-                    if (docSnap.exists) {
-                        const firebaseMemberData = docSnap.data();
-                        const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                        const imgElement = memberItemDiv.querySelector('.member-profile-pic');
-                        if (imgElement) {
-                            imgElement.src = profileImageUrl;
-                            console.log(`[Firestore Debug] Updated image for ${tornPlayerId} with URL: ${profileImageUrl}`);
-                        }
-                    } else {
-                        console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
+                if (docSnap.exists) {
+                    const firebaseMemberData = docSnap.data();
+                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                    if (imgElement) {
+                        imgElement.src = profileImageUrl;
                     }
-                } catch (error) {
-                    console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
+                } else {
+                    console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
                 }
-            })());
-        }
+            } catch (error) {
+                console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
+            }
+        })());
     }
 
     await Promise.all(fetchPromises);
     console.log("Faction members list populated with available profile images from database.");
+
+    // TODO: Add event listeners for the new add-member-button and message-button using event delegation
 }
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {

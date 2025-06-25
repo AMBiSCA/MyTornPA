@@ -457,7 +457,7 @@ transition: background-color 0.2s ease;
     scrollbar-gutter: stable; /* Helps prevent browser layout shifts when scrollbar appears/disappears */
     
     padding: 10px; /* Internal padding for the scrollable area */
-    background-color: #2d3748; /* Background for the scrollable messages area */
+    background-color: #222; /* Background for the scrollable messages area */
     border-radius: 8px; /* Rounded corners for the scrollable area */
     margin-bottom: 10px; /* Space between messages scroll area and input */
     box-sizing: border-box; /* Include padding/border */
@@ -2492,3 +2492,14 @@ autocomplete-items {
 .recently-met-table .status-hospital { color: #dc3545; } /* Red */
 .recently-met-table .status-traveling { color: #17a2b8; } /* Cyan */
 .recently-met-table .status-jail { color: #ffc107; } /* Yellow/Orange */
+
+/* Style for the new message button on Faction Members tab */
+.member-item .message-button {
+    background-color: #e0a71a; /* Gold color for message button, matching other gold elements */
+    color: #1e1e1e;             /* Dark text/icon on gold */
+    margin-left: 8px;           /* Space from the add-member-button */
+}
+
+.member-item .message-button:hover {
+    filter: brightness(1.2); /* Slightly brighten on hover */
+}

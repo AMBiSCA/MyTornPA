@@ -196,11 +196,10 @@
                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
                                    <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
-                                  </div>
+                                 </div>
                                 <div class="chat-messages-scroll-wrapper">
                                     <div id="chat-display-area" class="chat-display-area">
-                                        <!-- Messages will be added here dynamically by JavaScript -->
-                                    </div>
+                                        </div>
                                 </div>
                                 <div class="chat-input-area">
                                     <div class="chat-input-buttons-top">
@@ -250,14 +249,32 @@
                                 </table>
                             </div>
                         </div>
-                
-                        <div class="friendly-details-panel"> <div id="selectedMemberDetailPanel" class="detail-panel-placeholder">
+                    
+                        <div class="friendly-details-panel"> 
+                            <div style="display: flex; justify-content: space-around; padding: 10px 0 20px 0; border-bottom: 1px solid #444; margin-bottom: 15px;">
+                                
+                                <div style="text-align: center;">
+                                    <p style="margin: 0px 0px 8px; color: black;">Got the Nerve?</p>
+                                    <a href="https://www.torn.com/crimes.php" target="_blank" rel="noopener noreferrer" style="background-color: red; color: black; padding: 8px 16px; border: 1px solid rgb(51, 51, 51); border-radius: 5px; text-decoration: none; font-weight: bold;">
+                                        Crimes
+                                    </a>
+                                </div>
+
+                                <div style="text-align: center;">
+                                    <p style="margin: 0px 0px 8px; color: black;">Feeling Gym Today?</p>
+                                    <a href="https://www.torn.com/gym.php" target="_blank" rel="noopener noreferrer" style="background-color: green; color: black; padding: 8px 16px; border: 1px solid rgb(51, 51, 51); border-radius: 5px; text-decoration: none; font-weight: bold;">
+                                        Gym
+                                    </a>
+                                </div>
+
+                            </div>
+                            <div id="selectedMemberDetailPanel" class="detail-panel-placeholder">
                                 <h4>Member Details</h4>
                                 <div class="detail-panel-icon">👤</div>
                                 <p><i>Select a member on the left to view their details.</i></p>
                             </div>
                         </div>
-                
+                    
                     </div>
                 </div>
                 
