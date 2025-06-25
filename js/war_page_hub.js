@@ -3129,11 +3129,11 @@ function handleChatTabClick(event) {
             break;
 
         case 'recently-met':
-            // Dynamically generate Recently Met content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to Recently Met!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
-            `;
+            // Call the populateRecentlyMetTab function, passing the main dynamic display area
+            populateRecentlyMetTab(chatDisplayArea); // <--- CHANGE IS HERE: Passing chatDisplayArea
+            showInputArea = false; // Hide input for non-chat tabs
+            break;
+       
             showInputArea = false;
             break;
 
