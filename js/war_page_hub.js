@@ -3100,17 +3100,7 @@ function handleChatTabClick(event) {
             showInputArea = false;
             break;
     }
-
-    // Control visibility of the separate chat input area
-    if (showInputArea) {
-        if (chatInputArea) chatInputArea.style.display = 'flex';
-    } else {
-        if (chatInputArea) chatInputArea.style.display = 'none';
-    }
-
-    // Ensure the main chat display area scrolls to bottom after content is injected
-    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-}
+    
     // Control visibility of the separate chat input area
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
