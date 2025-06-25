@@ -425,19 +425,17 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 // --- Start of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
 // This function is designed to work with the data returned by the API v1 'rankedwars' selection
 // --- Start of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
-// --- Start of fetchAndDisplayRankedWarScores (EXPECTING rankedwars NO UNDERSCORE) ---
 async function fetchAndDisplayRankedWarScores() {
-    console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION (EXPECTING rankedwars NO UNDERSCORE) <<<");
+    console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION (API v1 - EXPECTING ranked_wars TOP-LEVEL) <<<");
 
     console.log("DEBUG_RANKED_FINAL: Calling fetchAndDisplayRankedWarScores");
     console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
-    // Now expecting 'rankedwars' (no underscore) as per the exact URL selection
-    console.log("DEBUG_RANKED_FINAL: factionApiFullData.rankedwars:", factionApiFullData?.rankedwars || 'Path not found: rankedwars');
+    console.log("DEBUG_RANKED_FINAL: factionApiFullData.ranked_wars:", factionApiFullData?.ranked_wars || 'Path not found: ranked_wars');
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.ID:", factionApiFullData?.ID || 'N/A');
 
-    // Get the rankedwars object directly from factionApiFullData (no underscore)
-    const allRankedWars = factionApiFullData?.rankedwars;
-    const yourFactionId = factionApiFullData?.ID; // Your faction ID is directly at factionApiFullData.ID
+    // Get the ranked_wars object directly from factionApiFullData
+    const allRankedWars = factionApiFullData?.ranked_wars;
+    const yourFactionId = factionApiFullData?.ID; // Your faction ID is now directly at factionApiFullData.ID
 
     // Find the active ranked war (assuming only one active at a time, take the first one found)
     let activeWarId = null;
@@ -458,7 +456,7 @@ async function fetchAndDisplayRankedWarScores() {
         if (!activeWarId) {
             activeWarId = Object.keys(allRankedWars)[0];
             rankedWarData = allRankedWars[activeWarId];
-            console.warn("No active ranked war (end=0/null) found. Defaulting to the first war in rankedwars object.");
+            console.warn("No active ranked war (end=0/null) found. Defaulting to the first war in ranked_wars object.");
         }
     }
 
@@ -467,9 +465,10 @@ async function fetchAndDisplayRankedWarScores() {
     console.log("DEBUG_CHECK_CONDITION: yourFactionId:", yourFactionId);
 
 
-    // CRITICAL BLOCK: Check against the new 'rankedwars' structure
+    // This is the CRITICAL BLOCK. We now check against the structure YOU provided.
+    // Check if we found an active war and if it has the expected 'factions' and 'war' sub-objects
     if (!rankedWarData || !rankedWarData.factions || !rankedWarData.war || !yourFactionId) {
-        throw new Error("CRITICAL ERROR: fetchAndDisplayRankedWarScores - Essential ranked war data (rankedwars object, factions/war sub-objects, or your faction ID) is missing or invalid.");
+        throw new Error("CRITICAL ERROR: fetchAndDisplayRankedWarScores - Essential ranked war data (ranked_wars object, factions/war sub-objects, or your faction ID) is missing or invalid.");
     }
 
     // This log should ALWAYS appear if the above 'if' block is skipped.
@@ -495,7 +494,7 @@ async function fetchAndDisplayRankedWarScores() {
             // Access war details directly from rankedWarData.war
             if (warTargetScore) warTargetScore.textContent = rankedWarData.war.target !== undefined ? rankedWarData.war.target.toLocaleString() : 'N/A';
 
-            globalWarStartedActualTime = rankedWarData.war.start || 0;
+            globalWarStartedActualTime = rankedWarData.war.start || 0; // Access start from war object
 
         } else {
             console.warn("Our faction or opponent faction not found in the ranked war participants list (this can happen if scores are 0). Displaying N/A.");
@@ -518,7 +517,7 @@ async function fetchAndDisplayRankedWarScores() {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-// --- End of fetchAndDisplayRankedWarScores (EXPECTING rankedwars NO UNDERSCORE) ---
+// --- End of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
     if (!chatDisplayArea) {
@@ -2342,21 +2341,20 @@ function setupEventListeners(apiKey) {
 	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
 
 // --- Start of UPDATED initializeAndLoadData (FORCED API v1, ONLY BASIC & RANKEDWARS) ---
-// --- Start of UPDATED initializeAndLoadData (STRICTLY AS ORDERED) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    console.error(">>> ENTERING initializeAndLoadData FUNCTION (STRICT COMPLIANCE) <<<");
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - FORCED WITH ranked_wars) <<<");
 
     const keyToUse = apiKey;
     const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID;
 
     // --- LOGGING FOR DEBUGGING finalFactionId ---
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride:", factionIdToUseOverride);
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.ID:", factionApiFullData?.ID);
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated:", finalFactionId);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.ID (if already populated from a previous run):", factionApiFullData?.ID);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated (should be your Faction ID):", finalFactionId);
     // --- END LOGGING ---
 
     if (!finalFactionId) {
-        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API call for specific faction.";
+        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API v1 call for specific faction.";
         console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
         if (factionWarHubTitleEl) {
             factionWarHubTitleEl.textContent = errorMsg;
@@ -2365,33 +2363,34 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 
     try {
-        // STRICTLY USING THE EXACT URL AND SELECTIONS PROVIDED BY USER
-        const userFactionApiUrl = `https://api.torn.com/faction/49028?selections=basic,rankedwars&key=gCNmxrHxlOYeNiS7&comment=MyTornPA_WarHub_Combined_V1`;
+        // EXACT URL WITH 'ranked_wars' SELECTION (with underscore) for API v1
+        // We'll stick to 'basic' and 'ranked_wars' as you specified you only need these.
+        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,ranked_wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1_RankedWars_Underscore`;
 
-        console.log("initializeAndLoadData (STRICT COMPLIANCE): Attempting to fetch faction data from URL:", userFactionApiUrl);
+        console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
             const errorData = await userFactionResponse.json().catch(() => ({}));
             const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
-            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
+            throw new Error(`Torn API v1 HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-        console.log("initializeAndLoadData (STRICT COMPLIANCE): Faction API Full Data fetched:", factionApiFullData);
+        console.log("initializeAndLoadData (API v1): Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
-            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+            console.error("Torn API v1 responded with a detailed error:", factionApiFullData.error);
+            throw new Error(`Torn API v1 Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY (STRICT COMPLIANCE) <<<");
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY (API v1) <<<");
 
     } catch (error) {
-        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (STRICT COMPLIANCE):", error);
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data: ${error.message || 'Unknown error'}.`;
-        // Reset related displays on error (Chain/Members data are NOT fetched with these selections)
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (API v1):", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data (API v1): ${error.message || 'Unknown error'}.`;
+        // Reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
@@ -2403,7 +2402,6 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-// --- End of UPDATED initializeAndLoadData (STRICTLY AS ORDERED) ---
 // --- End of UPDATED initializeAndLoadData (FORCED API v1, ONLY BASIC & RANKEDWARS) ---
 	
 	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
