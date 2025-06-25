@@ -1736,7 +1736,7 @@ autocomplete-items {
     flex-direction: column;
     flex: 1; /* Allows it to grow and shrink, taking 1 unit of space */
     flex-basis: 0; /* Ensures even distribution when growing */
-    min-width: 440px; /* Minimum width for your table content (adjust as needed) */
+    min-width: 200px; /* Minimum width for your table content (adjust as needed) */
     height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
     overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
     box-sizing: border-box;
