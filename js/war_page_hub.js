@@ -475,11 +475,13 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
+    console.log("displayChatMessage called with:", messageObj); // <--- ADD THIS LINE!
+
     if (!chatDisplayArea) {
         console.error("Chat display area not found in displayChatMessage function.");
         return;
     }
-
+	
     const messageElement = document.createElement('div');
     messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
 
