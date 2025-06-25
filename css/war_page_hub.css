@@ -467,13 +467,12 @@ transition: background-color 0.2s ease;
 
 /* Styles for the actual chat messages display area, *inside* the scroll wrapper */
 /* This div should NOT control its own height or overflow; its parent wrapper does. */
-#chat-display-area {
+.chat-display-area {
     display: flex;
-    flex-direction: column; /* Stacks messages from top to bottom */
-    gap: 8px; /* Space between individual messages */
+    flex-direction: column;
+    gap: 8px;
     box-sizing: border-box;
-    /* REMOVED: max-height, overflow-y, scrollbar-gutter, background-color, border-radius, margin-bottom */
-    /* These are now correctly managed by .chat-messages-scroll-wrapper */
+   
 }
 
 /* Chat Input Area (bottom section with buttons and text input) */
@@ -1734,7 +1733,7 @@ autocomplete-items {
 .active-ops-targets-panel {
     display: flex;
     flex-direction: column;
-    width: 800x;
+    width: 800px;
     height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
     overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
     box-sizing: border-box;
