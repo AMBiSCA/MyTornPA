@@ -2218,19 +2218,15 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     else if (statusState === 'Okay') statusClass = 'status-okay';
 
                     return `
-                        <tr>
-                            <td>${name} (${memberId})</td>
+                        <tr data-id="${memberId}"> <td>${name} (${memberId})</td>
                             <td>${level}</td>
                             <td>${lastAction}</td>
-                            <td>${strength}</td>
-                            <td>${dexterity}</td>
-                            <td>${speed}</td>
-                            <td>${defense}</td>
                             <td class="${statusClass}">${statusDescription}</td>
                             <td>${nerve}</td>
                             <td>${energy}</td>
-                        </tr>
+                            </tr>
                     `;
+                    `
                 }).catch(error => {
                     console.error(`Error fetching Firebase data for member ${memberId}:`, error);
                     const memberTornData = members[memberId];
