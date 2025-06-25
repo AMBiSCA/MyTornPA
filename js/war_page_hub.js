@@ -423,68 +423,25 @@ async function fetchAndDisplayRankedWarScores() {
     console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars.ranked:", factionApiFullData?.wars?.ranked || 'Path not found: wars.ranked');
-    console.log("DEBUG_RANKED_FINAL: factionApiFullData.ID:", factionApiFullData?.ID || 'N/A');
 
-    // Correctly get the ranked war data object directly
+    // --- ADD THESE NEW CONSOLE.LOGS HERE ---
     const rankedWarData = factionApiFullData?.wars?.ranked;
     const yourFactionId = factionApiFullData?.ID; // Your faction ID from the basic section
+
+    console.log("DEBUG_CHECK_CONDITION: rankedWarData:", rankedWarData);
+    console.log("DEBUG_CHECK_CONDITION: rankedWarData.war_id:", rankedWarData?.war_id);
+    console.log("DEBUG_CHECK_CONDITION: rankedWarData.factions:", rankedWarData?.factions);
+    console.log("DEBUG_CHECK_CONDITION: yourFactionId (factionApiFullData.ID):", yourFactionId);
+    // --- END NEW CONSOLE.LOGS ---
 
     // Now, the condition checks if there's a 'ranked' war object, if it has a war_id,
     // if it has a factions array, and if your faction ID is available.
     if (!rankedWarData || !rankedWarData.war_id || !rankedWarData.factions || !yourFactionId) {
         console.warn("Ranked War Data not fully available (missing 'wars.ranked' object, war_id, factions array, or our faction ID). Defaulting to 'N/A' display.");
-        // Reset display if data is missing or war not active
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'N/A';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        // ... (rest of your existing code for this if block) ...
         return;
     }
-
-    try {
-        console.log("Ranked War API Data (from factionApiFullData.wars.ranked):", rankedWarData); // Log the data being used
-
-        // Find your faction and the opponent faction from the 'factions' array
-        const yourFactionInfo = rankedWarData.factions.find(f => String(f.id) === String(yourFactionId));
-        const opponentFactionInfo = rankedWarData.factions.find(f => String(f.id) !== String(yourFactionId));
-
-        if (yourFactionInfo && opponentFactionInfo) {
-            // Update HTML elements
-            if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo.score !== undefined ? yourFactionInfo.score.toLocaleString() : 'N/A';
-            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
-
-            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo.score !== undefined ? opponentFactionInfo.score.toLocaleString() : 'N/A';
-            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
-
-            if (warTargetScore) warTargetScore.textContent = rankedWarData.target !== undefined ? rankedWarData.target.toLocaleString() : 'N/A';
-
-            // Store globalWarStartedActualTime for updateAllTimers
-            globalWarStartedActualTime = rankedWarData.start || 0;
-            // warStartedTime.textContent will be handled by updateAllTimers for live relative display
-
-        } else {
-            // Our faction or opponent not found within the ranked war participants list
-            console.warn("Our faction or opponent faction not found in the ranked war participants list (this can happen if scores are 0). Displaying N/A.");
-            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-            if (warTargetScore) warTargetScore.textContent = 'N/A';
-            globalWarStartedActualTime = 0;
-            if (warStartedTime) warStartedTime.textContent = 'N/A';
-            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
-        }
-
-    } catch (error) {
-        console.error("Error processing ranked war data:", error);
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
-        if (warTargetScore) warTargetScore.textContent = 'Error';
-        if (warStartedTime) warStartedTime.textContent = 'Error';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
-    }
+    // ... (rest of the fetchAndDisplayRankedWarScores function) ...
 }
 // --- End of CORRECTED fetchAndDisplayRankedWarScores function ---
 
