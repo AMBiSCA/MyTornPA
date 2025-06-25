@@ -418,104 +418,73 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 }
 
 // --- Start of CORRECTED fetchAndDisplayRankedWarScores function ---
+// --- Start of LATEST fetchAndDisplayRankedWarScores function ---
 async function fetchAndDisplayRankedWarScores() {
-	console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION <<<"); // UNMISTAKABLE LOG
+    console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION <<<"); // UNMISTAKABLE LOG
+
     console.log("DEBUG_RANKED_FINAL: Calling fetchAndDisplayRankedWarScores");
     console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars.ranked:", factionApiFullData?.wars?.ranked || 'Path not found: wars.ranked');
+    console.log("DEBUG_RANKED_FINAL: factionApiFullData.ID:", factionApiFullData?.ID || 'N/A');
 
-    // --- ADD THESE NEW CONSOLE.LOGS HERE ---
     const rankedWarData = factionApiFullData?.wars?.ranked;
-    const yourFactionId = factionApiFullData?.ID; // Your faction ID from the basic section
+    const yourFactionId = factionApiFullData?.ID;
 
     console.log("DEBUG_CHECK_CONDITION: rankedWarData:", rankedWarData);
     console.log("DEBUG_CHECK_CONDITION: rankedWarData.war_id:", rankedWarData?.war_id);
     console.log("DEBUG_CHECK_CONDITION: rankedWarData.factions:", rankedWarData?.factions);
     console.log("DEBUG_CHECK_CONDITION: yourFactionId (factionApiFullData.ID):", yourFactionId);
-    // --- END NEW CONSOLE.LOGS ---
 
-    // Now, the condition checks if there's a 'ranked' war object, if it has a war_id,
-    // if it has a factions array, and if your faction ID is available.
+    // This is the CRITICAL BLOCK. We remove the console.warn and add a hard error.
     if (!rankedWarData || !rankedWarData.war_id || !rankedWarData.factions || !yourFactionId) {
-        console.warn("Ranked War Data not fully available (missing 'wars.ranked' object, war_id, factions array, or our faction ID). Defaulting to 'N/A' display.");
-        // ... (rest of your existing code for this if block) ...
-        return;
+        // If this error is thrown, it means one of the conditions we thought was true, is actually false.
+        // It's the ultimate "This shouldn't happen" check.
+        throw new Error("CRITICAL ERROR: fetchAndDisplayRankedWarScores - Essential ranked war data is missing or invalid despite prior checks.");
     }
-    // ... (rest of the fetchAndDisplayRankedWarScores function) ...
-}
-// --- End of CORRECTED fetchAndDisplayRankedWarScores function ---
 
- function updateAllTimers() {
- console.count('updateAllTimers called');
- const nowInSeconds = Math.floor(Date.now() / 1000);
+    // This log should ALWAYS appear if the above 'if' block is skipped.
+    console.log("DEBUG_SUCCESS_PATH: Ranked war data passed initial validation. Proceeding to display scores.");
 
- // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
- if (warNextChainTimeStatus && nextChainTimeInput) {
-     const nextChainTimeValue = nextChainTimeInput.value.trim();
-     const targetChainTime = parseInt(nextChainTimeValue, 10);
+    try {
+        console.log("Ranked War API Data (from factionApiFullData.wars.ranked):", rankedWarData);
 
-     if (!isNaN(targetChainTime) && targetChainTime > 0) {
-         const timeLeft = targetChainTime - nowInSeconds;
-         if (timeLeft > 0) {
-             warNextChainTimeStatus.textContent = formatTime(timeLeft);
-         } else {
-             warNextChainTimeStatus.textContent = 'Chain Live! / Time Passed';
-         }
-     } else {
-         // If it's not a valid number for a countdown, display the raw input or 'N/A' if empty
-         // This prevents the flickering between user text and 'N/A'
-         warNextChainTimeStatus.textContent = nextChainTimeValue || 'N/A';
-     }
- }
+        const yourFactionInfo = rankedWarData.factions.find(f => String(f.id) === String(yourFactionId));
+        const opponentFactionInfo = rankedWarData.factions.find(f => String(f.id) !== String(yourFactionId));
 
- // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
- if (enemyTargetsContainer) {
-    const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
+        if (yourFactionInfo && opponentFactionInfo) {
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo.score !== undefined ? yourFactionInfo.score.toLocaleString() : 'N/A';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
 
-    statusCells.forEach(cell => {
-        const targetTime = parseInt(cell.dataset.until, 10);
-        const statusState = cell.dataset.statusState;
-        const originalDescription = cell.textContent.split('(')[0].trim();
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo.score !== undefined ? opponentFactionInfo.score.toLocaleString() : 'N/A';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
 
-        if (!isNaN(targetTime) && targetTime > 0) {
-            const timeLeft = targetTime - nowInSeconds;
+            if (warTargetScore) warTargetScore.textContent = rankedWarData.target !== undefined ? rankedWarData.target.toLocaleString() : 'N/A';
 
-            if (timeLeft > 0) {
-                if (statusState === 'Hospital') {
-                    cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                } else if (statusState === 'Traveling') {
-                    if (originalDescription === 'Returning') {
-                        cell.textContent = `Returning Home (${formatTime(timeLeft)})`;
-                    } else {
-                        cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                    }
-                }
-            } else {
-                if (statusState === 'Hospital') {
-                    cell.textContent = `Okay`;
-                    cell.classList.remove('status-hospital', 'status-other', 'status-okay');
-                } else if (statusState === 'Traveling') {
-                    if (originalDescription === 'Returning') {
-                        // CORRECTED: Set text to Okay and remove classes to revert to default (white) style.
-                        cell.textContent = `Okay`;
-                        cell.classList.remove('status-traveling', 'status-other', 'status-okay');
-                    } else {
-                        // Update text to "In [Destination]" and keep the orange style for arrived users.
-                        const destination = originalDescription.replace('Traveling to ', '').replace('Traveling ', '');
-                        cell.textContent = `In ${destination}`;
-                        // The class list is intentionally not changed here to keep the orange 'traveling' style.
-                    }
-                } else {
-                    cell.textContent = `${statusState} (Time Up)`;
-                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                    cell.classList.add('status-okay');
-                }
-            }
+            globalWarStartedActualTime = rankedWarData.start || 0;
+
+        } else {
+            console.warn("Our faction or opponent faction not found in the ranked war participants list (this can happen if scores are 0). Displaying N/A.");
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+            if (warTargetScore) warTargetScore.textContent = 'N/A';
+            globalWarStartedActualTime = 0;
+            if (warStartedTime) warStartedTime.textContent = 'N/A';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
         }
-    });
-}
 
+    } catch (error) {
+        console.error("Error processing ranked war data:", error);
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
+        if (warTargetScore) warTargetScore.textContent = 'Error';
+        if (warStartedTime) warStartedTime.textContent = 'Error';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+    }
+}
+// --- End of LATEST fetchAndDisplayRankedWarScores function ---
  // Update Chain Timer Display (smooth 1-second countdown)
  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
