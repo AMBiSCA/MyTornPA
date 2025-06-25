@@ -477,7 +477,8 @@ transition: background-color 0.2s ease;
 .chat-input-area {
     display: flex;
     flex-direction: column; /* Stack top buttons above input+send */
-    flex-shrink: 0; /* CRITICAL: Prevent this area from shrinking */
+    flex-shrink: 0;
+	height: 80px; 
     background-color: #333; /* Background for the input bar */
     padding: 10px;
     border-top: 1px solid #1e1e1e; /* Separator above input area */
@@ -1590,6 +1591,18 @@ autocomplete-items {
     border-bottom: 1px solid #555;
     padding-bottom: 5px;
     margin-bottom: 5px;
+}
+
+#chat-content-panels-wrapper {
+    flex-grow: 1; 
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding: 10px;
+    background-color: #2d3748;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+	scrollbar-gutter: stable;
 }
 
 .chat-tab {
