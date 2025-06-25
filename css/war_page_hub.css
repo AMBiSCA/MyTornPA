@@ -1492,7 +1492,7 @@ autocomplete-items {
     position: fixed; /* This takes the element out of the normal document flow */
     top: 320px; /* Adjust this value to set the distance from the top of the browser window */
     right: 90px; /* Adjust this value to set the distance from the right of the browser window */
-    width:850px; /* Set a fixed width for your chatbox */
+    width:855px; /* Set a fixed width for your chatbox */
     height: 477px; /* Set a fixed height for your chatbox */
     z-index: 1000; 
 	
@@ -1744,7 +1744,7 @@ autocomplete-items {
 .active-ops-targets-panel {
     display: flex;
     flex-direction: column;
-    width: 840px;
+    width: 855px;
     height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
     overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
     box-sizing: border-box;
