@@ -1734,8 +1734,7 @@ autocomplete-items {
 .active-ops-targets-panel {
     display: flex;
     flex-direction: column;
-    flex: 1; /* Allows it to grow and shrink, taking 1 unit of space */
-    flex-basis: 0; /* Ensures even distribution when growing */
+    width: 200px;
     min-width: 200px; /* Minimum width for your table content (adjust as needed) */
     height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
     overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
