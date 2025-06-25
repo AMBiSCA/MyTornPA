@@ -79,24 +79,26 @@ const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) f
 const memberProfileCache = {}; // Cache for storing fetched member profile images
 const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
 const factionMembersPanel = document.getElementById('faction-members-panel');
-const recentlyMetPanel = document.getElementById('recently-met-panel');
-const blockedPeoplePanel = document.getElementById('blocked-people-panel');
-const settingsPanel = document.getElementById('settings-panel');
-const chatContentPanels = document.getElementById('chat-content-panels'); // Assuming you have a container for all panels
 const factionChatDisplayArea = document.getElementById('chat-display-area'); // Already exists, but good to clarify
-const factionChatPanel = document.getElementById('faction-chat');
-const privateChatPanel = document.getElementById('private-chat');
 const friendsPanel = document.getElementById('friends');
-const warChatPanel = document.getElementById('war-chat-panel');
-const warChatDisplayArea = document.getElementById('warChatDisplayArea');
-const chatContentPanelsWrapper = document.getElementById('chat-content-panels-wrapper'); 
-const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea'); // The main display area for this tab
 const friendsListSection = document.getElementById('friends-list-section'); // The left container div
 const friendsSearchInput = document.getElementById('friendsSearchInput'); // Input for friends search
 const friendsScrollableList = document.getElementById('friendsScrollableList'); // Div to populate friends
 const ignoresListSection = document.getElementById('ignores-list-section'); // The right container div
 const ignoresSearchInput = document.getElementById('ignoresSearchInput'); // Input for ignores search
 const ignoresScrollableList = document.getElementById('ignoresScrollableList'); // Div to populate ignores
+const chatDisplayArea = document.getElementById('chat-display-area'); // This is the single, dynamic content area
+const warChatBox = document.getElementById('warChatBox'); // The overall chat container
+const chatTabsContainer = document.querySelector('.chat-tabs-container'); // Contains the buttons
+const chatTabButtons = document.querySelectorAll('.chat-tab'); // All individual chat tab buttons
+const chatInputArea = document.querySelector('.chat-input-area'); // The separate input section
+const warChatDisplayArea = document.getElementById('warChatDisplayArea'); // Used for War Chat content
+const privateChatDisplayArea = document.getElementById('privateChatDisplayArea'); // Used for Private Chat content
+const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea'); // Used for Faction Members content
+const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea'); // Used for Recently Met content
+const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea'); // Used for Blocked People content
+const settingsDisplayArea = document.getElementById('settingsDisplayArea'); // Used for Settings content
+
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
