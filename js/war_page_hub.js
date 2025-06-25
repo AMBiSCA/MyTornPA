@@ -1530,11 +1530,9 @@ function switchChatTab(tabName) {
             targetDisplayArea = settingsDisplayArea;
             if (targetDisplayArea) {
                 targetDisplayArea.innerHTML = `
-                    <h4>Chat Settings</h4>
-                    <p><i>Settings functionality not yet implemented.</i></p>
-                    <p>Options for chat sound, notifications, font size, etc., would go here.</p>
+                  
                 
-            }
+         
             break;
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
@@ -3090,7 +3088,7 @@ function handleChatTabClick(event) {
             break; 
 
         case 'settings':
-            populateSettingsTab(chatDisplayArea); // <--- This line is correct
+            populateSettingsTab(chatDisplayArea); // Passing chatDisplayArea to populateSettingsTab
             showInputArea = false; 
             break;
 
