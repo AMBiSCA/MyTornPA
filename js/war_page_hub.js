@@ -2872,6 +2872,100 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
     
 }
 
+// Helper function to generate dummy recently met data
+function generateDummyRecentlyMet(count) {
+    const dummyMet = [];
+    const factionTags = ['[FOE]', '[RIVAL]', '[ENEMY]', '[OPP]'];
+    const statuses = ['Online', 'Offline', 'Hospital', 'Traveling', 'Jail'];
+    const names = ['AggroUser', 'QuickStrike', 'DecoyDiver', 'GhostHunter', 'WarHawk'];
+
+    for (let i = 1; i <= count; i++) {
+        dummyMet.push({
+            id: `met_user_${i}`,
+            name: `${names[Math.floor(Math.random() * names.length)]}${i}`,
+            level: Math.floor(Math.random() * (99 - 10 + 1)) + 10,
+            faction_tag: factionTags[Math.floor(Math.random() * factionTags.length)],
+            last_action_timestamp: Math.floor(Date.now() / 1000) - (Math.floor(Math.random() * 86400 * 3)), // within 3 days
+            status_description: statuses[Math.floor(Math.random() * statuses.length)],
+            profile_image: `../../images/default_profile_icon.png`
+        });
+    }
+    return dummyMet;
+}
+
+// NEW FUNCTION: Populates the content of the Recently Met tab
+async function populateRecentlyMetTab(targetDisplayElement) {
+    console.log("[Recently Met Tab] Populating tab...");
+
+    if (!targetDisplayElement) {
+        console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
+        return;
+    }
+
+    targetDisplayElement.innerHTML = `
+        <div class="recently-met-layout">
+            <div class="header-box">
+                <b>RECENTLY MET IN WAR</b>
+            </div>
+            <div id="recentlyMetTableContainer" class="scrollable-table-container">
+                <table class="recently-met-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">NAME (ID)</th>
+                            <th class="col-level">LEVEL</th>
+                            <th class="col-faction">FACTION</th>
+                            <th class="col-last-action">LAST ACTION</th>
+                            <th class="col-status">STATUS</th>
+                            <th class="col-actions">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentlyMetTbody">
+                        <tr><td colspan="6" style="text-align:center; padding: 10px;">Loading recently met players...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // Re-get elements after HTML is injected
+    const recentlyMetTbody = document.getElementById('recentlyMetTbody');
+
+    if (!recentlyMetTbody) {
+        console.error("HTML Error: recentlyMetTbody not found after injection.");
+        return;
+    }
+
+    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
+
+    let tableRowsHtml = '';
+    dummyRecentlyMet.forEach(player => {
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${player.id}`;
+        const lastActionText = formatRelativeTime(player.last_action_timestamp); // Re-use existing formatRelativeTime
+        const statusClass = player.status_description.toLowerCase().replace(' ', '-'); // For CSS styling
+
+        tableRowsHtml += `
+            <tr data-id="${player.id}">
+                <td class="col-name">
+                    <img src="${player.profile_image}" alt="Pic" class="profile-pic-small">
+                    <a href="${profileUrl}" target="_blank">${player.name} [${player.id.split('_')[2]}]</a>
+                </td>
+                <td class="col-level">${player.level}</td>
+                <td class="col-faction">${player.faction_tag}</td>
+                <td class="col-last-action">${lastActionText}</td>
+                <td class="col-status status-${statusClass}">${player.status_description}</td>
+                <td class="col-actions">
+                    <button class="item-button letter-button">✉️</button>
+                    <button class="item-button trash-button">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+    recentlyMetTbody.innerHTML = tableRowsHtml;
+
+    // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
+    // using event delegation on recentlyMetTbody.
+}
+
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab with dummy data...");
 
