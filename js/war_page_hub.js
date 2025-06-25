@@ -3330,5 +3330,8 @@ auth.onAuthStateChanged(async (user) => {
         console.log("Auth State Changed: User is NOT logged in.");
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-    }
+   
+   }
+});
+
 });
