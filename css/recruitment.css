@@ -4,7 +4,7 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
-    margin-top: 10px;
+    margin-top: 15px;
     margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
@@ -17,9 +17,7 @@
     display: flex;
     flex-direction: row;     /* Arranges children horizontally */
     flex-wrap: wrap;         /* Allows sections to wrap to the next line on smaller screens */
-    gap: 20px;  
-    align-items: stretch; 
- 	/* Space between the sections */
+    gap: 20px;               /* Space between the sections */
     align-items: flex-start; /* Aligns items to the start of the cross-axis (top) */
     /* --- END CRITICAL CHANGE --- */
 
@@ -33,7 +31,7 @@
     color: #00a8ff; /* Blue theme color */
     text-align: center;
     margin-bottom: 15px; /* Slightly more margin for a main title */
-    margin-top: 0px;
+    margin-top: 5px;
     font-size: 2.2em; /* Slightly larger for a main page title */
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     border-bottom: 2px solid #00a8ff; /* Add a bottom border for emphasis */
@@ -68,7 +66,6 @@
     min-width: 450px;  /* Minimum width before wrapping to the next line */
     box-sizing: border-box; /* Include padding and border in width calculation */
     /* --- END NEW --- */
-	margin-top: -50px;
 }
 
 /* Section Headings (h2) */
