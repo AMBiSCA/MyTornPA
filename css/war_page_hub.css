@@ -1625,7 +1625,7 @@ autocomplete-items {
 .chat-tab.active {
     background-color: #1a1a1a; /* Active tab matches main chat background */
     border-color: #00a8ff; /* Highlight active tab */
-    color: #00a8ff;
+    color: #1e1e1e;
 }
 
 .autocomplete-items div {
