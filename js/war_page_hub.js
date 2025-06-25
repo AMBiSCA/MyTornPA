@@ -3324,52 +3324,67 @@ auth.onAuthStateChanged(async (user) => {
 });
 // --- End of UPDATED auth.onAuthStateChanged function ---
 // --- Start of initializeAndLoadData function (ensure it matches this) ---
+// --- Start of UPDATED initializeAndLoadData (FOR API v1) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    const keyToUse = apiKey;
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - Forced) <<<");
 
-    // Prioritize the override ID if provided, otherwise use the ID from basic section if available.
-    // If not available, this might mean factionApiFullData isn't initialized yet or is missing 'basic'.
-    const finalFactionId = factionIdToUseOverride || factionApiFullData?.basic?.id;
+    const keyToUse = apiKey;
+    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID; // Using .ID as per your typical response structure
+
+    // --- LOGGING FOR DEBUGGING finalFactionId ---
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.ID (if already populated from a previous run):", factionApiFullData?.ID);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated (should be your Faction ID):", finalFactionId);
+    // --- END LOGGING ---
 
     if (!finalFactionId) {
-        console.error("ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API call.");
-        // Consider a UI message here if this happens without an override
-        return; // Exit if no faction ID to request
+        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API v1 call for specific faction.";
+        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
+        if (factionWarHubTitleEl) {
+            factionWarHubTitleEl.textContent = errorMsg;
+        }
+        return;
     }
 
     try {
-        // Construct the URL with the specific faction ID in the path
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+        // CORRECTED URL FOR API v1: No '/v2/', and using 'rankedwars' selection
+        // Including basic, members, and chain for comprehensive faction data as seen previously
+        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars,members,chain&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
 
-        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
+        console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+            const errorData = await userFactionResponse.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API v1 HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData);
+        console.log("initializeAndLoadData (API v1): Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
-            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+            console.error("Torn API v1 responded with a detailed error:", factionApiFullData.error);
+            throw new Error(`Torn API v1 Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY (API v1) <<<");
+
     } catch (error) {
-        console.error("Error during comprehensive data initialization in initializeAndLoadData:", error);
-        // Reset related displays on error within this function's scope if needed
-        if (document.getElementById('factionWarHubTitle')) document.getElementById('factionWarHubTitle').textContent = 'Error Loading War Hub Data.';
-        if (document.getElementById('currentChainNumberDisplay')) document.getElementById('currentChainNumberDisplay').textContent = 'Error';
-        if (document.getElementById('chainStartedDisplay')) document.getElementById('chainStartedDisplay').textContent = 'Error';
-        if (document.getElementById('chainTimerDisplay')) document.getElementById('chainTimerDisplay').textContent = 'Error';
-        if (document.getElementById('yourFactionRankedScore')) document.getElementById('yourFactionRankedScore').textContent = 'N/A';
-        if (document.getElementById('opponentFactionRankedScore')) document.getElementById('opponentFactionRankedScore').textContent = 'N/A';
-        if (document.getElementById('warTargetScore')) document.getElementById('warTargetScore').textContent = 'N/A';
-        if (document.getElementById('warStartedTime')) document.getElementById('warStartedTime').textContent = 'N/A';
-        if (document.getElementById('yourFactionNameScoreLabel')) document.getElementById('yourFactionNameScoreLabel').textContent = 'Your Faction:';
-        if (document.getElementById('opponentFactionNameScoreLabel')) document.getElementById('opponentFactionNameScoreLabel').textContent = 'Vs. Opponent:';
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (API v1):", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data (API v1): ${error.message || 'Unknown error'}.`;
+        // Reset related displays on error
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
+// --- End of UPDATED initializeAndLoadData (FOR API v1) ---
 });
