@@ -2342,10 +2342,10 @@ function setupEventListeners(apiKey) {
 
 // --- Start of UPDATED initializeAndLoadData (FORCED API v1, ONLY BASIC & RANKEDWARS) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - FORCED SELECTIONS) <<<");
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - FORCED WITH ranked_wars) <<<");
 
     const keyToUse = apiKey;
-    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID; // Using .ID as per API v1 top-level
+    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID;
 
     // --- LOGGING FOR DEBUGGING finalFactionId ---
     console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
@@ -2363,8 +2363,9 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 
     try {
-        // EXACT URL YOU REQUESTED: API v1, faction ID in path, ONLY basic,rankedwars selections
-        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
+        // EXACT URL WITH 'ranked_wars' SELECTION (with underscore) for API v1
+        // We'll stick to 'basic' and 'ranked_wars' as you specified you only need these.
+        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,ranked_wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1_RankedWars_Underscore`;
 
         console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
 
@@ -2389,7 +2390,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (API v1):", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data (API v1): ${error.message || 'Unknown error'}.`;
-        // Reset related displays on error (chain/members data are no longer fetched with these selections)
+        // Reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
