@@ -151,18 +151,6 @@ function updateMemberItemDisplay(itemElement, profileImageUrl) {
     }
 }
 
-// Helper function to generate dummy friend data
-function generateDummyFriends(count) {
-    const dummyFriends = [];
-    for (let i = 1; i <= count; i++) {
-        dummyFriends.push({
-            id: `friend_${i}`, // Dummy ID
-            name: `Test Friend ${i}`,
-            profile_image: `../../images/default_profile_icon.png` // Use a default icon
-        });
-    }
-    return dummyFriends;
-}
 
 // Helper function to generate dummy ignore data
 function generateDummyIgnores(count) {
@@ -183,8 +171,7 @@ function generateDummyIgnores(count) {
                 profile_image: `../../images/default_profile_icon.png` // Use a default icon
             });
         }
-    }
-    return dummyIgnores;
+		return dummyIgnores;
 }
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
@@ -2984,7 +2971,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            // --- END CORRECTED PART ---
+   
         });
     });
     showTab('announcements-tab');
