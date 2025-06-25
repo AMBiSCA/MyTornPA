@@ -4,22 +4,21 @@ const auth = firebase.auth();
 let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
-let apiCallCounter = 0; // Counter for API call intervals
-let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
-let currentLiveChainSeconds = 0; // Stores the remaining chain timeout for local countdown
-let lastChainApiFetchTime = 0; // Stores the timestamp of the last chain API fetch
-let globalChainStartedTimestamp = 0; // Stores the actual chain start time from API
-let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
-let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
+let apiCallCounter = 0;
+let globalEnemyFactionID = null;
+let currentLiveChainSeconds = 0;
+let lastChainApiFetchTime = 0;
+let globalChainStartedTimestamp = 0;
+let globalChainCurrentNumber = 'N/A';
+let enemyDataGlobal = null;
 let globalRankedWarData = null;
-let globalWarStartedActualTime = 0; // Stores the war start timestamp for live relative update
+let globalWarStartedActualTime = 0;
 let unsubscribeFromChat = null;
-let profileFetchQueue = []; // Queue for processing profile image fetches
-let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
-let lastEmojiIndex = -1; // To keep track of the last emoji used for Quick FF Targets
-let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
-let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
-
+let profileFetchQueue = [];
+let isProcessingQueue = false;
+let lastEmojiIndex = -1; // For Quick FF Targets
+let lastDisplayedTargetIDs = []; // For Quick FF Targets
+let consecutiveSameTargetsCount = 0; // For Quick FF Targets
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -76,14 +75,27 @@ const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
 const FETCH_DELAY_MS = 500;
 
-// --- CHAT-RELATED DOM ELEMENT GETTERS (synced to your current HTML) ---
+// --- CHAT-RELATED DOM ELEMENT GETTERS (synced to your HTML structure) ---
 const warChatBox = document.getElementById('warChatBox');
 const chatTabsContainer = document.querySelector('.chat-tabs-container');
 const chatTabButtons = document.querySelectorAll('.chat-tab');
 const chatInputArea = document.querySelector('.chat-input-area');
-const chatDisplayArea = document.getElementById('chat-display-area'); // This is the *single* main display area for dynamic content
+const chatDisplayArea = document.getElementById('chat-display-area'); // This is the *single* main display area where all dynamic content for tabs will go
 
-// Array of emojis for Quick FF Targets (to avoid duplicate function definitions)
+// NOTE: Specific chat-panel elements (like faction-chat-panel, war-chat-panel etc.)
+// are no longer declared here as global consts because they are dynamically injected.
+// Their references will be re-acquired within the functions that populate them.
+// The same applies to their nested *DisplayArea elements (like warChatDisplayArea, etc.)
+
+// Elements for the new Blocked People tab's internal structure (will be dynamically re-acquired)
+let friendsListSection;
+let friendsSearchInput;
+let friendsScrollableList;
+let ignoresListSection;
+let ignoresSearchInput;
+let ignoresScrollableList;
+
+// Array of emojis for Quick FF Targets
 const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️', '⚠️', '⛔', '🚩', '💢', '💥'];
 
 
@@ -287,8 +299,7 @@ function get_difficulty_text(ff) {
     else return "May be impossible";
 }
 
-
-// NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
+// Populates friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
     if (!members || typeof members !== 'object') return;
 
@@ -318,7 +329,7 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
     });
 }
 
-// NEW FUNCTION: Populates the content of the Settings tab
+// Populates the content of the Settings tab
 // Now accepts the target display element as an argument
 async function populateSettingsTab(targetDisplayElement) {
     console.log("[Settings Tab] Populating tab with detailed layout...");
@@ -466,502 +477,692 @@ async function populateSettingsTab(targetDisplayElement) {
 // Populates the content of the Blocked People tab with dummy data
 // It now receives the target elements dynamically
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
-    console.log("[Blocked People Tab] Populating tab with dummy data...");
+    console.log("[Blocked People Tab] Populating tab with dummy data...");
 
-    // Generate 50 dummy friend entries and 50 dummy ignore entries
-    const dummyFriends = generateDummyFriends(50);
-    const dummyIgnores = generateDummyIgnores(50);
+    // Generate 50 dummy friend entries and 50 dummy ignore entries
+    const dummyFriends = generateDummyFriends(50);
+    const dummyIgnores = generateDummyIgnores(50);
 
-    // Render dummy friend data into the Friends list container
-    if (friendsListEl) {
-        let friendsHtml = '';
-        dummyFriends.forEach(friend => {
-            friendsHtml += `
-                <div class="list-item friend-entry">
-                    <img src="${friend.profile_image}" alt="Profile Pic" class="profile-pic">
-                    <span class="item-name">${friend.name}</span>
-                    <button class="item-button letter-button">✉️</button>
-                    <button class="item-button trash-button">🗑️</button>
-                </div>
-            `;
-        });
-        friendsListEl.innerHTML = friendsHtml;
-    } else {
-        console.error("HTML Error: friendsScrollableList not found for populating dummy friends.");
-    }
+    // Render dummy friend data into the Friends list container
+    if (friendsListEl) {
+        let friendsHtml = '';
+        dummyFriends.forEach(friend => {
+            friendsHtml += `
+                <div class="list-item friend-entry">
+                    <img src="${friend.profile_image}" alt="Profile Pic" class="profile-pic">
+                    <span class="item-name">${friend.name}</span>
+                    <button class="item-button letter-button">✉️</button>
+                    <button class="item-button trash-button">🗑️</button>
+                </div>
+            `;
+        });
+        friendsListEl.innerHTML = friendsHtml;
+    } else {
+        console.error("HTML Error: friendsScrollableList not found for populating dummy friends.");
+    }
 
-    // Render dummy ignore data into the Ignores list container
-    if (ignoresListEl) {
-        let ignoresHtml = '';
-        dummyIgnores.forEach(ignore => {
-            // Display ID from dummy data for demonstration
-            const displayId = ignore.id.split('_')[1]; // Extracts the number from "user_1" or "faction_1"
+    // Render dummy ignore data into the Ignores list container
+    if (ignoresListEl) {
+        let ignoresHtml = '';
+        dummyIgnores.forEach(ignore => {
+            // Display ID from dummy data for demonstration
+            const displayId = ignore.id.split('_')[1]; // Extracts the number from "user_1" or "faction_1"
 
-            if (ignore.type === 'user') {
-                ignoresHtml += `
-                    <div class="list-item ignore-entry">
-                        <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
-                        <span class="item-name">${ignore.name} [${displayId}]</span>
-                        <button class="item-button trash-button">🗑️</button>
-                    </div>
-                `;
-            } else { // type === 'faction'
-                ignoresHtml += `
-                    <div class="list-item ignore-entry">
-                        <span class="item-icon faction-icon">${ignore.icon}</span>
-                        <span class="item-name">${ignore.name} [${displayId}]</span>
-                        <button class="item-button trash-button">🗑️</button>
-                    </div>
-                `;
-            }
-        });
-        ignoresListEl.innerHTML = ignoresHtml;
-    } else {
-        console.error("HTML Error: ignoresScrollableList not found for populating dummy ignores.");
-    }
+            if (ignore.type === 'user') {
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            } else { // type === 'faction'
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <span class="item-icon faction-icon">${ignore.icon}</span>
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            }
+        });
+        ignoresListEl.innerHTML = ignoresHtml;
+    } else {
+        console.error("HTML Error: ignoresScrollableList not found for populating dummy ignores.");
+    }
 
-    // TODO: In a real scenario, you'd add event listeners here for the dynamically created buttons (letter, trash)
-    // using event delegation on friendsListEl and ignoresListEl.
+    // TODO: In a real scenario, you'd add event listeners here for the dynamically created buttons (letter, trash)
+    // using event delegation on friendsListEl and ignoresListEl.
 }
 
-// Function: displayQuickFFTargets
-// Desc: Fetches and displays quick fair fight targets, adding alternating emojis
-//       with individual borders. Prevents "blinking" by only updating the
-//       display after a successful fetch.
-//       Also prevents showing the same target pair more than two times in a row.
-async function displayQuickFFTargets(userApiKey, playerId) {
-    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-    if (!quickFFTargetsDisplay) {
-        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
-        return;
-    }
+// Populates the content of the Recently Met tab with dummy data
+async function populateRecentlyMetTab(targetDisplayElement) {
+    console.log("[Recently Met Tab] Populating tab...");
 
-    // Check if the display is currently empty, and if so, show a loading message.
-    // This prevents blinking if previous content exists.
-    if (quickFFTargetsDisplay.innerHTML === '') {
-        quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
-    }
+    if (!targetDisplayElement) {
+        console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
+        return;
+    }
 
-    if (!userApiKey || !playerId) {
-        // If API key or Player ID is missing, show an error (if not already showing content)
-        if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
-        }
-        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
-        return; // Exit, keeping current content or error message
-    }
+    targetDisplayElement.innerHTML = `
+        <div class="recently-met-layout">
+            <div class="header-box">
+                <b>RECENTLY MET IN WAR</b>
+            </div>
+            <div id="recentlyMetTableContainer" class="scrollable-table-container">
+                <table class="recently-met-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">NAME (ID)</th>
+                            <th class="col-level">LEVEL</th>
+                            <th class="col-faction">FACTION</th>
+                            <th class="col-last-action">LAST ACTION</th>
+                            <th class="col-status">STATUS</th>
+                            <th class="col-actions">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentlyMetTbody">
+                        <tr><td colspan="6" style="text-align:center; padding: 10px;">Loading recently met players...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
 
-    try {
-        // 1. Get IDs of players currently in the main enemy table to exclude them
-        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
-        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
-        // console.log("Excluded Player IDs (from main table):", excludedPlayerIDs); // Debugging line
+    // Re-get elements after HTML is injected
+    const recentlyMetTbody = document.getElementById('recentlyMetTbody');
 
-        const functionUrl = `/.netlify/functions/get-recommended-targets`;
-        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
-        });
-        const data = await response.json();
+    if (!recentlyMetTbody) {
+        console.error("HTML Error: recentlyMetTbody not found after injection.");
+        return;
+    }
 
-        // If response is not OK or contains an API error
-        if (!response.ok || data.error) {
-            const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
-            console.error("Error fetching Quick FF Targets:", errorMessage);
-            // On error, keep existing content. Only display general error if element was blank or "Loading".
-            if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
-                 quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
-            }
-            return; // Exit, keeping previous valid content or the new error message
-        }
+    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
 
-        // If no targets are returned from the API function
-        if (!data.targets || data.targets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
-            // Reset consecutive counter if no targets are found (as it's not the "same" pair)
-            lastDisplayedTargetIDs = [];
-            consecutiveSameTargetsCount = 0;
-            return;
-        }
+    let tableRowsHtml = '';
+    dummyRecentlyMet.forEach(player => {
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${player.id}`;
+        const lastActionText = formatRelativeTime(player.last_action_timestamp);
+        const statusClass = player.status_description.toLowerCase().replace(' ', '-');
 
-        // --- Logic to prevent showing the same targets more than two times in a row ---
-        const MAX_TARGETS_TO_DISPLAY = 2;
-        const MAX_SHUFFLE_ATTEMPTS = 10; // Prevent infinite loop for very limited target sets
+        tableRowsHtml += `
+            <tr data-id="${player.id}">
+                <td class="col-name">
+                    <img src="${player.profile_image}" alt="Pic" class="profile-pic-small">
+                    <a href="${profileUrl}" target="_blank">${player.name} [${player.id.split('_')[2]}]</a>
+                </td>
+                <td class="col-level">${player.level}</td>
+                <td class="col-faction">${player.faction_tag}</td>
+                <td class="col-last-action">${lastActionText}</td>
+                <td class="col-status status-${statusClass}">${player.status_description}</td>
+                <td class="col-actions">
+                    <button class="item-button letter-button">✉️</button>
+                    <button class="item-button trash-button">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+    recentlyMetTbody.innerHTML = tableRowsHtml;
 
-        let finalSelectedTargets = [];
-        let currentDisplayedTargetIDs = [];
-        let attempt = 0;
+    // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
+    // using event delegation on recentlyMetTbody.
+}
 
-        do {
-            // Shuffle the available targets (Fisher-Yates algorithm)
-            for (let i = availableTargets.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]]; // Swap elements
-            }
+function populateWarStatusDisplay(warData = {}) {
+    if (warEnlistedStatus) warEnlistedStatus.textContent = warData.toggleEnlisted ? 'Yes' : 'No';
+    if (warTermedStatus) warTermedStatus.textContent = warData.toggleTermedWar ? 'Yes' : 'No';
+    if (warTermedWinLoss) warTermedWinLoss.textContent = warData.toggleTermedWinLoss ? 'Win' : 'Loss';
+    if (warChainingStatus) warChainingStatus.textContent = warData.toggleChaining ? 'Yes' : 'No';
+    if (warNoFlyingStatus) warNoFlyingStatus.textContent = warData.toggleNoFlying ? 'Yes' : 'No';
+    if (warTurtleStatus) warTurtleStatus.textContent = warData.toggleTurtleMode ? 'Yes' : 'No';
+    if (warNextChainTimeStatus) warNextChainTimeStatus.textContent = warData.nextChainTimeInput || 'N/A';
+}
 
-            // Select the first N targets for this attempt
-            finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
-            currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
+function loadWarStatusForEdit(warData = {}) {
+    if (toggleEnlisted) toggleEnlisted.checked = warData.toggleEnlisted || false;
+    if (toggleTermedWar) toggleTermedWar.checked = warData.toggleTermedWar || false;
+    if (toggleTermedWinLoss) toggleTermedWinLoss.checked = warData.toggleTermedWinLoss || false;
+    if (toggleChaining) toggleChaining.checked = warData.toggleChaining || false;
+    if (toggleNoFlying) toggleNoFlying.checked = warData.toggleNoFlying || false;
+    if (toggleTurtleMode) toggleTurtleMode.checked = warData.toggleTurtleMode || false;
+    if (nextChainTimeInput) nextChainTimeInput.value = warData.nextChainTimeInput || '';
+    if (enemyFactionIDInput) enemyFactionIDInput.value = warData.enemyFactionID || '';
+}
 
-            attempt++;
+// NEW: Autocomplete setup for the Current Team Lead input
+function setupTeamLeadAutocomplete(allFactionMembers) {
+    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+    if (!currentTeamLeadInput) return;
 
-            // Condition to re-shuffle:
-            // 1. We have enough targets to actually pick a pair (>=2)
-            // 2. The newly selected pair is identical to the last one displayed
-            // 3. This is the 3rd or more consecutive time showing the same pair (consecutiveSameTargetsCount >= 2)
-            // 4. We haven't exceeded max shuffle attempts (to prevent infinite loop if no other options exist)
-        } while (availableTargets.length >= MAX_TARGETS_TO_DISPLAY &&
-                 areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs) &&
-                 consecutiveSameTargetsCount >= 2 &&
-                 attempt < MAX_SHUFFLE_ATTEMPTS);
+    let autocompleteList = null;
+    let currentFocus = -1;
 
-        // After the loop, update the consecutive counter and last displayed IDs
-        if (areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs)) {
-            consecutiveSameTargetsCount++;
-            if (consecutiveSameTargetsCount >= 3) {
-                 console.warn("Warning: Displaying the same Quick FF Target pair for the 3rd+ consecutive time due to limited alternative targets.");
-            }
-        } else {
-            consecutiveSameTargetsCount = 1; // New pair, reset count
-        }
-        lastDisplayedTargetIDs = currentDisplayedTargetIDs; // Store the currently displayed pair for next check
+    const filterMembers = (searchTerm) => {
+        searchTerm = searchTerm.toLowerCase();
+        if (!allFactionMembers || typeof allFactionMembers !== 'object') return [];
+        return Object.values(allFactionMembers).filter(member =>
+            member.name && member.name.toLowerCase().startsWith(searchTerm)
+        ).sort((a, b) => a.name.localeCompare(b.name));
+    };
 
-        // console.log("Final selected target IDs for this display:", finalSelectedTargets.map(t => t.playerID)); // Debugging
-        // console.log("Consecutive same targets count:", consecutiveSameTargetsCount); // Debugging
+    const showSuggestions = (arr) => {
+        closeAllLists();
+        if (!arr.length) return false;
 
-        // Prepare a new content container to build the new display, then replace the old one.
-        const newTargetsHtmlContainer = document.createElement('div');
-        let newTargetsHtml = '';
+        autocompleteList = document.createElement("DIV");
+        autocompleteList.setAttribute("id", currentTeamLeadInput.id + "-autocomplete-list");
+        autocompleteList.setAttribute("class", "autocomplete-items");
+        currentTeamLeadInput.parentNode.appendChild(autocompleteList);
 
-        // Emoji selection logic to ensure unique emojis for targets displayed in this batch
-        let currentEmojisUsedForBatch = new Set();
-        let emojiCycleIndex = lastEmojiIndex;
+        arr.forEach(member => {
+            const item = document.createElement("DIV");
+            item.innerHTML = `<strong>${member.name.substr(0, currentTeamLeadInput.value.length)}</strong>`;
+            item.innerHTML += member.name.substr(currentTeamLeadInput.value.length);
+            item.innerHTML += `<input type="hidden" value="${member.name}">`;
 
-        // Display the final selected targets (which may be fewer than MAX_TARGETS_TO_DISPLAY if availableTargets.length is small)
-        for (let i = 0; i < finalSelectedTargets.length; i++) {
-            const target = finalSelectedTargets[i]; // Use finalSelectedTargets here
-            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
-            const targetName = target.playerName || `Target ${i + 1}`; // Fallback name
+            item.addEventListener("click", function(e) {
+                currentTeamLeadInput.value = this.getElementsByTagName("input")[0].value;
+                closeAllLists();
+                currentTeamLeadInput.focus();
+            });
+            autocompleteList.appendChild(item);
+        });
+        return true;
+    };
 
-            // Pick a unique emoji for this target from the global set
-            let selectedEmoji = '';
-            do {
-                emojiCycleIndex = (emojiCycleIndex + 1) % TARGET_EMOJIS.length;
-                selectedEmoji = TARGET_EMOJIS[emojiCycleIndex];
-            } while (currentEmojisUsedForBatch.has(selectedEmoji)); // Keep cycling until unique emoji is found
+    currentTeamLeadInput.addEventListener("input", function(e) {
+        const val = this.value;
+        console.log("Input event fired. Value:", val);
+        closeAllLists();
 
-            currentEmojisUsedForBatch.add(selectedEmoji); // Mark this emoji as used for this batch
-            lastEmojiIndex = emojiCycleIndex; // Update the global index for the next call of this function
+        if (!val) {
+            console.log("Input value is empty, not showing suggestions.");
+            return false;
+        }
 
-            newTargetsHtml += `
-                <a href="${attackUrl}" target="_blank"
-                    class="quick-ff-target-btn"
-                    title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
-                    <span class="emoji-wrapper">${selectedEmoji}</span> ${targetName} <span class="emoji-wrapper">${selectedEmoji}</span>
-                </a>
-            `;
-        }
+        const matches = filterMembers(val);
+        showSuggestions(matches);
+        currentFocus = -1;
+    });
 
-        // Only update the actual DOM element after the new content is fully prepared
-        quickFFTargetsDisplay.innerHTML = newTargetsHtml;
+    currentTeamLeadInput.addEventListener("keydown", function(e) {
+        let x = document.getElementById(this.id + "-autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
 
-    } catch (error) {
-        console.error("Failed to fetch or display Quick FF Targets:", error);
-        // If an unexpected error occurs, keep the previous content or show a generic error
-        if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
-             quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
-        }
-    }
+        if (e.keyCode == 40) { // DOWN
+            currentFocus++;
+            addActive(x);
+        } else if (e.keyCode == 38) { // UP
+            currentFocus--;
+            addActive(x);
+        } else if (e.keyCode == 13) { // ENTER
+            e.preventDefault();
+            if (currentFocus > -1) {
+                if (x) x[currentFocus].click();
+            } else {
+                closeAllLists();
+            }
+        } else if (e.keyCode == 27) { // ESC
+            closeAllLists();
+        }
+    });
+
+    const addActive = (x) => {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+    };
+
+    const removeActive = (x) => {
+        for (let i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
+    };
+
+    const closeAllLists = (elmnt) => {
+        const x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != currentTeamLeadInput) {
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+        currentFocus = -1;
+    };
+
+    document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+    });
+}
+
+function setupMemberClickEvents() {
+    if (!friendlyMembersTbody) {
+        console.error("HTML Error: Friendly members table body (tbody) not found!");
+        return;
+    }
+
+    friendlyMembersTbody.addEventListener('click', (event) => {
+        const clickedRow = event.target.closest('tr');
+        if (!clickedRow) {
+            return;
+        }
+
+        const memberId = clickedRow.dataset.id;
+
+        if (memberId) {
+            fetchAndDisplayMemberDetails(memberId);
+        } else {
+            console.error("Clicked row is missing the 'data-id' attribute.");
+        }
+    });
+}
+
+function setupToggleSelectionEvents() {
+    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
+}
+
+async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+    console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
+
+    const personalStatsModal = document.getElementById('personalStatsModal');
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
+
+    if (!personalStatsModal || !personalStatsModalBody) {
+        console.error("HTML Error: Personal Stats Modal elements not found!");
+        // if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false; // togglePersonalStatsCheckbox not defined
+        return;
+    }
+
+    personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
+    personalStatsModal.classList.add('visible');
+
+    const selections = "profile,personalstats,battlestats,workstats,cooldowns,bars";
+    const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+
+    console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
+
+    function formatTcpAnniversaryDate(dateObject) {
+        if (!dateObject) return 'N/A';
+        let jsDate;
+        if (dateObject instanceof Date) {
+            jsDate = dateObject;
+        } else if (dateObject && typeof dateObject.toDate === 'function') {
+            jsDate = dateObject.toDate();
+        } else {
+            return 'N/A';
+        }
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return jsDate.toLocaleDateString(undefined, options);
+    }
+
+    try {
+        const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
+        const data = await response.json();
+        console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
+
+
+        if (!response.ok) {
+            const errorData = data || { message: "Failed to parse API error response." };
+            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
+            let errorMessage = `Torn API Error: ${response.status}: ${errorData?.error?.error || response.statusText}`;
+            throw new Error(errorMessage);
+        }
+        if (data.error) {
+            console.error(`[DEBUG] Torn API Data Error details:`, data.error);
+            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+        }
+
+        const userId = data.player_id;
+        if (userId) {
+            const userDataToSave = {
+                name: data.name,
+                level: data.level,
+                faction_id: data.faction?.faction_id || null,
+                faction_name: data.faction?.faction_name || null,
+                
+                nerve: data.nerve || 0,
+                energy: data.energy || 0,
+                happy: data.happy || 0,
+                life: data.life || 0,
+                traveling: data.status?.state === 'Traveling' || false,
+                hospitalized: data.status?.state === 'Hospital' || false,
+                cooldowns: {
+                    drug: data.cooldowns?.drug || 0,
+                    booster: data.cooldowns?.booster || 0,
+                },
+                personalstats: data.personalstats || {},
+                battlestats: {
+                    strength: data.strength || data.battlestats?.strength || 0,
+                    defense: data.defense || data.battlestats?.defense || 0,
+                    speed: data.speed || data.battlestats?.speed || 0,
+                    dexterity: data.dexterity || data.battlestats?.dexterity || 0,
+                    total: data.total || data.battlestats?.total || 0,
+                    strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
+                    defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
+                    speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
+                    dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
+                },
+                workstats: {
+                    manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
+                    intelligence: data.intelligence || data.workstats?.intelligence || 0,
+                    endurance: data.endurance || data.workstats?.endurance || 0,
+                },
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
+
+            try {
+                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: String(userId),
+                        userData: userDataToSave,
+                    }),
+                });
+
+                if (!netlifyFunctionResponse.ok) {
+                    const errorDetails = await netlifyFunctionResponse.json();
+                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
+                }
+
+                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
+            } catch (functionError) {
+                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
+            }
+        } else {
+            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
+        }
+    } catch (error) {
+        console.error("Error fetching/displaying personal stats in modal:", error);
+        personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
+    }
 }
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button'); 
-    const mainTabPanes = document.querySelectorAll('.tab-pane');
+    // Basic tab navigation for main content tabs
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const mainTabPanes = document.querySelectorAll('.tab-pane');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const targetTabDataset = event.currentTarget.dataset.tab;
-            const targetTabId = targetTabDataset + '-tab';
+    tabButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
 
-            showTab(targetTabId);
+            showTab(targetTabId);
 
-            // --- CORRECTED PART: Call updateFriendlyMembersTable using the global 'userApiKey' ---
-            if (targetTabDataset === 'friendly-status') {
-                const user = firebase.auth().currentUser;
-                // NOW CORRECTLY USING THE GLOBALLY SCOPED 'userApiKey'
-                
-                if (user && userApiKey) { // Check for userApiKey which is set by auth.onAuthStateChanged
-                    await updateFriendlyMembersTable(userApiKey, user.uid); 
-                } else {
-                    console.warn("User not logged in or API Key missing. Cannot update friendly members table.");
-                    const tbody = document.getElementById('friendly-members-tbody');
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
-                    }
-                }
-            }
-            // --- END CORRECTED PART ---
-        });
-    });
-    showTab('announcements-tab');
-    let listenersInitialized = false;
+            if (targetTabDataset === 'friendly-status') {
+                const user = firebase.auth().currentUser;
+                if (user && userApiKey) {
+                    await updateFriendlyMembersTable(userApiKey, user.uid);
+                } else {
+                    console.warn("User not logged in or API Key missing. Cannot update friendly members table.");
+                    const tbody = document.getElementById('friendly-members-tbody');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                    }
+                }
+            }
+        });
+    });
+    showTab('announcements-tab');
+    let listenersInitialized = false;
 
-    // --- Chat Tab Functionality Elements and Handler ---
-    const chatTabsContainer = document.querySelector('.chat-tabs-container');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox');
-    const chatDisplayArea = document.getElementById('chat-display-area');
-    const chatInputArea = document.querySelector('.chat-input-area');
+    // --- Chat Tab Functionality Elements and Handler ---
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox');
+    const chatDisplayArea = document.getElementById('chat-display-area');
+    const chatInputArea = document.querySelector('.chat-input-area');
 
-    // Function to handle chat tab clicks
-function handleChatTabClick(event) {
-    const clickedTab = event.currentTarget;
-    const targetTab = clickedTab.dataset.chatTab;
+    // Function to handle chat tab clicks
+    function handleChatTabClick(event) {
+        const clickedTab = event.currentTarget;
+        const targetTab = clickedTab.dataset.chatTab;
 
-    console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
+        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
 
-    // Remove 'active' class from all tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-    // Add active class to the clicked tab button
-    clickedTab.classList.add('active');
+        // Remove 'active' class from all tab buttons
+        chatTabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        // Add active class to the clicked tab button
+        clickedTab.classList.add('active');
 
-    // IMPORTANT: Clear the main chat display area every time a tab is clicked
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = '';
-    } else {
-        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-        return;
-    }
+        // IMPORTANT: Clear the main chat display area every time a tab is clicked
+        if (chatDisplayArea) {
+            chatDisplayArea.innerHTML = '';
+        } else {
+            console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
+            return;
+        }
 
-    // Unsubscribe from any active real-time chat listener (important for Faction Chat)
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-        console.log("Unsubscribed from previous chat listener (tab switch).");
-    }
+        // Unsubscribe from any active real-time chat listener (important for Faction Chat)
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null;
+            console.log("Unsubscribed from previous chat listener (tab switch).");
+        }
 
-    let showInputArea = true; // Default to showing input area for chat tabs
+        let showInputArea = true; // Default to showing input area for chat tabs
 
-    switch (targetTab) {
-        case 'faction-chat':
-            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>'; // Initial loading message
-            setupChatRealtimeListener(); // This function will populate chatDisplayArea
-            break;
+        switch (targetTab) {
+            case 'faction-chat':
+                chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>'; // Initial loading message
+                setupChatRealtimeListener(); // This function will populate chatDisplayArea
+                break;
 
-        case 'war-chat':
-            // Dynamically generate War Chat content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to War Chat!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
-            `;
-            // If you later implement real-time war chat, you'd add setupWarChatListener() here
-            break;
+            case 'war-chat':
+                // Dynamically generate War Chat content into chatDisplayArea
+                chatDisplayArea.innerHTML = `
+                    <p>Welcome to War Chat!</p>
+                    <p>Functionality not implemented yet for this dynamic tab.</p>
+                `;
+                // If you later implement real-time war chat, you'd add setupWarChatListener() here
+                break;
 
-        case 'private-chat':
-            // Dynamically generate Private Chat content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to Private Chat!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
-            `;
-            break;
+            case 'private-chat':
+                // Dynamically generate Private Chat content into chatDisplayArea
+                chatDisplayArea.innerHTML = `
+                    <p>Welcome to Private Chat!</p>
+                    <p>Functionality not implemented yet for this dynamic tab.</p>
+                `;
+                break;
 
-        case 'faction-members':
-            // Dynamically generate Faction Members content into chatDisplayArea
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
-            if (factionApiFullData && factionApiFullData.members) {
-                // Pass chatDisplayArea as the target for displayFactionMembersInChatTab
-                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
-            }
-            showInputArea = false; // Hide input for non-chat tabs
-            break;
+            case 'faction-members':
+                // Dynamically generate Faction Members content into chatDisplayArea
+                chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+                if (factionApiFullData && factionApiFullData.members) {
+                    // Pass chatDisplayArea as the target for displayFactionMembersInChatTab
+                    displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
+                }
+                showInputArea = false; // Hide input for non-chat tabs
+                break;
 
-        case 'recently-met':
-            // Call the populateRecentlyMetTab function, passing the main dynamic display area
-            populateRecentlyMetTab(chatDisplayArea); // <--- CHANGE IS HERE: Passing chatDisplayArea
-            showInputArea = false; // Hide input for non-chat tabs
-            break;
-        case 'blocked-people':
-            // Dynamically generate the full Blocked People layout into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <div class="blocked-people-layout">
-                    <div class="friends-list-section">
-                        <div class="header-box">
-                            <b>Friends</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="friendsScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
-                        </div>
-                    </div>
+            case 'recently-met':
+                // Call the populateRecentlyMetTab function, passing the main dynamic display area
+                populateRecentlyMetTab(chatDisplayArea);
+                showInputArea = false; // Hide input for non-chat tabs
+                break;
 
-                    <div class="ignores-list-section">
-                        <div class="header-box">
-                            <b>Ignores / Blocked</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="ignoresScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Re-get elements after they are injected into the DOM
-            // These dynamic elements exist *within* the chatDisplayArea content.
-            const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-            const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-            // Call your populate function, passing dynamically found elements
-            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+            case 'blocked-people':
+                // Dynamically generate the full Blocked People layout into chatDisplayArea
+                chatDisplayArea.innerHTML = `
+                    <div class="blocked-people-layout">
+                        <div class="friends-list-section">
+                            <div class="header-box">
+                                <b>Friends</b>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div id="friendsScrollableList" class="scrollable-list">
+                                <p style="text-align:center; padding: 10px;">Loading friends...</p>
+                            </div>
+                        </div>
 
-            showInputArea = false; // Hide input for non-chat tabs
-            break; 
+                        <div class="ignores-list-section">
+                            <div class="header-box">
+                                <b>Ignores / Blocked</b>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div id="ignoresScrollableList" class="scrollable-list">
+                                <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
 
-        case 'settings':
-            populateSettingsTab(chatDisplayArea); // Passing chatDisplayArea to populateSettingsTab
-            showInputArea = false; 
-            break;
+                // Re-get elements after they are injected into the DOM
+                const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
+                const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
+                populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
 
-        default:
-            console.warn(`Unknown chat tab: ${targetTab}`);
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-            showInputArea = false;
-            break;
-    }
-    
-	
-    // Control visibility of the separate chat input area
-    if (showInputArea) {
-        if (chatInputArea) chatInputArea.style.display = 'flex';
-    } else {
-        if (chatInputArea) chatInputArea.style.display = 'none';
-    }
+                showInputArea = false; // Hide input for non-chat tabs
+                break;
 
-    // Ensure the main chat display area scrolls to bottom after content is injected
-    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-}
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            console.log("Auth State Changed: User is logged in.");
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            let userData = {};
-            try {
-                const doc = await userProfileRef.get();
-                userData = doc.exists ? doc.data() : {};
-                console.log("Firebase User Data (from userProfiles):", userData);
-            } catch (fbError) {
-                console.error("Error fetching user profile from Firebase:", fbError);
-            }
+            case 'settings':
+                populateSettingsTab(chatDisplayArea); // Passing chatDisplayArea to populateSettingsTab
+                showInputArea = false;
+                break;
 
-            // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
-            // !!! IMPORTANT: REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
-            const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
-            const DEBUG_FACTION_ID = "49028";        // Forced Faction ID
-            const DEBUG_PLAYER_ID = "2662550";       // Forced Player ID
-            // --- END TEMPORARY HARDCODE ---
-
-            // These lines will prioritize the DEBUG_ values if userData fields are empty or null
-            const apiKey = userData.tornApiKey || DEBUG_API_KEY;
-            const playerId = userData.tornProfileId || DEBUG_PLAYER_ID;
-            currentTornUserName = userData.preferredName || 'Unknown'; // Keep using Firebase preferredName or default
-
-            console.log("Determined API Key for use:", apiKey ? "Present" : "MISSING!");
-            console.log("Determined Player ID for use:", playerId ? "Present" : "MISSING!");
-
-            let warData = {};
-            try {
-                const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warDoc.data() : {};
-            } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
-            }
-
-            console.log("Firebase Auth User (from auth.currentUser):", firebase.auth().currentUser);
-
-            if (apiKey && playerId) {
-                userApiKey = apiKey; // Assign to global userApiKey for other functions
-
-                console.log("Entering API call block: Calling initializeAndLoadData...");
-                // Pass the determined Faction ID to initializeAndLoadData
-                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID);
-
-                // These logs now reflect the API v1 structure
-                console.log("AFTER initializeAndLoadData - Global factionApiFullData:", factionApiFullData);
-                console.log("AFTER initializeAndLoadData - factionApiFullData.ID (top-level Faction ID):", factionApiFullData?.ID);
-                console.log("AFTER initializeAndLoadData - Is factionApiFullData.ranked_wars defined?", !!factionApiFullData?.ranked_wars);
+            default:
+                console.warn(`Unknown chat tab: ${targetTab}`);
+                chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+                showInputArea = false;
+                break;
+        }
 
 
-                populateUiComponents(warData, apiKey); // This also uses factionApiFullData
+        // Control visibility of the separate chat input area
+        if (showInputArea) {
+            if (chatInputArea) chatInputArea.style.display = 'flex';
+        } else {
+            if (chatInputArea) chatInputArea.style.display = 'none';
+        }
 
-                fetchAndDisplayChainData();
-                // Call fetchAndDisplayRankedWarScores after initializeAndLoadData completes and populates factionApiFullData
-                fetchAndDisplayRankedWarScores();
-                setupChatRealtimeListener();
+        // Ensure the main chat display area scrolls to bottom after content is injected
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+    } // CLOSES handleChatTabClick
 
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    setupMemberClickEvents();
+    // --- Authentication State Change Listener ---
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            console.log("Auth State Changed: User is logged in.");
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            let userData = {};
+            try {
+                const doc = await userProfileRef.get();
+                userData = doc.exists ? doc.data() : {};
+                console.log("Firebase User Data (from userProfiles):", userData);
+            } catch (fbError) {
+                console.error("Error fetching user profile from Firebase:", fbError);
+            }
 
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
-                    });
+            // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
+            const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
+            const DEBUG_FACTION_ID = "49028"; // Forced Faction ID
+            const DEBUG_PLAYER_ID = "2662550"; // Forced Player ID
+            // --- END TEMPORARY HARDCODE ---
 
-                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
-                    if (initialActiveChatTab) {
-                        handleChatTabClick({ currentTarget: initialActiveChatTab });
-                    }
-                    
-                    listenersInitialized = true;
+            const apiKey = userData.tornApiKey || DEBUG_API_KEY;
+            const playerId = userData.tornProfileId || DEBUG_PLAYER_ID;
+            currentTornUserName = userData.preferredName || 'Unknown';
 
-                    // Adjust these intervals later for performance if needed
-                    setInterval(updateAllTimers, 1000);
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
-                        }
-                    }, 2000);
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        } else {
-                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                        }
-                    }, 60000);
-                    setInterval(() => {
-                        if (userApiKey) {
-                            initializeAndLoadData(userApiKey, DEBUG_FACTION_ID); // Pass DEBUG_FACTION_ID here too for periodic refresh
-                        } else {
-                            console.warn("API key not available for periodic comprehensive faction data refresh.");
-                        }
-                    }, 2000); // This is very frequent. Change to 60000 (1 minute) or more for production.
-            }
-        } else {
-            console.warn("CRITICAL: API key or Player ID not found. Cannot proceed with Torn API calls.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-            const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-            if (quickFFTargetsDisplay) {
-                quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
-            }
-        }
-    } else {
-        userApiKey = null;
-        listenersInitialized = false;
-        console.log("Auth State Changed: User is NOT logged in.");
-        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-   
-   }
-});
+            console.log("Determined API Key for use:", apiKey ? "Present" : "MISSING!");
+            console.log("Determined Player ID for use:", playerId ? "Present" : "MISSING!");
 
-});
+            let warData = {};
+            try {
+                const warDoc = await db.collection('factionWars').doc('currentWar').get();
+                warData = warDoc.exists ? warDoc.data() : {};
+            } catch (firebaseError) {
+                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+            }
+
+            console.log("Firebase Auth User (from auth.currentUser):", firebase.auth().currentUser);
+
+            if (apiKey && playerId) {
+                userApiKey = apiKey;
+
+                console.log("Entering API call block: Calling initializeAndLoadData...");
+                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID);
+
+                console.log("AFTER initializeAndLoadData - Global factionApiFullData:", factionApiFullData);
+                console.log("AFTER initializeAndLoadData - factionApiFullData.ID (top-level Faction ID):", factionApiFullData?.ID);
+                console.log("AFTER initializeAndLoadData - Is factionApiFullData.ranked_wars defined?", !!factionApiFullData?.ranked_wars);
+
+                populateUiComponents(warData, apiKey);
+
+                fetchAndDisplayChainData();
+                fetchAndDisplayRankedWarScores();
+                setupChatRealtimeListener();
+
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    setupMemberClickEvents();
+
+                    chatTabs.forEach(tab => {
+                        tab.addEventListener('click', handleChatTabClick);
+                    });
+
+                    const initialActiveChatTab = document.querySelector('.chat-tab.active');
+                    if (initialActiveChatTab) {
+                        handleChatTabClick({ currentTarget: initialActiveChatTab });
+                    } else {
+                        handleChatTabClick({ currentTarget: document.querySelector('.chat-tab[data-chat-tab="faction-chat"]') });
+                    }
+                    
+                    listenersInitialized = true;
+
+                    setInterval(updateAllTimers, 1000);
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        } else {
+                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
+                        }
+                    }, 2000);
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        } else {
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                        }
+                    }, 60000);
+                    setInterval(() => {
+                        if (userApiKey) {
+                            initializeAndLoadData(userApiKey, DEBUG_FACTION_ID);
+                        } else {
+                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 2000);
+                }
+            } else {
+                console.warn("CRITICAL: API key or Player ID not found. Cannot proceed with Torn API calls.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
+                if (quickFFTargetsDisplay) {
+                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
+                }
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("Auth State Changed: User is NOT logged in.");
+            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        }
+    }); // Closes auth.onAuthStateChanged
+}); // Closes DOMContentLoaded
+
+// --- End of Script ---
