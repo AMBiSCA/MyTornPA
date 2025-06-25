@@ -422,8 +422,10 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 // --- Start of CORRECTED fetchAndDisplayRankedWarScores function (based on your PROVIDED JSON structure) ---
 // --- Start of CORRECTED fetchAndDisplayRankedWarScores function (based on your PROVIDED JSON structure) ---
 // This function is designed to work with the data returned by the API v1 'rankedwars' selection
+// --- Start of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
+// This function is designed to work with the data returned by the API v1 'rankedwars' selection
 async function fetchAndDisplayRankedWarScores() {
-    console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION (REVISED FOR ranked_wars TOP-LEVEL) <<<");
+    console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION (API v1 - EXPECTING ranked_wars TOP-LEVEL) <<<");
 
     console.log("DEBUG_RANKED_FINAL: Calling fetchAndDisplayRankedWarScores");
     console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
@@ -514,7 +516,7 @@ async function fetchAndDisplayRankedWarScores() {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-
+// --- End of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
     if (!chatDisplayArea) {
@@ -1062,15 +1064,19 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 
 // --- Start of UPDATED initializeAndLoadData (FOR API v1) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - Detected) <<<");
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - Forced) <<<");
 
     const keyToUse = apiKey;
-    // Ensure finalFactionId is correctly determined (either override or from global data)
-    // For API v1, faction ID is typically part of the path: /faction/FACTION_ID
     const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID; // Using .ID as per your typical response structure
 
+    // --- LOGGING FOR DEBUGGING finalFactionId ---
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.ID (if already populated from a previous run):", factionApiFullData?.ID);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated (should be your Faction ID):", finalFactionId);
+    // --- END LOGGING ---
+
     if (!finalFactionId) {
-        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API call for specific faction (API v1).";
+        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API v1 call for specific faction.";
         console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
         if (factionWarHubTitleEl) {
             factionWarHubTitleEl.textContent = errorMsg;
@@ -1080,6 +1086,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     try {
         // CORRECTED URL FOR API v1: No '/v2/', and using 'rankedwars' selection
+        // Including basic, members, and chain for comprehensive faction data as seen previously
         const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars,members,chain&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
 
         console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
@@ -1117,7 +1124,6 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-// --- End of UPDATED initializeAndLoadData (FOR API v1) ---
 /**
  * Builds and displays the table for the user's own faction members.
  * @param {object} members - The members object from the API.
