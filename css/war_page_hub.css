@@ -2221,3 +2221,143 @@ autocomplete-items {
     margin: auto; /* Center vertically and horizontally */
     color: #bbb;
 }
+
+/* --- Styles for the Settings Tab (Dynamically Injected Content) --- */
+
+/* The main container for all settings content, injected into settingsDisplayArea */
+.chat-settings-panel {
+    display: flex;          /* Make it a flex container to stack sections */
+    flex-direction: column; /* Stack sections vertically */
+    flex-grow: 1;           /* CRITICAL: Allows it to fill available vertical space within chatDisplayArea */
+    box-sizing: border-box; /* Include padding/border */
+    padding: 10px;          /* Overall padding for the settings content */
+    background-color: #2a2a2a; /* Main background for settings content */
+    border-radius: 8px;     /* Rounded corners */
+    gap: 15px;              /* Space between major settings sections */
+}
+
+/* Individual sections within the settings panel (e.g., Display, Sound) */
+.settings-section {
+    display: flex;          /* Make it a flex container to stack its header and list */
+    flex-direction: column; /* Stack header and settings items list vertically */
+    background-color: #222; /* Slightly darker background for individual sections */
+    border: 1px solid #3a3a40; /* Subtle border, matching ignores/friends boxes */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    overflow: hidden;       /* Ensures content stays within rounded borders */
+}
+
+/* Header for each settings section */
+.settings-section .header-box {
+    background-color: #00a8ff; /* Theme blue for section headers */
+    color: #1e1e1e;          /* Dark text on blue */
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-shrink: 0;          /* Prevents header from shrinking */
+    border-bottom: 1px solid black; /* Separator below header */
+}
+
+/* List container for individual setting items within a section */
+.settings-items-list {
+    display: flex;          /* Make it a flex container */
+    flex-direction: column; /* Stack setting items vertically */
+    padding: 10px 15px;      /* Internal padding for the list of items */
+    flex-grow: 1;           /* Allow it to grow and fill available height within its section */
+    color: #f0f0f0;         /* Default text color for settings labels */
+}
+
+/* Individual setting item (label + control) */
+.setting-item {
+    display: flex;
+    align-items: center;    /* Vertically align label and control */
+    justify-content: space-between; /* Push label to left, control to right */
+    padding: 8px 0;
+    border-bottom: 1px solid #333; /* Separator between setting items */
+    font-size: 0.95em;
+}
+
+.setting-item.checkbox-item {
+    /* Specific styles if needed for checkbox items */
+    /* Example: adjust vertical alignment if checkbox is smaller */
+    align-items: flex-start; /* Align checkbox to top of its line if label wraps */
+    padding-bottom: 10px; /* More space for checkbox lines */
+    padding-top: 10px;
+}
+
+
+.setting-item:last-child {
+    border-bottom: none; /* No border for the last item in a list */
+}
+
+.setting-item label {
+    font-weight: bold;
+    color: #e0a71a; /* Gold color for labels */
+    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-right: 10px; /* Space between label and control */
+}
+
+/* Styles for dropdown selects */
+.setting-item select {
+    background-color: #333;
+    color: #f0f0f0;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    flex-grow: 1; /* Allow select to grow if space allows */
+    max-width: 180px; /* Limit width */
+    box-sizing: border-box;
+}
+
+/* Styles for checkboxes */
+.setting-item input[type="checkbox"] {
+    transform: scale(1.1); /* Slightly larger checkbox */
+    accent-color: #00a8ff; /* Theme color for checkbox */
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    margin-left: 10px; /* Space from label */
+}
+
+/* Style for action buttons (like Clear History, Save Settings) */
+.setting-item.action-item {
+    justify-content: center; /* Center the button within its item */
+    padding: 15px 0;
+}
+
+.setting-item.action-item .action-button {
+    /* Reuse .action-button styles but adjust for settings context if needed */
+    width: auto; /* Shrink to content */
+    min-width: 150px;
+    padding: 8px 15px;
+    font-size: 1em;
+    /* Inherit background, color, border, etc. from .action-button */
+}
+
+/* Specific styling for the Save Settings section button if needed */
+.settings-section.save-settings-section {
+    flex-shrink: 0; /* Ensures save section stays at bottom and doesn't get compressed */
+    border-top: 1px solid #3a3a40; /* Separator from section above */
+    border-bottom: none; /* No bottom border for the last section */
+    border-radius: 0 0 8px 8px; /* Match outer container's bottom radius */
+}
+
+.settings-section.save-settings-section .header-box {
+    display: none; /* Hide the header for the Save section, as it's just one button */
+}
+
+.settings-section.save-settings-section .settings-items-list {
+    padding: 10px;
+    align-items: center; /* Center content within save section */
+}
+
+.settings-section.save-settings-section .action-button {
+    background-color: #00a8ff; /* Use primary theme color for save button */
+    color: #1e1e1e;
+    font-weight: bold;
+}
+.settings-section.save-settings-section .action-button:hover {
+    background-color: #007bff; /* Darker blue on hover */
+    color: white;
+}

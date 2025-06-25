@@ -2721,6 +2721,149 @@ function showTab(tabId) {
     if (selectedButton) selectedButton.classList.add('active');
 }
 
+async function populateSettingsTab() {
+    console.log("[Settings Tab] Populating tab with detailed layout...");
+
+    if (!settingsDisplayArea) {
+        console.error("HTML Error: settingsDisplayArea not found in populateSettingsTab function.");
+        return;
+    }
+
+    settingsDisplayArea.innerHTML = `
+        <div class="chat-settings-panel">
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>User & List Display</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item">
+                        <label for="userStatusDisplay">User Status Display:</label>
+                        <select id="userStatusDisplay">
+                            <option value="online_offline">Online/Offline</option>
+                            <option value="last_action">Last Action</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>General Chat Display</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item">
+                        <label for="chatFontSize">Font Size:</label>
+                        <select id="chatFontSize">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="chatTheme">Chat Theme:</label>
+                        <select id="chatTheme">
+                            <option value="dark" selected>Dark</option>
+                            <option value="light">Light (Coming Soon)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="messageDensity">Message Density:</label>
+                        <select id="messageDensity">
+                            <option value="compact">Compact</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="spacious">Spacious</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="chatInputSize">Chat Input Size:</label>
+                        <select id="chatInputSize">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="showTimestamps">Show Timestamps in Chat:</label>
+                        <input type="checkbox" id="showTimestamps" checked>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="autoScrollChat">Auto-Scroll Chat:</label>
+                        <input type="checkbox" id="autoScrollChat" checked>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="profanityFilter">Profanity Filter:</label>
+                        <input type="checkbox" id="profanityFilter">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>Chat Channel & Sound</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item">
+                        <label for="defaultChatTab">Default Chat Tab:</label>
+                        <select id="defaultChatTab">
+                            <option value="faction-chat" selected>Faction Chat</option>
+                            <option value="war-chat">War Chat</option>
+                            <option value="private-chat">Private Chat</option>
+                        </select>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="toggleWarChat">Toggle War Chat (On/Off):</label>
+                        <input type="checkbox" id="toggleWarChat" checked>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                        <label for="muteAllChatSounds">Mute All Chat Sounds:</label>
+                        <input type="checkbox" id="muteAllChatSounds">
+                    </div>
+                    <div class="setting-item">
+                        <label for="notificationMethod">Notification Method:</label>
+                        <select id="notificationMethod">
+                            <option value="browser-popup">Browser Pop-up</option>
+                            <option value="sound-only">Sound Only</option>
+                            <option value="none" selected>None</option>
+                        </select>
+                    </div>
+                    <p style="text-align: center; color: #a0a0a0; font-size: 0.85em; margin-top: 5px;">
+                        (Note: Browser pop-ups are an advanced feature requiring user permission.)
+                    </p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="header-box">
+                    <b>Data & Actions</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item action-item">
+                        <button id="clearChatHistoryButton" class="action-button">Clear Chat History (Local)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section save-settings-section">
+                <div class="header-box">
+                    <b>Save Settings</b>
+                </div>
+                <div class="settings-items-list">
+                    <div class="setting-item action-item">
+                        <button id="saveAllSettingsButton" class="action-button">Save All Settings</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    `;
+
+    // TODO: Add logic here to load existing user settings and attach event listeners
+    // For example: loadUserSettings();
+    // For example: setupSettingsEventListeners();
+}
+
 // NEW FUNCTION: Orchestrates populating the Blocked People tab
 // Now accepts dynamic elements as arguments
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
