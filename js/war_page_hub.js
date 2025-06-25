@@ -151,6 +151,18 @@ function updateMemberItemDisplay(itemElement, profileImageUrl) {
     }
 }
 
+// Helper function to generate dummy friend data
+function generateDummyFriends(count) {
+    const dummyFriends = [];
+    for (let i = 1; i <= count; i++) {
+        dummyFriends.push({
+            id: `friend_${i}`, // Dummy ID
+            name: `Test Friend ${i}`,
+            profile_image: `../../images/default_profile_icon.png` // Use a default icon
+        });
+    }
+    return dummyFriends;
+}
 
 // Helper function to generate dummy ignore data
 function generateDummyIgnores(count) {
@@ -171,7 +183,8 @@ function generateDummyIgnores(count) {
                 profile_image: `../../images/default_profile_icon.png` // Use a default icon
             });
         }
-		return dummyIgnores;
+    }
+    return dummyIgnores;
 }
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
@@ -2924,25 +2937,63 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     // using event delegation on recentlyMetTbody.
 }
 // Populates the content of the Blocked People tab with dummy data
-// Helper function to generate dummy recently met data
-function generateDummyRecentlyMet(count) {
-    const dummyMet = [];
-    const factionTags = ['[FOE]', '[RIVAL]', '[ENEMY]', '[OPP]'];
-    const statuses = ['Online', 'Offline', 'Hospital', 'Traveling', 'Jail'];
-    const names = ['AggroUser', 'QuickStrike', 'DecoyDiver', 'GhostHunter', 'WarHawk'];
+async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
+    console.log("[Blocked People Tab] Populating tab with dummy data...");
 
-    for (let i = 1; i <= count; i++) {
-        dummyMet.push({
-            id: `met_user_${i}`,
-            name: `${names[Math.floor(Math.random() * names.length)]}${i}`,
-            level: Math.floor(Math.random() * (99 - 10 + 1)) + 10,
-            faction_tag: factionTags[Math.floor(Math.random() * factionTags.length)],
-            last_action_timestamp: Math.floor(Date.now() / 1000) - (Math.floor(Math.random() * 86400 * 3)), // within 3 days
-            status_description: statuses[Math.floor(Math.random() * statuses.length)],
-            profile_image: `../../images/default_profile_icon.png`
+    // Generate 50 dummy friend entries and 50 dummy ignore entries
+    const dummyFriends = generateDummyFriends(50);
+    const dummyIgnores = generateDummyIgnores(50);
+
+    // Render dummy friend data into the Friends list container
+    if (friendsListEl) {
+        let friendsHtml = '';
+        dummyFriends.forEach(friend => {
+            friendsHtml += `
+                <div class="list-item friend-entry">
+                    <img src="${friend.profile_image}" alt="Profile Pic" class="profile-pic">
+                    <span class="item-name">${friend.name}</span>
+                    <button class="item-button letter-button">✉️</button>
+                    <button class="item-button trash-button">🗑️</button>
+                </div>
+            `;
         });
+        friendsListEl.innerHTML = friendsHtml;
+    } else {
+        console.error("HTML Error: friendsScrollableList not found for populating dummy friends.");
     }
-    return dummyMet;
+
+    // Render dummy ignore data into the Ignores list container
+    if (ignoresListEl) {
+        let ignoresHtml = '';
+        dummyIgnores.forEach(ignore => {
+            // Display ID from dummy data for demonstration
+            const displayId = ignore.id.split('_')[1]; // Extracts the number from "user_1" or "faction_1"
+
+            if (ignore.type === 'user') {
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            } else { // type === 'faction'
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <span class="item-icon faction-icon">${ignore.icon}</span>
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            }
+        });
+        ignoresListEl.innerHTML = ignoresHtml;
+    } else {
+        console.error("HTML Error: ignoresScrollableList not found for populating dummy ignores.");
+    }
+
+    // TODO: In a real scenario, you'd add event listeners here for the dynamically created buttons (letter, trash)
+    // using event delegation on friendsListEl and ignoresListEl.
 }
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
@@ -2971,7 +3022,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-   
+            // --- END CORRECTED PART ---
         });
     });
     showTab('announcements-tab');
