@@ -2218,18 +2218,13 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     else if (statusState === 'Okay') statusClass = 'status-okay';
 
                     return `
-                        <tr>
-                            <td>${name} (${memberId})</td>
+                        <tr data-id="${memberId}"> <td>${name} (${memberId})</td>
                             <td>${level}</td>
                             <td>${lastAction}</td>
-                            <td>${strength}</td>
-                            <td>${dexterity}</td>
-                            <td>${speed}</td>
-                            <td>${defense}</td>
                             <td class="${statusClass}">${statusDescription}</td>
                             <td>${nerve}</td>
                             <td>${energy}</td>
-                        </tr>
+                            </tr>
                     `;
                 }).catch(error => {
                     console.error(`Error fetching Firebase data for member ${memberId}:`, error);
@@ -2869,70 +2864,98 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
         </div>
     `;
 
-    // TODO: Add logic here to load and save user settings (e.g., from Firebase)
-    // For example: loadUserSettings();
-    // For example: document.getElementById('saveSettingsBtn').addEventListener('click', saveUserSettings);
-}
-// NEW FUNCTION: Orchestrates populating the Blocked People tab
-// Now accepts dynamic elements as arguments
-// Populates the content of the Blocked People tab with dummy data
-async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
-    console.log("[Blocked People Tab] Populating tab with dummy data...");
+// NEW FUNCTION: Populates the content of the Recently Met tab
+async function populateRecentlyMetTab(targetDisplayElement) {
+    console.log("[Recently Met Tab] Populating tab...");
 
-    // Generate 50 dummy friend entries and 50 dummy ignore entries
-    const dummyFriends = generateDummyFriends(50);
-    const dummyIgnores = generateDummyIgnores(50);
+    if (!targetDisplayElement) {
+        console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
+        return;
+    }
 
-    // Render dummy friend data into the Friends list container
-    if (friendsListEl) {
-        let friendsHtml = '';
-        dummyFriends.forEach(friend => {
-            friendsHtml += `
-                <div class="list-item friend-entry">
-                    <img src="${friend.profile_image}" alt="Profile Pic" class="profile-pic">
-                    <span class="item-name">${friend.name}</span>
+    targetDisplayElement.innerHTML = `
+        <div class="recently-met-layout">
+            <div class="header-box">
+                <b>RECENTLY MET IN WAR</b>
+            </div>
+            <div id="recentlyMetTableContainer" class="scrollable-table-container">
+                <table class="recently-met-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">NAME (ID)</th>
+                            <th class="col-level">LEVEL</th>
+                            <th class="col-faction">FACTION</th>
+                            <th class="col-last-action">LAST ACTION</th>
+                            <th class="col-status">STATUS</th>
+                            <th class="col-actions">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentlyMetTbody">
+                        <tr><td colspan="6" style="text-align:center; padding: 10px;">Loading recently met players...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    // Re-get elements after HTML is injected
+    const recentlyMetTbody = document.getElementById('recentlyMetTbody');
+
+    if (!recentlyMetTbody) {
+        console.error("HTML Error: recentlyMetTbody not found after injection.");
+        return;
+    }
+
+    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
+
+    let tableRowsHtml = '';
+    dummyRecentlyMet.forEach(player => {
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${player.id}`;
+        const lastActionText = formatRelativeTime(player.last_action_timestamp); // Re-use existing formatRelativeTime
+        const statusClass = player.status_description.toLowerCase().replace(' ', '-'); // For CSS styling
+
+        tableRowsHtml += `
+            <tr data-id="${player.id}">
+                <td class="col-name">
+                    <img src="${player.profile_image}" alt="Pic" class="profile-pic-small">
+                    <a href="${profileUrl}" target="_blank">${player.name} [${player.id.split('_')[2]}]</a>
+                </td>
+                <td class="col-level">${player.level}</td>
+                <td class="col-faction">${player.faction_tag}</td>
+                <td class="col-last-action">${lastActionText}</td>
+                <td class="col-status status-${statusClass}">${player.status_description}</td>
+                <td class="col-actions">
                     <button class="item-button letter-button">✉️</button>
                     <button class="item-button trash-button">🗑️</button>
-                </div>
-            `;
+                </td>
+            </tr>
+        `;
+    });
+    recentlyMetTbody.innerHTML = tableRowsHtml;
+
+    // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
+    // using event delegation on recentlyMetTbody.
+}
+// Populates the content of the Blocked People tab with dummy data
+// Helper function to generate dummy recently met data
+function generateDummyRecentlyMet(count) {
+    const dummyMet = [];
+    const factionTags = ['[FOE]', '[RIVAL]', '[ENEMY]', '[OPP]'];
+    const statuses = ['Online', 'Offline', 'Hospital', 'Traveling', 'Jail'];
+    const names = ['AggroUser', 'QuickStrike', 'DecoyDiver', 'GhostHunter', 'WarHawk'];
+
+    for (let i = 1; i <= count; i++) {
+        dummyMet.push({
+            id: `met_user_${i}`,
+            name: `${names[Math.floor(Math.random() * names.length)]}${i}`,
+            level: Math.floor(Math.random() * (99 - 10 + 1)) + 10,
+            faction_tag: factionTags[Math.floor(Math.random() * factionTags.length)],
+            last_action_timestamp: Math.floor(Date.now() / 1000) - (Math.floor(Math.random() * 86400 * 3)), // within 3 days
+            status_description: statuses[Math.floor(Math.random() * statuses.length)],
+            profile_image: `../../images/default_profile_icon.png`
         });
-        friendsListEl.innerHTML = friendsHtml;
-    } else {
-        console.error("HTML Error: friendsScrollableList not found for populating dummy friends.");
     }
-
-    // Render dummy ignore data into the Ignores list container
-    if (ignoresListEl) {
-        let ignoresHtml = '';
-        dummyIgnores.forEach(ignore => {
-            // Display ID from dummy data for demonstration
-            const displayId = ignore.id.split('_')[1]; // Extracts the number from "user_1" or "faction_1"
-
-            if (ignore.type === 'user') {
-                ignoresHtml += `
-                    <div class="list-item ignore-entry">
-                        <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
-                        <span class="item-name">${ignore.name} [${displayId}]</span>
-                        <button class="item-button trash-button">🗑️</button>
-                    </div>
-                `;
-            } else { // type === 'faction'
-                ignoresHtml += `
-                    <div class="list-item ignore-entry">
-                        <span class="item-icon faction-icon">${ignore.icon}</span>
-                        <span class="item-name">${ignore.name} [${displayId}]</span>
-                        <button class="item-button trash-button">🗑️</button>
-                    </div>
-                `;
-            }
-        });
-        ignoresListEl.innerHTML = ignoresHtml;
-    } else {
-        console.error("HTML Error: ignoresScrollableList not found for populating dummy ignores.");
-    }
-
-    // TODO: In a real scenario, you'd add event listeners here for the dynamically created buttons (letter, trash)
-    // using event delegation on friendsListEl and ignoresListEl.
+    return dummyMet;
 }
 document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
@@ -3039,14 +3062,12 @@ function handleChatTabClick(event) {
             break;
 
         case 'recently-met':
-            // Dynamically generate Recently Met content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to Recently Met!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
-            `;
-            showInputArea = false;
+            // Call the populateRecentlyMetTab function, passing the main dynamic display area
+            populateRecentlyMetTab(chatDisplayArea); // <--- CHANGE IS HERE: Passing chatDisplayArea
+            showInputArea = false; // Hide input for non-chat tabs
             break;
-
+			
+			
         case 'blocked-people':
             // Dynamically generate the full Blocked People layout into chatDisplayArea
             chatDisplayArea.innerHTML = `
@@ -3101,6 +3122,7 @@ function handleChatTabClick(event) {
             break;
     }
     
+	
     // Control visibility of the separate chat input area
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
