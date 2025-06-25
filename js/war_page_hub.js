@@ -3260,7 +3260,8 @@ function handleChatTabClick(event) {
     // Ensure the main chat display area scrolls to bottom after content is injected
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
-    auth.onAuthStateChanged(async (user) => {
+    // --- Start of UPDATED auth.onAuthStateChanged function (Force NEW API Key/IDs) ---
+auth.onAuthStateChanged(async (user) => {
     if (user) {
         console.log("Auth State Changed: User is logged in.");
         const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -3268,19 +3269,19 @@ function handleChatTabClick(event) {
         try {
             const doc = await userProfileRef.get();
             userData = doc.exists ? doc.data() : {};
-            console.log("Firebase User Data (from userProfiles):", userData); // See what Firebase is returning
+            console.log("Firebase User Data (from userProfiles):", userData);
         } catch (fbError) {
             console.error("Error fetching user profile from Firebase:", fbError);
         }
 
-        // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
-        // REMOVE THESE LINES AND USE `userData.tornApiKey` and `userData.tornProfileId` IN PRODUCTION
-        const DEBUG_API_KEY = "gCNmxrHxlOYeNiS7"; // YOUR ACTUAL TORN API KEY
-        const DEBUG_FACTION_ID = "49028";        // YOUR FACTION ID
-        const DEBUG_PLAYER_ID = "2662550";       // YOUR PLAYER ID
+        // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY - THESE ARE THE KEYS/IDs YOU PROVIDED ---
+        // !!! REMEMBER TO REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
+        const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // <--- NEW API KEY FORCED HERE
+        const DEBUG_FACTION_ID = "49028";        // Your FACTION ID
+        const DEBUG_PLAYER_ID = "2662550";       // Your PLAYER ID
         // --- END TEMPORARY HARDCODE ---
 
-        // Use Firebase data if available, otherwise fall back to debug keys
+        // These lines WILL NOW PRIORITIZE the DEBUG_ values if userData fields are empty
         const apiKey = userData.tornApiKey || DEBUG_API_KEY;
         const playerId = userData.tornProfileId || DEBUG_PLAYER_ID;
         currentTornUserName = userData.preferredName || 'Unknown'; // Keep using Firebase preferredName or default
@@ -3375,8 +3376,6 @@ function handleChatTabClick(event) {
     }
 });
 // --- End of UPDATED auth.onAuthStateChanged function ---
-
-
 // --- Start of initializeAndLoadData function (ensure it matches this) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     const keyToUse = apiKey;
