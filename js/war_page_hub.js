@@ -96,7 +96,7 @@ const factionMembersDisplayArea = document.getElementById('factionMembersDisplay
 const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea'); // Used for Recently Met content
 const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea'); // Used for Blocked People content
 const settingsDisplayArea = document.getElementById('settingsDisplayArea'); // Used for Settings content
-const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️','⚔️ ,'⚠️', '⛔', '🚩', '💢', '💥'];
+const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️', '⚠️', '⛔', '🚩', '💢', '💥'];
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
