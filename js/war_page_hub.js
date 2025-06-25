@@ -1062,6 +1062,89 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedButton) selectedButton.classList.add('active');
 }
 
+async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
+    console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
+
+    const keyToUse = apiKey;
+    // Use the provided factionIdToUseOverride, or try to get it from factionApiFullData.basic.id
+    // or from userData.faction_id which should be set on login.
+    let finalFactionId = factionIdToUseOverride;
+    if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
+        finalFactionId = factionApiFullData.basic.id;
+    }
+    // If user data for faction_id exists from Firebase, use that as fallback if API doesn't provide basic.id
+    // This assumes user data would contain faction_id after user login/profile update.
+    if (!finalFactionId && auth.currentUser) {
+        try {
+            const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
+            if (userProfileDoc.exists) {
+                finalFactionId = userProfileDoc.data().faction_id;
+            }
+        } catch (error) {
+            console.error("Error fetching faction ID from user profile:", error);
+        }
+    }
+
+
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride:", factionIdToUseOverride);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.basic?.id:", factionApiFullData?.basic?.id);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated:", finalFactionId);
+
+    if (!finalFactionId) {
+        const errorMsg = "ERROR: Faction ID is null or undefined. Cannot make API call for specific faction.";
+        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
+        if (factionWarHubTitleEl) {
+            factionWarHubTitleEl.textContent = errorMsg;
+        }
+        return;
+    }
+
+    try {
+        // Corrected for Torn API v2 with all necessary selections
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+
+        console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
+
+        const userFactionResponse = await fetch(userFactionApiUrl);
+
+        if (!userFactionResponse.ok) {
+            const errorData = await userFactionResponse.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
+        }
+
+        factionApiFullData = await userFactionResponse.json();
+        console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
+
+        if (factionApiFullData.error) {
+            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+        }
+
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
+
+        // After successful fetch, populate UI components
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        populateUiComponents(warData, apiKey);
+
+    } catch (error) {
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data: ${error.message || 'Unknown error'}.`;
+        
+        // Reset related displays on error
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+    }
+}
+
 
     // --- Authentication State Change Listener ---
     auth.onAuthStateChanged(async (user) => {
