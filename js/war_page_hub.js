@@ -2721,15 +2721,15 @@ function showTab(tabId) {
     if (selectedButton) selectedButton.classList.add('active');
 }
 
-async function populateSettingsTab() {
+async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HERE: Accepting targetDisplayElement
     console.log("[Settings Tab] Populating tab with detailed layout...");
 
-    if (!settingsDisplayArea) {
-        console.error("HTML Error: settingsDisplayArea not found in populateSettingsTab function.");
+    if (!targetDisplayElement) { // Use the passed argument for error checking
+        console.error("HTML Error: targetDisplayElement not provided to populateSettingsTab function.");
         return;
     }
 
-    settingsDisplayArea.innerHTML = `
+    targetDisplayElement.innerHTML = `
         <div class="chat-settings-panel">
 
             <div class="settings-section">
@@ -2859,11 +2859,10 @@ async function populateSettingsTab() {
         </div>
     `;
 
-    // TODO: Add logic here to load existing user settings and attach event listeners
+    // TODO: Add logic here to load and save user settings (e.g., from Firebase)
     // For example: loadUserSettings();
-    // For example: setupSettingsEventListeners();
+    // For example: document.getElementById('saveSettingsBtn').addEventListener('click', saveUserSettings);
 }
-
 // NEW FUNCTION: Orchestrates populating the Blocked People tab
 // Now accepts dynamic elements as arguments
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
