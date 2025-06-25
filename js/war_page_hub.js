@@ -3030,50 +3030,19 @@ function handleChatTabClick(event) {
                     </div>
                 </div>
             `;
-            // After HTML is injected, you'll need to re-get references to friendsScrollableList and ignoresScrollableList
-            // and then call populateBlockedPeopleTab (which currently uses global vars)
-            // This will need adjustment in populateBlockedPeopleTab next.
-            // For now, the HTML structure will appear.
             
             // Re-get elements after they are injected into the DOM
             const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
             const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-            // Call your populate function, potentially passing these dynamic elements
-            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList); // Pass dynamically found elements
+            // Call your populate function, passing dynamically found elements
+            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
 
-            showInputArea = false;
-            break;
+            showInputArea = false; // Hide input for non-chat tabs
+            break; // <--- THIS CRITICAL 'break;' IS NOW IN PLACE
 
         case 'settings':
-            // Dynamically generate Settings content into chatDisplayArea
-            populateSettingsTab(); // CALLS THE NEW FUNCTION
-            showInputArea = false; // Hide input for settings tab
-            break;
-
-                    <h3>Chat Settings</h3>
-                    <div class="setting-item">
-                        <label for="chatFontSize">Font Size:</label>
-                        <select id="chatFontSize">
-                            <option value="small">Small</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="large">Large</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <label for="notificationToggle">Notifications:</label>
-                        <input type="checkbox" id="notificationToggle" checked>
-                    </div>
-                    <div class="setting-item">
-                        <label for="themeSelect">Chat Theme:</label>
-                        <select id="themeSelect">
-                            <option value="dark">Dark</option>
-                            <option value="light">Light (Coming Soon)</option>
-                        </select>
-                    </div>
-                    <button class="save-settings-btn">Save Settings</button>
-                </div>
-            `;
-            showInputArea = false;
+            populateSettingsTab(); 
+            showInputArea = false; 
             break;
 
         default:
