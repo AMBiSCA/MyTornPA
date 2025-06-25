@@ -762,6 +762,161 @@ function setupToggleSelectionEvents() {
     console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
 }
 
+async function fetchAndDisplayChainData() {
+    if (!factionApiFullData || !factionApiFullData.chain) {
+        console.warn("Chain data not fully available in factionApiFullData.chain. Defaulting display.");
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
+        globalChainStartedTimestamp = 0;
+        globalChainCurrentNumber = 'N/A';
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+        return;
+    }
+
+    const chainData = factionApiFullData;
+    console.log("Chain API Data (from factionApiFullData):", chainData.chain);
+
+    if (chainData && chainData.chain) {
+        currentLiveChainSeconds = chainData.chain.timeout || 0;
+        lastChainApiFetchTime = Date.now();
+        globalChainStartedTimestamp = chainData.chain.start || 0;
+        globalChainCurrentNumber = chainData.chain.current || 'N/A';
+
+        if (currentChainNumberDisplay) {
+            currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+        }
+
+        if (chainStartedDisplay) {
+            const newChainStartedTimestamp = chainData.chain.start || 0;
+            if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+                globalChainStartedTimestamp = newChainStartedTimestamp;
+                chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+            } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+                globalChainStartedTimestamp = 0;
+                chainStartedDisplay.textContent = 'Started: N/A';
+            } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+                // No change needed
+            }
+        }
+
+    } else {
+        console.warn("Chain data not found within factionApiFullData.chain. Resetting displays.");
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
+        globalChainStartedTimestamp = 0;
+        globalChainCurrentNumber = 'N/A';
+
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+    }
+}
+
+function displayEnemyTargetsTable(members) {
+    if (!enemyTargetsContainer) {
+        console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
+        return;
+    }
+
+    enemyTargetsContainer.innerHTML = ''; // Clear the container first
+
+    if (!members || Object.keys(members).length === 0) {
+        enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
+        return;
+    }
+
+    let tableHtml = `<table class="enemy-targets-table">
+                         <thead>
+                             <tr>
+                                 <th class="col-name">Name (ID)</th>
+                                 <th class="col-level">Level</th>
+                                 <th class="col-last-action">Last Action</th>
+                                 <th class="col-status">Status</th>
+                                 <th class="col-claim">Claim</th>
+                                 <th class="col-attack">Attack</th>
+                             </tr>
+                         </thead>
+                         <tbody>`;
+
+    const membersArray = Object.values(members);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    for (const member of membersArray) {
+        const memberId = member.id;
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+        const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
+
+        let statusText = member.status.description;
+        let statusClass = '';
+        let dataUntil = '';
+        let statusState = member.status.state;
+
+        if (member.status.state === 'Hospital') {
+            statusClass = 'status-hospital';
+            dataUntil = member.status.until;
+            const timeLeft = member.status.until - nowInSeconds;
+            statusText = `In Hospital (${formatTime(timeLeft)})`;
+        } else if (member.status.state === 'Traveling') {
+            statusClass = 'status-traveling';
+            dataUntil = member.status.until;
+            const timeLeft = member.status.until - nowInSeconds;
+            if (timeLeft <= 0) {
+                statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
+            } else {
+                statusText = `${member.status.description} (${formatTime(timeLeft)})`;
+            }
+        } else if (member.status.state !== 'Okay') {
+            statusClass = 'status-other';
+        }
+
+        const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        tableHtml += `<tr id="target-row-${memberId}">
+                                <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                                <td class="col-level">${member.level}</td>
+                                <td class="col-last-action">${lastActionText}</td>
+                                <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                                <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                                <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                            </tr>`;
+    }
+    tableHtml += `</tbody></table>`;
+
+    enemyTargetsContainer.innerHTML = tableHtml;
+}
+
+function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
+    if (!bigHitterWatchlistContainer) {
+        console.error("HTML Error: Cannot find element with ID 'bigHitterWatchlistContainer'.");
+        return;
+    }
+
+    bigHitterWatchlistContainer.innerHTML = ''; // Clear existing checkboxes
+
+    if (!enemyMembers || typeof enemyMembers !== 'object' || Object.keys(enemyMembers).length === 0) {
+        bigHitterWatchlistContainer.innerHTML = '<div class="member-selection-item">No enemy members available</div>';
+        return;
+    }
+
+    const sortedEnemyMemberIds = Object.keys(enemyMembers).sort((a, b) => {
+        const nameA = enemyMembers[a].name || '';
+        const nameB = enemyMembers[b].name || '';
+        return nameA.localeCompare(nameB);
+    });
+
+    sortedEnemyMemberIds.forEach(memberId => {
+        const member = enemyMembers[memberId];
+        const memberName = member.name || `Unknown (${memberId})`;
+
+        const isWatchlistChecked = (savedWatchlistMembers && savedWatchlistMembers.includes(memberId)) ? 'checked' : '';
+        const itemHtml = `<div class="member-selection-item"><input type="checkbox" id="enemy-member-${memberId}" value="${memberId}" ${isWatchlistChecked}><label for="enemy-member-${memberId}">${memberName}</label></div>`;
+        bigHitterWatchlistContainer.insertAdjacentHTML('beforeend', itemHtml);
+    });
+}
+
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
