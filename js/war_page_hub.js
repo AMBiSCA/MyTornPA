@@ -419,6 +419,7 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 
 // --- Start of CORRECTED fetchAndDisplayRankedWarScores function ---
 async function fetchAndDisplayRankedWarScores() {
+	console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION <<<"); // UNMISTAKABLE LOG
     console.log("DEBUG_RANKED_FINAL: Calling fetchAndDisplayRankedWarScores");
     console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
     console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
@@ -2422,46 +2423,57 @@ function setupEventListeners(apiKey) {
 	
 	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
 
-async function initializeAndLoadData(apiKey) {
-    try {
-        // UPDATED: Removed 'wars' selection from the URL
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION <<<"); // UNMISTAKABLE LOG
 
-        console.log("Attempting to fetch faction data with specified selections (no wars):", userFactionApiUrl);
+    const keyToUse = apiKey;
+    const finalFactionId = factionIdToUseOverride || factionApiFullData?.basic?.id;
+
+    if (!finalFactionId) {
+        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API call.";
+        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg); // DIRECT FATAL ERROR LOG
+        if (document.getElementById('factionWarHubTitle')) {
+            document.getElementById('factionWarHubTitle').textContent = errorMsg;
+        }
+        return; // Exit if no faction ID
+    }
+
+    try {
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+
+        console.log("initializeAndLoadData: Attempting to fetch from URL:", userFactionApiUrl); // Log the actual URL being used
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+            const errorData = await userFactionResponse.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-        console.log("Faction API Full Data (basic,members,chain):", factionApiFullData); // Log the full response
+        console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
-            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+            throw new Error(`Torn API DATA Error: ${factionApiFullData.error.error || JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // Pass warData and apiKey to populateUiComponents
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // Pass warData and apiKey
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<"); // SUCCESS LOG
 
     } catch (error) {
-        console.error("Error during comprehensive data initialization:", error);
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error); // CLEAR CATCH LOG
+        if (document.getElementById('factionWarHubTitle')) {
+            document.getElementById('factionWarHubTitle').textContent = `Error Loading War Hub Data: ${error.message || 'Unknown error'}.`;
+        }
         // Reset related displays on error
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        // These will now likely show N/A or be removed if 'wars' data is no longer fetched
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'N/A';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        if (document.getElementById('currentChainNumberDisplay')) document.getElementById('currentChainNumberDisplay').textContent = 'Error';
+        // ... (keep the rest of your error UI resets as they were) ...
+        if (document.getElementById('yourFactionRankedScore')) document.getElementById('yourFactionRankedScore').textContent = 'N/A';
+        if (document.getElementById('opponentFactionRankedScore')) document.getElementById('opponentFactionRankedScore').textContent = 'N/A';
+        if (document.getElementById('warTargetScore')) document.getElementById('warTargetScore').textContent = 'N/A';
+        if (document.getElementById('warStartedTime')) document.getElementById('warStartedTime').textContent = 'N/A';
+        if (document.getElementById('yourFactionNameScoreLabel')) document.getElementById('yourFactionNameScoreLabel').textContent = 'Your Faction:';
+        if (document.getElementById('opponentFactionNameScoreLabel')) document.getElementById('opponentFactionNameScoreLabel').textContent = 'Vs. Opponent:';
     }
 }
 // >>> END REPLACE initializeAndLoadData <<<
