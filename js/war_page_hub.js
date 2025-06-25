@@ -1554,7 +1554,7 @@ function switchChatTab(tabName) {
                     <h4>Chat Settings</h4>
                     <p><i>Settings functionality not yet implemented.</i></p>
                     <p>Options for chat sound, notifications, font size, etc., would go here.</p>
-                `
+                
             }
             break;
         default:
