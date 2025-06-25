@@ -1110,6 +1110,77 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
     }
 }
 
+/**
+ * Builds and displays the table for the user's own faction members.
+ * @param {object} members - The members object from the API.
+ */
+function displayFriendlyMembersTable(members) {
+    if (!friendlyMembersTbody) {
+        console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
+        return;
+    }
+
+    // Clear the "Loading..." message from the table body
+    friendlyMembersTbody.innerHTML = '';
+
+    // Check if members object is empty or null/undefined
+    if (!members || Object.keys(members).length === 0) {
+        friendlyMembersTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">Member data not available.</td></tr>`;
+        return;
+    }
+
+    const membersArray = Object.values(members);
+
+    // Sort the array by the member's name
+    membersArray.sort((memberA, memberB) => memberA.name.localeCompare(memberB.name));
+
+    let allRowsHtml = '';
+
+    // Loop directly through the member objects
+    for (const member of membersArray) {
+        const tornPlayerId = member.id;
+
+        // console.log("Friendly member data:", tornPlayerId, member); // Keep this debug log if needed
+
+        if (!tornPlayerId) {
+            console.warn("Skipping friendly member due to missing Torn Player ID:", member);
+            continue;
+        }
+
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
+        const name = member.name;
+        const level = member.level;
+        const lastAction = member.last_action ? formatRelativeTime(member.last_action.timestamp) : 'N/A';
+        const status = member.status ? member.status.description : 'N/A';
+        
+        // These stats are no longer displayed in the table, but the variables might be used elsewhere
+        const strength = 'N/A'; 
+        const dexterity = 'N/A';
+        const speed = 'N/A';
+        const defense = 'N/A';
+        const nerve = 'N/A';
+        const energy = 'N/A';
+
+        let statusClass = '';
+        if (member.status?.state === 'Hospital') statusClass = 'status-hospital';
+        else if (member.status?.state === 'Jail' || member.status?.state === 'Traveling' || member.status?.state === 'Federal') statusClass = 'status-other';
+        else if (member.status?.state === 'Okay') statusClass = 'status-okay';
+
+        allRowsHtml += `
+            <tr data-id="${tornPlayerId}">
+                <td><a href="${profileUrl}" target="_blank">${name} (${tornPlayerId})</a></td>
+                <td>${level}</td>
+                <td>${lastAction}</td>
+                <td class="${statusClass}">${status}</td>
+                <td>${nerve}</td>
+                <td>${energy}</td>
+                </tr>
+        `;
+    }
+
+    friendlyMembersTbody.innerHTML = allRowsHtml;
+}
+
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
