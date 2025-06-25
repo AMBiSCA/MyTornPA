@@ -917,6 +917,228 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
+async function fetchAndDisplayRankedWarScores() {
+    console.log("DEBUG_RANKED_FINAL: Calling fetchAndDisplayRankedWarScores");
+    console.log("DEBUG_RANKED_FINAL: factionApiFullData:", factionApiFullData);
+    console.log("DEBUG_RANKED_FINAL: factionApiFullData.wars:", factionApiFullData ? factionApiFullData.wars : 'N/A');
+
+    // CRITICAL CORRECTION:
+    // activeWar should point directly to factionApiFullData.wars.ranked based on the JSON output.
+    let activeWar = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        activeWar = factionApiFullData.wars.ranked; // Correctly assign the 'ranked' object
+        console.log("DEBUG_RANKED_FINAL: activeWar (correctly pointing to factionApiFullData.wars.ranked):", activeWar);
+    } else {
+        console.warn("Ranked War Data (factionApiFullData.wars.ranked) not available or path incorrect. Defaulting to 'N/A' display.");
+    }
+
+    // Check if activeWar is populated and has the expected 'factions' array
+    if (!activeWar || !activeWar.factions || !Array.isArray(activeWar.factions) || activeWar.factions.length < 2 || !factionApiFullData.basic || !factionApiFullData.basic.id) {
+        console.warn("Ranked War Data not fully available (missing 'ranked' object, 'factions' array, or our faction ID).");
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        return;
+    }
+
+    try {
+        console.log("Ranked War API Data (from activeWar object):", activeWar);
+
+        // Get our faction ID from basic info
+        const yourFactionId = factionApiFullData.basic.id; // Use .basic.id as confirmed earlier
+
+        let yourFactionInfo = null;
+        let opponentFactionInfo = null;
+
+        // Iterate through the 'factions' array to find your faction and the opponent
+        for (const faction of activeWar.factions) {
+            if (faction.id === yourFactionId) {
+                yourFactionInfo = faction;
+            } else {
+                opponentFactionInfo = faction;
+            }
+        }
+
+        // Ensure both factions are found
+        if (yourFactionInfo && opponentFactionInfo) {
+            // Update HTML elements
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = yourFactionInfo.score || '0';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = `${yourFactionInfo.name || 'Your Faction'}:`;
+
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = opponentFactionInfo.score || '0';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = `Vs. ${opponentFactionInfo.name || 'Opponent'}:`;
+
+            if (warTargetScore) warTargetScore.textContent = activeWar.target || 'N/A'; // 'target' is directly under 'ranked'
+
+            // Store globalWarStartedActualTime for updateAllTimers
+            globalWarStartedActualTime = activeWar.start || 0;
+        } else {
+            // Factions not found in the array or array structure unexpected
+            console.warn("Could not find both your faction and opponent in the 'factions' array of the ranked war.");
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+            if (warTargetScore) warTargetScore.textContent = 'N/A';
+            globalWarStartedActualTime = 0;
+            if (warStartedTime) warStartedTime.textContent = 'N/A';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        }
+
+    } catch (error) {
+        console.error("Error processing ranked war data from factionApiFullData.wars.ranked:", error);
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
+        if (warTargetScore) warTargetScore.textContent = 'Error';
+        if (warStartedTime) warStartedTime.textContent = 'Error';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+    }
+}
+
+/**
+ * Builds and displays the table for the user's own faction members.
+ * @param {string} apiKey - The Torn API key.
+ * @param {string} firebaseAuthUid - The Firebase Auth User ID.
+ */
+async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
+    const tbody = document.getElementById('friendly-members-tbody');
+    if (!tbody) {
+        console.error("HTML Error: Friendly members table body (tbody) not found!");
+        return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>';
+
+    try {
+        const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
+        const userProfileDoc = await userProfileDocRef.get();
+        if (!userProfileDoc.exists) {
+            console.error("Firebase Error: User profile document not found for Firebase Auth UID:", firebaseAuthUid);
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: red;">Error: Your user profile data not found in Firebase.</td></tr>';
+            return;
+        }
+        const userProfileData = userProfileDoc.data();
+        const currentUserTornId = userProfileData.tornProfileId;
+        const userFactionId = userProfileData.faction_id;
+
+        if (!currentUserTornId) {
+            console.warn("Torn Player ID not found in your user profile. Cannot fetch user data.");
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Your Torn Player ID is not stored in your profile.</td></tr>';
+            return;
+        }
+        
+        if (!userFactionId) {
+            console.warn("Faction ID not found for current user in Firebase user profile. Cannot fetch faction members.");
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Not in a faction or Faction ID not stored in your profile.</td></tr>';
+            return;
+        }
+
+        const currentUserDataRef = db.collection('users').doc(String(currentUserTornId));
+        const currentUserDataDoc = await currentUserDataRef.get();
+        const currentUsersFullData = currentUserDataDoc.exists ? currentUserDataDoc.data() : null;
+        
+        const actualUserFactionId = currentUsersFullData?.faction_id || userFactionId;
+
+        if (!actualUserFactionId) {
+            console.warn("Faction ID not available from either user's data or user profile. Cannot fetch faction members.");
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Faction ID could not be determined.</td></tr>';
+            return;
+        }
+
+        // Use v2 API endpoint for faction members
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${actualUserFactionId}?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers`;
+        console.log(`[DEBUG] Fetching faction members from: ${factionMembersApiUrl}`);
+        const factionResponse = await fetch(factionMembersApiUrl);
+        const factionData = await factionResponse.json();
+
+        if (!factionResponse.ok || factionData.error) {
+            console.error("Error fetching faction members:", factionData.error || factionResponse.statusText);
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: red;">Error loading faction members: ${factionData.error?.error || 'API Error'}.</td></tr>`;
+            return;
+        }
+
+        const members = factionData.members;
+        if (!members || Object.keys(members).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>';
+            return;
+        }
+
+        let tableRowsHtml = '';
+        const memberPromises = [];
+
+        for (const memberId in members) {
+            if (members.hasOwnProperty(memberId)) {
+                const memberTornData = members[memberId]; // Data directly from Torn API
+                // As requested, stats are removed from display, but retained in Firebase for detailed view if needed.
+                // We will fetch Firebase data for profile image, but not battle stats for this table.
+                const memberDocRef = db.collection('users').doc(String(memberId));
+                memberPromises.push(memberDocRef.get().then(doc => {
+                    const memberFirebaseData = doc.exists ? doc.data() : null; // Get cached data from Firebase if exists
+
+                    const name = memberTornData.name || 'Unknown';
+                    const level = memberTornData.level || 'N/A';
+                    const lastAction = memberTornData.last_action ? formatRelativeTime(memberTornData.last_action.timestamp) : 'N/A';
+                    const statusState = memberTornData.status?.state || 'N/A';
+                    const statusDescription = memberTornData.status?.description || 'N/A';
+
+                    // Nerve and Energy from Firebase cache if available, else N/A
+                    const nerve = memberFirebaseData?.nerve !== undefined && memberFirebaseData?.nerve_full !== undefined ? `${memberFirebaseData.nerve}/${memberFirebaseData.nerve_full}` : 'N/A';
+                    const energy = memberFirebaseData?.energy !== undefined && memberFirebaseData?.energy_full !== undefined ? `${memberFirebaseData.energy}/${memberFirebaseData.energy_full}` : 'N/A';
+                    
+                    let statusClass = '';
+                    if (statusState === 'Hospital') statusClass = 'status-hospital';
+                    else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
+                    else if (statusState === 'Okay') statusClass = 'status-okay';
+
+                    return `
+                        <tr data-id="${tornPlayerId}">
+                            <td><a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank">${name} (${tornPlayerId})</a></td>
+                            <td>${level}</td>
+                            <td>${lastAction}</td>
+                            <td class="${statusClass}">${statusDescription}</td>
+                            <td>${nerve}</td>
+                            <td>${energy}</td>
+                        </tr>
+                    `;
+                }).catch(error => {
+                    console.error(`Error fetching Firebase data for member ${tornPlayerId}:`, error);
+                    // Fallback return if Firebase fetch fails for a member
+                    const name = memberTornData.name || 'Unknown';
+                    const level = memberTornData.level || 'N/A';
+                    const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action.timestamp) : 'N/A';
+                    const statusDescription = memberTornData.status?.description || 'N/A';
+                    let statusClass = '';
+                    if (memberTornData.status?.state === 'Hospital') statusClass = 'status-hospital';
+                    else if (memberTornData.status?.state === 'Jail' || memberTornData.status?.state === 'Traveling' || memberTornData.status?.state === 'Federal') statusClass = 'status-other';
+                    else if (memberTornData.status?.state === 'Okay') statusClass = 'status-okay';
+
+                    return `
+                        <tr data-id="${tornPlayerId}">
+                            <td>${name} (${tornPlayerId})</td>
+                            <td>${level}</td>
+                            <td>${lastAction}</td>
+                            <td class="${statusClass}">${statusDescription}</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                        </tr>
+                    `;
+                }));
+            }
+        }
+
+        const resolvedRows = await Promise.all(memberPromises);
+        tableRowsHtml = resolvedRows.join('');
+        tbody.innerHTML = tableRowsHtml;
+
+    } catch (error) {
+        console.error("Error updating friendly members table:", error);
+        tbody.innerHTML = `<p style="color:red;">Error loading faction list: ${error.message || String(error)}.</p>`;
+    }
+}
+
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
