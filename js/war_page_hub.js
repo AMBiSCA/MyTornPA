@@ -70,7 +70,6 @@ const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
 const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
-const chatInputArea = document.querySelector('.chat-input-area');
 const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be visible at a time
 const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
 const memberProfileCache = {}; // Cache for storing fetched member profile images
