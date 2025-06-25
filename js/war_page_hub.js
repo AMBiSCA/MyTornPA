@@ -19,6 +19,10 @@ let unsubscribeFromChat = null; // <--- PASTE IT HERE
 let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
 let lastEmojiIndex = -1; // To keep track of the last emoji used
+let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
+let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
+let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
+let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 
 // --- DOM Element Getters ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -94,7 +98,7 @@ const factionMembersDisplayArea = document.getElementById('factionMembersDisplay
 const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea'); // Used for Recently Met content
 const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea'); // Used for Blocked People content
 const settingsDisplayArea = document.getElementById('settingsDisplayArea'); // Used for Settings content
-const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️'];
+const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️ ,'⚠️', '🚨', '⛔', '🚩', '💢', '💥'];
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -185,6 +189,24 @@ function generateDummyIgnores(count) {
         }
     }
     return dummyIgnores;
+}
+
+// Helper function to check if two arrays of target IDs are identical (order-agnostic)
+function areTargetSetsIdentical(set1, set2) {
+    if (set1.length !== set2.length) {
+        return false;
+    }
+    if (set1.length === 0) { // Both empty sets are identical
+        return true;
+    }
+    const sortedSet1 = [...set1].sort();
+    const sortedSet2 = [...set2].sort();
+    for (let i = 0; i < sortedSet1.length; i++) {
+        if (sortedSet1[i] !== sortedSet2[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
@@ -1072,120 +1094,27 @@ function formatTornTime(timestamp) {
 // Function: displayQuickFFTargets
 // Desc: Fetches and displays quick fair fight targets, adding alternating emojis.
 //       Prevents "blinking" by only updating the display after a successful fetch.
-async function displayQuickFFTargets(userApiKey, playerId) {
-    const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-    if (!quickFFTargetsDisplay) {
-        console.error("HTML Error: Cannot find element with ID 'quickFFTargetsDisplay'.");
-        return;
+// Function: displayQuickFFTargets
+// Desc: Fetches and displays quick fair fight targets, adding alternating emojis
+//       with individual borders. Prevents "blinking" by only updating the
+//       display after a successful fetch.
+// Helper function to check if two arrays of target IDs are identical (order-agnostic)
+function areTargetSetsIdentical(set1, set2) {
+    if (set1.length !== set2.length) {
+        return false;
     }
-
-    // Check if the display is currently empty, and if so, show a loading message.
-    // This prevents blinking if previous content exists.
-    if (quickFFTargetsDisplay.innerHTML === '') {
-        quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
+    if (set1.length === 0) { // Both empty sets are identical
+        return true;
     }
-
-    if (!userApiKey || !playerId) {
-        // If API key or Player ID is missing, show an error (if not already showing content)
-        if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
-        }
-        console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
-        return; // Exit, keeping current content or error message
-    }
-
-    try {
-        // 1. Get IDs of players currently in the main enemy table to exclude them
-        const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
-        const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
-        // console.log("Excluded Player IDs (from main table):", excludedPlayerIDs); // Debugging line
-
-        const functionUrl = `/.netlify/functions/get-recommended-targets`;
-        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ apiKey: userApiKey, playerId: playerId })
-        });
-        const data = await response.json();
-
-        // If response is not OK or contains an API error
-        if (!response.ok || data.error) {
-            const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
-            console.error("Error fetching Quick FF Targets:", errorMessage);
-            // On error, keep existing content. Only display general error if element was blank or "Loading".
-            if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
-                 quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
-            }
-            return; // Exit, keeping previous valid content or the new error message
-        }
-
-        // If no targets are returned from the API function
-        if (!data.targets || data.targets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
-            return;
-        }
-
-        // 2. Filter out already displayed targets from the fetched list
-        const availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
-        // console.log("Available targets after exclusion:", availableTargets); // Debugging line
-
-        if (availableTargets.length === 0) {
-            quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
-            return;
-        }
-
-        // 3. Shuffle the available targets (Fisher-Yates algorithm) for randomness
-        for (let i = availableTargets.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]]; // Swap elements
-        }
-        // console.log("Shuffled available targets:", availableTargets); // Debugging line
-
-        // Prepare a new content container to build the new display, then replace the old one.
-        const newTargetsHtmlContainer = document.createElement('div');
-        let newTargetsHtml = '';
-
-        // Emoji selection logic to ensure unique emojis for targets displayed in this batch
-        let currentEmojisUsedForBatch = new Set();
-        let emojiCycleIndex = lastEmojiIndex;
-
-        // Display up to the first 2 unique and random targets
-        for (let i = 0; i < Math.min(2, availableTargets.length); i++) {
-            const target = availableTargets[i];
-            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
-            const targetName = target.playerName || `Target ${i + 1}`; // Fallback name
-
-            // Pick a unique emoji for this target from the global set
-            let selectedEmoji = '';
-            do {
-                emojiCycleIndex = (emojiCycleIndex + 1) % TARGET_EMOJIS.length;
-                selectedEmoji = TARGET_EMOJIS[emojiCycleIndex];
-            } while (currentEmojisUsedForBatch.has(selectedEmoji)); // Keep cycling until unique emoji is found
-
-            currentEmojisUsedForBatch.add(selectedEmoji); // Mark this emoji as used for this batch
-            lastEmojiIndex = emojiCycleIndex; // Update the global index for the next call of this function
-
-            newTargetsHtml += `
-                <a href="${attackUrl}" target="_blank"
-                    class="quick-ff-target-btn"
-                    title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
-                    ${selectedEmoji} ${targetName} ${selectedEmoji}
-                </a>
-            `;
-        }
-
-        // Only update the actual DOM element after the new content is fully prepared
-        quickFFTargetsDisplay.innerHTML = newTargetsHtml;
-
-    } catch (error) {
-        console.error("Failed to fetch or display Quick FF Targets:", error);
-        // If an unexpected error occurs, keep the previous content or show a generic error
-        if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
-             quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
+    const sortedSet1 = [...set1].sort();
+    const sortedSet2 = [...set2].sort();
+    for (let i = 0; i < sortedSet1.length; i++) {
+        if (sortedSet1[i] !== sortedSet2[i]) {
+            return false;
         }
     }
+    return true;
 }
-
 
 function formatRelativeTime(timestampInSeconds) {
     if (!timestampInSeconds || timestampInSeconds === 0) {
