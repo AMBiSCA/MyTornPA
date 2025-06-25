@@ -1,8 +1,8 @@
-// --- Global Variables ---
 
+
+// --- Global Variables ---
 const db = firebase.firestore();
 const auth = firebase.auth();
-
 let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
@@ -374,6 +374,16 @@ async function populateBlockedPeopleTab() {
     if (ignoresScrollableList) {
         ignoresScrollableList.innerHTML = '<p style="text-align:center; padding: 10px;">Loading ignores...</p>';
     }
+
+    // The next steps will involve fetching data and rendering it here.
+    // TODO: Step 1: Fetch friends data (from Firebase userProfile.friends or Torn API)
+    // TODO: Step 2: Render friends data into friendsScrollableList
+    // TODO: Step 3: Fetch ignores/blocked data (from Firebase userProfile.blocked or a dedicated collection)
+    // TODO: Step 4: Render ignores/blocked data into ignoresScrollableList
+    // TODO: Step 5: Implement search/filter functionality for both lists
+    // TODO: Step 6: Implement action buttons (message, unfriend, block, unblock)
+}
+
 
 async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and factionApiFullData
     // NEW: Debugging logs to check condition variables
@@ -1986,7 +1996,10 @@ function setupMemberClickEvents() {
     });
 }
 
-
+function setupToggleSelectionEvents() {
+    // This function is currently not defined but is no longer causing an error.
+    console.warn("setupToggleSelectionEvents is called but has no functionality yet.");
+}
 	function setupToggleSelectionEvents() {
     // This function is currently not defined.
     // Its purpose is to set up event listeners for various toggles or selections on the page.
