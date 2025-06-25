@@ -483,7 +483,7 @@ async function fetchAndDisplayRankedWarScores() {
         if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
-}
+
 // --- End of LATEST fetchAndDisplayRankedWarScores function ---
  // Update Chain Timer Display (smooth 1-second countdown)
  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
@@ -510,7 +510,7 @@ async function fetchAndDisplayRankedWarScores() {
      warStartedTime.textContent = 'N/A';
  }
 
-}
+
 
   // Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
