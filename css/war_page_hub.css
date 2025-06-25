@@ -439,7 +439,7 @@ transition: background-color 0.2s ease;
     flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
     flex-shrink: 0; /* CRITICAL: Prevent this area from shrinking */
     height: 40px; /* FIXED HEIGHT for the tabs bar (adjust if your tabs are taller/shorter) */
-    border-bottom: 1px solid #1e1e1e; /* Separator below tabs */
+    border-bottom: 2px solid #1e1e1e; /* Separator below tabs */
     background-color: #333; /* Slightly lighter background for tabs bar */
     border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
     overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
@@ -457,7 +457,7 @@ transition: background-color 0.2s ease;
     scrollbar-gutter: stable; /* Helps prevent browser layout shifts when scrollbar appears/disappears */
     
     padding: 10px; /* Internal padding for the scrollable area */
-    background-color: #222; /* Background for the scrollable messages area */
+    background-color:  #222; /* Background for the scrollable messages area */
     border-radius: 8px; /* Rounded corners for the scrollable area */
     margin-bottom: 10px; /* Space between messages scroll area and input */
     box-sizing: border-box; /* Include padding/border */
@@ -1515,21 +1515,29 @@ autocomplete-items {
     padding: 10px;
 }
 
-.members-list-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px; /* Space between member items */
+.member-item {
+    display: flex;          /* Make each member item a flex container for its internal content */
+    align-items: center;    /* Vertically align content (rank, pic, name, buttons) */
+    padding: 8px;           /* Padding inside each member box */
+    background-color: #222; /* Darker background for individual items */
+    border: 1px solid black; /* ADDED: 1px black border around each member */
+    border-radius: 6px;     /* Slightly rounded corners */
+    text-decoration: none;  /* Remove underline from links (if it was an <a> tag) */
+    color: #f0f0f0;         /* Light text color */
+    transition: background-color 0.2s ease;
+    box-sizing: border-box; /* Include padding/border in size */
+}
+.member-item:hover {
+    background-color: #3a3a3a; /* Darken slightly on hover */
 }
 
-.member-item {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background-color: #2a2a2a; /* Slightly lighter dark background for items */
-    border-radius: 4px;
-    text-decoration: none; /* Remove underline from links */
-    color: #f0f0f0; /* Light text color */
-    transition: background-color 0.2s ease;
+
+.members-list-container {
+    display: grid;          /* CRITICAL: Use CSS Grid for two columns */
+    grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+    gap: 15px;              /* Space between grid items (both rows and columns) */
+    flex-grow: 1;           /* Allows it to stretch vertically within its parent (.members-list-display-area) */
+    box-sizing: border-box; /* Include padding/border */
 }
 
 .member-item:hover {
@@ -1537,28 +1545,88 @@ autocomplete-items {
 }
 
 .member-profile-pic {
-    width: 32px; /* Small square thumbnail */
+    width: 32px;
     height: 32px;
-    border-radius: 50%; /* Make it circular */
-    margin-right: 10px;
-    object-fit: cover; /* Ensure image covers the area without distortion */
-    border: 1px solid #555; /* Small border around the image */
-    flex-shrink: 0; /* Prevent image from shrinking */
-}
-
-.member-name {
-    font-weight: bold;
-    flex-grow: 1; /* Allow name to take up available space */
-    white-space: nowrap; /* Prevent name from wrapping */
-    overflow: hidden; /* Hide overflow if name is too long */
-    text-overflow: ellipsis; /* Add ellipsis for overflowed names */
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #555;
 }
 
 .member-rank {
-    font-size: 0.85em;
-    color: #999; /* Lighter color for rank */
-    margin-left: 10px;
-    flex-shrink: 0; /* Prevent rank from shrinking */
+    font-size: 0.8em;       /* Slightly smaller font for rank */
+    color: #e0a71a;         /* Gold color for rank */
+    font-weight: bold;
+    margin-right: 5px;      /* Space between rank and profile pic/name */
+    flex-shrink: 0;         /* Prevent this from shrinking */
+    text-transform: uppercase; /* Optional: Make rank text uppercase */
+}
+
+/* Member name */
+.member-name {
+    flex-grow: 1;           /* Name takes up available space */
+    white-space: nowrap;    /* Prevent name from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if name is too long */
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+.add-member-button {
+    background-color: #555; /* Nice basic gray */
+    color: #f0f0f0;         /* Light text/icon color */
+    border: 1px solid #444;
+    border-radius: 50%;     /* Circular button */
+    width: 28px;            /* Fixed width for circular shape */
+    height: 28px;           /* Fixed height for circular shape */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1em;       /* Icon size */
+    cursor: pointer;
+    margin-left: 10px;      /* Space from name */
+    flex-shrink: 0;
+    position: relative;     /* For positioning the plus sign */
+    transition: background-color 0.2s ease;
+}
+
+.add-member-button:hover {
+    background-color: #6a6a6a; /* Slightly lighter gray on hover */
+}
+
+/* Style for the plus sign (+) inside the button */
+.add-member-button .plus-sign {
+    font-size: 0.8em;      /* Size of the plus sign relative to icon */
+    font-weight: bold;
+    position: absolute;
+    bottom: -2px;          /* Adjust position to overlap the bottom-right of the person icon */
+    right: -2px;
+    background-color: #00a8ff; /* Blue background for the plus */
+    color: white;          /* White plus sign */
+    border-radius: 50%;
+    width: 12px;           /* Size of the plus circle */
+    height: 12px;
+    line-height: 12px;     /* Center text vertically */
+    text-align: center;
+    display: block;
+}
+
+/* Message button for each member */
+.member-item .message-button {
+    background-color: #e0a71a; /* Gold color for message button */
+    color: #1e1e1e;             /* Dark text/icon on gold */
+    border: none;               /* Reuse .item-button from Blocked People, or define here */
+    padding: 4px 8px;           /* Example padding */
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 8px;           /* Space from the add button */
+    flex-shrink: 0;
+}
+
+.member-item .message-button:hover {
+    filter: brightness(1.2); /* Slightly brighten on hover */
 }
 
 /* Styles for loading and error messages within the tab */
@@ -2105,7 +2173,7 @@ autocomplete-items {
     flex-direction: column; /* Stack their children (header, search, list) vertically */
     min-width: 250px;       /* Ensure a minimum width before shrinking too much */
     background-color: #222; /* Darker background for the inner boxes */
-    border: 1px solid #3a3a40; /* Subtle border */
+    border: 1px solid black; /* Subtle border */
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
     box-sizing: border-box;
@@ -2120,7 +2188,7 @@ autocomplete-items {
     font-weight: bold;
     font-size: 1.1em;
     flex-shrink: 0;          /* Prevent header from shrinking */
-    border-bottom: 1px solid black; /* Separator below header */
+    border-bottom: 2px solid black; /* Separator below header */
 }
 
 .search-bar {

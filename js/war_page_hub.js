@@ -1398,20 +1398,22 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     const fetchPromises = [];
 
+    // Create the main container for the members list (this will be the grid container)
     const membersListContainer = document.createElement('div');
-    membersListContainer.classList.add('members-list-container');
+    membersListContainer.classList.add('members-list-container'); // Apply the grid class
     
-    targetDisplayElement.innerHTML = '';
-    targetDisplayElement.appendChild(membersListContainer);
+    targetDisplayElement.innerHTML = ''; // Clear initial loading message
+    targetDisplayElement.appendChild(membersListContainer); // Append the grid container
 
     for (const member of membersArray) {
         const tornPlayerId = member.id;
         const memberName = member.name;
-        const memberRank = member.position;
+        const memberRank = member.position; // Position/Rank from API data
 
-        const memberItemDiv = document.createElement('div');
+        const memberItemDiv = document.createElement('div'); // Changed from <a> to <div> for individual items
         memberItemDiv.classList.add('member-item');
 
+        // Add leader-member class if applicable (for special styling)
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
