@@ -1525,14 +1525,16 @@ function switchChatTab(tabName) {
             targetDisplayArea = blockedPeopleDisplayArea;
             if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
             break;
-        case 'settings': // NEW: Case for the Settings tab
-            targetChatPanel = settingsPanel;
-            targetDisplayArea = settingsDisplayArea;
-            if (targetDisplayArea) {
-                targetDisplayArea.innerHTML = `
-                  
-                
-         
+       
+
+	   case 'settings':
+            // The `targetChatPanel` and `targetDisplayArea` are not needed here
+            // because populateSettingsTab() takes chatDisplayArea directly.
+            // if (settingsPanel) settingsPanel.classList.add('active'); // This is not needed in JS-only strategy
+            populateSettingsTab(chatDisplayArea); // Call the correct function passing chatDisplayArea
+            showInputArea = false; // Hide input for settings tab
+            break;
+	  
             break;
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
