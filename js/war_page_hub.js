@@ -3326,10 +3326,10 @@ auth.onAuthStateChanged(async (user) => {
 // --- Start of initializeAndLoadData function (ensure it matches this) ---
 // --- Start of UPDATED initializeAndLoadData (FOR API v1) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - Forced) <<<");
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - FORCED SELECTIONS) <<<");
 
     const keyToUse = apiKey;
-    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID; // Using .ID as per your typical response structure
+    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID;
 
     // --- LOGGING FOR DEBUGGING finalFactionId ---
     console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
@@ -3347,9 +3347,8 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 
     try {
-        // CORRECTED URL FOR API v1: No '/v2/', and using 'rankedwars' selection
-        // Including basic, members, and chain for comprehensive faction data as seen previously
-        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars,members,chain&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
+        // EXACT URL YOU REQUESTED: API v1, faction ID in path, ONLY basic,rankedwars selections
+        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
 
         console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
 
@@ -3374,10 +3373,10 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (API v1):", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data (API v1): ${error.message || 'Unknown error'}.`;
-        // Reset related displays on error
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+        // Reset related displays on error (these might be from members/chain, which are no longer fetched)
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A'; // Change from 'Error' to 'N/A' as data is intentionally not fetched
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
         if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
         if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
         if (warTargetScore) warTargetScore.textContent = 'N/A';
