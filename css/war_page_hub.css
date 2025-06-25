@@ -21,11 +21,9 @@
     width: 98%; /* NEW: Made even wider to use more space */
     max-width: 1800px; /* NEW: Increased max-width significantly */
     box-sizing: border-box; /* Include padding/border in width */
-    
-    /* REVERTED: Use flexbox for internal layout, stack content vertically */
     display: flex;
     flex-direction: column; 
-    gap: 0px; /* REVERTED: Reduced space between main sections */
+    gap: 0px; 
     
     min-height: calc(100vh - 170px);
     border: 3px solid black;
