@@ -3046,8 +3046,10 @@ function handleChatTabClick(event) {
 
         case 'settings':
             // Dynamically generate Settings content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <div class="chat-settings-panel">
+            populateSettingsTab(); // CALLS THE NEW FUNCTION
+            showInputArea = false; // Hide input for settings tab
+            break;
+
                     <h3>Chat Settings</h3>
                     <div class="setting-item">
                         <label for="chatFontSize">Font Size:</label>
