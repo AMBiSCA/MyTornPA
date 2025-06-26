@@ -97,7 +97,6 @@
     background-color: #00a8ff; /* NEW: Changed to blue theme color */
     color: #1e1e1e; /* Dark text on blue */
     border-color: #00a8ff; /* Active border color */
-    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Subtle glow for active tab */
 }
 
 /* Tab Content Container */
