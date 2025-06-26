@@ -1199,7 +1199,7 @@ function formatTornTime(timestamp) {
 
 // UPDATED FUNCTION: Fetches and updates the user's energy display
 async function updateUserEnergyDisplay(apiKey, playerId) {
-    if (!userEnergyDisplay) { // Check for the DOM element being available
+    if (!userEnergyDisplay) {
         console.error("HTML Error: userEnergyDisplay element not found for update. Cannot display energy.");
         return;
     }
@@ -1220,26 +1220,34 @@ async function updateUserEnergyDisplay(apiKey, playerId) {
         }
 
         const data = await response.json();
+        console.log("Raw API response for user energy:", data); // Add this log for debugging
 
         if (data.error) {
             throw new Error(`Torn API Error fetching energy: ${data.error.error}`);
         }
 
-        if (data.bars && data.bars.energy) {
-            const energyData = data.bars.energy;
+        // --- CORRECTED LINES: Access energy and nerve directly from 'data' or from 'data.bars' as fallback ---
+        // The API returns 'energy' and 'nerve' directly at the root for selections=bars.
+        // We will prioritize data.energy/data.nerve and fallback to data.bars.energy/data.bars.nerve if undefined.
+        const energyData = data.energy || (data.bars && data.bars.energy);
+        const nerveData = data.nerve || (data.bars && data.bars.nerve);
+
+        if (energyData && energyData.current !== undefined && energyData.maximum !== undefined) {
             userEnergyDisplay.textContent = `${energyData.current}/${energyData.maximum}`;
         } else {
             userEnergyDisplay.textContent = 'N/A';
-            console.warn("Energy data not found in user API response for display.");
+            console.warn("Energy data (current/maximum) not found in user API response for display.");
         }
+
+        // (Assuming you still want Nerve, if not, this part can be omitted or adapted)
+        // If you want to update Nerve in a separate display, you would use nerveData here.
+        // For the "Your Energy" box, we only focused on Energy, but the data is available.
+
     } catch (error) {
         console.error("Error updating user energy display:", error);
         userEnergyDisplay.textContent = 'Error';
     }
 }
-
-// Function: displayQuickFFTargets
-// Desc: Fetches and displays quick fair fight targets, adding alternating emojis.
 //       Prevents "blinking" by only updating the display after a successful fetch
 function areTargetSetsIdentical(set1, set2) {
     if (set1.length !== set2.length) {
