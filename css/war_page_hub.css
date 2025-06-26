@@ -2581,14 +2581,22 @@ autocomplete-items {
     font-size: 0.9em; /* Make emoji slightly smaller if it looks too big */
 }
 
+/* --- CSS for Action Buttons in the Ops Control Bar --- */
+
+/* This is the container for the buttons - the "box" you wanted. */
 .action-buttons-container {
     display: flex;
-    gap: 20px; /* The space between the two button groups */
+    gap: 20px;
     align-items: center;
-    justify-content: flex-end; /* This moves the buttons to the right */
+    justify-content: center;
     height: 100%;
-    width: 100%;
-    padding-right: 15px; /* Adds a little space from the very edge */
+    
+    /* --- Styles for the 'box' --- */
+    background-color: rgba(255, 255, 255, 0.05); /* A very subtle, dark background for the box */
+    border: 1px solid #555;     /* A border to make the box visible */
+    border-radius: 8px;         /* Rounded corners for the box */
+    padding: 10px 15px;         /* Space inside the box */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); /* A subtle inner shadow for depth */
 }
 
 /* Styles for each individual button group (label + button) */
@@ -2599,7 +2607,7 @@ autocomplete-items {
 /* The text label above each button */
 .action-button-label {
     margin: 0 0 5px 0;
-    color: black;
+    color: #ddd; /* Lighter text color to be readable on the dark background */
     font-size: 13px;
     font-weight: bold;
     white-space: nowrap; /* Prevents text from wrapping */
@@ -2613,7 +2621,7 @@ autocomplete-items {
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
-    border: 1px solid #222; /* A dark border to make it stand out */
+    border: 1px solid #222; /* A dark border for the buttons themselves */
     color: black; /* Font color as requested */
     box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* A subtle shadow for depth */
     transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Smooth hover effect */
