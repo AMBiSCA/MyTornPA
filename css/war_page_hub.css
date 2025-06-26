@@ -2571,3 +2571,68 @@ autocomplete-items {
 .member-item .message-button:hover {
     filter: brightness(1.2); /* Slightly brighten on hover */
 }
+.quick-ff-target-btn .emoji-wrapper {
+    display: inline-block; /* Allows padding and border */
+    border: 1px solid black; /* The tiny black border */
+    padding: 0px 1px; /* Very tiny padding to give space for border */
+    border-radius: 2px; /* Slightly rounded corners for the mini-border */
+    vertical-align: middle; /* Helps align emoji with text */
+    line-height: 1; /* Prevents extra space above/below emoji */
+    font-size: 0.9em; /* Make emoji slightly smaller if it looks too big */
+}
+
+.action-buttons-container {
+    display: flex;
+    gap: 20px; /* The space between the two button groups */
+    align-items: center;
+    justify-content: flex-end; /* This moves the buttons to the right */
+    height: 100%;
+    width: 100%;
+    padding-right: 15px; /* Adds a little space from the very edge */
+}
+
+/* Styles for each individual button group (label + button) */
+.action-button-group {
+    text-align: center;
+}
+
+/* The text label above each button */
+.action-button-label {
+    margin: 0 0 5px 0;
+    color: black;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap; /* Prevents text from wrapping */
+}
+
+/* --- General Styling for the Action Buttons --- */
+/* This applies to BOTH the red and green buttons */
+.action-button {
+    display: inline-block;
+    padding: 6px 15px; /* Keeps the buttons from being too thick */
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #222; /* A dark border to make it stand out */
+    color: black; /* Font color as requested */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* A subtle shadow for depth */
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Smooth hover effect */
+}
+
+/* A little "lift" effect when you hover over the buttons */
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* --- Specific Colors for each Button --- */
+
+/* The red "Crimes" button */
+.action-button-red {
+    background-color: #e53935; /* A noticeable, clean red */
+}
+
+/* The green "Gym" button */
+.action-button-green {
+    background-color: #43a047; /* A noticeable, clean green */
+}
