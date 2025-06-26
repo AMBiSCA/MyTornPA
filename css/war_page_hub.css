@@ -1793,18 +1793,19 @@ autocomplete-items {
 .chat-container.chat-content-hidden .chat-input-area {
     display: none;
 }
-/* Ensure .ops-control-item has basic shared styling for all its children */
-.ops-control-item {
-    background-color: #2a2a2a; /* Dark background for all items in the grid */
-    border: 1px solid #444; /* Subtle border */
-    border-radius: 5px; /* Rounded corners */
-    padding: 10px; /* Internal spacing */
-    box-sizing: border-box; /* Include padding/border in element's total width/height */
-    /* Keep other flex properties and font settings as they are. */
-    /* display: flex; flex-direction: column; gap: 3px; white-space: nowrap; font-size: 0.9em; */
+    .ops-controls-grid {
+    align-items: start; /* Forces all direct children in the grid to align their tops */
+    margin-top: 5px; /* Adjust this value to move the whole box closer to the tabs */
+    margin-bottom: 10px; /* Adjust this value if it affects overall column height */
 }
-
-
+	
+	.ops-controls-grid .ops-control-item {
+    align-self: start;
+    padding-top: 0; /* Remove top padding within grid item */
+    padding-bottom: 0; /* Remove bottom padding within grid item */
+    height: auto; /* Ensure no fixed height prevents shrinking */
+    min-height: unset; /* Ensure no min-height prevents shrinking */
+}
 
 .quick-ff-target-btn {
     width: auto; /* Allows the button to shrink to the width of its content (text + padding) */
@@ -2651,6 +2652,12 @@ autocomplete-items {
 /* --- CSS for Action Buttons in the Ops Control Bar --- */
 
 /* This new class on the grid item allows us to align it. */
+.ops-control-item--actions {
+    display: flex;
+    margin-left: auto;/* This aligns our button box to the right */
+    align-items: center;
+   
+}
 
 /* This is the container for the buttons - the "box" you wanted. */
 .action-buttons-container {
@@ -2717,95 +2724,41 @@ autocomplete-items {
 /* --- Styles for Energy Display Box on Active Ops Tab --- */
 
 /* Specific styling for the Energy Display box */
-
-
-/* Styles for the new generic status display boxes */
-
-
-.ops-status-display label {
-    font-size: 0.8em; /* Slightly smaller label */
-    color: #a0a0a0; /* Lighter color for label */
-    margin-bottom: 0; /* Remove default margin */
-}
-
-.ops-status-display .status-value-box {
-    font-size: 1.1em; /* Make the value prominent */
-    font-weight: bold;
-    color: #00a8ff; /* A prominent color, adjust to your theme */
-    /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); if you want a slight sdow */
-}
-
-/* Adjustments for the grid layout if necessary to accommodate new items */
-.ops-controls-grid {
-    display: grid;
-    /* This assumes you might have 3 columns now, for example. */
-    /* Adjust grid-template-columns based on how many items are in the row */
-    /* Example for 3 items per row: */
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px; /* Space between grid items */
-    padding: 10px;
-    background-color: #1a1a1a;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    flex-wrap: wrap; /* Ensure items wrap if screen is too small */
-}
-
-/* You might need to adjust the placement specifically if you want them in a certain order within the grid */
-/* For example, if you want "Your Energy", "Online Faction", "Online Enemy" all in one row: */
-/* Ensure the HTML injection order correctly places them. */
-/* The current JS inserts in reverse order (Enemy, Friendly, Energy) using afterend to achieve desired visual order. */
-
-/* Container for the 4 combined stats boxes */
-.combined-ops-stats-container {
-    display: grid;
-    /* This creates a 2x2 grid by default, or adapts to screen size */
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjust minmax as needed */
-    gap: 10px; /* Spacing between the inner stat items */
-    background-color: #1a1a1a; /* Dark background for the overall container */
-    border: 1px solid #333; /* Border for the overall container */
-    border-radius: 8px; /* Rounded corners for the overall container */
-    padding: 15px; /* Padding inside the overall container */
-    margin-bottom: 20px; /* Space below this container */
-    box-sizing: border-box;
-}
-
-/* Styles for individual stat items within the combined container */
-.combined-stats-item {
-    background-color: #2a2a2a; /* Slightly lighter background for individual items */
-    border: 1px solid #444; /* Border for individual items */
-    border-radius: 5px; /* Rounded corners for individual items */
-    padding: 10px; /* Padding inside individual items */
+.ops-control-item.ops-energy-display {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    white-space: nowrap; /* Prevent text from wrapping where possible */
-    box-sizing: border-box;
-    /* Inherit font-size from .ops-control-item, or define here if needed */
-    font-size: 0.9em; /* Ensure font size is appropriate */
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    gap: 3px;
+    white-space: nowrap;
+    font-size: 0.9em;
+    padding: 5px; /* Adjust padding to match other ops-control-items */
+	grid-column: 2;
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: #222; /* Dark background matching other boxes */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Specific styling for labels within these combined stat items */
-.combined-stats-item label {
-    font-size: 0.85em; /* Slightly larger label than default */
-    color: #a0a0a0;
-    margin-bottom: 3px;
-}
-
-/* Specific styling for the numerical values within these combined stat items */
-.combined-stats-item .status-value-box {
-    font-size: 1.1em;
+.ops-control-item.ops-energy-display label {
+    color:#28a745; /* Gold color for label */
     font-weight: bold;
-    color: #00a8ff;
+    text-align: center;
 }
 
-/* You might need to adjust the gap of .ops-controls-grid if it's too large now */
-.ops-controls-grid {
-    /* Ensure this grid's gap is appropriate, as it contains both the combined container and QuickFight */
-    /* Example: gap: 20px; or similar to space its main children */
-    display: grid; /* Assuming ops-controls-grid is a grid container */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust columns to fit new combined block */
-    /* You might want to explicitly define grid-template-columns here to ensure the combined block and QuickFight section lay out as desired (e.g., side by side) */
-    /* For side-by-side: grid-template-columns: 1fr 1fr; */
+/* Style for the actual energy value display (reusing status-value-box for consistency) */
+#userEnergyDisplay {
+    background-color: #1e1e1e; /* Darker background for the value box */
+    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1em;
+    min-width: 80px; /* Ensure it has a minimum width */
+    max-width: 120px; /* Limit max width */
+    display: inline-block; /* Treat as inline-block to accept width/height */
+    box-sizing: border-box;
+    text-align: center;
+    color:#28a745; /* Blue color for the energy value */
+    font-weight: bold;
 }
