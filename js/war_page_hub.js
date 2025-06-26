@@ -2889,23 +2889,28 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 
     try {
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+        // --- THIS IS THE CORRECTED LINE ---
+        // I have removed ",bars" from the end of the selections list.
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+        
+        console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
+
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status}`);
+            const errorData = await userFactionResponse.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
+        console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
             throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
         }
         
-        // --- THIS IS THE FIX ---
-        // We now call all the functions that depend on this data from right here.
-        
-        // Call the function to display ranked war scores
+        // After successfully getting the data, we call the functions that display it
         if (factionApiFullData.wars && factionApiFullData.wars.ranked) {
             updateRankedWarDisplay(factionApiFullData.wars.ranked, finalFactionId);
         } else {
@@ -2913,12 +2918,11 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
             if (scoreBox) scoreBox.innerHTML = '<p style="text-align:center; padding-top: 20px;">No Active Ranked War</p>';
         }
 
-        // Call the function to display chain data
         fetchAndDisplayChainData();
         
-        // Now call the main UI population function
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
+        populateUiComponents(warData, apiKey);
 
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
