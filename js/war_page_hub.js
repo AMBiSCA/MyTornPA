@@ -177,14 +177,6 @@ function generateDummyFriends(count) {
     return dummyFriends;
 }
 
-function createEnergyDisplayBoxHtml() {
-    return `
-        <div class="ops-control-item ops-energy-display">
-            <label>Your Energy:</label>
-            <span id="userEnergyDisplay" class="status-value-box">N/A</span>
-        </div>
-    `;
-}
 
 function generateDummyIgnores(count) {
     const dummyIgnores = [];
@@ -1264,57 +1256,6 @@ function formatTornTime(timestamp) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-// UPDATED FUNCTION: Fetches and updates the user's energy display
-async function updateUserEnergyDisplay(apiKey, playerId) {
-    if (!userEnergyDisplay) {
-        console.error("HTML Error: userEnergyDisplay element not found for update. Cannot display energy.");
-        return;
-    }
-
-    if (!apiKey || !playerId) {
-        userEnergyDisplay.textContent = 'N/A';
-        console.warn("User API key or Player ID not available for energy display.");
-        return;
-    }
-
-    try {
-        const energyApiUrl = `https://api.torn.com/user/${playerId}?selections=bars&key=${apiKey}&comment=MyTornPA_UserEnergy`;
-        const response = await fetch(energyApiUrl);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`Torn API HTTP Error fetching energy: ${response.status} ${response.statusText}. Error: ${errorData.error?.error || 'Unknown'}`);
-        }
-
-        const data = await response.json();
-        console.log("Raw API response for user energy:", data); // Add this log for debugging
-
-        if (data.error) {
-            throw new Error(`Torn API Error fetching energy: ${data.error.error}`);
-        }
-
-        // --- CORRECTED LINES: Access energy and nerve directly from 'data' or from 'data.bars' as fallback ---
-        // The API returns 'energy' and 'nerve' directly at the root for selections=bars.
-        // We will prioritize data.energy/data.nerve and fallback to data.bars.energy/data.bars.nerve if undefined.
-        const energyData = data.energy || (data.bars && data.bars.energy);
-        const nerveData = data.nerve || (data.bars && data.bars.nerve);
-
-        if (energyData && energyData.current !== undefined && energyData.maximum !== undefined) {
-            userEnergyDisplay.textContent = `${energyData.current}/${energyData.maximum}`;
-        } else {
-            userEnergyDisplay.textContent = 'N/A';
-            console.warn("Energy data (current/maximum) not found in user API response for display.");
-        }
-
-        // (Assuming you still want Nerve, if not, this part can be omitted or adapted)
-        // If you want to update Nerve in a separate display, you would use nerveData here.
-        // For the "Your Energy" box, we only focused on Energy, but the data is available.
-
-    } catch (error) {
-        console.error("Error updating user energy display:", error);
-        userEnergyDisplay.textContent = 'Error';
-    }
-}
 //       Prevents "blinking" by only updating the display after a successful fetch
 function areTargetSetsIdentical(set1, set2) {
     if (set1.length !== set2.length) {
@@ -3489,7 +3430,7 @@ async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresLis
     ignoresListEl.innerHTML = ignoresHtml;
 }
 
-function populateUiComponents(warData, apiKey) {
+function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
@@ -3502,7 +3443,7 @@ function populateUiComponents(warData, apiKey) {
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            // displayFriendlyMembersTable(factionApiFullData.members); // This might be duplicated or replaced by updateFriendlyMembersTable
+            displayFriendlyMembersTable(factionApiFullData.members);
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -3514,36 +3455,13 @@ function populateUiComponents(warData, apiKey) {
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
 
-    // Dynamically inject Energy, Online Friendly, and Online Enemy Display Boxes
-    const opsControlsGrid = document.querySelector('.ops-controls-grid');
-    if (opsControlsGrid) {
-        // Only inject if not already present to prevent duplicates on re-calls
-        if (!document.getElementById('userEnergyDisplay')) {
-            const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
-            if (timerItem) {
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
-            } else {
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay'));
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay'));
-            }
-            // Assign to global let variables after injection
-            userEnergyDisplay = document.getElementById('userEnergyDisplay');
-            onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-            onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-        }
-    }
-
-
     // Game Plan & Announcements (from Firebase warData)
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
 
-    populateWarStatusDisplay(warData);
-    loadWarStatusForEdit(warData);
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
 
     // Store enemy faction ID globally (from Firebase warData)
     globalEnemyFactionID = warData.enemyFactionID || null;
@@ -3558,8 +3476,6 @@ function populateUiComponents(warData, apiKey) {
         displayEnemyTargetsTable(null); // This clears the table
     }
 }
-
-//       display after a successful fetch.
 //       Also prevents showing the same target pair more than two times in a row.
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
@@ -3936,14 +3852,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
                     }, 2000); // Enemy data refresh (every 2 seconds)
-
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        } else {
-                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
-                        }
-                    }, 60000); // Quick FF targets refresh (every minute)
 
                     setInterval(() => {
                         if (userApiKey) {
