@@ -481,21 +481,20 @@ transition: background-color 0.2s ease;
 
 /* Chat Input Area (bottom section with buttons and text input) */
 .chat-input-area {
-    height: 95px; /* MODIFIED: Increased total height to provide more vertical space */
-    padding: 10px; /* Reverted to original overall padding */
-    gap: 0px; /* MODIFIED: Set gap to 0 to ensure minimal space between the two rows inside */
-    justify-content: flex-end; /* NEW: This anchors the content (including the text box) to the bottom */
-
-    /* Ensure these properties are also present for the correct display */
-    background-color: #222; /* As per our earlier discussion for matching color */
+    height: 80px;   /* Reverted to original height */
+    padding: 10px;  /* Reverted to original padding */
+    gap: 5px;       /* Keep this value for spacing between the two rows of controls */
+    /* Ensure no other `padding-top` is overriding these values */
+    background-color: #333; /* As per our earlier discussion, for matching color */
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    border-top: 1px solid #1e1e1e;
+    border-top:
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
 }
+
 /* --- SCROLLBAR STYLING FOR CHAT MESSAGES (Applied to .chat-messages-scroll-wrapper) --- */
 /* (Ensure these are present and only for .chat-messages-scroll-wrapper) */
 .chat-messages-scroll-wrapper::-webkit-scrollbar {
