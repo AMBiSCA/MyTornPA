@@ -1486,7 +1486,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     const membersArray = Object.values(factionMembersApiData);
 
-    // Sort members by rank (Leader, Co-leader, Member, Applicant) then alphabetically by name
+    // Sort members by rank then alphabetically
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
         const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
@@ -1497,36 +1497,44 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     const fetchPromises = [];
 
-    // Create the main container for the members list (this will be the grid container)
     const membersListContainer = document.createElement('div');
-    membersListContainer.classList.add('members-list-container'); // Apply the grid class
+    membersListContainer.classList.add('members-list-container');
     
-    targetDisplayElement.innerHTML = ''; // Clear initial loading message
-    targetDisplayElement.appendChild(membersListContainer); // Append the grid container
+    targetDisplayElement.innerHTML = ''; 
+    targetDisplayElement.appendChild(membersListContainer);
 
     for (const member of membersArray) {
         const tornPlayerId = member.id;
         const memberName = member.name;
-        const memberRank = member.position; // Position/Rank from API data
+        const memberRank = member.position;
 
-        const memberItemDiv = document.createElement('div'); // Changed from <a> to <div> for individual items
+        const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
 
-        // Add leader-member class if applicable (for special styling)
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
 
+        // --- THIS IS THE MODIFIED PART ---
         memberItemDiv.innerHTML = `
-            <span class="member-rank">${memberRank}</span> <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
-            <span class="member-name">${memberName}</span>
-            <button class="add-member-button" data-member-id="${tornPlayerId}">
-                👤<span class="plus-sign">+</span>
-            </button>
-            <button class="item-button message-button" data-member-id="${tornPlayerId}">✉️</button> `;
+            <span class="member-rank">${memberRank}</span>
+            
+            <div class="member-identity">
+                <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                <span class="member-name">${memberName}</span>
+            </div>
+
+            <div class="member-actions">
+                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                    👤<span class="plus-sign">+</span>
+                </button>
+                <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+            </div>
+        `;
+        // --- END MODIFIED PART ---
+
         membersListContainer.appendChild(memberItemDiv);
 
-        // Fetch profile image from Firebase (asynchronously)
         fetchPromises.push((async () => {
             try {
                 const docRef = db.collection('users').doc(String(tornPlayerId));
@@ -1550,8 +1558,6 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     await Promise.all(fetchPromises);
     console.log("Faction members list populated with available profile images from database.");
-
-    // TODO: Add event listeners for the new add-member-button and message-button using event delegation
 }
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {

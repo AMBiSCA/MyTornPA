@@ -1519,21 +1519,7 @@ autocomplete-items {
     padding: 10px;
 }
 
-.member-item {
-    display: flex;          /* Make each member item a flex container for its internal content */
-    align-items: center;    /* Vertically align content (rank, pic, name, buttons) */
-    padding: 8px;           /* Padding inside each member box */
-    background-color: #222; /* Darker background for individual items */
-    border: 1px solid black; /* ADDED: 1px black border around each member */
-    border-radius: 6px;     /* Slightly rounded corners */
-    text-decoration: none;  /* Remove underline from links (if it was an <a> tag) */
-    color: #f0f0f0;         /* Light text color */
-    transition: background-color 0.2s ease;
-    box-sizing: border-box; /* Include padding/border in size */
-}
-.member-item:hover {
-    background-color: #3a3a3a; /* Darken slightly on hover */
-}
+
 
 
 .members-list-container {
@@ -1544,39 +1530,70 @@ autocomplete-items {
     box-sizing: border-box; /* Include padding/border */
 }
 
+/* --- Faction Members List Item Styling --- */
+
+/* This is the main container for each member row */
+.member-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
 .member-item:hover {
-    background-color: #3a3a3a; /* Darken slightly on hover */
+    background-color: #3a3a3a;
+}
+
+/* NEW: This is the wrapper for the Pic and Name */
+.member-identity {
+    flex-grow: 1; /* This makes it take all available middle space */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* This centers the pic and name within the middle space */
+    gap: 8px; /* The space between the picture and the name */
+    min-width: 0; /* Prevents overflow issues */
+}
+
+/* The member's rank on the far left */
+.member-rank {
+    font-size: 0.8em;
+    color: #e0a71a;
+    font-weight: bold;
+    margin-right: 10px; /* Space between rank and the identity group */
+    flex-shrink: 0;
 }
 
 .member-profile-pic {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    margin-right: 25px;
     object-fit: cover;
     flex-shrink: 0;
     border: 1px solid #555;
 }
 
-.member-rank {
-    font-size: 0.8em;       /* Slightly smaller font for rank */
-    color: #00a8ff;         /* Gold color for rank */
-    font-weight: bold;
-    margin-right: 5px;      /* Space between rank and profile pic/name */
-    flex-shrink: 0;         /* Prevent this from shrinking */
-    text-transform: uppercase; /* Optional: Make rank text uppercase */
-}
-
-/* Member name */
+/* UPDATED: The member's name (text-align is no longer needed here) */
 .member-name {
-    flex-grow: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: bold;
     color: #f0f0f0;
-    text-align: center; /* This new line will center the name */
 }
+
+/* NEW: This is the wrapper for the buttons on the right */
+.member-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between the two buttons */
+    margin-left: 10px; /* Space between the identity group and the buttons */
+}
+
 
 .add-member-button {
     background-color: #555; /* Nice basic gray */
