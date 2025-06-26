@@ -3526,12 +3526,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     // Re-get elements after HTML is injected
     const recentlyMetTbody = document.getElementById('recentlyMetTbody');
 
-    if (!recentlyMetTbody) {
-        console.error("HTML Error: recentlyMetTbody not found after injection.");
-        return;
-    }
-
-    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
 
     let tableRowsHtml = '';
     dummyRecentlyMet.forEach(player => {
