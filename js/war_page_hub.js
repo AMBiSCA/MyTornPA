@@ -24,6 +24,12 @@ let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTarg
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let userEnergyDisplay = null; // Will be assigned dynamically after HTML injection
 
+// --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
+// !!! IMPORTANT: REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
+const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
+const DEBUG_FACTION_ID = "49028"; // Forced Faction ID
+const DEBUG_PLAYER_ID = "2662550"; // Forced Player ID
+// --- END TEMPORARY HARDCODE ---
 // --- DOM Element Getters ---
 
 const tabButtons = document.querySelectorAll('.tab-button');
