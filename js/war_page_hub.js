@@ -282,7 +282,7 @@ async function updateOnlineMemberCounts() {
     }
 }
 
-// --- TEMPORARY FUNCTION FOR TESTING ONLY ---
+
 // !!! IMPORTANT: REMOVE THIS FUNCTION AND ITS CALL IN PRODUCTION !!!
 function simulateActiveChain() {
     console.warn("--- SIMULATING ACTIVE CHAIN FOR TESTING ---");
@@ -3883,9 +3883,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 await updateUserEnergyDisplay(userApiKey, playerId);
                 await updateOnlineMemberCounts(); // NEW: Initial call for online counts
 
-                fetchAndDisplayChainData();
+
+               await fetchAndDisplayChainData();
 				simulateActiveChain();
-                fetchAndDisplayRankedWarScores();
+               await  fetchAndDisplayRankedWarScores();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
 
