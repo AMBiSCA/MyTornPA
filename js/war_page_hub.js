@@ -2677,6 +2677,187 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    const muteSoundButton = document.getElementById('muteSoundButton');
+    if (muteSoundButton) {
+        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.addEventListener('click', () => {
+            isChatMuted = !isChatMuted;
+            localStorage.setItem('isChatMuted', isChatMuted);
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+            muteSoundButton.classList.toggle('muted', isChatMuted);
+            console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
+        });
+    }
+
+    const aidButton = document.querySelector('.aid-button');
+    if (aidButton) {
+        aidButton.addEventListener('click', () => {
+            console.log('Aid button clicked. Functionality temporarily disabled.');
+        });
+    }
+
+    const flightButton = document.querySelector('.flight-button');
+    if (flightButton) {
+        flightButton.addEventListener('click', () => {
+            window.open('https://www.torn.com/page.php?sid=travel', '_blank');
+            console.log('Flight button clicked. Opening travel page.');
+        });
+    }
+
+    const armoryButton = document.querySelector('.armory-button');
+    if (armoryButton) {
+        armoryButton.addEventListener('click', () => {
+            window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
+            console.log('Armory button clicked. Opening armory page.');
+        });
+    }
+
+    const refillButton = document.querySelector('.refill-button');
+    if (refillButton) {
+        refillButton.addEventListener('click', () => {
+            window.open('https://www.torn.com/page.php?sid=points', '_blank');
+            console.log('Refill button clicked. Opening points page.');
+        });
+    }
+
+    const alarmButton = document.querySelector('.siren-btn');
+    if (alarmButton) {
+        alarmButton.addEventListener('click', () => {
+            console.log('Alarm button clicked. Functionality temporarily disabled.');
+        });
+    }
+    
+    if (chatSendBtn && chatTextInput) {
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatTextInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        });
+    }
+
+    if (chatTabsContainer && chatTabButtons.length > 0) {
+        chatTabButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                handleChatTabClick(event);
+            });
+        });
+    }
+
+    if (postAnnouncementBtn) {
+        postAnnouncementBtn.addEventListener('click', async () => {
+            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
+                quickAnnouncementInput.value = '';
+                alert('Announcement posted!');
+            } catch (error) {
+                console.error('Error posting announcement:', error);
+                alert('Error posting announcement.');
+            }
+        });
+    }
+
+    if (saveWarStatusControlsBtn) {
+        saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
+            try {
+                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+                alert('War status saved!');
+                populateWarStatusDisplay(statusData);
+                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
+            } catch (error) {
+                console.error('Error saving war status:', error);
+                alert('Error saving war status.');
+            }
+        });
+    }
+
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            if (!designatedAdminsContainer) return;
+            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+                alert('Admins saved!');
+            } catch (error) {
+                console.error("Error saving admins:", error);
+            }
+        });
+    }
+
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+                alert('Energy tracking members saved!');
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+            }
+        });
+    }
+
+    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
+    if (saveWatchlistSelectionsBtn) {
+        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+                alert('Big Hitter Watchlist saved!');
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
+            }
+        });
+    }
+
+    const chatDisplay = document.getElementById('chat-display-area');
+    if (chatDisplay) {
+        chatDisplay.addEventListener('click', function(event) {
+            const addButton = event.target.closest('.add-member-button');
+
+            if (!addButton) {
+                return;
+            }
+
+            // --- START OF NEW LOGIC ---
+
+            // Immediately disable the button to prevent multiple clicks
+            addButton.disabled = true;
+            
+            // Instantly change the button's appearance to a "success" state
+            addButton.classList.add('success'); // A new class for CSS styling
+            addButton.innerHTML = '✓';          // Change the icon to a tick mark
+    
+            // We will add the database-saving code here in a later step
+            const friendIdToAdd = addButton.dataset.memberId;
+            console.log(`(Database save for friend ${friendIdToAdd} will happen here)`);
+    
+            // Set a timer to make the button disappear completely after 1.5 seconds
+            setTimeout(() => {
+                addButton.style.display = 'none';
+            }, 1500); // 1500 milliseconds = 1.5 seconds
+
+            // --- END OF NEW LOGIC ---
+        });
+    }
+}
+
     // --- Chat Input Buttons Functionality ---
     // Mute Button Toggle (🔊 / 🔇)
     const muteSoundButton = document.getElementById('muteSoundButton');
