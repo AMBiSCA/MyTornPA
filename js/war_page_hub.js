@@ -22,12 +22,6 @@ let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previ
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 
-// NEW GLOBAL VARIABLES FOR NEW DISPLAYS
-let userEnergyDisplay = null; // Already existing
-let onlineFriendlyMembersDisplay = null; // Reference to the "Online Faction Members" DOM element
-let onlineEnemyMembersDisplay = null; // Reference to the "Online Enemy Members" DOM element
-
-
 // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
 // !!! IMPORTANT: REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
 const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
@@ -2869,41 +2863,66 @@ function setupEventListeners(apiKey) {
     }
 }
 
-async function initializeAndLoadData(apiKey, factionId) {
-    if (!factionId) {
-        console.error("Faction ID is missing. Cannot fetch war data.");
+async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
+    console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
+
+    const keyToUse = apiKey;
+    let finalFactionId = factionIdToUseOverride;
+
+    if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
+        finalFactionId = factionApiFullData.basic.id;
+    }
+    if (!finalFactionId && auth.currentUser) {
+        try {
+            const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
+            if (userProfileDoc.exists) {
+                finalFactionId = userProfileDoc.data().faction_id;
+            }
+        } catch (error) {
+            console.error("Error fetching faction ID from user profile in initializeAndLoadData fallback:", error);
+        }
+    }
+
+    if (!finalFactionId) {
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
         return;
     }
 
     try {
-        // This is the API URL to get the war data
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}/wars?key=${apiKey}&comment=MyTornPA_WarData`;
-
-        console.log("Attempting to fetch war data from:", userFactionApiUrl);
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status}`);
         }
 
-        const apiData = await userFactionResponse.json();
-        console.log("Faction Wars API Data Received:", apiData);
+        factionApiFullData = await userFactionResponse.json();
 
-        if (apiData.error) {
-            throw new Error(`Torn API Error: ${apiData.error.error}`);
+        if (factionApiFullData.error) {
+            throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
+        }
+        
+        // --- THIS IS THE FIX ---
+        // We now call all the functions that depend on this data from right here.
+        
+        // Call the function to display ranked war scores
+        if (factionApiFullData.wars && factionApiFullData.wars.ranked) {
+            updateRankedWarDisplay(factionApiFullData.wars.ranked, finalFactionId);
+        } else {
+            const scoreBox = document.querySelector('.ops-ranked-war-score');
+            if (scoreBox) scoreBox.innerHTML = '<p style="text-align:center; padding-top: 20px;">No Active Ranked War</p>';
         }
 
-        // --- NEW ---
-        // After successfully getting the data, NOW we call the display function
-        // and pass the relevant part of the data directly to it.
-        fetchAndDisplayRankedWarScores(apiData.wars, factionId); 
+        // Call the function to display chain data
+        fetchAndDisplayChainData();
+        
+        // Now call the main UI population function
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
 
     } catch (error) {
-        console.error("Error during war data initialization:", error);
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
-        if (warTargetScore) warTargetScore.textContent = 'Error';
-        if (warStartedTime) warStartedTime.textContent = 'Error';
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data.`;
     }
 }
 // >>> END REPLACE initializeAndLoadData <<<
