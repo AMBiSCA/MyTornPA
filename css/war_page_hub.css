@@ -2746,19 +2746,48 @@ autocomplete-items {
     text-align: center;
 }
 
-/* Style for the actual energy value display (reusing status-value-box for consistency) */
-#userEnergyDisplay {
-    background-color: #1e1e1e; /* Darker background for the value box */
-    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
-    border-radius: 4px;
-    padding: 5px 10px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1em;
-    min-width: 80px; /* Ensure it has a minimum width */
-    max-width: 120px; /* Limit max width */
-    display: inline-block; /* Treat as inline-block to accept width/height */
-    box-sizing: border-box;
+/* Styles for the new generic status display boxes */
+.ops-status-display {
+    /* Inherit basic styling from ops-control-item */
+    /* Example: background-color, border, padding already from .ops-control-item */
+    display: flex;
+    flex-direction: column; /* Stack label above value */
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    gap: 5px; /* Space between label and value */
     text-align: center;
-    color:#28a745; /* Blue color for the energy value */
-    font-weight: bold;
+    min-width: 100px; /* Ensure a minimum width */
 }
+
+.ops-status-display label {
+    font-size: 0.8em; /* Slightly smaller label */
+    color: #a0a0a0; /* Lighter color for label */
+    margin-bottom: 0; /* Remove default margin */
+}
+
+.ops-status-display .status-value-box {
+    font-size: 1.1em; /* Make the value prominent */
+    font-weight: bold;
+    color: #00a8ff; /* A prominent color, adjust to your theme */
+    /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); if you want a slight shadow */
+}
+
+/* Adjustments for the grid layout if necessary to accommodate new items */
+.ops-controls-grid {
+    display: grid;
+    /* This assumes you might have 3 columns now, for example. */
+    /* Adjust grid-template-columns based on how many items are in the row */
+    /* Example for 3 items per row: */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px; /* Space between grid items */
+    padding: 10px;
+    background-color: #1a1a1a;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Ensure items wrap if screen is too small */
+}
+
+/* You might need to adjust the placement specifically if you want them in a certain order within the grid */
+/* For example, if you want "Your Energy", "Online Faction", "Online Enemy" all in one row: */
+/* Ensure the HTML injection order correctly places them. */
+/* The current JS inserts in reverse order (Enemy, Friendly, Energy) using afterend to achieve desired visual order. */
