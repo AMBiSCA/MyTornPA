@@ -326,7 +326,7 @@ justify-content: flex-start; /* Align buttons to the left */
 gap: 5px; /* Space between buttons */ 
 margin-top: 0px; /* This will pull the circular buttons up. Adjust the value (e.g., -5px for less, -15px for more) as needed. */
 padding-bottom: 0; /* Ensures no extra padding pushes them down */
-margin-bottom: 15px;
+margin-bottom: -15px;
 }
 
 
@@ -362,6 +362,7 @@ flex-shrink: 0; /* Prevent shrinking */
 display: flex;
 gap: 10px; /* Space between input and send button */
 width: 100%;
+padding-top: 0;
 }
 
 .chat-text-input {
@@ -487,6 +488,7 @@ transition: background-color 0.2s ease;
     background-color: #333; /* As per our earlier discussion, for matching color */
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
+    border-top: 1px solid #1e1e1e;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
