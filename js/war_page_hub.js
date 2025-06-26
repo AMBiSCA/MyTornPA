@@ -2493,15 +2493,12 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // Aid Button (🚨) - Request general help/aid
+     // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
-            if (chatTextInput) {
-                chatTextInput.value = 'Requesting aid...';
-                chatTextInput.focus();
-            }
-            console.log('Aid button clicked.');
+            // Functionality removed as requested - this button will now just log a click
+            console.log('Aid button clicked. Functionality temporarily disabled.');
         });
     }
 
@@ -2535,16 +2532,12 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // Alarm / Siren Button (⚠️) is left as is for now. Its click handler could be added here if needed.
-    // Example for Alarm (if you want it to pre-fill chat):
+     // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
     const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
-            if (chatTextInput) {
-                chatTextInput.value = '!!! URGENT ATTENTION NEEDED !!!';
-                chatTextInput.focus();
-            }
-            console.log('Alarm button clicked.');
+            // Functionality removed as requested - this button will now just log a click
+            console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
 }

@@ -2645,6 +2645,7 @@ autocomplete-items {
     display: auto;
     margin-left: auto;
     align-items: center;
+    margin-top: 8px;
 }
 
 /* This is the container for the buttons - the "box" you wanted. */
