@@ -3876,7 +3876,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
 
                 // Initial calls for all dynamic ops panel displays
-                await updateUserEnergyDisplay(userApiKey, playerId);
+              
                 await updateOnlineMemberCounts(); // NEW: Initial call for online counts
 
                 fetchAndDisplayChainData();
