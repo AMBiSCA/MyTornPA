@@ -3279,7 +3279,7 @@ async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     // using event delegation on friendsListEl and ignoresListEl.
 }
 
-function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+function populateUiComponents(warData, apiKey) {
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
@@ -3292,7 +3292,7 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            displayFriendlyMembersTable(factionApiFullData.members);
+            // displayFriendlyMembersTable(factionApiFullData.members); // This might be duplicated or replaced by updateFriendlyMembersTable
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -3303,30 +3303,37 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
-    
-    // --- NEW: Dynamically inject Energy Display Box ---
-    const opsControlsGrid = document.querySelector('.ops-controls-grid'); // Get the grid container
-    if (opsControlsGrid && !document.getElementById('userEnergyDisplay')) { // Check if grid exists and box is not already there
-        const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
-        if (timerItem) {
-            timerItem.insertAdjacentHTML('afterend', createEnergyDisplayBoxHtml()); // Inject next to Chain Timer
-            // Now, get the reference to the newly injected element
-            userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Assign to global let variable
-        } else {
-            // Fallback if timerItem is not found: add to end of grid
-            opsControlsGrid.insertAdjacentHTML('beforeend', createEnergyDisplayBoxHtml());
-            userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Assign to global let variable
+
+    // Dynamically inject Energy, Online Friendly, and Online Enemy Display Boxes
+    const opsControlsGrid = document.querySelector('.ops-controls-grid');
+    if (opsControlsGrid) {
+        // Only inject if not already present to prevent duplicates on re-calls
+        if (!document.getElementById('userEnergyDisplay')) {
+            const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
+            if (timerItem) {
+                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
+                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
+                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
+            } else {
+                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
+                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay'));
+                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay'));
+            }
+            // Assign to global let variables after injection
+            userEnergyDisplay = document.getElementById('userEnergyDisplay');
+            onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+            onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
         }
     }
-    // --- END NEW ---
+
 
     // Game Plan & Announcements (from Firebase warData)
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
 
-    populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
+    populateWarStatusDisplay(warData);
+    loadWarStatusForEdit(warData);
 
     // Store enemy faction ID globally (from Firebase warData)
     globalEnemyFactionID = warData.enemyFactionID || null;
@@ -3340,14 +3347,8 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         populateEnemyMemberCheckboxes({}, []);
         displayEnemyTargetsTable(null); // This clears the table
     }
-
-    // Call user energy display update (now called from auth.onAuthStateChanged as per final plan)
-    // Removed: updateUserEnergyDisplay(); // This call is now primarily from auth.onAuthStateChanged
 }
 
-// Function: displayQuickFFTargets
-// Desc: Fetches and displays quick fair fight targets, adding alternating emojis
-//       with individual borders. Prevents "blinking" by only updating the
 //       display after a successful fetch.
 //       Also prevents showing the same target pair more than two times in a row.
 async function displayQuickFFTargets(userApiKey, playerId) {
