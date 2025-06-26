@@ -3492,8 +3492,7 @@ async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresLis
 
     // --- Fetch and Display Friends from Firebase ---
     try {
-        const friendsSnapshot = await db.collection('userProfiles').doc(currentUserId).collection('friends').get();
-        const friendDetailsPromises = [];
+       const friendDetailsPromises = [];
 
         if (friendsSnapshot.empty) {
             friendsListEl.innerHTML = '<p style="text-align:center; padding: 10px;">No friends added yet.</p>';
