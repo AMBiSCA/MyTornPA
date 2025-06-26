@@ -2930,7 +2930,7 @@ function setupEventListeners(apiKey) {
 async function initializeAndLoadData(apiKey) {
     try {
         // UPDATED: Removed 'wars' selection from the URL
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+        const factionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${userApiKey}&comment=MyTornPA_WarHub_Combined`;
 
         console.log("Attempting to fetch faction data with specified selections (no wars):", userFactionApiUrl);
 
