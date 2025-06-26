@@ -1646,10 +1646,11 @@ autocomplete-items {
     flex-grow: 1; /* Allows it to take up remaining space in a flex container */
     overflow-y: auto; /* Enables scrolling within the wrapper */
     position: relative; /* Needed for absolute positioning of panels if applicable */
-    height: calc(100% - 40px - 80px); /* Example: 100% minus height of tabs and input area */
+    height: calc(100% - 100px); /* Example: 100% minus height of tabs and input area */
     /* Adjust height based on your layout, or set a fixed height */
     min-height: 200px; /* Example minimum height */
 	position: relative;
+	
 }
 
 /* Optional: Styles for chat tabs to make them clickable and active */
