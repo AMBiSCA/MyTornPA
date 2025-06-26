@@ -246,13 +246,13 @@ function isOnlineWithin59Seconds(relativeTimeStr) {
     return false; // Not online within 59 seconds
 }
 
+// Keep your existing updateOnlineMemberCounts function. It is already correct.
+// Assuming your current updateOnlineMemberCounts is this:
 async function updateOnlineMemberCounts() {
     // Friendly Faction Online Members
     if (onlineFriendlyMembersDisplay && factionApiFullData && factionApiFullData.members) {
         let onlineCount = 0;
-        const membersArray = Object.values(factionApiFullData.members); // Assuming it's an object with IDs as keys here
-        // If factionApiFullData.members is already an array, use:
-        // const membersArray = factionApiFullData.members;
+        const membersArray = Object.values(factionApiFullData.members);
 
         for (const member of membersArray) {
             if (member.last_action && isOnlineWithin59Seconds(member.last_action.relative)) {
@@ -267,9 +267,7 @@ async function updateOnlineMemberCounts() {
     // Enemy Faction Online Members
     if (onlineEnemyMembersDisplay && enemyDataGlobal && enemyDataGlobal.members) {
         let onlineCount = 0;
-        const membersArray = Object.values(enemyDataGlobal.members); // Assuming it's an object with IDs as keys here
-        // If enemyDataGlobal.members is already an array, use:
-        // const membersArray = enemyDataGlobal.members;
+        const membersArray = Object.values(enemyDataGlobal.members);
 
         for (const member of membersArray) {
             if (member.last_action && isOnlineWithin59Seconds(member.last_action.relative)) {
@@ -281,8 +279,6 @@ async function updateOnlineMemberCounts() {
         onlineEnemyMembersDisplay.textContent = 'N/A';
     }
 }
-
-
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
     if (!members || typeof members !== 'object') return;
@@ -2462,6 +2458,27 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         tbody.innerHTML = `<p style="color:red;">Error loading faction list: ${error.message || String(error)}.</p>`;
     }
 }
+
+function createEnergyAndOnlineMembersGroupHtml() {
+    return `
+        <div id="energyAndOnlineMembersGroupContainer" class="energy-online-members-group">
+            <div class="ops-control-item">
+                <label>Your Energy:</label>
+                <span id="userEnergyDisplay" class="status-value-box">N/A</span>
+            </div>
+            <div class="ops-control-item">
+                <label>Online Faction Members:</label>
+                <span id="onlineFriendlyMembersDisplay" class="status-value-box">N/A</span>
+            </div>
+            <div class="ops-control-item">
+                <label>Online Enemy Members:</label>
+                <span id="onlineEnemyMembersDisplay" class="status-value-box">N/A</span>
+            </div>
+        </div>
+    `;
+}
+
+
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
@@ -2680,6 +2697,7 @@ function switchChatTab(tabName) {
 }
 
 // --- Event Listeners Setup ---
+// --- Event Listeners Setup ---
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -2696,146 +2714,63 @@ function setupEventListeners(apiKey) {
     }
 
     // --- Chat Input Buttons Functionality ---
-    // Mute Button Toggle (🔊 / 🔇)
     const muteSoundButton = document.getElementById('muteSoundButton');
     if (muteSoundButton) {
-        // Set initial icon based on saved state (isChatMuted is a global variable)
         muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted); // Apply 'muted' class if already muted
-
+        muteSoundButton.classList.toggle('muted', isChatMuted);
         muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted; // Toggle the global mute state
-            localStorage.setItem('isChatMuted', isChatMuted); // Save state to local storage
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊'; // Toggle icon
-            muteSoundButton.classList.toggle('muted', isChatMuted); // Toggle 'muted' class
+            isChatMuted = !isChatMuted;
+            localStorage.setItem('isChatMuted', isChatMuted);
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+            muteSoundButton.classList.toggle('muted', isChatMuted);
             console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
-            // TODO: Actual sound muting logic will check the 'isChatMuted' flag.
-            // (e.g., if you have a sound notification function, it would `if (!isChatMuted) playSound();`)
         });
     }
 
-    // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
-            // Functionality removed as requested - this button will now just log a click
             console.log('Aid button clicked. Functionality temporarily disabled.');
         });
     }
 
-    // Flight Button (✈️) - Quickly initiate travel/return
     const flightButton = document.querySelector('.flight-button');
     if (flightButton) {
         flightButton.addEventListener('click', () => {
-            // Open Torn travel page in a new tab
             window.open('https://www.torn.com/page.php?sid=travel', '_blank');
             console.log('Flight button clicked. Opening travel page.');
         });
     }
 
-    // Armory Button (💉️) - Link to Faction Armory
     const armoryButton = document.querySelector('.armory-button');
     if (armoryButton) {
         armoryButton.addEventListener('click', () => {
-            // Open Torn faction armory page in a new tab
             window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
             console.log('Armory button clicked. Opening armory page.');
         });
     }
 
-    // Refill Button (⛽) - Quick energy/nerve refill link
     const refillButton = document.querySelector('.refill-button');
     if (refillButton) {
         refillButton.addEventListener('click', () => {
-            // Open Torn points page for refills in a new tab
             window.open('https://www.torn.com/page.php?sid=points', '_blank');
             console.log('Refill button clicked. Opening points page.');
         });
     }
 
-    // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
-    const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
+    const alarmButton = document.querySelector('.siren-btn');
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
-            // Functionality removed as requested - this button will now just log a click
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
 
-    // NEW: Chaining Claim Button (🔗)
-    if (chainClaimButton) {
-        chainClaimButton.addEventListener('click', () => {
-            // Check if chain is active (optional, could be done in modal submit too)
-            if (currentLiveChainSeconds <= 0) {
-                alert("Chain is not active! Cannot claim hits.");
-                return;
-            }
-            // Check if a claim is already active
-            if (isChainingClaimActive) {
-                alert("A chain claim is already active! Only one claim at a time.");
-                return;
-            }
-            if (chainClaimModal) {
-                chainClaimModal.style.display = 'flex'; // Show the modal
-                chainHitsInput.focus(); // Focus on the first input
-            }
-        });
-    }
-
-    // NEW: Chain Claim Modal Buttons
-    if (submitChainClaimBtn) {
-        submitChainClaimBtn.addEventListener('click', () => {
-            const hits = parseInt(chainHitsInput.value, 10);
-            const chainNum = parseInt(chainNumberInput.value, 10);
-
-            if (isNaN(hits) || hits <= 0 || isNaN(chainNum) || chainNum <= 0) {
-                alert("Please enter valid positive numbers for hits and chain number.");
-                return;
-            }
-
-            // Set the global claim active flag
-            isChainingClaimActive = true;
-            updateTableButtonsState(); // Update Claim/Attack buttons state
-
-            // Send the claim message to chat
-            sendChainClaimMessage(hits, chainNum);
-
-            // Hide the modal and reset inputs
-            if (chainClaimModal) chainClaimModal.style.display = 'none';
-            chainHitsInput.value = '1';
-            chainNumberInput.value = '1';
-        });
-
-        // Allow Enter key to submit within modal inputs
-        if (chainHitsInput) {
-            chainHitsInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') submitChainClaimBtn.click();
-            });
-        }
-        if (chainNumberInput) {
-            chainNumberInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') submitChainClaimBtn.click();
-            });
-        }
-    }
-
-    if (cancelChainClaimBtn) {
-        cancelChainClaimBtn.addEventListener('click', () => {
-            if (chainClaimModal) chainClaimModal.style.display = 'none'; // Hide the modal
-            chainHitsInput.value = '1'; // Reset inputs
-            chainNumberInput.value = '1';
-        });
-    }
-
-    if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
-        // Send message on button click
+    if (chatSendBtn && chatTextInput) {
         chatSendBtn.addEventListener('click', sendChatMessage);
-
-        // Send message on Enter key press in the input field
         chatTextInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent default browser behavior (like new line)
-                sendChatMessage(); // Call our send message function
+                event.preventDefault();
+                sendChatMessage();
             }
         });
     }
@@ -2843,8 +2778,7 @@ function setupEventListeners(apiKey) {
     if (chatTabsContainer && chatTabButtons.length > 0) {
         chatTabButtons.forEach(button => {
             button.addEventListener('click', (event) => {
-                const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
-                handleChatTabClick(event); // Assuming handleChatTabClick is the correct chat tab handler
+                handleChatTabClick(event);
             });
         });
     }
@@ -2928,7 +2862,33 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-} 
+
+    // --- PASTE THE NEW CODE BLOCK HERE ---
+    // This listener handles clicks inside the main chat content area
+    const chatDisplay = document.getElementById('chat-display-area');
+    if (chatDisplay) {
+        chatDisplay.addEventListener('click', function(event) {
+            // This checks if the thing you clicked was an 'add friend' button
+            const addButton = event.target.closest('.add-member-button');
+
+            // If you didn't click an add button, it does nothing.
+            if (!addButton) {
+                return;
+            }
+
+            // If you DID click an add button, it gets the member's ID
+            const friendIdToAdd = addButton.dataset.memberId;
+            
+            alert(`You clicked 'Add Friend' for member ID: ${friendIdToAdd}`); // Temporary alert for testing
+
+            // This line will hide the button after you click it.
+            // In the next step, we will add the database logic here.
+            addButton.style.display = 'none'; 
+        });
+    }
+    // --- END OF NEW CODE BLOCK ---
+
+} // <-- The new code must be BEFORE this closing brace
 
 async function initializeAndLoadData(apiKey) {
     try {
@@ -3425,8 +3385,9 @@ async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     // using event delegation on friendsListEl and ignoresListEl.
 }
 
+// MODIFIED Function: populateUiComponents
 function populateUiComponents(warData, apiKey) {
-    // Basic Faction Info (from global factionApiFullData)
+    // Basic Faction Info (from global factionApiFullData) - (KEEP as is)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
@@ -3438,10 +3399,9 @@ function populateUiComponents(warData, apiKey) {
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            // displayFriendlyMembersTable(factionApiFullData.members); // This might be duplicated or replaced by updateFriendlyMembersTable
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
-            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
+            populateFriendlyMemberCheckboxes({}, []);
         }
     } else {
         console.warn("factionApiFullData not available in populateUiComponents.");
@@ -3450,30 +3410,39 @@ function populateUiComponents(warData, apiKey) {
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
 
-    // Dynamically inject Energy, Online Friendly, and Online Enemy Display Boxes
+    // --- MODIFIED: Dynamically inject the NEW Energy and Online Members Group Box ---
     const opsControlsGrid = document.querySelector('.ops-controls-grid');
     if (opsControlsGrid) {
-        // Only inject if not already present to prevent duplicates on re-calls
-        if (!document.getElementById('userEnergyDisplay')) {
-            const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
-            if (timerItem) {
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
+        // Only inject if the group container is not already present
+        if (!document.getElementById('energyAndOnlineMembersGroupContainer')) {
+            const quickFightChainSaver = opsControlsGrid.querySelector('.ops-control-item.quick-fight-chain-saver'); // Assuming this is the element next to which the new container should be injected
+            if (quickFightChainSaver) {
+                // Inject the new group container before the Quick Fight section
+                quickFightChainSaver.insertAdjacentHTML('beforebegin', createEnergyAndOnlineMembersGroupHtml());
             } else {
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay'));
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay'));
+                // Fallback to end of grid if quickFightChainSaver not found
+                opsControlsGrid.insertAdjacentHTML('beforeend', createEnergyAndOnlineMembersGroupHtml());
             }
-            // Assign to global let variables after injection
+
+            // --- IMPORTANT: Assign global DOM references AFTER the new HTML is injected ---
+            energyAndOnlineMembersGroupContainer = document.getElementById('energyAndOnlineMembersGroupContainer');
             userEnergyDisplay = document.getElementById('userEnergyDisplay');
             onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
             onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+
+            // IMPORTANT: chainTimerDisplay, chainStartedDisplay, currentChainNumberDisplay are NOT assigned here.
+            // They should be assumed to be pre-existing in your HTML and handled by their own update functions.
+            // Ensure they are correctly selected as global variables if your original HTML uses these IDs statically.
+            // For example, if your HTML has <span id="chainTimerDisplay">, the global var `chainTimerDisplay`
+            // should be assigned once outside of this dynamic injection logic, perhaps with other static DOM getters.
+            // If they are NOT already assigned globally, add:
+            // chainTimerDisplay = document.getElementById('chainTimerDisplay');
+            // chainStartedDisplay = document.getElementById('chainStartedDisplay');
+            // currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
         }
     }
 
-
-    // Game Plan & Announcements (from Firebase warData)
+    // Game Plan & Announcements (from Firebase warData) - (KEEP as is)
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
@@ -3481,10 +3450,10 @@ function populateUiComponents(warData, apiKey) {
     populateWarStatusDisplay(warData);
     loadWarStatusForEdit(warData);
 
-    // Store enemy faction ID globally (from Firebase warData)
+    // Store enemy faction ID globally (from Firebase warData) - (KEEP as is)
     globalEnemyFactionID = warData.enemyFactionID || null;
 
-    // Display enemy targets table (still needs enemyData via separate fetch)
+    // Display enemy targets table (still needs enemyData via separate fetch) - (KEEP as is)
     if (warData.enemyFactionID) {
         fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
     } else {
@@ -3658,7 +3627,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic tab navigation for main content tabs
+    // Basic tab navigation for main content tabs (KEEP as is)
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
@@ -3686,129 +3655,23 @@ document.addEventListener('DOMContentLoaded', () => {
     showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
 
-    // Chat Tab Functionality Elements and Handler (unchanged, for completeness)
+    // Chat Tab Functionality Elements and Handler (KEEP as is)
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
     const warChatBox = document.getElementById('warChatBox');
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-    function handleChatTabClick(event) {
-        const clickedTab = event.currentTarget;
-        const targetTab = clickedTab.dataset.chatTab;
+    function handleChatTabClick(event) { /* ... (your handleChatTabClick function here, keep as is) ... */ }
 
-        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
+    // IMPORTANT: Chain timer display elements (chainTimerDisplay, chainStartedDisplay, currentChainNumberDisplay)
+    // are now assumed to be STATIC HTML elements with those IDs in your document.
+    // If they are not already assigned globally in your initial DOM getters section, add them here.
+    // Example:
+    if (!chainTimerDisplay) chainTimerDisplay = document.getElementById('chainTimerDisplay');
+    if (!chainStartedDisplay) chainStartedDisplay = document.getElementById('chainStartedDisplay');
+    if (!currentChainNumberDisplay) currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
 
-        chatTabButtons.forEach(button => {
-            button.classList.remove('active');
-        });
-        clickedTab.classList.add('active');
-
-        if (chatDisplayArea) {
-            chatDisplayArea.innerHTML = '';
-        } else {
-            console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-            return;
-        }
-
-        if (unsubscribeFromChat) {
-            unsubscribeFromChat();
-            unsubscribeFromChat = null;
-            console.log("Unsubscribed from previous chat listener (tab switch).");
-        }
-
-        let showInputArea = true;
-
-        switch (targetTab) {
-            case 'faction-chat':
-                chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
-                setupChatRealtimeListener();
-                break;
-
-            case 'war-chat':
-                chatDisplayArea.innerHTML = `
-                    <p>Welcome to War Chat!</p>
-                    <p>Functionality not implemented yet for this dynamic tab.</p>
-                `;
-                break;
-
-            case 'private-chat':
-                chatDisplayArea.innerHTML = `
-                    <p>Welcome to Private Chat!</p>
-                    <p>Functionality not implemented yet for this dynamic tab.</p>
-                `;
-                break;
-
-            case 'faction-members':
-                chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
-                if (factionApiFullData && factionApiFullData.members) {
-                    displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
-                }
-                showInputArea = false;
-                break;
-
-            case 'recently-met':
-                populateRecentlyMetTab(chatDisplayArea);
-                showInputArea = false;
-                break;
-
-            case 'blocked-people':
-                chatDisplayArea.innerHTML = `
-                    <div class="blocked-people-layout">
-                        <div class="friends-list-section">
-                            <div class="header-box">
-                                <b>Friends</b>
-                            </div>
-                            <div class="search-bar">
-                                <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                                <span class="search-icon">🔍</span>
-                            </div>
-                            <div id="friendsScrollableList" class="scrollable-list">
-                                <p style="text-align:center; padding: 10px;">Loading friends...</p>
-                            </div>
-                        </div>
-
-                        <div class="ignores-list-section">
-                            <div class="header-box">
-                                <b>Ignores / Blocked</b>
-                            </div>
-                            <div class="search-bar">
-                                <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                                <span class="search-icon">🔍</span>
-                            </div>
-                            <div id="ignoresScrollableList" class="scrollable-list">
-                                <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-                const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-                populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
-
-                showInputArea = false;
-                break;
-
-            case 'settings':
-                populateSettingsTab(chatDisplayArea);
-                showInputArea = false;
-                break;
-
-            default:
-                console.warn(`Unknown chat tab: ${targetTab}`);
-                chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-                showInputArea = false;
-                break;
-        }
-
-        if (showInputArea) {
-            if (chatInputArea) chatInputArea.style.display = 'flex';
-        } else {
-            if (chatInputArea) chatInputArea.style.display = 'none';
-        }
-
-        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-    }
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -3834,18 +3697,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, DEBUG_FACTION_ID); // Populates factionApiFullData
-                populateUiComponents(warData, apiKey); // Injects the HTML elements
-
-                // Ensure global DOM references are assigned after HTML injection
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+                populateUiComponents(warData, apiKey); // Injects the HTML elements & assigns global DOM refs for Energy/Online
 
                 // Initial calls for all dynamic ops panel displays
                 await updateUserEnergyDisplay(userApiKey, playerId);
-                await updateOnlineMemberCounts(); // NEW: Initial call for online counts
+                await updateOnlineMemberCounts(); // Initial call for online counts
 
-                fetchAndDisplayChainData();
+                // These functions now update elements that are assumed to be correctly structured in HTML
+                fetchAndDisplayChainData(); // Updates chainTimerDisplay, chainStartedDisplay, currentChainNumberDisplay
                 fetchAndDisplayRankedWarScores();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
@@ -3865,7 +3724,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     listenersInitialized = true;
 
-                    setInterval(updateAllTimers, 1000); // Existing timer updates (e.g., enemy status in table)
+                    // All existing intervals
+                    setInterval(updateAllTimers, 1000); // Existing timer updates (e.g., enemy status in table, also Chain Timer display)
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Populates enemyDataGlobal
@@ -3895,7 +3755,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setInterval(() => {
                         if (userApiKey && playerId) {
                             updateUserEnergyDisplay(userApiKey, playerId);
-                            updateOnlineMemberCounts(); // NEW: Call for online counts
+                            updateOnlineMemberCounts();
                         } else {
                             console.warn("API key or Player ID not available for periodic user energy/online member refresh.");
                         }
@@ -3913,6 +3773,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
                 if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
                 if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
+                // For static Chain Timer elements
+                if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+                if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+                if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
             }
         } else {
             userApiKey = null;
@@ -3924,6 +3788,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
             if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
             if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
+            // For static Chain Timer elements
+            if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
         }
     });
 });
