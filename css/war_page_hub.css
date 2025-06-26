@@ -1774,6 +1774,8 @@ autocomplete-items {
     width: auto; /* Allows the button to shrink to the width of its content (text + padding) */
     padding: 4px 10px; /* Reduces the internal spacing (padding) around the text */
     font-size: 0.85em; /* Makes the text inside the button slightly smaller */
+	background-color: #dc3545; /* Changed to a strong red color (similar to status-hospital red) */
+    color: #f0f0f0; /* Changed to light text for contrast on red */
     /* Keep other properties like background-color, border, etc., as they are */
 }
 
@@ -2570,15 +2572,6 @@ autocomplete-items {
 
 .member-item .message-button:hover {
     filter: brightness(1.2); /* Slightly brighten on hover */
-}
-.quick-ff-target-btn .emoji-wrapper {
-    display: inline-block; /* Allows padding and border */
-    border: 1px solid black; /* The tiny black border */
-    padding: 0px 1px; /* Very tiny padding to give space for border */
-    border-radius: 2px; /* Slightly rounded corners for the mini-border */
-    vertical-align: middle; /* Helps align emoji with text */
-    line-height: 1; /* Prevents extra space above/below emoji */
-    font-size: 0.9em; /* Make emoji slightly smaller if it looks too big */
 }
 
 /* --- CSS for Action Buttons in the Ops Control Bar --- */
