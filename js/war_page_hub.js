@@ -2677,63 +2677,147 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // --- Chat Input Buttons Functionality ---
+    // Mute Button Toggle (🔊 / 🔇)
     const muteSoundButton = document.getElementById('muteSoundButton');
     if (muteSoundButton) {
+        // Set initial icon based on saved state (isChatMuted is a global variable)
         muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.classList.toggle('muted', isChatMuted); // Apply 'muted' class if already muted
+
         muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
+            isChatMuted = !isChatMuted; // Toggle the global mute state
+            localStorage.setItem('isChatMuted', isChatMuted); // Save state to local storage
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊'; // Toggle icon
+            muteSoundButton.classList.toggle('muted', isChatMuted); // Toggle 'muted' class
             console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
+            // TODO: Actual sound muting logic will check the 'isChatMuted' flag.
+            // (e.g., if you have a sound notification function, it would `if (!isChatMuted) playSound();`)
         });
     }
 
+    // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Aid button clicked. Functionality temporarily disabled.');
         });
     }
 
+    // Flight Button (✈️) - Quickly initiate travel/return
     const flightButton = document.querySelector('.flight-button');
     if (flightButton) {
         flightButton.addEventListener('click', () => {
+            // Open Torn travel page in a new tab
             window.open('https://www.torn.com/page.php?sid=travel', '_blank');
             console.log('Flight button clicked. Opening travel page.');
         });
     }
 
+    // Armory Button (💉️) - Link to Faction Armory
     const armoryButton = document.querySelector('.armory-button');
     if (armoryButton) {
         armoryButton.addEventListener('click', () => {
+            // Open Torn faction armory page in a new tab
             window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
             console.log('Armory button clicked. Opening armory page.');
         });
     }
 
+    // Refill Button (⛽) - Quick energy/nerve refill link
     const refillButton = document.querySelector('.refill-button');
     if (refillButton) {
         refillButton.addEventListener('click', () => {
+            // Open Torn points page for refills in a new tab
             window.open('https://www.torn.com/page.php?sid=points', '_blank');
             console.log('Refill button clicked. Opening points page.');
         });
     }
 
-    const alarmButton = document.querySelector('.siren-btn');
+    // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
+    const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
-    
-    if (chatSendBtn && chatTextInput) {
+
+    // NEW: Chaining Claim Button (🔗)
+    if (chainClaimButton) {
+        chainClaimButton.addEventListener('click', () => {
+            // Check if chain is active (optional, could be done in modal submit too)
+            if (currentLiveChainSeconds <= 0) {
+                alert("Chain is not active! Cannot claim hits.");
+                return;
+            }
+            // Check if a claim is already active
+            if (isChainingClaimActive) {
+                alert("A chain claim is already active! Only one claim at a time.");
+                return;
+            }
+            if (chainClaimModal) {
+                chainClaimModal.style.display = 'flex'; // Show the modal
+                chainHitsInput.focus(); // Focus on the first input
+            }
+        });
+    }
+
+    // NEW: Chain Claim Modal Buttons
+    if (submitChainClaimBtn) {
+        submitChainClaimBtn.addEventListener('click', () => {
+            const hits = parseInt(chainHitsInput.value, 10);
+            const chainNum = parseInt(chainNumberInput.value, 10);
+
+            if (isNaN(hits) || hits <= 0 || isNaN(chainNum) || chainNum <= 0) {
+                alert("Please enter valid positive numbers for hits and chain number.");
+                return;
+            }
+
+            // Set the global claim active flag
+            isChainingClaimActive = true;
+            updateTableButtonsState(); // Update Claim/Attack buttons state
+
+            // Send the claim message to chat
+            sendChainClaimMessage(hits, chainNum);
+
+            // Hide the modal and reset inputs
+            if (chainClaimModal) chainClaimModal.style.display = 'none';
+            chainHitsInput.value = '1';
+            chainNumberInput.value = '1';
+        });
+
+        // Allow Enter key to submit within modal inputs
+        if (chainHitsInput) {
+            chainHitsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitChainClaimBtn.click();
+            });
+        }
+        if (chainNumberInput) {
+            chainNumberInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitChainClaimBtn.click();
+            });
+        }
+    }
+
+    if (cancelChainClaimBtn) {
+        cancelChainClaimBtn.addEventListener('click', () => {
+            if (chainClaimModal) chainClaimModal.style.display = 'none'; // Hide the modal
+            chainHitsInput.value = '1'; // Reset inputs
+            chainNumberInput.value = '1';
+        });
+    }
+
+    if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
+        // Send message on button click
         chatSendBtn.addEventListener('click', sendChatMessage);
+
+        // Send message on Enter key press in the input field
         chatTextInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
+                event.preventDefault(); // Prevent default browser behavior (like new line)
+                sendChatMessage(); // Call our send message function
             }
         });
     }
@@ -2741,7 +2825,8 @@ function setupEventListeners(apiKey) {
     if (chatTabsContainer && chatTabButtons.length > 0) {
         chatTabButtons.forEach(button => {
             button.addEventListener('click', (event) => {
-                handleChatTabClick(event);
+                const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+                handleChatTabClick(event); // Assuming handleChatTabClick is the correct chat tab handler
             });
         });
     }
@@ -2825,37 +2910,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
-    const chatDisplay = document.getElementById('chat-display-area');
-    if (chatDisplay) {
-        chatDisplay.addEventListener('click', function(event) {
-            const addButton = event.target.closest('.add-member-button');
-
-            if (!addButton) {
-                return;
-            }
-
-            // --- START OF NEW LOGIC ---
-
-            // Immediately disable the button to prevent multiple clicks
-            addButton.disabled = true;
-            
-            // Instantly change the button's appearance to a "success" state
-            addButton.classList.add('success'); // A new class for CSS styling
-            addButton.innerHTML = '✓';          // Change the icon to a tick mark
-    
-            // We will add the database-saving code here in a later step
-            const friendIdToAdd = addButton.dataset.memberId;
-            console.log(`(Database save for friend ${friendIdToAdd} will happen here)`);
-    
-            // Set a timer to make the button disappear completely after 1.5 seconds
-            setTimeout(() => {
-                addButton.style.display = 'none';
-            }, 1500); // 1500 milliseconds = 1.5 seconds
-
-            // --- END OF NEW LOGIC ---
-        });
-    }
+} 
 
 async function initializeAndLoadData(apiKey) {
     try {
