@@ -2661,7 +2661,6 @@ function switchChatTab(tabName) {
     chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
 }
 
-// --- Event Listeners Setup ---
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -2835,25 +2834,52 @@ function setupEventListeners(apiKey) {
                 return;
             }
 
-            // --- START OF NEW LOGIC ---
+            // --- THIS IS THE FINAL, UPDATED LOGIC ---
 
-            // Immediately disable the button to prevent multiple clicks
+            // Disable the button to prevent multiple clicks while saving
             addButton.disabled = true;
-            
-            // Instantly change the button's appearance to a "success" state
-            addButton.classList.add('success'); // A new class for CSS styling
-            addButton.innerHTML = '✓';          // Change the icon to a tick mark
-    
-            // We will add the database-saving code here in a later step
-            const friendIdToAdd = addButton.dataset.memberId;
-            console.log(`(Database save for friend ${friendIdToAdd} will happen here)`);
-    
-            // Set a timer to make the button disappear completely after 1.5 seconds
-            setTimeout(() => {
-                addButton.style.display = 'none';
-            }, 1500); // 1500 milliseconds = 1.5 seconds
 
-            // --- END OF NEW LOGIC ---
+            const friendIdToAdd = addButton.dataset.memberId;
+            const currentUser = auth.currentUser;
+
+            // First, make sure a user is actually logged in
+            if (!currentUser) {
+                console.error("Error: You must be logged in to add a friend.");
+                alert("You are not logged in. Please refresh the page.");
+                addButton.disabled = false; // Re-enable the button if there's an error
+                return;
+            }
+
+            const currentUserId = currentUser.uid;
+
+            // This creates a reference to where the friend will be saved in your database
+            const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
+
+            // Now, we save the friend's ID to the database
+            friendDocRef.set({
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // This part runs ONLY if the save to the database is successful
+                console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
+                
+                // Now we do the visual change to the green tick
+                addButton.classList.add('success');
+                addButton.innerHTML = '✓';
+
+                // And set the timer to make it disappear
+                setTimeout(() => {
+                    addButton.style.display = 'none';
+                }, 1500);
+
+            })
+            .catch((error) => {
+                // This part runs if there was an error saving
+                console.error("Error adding friend to database: ", error);
+                alert("There was an error adding the friend. Please check the console for errors.");
+                addButton.disabled = false; // Re-enable the button so you can try again
+            });
+            // --- END OF FINAL LOGIC ---
         });
     }
 }
