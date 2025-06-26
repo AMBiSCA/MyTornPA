@@ -2769,7 +2769,7 @@ autocomplete-items {
     font-size: 1.1em; /* Make the value prominent */
     font-weight: bold;
     color: #00a8ff; /* A prominent color, adjust to your theme */
-    /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); if you want a slight shadow */
+    /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); if you want a slight sdow */
 }
 
 /* Adjustments for the grid layout if necessary to accommodate new items */
