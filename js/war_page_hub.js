@@ -3554,7 +3554,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 
     // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
     // using event delegation on recentlyMetTbody.
-}
+
 
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab with dummy data...");
