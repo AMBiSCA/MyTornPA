@@ -424,7 +424,6 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 // This function is designed to work with the data returned by the API v1 'rankedwars' selection
 // --- Start of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
 // This function is designed to work with the data returned by the API v1 'rankedwars' selection
-// --- Start of fetchAndDisplayRankedWarScores (API v1 - EXPECTS factionApiFullData.ranked_wars) ---
 async function fetchAndDisplayRankedWarScores() {
     console.error(">>> ENTERING fetchAndDisplayRankedWarScores FUNCTION (API v1 - EXPECTING ranked_wars TOP-LEVEL) <<<");
 
@@ -3330,8 +3329,5 @@ auth.onAuthStateChanged(async (user) => {
         console.log("Auth State Changed: User is NOT logged in.");
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-   
-   }
-});
-
+    }
 });
