@@ -25,9 +25,7 @@ let combinedOpsStatsContainer = null; // NEW: Reference to the main container
 let userEnergyDisplay = null;
 let onlineFriendlyMembersDisplay = null;
 let onlineEnemyMembersDisplay = null;
-let chainTimerDisplay = null;       // Re-assigned from here
-let chainStartedDisplay = null;     // Re-assigned from here
-let currentChainNumberDisplay = null; // Re-assigned from here (was missing previous explicit setup)
+
 
 
 
@@ -61,7 +59,7 @@ const energyTrackingContainer = document.getElementById('energyTrackingContainer
 const saveAdminsBtn = document.getElementById('saveAdminsBtn');
 const saveEnergyTrackMembersBtn = document.getElementById('saveEnergyTrackMembersBtn');
 const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH');
-const currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
+
 const chainStartedDisplay = document.getElementById('chainStartedDisplay');
 const yourFactionRankedScore = document.getElementById('yourFactionRankedScore');
 const opponentFactionRankedScore = document.getElementById('opponentFactionRankedScore');
