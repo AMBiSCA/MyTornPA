@@ -2927,12 +2927,19 @@ function setupEventListeners(apiKey) {
     }
 }
 
-async function initializeAndLoadData(apiKey) {
-    try {
-        // UPDATED: Removed 'wars' selection from the URL
-      const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}/wars?key=${apiKey}`;
+async function initializeAndLoadData(apiKey, factionId) {
+    // First, check if we have the necessary IDs to proceed.
+    if (!apiKey || !factionId) {
+        console.error("API Key or Faction ID is missing. Cannot fetch war data.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error: Missing API Key or Faction ID.';
+        return;
+    }
 
-        console.log("Attempting to fetch faction data with specified selections (no wars):", userFactionApiUrl);
+    try {
+        // This is the API URL to get the war data
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=wars&key=${apiKey}&comment=MyTornPA_WarData`;
+
+        console.log("Attempting to fetch war data from:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
@@ -2940,33 +2947,68 @@ async function initializeAndLoadData(apiKey) {
             throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
         }
 
-        factionApiFullData = await userFactionResponse.json();
-        console.log("Faction API Full Data (basic,members,chain):", factionApiFullData); // Log the full response
+        const apiData = await userFactionResponse.json();
+        console.log("Faction Wars API Data Received:", apiData);
 
-        if (factionApiFullData.error) {
-            console.error("Torn API responded with a detailed error:", factionApiFullData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
+        if (apiData.error) {
+            throw new Error(`Torn API Error: ${apiData.error.error}`);
         }
 
-        // Pass warData and apiKey to populateUiComponents
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // Pass warData and apiKey
+        // --- START: NEW LOGIC TO PARSE AND DISPLAY THE DATA ---
+
+        // Check if the 'ranked' war object exists in the response
+        if (apiData.wars && apiData.wars.ranked) {
+            const rankedWarInfo = apiData.wars.ranked;
+
+            // Get the target score and start time
+            const targetScoreValue = rankedWarInfo.target;
+            globalWarStartedActualTime = rankedWarInfo.start; // This is used by your live timer
+
+            // Find your faction and the opponent's faction from the 'factions' array
+            const yourFactionInfo = rankedWarInfo.factions.find(f => f.id == factionId);
+            const opponentFactionInfo = rankedWarInfo.factions.find(f => f.id != factionId);
+
+            // Update the UI elements with the fetched data
+            if (yourFactionRankedScore) {
+                yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score.toLocaleString() : 'N/A';
+            }
+            if (yourFactionNameScoreLabel) {
+                yourFactionNameScoreLabel.textContent = yourFactionInfo ? `${yourFactionInfo.name}:` : 'Your Faction:';
+            }
+            
+            if (opponentFactionRankedScore) {
+                opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score.toLocaleString() : 'N/A';
+            }
+            if (opponentFactionNameScoreLabel) {
+                opponentFactionNameScoreLabel.textContent = opponentFactionInfo ? `Vs. ${opponentFactionInfo.name}:` : 'Vs. Opponent:';
+            }
+
+            if (warTargetScore) {
+                warTargetScore.textContent = targetScoreValue ? targetScoreValue.toLocaleString() : 'N/A';
+            }
+            
+            console.log("Successfully parsed and displayed ranked war data.");
+
+        } else {
+            // This part runs if there is no active ranked war
+            console.log("No active ranked war found in the API response.");
+            if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+            if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+            if (warTargetScore) warTargetScore.textContent = 'N/A';
+            if (warStartedTime) warStartedTime.textContent = 'No Active War';
+            if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+            if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        }
+        // --- END: NEW LOGIC ---
 
     } catch (error) {
-        console.error("Error during comprehensive data initialization:", error);
+        console.error("Error during war data initialization:", error);
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
         // Reset related displays on error
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        // These will now likely show N/A or be removed if 'wars' data is no longer fetched
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'N/A';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'Error';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'Error';
+        if (warTargetScore) warTargetScore.textContent = 'Error';
+        if (warStartedTime) warStartedTime.textContent = 'Error';
     }
 }
 // >>> END REPLACE initializeAndLoadData <<<
