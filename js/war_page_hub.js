@@ -689,7 +689,7 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
     } else if (warStartedTime) {
         warStartedTime.textContent = 'N/A';
     }
-}
+
 
  // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
  if (enemyTargetsContainer) {
