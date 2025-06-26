@@ -2339,68 +2339,60 @@ function setupEventListeners(apiKey) {
 	
 	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
 
-// --- Start of UPDATED initializeAndLoadData (FORCED API v1, ONLY BASIC & RANKEDWARS) ---
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - FORCED SELECTIONS) <<<");
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION <<<"); // UNMISTAKABLE LOG
 
     const keyToUse = apiKey;
-    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID; // Using .ID as per API v1 top-level
-
-    // --- LOGGING FOR DEBUGGING finalFactionId ---
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.ID (if already populated from a previous run):", factionApiFullData?.ID);
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated (should be your Faction ID):", finalFactionId);
-    // --- END LOGGING ---
+    const finalFactionId = factionIdToUseOverride || factionApiFullData?.basic?.id;
 
     if (!finalFactionId) {
-        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API v1 call for specific faction.";
-        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
-        if (factionWarHubTitleEl) {
-            factionWarHubTitleEl.textContent = errorMsg;
+        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API call.";
+        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg); // DIRECT FATAL ERROR LOG
+        if (document.getElementById('factionWarHubTitle')) {
+            document.getElementById('factionWarHubTitle').textContent = errorMsg;
         }
-        return;
+        return; // Exit if no faction ID
     }
 
     try {
-        // EXACT URL YOU REQUESTED: API v1, faction ID in path, ONLY basic,rankedwars selections
-        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
 
-        console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
+        console.log("initializeAndLoadData: Attempting to fetch from URL:", userFactionApiUrl); // Log the actual URL being used
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
             const errorData = await userFactionResponse.json().catch(() => ({}));
             const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
-            throw new Error(`Torn API v1 HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
+            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-        console.log("initializeAndLoadData (API v1): Faction API Full Data fetched:", factionApiFullData);
+        console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
-            console.error("Torn API v1 responded with a detailed error:", factionApiFullData.error);
-            throw new Error(`Torn API v1 Error: ${JSON.stringify(factionApiFullData.error)}`);
+            throw new Error(`Torn API DATA Error: ${factionApiFullData.error.error || JSON.stringify(factionApiFullData.error)}`);
         }
 
-        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY (API v1) <<<");
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<"); // SUCCESS LOG
 
     } catch (error) {
-        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (API v1):", error);
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data (API v1): ${error.message || 'Unknown error'}.`;
-        // Reset related displays on error (chain/members data are no longer fetched with these selections)
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'N/A';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error); // CLEAR CATCH LOG
+        if (document.getElementById('factionWarHubTitle')) {
+            document.getElementById('factionWarHubTitle').textContent = `Error Loading War Hub Data: ${error.message || 'Unknown error'}.`;
+        }
+        // Reset related displays on error
+        if (document.getElementById('currentChainNumberDisplay')) document.getElementById('currentChainNumberDisplay').textContent = 'Error';
+        // ... (keep the rest of your error UI resets as they were) ...
+        if (document.getElementById('yourFactionRankedScore')) document.getElementById('yourFactionRankedScore').textContent = 'N/A';
+        if (document.getElementById('opponentFactionRankedScore')) document.getElementById('opponentFactionRankedScore').textContent = 'N/A';
+        if (document.getElementById('warTargetScore')) document.getElementById('warTargetScore').textContent = 'N/A';
+        if (document.getElementById('warStartedTime')) document.getElementById('warStartedTime').textContent = 'N/A';
+        if (document.getElementById('yourFactionNameScoreLabel')) document.getElementById('yourFactionNameScoreLabel').textContent = 'Your Faction:';
+        if (document.getElementById('opponentFactionNameScoreLabel')) document.getElementById('opponentFactionNameScoreLabel').textContent = 'Vs. Opponent:';
     }
 }
-// --- End of UPDATED initializeAndLoadData (FORCED API v1, ONLY BASIC & RANKEDWARS) ---
+// >>> END REPLACE initializeAndLoadData <<<
 	
 	if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
     // Send message on button click
