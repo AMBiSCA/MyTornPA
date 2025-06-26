@@ -488,7 +488,6 @@ transition: background-color 0.2s ease;
     background-color: #333; /* As per our earlier discussion, for matching color */
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    border-top:
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
