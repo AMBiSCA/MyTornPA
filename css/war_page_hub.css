@@ -2670,7 +2670,7 @@ autocomplete-items {
 /* The text label above each button */
 .action-button-label {
     margin: 0 0 5px 0;
-    color: #ddd;
+    color: black;
     font-size: 13px;
     font-weight: bold;
     white-space: nowrap;
