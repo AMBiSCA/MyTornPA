@@ -682,7 +682,7 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
      warStartedTime.textContent = 'N/A';
  }
 
-}
+
 
   // Update Chain Timer Display (smooth 1-second countdown)
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
