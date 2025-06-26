@@ -21,8 +21,10 @@ let isProcessingQueue = false; // Flag to indicate if the queue is currently bei
 let lastEmojiIndex = -1; // To keep track of the last emoji used
 let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
+let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 
 // --- DOM Element Getters ---
+
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
 const warEnlistedStatus = document.getElementById('warEnlistedStatus');
@@ -618,7 +620,6 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
       warStartedTime.textContent = 'N/A';
   }
 
-// ... (Your existing Utility Functions, e.g., formatTime, formatTornTime, filterProfanity if present) ...
 
 // NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
@@ -709,6 +710,8 @@ async function sendChatMessage() {
         alert("Failed to send message. See console for details.");
     }
 }
+
+
 
 // NEW: Function to set up real-time listener for chat messages
 function setupChatRealtimeListener() {
@@ -2470,6 +2473,81 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+
+    // --- Chat Input Buttons Functionality ---
+    // Mute Button Toggle (🔊 / 🔇)
+    const muteSoundButton = document.getElementById('muteSoundButton');
+    if (muteSoundButton) {
+        // Set initial icon based on saved state (isChatMuted is a global variable)
+        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+        muteSoundButton.classList.toggle('muted', isChatMuted); // Apply 'muted' class if already muted
+
+        muteSoundButton.addEventListener('click', () => {
+            isChatMuted = !isChatMuted; // Toggle the global mute state
+            localStorage.setItem('isChatMuted', isChatMuted); // Save state to local storage
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊'; // Toggle icon
+            muteSoundButton.classList.toggle('muted', isChatMuted); // Toggle 'muted' class
+            console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
+            // TODO: Actual sound muting logic will check the 'isChatMuted' flag.
+            // (e.g., if you have a sound notification function, it would `if (!isChatMuted) playSound();`)
+        });
+    }
+
+    // Aid Button (🚨) - Request general help/aid
+    const aidButton = document.querySelector('.aid-button');
+    if (aidButton) {
+        aidButton.addEventListener('click', () => {
+            if (chatTextInput) {
+                chatTextInput.value = 'Requesting aid...';
+                chatTextInput.focus();
+            }
+            console.log('Aid button clicked.');
+        });
+    }
+
+    // Flight Button (✈️) - Quickly initiate travel/return
+    const flightButton = document.querySelector('.flight-button');
+    if (flightButton) {
+        flightButton.addEventListener('click', () => {
+            // Open Torn travel page in a new tab
+            window.open('https://www.torn.com/page.php?sid=travel', '_blank');
+            console.log('Flight button clicked. Opening travel page.');
+        });
+    }
+
+    // Armory Button (💉️) - Link to Faction Armory
+    const armoryButton = document.querySelector('.armory-button');
+    if (armoryButton) {
+        armoryButton.addEventListener('click', () => {
+            // Open Torn faction armory page in a new tab
+            window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
+            console.log('Armory button clicked. Opening armory page.');
+        });
+    }
+
+    // Refill Button (⛽) - Quick energy/nerve refill link
+    const refillButton = document.querySelector('.refill-button');
+    if (refillButton) {
+        refillButton.addEventListener('click', () => {
+            // Open Torn points page for refills in a new tab
+            window.open('https://www.torn.com/page.php?sid=points', '_blank');
+            console.log('Refill button clicked. Opening points page.');
+        });
+    }
+
+    // Alarm / Siren Button (⚠️) is left as is for now. Its click handler could be added here if needed.
+    // Example for Alarm (if you want it to pre-fill chat):
+    const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
+    if (alarmButton) {
+        alarmButton.addEventListener('click', () => {
+            if (chatTextInput) {
+                chatTextInput.value = '!!! URGENT ATTENTION NEEDED !!!';
+                chatTextInput.focus();
+            }
+            console.log('Alarm button clicked.');
+        });
+    }
+}
 	
 	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
 
