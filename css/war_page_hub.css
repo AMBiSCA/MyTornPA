@@ -320,17 +320,10 @@ flex-grow: 1; /* Add ellipsis if tab text is too long */
 
 /* Top row of smaller buttons (siren, blank) */
 .chat-input-buttons-top {
-    background-color: rgba(0,0,0,0.15);
-    border: 1px solid #444;
-    border-radius: 6px;
-    padding: 5px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+display: flex;
+justify-content: flex-start; /* Align buttons to the left */
+gap: 5px; /* Space between buttons */
 }
-
-
 
 /* Small action buttons (siren, blank) */
 .chat-action-btn {
@@ -2619,6 +2612,7 @@ autocomplete-items {
 }
 
 
+/* --- CSS for Action Buttons in the Ops Control Bar --- */
 
 /* This new class on the grid item allows us to align it. */
 .ops-control-item--actions {
