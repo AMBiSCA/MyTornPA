@@ -1308,35 +1308,77 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-async function initializeAndLoadData(apiKey) {
-    try {
-        // CORRECTED & CONFIRMED URL: Request 'basic', 'members', 'chain', and 'wars' selections
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/?selections=basic,members,chain,wars&key=${apiKey}&comment=MyTornPA_WarHub_Combined`;
+async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
+    console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
-        console.log("Attempting to fetch faction data with specified selections:", userFactionApiUrl);
+    const keyToUse = apiKey;
+    // Determine the final faction ID to use for the API call
+    let finalFactionId = factionIdToUseOverride; // This is passed from auth.onAuthStateChanged
+
+    // If factionIdToUseOverride is null, try to use factionApiFullData.basic.id (if already populated)
+    if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
+        finalFactionId = factionApiFullData.basic.id;
+    }
+    // If still no faction ID, try to get it from the user's Firebase profile data
+    // This assumes userData was already fetched in auth.onAuthStateChanged
+    if (!finalFactionId && auth.currentUser) {
+        try {
+            const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
+            if (userProfileDoc.exists) {
+                finalFactionId = userProfileDoc.data().faction_id;
+            }
+        } catch (error) {
+            console.error("Error fetching faction ID from user profile in initializeAndLoadData fallback:", error);
+        }
+    }
+
+
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed):", factionIdToUseOverride);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.basic?.id (from global):", factionApiFullData?.basic?.id);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated:", finalFactionId);
+
+    if (!finalFactionId) {
+        const errorMsg = "ERROR: Faction ID is null or undefined. Cannot make API call for specific faction.";
+        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
+        if (factionWarHubTitleEl) {
+            factionWarHubTitleEl.textContent = errorMsg;
+        }
+        return;
+    }
+
+    try {
+        // CORRECTED API URL and SELECTIONS to fetch all necessary data (basic, members, chain, wars, bars)
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+
+        console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
 
         if (!userFactionResponse.ok) {
-            throw new Error(`Server responded with an error: ${userFactionResponse.status} ${userFactionResponse.statusText}`);
+            const errorData = await userFactionResponse.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
         }
 
         factionApiFullData = await userFactionResponse.json();
-        console.log("Faction API Full Data (basic,members,chain,wars):", factionApiFullData); // Log the full response
+        console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
 
-        // Pass warData and apiKey to populateUiComponents
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
+
+        // After successful fetch, populate UI components
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // Pass warData and apiKey
+        populateUiComponents(warData, apiKey);
 
     } catch (error) {
-        console.error("Error during comprehensive data initialization:", error);
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = 'Error Loading War Hub Data.';
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data: ${error.message || 'Unknown error'}.`;
+        
         // Reset related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
@@ -1349,73 +1391,6 @@ async function initializeAndLoadData(apiKey) {
         if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
-
-    function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
-    // Basic Faction Info (from global factionApiFullData)
-    if (factionApiFullData) {
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
-        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
-
-        if (factionApiFullData.members) {
-            populateFriendlyMemberCheckboxes(
-                factionApiFullData.members,
-                warData.tab4Admins || [],
-                warData.energyTrackingMembers || []
-            );
-            displayFriendlyMembersTable(factionApiFullData.members);
-        } else {
-            console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
-            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
-        }
-    } else {
-        console.warn("factionApiFullData not available in populateUiComponents.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
-        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
-    }
-    
-    // --- NEW: Dynamically inject Energy Display Box ---
-    const opsControlsGrid = document.querySelector('.ops-controls-grid'); // Get the grid container
-    if (opsControlsGrid && !document.getElementById('userEnergyDisplay')) { // Check if grid exists and box is not already there
-        const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
-        if (timerItem) {
-            timerItem.insertAdjacentHTML('afterend', createEnergyDisplayBoxHtml()); // Inject next to Chain Timer
-            // Now, get the reference to the newly injected element
-            userEnergyDisplay = document.getElementById('userEnergyDisplay');
-        } else {
-            // Fallback if timerItem is not found: add to end of grid
-            opsControlsGrid.insertAdjacentHTML('beforeend', createEnergyDisplayBoxHtml());
-            userEnergyDisplay = document.getElementById('userEnergyDisplay');
-        }
-    }
-    // --- END NEW ---
-
-    // Game Plan & Announcements (from Firebase warData)
-    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
-    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
-    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
-
-    populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
-
-    // Store enemy faction ID globally (from Firebase warData)
-    globalEnemyFactionID = warData.enemyFactionID || null;
-
-    // Display enemy targets table (still needs enemyData via separate fetch)
-    if (warData.enemyFactionID) {
-        fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []);
-        displayEnemyTargetsTable(null); // This clears the table
-    }
-
-    // Call user energy display update (now called from auth.onAuthStateChanged as per final plan)
-    // Removed: updateUserEnergyDisplay(); // This call is now primarily from auth.onAuthStateChanged
-}
-
 function displayFriendlyMembersTable(members) {
     if (!friendlyMembersTbody) {
         console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
@@ -3207,6 +3182,72 @@ async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
 
     // TODO: In a real scenario, you'd add event listeners here for the dynamically created buttons (letter, trash)
     // using event delegation on friendsListEl and ignoresListEl.
+}
+
+function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+    // Basic Faction Info (from global factionApiFullData)
+    if (factionApiFullData) {
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
+        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
+
+        if (factionApiFullData.members) {
+            populateFriendlyMemberCheckboxes(
+                factionApiFullData.members,
+                warData.tab4Admins || [],
+                warData.energyTrackingMembers || []
+            );
+            displayFriendlyMembersTable(factionApiFullData.members);
+        } else {
+            console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
+            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
+        }
+    } else {
+        console.warn("factionApiFullData not available in populateUiComponents.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
+        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
+    }
+    
+    // --- NEW: Dynamically inject Energy Display Box ---
+    const opsControlsGrid = document.querySelector('.ops-controls-grid'); // Get the grid container
+    if (opsControlsGrid && !document.getElementById('userEnergyDisplay')) { // Check if grid exists and box is not already there
+        const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
+        if (timerItem) {
+            timerItem.insertAdjacentHTML('afterend', createEnergyDisplayBoxHtml()); // Inject next to Chain Timer
+            // Now, get the reference to the newly injected element
+            userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Assign to global let variable
+        } else {
+            // Fallback if timerItem is not found: add to end of grid
+            opsControlsGrid.insertAdjacentHTML('beforeend', createEnergyDisplayBoxHtml());
+            userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Assign to global let variable
+        }
+    }
+    // --- END NEW ---
+
+    // Game Plan & Announcements (from Firebase warData)
+    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
+    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
+    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
+
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
+
+    // Store enemy faction ID globally (from Firebase warData)
+    globalEnemyFactionID = warData.enemyFactionID || null;
+
+    // Display enemy targets table (still needs enemyData via separate fetch)
+    if (warData.enemyFactionID) {
+        fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []);
+        displayEnemyTargetsTable(null); // This clears the table
+    }
+
+    // Call user energy display update (now called from auth.onAuthStateChanged as per final plan)
+    // Removed: updateUserEnergyDisplay(); // This call is now primarily from auth.onAuthStateChanged
 }
 
 // Function: displayQuickFFTargets

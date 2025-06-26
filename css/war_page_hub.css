@@ -453,20 +453,16 @@ transition: background-color 0.2s ease;
     box-sizing: border-box; /* Include padding/border */
 }
 
-/* NEW: This wrapper controls the visible height and scrolling of messages */
-/* This is the key element for forcing the messages to scroll within a defined height */
 .chat-messages-scroll-wrapper {
-    flex-grow: 1; /* CRITICAL: Allows this to take up all remaining vertical space in #warChatBox */
-    /* This height calculates the remaining space after tabs and input area take their fixed height */
-    height: calc(100% - 80px); /* ADJUST '80px' if your .chat-tabs-container (40px) + .chat-input-area's height (approx 40-50px) is different */
-    overflow-y: scroll; /* FORCES vertical scrollbar (prevents jolt by always reserving space) */
-    scrollbar-gutter: stable; /* Helps prevent browser layout shifts when scrollbar appears/disappears */
-    
-    padding: 10px; /* Internal padding for the scrollable area */
-    background-color:  #222; /* Background for the scrollable messages area */
-    border-radius: 8px; /* Rounded corners for the scrollable area */
-    margin-bottom: 2px; /* Space between messages scroll area and input */
-    box-sizing: border-box; /* Include padding/border */
+    flex-grow: 1;
+    height: calc(100% - 150px); /* Corrected calculation (110px for input + 40px for tabs) */
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+    padding: 2px 10px 10px;
+    background-color: #222;
+    border-radius: 8px;
+    margin-bottom: 0;
+    box-sizing: border-box;
 }
 
 /* Styles for the actual chat messages display area, *inside* the scroll wrapper */
@@ -480,19 +476,19 @@ transition: background-color 0.2s ease;
 }
 
 /* Chat Input Area (bottom section with buttons and text input) */
+/* Chat Input Area (bottom section with buttons and text input) */
 .chat-input-area {
-    height: 80px;   /* Reverted to original height */
-    padding: 10px;  /* Reverted to original padding */
-    gap: 5px;       /* Keep this value for spacing between the two rows of controls */
-    /* Ensure no other `padding-top` is overriding these values */
-    background-color: #333; /* As per our earlier discussion, for matching color */
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    border-top: 1px solid #1e1e1e;
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    height: 110px; /* Increased from 80px to make it taller */
+    background-color: #333;
+    padding: 5px 10px 8px;
+    border-top: 1px solid #1e1e1e;
+    gap: 5px;
+    box-sizing: border-box;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 /* --- SCROLLBAR STYLING FOR CHAT MESSAGES (Applied to .chat-messages-scroll-wrapper) --- */
