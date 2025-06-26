@@ -330,21 +330,7 @@ flex-grow: 1; /* Add ellipsis if tab text is too long */
     align-items: center;
 }
 
-.chat-input-buttons-top .chat-action-btn {
-    background: transparent;
-    border: none;
-    color: white; /* Ensures emojis render clearly */
-    font-size: 1.3rem; /* Makes emojis a bit larger and easier to click */
-    cursor: pointer;
-    border-radius: 4px;
-    padding: 2px 5px;
-    transition: background-color 0.2s ease;
-}
 
-/* Adds a subtle highlight when you hover over the emoji buttons */
-.chat-input-buttons-top .chat-action-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
 
 /* Small action buttons (siren, blank) */
 .chat-action-btn {
@@ -2596,6 +2582,42 @@ autocomplete-items {
 }
 
 /* --- CSS for Action Buttons in the Ops Control Bar --- */
+
+/* This is the container for the buttons - the "box" you wanted. */
+.action-buttons-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    
+    /* --- Styles for the 'box' --- */
+    background-color: rgba(255, 255, 255, 0.05); /* A very subtle, dark background for the box */
+    border: 1px solid #555;     /* A border to make the box visible */
+    border-radius: 8px;         /* Rounded corners for the box */
+    padding: 10px 15px;         /* Space inside the box */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); /* A subtle inner shadow for depth */
+}
+
+/* This applies to BOTH the red and green buttons */
+.action-button {
+    display: inline-block;
+    padding: 6px 15px; /* Keeps the buttons from being too thick */
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #222; /* A dark border for the buttons themselves */
+    color: black; /* Font color as requested */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* A subtle shadow for depth */
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Smooth hover effect */
+}
+
+/* A little "lift" effect when you hover over the buttons */
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
 
 
 /* This new class on the grid item allows us to align it. */
