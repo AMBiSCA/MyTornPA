@@ -2478,226 +2478,6 @@ function createEnergyAndOnlineMembersGroupHtml() {
     `;
 }
 
-
-async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
-    console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
-
-    const personalStatsModal = document.getElementById('personalStatsModal');
-    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
-
-    if (!personalStatsModal || !personalStatsModalBody) {
-        console.error("HTML Error: Personal Stats Modal elements not found!");
-        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-        return;
-    }
-
-    personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-    personalStatsModal.classList.add('visible');
-
-    // Selections to fetch all dashboard quick stats and personal stats
-    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns"; 
-    const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
-
-    console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
-
-    function formatTcpAnniversaryDate(dateObject) {
-        if (!dateObject) return 'N/A';
-        let jsDate;
-        if (dateObject instanceof Date) {
-            jsDate = dateObject;
-        } else if (dateObject && typeof dateObject.toDate === 'function') {
-            jsDate = dateObject.toDate();
-        } else {
-            return 'N/A';
-        }
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return jsDate.toLocaleDateString(undefined, options);
-    }
-
-    try {
-        const response = await fetch(apiUrl);
-        console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
-        const data = await response.json();
-        console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
-
-
-        if (!response.ok) {
-            const errorData = data || { message: "Failed to parse API error response." };
-            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
-            let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
-            throw new Error(errorMessage);
-        }
-        if (data.error) {
-            console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-        }
-
-        // --- Call Netlify Function for Secure Firebase Storage ---
-        const userId = data.player_id; 
-        if (userId) {
-            const userDataToSave = {
-                name: data.name,
-                level: data.level,
-                // NEW: Added faction_id to save to Firebase 'users' collection
-                faction_id: data.faction?.faction_id || null, // Get faction ID from Torn API 'profile' selection
-                faction_name: data.faction?.faction_name || null, // Also save faction name
-                
-                // Quick Stats from 'basic' selection and status object
-                nerve: data.nerve || 0,
-                energy: data.energy || 0,
-                happy: data.happy || 0,
-                life: data.life || 0,
-                traveling: data.status?.state === 'Traveling' || false,
-                hospitalized: data.status?.state === 'Hospital' || false,
-                // Cooldowns from 'cooldowns' selection
-                cooldowns: {
-                    drug: data.cooldowns?.drug || 0,
-                    booster: data.cooldowns?.booster || 0,
-                },
-                // Personal Stats
-                personalstats: data.personalstats || {},
-                // Battle Stats
-                battlestats: {
-                    strength: data.strength || data.battlestats?.strength || 0,
-                    defense: data.defense || data.battlestats?.defense || 0,
-                    speed: data.speed || data.battlestats?.speed || 0,
-                    dexterity: data.dexterity || data.battlestats?.dexterity || 0, 
-                    total: data.total || data.battlestats?.total || 0,
-                    strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
-                    defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
-                    speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
-                    dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
-                },
-                // Work Stats
-                workstats: {
-                    manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
-                    intelligence: data.intelligence || data.workstats?.intelligence || 0,
-                    endurance: data.endurance || data.workstats?.endurance || 0,
-                },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for last update
-            };
-
-            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
-
-            try {
-                // Call the new Netlify Function to securely save data to Firestore
-                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: String(userId), // Ensure userId is a string
-                        userData: userDataToSave,
-                    }),
-                });
-
-                if (!netlifyFunctionResponse.ok) {
-                    const errorDetails = await netlifyFunctionResponse.json();
-                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
-                }
-
-                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
-            } catch (functionError) {
-                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
-            }
-        } else {
-            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
-        }
-        // --- End: Call Netlify Function for Secure Firebase Storage ---
-
-
-        let htmlContent = '<h4>User Information</h4>';
-        htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
-        htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
-        htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
-
-        let xanaxDisplay = 'N/A';
-        if (data.personalstats && data.personalstats.xantaken !== undefined) {
-            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? xanaxDisplay.toLocaleString() : xanaxDisplay;
-        }
-        htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
-
-        const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
-        htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
-
-        htmlContent += '<h4>Battle Stats</h4>';
-        if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
-            const bsStrength = data.strength || data.battlestats?.strength;
-            const bsDefense = data.defense || data.battlestats?.defense;
-            const bsSpeed = data.speed || data.battlestats?.speed;
-            const bsDexterity = data.dexterity || data.battlestats?.dexterity;
-            
-            const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
-            const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
-            const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
-            const dexterityModifier = data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0;
-
-            const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
-            const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
-            const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
-            const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
-            
-            const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpd + bsDexterity);
-
-            htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
-        } else {
-            htmlContent += '<p>Battle stats data not available.</p>';
-            console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
-        }
-
-        htmlContent += '<h4>Work Stats</h4>';
-        if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
-            htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
-            htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${(data.endurance || data.workstats?.endurance).toLocaleString()}</span></p>`;
-        } else {
-            htmlContent += '<p>Work stats data not available.</p>';
-            console.warn("[DEBUG] Work stats (manual_labor, intelligence, endurance) not found directly in API response data or within 'workstats' object, or are not numbers.");
-        }
-
-        personalStatsModalBody.innerHTML = htmlContent;
-    } catch (error) {
-        console.error("Error fetching/displaying personal stats in modal:", error);
-        personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
-    }
-}
-// NEW: Function to handle switching chat tabs
-function switchChatTab(tabName) {
-    console.log(`Switching to chat tab: ${tabName}`);
-
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
-        console.error("Chat elements not found for tab switching.");
-        return;
-    }
-
-    // Remove 'active' class from all tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-
-    // Add 'active' class to the clicked tab
-    const selectedTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
-    if (selectedTabButton) {
-        selectedTabButton.classList.add('active');
-    } else {
-        console.warn(`Chat tab button for "${tabName}" not found.`);
-    }
-
-    // --- Temporary: Update chat display area based on selected tab ---
-    // In a later step, we will load actual messages from Firebase for the selected tab.
-    chatDisplayArea.innerHTML = `<p>Welcome to the <span style="font-weight:bold; color: #00a8ff;">${tabName.replace('-', ' ')}</span> chat!</p><p>Messages will appear here...</p>`;
-
-    // Keep active tab scrolled to view
-    chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
-}
-
-// --- Event Listeners Setup ---
-// --- Event Listeners Setup ---
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -2764,7 +2544,28 @@ function setupEventListeners(apiKey) {
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
-
+    
+    // This listener was for a modal that is not in the latest HTML, it can be removed or left if you plan to re-add it.
+    // I've commented it out for now to avoid potential errors.
+    /*
+    if (chainClaimButton) {
+        chainClaimButton.addEventListener('click', () => {
+            if (currentLiveChainSeconds <= 0) {
+                alert("Chain is not active! Cannot claim hits.");
+                return;
+            }
+            if (isChainingClaimActive) {
+                alert("A chain claim is already active! Only one claim at a time.");
+                return;
+            }
+            if (chainClaimModal) {
+                chainClaimModal.style.display = 'flex';
+                chainHitsInput.focus();
+            }
+        });
+    }
+    */
+    
     if (chatSendBtn && chatTextInput) {
         chatSendBtn.addEventListener('click', sendChatMessage);
         chatTextInput.addEventListener('keydown', (event) => {
@@ -2863,7 +2664,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // --- PASTE THE NEW CODE BLOCK HERE ---
+    // --- START: Add Friend Button Listener ---
     // This listener handles clicks inside the main chat content area
     const chatDisplay = document.getElementById('chat-display-area');
     if (chatDisplay) {
@@ -2876,20 +2677,46 @@ function setupEventListeners(apiKey) {
                 return;
             }
 
-            // If you DID click an add button, it gets the member's ID
-            const friendIdToAdd = addButton.dataset.memberId;
-            
-            alert(`You clicked 'Add Friend' for member ID: ${friendIdToAdd}`); // Temporary alert for testing
+            // Disable the button to prevent multiple rapid clicks
+            addButton.disabled = true;
 
-            // This line will hide the button after you click it.
-            // In the next step, we will add the database logic here.
-            addButton.style.display = 'none'; 
+            const friendIdToAdd = addButton.dataset.memberId;
+            const currentUser = auth.currentUser;
+
+            // First, make sure a user is actually logged in
+            if (!currentUser) {
+                console.error("Error: You must be logged in to add a friend.");
+                alert("You are not logged in. Please refresh the page.");
+                addButton.disabled = false; // Re-enable the button if there's an error
+                return;
+            }
+
+            const currentUserId = currentUser.uid;
+
+            // This creates a reference to where the friend will be saved in your database
+            const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
+
+            // Now, we save the friend's ID to the database
+            friendDocRef.set({
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // This part runs ONLY if the save was successful
+                console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
+                // Now we hide the button because it worked
+                addButton.style.display = 'none';
+            })
+            .catch((error) => {
+                // This part runs if there was an error saving
+                console.error("Error adding friend to database: ", error);
+                alert("There was an error adding the friend. Please try again.");
+                addButton.disabled = false; // Re-enable the button so you can try again
+            });
         });
     }
-    // --- END OF NEW CODE BLOCK ---
+    // --- END: Add Friend Button Listener ---
 
-} // <-- The new code must be BEFORE this closing brace
-
+}
 async function initializeAndLoadData(apiKey) {
     try {
         // UPDATED: Removed 'wars' selection from the URL
