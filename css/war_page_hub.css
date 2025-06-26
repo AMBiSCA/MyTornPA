@@ -2684,3 +2684,46 @@ autocomplete-items {
 .action-button-green {
     background-color: #43a047;
 }
+/* --- Styles for Energy Display Box on Active Ops Tab --- */
+
+/* Specific styling for the Energy Display box */
+.ops-control-item.ops-energy-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    gap: 3px;
+    white-space: nowrap;
+    font-size: 0.9em;
+    padding: 5px; /* Adjust padding to match other ops-control-items */
+    
+    /* Inherit overall box styling from .ops-control-item if defined,
+       or add similar border/background/shadow as other ops-control-items */
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: #222; /* Dark background matching other boxes */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ops-control-item.ops-energy-display label {
+    color: #e0a71a; /* Gold color for label */
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Style for the actual energy value display (reusing status-value-box for consistency) */
+#userEnergyDisplay {
+    background-color: #1e1e1e; /* Darker background for the value box */
+    border: 1px solid #00a8ff; /* Blue border like other value boxes/inputs */
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1em;
+    min-width: 80px; /* Ensure it has a minimum width */
+    max-width: 120px; /* Limit max width */
+    display: inline-block; /* Treat as inline-block to accept width/height */
+    box-sizing: border-box;
+    text-align: center;
+    color: #00a8ff; /* Blue color for the energy value */
+    font-weight: bold;
+}
