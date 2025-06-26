@@ -2642,10 +2642,10 @@ autocomplete-items {
 
 /* This new class on the grid item allows us to align it. */
 .ops-control-item--actions {
-    display: auto;
-    margin-left: auto;
+    display: flex;
+    justify-content: flex-end; /* This aligns our button box to the right */
     align-items: center;
-    margin-top: 8px;
+    margin-top: 8px; /* Nudges the box down slightly */
 }
 
 /* This is the container for the buttons - the "box" you wanted. */
@@ -2654,7 +2654,7 @@ autocomplete-items {
     gap: 20px;
     align-items: center;
     
-    /* --- Styles for the 'box' --- */
+    /* --- Styles for the main 'box' --- */
     background-color: rgba(255, 255, 255, 0.05);
     border: 1px solid #555;
     border-radius: 8px;
@@ -2665,11 +2665,15 @@ autocomplete-items {
 /* Styles for each individual button group (label + button) */
 .action-button-group {
     text-align: center;
+    padding: 10px 15px; /* Space inside the little boxes */
+    background-color: rgba(0,0,0,0.15); /* Makes the little boxes slightly darker */
+    border: 1px solid #444; /* Border for the little boxes */
+    border-radius: 6px; /* Rounded corners for the little boxes */
 }
 
 /* The text label above each button */
 .action-button-label {
-    margin: 0 0 5px 0;
+    margin: 0 0 8px 0; /* Increased bottom margin slightly for more space */
     color: black;
     font-size: 13px;
     font-weight: bold;
