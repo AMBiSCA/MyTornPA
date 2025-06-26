@@ -282,6 +282,25 @@ async function updateOnlineMemberCounts() {
     }
 }
 
+// --- TEMPORARY FUNCTION FOR TESTING ONLY ---
+// !!! IMPORTANT: REMOVE THIS FUNCTION AND ITS CALL IN PRODUCTION !!!
+function simulateActiveChain() {
+    console.warn("--- SIMULATING ACTIVE CHAIN FOR TESTING ---");
+    // Set a pretend chain time (e.g., 1 hour remaining)
+    currentLiveChainSeconds = 3600; // 1 hour = 3600 seconds
+
+    // Set a pretend chain started timestamp (e.g., 5 minutes ago)
+    globalChainStartedTimestamp = Math.floor(Date.now() / 1000) - 300; // Current time in seconds minus 300 seconds (5 minutes)
+
+    // Set a pretend current chain number
+    globalChainCurrentNumber = '1234'; // Or any number you want
+
+    // Also simulate energy if needed, or other states
+    // if (userEnergyDisplay) userEnergyDisplay.textContent = '1000/1000'; // Uncomment if you also want to simulate energy
+
+    console.warn("Pretend chain data set. Remember to REMOVE this simulation in production!");
+}
+// --- END TEMPORARY FUNCTION ---
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
@@ -3865,6 +3884,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await updateOnlineMemberCounts(); // NEW: Initial call for online counts
 
                 fetchAndDisplayChainData();
+				simulateActiveChain();
                 fetchAndDisplayRankedWarScores();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
