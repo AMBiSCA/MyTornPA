@@ -324,8 +324,10 @@ flex-grow: 1; /* Add ellipsis if tab text is too long */
 display: flex;
 justify-content: flex-start; /* Align buttons to the left */
 gap: 5px; /* Space between buttons */ 
-margin-top: 0;
+margin-top: -10px; /* This will pull the circular buttons up. Adjust the value (e.g., -5px for less, -15px for more) as needed. */
+padding-bottom: 0; /* Ensures no extra padding pushes them down */
 }
+
 
 /* Small action buttons (siren, blank) */
 .chat-action-btn {
@@ -477,18 +479,18 @@ transition: background-color 0.2s ease;
 
 /* Chat Input Area (bottom section with buttons and text input) */
 .chat-input-area {
-    display: flex;
-    flex-direction: column; /* Stack top buttons above input+send */
-    flex-shrink: 0;
-    height: 70px; /* MODIFIED: Reduced height from 80px to 70px to bring elements closer vertically */
-    background-color: #333; /* Background for the input bar */
-    padding: 5px 10px 10px 10px; /* MODIFIED: Reduced top padding to 5px, kept others at 10px. This moves the circular buttons up relative to the top edge of the input area. */
-    border-top: 1px solid #1e1e1e; /* Separator above input area */
-    gap: 5px; /* Space between the two rows of controls */
-    box-sizing: border-box; /* Include padding/border */
+    height: 80px;   /* Reverted to original height */
+    padding: 10px;  /* Reverted to original padding */
+    gap: 5px;       /* Keep this value for spacing between the two rows of controls */
+    /* Ensure no other `padding-top` is overriding these values */
+    background-color: #222; /* As per our earlier discussion, for matching color */
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    /* Removed the previous `padding-top: 0px;` if it was a separate line, as it's now integrated above */
+    border-top: 1px solid #1e1e1e;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
 }
 
 /* --- SCROLLBAR STYLING FOR CHAT MESSAGES (Applied to .chat-messages-scroll-wrapper) --- */
