@@ -654,6 +654,18 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
             }
         });
     }
+	
+	const rankedWarTimerEl = document.getElementById('rw-war-timer');
+    if (rankedWarTimerEl && globalWarStartedActualTime > 0) {
+        // Calculate the time elapsed since the war started
+        const timeElapsed = nowInSeconds - globalWarStartedActualTime;
+        // Update the element using our new formatDuration function
+        rankedWarTimerEl.textContent = formatDuration(timeElapsed);
+    } else if (rankedWarTimerEl) {
+        // If no war is active, show a default state
+        rankedWarTimerEl.textContent = '0:00:00:00';
+    }
+}
 
     // Update Chain Timer Display (smooth 1-second countdown)
     if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
@@ -2862,6 +2874,24 @@ function setupEventListeners(apiKey) {
         });
     }
 }
+
+unction formatDuration(seconds) {
+    if (seconds < 0) seconds = 0;
+    const days = Math.floor(seconds / 86400);
+    seconds %= 86400;
+    const hours = Math.floor(seconds / 3600);
+    seconds %= 3600;
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    const paddedHours = String(hours).padStart(2, '0');
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    const paddedSecs = String(secs).padStart(2, '0');
+
+    // Return in D:HH:MM:SS format
+    return `${days}:${paddedHours}:${paddedMinutes}:${paddedSecs}`;
+}
+
 
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
