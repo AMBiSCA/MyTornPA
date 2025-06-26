@@ -2643,7 +2643,7 @@ autocomplete-items {
 /* This new class on the grid item allows us to align it. */
 .ops-control-item--actions {
     display: auto;
-    justify-content: flex-end; /* This aligns our button box to the right */
+    margin-left: auto;
     align-items: center;
 }
 
