@@ -2273,8 +2273,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-        const members = factionData.members;
-        if (!members || Object.keys(members).length === 0) {
+        const membersArray = factionData.members; // This is now an array
+        if (!membersArray || membersArray.length === 0) { // Check length for array
             tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>';
             return;
         }
@@ -2282,68 +2282,71 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         let tableRowsHtml = '';
         const memberPromises = [];
 
-        for (const memberId in members) {
-            if (members.hasOwnProperty(memberId)) {
-                const memberDocRef = db.collection('users').doc(String(memberId));
-                memberPromises.push(memberDocRef.get().then(doc => {
-                    const memberTornData = members[memberId];
-                    const memberFirebaseData = doc.exists ? doc.data() : null;
+        // Corrected loop to iterate over the array of member objects
+        for (const memberTornData of membersArray) {
+            const memberId = memberTornData.id; // Extract the actual Torn player ID from the member object
 
-                    const name = memberTornData.name || 'Unknown';
-                    const level = memberTornData.level || 'N/A';
-                    const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
-                    const statusState = memberTornData.status?.state || 'N/A';
-                    const statusDescription = memberTornData.status?.description || 'N/A';
-
-                    const strength = memberFirebaseData?.battlestats?.strength?.toLocaleString() || 'N/A';
-                    const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
-                    const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
-                    const defense = memberFirebaseData?.battlestats?.defense?.toLocaleString() || 'N/A';
-                    const nerve = memberFirebaseData?.nerve !== undefined && memberFirebaseData?.nerve_full !== undefined ? `${memberFirebaseData.nerve}/${memberFirebaseData.nerve_full}` : 'N/A';
-                    const energy = memberFirebaseData?.energy !== undefined && memberFirebaseData?.energy_full !== undefined ? `${memberFirebaseData.energy}/${memberFirebaseData.energy_full}` : 'N/A';
-
-                    let statusClass = '';
-                    if (statusState === 'Hospital') statusClass = 'status-hospital';
-                    else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
-                    else if (statusState === 'Okay') statusClass = 'status-okay';
-
-                    return `
-                        <tr>
-                            <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
-                            <td>${level}</td>
-                            <td>${lastAction}</td>
-                            <td>${strength}</td>
-                            <td>${dexterity}</td>
-                            <td>${speed}</td>
-                            <td>${defense}</td>
-                            <td class="${statusClass}">${statusDescription}</td>
-                            <td>${nerve}</td>
-                            <td>${energy}</td>
-                        </tr>
-                    `;
-                }).catch(error => {
-                    console.error(`Error fetching Firebase data for member ${memberId}:`, error);
-                    const memberTornData = members[memberId];
-                    const name = memberTornData.name || 'Unknown';
-                    const level = memberTornData.level || 'N/A';
-                    const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
-                    const statusDescription = memberTornData.status?.description || 'N/A';
-                    return `
-                        <tr>
-                            <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
-                            <td>${level}</td>
-                            <td>${lastAction}</td>
-                            <td>N/A</td>
-                            <td>N/A</td>
-                            <td>N/A</td>
-                            <td>N/A</td>
-                            <td class="${statusClass}">${statusDescription}</td>
-                            <td>N/A</td>
-                            <td>N/A</td>
-                        </tr>
-                    `;
-                }));
+            if (!memberId) {
+                console.warn("Skipping member due to missing ID:", memberTornData);
+                continue; // Skip this member if ID is missing
             }
+
+            const memberDocRef = db.collection('users').doc(String(memberId));
+            memberPromises.push(memberDocRef.get().then(doc => {
+                const memberFirebaseData = doc.exists ? doc.data() : null;
+
+                const name = memberTornData.name || 'Unknown';
+                const level = memberTornData.level || 'N/A';
+                const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
+                const statusState = memberTornData.status?.state || 'N/A';
+                const statusDescription = memberTornData.status?.description || 'N/A';
+
+                const strength = memberFirebaseData?.battlestats?.strength?.toLocaleString() || 'N/A';
+                const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
+                const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
+                const defense = memberFirebaseData?.battlestats?.defense?.toLocaleString() || 'N/A';
+                const nerve = memberFirebaseData?.nerve !== undefined && memberFirebaseData?.nerve_full !== undefined ? `${memberFirebaseData.nerve}/${memberFirebaseData.nerve_full}` : 'N/A';
+                const energy = memberFirebaseData?.energy !== undefined && memberFirebaseData?.energy_full !== undefined ? `${memberFirebaseData.energy}/${memberFirebaseData.energy_full}` : 'N/A';
+
+                let statusClass = '';
+                if (statusState === 'Hospital') statusClass = 'status-hospital';
+                else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
+                else if (statusState === 'Okay') statusClass = 'status-okay';
+
+                return `
+                    <tr data-id="${memberId}"> <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                        <td>${level}</td>
+                        <td>${lastAction}</td>
+                        <td>${strength}</td>
+                        <td>${dexterity}</td>
+                        <td>${speed}</td>
+                        <td>${defense}</td>
+                        <td class="${statusClass}">${statusDescription}</td>
+                        <td>${nerve}</td>
+                        <td>${energy}</td>
+                    </tr>
+                `;
+            }).catch(error => {
+                console.error(`Error fetching Firebase data for member ${memberId}:`, error);
+                // Fallback using Torn API data even if Firebase data fetch fails
+                const name = memberTornData.name || 'Unknown';
+                const level = memberTornData.level || 'N/A';
+                const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
+                const statusDescription = memberTornData.status?.description || 'N/A';
+                return `
+                    <tr data-id="${memberId}"> <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                        <td>${level}</td>
+                        <td>${lastAction}</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td class="${statusClass}">${statusDescription}</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                `;
+            }));
         }
 
         const resolvedRows = await Promise.all(memberPromises);
@@ -2355,17 +2358,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         tbody.innerHTML = `<p style="color:red;">Error loading faction list: ${error.message || String(error)}.</p>`;
     }
 }
-function formatLastAction(secondsAgo) {
-    if (typeof secondsAgo !== 'number') return 'N/A';
-    if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
-    const minutes = Math.floor(secondsAgo / 60);
-    if (minutes < 60) return `${minutes} minutes ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hours ago`;
-    const days = Math.floor(hours / 24);
-    return `${days} days ago`;
-}
-
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
