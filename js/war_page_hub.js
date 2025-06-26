@@ -316,12 +316,11 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 }
 
 // NEW: Function to handle switching chat tabs (now hides input area for Settings)
-// MODIFIED FUNCTION: to handle switching chat tabs (now includes Settings tab and passes UID for Blocked People)
 function switchChatTab(tabName) {
     console.log(`Switching to chat tab: ${tabName}`);
 
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
-        console.error("Chat elements not found for tab switching.");
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels || !chatInputArea) { // Added chatInputArea check
+        console.error("Chat elements not found for tab switching or content panels, or input area.");
         return;
     }
 
@@ -330,130 +329,112 @@ function switchChatTab(tabName) {
         button.classList.remove('active');
     });
 
-    // Add 'active' class to the clicked tab
-    const selectedTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
-    if (selectedTabButton) {
-        selectedTabButton.classList.add('active');
-    } else {
-        console.warn(`Chat tab button for "${tabName}" not found.`);
-    }
+    // Hide all chat content panels
+    chatContentPanels.querySelectorAll('.chat-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
 
-    // Unsubscribe from any active real-time chat listener
+    // Unsubscribe from any active real-time chat listener by default when switching tabs
     if (unsubscribeFromChat) {
         unsubscribeFromChat();
         unsubscribeFromChat = null;
         console.log("Unsubscribed from previous chat listener (tab switch).");
     }
 
-    // --- Clear the main chat display area every time a tab is clicked ---
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = '';
-    } else {
-        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-        return;
+    // Add 'active' class to the clicked tab button
+    const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
+    if (selectedChatTabButton) {
+        selectedChatTabButton.classList.add('active');
+        selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
     }
 
-    let showInputArea = true; // Default to showing input area for chat tabs
+    // Show the selected content panel and perform tab-specific actions
+    let targetChatPanel = null;
+    let targetDisplayArea = null;
+    let showInputArea = true; // Default to showing input area
 
     switch (tabName) {
         case 'faction-chat':
-            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
-            setupChatRealtimeListener(); // Start listening for messages in faction chat
+            targetChatPanel = factionChatPanel;
+            setupChatRealtimeListener();
             break;
-
-        case 'war-chat':
-            chatDisplayArea.innerHTML = `<p>Welcome to War Chat! Functionality not implemented yet.</p>`;
-            break;
-
-        case 'private-chat':
-            chatDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
-            break;
-
         case 'faction-members':
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+            targetChatPanel = factionMembersPanel;
+            targetDisplayArea = factionMembersDisplayArea;
             if (factionApiFullData && factionApiFullData.members) {
-                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
+                displayFactionMembersInChatTab(factionApiFullData.members);
+            } else if (targetDisplayArea) {
+                targetDisplayArea.innerHTML = `<p>Loading faction member data...</p>`;
             }
-            showInputArea = false; // Hide input for non-chat tabs
             break;
-
+        case 'private-chat':
+            targetChatPanel = privateChatPanel;
+            targetDisplayArea = privateChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            break;
+        case 'friends':
+            targetChatPanel = friendsPanel;
+            targetDisplayArea = friendsChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Friends Chat! Functionality not implemented yet.</p>`;
+            break;
         case 'recently-met':
-            populateRecentlyMetTab(chatDisplayArea);
-            showInputArea = false; // Hide input for non-chat tabs
+            targetChatPanel = recentlyMetPanel;
+            targetDisplayArea = recentlyMetDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Recently Met! Functionality not implemented yet.</p>`;
             break;
-
         case 'blocked-people':
-            // Dynamically generate the full Blocked People layout into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <div class="blocked-people-layout">
-                    <div class="friends-list-section">
-                        <div class="header-box">
-                            <b>Friends</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="friendsScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
-                        </div>
-                    </div>
-
-                    <div class="ignores-list-section">
-                        <div class="header-box">
-                            <b>Ignores / Blocked</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="ignoresScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Re-get elements after they are injected into the DOM
-            const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-            const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-
-            const currentUser = auth.currentUser; // Get current user here
-            if (currentUser) {
-                // Pass current user UID to populateBlockedPeopleTab
-                populateBlockedPeopleTab(currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
-            } else {
-                console.warn("[Blocked People Tab] User not logged in. Cannot load real friends list.");
-                // Provide specific messages for non-logged-in state
-                dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your friends list.</p>`;
-                dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your ignores list.</p>`;
-            }
-
-            showInputArea = false; // Hide input forchat tabs
+            if (blockedPeoplePanel) blockedPeoplePanel.classList.add('active'); // Activate the Blocked People panel
+            // targetDisplayArea is not used here directly as content is managed internally by populateBlockedPeopleTab
+            // Call a new function to handle populating this complex tab
+            populateBlockedPeopleTab(); // NEW FUNCTION CALL
+            showInputArea = false; // Hide global chat input as this tab has its own search inputs
             break;
-
         case 'settings':
-            populateSettingsTab(chatDisplayArea);
-            showInputArea = false;
+            targetChatPanel = settingsPanel;
+            targetDisplayArea = settingsDisplayArea;
+            if (targetDisplayArea) {
+                targetDisplayArea.innerHTML = `
+                    <h4>Chat Settings</h4>
+                    <p><i>Settings functionality not yet implemented.</i></p>
+                    <p>Options for chat sound, notifications, font size, etc., would go here.</p>
+                `;
+            }
+            showInputArea = false; // Hide input area for Settings tab
             break;
-
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-            showInputArea = false;
+            if (factionChatDisplayArea) {
+                factionChatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            }
             break;
     }
 
-    // Control visibility of the separate chat input area
-    if (showInputArea) {
-        if (chatInputArea) chatInputArea.style.display = 'flex';
+    if (targetChatPanel) {
+        targetChatPanel.classList.add('active'); // Show the selected panel
     } else {
-        if (chatInputArea) chatInputArea.style.display = 'none';
+        console.error(`No chat panel found for tab: ${tabName}`);
     }
 
-    // Ensure the main chat display area scrolls to bottom after content is injected
-    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+    // Control visibility of the chat input area
+    if (showInputArea) {
+        chatInputArea.style.display = 'flex'; // Show input area (default flex)
+    } else {
+        chatInputArea.style.display = 'none'; // Hide input area
+    }
 }
+// NEW: Helper function to format time remaining from seconds (Moved for proper scope)
+function formatTime(seconds) {
+    if (seconds <= 0) return '0s';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    let result = '';
+    if (h > 0) result += `${h}h `;
+    if (m > 0) result += `${m}m `;
+    if (s > 0) result += `${s}s`;
+    return result.trim();
+}
+
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
@@ -3340,9 +3321,8 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     // TODO: Add event listeners for the new buttons if needed
 }
 // MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
-// MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
 async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl) {
-    console.log("[Blocked People Tab] Populating tab. User ID:", currentUserId); // Log current user ID for debug
+    console.log("[Blocked People Tab] Populating tab...");
 
     if (!friendsListEl || !ignoresListEl) {
         console.error("HTML Error: Friends or Ignores list elements not provided to populateBlockedPeopleTab function.");
@@ -3358,137 +3338,29 @@ async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresLis
         // If no currentUserId, still populate dummy ignores
         const dummyIgnores = generateDummyIgnores(50);
         let ignoresHtml = '';
-        dummyIgnores.forEach(ignore => { /* ... ignore HTML ... */ }); // You'll need the generateDummyIgnores function in scope
+        dummyIgnores.forEach(ignore => {
+            const displayId = ignore.id.split('_')[1];
+            if (ignore.type === 'user') {
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            } else {
+                ignoresHtml += `
+                    <div class="list-item ignore-entry">
+                        <span class="item-icon faction-icon">${ignore.icon}</span>
+                        <span class="item-name">${ignore.name} [${displayId}]</span>
+                        <button class="item-button trash-button">🗑️</button>
+                    </div>
+                `;
+            }
+        });
         ignoresListEl.innerHTML = ignoresHtml;
         return;
     }
-
-    // --- Fetch and Display Friends from Firebase ---
-    try {
-        const friendsCollectionRef = db.collection('userProfiles').doc(currentUserId).collection('friends');
-        console.log("[Blocked People Tab] Fetching friends from:", friendsCollectionRef.path); // Log Firebase path
-        const friendsSnapshot = await friendsCollectionRef.get();
-
-        let friendsHtml = '';
-        const friendDetailsPromises = [];
-
-        if (friendsSnapshot.empty) {
-            friendsListEl.innerHTML = '<p style="text-align:center; padding: 10px;">No friends added yet.</p>';
-            console.log("[Blocked People Tab] Friends sub-collection is empty.");
-        } else {
-            console.log("[Blocked People Tab] Friends snapshot not empty. Processing friends...");
-            for (const friendDoc of friendsSnapshot.docs) {
-                const friendTornId = friendDoc.id; // The document ID is the friend's Torn Player ID
-                console.log("[Blocked People Tab] Processing friend ID from sub-collection:", friendTornId); // Log each friend ID
-
-                friendDetailsPromises.push(
-                    db.collection('users').doc(friendTornId).get().then(userDoc => {
-                        console.log(`[Blocked People Tab] Fetched users/${friendTornId}. Document exists:`, userDoc.exists); // Log if user doc exists
-                        if (userDoc.exists) {
-                            const userData = userDoc.data();
-                            const friendName = userData.name || `Torn ID: ${friendTornId}`;
-                            const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
-                            console.log(`[Blocked People Tab] Found user data for ${friendName} (ID: ${friendTornId}):`, userData); // Log found user data
-                            return `
-                                <div class="list-item friend-entry">
-                                    <img src="${profileImage}" alt="Profile Pic" class="profile-pic">
-                                    <span class="item-name">${friendName} [${friendTornId}]</span>
-                                    <button class="item-button letter-button" data-friend-id="${friendTornId}">✉️</button>
-                                    <button class="item-button trash-button" data-friend-id="${friendTornId}">🗑️</button>
-                                </div>
-                            `;
-                        } else {
-                            console.warn(`[Blocked People Tab] No detailed 'users' data found for friend Torn ID: ${friendTornId}. Displaying placeholder.`);
-                            return `
-                                <div class="list-item friend-entry">
-                                    <img src="../../images/default_profile_icon.png" alt="Default Profile Pic" class="profile-pic">
-                                    <span class="item-name">Unknown [${friendTornId}]</span>
-                                    <button class="item-button letter-button" data-friend-id="${friendTornId}">✉️</button>
-                                    <button class="item-button trash-button" data-friend-id="${friendTornId}">🗑️</button>
-                                </div>
-                            `;
-                        }
-                    }).catch(error => {
-                        console.error(`[Blocked People Tab] Error fetching user data for friend ${friendTornId}:`, error);
-                        return `
-                            <div class="list-item friend-entry">
-                                <img src="../../images/default_profile_icon.png" alt="Default Profile Pic" class="profile-pic">
-                                <span class="item-name">Error [${friendTornId}]</span>
-                                <button class="item-button letter-button">✉️</button>
-                                <button class="item-button trash-button" data-friend-id="${friendTornId}">🗑️</button>
-                            </div>
-                        `;
-                    })
-                );
-            }
-            friendsHtml = (await Promise.all(friendDetailsPromises)).join('');
-            friendsListEl.innerHTML = friendsHtml;
-            console.log("[Blocked People Tab] Friends list HTML updated with real data.");
-
-            // Add event listeners for new buttons (message, trash) via delegation
-            friendsListEl.addEventListener('click', async function(event) {
-                const button = event.target.closest('.item-button');
-                if (!button) return;
-
-                const friendId = button.dataset.friendId;
-                if (!friendId) return;
-
-                if (button.classList.contains('letter-button')) {
-                    console.log(`Message button clicked for friend ID: ${friendId}`);
-                    window.open(`https://www.torn.com/messages.php#/p=compose&XID=${friendId}`, '_blank');
-                } else if (button.classList.contains('trash-button')) {
-                    if (confirm(`Are you sure you want to remove Torn ID: ${friendId} from your friends list?`)) {
-                        try {
-                            if (!currentUserId) {
-                                alert("Error: User not logged in. Cannot remove friend.");
-                                return;
-                            }
-                            await db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendId).delete();
-                            alert(`Friend (ID: ${friendId}) removed successfully.`);
-                            populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl);
-                        } catch (error) {
-                            console.error("Error removing friend from database:", error);
-                            alert("Failed to remove friend. See console for details.");
-                        }
-                    }
-                }
-            });
-
-        } // End of if (friendsSnapshot.empty) else block
-
-    } catch (error) {
-        console.error("Error fetching friends list or friend details from Firebase:", error);
-        friendsListEl.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error loading friends: ${error.message}</p>`;
-    }
-
-    // --- Populate Dummy Ignores (Keep as is) ---
-    const dummyIgnores = generateDummyIgnores(50);
-    let ignoresHtml = '';
-    dummyIgnores.forEach(ignore => {
-        const displayId = ignore.id.split('_')[1];
-        if (ignore.type === 'user') {
-            ignoresHtml += `
-                <div class="list-item ignore-entry">
-                    <img src="${ignore.profile_image}" alt="Profile Pic" class="profile-pic">
-                    <span class="item-name">${ignore.name} [${displayId}]</span>
-                    <button class="item-button trash-button">🗑️</button>
-                </div>
-            `;
-        } else {
-            ignoresHtml += `
-                <div class="list-item ignore-entry">
-                    <span class="item-icon faction-icon">${ignore.icon}</span>
-                    <span class="item-name">${ignore.name} [${displayId}]</span>
-                    <button class="item-button trash-button">🗑️</button>
-                </div>
-            `;
-        }
-    });
-    ignoresListEl.innerHTML = ignoresHtml;
-
-    // Optional: Add event listeners for ignore list buttons if needed
-    // This example only adds the trash button listener for friends for now.
-}
 
     // --- Fetch and Display Friends from Firebase ---
     try {
