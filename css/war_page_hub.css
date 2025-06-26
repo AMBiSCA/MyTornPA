@@ -459,7 +459,7 @@ transition: background-color 0.2s ease;
     padding: 10px; /* Internal padding for the scrollable area */
     background-color:  #222; /* Background for the scrollable messages area */
     border-radius: 8px; /* Rounded corners for the scrollable area */
-    margin-bottom: 10px; /* Space between messages scroll area and input */
+    margin-bottom: 2px; /* Space between messages scroll area and input */
     box-sizing: border-box; /* Include padding/border */
 }
 
