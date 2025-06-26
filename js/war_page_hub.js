@@ -927,6 +927,42 @@ function setupChatRealtimeListener() {
     console.log("Chat real-time listener set up.");
 }
 
+function updateRankedWarDisplay(rankedWarData, yourFactionId) {
+    // Get all the HTML elements from the new score box by their ID
+    const yourNameEl = document.getElementById('rw-faction-one-name');
+    const yourScoreEl = document.getElementById('rw-score-one');
+    const opponentNameEl = document.getElementById('rw-faction-two-name');
+    const opponentScoreEl = document.getElementById('rw-score-two');
+    const leadValueEl = document.getElementById('rw-lead-value');
+
+    // Check if all elements were found before continuing
+    if (!yourNameEl || !yourScoreEl || !opponentNameEl || !opponentScoreEl || !leadValueEl) {
+        console.error("One or more HTML elements for the ranked war display are missing.");
+        return;
+    }
+
+    // Find our faction and the opponent's faction in the data
+    const yourFaction = rankedWarData.factions.find(f => String(f.id) === String(yourFactionId));
+    const opponentFaction = rankedWarData.factions.find(f => String(f.id) !== String(yourFactionId));
+
+    if (!yourFaction || !opponentFaction) {
+        console.error("Could not determine your faction vs opponent in the war data.");
+        return;
+    }
+
+    // --- Update Names and Scores (Your faction is always on the left) ---
+    yourNameEl.textContent = yourFaction.name;
+    yourScoreEl.textContent = yourFaction.score.toLocaleString();
+    opponentNameEl.textContent = opponentFaction.name;
+    opponentScoreEl.textContent = opponentFaction.score.toLocaleString();
+
+    // --- Calculate and Update Lead Target ---
+    const leadAmount = Math.abs(yourFaction.score - opponentFaction.score);
+    const targetScore = rankedWarData.target;
+    leadValueEl.textContent = `${leadAmount.toLocaleString()} / ${targetScore.toLocaleString()}`;
+
+}
+
 // ... (Your existing claimTarget and unclaimTarget functions) ...
   async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
@@ -1329,15 +1365,11 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
     const keyToUse = apiKey;
-    // Determine the final faction ID to use for the API call
-    let finalFactionId = factionIdToUseOverride; // This is passed from auth.onAuthStateChanged
+    let finalFactionId = factionIdToUseOverride;
 
-    // If factionIdToUseOverride is null, try to use factionApiFullData.basic.id (if already populated)
     if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
         finalFactionId = factionApiFullData.basic.id;
     }
-    // If still no faction ID, try to get it from the user's Firebase profile data
-    // This assumes userData was already fetched in auth.onAuthStateChanged
     if (!finalFactionId && auth.currentUser) {
         try {
             const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
@@ -1349,9 +1381,6 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         }
     }
 
-
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed):", factionIdToUseOverride);
-    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.basic?.id (from global):", factionApiFullData?.basic?.id);
     console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated:", finalFactionId);
 
     if (!finalFactionId) {
@@ -1364,9 +1393,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 
     try {
-        // CORRECTED API URL and SELECTIONS to fetch all necessary data (basic, members, chain, wars, bars)
         const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
-
         console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
 
         const userFactionResponse = await fetch(userFactionApiUrl);
@@ -1384,6 +1411,20 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
             console.error("Torn API responded with a detailed error:", factionApiFullData.error);
             throw new Error(`Torn API Error: ${JSON.stringify(factionApiFullData.error)}`);
         }
+        
+        // --- START: NEW LOGIC IS ADDED HERE ---
+        // After successfully getting the data, we check for war info and call our new display function
+        if (factionApiFullData.wars && factionApiFullData.wars.ranked) {
+            updateRankedWarDisplay(factionApiFullData.wars.ranked, finalFactionId);
+        } else {
+            // This part runs if there is no active ranked war
+            console.log("No active ranked war found in the API response.");
+            const scoreBox = document.querySelector('.ops-ranked-war-score');
+            if (scoreBox) {
+                scoreBox.innerHTML = '<p style="text-align:center; padding-top: 20px;">No Active Ranked War</p>';
+            }
+        }
+        // --- END: NEW LOGIC ---
 
         console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
 
@@ -1400,12 +1441,6 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'N/A';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
     }
 }
 function displayFriendlyMembersTable(members) {
