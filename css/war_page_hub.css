@@ -425,8 +425,6 @@ transition: background-color 0.2s ease;
     height: 100%; /* Explicitly take 100% of its parent's height */
     overflow: hidden; /* CRUCIAL: Ensures content stays within its rounded borders and clips children */
     box-sizing: border-box; /* Include padding/border in total dimensions */
-
-    /* Keep existing visual styles for #warChatBox frame if they were here */
     background-color: #222; /* Example: Dark background */
     border: 1px solid black; /* Example: Border */
     border-radius: 8px; /* Example: Rounded corners */
@@ -809,7 +807,7 @@ transition: background-color 0.2s ease;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 10px;
     margin-bottom: 15px;
-    padding: 10px;
+    padding: 4px 10px;
     border: 1px solid black;
     border-radius: 8px;
     background-color: #222;
