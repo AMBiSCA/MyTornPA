@@ -803,6 +803,7 @@ transition: background-color 0.2s ease;
     margin-top: 3px !important; /* Adjust this pixel value as needed to align it perfectly */
 }
 
+
 /*Specific styling for Quick FF Targets container - Forces this item to align right */
 .ops-control-item.ops-quick-targets {
     justify-content: flex-end; /* Aligns content (label and targets) to the top within this item */
