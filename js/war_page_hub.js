@@ -61,7 +61,6 @@ const energyTrackingContainer = document.getElementById('energyTrackingContainer
 const saveAdminsBtn = document.getElementById('saveAdminsBtn');
 const saveEnergyTrackMembersBtn = document.getElementById('saveEnergyTrackMembersBtn');
 const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH');
-const chainTimerDisplay = document.getElementById('chainTimerDisplay');
 const currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
 const chainStartedDisplay = document.getElementById('chainStartedDisplay');
 const yourFactionRankedScore = document.getElementById('yourFactionRankedScore');
