@@ -2776,6 +2776,12 @@ async function switchChatTab(tabName) { // <--- This must be 'async'
     // Ensure the main chat display area scrolls to bottom after content is injected
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
+
+    // Remove 'active' class from all tab buttons
+    chatTabButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+
     // Add 'active' class to the clicked tab
     const selectedTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
     if (selectedTabButton) {
