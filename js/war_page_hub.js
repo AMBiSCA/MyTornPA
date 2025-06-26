@@ -3469,7 +3469,6 @@ function generateDummyRecentlyMet(count) {
     return dummyMet;
 }
 
-// NEW FUNCTION: Populates the content of the Recently Met tab
 // NEW FUNCTION: Populates the content of the Recently Met tab with a grid layout
 async function populateRecentlyMetTab(targetDisplayElement) {
     console.log("[Recently Met Tab] Populating tab with new grid layout...");
