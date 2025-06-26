@@ -3085,7 +3085,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-} // End of setupEventListeners function
+
 
 async function initializeAndLoadData(apiKey) {
     try {
