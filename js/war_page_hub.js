@@ -2650,7 +2650,8 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 }
 // NEW: Function to handle switching chat tabs
-function switchChatTab(tabName) {
+// MODIFIED FUNCTION: to handle switching chat tabs (now includes Settings tab and passes UID for Blocked People)
+async function switchChatTab(tabName) { // <--- ABSOLUTELY CRUCIAL: ADD 'async' HERE
     console.log(`Switching to chat tab: ${tabName}`);
 
     if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
@@ -2671,12 +2672,121 @@ function switchChatTab(tabName) {
         console.warn(`Chat tab button for "${tabName}" not found.`);
     }
 
-    // --- Temporary: Update chat display area based on selected tab ---
-    // In a later step, we will load actual messages from Firebase for the selected tab.
-    chatDisplayArea.innerHTML = `<p>Welcome to the <span style="font-weight:bold; color: #00a8ff;">${tabName.replace('-', ' ')}</span> chat!</p><p>Messages will appear here...</p>`;
+    // Unsubscribe from any active real-time chat listener
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous chat listener (tab switch).");
+    }
 
-    // Keep active tab scrolled to view
-    chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
+    // --- Clear the main chat display area every time a tab is clicked ---
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = '';
+    } else {
+        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
+        return;
+    }
+
+    let showInputArea = true; // Default to showing input area for chat tabs
+
+    switch (tabName) {
+        case 'faction-chat':
+            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
+            setupChatRealtimeListener(); // Start listening for messages in faction chat
+            break;
+
+        case 'war-chat':
+            chatDisplayArea.innerHTML = `<p>Welcome to War Chat! Functionality not implemented yet.</p>`;
+            break;
+
+        case 'private-chat':
+            chatDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            break;
+
+        case 'faction-members':
+            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+            if (factionApiFullData && factionApiFullData.members) {
+                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
+            }
+            showInputArea = false; // Hide input for non-chat tabs
+            break;
+
+        case 'recently-met':
+            populateRecentlyMetTab(chatDisplayArea);
+            showInputArea = false; // Hide input for non-chat tabs
+            break;
+
+        case 'blocked-people':
+            // Dynamically generate the full Blocked People layout into chatDisplayArea
+            chatDisplayArea.innerHTML = `
+                <div class="blocked-people-layout">
+                    <div class="friends-list-section">
+                        <div class="header-box">
+                            <b>Friends</b>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div id="friendsScrollableList" class="scrollable-list">
+                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
+                        </div>
+                    </div>
+
+                    <div class="ignores-list-section">
+                        <div class="header-box">
+                            <b>Ignores / Blocked</b>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div id="ignoresScrollableList" class="scrollable-list">
+                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Re-get elements after they are injected into the DOM
+            const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
+            const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
+
+            const currentUser = auth.currentUser; // Get current user here
+            if (currentUser) {
+                // Pass current user UID to populateBlockedPeopleTab
+                await populateBlockedPeopleTab(currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList); // <--- ABSOLUTELY CRUCIAL: ADD 'await' HERE
+            } else {
+                console.warn("[Blocked People Tab] User not logged in. Cannot load real friends list.");
+                // Provide specific messages for non-logged-in state
+                dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your friends list.</p>`;
+                dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your ignores list.</p>`;
+            }
+
+            showInputArea = false; // Hide input for non-chat tabs
+            break;
+
+        case 'settings':
+            populateSettingsTab(chatDisplayArea);
+            showInputArea = false;
+            break;
+
+        default:
+            console.warn(`Unknown chat tab: ${tabName}`);
+            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            showInputArea = false;
+            break;
+    }
+
+    // Control visibility of the separate chat input area
+    if (showInputArea) {
+        if (chatInputArea) chatInputArea.style.display = 'flex';
+    } else {
+        if (chatInputArea) chatInputArea.style.display = 'none';
+    }
+
+    // Ensure the main chat display area scrolls to bottom after content is injected
+    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
 
 function setupEventListeners(apiKey) {
