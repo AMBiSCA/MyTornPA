@@ -3208,7 +3208,6 @@ function handleChatTabClick(event) {
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
     // --- Start of UPDATED auth.onAuthStateChanged function (Force NEW API Key/IDs) ---
-// --- Start of UPDATED auth.onAuthStateChanged function ---
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         console.log("Auth State Changed: User is logged in.");
@@ -3222,14 +3221,14 @@ auth.onAuthStateChanged(async (user) => {
             console.error("Error fetching user profile from Firebase:", fbError);
         }
 
-        // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
-        // !!! IMPORTANT: REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
-        const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
-        const DEBUG_FACTION_ID = "49028";        // Forced Faction ID
-        const DEBUG_PLAYER_ID = "2662550";       // Forced Player ID
+        // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY - THESE ARE THE KEYS/IDs YOU PROVIDED ---
+        // !!! REMEMBER TO REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
+        const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // <--- NEW API KEY FORCED HERE
+        const DEBUG_FACTION_ID = "49028";        // Your FACTION ID
+        const DEBUG_PLAYER_ID = "2662550";       // Your PLAYER ID
         // --- END TEMPORARY HARDCODE ---
 
-        // These lines will prioritize the DEBUG_ values if userData fields are empty or null
+        // These lines WILL NOW PRIORITIZE the DEBUG_ values if userData fields are empty
         const apiKey = userData.tornApiKey || DEBUG_API_KEY;
         const playerId = userData.tornProfileId || DEBUG_PLAYER_ID;
         currentTornUserName = userData.preferredName || 'Unknown'; // Keep using Firebase preferredName or default
@@ -3247,17 +3246,17 @@ auth.onAuthStateChanged(async (user) => {
 
         console.log("Firebase Auth User (from auth.currentUser):", firebase.auth().currentUser);
 
+        // This condition now uses the potentially hardcoded apiKey and playerId
         if (apiKey && playerId) {
             userApiKey = apiKey; // Assign to global userApiKey for other functions
 
             console.log("Entering API call block: Calling initializeAndLoadData...");
-            // Pass the determined Faction ID to initializeAndLoadData
-            await initializeAndLoadData(apiKey, DEBUG_FACTION_ID);
+            // Pass the determined faction ID for initializeAndLoadData
+            await initializeAndLoadData(apiKey, DEBUG_FACTION_ID); // Ensure initializeAndLoadData accepts this second argument
 
-            // These logs now reflect the API v1 structure
             console.log("AFTER initializeAndLoadData - Global factionApiFullData:", factionApiFullData);
-            console.log("AFTER initializeAndLoadData - factionApiFullData.ID (top-level Faction ID):", factionApiFullData?.ID);
-            console.log("AFTER initializeAndLoadData - Is factionApiFullData.ranked_wars defined?", !!factionApiFullData?.ranked_wars);
+            console.log("AFTER initializeAndLoadData - Is factionApiFullData.wars.ranked defined?", !!factionApiFullData?.wars?.ranked);
+            console.log("AFTER initializeAndLoadData - Your Faction ID from factionApiFullData:", factionApiFullData?.ID);
 
 
             populateUiComponents(warData, apiKey); // This also uses factionApiFullData
@@ -3304,7 +3303,7 @@ auth.onAuthStateChanged(async (user) => {
                     } else {
                         console.warn("API key not available for periodic comprehensive faction data refresh.");
                     }
-                }, 2000); // This is very frequent. Change to 60000 (1 minute) or more for production.
+                }, 2000); // This is very frequent (every 2 seconds) and will spam the API. Consider changing to 60000 (1 minute) or more for production.
             }
         } else {
             console.warn("CRITICAL: API key or Player ID not found. Cannot proceed with Torn API calls.");
@@ -3322,4 +3321,69 @@ auth.onAuthStateChanged(async (user) => {
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
     }
+});
+// --- End of UPDATED auth.onAuthStateChanged function ---
+// --- Start of initializeAndLoadData function (ensure it matches this) ---
+// --- Start of UPDATED initializeAndLoadData (FOR API v1) ---
+async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
+    console.error(">>> ENTERING initializeAndLoadData FUNCTION (API v1 - FORCED SELECTIONS) <<<");
+
+    const keyToUse = apiKey;
+    const finalFactionId = factionIdToUseOverride || factionApiFullData?.ID;
+
+    // --- LOGGING FOR DEBUGGING finalFactionId ---
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionIdToUseOverride (passed from auth.onAuthStateChanged):", factionIdToUseOverride);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: factionApiFullData?.ID (if already populated from a previous run):", factionApiFullData?.ID);
+    console.log("DEBUG_FINAL_FACTION_ID_CHECK: finalFactionId calculated (should be your Faction ID):", finalFactionId);
+    // --- END LOGGING ---
+
+    if (!finalFactionId) {
+        const errorMsg = "ERROR: Faction ID is null or undefined in initializeAndLoadData. Cannot make API v1 call for specific faction.";
+        console.error(">>> FATAL ERROR IN initializeAndLoadData:", errorMsg);
+        if (factionWarHubTitleEl) {
+            factionWarHubTitleEl.textContent = errorMsg;
+        }
+        return;
+    }
+
+    try {
+        // EXACT URL YOU REQUESTED: API v1, faction ID in path, ONLY basic,rankedwars selections
+        const userFactionApiUrl = `https://api.torn.com/faction/${finalFactionId}?selections=basic,rankedwars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined_V1`;
+
+        console.log("initializeAndLoadData (API v1): Attempting to fetch faction data from URL:", userFactionApiUrl);
+
+        const userFactionResponse = await fetch(userFactionApiUrl);
+
+        if (!userFactionResponse.ok) {
+            const errorData = await userFactionResponse.json().catch(() => ({}));
+            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
+            throw new Error(`Torn API v1 HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}. Full response: ${JSON.stringify(errorData)}`);
+        }
+
+        factionApiFullData = await userFactionResponse.json();
+        console.log("initializeAndLoadData (API v1): Faction API Full Data fetched:", factionApiFullData);
+
+        if (factionApiFullData.error) {
+            console.error("Torn API v1 responded with a detailed error:", factionApiFullData.error);
+            throw new Error(`Torn API v1 Error: ${JSON.stringify(factionApiFullData.error)}`);
+        }
+
+        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY (API v1) <<<");
+
+    } catch (error) {
+        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK (API v1):", error);
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data (API v1): ${error.message || 'Unknown error'}.`;
+        // Reset related displays on error (these might be from members/chain, which are no longer fetched)
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A'; // Change from 'Error' to 'N/A' as data is intentionally not fetched
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
+        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
+        if (warTargetScore) warTargetScore.textContent = 'N/A';
+        if (warStartedTime) warStartedTime.textContent = 'N/A';
+        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
+        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
+    }
+}
+// --- End of UPDATED initializeAndLoadData (FOR API v1) ---
 });
