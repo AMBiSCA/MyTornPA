@@ -2762,3 +2762,33 @@ autocomplete-items {
     color:#28a745; /* Blue color for the energy value */
     font-weight: bold;
 }
+
+.member-actions .item-button {
+    background-color: #555; /* Default fallback grey */
+    color: white;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 1.1em; /* Makes the icons a little bigger */
+    line-height: 1; /* Helps with vertical alignment */
+    transition: filter 0.2s ease;
+}
+
+/* A simple effect to brighten any button when you hover over it */
+.member-actions .item-button:hover {
+    filter: brightness(1.2); 
+}
+
+/* Gold color for the message button (targets both classes) */
+.member-actions .letter-button,
+.member-actions .message-button {
+    background-color: #e0a71a;
+    color: #1e1e1e; /* Dark text on the gold background */
+}
+
+/* Red color for the trash/delete button */
+.member-actions .trash-button {
+    background-color: #dc3545;
+    color: white; /* White text on the red background */
+}
