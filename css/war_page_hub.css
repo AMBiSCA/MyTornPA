@@ -1793,18 +1793,51 @@ autocomplete-items {
 .chat-container.chat-content-hidden .chat-input-area {
     display: none;
 }
-    .ops-controls-grid {
-    align-items: start; /* Forces all direct children in the grid to align their tops */
-    margin-top: 5px; /* Adjust this value to move the whole box closer to the tabs */
-    margin-bottom: 10px; /* Adjust this value if it affects overall column height */
+/* Ensure .ops-control-item has basic shared styling for all its children */
+.ops-control-item {
+    background-color: #2a2a2a; /* Dark background for all items in the grid */
+    border: 1px solid #444; /* Subtle border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px; /* Internal spacing */
+    box-sizing: border-box; /* Include padding/border in element's total width/height */
+    /* Keep other flex properties and font settings as they are. */
+    /* display: flex; flex-direction: column; gap: 3px; white-space: nowrap; font-size: 0.9em; */
 }
-	
-	.ops-controls-grid .ops-control-item {
-    align-self: start;
-    padding-top: 0; /* Remove top padding within grid item */
-    padding-bottom: 0; /* Remove bottom padding within grid item */
-    height: auto; /* Ensure no fixed height prevents shrinking */
-    min-height: unset; /* Ensure no min-height prevents shrinking */
+
+/* Specific styling for the new status display boxes (like Your Energy, Online Members) */
+/* This will override/add to .ops-control-item if needed, but primarily fine-tunes. */
+.ops-status-display {
+    /* Keep the flex properties here as they define internal layout */
+    /* display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; */
+    min-width: 100px; /* Keep minimum width */
+
+    /* If you want these boxes to look distinct AND they aren't getting inherited styles from .ops-control-item */
+    /* You might want to duplicate the background/border/padding here if .ops-control-item is NOT applying it well */
+    /* Example: */
+    /* background-color: #2a2a2a; */
+    /* border: 1px solid #00a8ff; /* A slightly different border perhaps? */
+    /* padding: 10px; */
+}
+
+/* Styles for the labels within the status boxes */
+.ops-status-display label {
+    font-size: 0.8em;
+    color: #a0a0a0;
+    margin-bottom: 0;
+}
+
+/* Styles for the numerical values within the status boxes */
+.ops-status-display .status-value-box {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #00a8ff;
+}
+
+/* General grid spacing */
+.ops-controls-grid {
+    gap: 10px; /* This is good for spacing *between* the boxes */
+    /* Make sure this is applying, as your output had gap: 0px on #warPageHubContainer which is a parent. */
+    /* If gap: 10px isn't working, check your .ops-controls-grid definition. */
 }
 
 .quick-ff-target-btn {
@@ -2652,12 +2685,6 @@ autocomplete-items {
 /* --- CSS for Action Buttons in the Ops Control Bar --- */
 
 /* This new class on the grid item allows us to align it. */
-.ops-control-item--actions {
-    display: flex;
-    margin-left: auto;/* This aligns our button box to the right */
-    align-items: center;
-   
-}
 
 /* This is the container for the buttons - the "box" you wanted. */
 .action-buttons-container {
@@ -2724,40 +2751,10 @@ autocomplete-items {
 /* --- Styles for Energy Display Box on Active Ops Tab --- */
 
 /* Specific styling for the Energy Display box */
-.ops-control-item.ops-energy-display {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center content horizontally */
-    justify-content: center; /* Center content vertically */
-    gap: 3px;
-    white-space: nowrap;
-    font-size: 0.9em;
-    padding: 5px; /* Adjust padding to match other ops-control-items */
-	grid-column: 2;
-    border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222; /* Dark background matching other boxes */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
 
-.ops-control-item.ops-energy-display label {
-    color:#28a745; /* Gold color for label */
-    font-weight: bold;
-    text-align: center;
-}
 
 /* Styles for the new generic status display boxes */
-.ops-status-display {
-    /* Inherit basic styling from ops-control-item */
-    /* Example: background-color, border, padding already from .ops-control-item */
-    display: flex;
-    flex-direction: column; /* Stack label above value */
-    align-items: center; /* Center content horizontally */
-    justify-content: center; /* Center content vertically */
-    gap: 5px; /* Space between label and value */
-    text-align: center;
-    min-width: 100px; /* Ensure a minimum width */
-}
+
 
 .ops-status-display label {
     font-size: 0.8em; /* Slightly smaller label */
