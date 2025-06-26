@@ -315,9 +315,8 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
     });
 }
 
-// NEW: Function to handle switching chat tabs (now hides input area for Settings)
 // MODIFIED FUNCTION: to handle switching chat tabs (now includes Settings tab and passes UID for Blocked People)
-function switchChatTab(tabName) {
+async function switchChatTab(tabName) { // <--- ADD 'async' HERE
     console.log(`Switching to chat tab: ${tabName}`);
 
     if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
@@ -421,7 +420,7 @@ function switchChatTab(tabName) {
             const currentUser = auth.currentUser; // Get current user here
             if (currentUser) {
                 // Pass current user UID to populateBlockedPeopleTab
-                populateBlockedPeopleTab(currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+                await populateBlockedPeopleTab(currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList); // <--- ADD 'await' HERE
             } else {
                 console.warn("[Blocked People Tab] User not logged in. Cannot load real friends list.");
                 // Provide specific messages for non-logged-in state
@@ -429,7 +428,7 @@ function switchChatTab(tabName) {
                 dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your ignores list.</p>`;
             }
 
-            showInputArea = false; // Hide input forchat tabs
+            showInputArea = false; // Hide input for non-chat tabs
             break;
 
         case 'settings':
