@@ -1775,7 +1775,7 @@ autocomplete-items {
     padding: 4px 10px; /* Reduces the internal spacing (padding) around the text */
     font-size: 0.85em; /* Makes the text inside the button slightly smaller */
 	background-color: #dc3545; /* Changed to a strong red color (similar to status-hospital red) */
-    color: #f0f0f0; /* Changed to light text for contrast on red */
+    color: black; /* Changed to light text for contrast on red */
     /* Keep other properties like background-color, border, etc., as they are */
 }
 
