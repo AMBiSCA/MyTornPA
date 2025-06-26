@@ -488,7 +488,7 @@ transition: background-color 0.2s ease;
     box-sizing: border-box; /* Include padding/border */
 	border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    padding-top: 5px;
+    padding-top: 10px;
 	
 }
 
