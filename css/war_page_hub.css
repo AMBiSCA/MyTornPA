@@ -362,7 +362,6 @@ flex-shrink: 0; /* Prevent shrinking */
 display: flex;
 gap: 10px; /* Space between input and send button */
 width: 100%;
-padding-top: 0;
 }
 
 .chat-text-input {
