@@ -2262,7 +2262,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-        // CORRECTED URL: Added /v2/ to the Torn API endpoint
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/?selections=members&key=${apiKey}&comment=MyTornPA_FriendlyMembers&factionID=${actualUserFactionId}`;
         console.log(`[DEBUG] Fetching faction members from: ${factionMembersApiUrl}`);
         const factionResponse = await fetch(factionMembersApiUrl);
@@ -2310,7 +2309,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
                     return `
                         <tr>
-                            <td>${name}</td> // MODIFIED LINE: Removed (${memberId})
+                            <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                             <td>${level}</td>
                             <td>${lastAction}</td>
                             <td>${strength}</td>
@@ -2331,7 +2330,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     const statusDescription = memberTornData.status?.description || 'N/A';
                     return `
                         <tr>
-                            <td>${name}(${memberId})
+                            <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                             <td>${level}</td>
                             <td>${lastAction}</td>
                             <td>N/A</td>
