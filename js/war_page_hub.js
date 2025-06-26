@@ -1,6 +1,5 @@
 
 
-// --- Global Variables ---
 const db = firebase.firestore();
 const auth = firebase.auth();
 let userApiKey = null;
@@ -15,34 +14,33 @@ let globalChainCurrentNumber = 'N/A'; // Stores the actual chain number from API
 let enemyDataGlobal = null; // Stores enemy faction data globally for access by other functions (e.g., Chain Score)
 let globalRankedWarData = null;
 let globalWarStartedActualTime = 0; // NEW: Stores the war start timestamp for live relative update
-let unsubscribeFromChat = null; // <--- PASTE IT HERE
+let unsubscribeFromChat = null;
 let profileFetchQueue = []; // Queue for processing profile image fetches
 let isProcessingQueue = false; // Flag to indicate if the queue is currently being processed
 let lastEmojiIndex = -1; // To keep track of the last emoji used
 let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
-let userEnergyDisplay = null; // Will be assigned dynamically after HTML injection
 
+// NEW GLOBAL VARIABLES FOR NEW DISPLAYS
+let userEnergyDisplay = null; // Already existing
+let onlineFriendlyMembersDisplay = null; // Reference to the "Online Faction Members" DOM element
+let onlineEnemyMembersDisplay = null; // Reference to the "Online Enemy Members" DOM element
+
+
+// --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
+// !!! IMPORTANT: REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
+const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
+const DEBUG_FACTION_ID = "49028"; // Forced Faction ID
+const DEBUG_PLAYER_ID = "2662550"; // Forced Player ID
+// --- END TEMPORARY HARDCODE ---
+// --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
 const warEnlistedStatus = document.getElementById('warEnlistedStatus');
 const warTermedStatus = document.getElementById('warTermedStatus');
 const warTermedWinLoss = document.getElementById('warTermedWinLoss');
 const warChainingStatus = document.getElementById('warChainingStatus');
-const warNoFlyingStatus = document.getElementById('warNoFlyingStatus');
-const warTurtleStatus = document.getElementById('warTurtleStatus');
-const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
-const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
-const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-const factionOneNameEl = document.getElementById('factionOneName');
-const factionOneMembersEl = document.getElementById('factionOneMembers');
-const factionTwoNameEl = document.getElementById('factionTwoName');
-const factionTwoMembersEl = document.getElementById('factionTwoMembers');
-const gamePlanEditArea = document.getElementById('gamePlanEditArea');
-const saveGamePlanBtn = document.getElementById('saveGamePlanBtn');
-const quickAnnouncementInput = document.getElementById('quickAnnouncementInput');
-const postAnnouncementBtn = document.getElementById('postAnnouncementBtn');
 const toggleEnlisted = document.getElementById('toggleEnlisted');
 const toggleTermedWar = document.getElementById('toggleTermedWar');
 const toggleTermedWinLoss = document.getElementById('toggleTermedWinLoss');
@@ -58,7 +56,7 @@ const bigHitterWatchlistContainer = document.getElementById('bigHitterWatchlistC
 const energyTrackingContainer = document.getElementById('energyTrackingContainer');
 const saveAdminsBtn = document.getElementById('saveAdminsBtn');
 const saveEnergyTrackMembersBtn = document.getElementById('saveEnergyTrackMembersBtn');
-const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH'); // Get Big Hitter Save button
+const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH');
 const chainTimerDisplay = document.getElementById('chainTimerDisplay');
 const currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
 const chainStartedDisplay = document.getElementById('chainStartedDisplay');
@@ -72,32 +70,45 @@ const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
 const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
-const chatMessagesCollection = db.collection('factionChatMessages'); // This is where chat messages will be stored
-const MAX_MESSAGES_VISIBLE = 7; // This constant forces only 7 messages to be visible at a time
-const REMOVAL_DELAY_MS = 500;    // Matches the CSS transition duration (0.5s) for fade-out animation
-const memberProfileCache = {}; // Cache for storing fetched member profile images
-const FETCH_DELAY_MS = 500; // Delay in milliseconds between each individual member profile fetch
+const chatMessagesCollection = db.collection('factionChatMessages');
+const MAX_MESSAGES_VISIBLE = 7;
+const REMOVAL_DELAY_MS = 500;
+const memberProfileCache = {};
+const FETCH_DELAY_MS = 500;
 const factionMembersPanel = document.getElementById('faction-members-panel');
-const factionChatDisplayArea = document.getElementById('chat-display-area'); // Already exists, but good to clarify
+const factionChatDisplayArea = document.getElementById('chat-display-area');
 const friendsPanel = document.getElementById('friends');
-const friendsListSection = document.getElementById('friends-list-section'); // The left container div
-const friendsSearchInput = document.getElementById('friendsSearchInput'); // Input for friends search
-const friendsScrollableList = document.getElementById('friendsScrollableList'); // Div to populate friends
-const ignoresListSection = document.getElementById('ignores-list-section'); // The right container div
-const ignoresSearchInput = document.getElementById('ignoresSearchInput'); // Input for ignores search
-const ignoresScrollableList = document.getElementById('ignoresScrollableList'); // Div to populate ignores
-const chatDisplayArea = document.getElementById('chat-display-area'); // This is the single, dynamic content area
-const warChatBox = document.getElementById('warChatBox'); // The overall chat container
-const chatTabsContainer = document.querySelector('.chat-tabs-container'); // Contains the buttons
-const chatTabButtons = document.querySelectorAll('.chat-tab'); // All individual chat tab buttons
-const chatInputArea = document.querySelector('.chat-input-area'); // The separate input section
-const warChatDisplayArea = document.getElementById('warChatDisplayArea'); // Used for War Chat content
-const privateChatDisplayArea = document.getElementById('privateChatDisplayArea'); // Used for Private Chat content
-const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea'); // Used for Faction Members content
-const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea'); // Used for Recently Met content
-const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea'); // Used for Blocked People content
-const settingsDisplayArea = document.getElementById('settingsDisplayArea'); // Used for Settings content
+const friendsListSection = document.getElementById('friends-list-section');
+const friendsSearchInput = document.getElementById('friendsSearchInput');
+const friendsScrollableList = document.getElementById('friendsScrollableList');
+const ignoresListSection = document.getElementById('ignores-list-section');
+const ignoresSearchInput = document.getElementById('ignoresSearchInput');
+const ignoresScrollableList = document.getElementById('ignoresScrollableList');
+const chatDisplayArea = document.getElementById('chat-display-area');
+const warChatBox = document.getElementById('warChatBox');
+const chatTabsContainer = document.querySelector('.chat-tabs-container');
+const chatTabButtons = document.querySelectorAll('.chat-tab');
+const chatInputArea = document.querySelector('.chat-input-area');
+const warChatDisplayArea = document.getElementById('warChatDisplayArea');
+const privateChatDisplayArea = document.getElementById('privateChatDisplayArea');
+const factionMembersDisplayArea = document.getElementById('factionMembersDisplayArea');
+const recentlyMetDisplayArea = document.getElementById('recentlyMetDisplayArea');
+const blockedPeopleDisplayArea = document.getElementById('blockedPeopleDisplayArea');
+const settingsDisplayArea = document.getElementById('settingsDisplayArea');
 const TARGET_EMOJIS = ['🎯', '❌', '📍', '☠️', '⚔️', '⚠️', '⛔', '🚩', '💢', '💥'];
+const factionAnnouncementsDisplay = document.getElementById('factionAnnouncementsDisplay');
+const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+const factionOneNameEl = document.getElementById('factionOneName');
+const factionOneMembersEl = document.getElementById('factionOneMembers');
+const factionTwoNameEl = document.getElementById('factionTwoName');
+const factionTwoMembersEl = document.getElementById('factionTwoMembers');
+const gamePlanEditArea = document.getElementById('gamePlanEditArea');
+const saveGamePlanBtn = document.getElementById('saveGamePlanBtn');
+const quickAnnouncementInput = document.getElementById('quickAnnouncementInput');
+const postAnnouncementBtn = document.getElementById('postAnnouncementBtn');
+const warNoFlyingStatus = document.getElementById('warNoFlyingStatus');
+const warTurtleStatus = document.getElementById('warTurtleStatus');
+const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -154,7 +165,6 @@ function updateMemberItemDisplay(itemElement, profileImageUrl) {
     }
 }
 
-// Helper function to generate dummy friend data
 function generateDummyFriends(count) {
     const dummyFriends = [];
     for (let i = 1; i <= count; i++) {
@@ -176,7 +186,6 @@ function createEnergyDisplayBoxHtml() {
     `;
 }
 
-// Helper function to generate dummy ignore data
 function generateDummyIgnores(count) {
     const dummyIgnores = [];
     for (let i = 1; i <= count; i++) {
@@ -199,7 +208,6 @@ function generateDummyIgnores(count) {
     return dummyIgnores;
 }
 
-// Helper function to check if two arrays of target IDs are identical (order-agnostic)
 function areTargetSetsIdentical(set1, set2) {
     if (set1.length !== set2.length) {
         return false;
@@ -216,6 +224,64 @@ function areTargetSetsIdentical(set1, set2) {
     }
     return true;
 }
+
+function createStatusBoxHtml(label, id) {
+    return `
+        <div class="ops-control-item ops-status-display">
+            <label>${label}:</label>
+            <span id="${id}" class="status-value-box">N/A</span>
+        </div>
+    `;
+}
+
+function isOnlineWithin59Seconds(relativeTimeStr) {
+    if (relativeTimeStr === "Now") {
+        return true;
+    }
+    const match = relativeTimeStr.match(/(\d+) second(?:s)? ago/);
+    if (match) {
+        const seconds = parseInt(match[1], 10);
+        return seconds <= 59;
+    }
+    return false; // Not online within 59 seconds
+}
+
+async function updateOnlineMemberCounts() {
+    // Friendly Faction Online Members
+    if (onlineFriendlyMembersDisplay && factionApiFullData && factionApiFullData.members) {
+        let onlineCount = 0;
+        const membersArray = Object.values(factionApiFullData.members); // Assuming it's an object with IDs as keys here
+        // If factionApiFullData.members is already an array, use:
+        // const membersArray = factionApiFullData.members;
+
+        for (const member of membersArray) {
+            if (member.last_action && isOnlineWithin59Seconds(member.last_action.relative)) {
+                onlineCount++;
+            }
+        }
+        onlineFriendlyMembersDisplay.textContent = `${onlineCount}/${membersArray.length}`;
+    } else if (onlineFriendlyMembersDisplay) {
+        onlineFriendlyMembersDisplay.textContent = 'N/A';
+    }
+
+    // Enemy Faction Online Members
+    if (onlineEnemyMembersDisplay && enemyDataGlobal && enemyDataGlobal.members) {
+        let onlineCount = 0;
+        const membersArray = Object.values(enemyDataGlobal.members); // Assuming it's an object with IDs as keys here
+        // If enemyDataGlobal.members is already an array, use:
+        // const membersArray = enemyDataGlobal.members;
+
+        for (const member of membersArray) {
+            if (member.last_action && isOnlineWithin59Seconds(member.last_action.relative)) {
+                onlineCount++;
+            }
+        }
+        onlineEnemyMembersDisplay.textContent = `${onlineCount}/${membersArray.length}`;
+    } else if (onlineEnemyMembersDisplay) {
+        onlineEnemyMembersDisplay.textContent = 'N/A';
+    }
+}
+
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
