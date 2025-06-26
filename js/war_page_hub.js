@@ -2296,7 +2296,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         return;
     }
 
-    // Adjusted colspan to 10 for the new total number of columns
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>';
 
     try {
@@ -2355,25 +2354,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         let tableRowsHtml = '';
         const memberPromises = [];
 
-        // REMINDER: Ensure your HTML <thead> matches this order and includes 'Position' and 'Revivable?'.
-        // Example:
-        /*
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Level</th>
-                <th>Last Action</th>
-                <th>Strength</th>
-                <th>Dexterity</th>
-                <th>Speed</th>
-                <th>Defense</th>
-                <th>Status</th>
-                <th>Revivable?</th>
-            </tr>
-        </thead>
-        */
-
         for (const memberTornData of membersArray) {
             const memberId = memberTornData.id;
 
@@ -2391,12 +2371,12 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 const lastAction = memberTornData.last_action ? memberTornData.last_action.relative : 'N/A';
                 const statusState = memberTornData.status?.state || 'N/A';
                 const statusDescription = memberTornData.status?.description || 'N/A';
-                // Correctly getting position and is_revivable from memberTornData
                 const position = memberTornData.position || 'N/A';
-                // Format is_revivable boolean to "Yes" or "No"
-                const isRevivable = memberTornData.is_revivable !== undefined ? (memberTornData.is_revivable ? 'Yes' : 'No') : 'N/A';
 
-                // Battle stats from Firebase data (or N/A if not available)
+                // --- CORRECTED LOGIC FOR 'Revivable?' using revive_setting DIRECTLY ---
+                const isRevivable = memberTornData.revive_setting || 'N/A';
+                // --- END CORRECTED LOGIC ---
+
                 const strength = memberFirebaseData?.battlestats?.strength?.toLocaleString() || 'N/A';
                 const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
                 const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
@@ -2423,13 +2403,15 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 `;
             }).catch(error => {
                 console.error(`Error fetching Firebase data for member ${memberId}:`, error);
-                // Fallback using Torn API data even if Firebase data fetch fails
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
                 const lastAction = memberTornData.last_action ? memberTornData.last_action.relative : 'N/A';
                 const statusDescription = memberTornData.status?.description || 'N/A';
                 const position = memberTornData.position || 'N/A';
-                const isRevivable = memberTornData.is_revivable !== undefined ? (memberTornData.is_revivable ? 'Yes' : 'No') : 'N/A';
+
+                // --- CORRECTED LOGIC FOR 'Revivable?' in error fallback DIRECTLY ---
+                const isRevivable = memberTornData.revive_setting || 'N/A';
+                // --- END CORRECTED LOGIC ---
 
                 let statusClass = '';
                 if (statusState === 'Hospital') statusClass = 'status-hospital';
