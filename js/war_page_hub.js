@@ -3512,6 +3512,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
+    // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
@@ -3536,9 +3537,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    showTab('announcements-tab');
+    showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
 
+    // Chat Tab Functionality Elements and Handler (unchanged, for completeness)
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
     const warChatBox = document.getElementById('warChatBox');
@@ -3685,17 +3687,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKey && playerId) {
                 userApiKey = apiKey;
 
-                // Initial load of comprehensive faction data and UI components
-                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID);
-                populateUiComponents(warData, apiKey);
+                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID); // Populates factionApiFullData
+                populateUiComponents(warData, apiKey); // Injects the HTML elements
+
+                // Ensure global DOM references are assigned after HTML injection
+                userEnergyDisplay = document.getElementById('userEnergyDisplay');
+                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+
+                // Initial calls for all dynamic ops panel displays
+                await updateUserEnergyDisplay(userApiKey, playerId);
+                await updateOnlineMemberCounts(); // NEW: Initial call for online counts
 
                 fetchAndDisplayChainData();
                 fetchAndDisplayRankedWarScores();
                 displayQuickFFTargets(userApiKey, playerId);
-
-                // --- NEW: Initial call for user energy display ---
-                await updateUserEnergyDisplay(userApiKey, playerId);
-
                 setupChatRealtimeListener();
 
                 if (!listenersInitialized) {
@@ -3713,36 +3719,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     listenersInitialized = true;
 
-                    // All existing intervals
-                    setInterval(updateAllTimers, 1000); // Existing timer updates
+                    setInterval(updateAllTimers, 1000); // Existing timer updates (e.g., enemy status in table)
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Populates enemyDataGlobal
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 2000);
+                    }, 2000); // Enemy data refresh (every 2 seconds)
+
                     setInterval(() => {
                         if (userApiKey && playerId) {
                             displayQuickFFTargets(userApiKey, playerId);
                         } else {
                             console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
                         }
-                    }, 60000);
+                    }, 60000); // Quick FF targets refresh (every minute)
+
                     setInterval(() => {
                         if (userApiKey) {
+                            // This interval updates factionApiFullData (needed for friendly online count)
                             initializeAndLoadData(userApiKey, DEBUG_FACTION_ID);
                         } else {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
-                    }, 300000);
+                    }, 300000); // Comprehensive faction data refresh (every 5 minutes)
 
-                    // --- NEW: Periodic update for user energy display (every 1 minute) ---
+                    // NEW: Periodic update for user energy and online counts (every 1 minute)
                     setInterval(() => {
                         if (userApiKey && playerId) {
                             updateUserEnergyDisplay(userApiKey, playerId);
+                            updateOnlineMemberCounts(); // NEW: Call for online counts
                         } else {
-                            console.warn("API key or Player ID not available for periodic user energy refresh.");
+                            console.warn("API key or Player ID not available for periodic user energy/online member refresh.");
                         }
                     }, 60000); // 60000 milliseconds = 1 minute
                 }
@@ -3754,10 +3763,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
                 }
-                // Ensure user energy display is N/A if API key/player ID is missing
-                if (userEnergyDisplay) {
-                    userEnergyDisplay.textContent = 'N/A';
-                }
+                // Ensure all dynamic ops panel displays are N/A if API key/player ID is missing
+                if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
+                if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
+                if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
             }
         } else {
             userApiKey = null;
@@ -3765,10 +3774,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User not logged in.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-            // Ensure user energy display is N/A if user not logged in
-            if (userEnergyDisplay) {
-                userEnergyDisplay.textContent = 'N/A';
-            }
+            // Ensure all dynamic ops panel displays are N/A if user not logged in
+            if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
+            if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
+            if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
         }
     });
 });
