@@ -2875,7 +2875,7 @@ function setupEventListeners(apiKey) {
     }
 }
 
-unction formatDuration(seconds) {
+function formatDuration(seconds) {
     if (seconds < 0) seconds = 0;
     const days = Math.floor(seconds / 86400);
     seconds %= 86400;
