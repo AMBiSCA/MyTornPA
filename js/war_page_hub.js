@@ -2666,7 +2666,7 @@ if (chatTabsContainer && chatTabButtons.length > 0) {
                 console.error("Error saving admins:", error);
             }
         });
-    }
+    
 
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
