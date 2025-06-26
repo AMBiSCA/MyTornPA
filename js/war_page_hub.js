@@ -2235,16 +2235,16 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
         const userProfileData = userProfileDoc.data();
-        const currentUserTornId = userProfileData.tornProfileId; 
-        const userFactionId = userProfileData.faction_id; 
+        const currentUserTornId = userProfileData.tornProfileId;
+        const userFactionId = userProfileData.faction_id;
 
         if (!currentUserTornId) {
             console.warn("Torn Player ID not found in your user profile. Cannot fetch user data.");
             tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Your Torn Player ID is not stored in your profile.</td></tr>';
             return;
         }
-        
-        if (!userFactionId) { 
+
+        if (!userFactionId) {
             console.warn("Faction ID not found for current user in Firebase user profile. Cannot fetch faction members.");
             tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Not in a faction or Faction ID not stored in your profile.</td></tr>';
             return;
@@ -2253,7 +2253,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         const currentUserDataRef = db.collection('users').doc(String(currentUserTornId));
         const currentUserDataDoc = await currentUserDataRef.get();
         const currentUsersFullData = currentUserDataDoc.exists ? currentUserDataDoc.data() : null;
-        
+
         const actualUserFactionId = currentUsersFullData?.faction_id || userFactionId;
 
         if (!actualUserFactionId) {
@@ -2274,21 +2274,21 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-        const members = factionData.members; 
+        const members = factionData.members;
         if (!members || Object.keys(members).length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>';
             return;
         }
 
         let tableRowsHtml = '';
-        const memberPromises = []; 
+        const memberPromises = [];
 
         for (const memberId in members) {
             if (members.hasOwnProperty(memberId)) {
                 const memberDocRef = db.collection('users').doc(String(memberId));
                 memberPromises.push(memberDocRef.get().then(doc => {
-                    const memberTornData = members[memberId]; 
-                    const memberFirebaseData = doc.exists ? doc.data() : null; 
+                    const memberTornData = members[memberId];
+                    const memberFirebaseData = doc.exists ? doc.data() : null;
 
                     const name = memberTornData.name || 'Unknown';
                     const level = memberTornData.level || 'N/A';
@@ -2302,7 +2302,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     const defense = memberFirebaseData?.battlestats?.defense?.toLocaleString() || 'N/A';
                     const nerve = memberFirebaseData?.nerve !== undefined && memberFirebaseData?.nerve_full !== undefined ? `${memberFirebaseData.nerve}/${memberFirebaseData.nerve_full}` : 'N/A';
                     const energy = memberFirebaseData?.energy !== undefined && memberFirebaseData?.energy_full !== undefined ? `${memberFirebaseData.energy}/${memberFirebaseData.energy_full}` : 'N/A';
-                    
+
                     let statusClass = '';
                     if (statusState === 'Hospital') statusClass = 'status-hospital';
                     else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
@@ -2310,7 +2310,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
                     return `
                         <tr>
-                            <td>${name} (${memberId})</td>
+                            <td>${name}</td> // MODIFIED LINE: Removed (${memberId})
                             <td>${level}</td>
                             <td>${lastAction}</td>
                             <td>${strength}</td>
@@ -2331,7 +2331,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     const statusDescription = memberTornData.status?.description || 'N/A';
                     return `
                         <tr>
-                            <td>${name} (${memberId})</td>
+                            <td>${name}</td> // MODIFIED LINE: Removed (${memberId})
                             <td>${level}</td>
                             <td>${lastAction}</td>
                             <td>N/A</td>
