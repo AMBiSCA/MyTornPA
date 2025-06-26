@@ -2680,6 +2680,7 @@ function switchChatTab(tabName) {
 }
 
 // --- Event Listeners Setup ---
+// --- Event Listeners Setup ---
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -2696,229 +2697,72 @@ function setupEventListeners(apiKey) {
     }
 
     // --- Chat Input Buttons Functionality ---
+    // Mute Button Toggle (🔊 / 🔇)
     const muteSoundButton = document.getElementById('muteSoundButton');
     if (muteSoundButton) {
+        // Set initial icon based on saved state (isChatMuted is a global variable)
         muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.classList.toggle('muted', isChatMuted); // Apply 'muted' class if already muted
+
         muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
+            isChatMuted = !isChatMuted; // Toggle the global mute state
+            localStorage.setItem('isChatMuted', isChatMuted); // Save state to local storage
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊'; // Toggle icon
+            muteSoundButton.classList.toggle('muted', isChatMuted); // Toggle 'muted' class
             console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
+            // TODO: Actual sound muting logic will check the 'isChatMuted' flag.
+            // (e.g., if you have a sound notification function, it would `if (!isChatMuted) playSound();`)
         });
     }
 
+    // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Aid button clicked. Functionality temporarily disabled.');
         });
     }
 
+    // Flight Button (✈️) - Quickly initiate travel/return
     const flightButton = document.querySelector('.flight-button');
     if (flightButton) {
         flightButton.addEventListener('click', () => {
+            // Open Torn travel page in a new tab
             window.open('https://www.torn.com/page.php?sid=travel', '_blank');
             console.log('Flight button clicked. Opening travel page.');
         });
     }
 
+    // Armory Button (💉️) - Link to Faction Armory
     const armoryButton = document.querySelector('.armory-button');
     if (armoryButton) {
         armoryButton.addEventListener('click', () => {
+            // Open Torn faction armory page in a new tab
             window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
             console.log('Armory button clicked. Opening armory page.');
         });
     }
 
+    // Refill Button (⛽) - Quick energy/nerve refill link
     const refillButton = document.querySelector('.refill-button');
     if (refillButton) {
         refillButton.addEventListener('click', () => {
+            // Open Torn points page for refills in a new tab
             window.open('https://www.torn.com/page.php?sid=points', '_blank');
             console.log('Refill button clicked. Opening points page.');
         });
     }
 
-    const alarmButton = document.querySelector('.siren-btn');
+    // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
+    const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
-    
-    // This listener was for a modal that is not in the latest HTML, it can be removed or left if you plan to re-add it.
-    // I've commented it out for now to avoid potential errors.
-    /*
-    if (chainClaimButton) {
-        chainClaimButton.addEventListener('click', () => {
-            if (currentLiveChainSeconds <= 0) {
-                alert("Chain is not active! Cannot claim hits.");
-                return;
-            }
-            if (isChainingClaimActive) {
-                alert("A chain claim is already active! Only one claim at a time.");
-                return;
-            }
-            if (chainClaimModal) {
-                chainClaimModal.style.display = 'flex';
-                chainHitsInput.focus();
-            }
-        });
-    }
-    */
-    
-    if (chatSendBtn && chatTextInput) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
-            }
-        });
-    }
 
-    if (chatTabsContainer && chatTabButtons.length > 0) {
-        chatTabButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                handleChatTabClick(event);
-            });
-        });
-    }
-
-    if (postAnnouncementBtn) {
-        postAnnouncementBtn.addEventListener('click', async () => {
-            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
-                quickAnnouncementInput.value = '';
-                alert('Announcement posted!');
-            } catch (error) {
-                console.error('Error posting announcement:', error);
-                alert('Error posting announcement.');
-            }
-        });
-    }
-
-    if (saveWarStatusControlsBtn) {
-        saveWarStatusControlsBtn.addEventListener('click', async () => {
-            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = {
-                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-                toggleChaining: toggleChaining ? toggleChaining.checked : false,
-                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
-            };
-            try {
-                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                alert('War status saved!');
-                populateWarStatusDisplay(statusData);
-                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
-            } catch (error) {
-                console.error('Error saving war status:', error);
-                alert('Error saving war status.');
-            }
-        });
-    }
-
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                alert('Admins saved!');
-            } catch (error) {
-                console.error("Error saving admins:", error);
-            }
-        });
-    }
-
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                alert('Energy tracking members saved!');
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-            }
-        });
-    }
-
-    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
-    if (saveWatchlistSelectionsBtn) {
-        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                alert('Big Hitter Watchlist saved!');
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-            }
-        });
-    }
-
-    // --- START: Add Friend Button Listener ---
-    // This listener handles clicks inside the main chat content area
-    const chatDisplay = document.getElementById('chat-display-area');
-    if (chatDisplay) {
-        chatDisplay.addEventListener('click', function(event) {
-            // This checks if the thing you clicked was an 'add friend' button
-            const addButton = event.target.closest('.add-member-button');
-
-            // If you didn't click an add button, it does nothing.
-            if (!addButton) {
-                return;
-            }
-
-            // Disable the button to prevent multiple rapid clicks
-            addButton.disabled = true;
-
-            const friendIdToAdd = addButton.dataset.memberId;
-            const currentUser = auth.currentUser;
-
-            // First, make sure a user is actually logged in
-            if (!currentUser) {
-                console.error("Error: You must be logged in to add a friend.");
-                alert("You are not logged in. Please refresh the page.");
-                addButton.disabled = false; // Re-enable the button if there's an error
-                return;
-            }
-
-            const currentUserId = currentUser.uid;
-
-            // This creates a reference to where the friend will be saved in your database
-            const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
-
-            // Now, we save the friend's ID to the database
-            friendDocRef.set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                // This part runs ONLY if the save was successful
-                console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
-                // Now we hide the button because it worked
-                addButton.style.display = 'none';
-            })
-            .catch((error) => {
-                // This part runs if there was an error saving
-                console.error("Error adding friend to database: ", error);
-                alert("There was an error adding the friend. Please try again.");
-                addButton.disabled = false; // Re-enable the button so you can try again
-            });
-        });
-    }
-    // --- END: Add Friend Button Listener ---
-
-}
     // NEW: Chaining Claim Button (🔗)
     if (chainClaimButton) {
         chainClaimButton.addEventListener('click', () => {
@@ -3085,8 +2929,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
-
+ // End of setupEventListeners function
 async function initializeAndLoadData(apiKey) {
     try {
         // UPDATED: Removed 'wars' selection from the URL
