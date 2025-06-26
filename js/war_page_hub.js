@@ -22,6 +22,7 @@ let lastEmojiIndex = -1; // To keep track of the last emoji used
 let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
+let userEnergyDisplay = null; // Will be assigned dynamically after HTML injection
 
 // --- DOM Element Getters ---
 
@@ -166,6 +167,15 @@ function generateDummyFriends(count) {
         });
     }
     return dummyFriends;
+}
+
+function createEnergyDisplayBoxHtml() {
+    return `
+        <div class="ops-control-item ops-energy-display">
+            <label>Your Energy:</label>
+            <span id="userEnergyDisplay" class="status-value-box">N/A</span>
+        </div>
+    `;
 }
 
 // Helper function to generate dummy ignore data
@@ -1181,14 +1191,49 @@ function formatTornTime(timestamp) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+// UPDATED FUNCTION: Fetches and updates the user's energy display
+async function updateUserEnergyDisplay(apiKey, playerId) { // Now accepts apiKey and playerId
+    if (!userEnergyDisplay) { // Check for the DOM element being available
+        console.error("HTML Error: userEnergyDisplay element not found for update. Cannot display energy.");
+        return;
+    }
+
+    if (!apiKey || !playerId) {
+        userEnergyDisplay.textContent = 'N/A';
+        console.warn("User API key or Player ID not available for energy display.");
+        return;
+    }
+
+    try {
+        const energyApiUrl = `https://api.torn.com/user/${playerId}?selections=bars&key=${apiKey}&comment=MyTornPA_UserEnergy`;
+        const response = await fetch(energyApiUrl);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Torn API HTTP Error fetching energy: ${response.status} ${response.statusText}. Error: ${errorData.error?.error || 'Unknown'}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(`Torn API Error fetching energy: ${data.error.error}`);
+        }
+
+        if (data.bars && data.bars.energy) {
+            const energyData = data.bars.energy;
+            userEnergyDisplay.textContent = `${energyData.current}/${energyData.maximum}`;
+        } else {
+            userEnergyDisplay.textContent = 'N/A';
+            console.warn("Energy data not found in user API response for display.");
+        }
+    } catch (error) {
+        console.error("Error updating user energy display:", error);
+        userEnergyDisplay.textContent = 'Error';
+    }
+}
 // Function: displayQuickFFTargets
 // Desc: Fetches and displays quick fair fight targets, adding alternating emojis.
-//       Prevents "blinking" by only updating the display after a successful fetch.
-// Function: displayQuickFFTargets
-// Desc: Fetches and displays quick fair fight targets, adding alternating emojis
-//       with individual borders. Prevents "blinking" by only updating the
-//       display after a successful fetch.
-// Helper function to check if two arrays of target IDs are identical (order-agnostic)
+//       Prevents "blinking" by only updating the display after a successful fetch
 function areTargetSetsIdentical(set1, set2) {
     if (set1.length !== set2.length) {
         return false;
@@ -1299,26 +1344,22 @@ async function initializeAndLoadData(apiKey) {
     }
 }
 
-      function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+    function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
         if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
-        // This block now populates checkboxes AND the new friendly members table
-        if (factionApiFullData.members) { 
+        if (factionApiFullData.members) {
             populateFriendlyMemberCheckboxes(
                 factionApiFullData.members,
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            
-            // --- NEW LINE ADDED HERE ---
-            displayFriendlyMembersTable(factionApiFullData.members); 
-
+            displayFriendlyMembersTable(factionApiFullData.members);
         } else {
-            console.warn("factionApiFullData.members not available for friendly member checkboxes.");
+            console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
         }
     } else {
@@ -1328,13 +1369,29 @@ async function initializeAndLoadData(apiKey) {
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
     
+    // --- NEW: Dynamically inject Energy Display Box ---
+    const opsControlsGrid = document.querySelector('.ops-controls-grid'); // Get the grid container
+    if (opsControlsGrid && !document.getElementById('userEnergyDisplay')) { // Check if grid exists and box is not already there
+        const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
+        if (timerItem) {
+            timerItem.insertAdjacentHTML('afterend', createEnergyDisplayBoxHtml()); // Inject next to Chain Timer
+            // Now, get the reference to the newly injected element
+            userEnergyDisplay = document.getElementById('userEnergyDisplay');
+        } else {
+            // Fallback if timerItem is not found: add to end of grid
+            opsControlsGrid.insertAdjacentHTML('beforeend', createEnergyDisplayBoxHtml());
+            userEnergyDisplay = document.getElementById('userEnergyDisplay');
+        }
+    }
+    // --- END NEW ---
+
     // Game Plan & Announcements (from Firebase warData)
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
 
     populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
 
     // Store enemy faction ID globally (from Firebase warData)
     globalEnemyFactionID = warData.enemyFactionID || null;
@@ -1348,9 +1405,10 @@ async function initializeAndLoadData(apiKey) {
         populateEnemyMemberCheckboxes({}, []);
         displayEnemyTargetsTable(null); // This clears the table
     }
-}
 
-/**
+    // Call user energy display update (now called from auth.onAuthStateChanged as per final plan)
+    // Removed: updateUserEnergyDisplay(); // This call is now primarily from auth.onAuthStateChanged
+}
  * Builds and displays the table for the user's own faction members.
  * @param {object} members - The members object from the API.
  */
@@ -3557,7 +3615,8 @@ function handleChatTabClick(event) {
                         } else {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
-                    }, 2000);
+                    }, 300000);
+					
                 }
             } else {
                 console.warn("API key or Player ID not found.");
