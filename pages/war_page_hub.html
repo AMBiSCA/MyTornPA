@@ -203,12 +203,14 @@
                                 </div>
                                 <div class="chat-input-area">
                                     <div class="chat-input-buttons-top">
-                                    <button class="chat-action-btn siren-btn">⚠️</button>
-                                    <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button> <button class="chat-action-btn aid-button">🚨</button>
-                                    <button class="chat-action-btn flight-button">✈️</button>
-                                    <button class="chat-action-btn armory-button">💉️</button>
-                                    <button class="chat-action-btn refill-button">⛽</button>
-                                     </div>
+    <button class="chat-action-btn siren-btn">⚠️</button>
+    <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
+    <button class="chat-action-btn aid-button">🚨</button>
+    <button class="chat-action-btn flight-button">✈️</button>
+    <button class="chat-action-btn armory-button">💉️</button>
+    <button class="chat-action-btn refill-button">⛽</button>
+    <button class="chat-action-btn chain-button" id="chainClaimButton">🔗</button>
+</div>
                                     <div class="chat-input-text-send">
                                         <input type="text" class="chat-text-input" placeholder="Type your message...">
                                         <button class="chat-send-btn">Send</button>
@@ -248,15 +250,19 @@
                     <div class="friendly-status-layout-row"> <div class="friendly-members-panel"> <div id="friendlyMembersListContainer">
                                 <table class="enemy-targets-table" id="friendly-members-table">
                                    <thead>
-    <div class="chat-input-buttons-top">
-    <button class="chat-action-btn siren-btn">⚠️</button>
-    <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
-    <button class="chat-action-btn aid-button">🚨</button>
-    <button class="chat-action-btn flight-button">✈️</button>
-    <button class="chat-action-btn armory-button">💉️</button>
-    <button class="chat-action-btn refill-button">⛽</button>
-    <button class="chat-action-btn chain-button" id="chainClaimButton">🔗</button>
-</div>
+    <tr>
+        <th>Name</th>
+        <th>Position</th>
+        <th>Level</th>
+        <th>Last Action</th>
+        <th>Strength</th>
+        <th>Dexterity</th>
+        <th>Speed</th>
+        <th>Defense</th>
+        <th>Status</th>
+        <th>Revivable?</th>
+    </tr>
+ </thead>
                                     <tbody id="friendly-members-tbody">
                                         <tr>
                                             <td colspan="10" style="text-align:center; padding: 20px;">Loading member data...</td>
@@ -375,6 +381,18 @@
     <script src="../../js/firebase-init.js"></script>
     <script src="../../js/globalheader.js"></script>
     <script src="../../js/war_page_hub.js"></script>
-    
+   
+   <div id="chainClaimModal" class="chain-claim-modal-overlay" style="display: none;">
+    <div class="chain-claim-modal-content">
+        <h3>Claim Next Hits</h3>
+        <p>Rushing the next <input type="number" id="chainHitsInput" min="1" value="1" class="modal-input"> hits.</p>
+        <p>From Chain Number <input type="number" id="chainNumberInput" min="1" value="1" class="modal-input"> onwards.</p>
+        <div class="modal-actions">
+            <button id="submitChainClaimBtn" class="action-button">Claim!</button>
+            <button id="cancelChainClaimBtn" class="action-button cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

@@ -2714,7 +2714,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-     // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
+    // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
@@ -2753,7 +2753,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-     // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
+    // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
     const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
@@ -2761,9 +2761,174 @@ function setupEventListeners(apiKey) {
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
-}
-	
-	// >>> REPLACE YOUR ENTIRE EXISTING 'initializeAndLoadData' FUNCTION WITH THE CODE BELOW <<<
+
+    // NEW: Chaining Claim Button (🔗)
+    if (chainClaimButton) {
+        chainClaimButton.addEventListener('click', () => {
+            // Check if chain is active (optional, could be done in modal submit too)
+            if (currentLiveChainSeconds <= 0) {
+                alert("Chain is not active! Cannot claim hits.");
+                return;
+            }
+            // Check if a claim is already active
+            if (isChainingClaimActive) {
+                alert("A chain claim is already active! Only one claim at a time.");
+                return;
+            }
+            if (chainClaimModal) {
+                chainClaimModal.style.display = 'flex'; // Show the modal
+                chainHitsInput.focus(); // Focus on the first input
+            }
+        });
+    }
+
+    // NEW: Chain Claim Modal Buttons
+    if (submitChainClaimBtn) {
+        submitChainClaimBtn.addEventListener('click', () => {
+            const hits = parseInt(chainHitsInput.value, 10);
+            const chainNum = parseInt(chainNumberInput.value, 10);
+
+            if (isNaN(hits) || hits <= 0 || isNaN(chainNum) || chainNum <= 0) {
+                alert("Please enter valid positive numbers for hits and chain number.");
+                return;
+            }
+
+            // Set the global claim active flag
+            isChainingClaimActive = true;
+            updateTableButtonsState(); // Update Claim/Attack buttons state
+
+            // Send the claim message to chat
+            sendChainClaimMessage(hits, chainNum);
+
+            // Hide the modal and reset inputs
+            if (chainClaimModal) chainClaimModal.style.display = 'none';
+            chainHitsInput.value = '1';
+            chainNumberInput.value = '1';
+        });
+
+        // Allow Enter key to submit within modal inputs
+        if (chainHitsInput) {
+            chainHitsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitChainClaimBtn.click();
+            });
+        }
+        if (chainNumberInput) {
+            chainNumberInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitChainClaimBtn.click();
+            });
+        }
+    }
+
+    if (cancelChainClaimBtn) {
+        cancelChainClaimBtn.addEventListener('click', () => {
+            if (chainClaimModal) chainClaimModal.style.display = 'none'; // Hide the modal
+            chainHitsInput.value = '1'; // Reset inputs
+            chainNumberInput.value = '1';
+        });
+    }
+
+    if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
+        // Send message on button click
+        chatSendBtn.addEventListener('click', sendChatMessage);
+
+        // Send message on Enter key press in the input field
+        chatTextInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default browser behavior (like new line)
+                sendChatMessage(); // Call our send message function
+            }
+        });
+    }
+
+    if (chatTabsContainer && chatTabButtons.length > 0) {
+        chatTabButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+                handleChatTabClick(event); // Assuming handleChatTabClick is the correct chat tab handler
+            });
+        });
+    }
+
+    if (postAnnouncementBtn) {
+        postAnnouncementBtn.addEventListener('click', async () => {
+            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
+                quickAnnouncementInput.value = '';
+                alert('Announcement posted!');
+            } catch (error) {
+                console.error('Error posting announcement:', error);
+                alert('Error posting announcement.');
+            }
+        });
+    }
+
+    if (saveWarStatusControlsBtn) {
+        saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
+            try {
+                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+                alert('War status saved!');
+                populateWarStatusDisplay(statusData);
+                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
+            } catch (error) {
+                console.error('Error saving war status:', error);
+                alert('Error saving war status.');
+            }
+        });
+    }
+
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            if (!designatedAdminsContainer) return;
+            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+                alert('Admins saved!');
+            } catch (error) {
+                console.error("Error saving admins:", error);
+            }
+        });
+    }
+
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            if (!energyTrackingContainer) return;
+            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+                alert('Energy tracking members saved!');
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+            }
+        });
+    }
+
+    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
+    if (saveWatchlistSelectionsBtn) {
+        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+                alert('Big Hitter Watchlist saved!');
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
+            }
+        });
+    }
+} 
 
 async function initializeAndLoadData(apiKey) {
     try {
