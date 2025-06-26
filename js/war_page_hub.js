@@ -2462,27 +2462,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         tbody.innerHTML = `<p style="color:red;">Error loading faction list: ${error.message || String(error)}.</p>`;
     }
 }
-
-function createEnergyAndOnlineMembersGroupHtml() {
-    return `
-        <div id="energyAndOnlineMembersGroupContainer" class="energy-online-members-group">
-            <div class="ops-control-item">
-                <label>Your Energy:</label>
-                <span id="userEnergyDisplay" class="status-value-box">N/A</span>
-            </div>
-            <div class="ops-control-item">
-                <label>Online Faction Members:</label>
-                <span id="onlineFriendlyMembersDisplay" class="status-value-box">N/A</span>
-            </div>
-            <div class="ops-control-item">
-                <label>Online Enemy Members:</label>
-                <span id="onlineEnemyMembersDisplay" class="status-value-box">N/A</span>
-            </div>
-        </div>
-    `;
-}
-
-
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
@@ -2701,7 +2680,6 @@ function switchChatTab(tabName) {
 }
 
 // --- Event Listeners Setup ---
-// --- Event Listeners Setup ---
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -2718,63 +2696,146 @@ function setupEventListeners(apiKey) {
     }
 
     // --- Chat Input Buttons Functionality ---
+    // Mute Button Toggle (🔊 / 🔇)
     const muteSoundButton = document.getElementById('muteSoundButton');
     if (muteSoundButton) {
+        // Set initial icon based on saved state (isChatMuted is a global variable)
         muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.classList.toggle('muted', isChatMuted); // Apply 'muted' class if already muted
+
         muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
+            isChatMuted = !isChatMuted; // Toggle the global mute state
+            localStorage.setItem('isChatMuted', isChatMuted); // Save state to local storage
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊'; // Toggle icon
+            muteSoundButton.classList.toggle('muted', isChatMuted); // Toggle 'muted' class
             console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
+            // TODO: Actual sound muting logic will check the 'isChatMuted' flag.
+            // (e.g., if you have a sound notification function, it would `if (!isChatMuted) playSound();`)
         });
     }
 
+    // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Aid button clicked. Functionality temporarily disabled.');
         });
     }
 
+    // Flight Button (✈️) - Quickly initiate travel/return
     const flightButton = document.querySelector('.flight-button');
     if (flightButton) {
         flightButton.addEventListener('click', () => {
+            // Open Torn travel page in a new tab
             window.open('https://www.torn.com/page.php?sid=travel', '_blank');
             console.log('Flight button clicked. Opening travel page.');
         });
     }
 
+    // Armory Button (💉️) - Link to Faction Armory
     const armoryButton = document.querySelector('.armory-button');
     if (armoryButton) {
         armoryButton.addEventListener('click', () => {
+            // Open Torn faction armory page in a new tab
             window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
             console.log('Armory button clicked. Opening armory page.');
         });
     }
 
+    // Refill Button (⛽) - Quick energy/nerve refill link
     const refillButton = document.querySelector('.refill-button');
     if (refillButton) {
         refillButton.addEventListener('click', () => {
+            // Open Torn points page for refills in a new tab
             window.open('https://www.torn.com/page.php?sid=points', '_blank');
             console.log('Refill button clicked. Opening points page.');
         });
     }
 
-    const alarmButton = document.querySelector('.siren-btn');
+    // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
+    const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
 
-    if (chatSendBtn && chatTextInput) {
+    // NEW: Chaining Claim Button (🔗)
+    if (chainClaimButton) {
+        chainClaimButton.addEventListener('click', () => {
+            // Check if chain is active (optional, could be done in modal submit too)
+            if (currentLiveChainSeconds <= 0) {
+                alert("Chain is not active! Cannot claim hits.");
+                return;
+            }
+            // Check if a claim is already active
+            if (isChainingClaimActive) {
+                alert("A chain claim is already active! Only one claim at a time.");
+                return;
+            }
+            if (chainClaimModal) {
+                chainClaimModal.style.display = 'flex'; // Show the modal
+                chainHitsInput.focus(); // Focus on the first input
+            }
+        });
+    }
+
+    // NEW: Chain Claim Modal Buttons
+    if (submitChainClaimBtn) {
+        submitChainClaimBtn.addEventListener('click', () => {
+            const hits = parseInt(chainHitsInput.value, 10);
+            const chainNum = parseInt(chainNumberInput.value, 10);
+
+            if (isNaN(hits) || hits <= 0 || isNaN(chainNum) || chainNum <= 0) {
+                alert("Please enter valid positive numbers for hits and chain number.");
+                return;
+            }
+
+            // Set the global claim active flag
+            isChainingClaimActive = true;
+            updateTableButtonsState(); // Update Claim/Attack buttons state
+
+            // Send the claim message to chat
+            sendChainClaimMessage(hits, chainNum);
+
+            // Hide the modal and reset inputs
+            if (chainClaimModal) chainClaimModal.style.display = 'none';
+            chainHitsInput.value = '1';
+            chainNumberInput.value = '1';
+        });
+
+        // Allow Enter key to submit within modal inputs
+        if (chainHitsInput) {
+            chainHitsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitChainClaimBtn.click();
+            });
+        }
+        if (chainNumberInput) {
+            chainNumberInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitChainClaimBtn.click();
+            });
+        }
+    }
+
+    if (cancelChainClaimBtn) {
+        cancelChainClaimBtn.addEventListener('click', () => {
+            if (chainClaimModal) chainClaimModal.style.display = 'none'; // Hide the modal
+            chainHitsInput.value = '1'; // Reset inputs
+            chainNumberInput.value = '1';
+        });
+    }
+
+    if (chatSendBtn && chatTextInput) { // Ensure these DOM elements were found
+        // Send message on button click
         chatSendBtn.addEventListener('click', sendChatMessage);
+
+        // Send message on Enter key press in the input field
         chatTextInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
+                event.preventDefault(); // Prevent default browser behavior (like new line)
+                sendChatMessage(); // Call our send message function
             }
         });
     }
@@ -2782,7 +2843,8 @@ function setupEventListeners(apiKey) {
     if (chatTabsContainer && chatTabButtons.length > 0) {
         chatTabButtons.forEach(button => {
             button.addEventListener('click', (event) => {
-                handleChatTabClick(event);
+                const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
+                handleChatTabClick(event); // Assuming handleChatTabClick is the correct chat tab handler
             });
         });
     }
@@ -2866,33 +2928,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
-    // --- PASTE THE NEW CODE BLOCK HERE ---
-    // This listener handles clicks inside the main chat content area
-    const chatDisplay = document.getElementById('chat-display-area');
-    if (chatDisplay) {
-        chatDisplay.addEventListener('click', function(event) {
-            // This checks if the thing you clicked was an 'add friend' button
-            const addButton = event.target.closest('.add-member-button');
-
-            // If you didn't click an add button, it does nothing.
-            if (!addButton) {
-                return;
-            }
-
-            // If you DID click an add button, it gets the member's ID
-            const friendIdToAdd = addButton.dataset.memberId;
-            
-            alert(`You clicked 'Add Friend' for member ID: ${friendIdToAdd}`); // Temporary alert for testing
-
-            // This line will hide the button after you click it.
-            // In the next step, we will add the database logic here.
-            addButton.style.display = 'none'; 
-        });
-    }
-    // --- END OF NEW CODE BLOCK ---
-
-} // <-- The new code must be BEFORE this closing brace
+} 
 
 async function initializeAndLoadData(apiKey) {
     try {
@@ -3277,59 +3313,78 @@ function generateDummyRecentlyMet(count) {
 }
 
 // NEW FUNCTION: Populates the content of the Recently Met tab
-// NEW FUNCTION: Populates the content of the Recently Met tab with a grid layout
 async function populateRecentlyMetTab(targetDisplayElement) {
-    console.log("[Recently Met Tab] Populating tab with new grid layout...");
+    console.log("[Recently Met Tab] Populating tab...");
 
     if (!targetDisplayElement) {
         console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
         return;
     }
 
-    // Create the grid container
-    targetDisplayElement.innerHTML = `<div class="members-list-container"></div>`;
-    const membersListContainer = targetDisplayElement.querySelector('.members-list-container');
+    targetDisplayElement.innerHTML = `
+        <div class="recently-met-layout">
+            <div class="header-box">
+                <b>RECENTLY MET IN WAR</b>
+            </div>
+            <div id="recentlyMetTableContainer" class="scrollable-table-container">
+                <table class="recently-met-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">NAME (ID)</th>
+                            <th class="col-level">LEVEL</th>
+                            <th class="col-faction">FACTION</th>
+                            <th class="col-last-action">LAST ACTION</th>
+                            <th class="col-status">STATUS</th>
+                            <th class="col-actions">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentlyMetTbody">
+                        <tr><td colspan="6" style="text-align:center; padding: 10px;">Loading recently met players...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
 
-    if (!membersListContainer) {
-        console.error("Failed to create members-list-container.");
+    // Re-get elements after HTML is injected
+    const recentlyMetTbody = document.getElementById('recentlyMetTbody');
+
+    if (!recentlyMetTbody) {
+        console.error("HTML Error: recentlyMetTbody not found after injection.");
         return;
     }
-    
-    membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">Loading recently met players...</p>`;
 
-    // Using dummy data as before
-    const recentlyMetPlayers = generateDummyRecentlyMet(50);
+    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
 
-    if (!recentlyMetPlayers || recentlyMetPlayers.length === 0) {
-        membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">No recently met players found.</p>`;
-        return;
-    }
+    let tableRowsHtml = '';
+    dummyRecentlyMet.forEach(player => {
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${player.id}`;
+        const lastActionText = formatRelativeTime(player.last_action_timestamp); // Re-use existing formatRelativeTime
+        const statusClass = player.status_description.toLowerCase().replace(' ', '-'); // For CSS styling
 
-    // Clear loading message
-    membersListContainer.innerHTML = '';
-
-    // Loop through players and create the new "member-item" divs
-    for (const player of recentlyMetPlayers) {
-        const memberItemDiv = document.createElement('div');
-        memberItemDiv.classList.add('member-item');
-
-        // --- THIS IS THE MODIFIED PART (Faction Tag is now removed) ---
-        memberItemDiv.innerHTML = `
-            <div class="member-identity">
-                <img src="${player.profile_image}" alt="Profile Pic" class="member-profile-pic">
-                <span class="member-name">${player.name}</span>
-            </div>
-            <div class="member-actions">
-                <button class="item-button letter-button" title="Send Message">✉️</button>
-                <button class="item-button trash-button" title="Remove">🗑️</button>
-            </div>
+        tableRowsHtml += `
+            <tr data-id="${player.id}">
+                <td class="col-name">
+                    <img src="${player.profile_image}" alt="Pic" class="profile-pic-small">
+                    <a href="${profileUrl}" target="_blank">${player.name} [${player.id.split('_')[2]}]</a>
+                </td>
+                <td class="col-level">${player.level}</td>
+                <td class="col-faction">${player.faction_tag}</td>
+                <td class="col-last-action">${lastActionText}</td>
+                <td class="col-status status-${statusClass}">${player.status_description}</td>
+                <td class="col-actions">
+                    <button class="item-button letter-button">✉️</button>
+                    <button class="item-button trash-button">🗑️</button>
+                </td>
+            </tr>
         `;
-        // --- END MODIFIED PART ---
+    });
+    recentlyMetTbody.innerHTML = tableRowsHtml;
 
-        membersListContainer.appendChild(memberItemDiv);
-    }
-    // TODO: Add event listeners for the new buttons if needed
+    // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
+    // using event delegation on recentlyMetTbody.
 }
+
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab with dummy data...");
 
@@ -3389,9 +3444,8 @@ async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     // using event delegation on friendsListEl and ignoresListEl.
 }
 
-// MODIFIED Function: populateUiComponents
 function populateUiComponents(warData, apiKey) {
-    // Basic Faction Info (from global factionApiFullData) - (KEEP as is)
+    // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
@@ -3403,9 +3457,10 @@ function populateUiComponents(warData, apiKey) {
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
+            // displayFriendlyMembersTable(factionApiFullData.members); // This might be duplicated or replaced by updateFriendlyMembersTable
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
-            populateFriendlyMemberCheckboxes({}, []);
+            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
         }
     } else {
         console.warn("factionApiFullData not available in populateUiComponents.");
@@ -3414,39 +3469,30 @@ function populateUiComponents(warData, apiKey) {
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
 
-    // --- MODIFIED: Dynamically inject the NEW Energy and Online Members Group Box ---
+    // Dynamically inject Energy, Online Friendly, and Online Enemy Display Boxes
     const opsControlsGrid = document.querySelector('.ops-controls-grid');
     if (opsControlsGrid) {
-        // Only inject if the group container is not already present
-        if (!document.getElementById('energyAndOnlineMembersGroupContainer')) {
-            const quickFightChainSaver = opsControlsGrid.querySelector('.ops-control-item.quick-fight-chain-saver'); // Assuming this is the element next to which the new container should be injected
-            if (quickFightChainSaver) {
-                // Inject the new group container before the Quick Fight section
-                quickFightChainSaver.insertAdjacentHTML('beforebegin', createEnergyAndOnlineMembersGroupHtml());
+        // Only inject if not already present to prevent duplicates on re-calls
+        if (!document.getElementById('userEnergyDisplay')) {
+            const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
+            if (timerItem) {
+                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
+                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
+                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
             } else {
-                // Fallback to end of grid if quickFightChainSaver not found
-                opsControlsGrid.insertAdjacentHTML('beforeend', createEnergyAndOnlineMembersGroupHtml());
+                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
+                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay'));
+                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay'));
             }
-
-            // --- IMPORTANT: Assign global DOM references AFTER the new HTML is injected ---
-            energyAndOnlineMembersGroupContainer = document.getElementById('energyAndOnlineMembersGroupContainer');
+            // Assign to global let variables after injection
             userEnergyDisplay = document.getElementById('userEnergyDisplay');
             onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
             onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-
-            // IMPORTANT: chainTimerDisplay, chainStartedDisplay, currentChainNumberDisplay are NOT assigned here.
-            // They should be assumed to be pre-existing in your HTML and handled by their own update functions.
-            // Ensure they are correctly selected as global variables if your original HTML uses these IDs statically.
-            // For example, if your HTML has <span id="chainTimerDisplay">, the global var `chainTimerDisplay`
-            // should be assigned once outside of this dynamic injection logic, perhaps with other static DOM getters.
-            // If they are NOT already assigned globally, add:
-            // chainTimerDisplay = document.getElementById('chainTimerDisplay');
-            // chainStartedDisplay = document.getElementById('chainStartedDisplay');
-            // currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
         }
     }
 
-    // Game Plan & Announcements (from Firebase warData) - (KEEP as is)
+
+    // Game Plan & Announcements (from Firebase warData)
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
@@ -3454,10 +3500,10 @@ function populateUiComponents(warData, apiKey) {
     populateWarStatusDisplay(warData);
     loadWarStatusForEdit(warData);
 
-    // Store enemy faction ID globally (from Firebase warData) - (KEEP as is)
+    // Store enemy faction ID globally (from Firebase warData)
     globalEnemyFactionID = warData.enemyFactionID || null;
 
-    // Display enemy targets table (still needs enemyData via separate fetch) - (KEEP as is)
+    // Display enemy targets table (still needs enemyData via separate fetch)
     if (warData.enemyFactionID) {
         fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
     } else {
