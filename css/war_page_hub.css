@@ -324,8 +324,7 @@ flex-grow: 1; /* Add ellipsis if tab text is too long */
 .chat-input-buttons-top {
 display: flex;
 justify-content: flex-start; /* Align buttons to the left */
-gap: 5px; /* Space between buttons */
-margin-top: -5px; 
+gap: 5px; /* Space between buttons */ 
 }
 
 /* Small action buttons (siren, blank) */
@@ -377,10 +376,10 @@ box-sizing: border-box;
 .chat-send-btn {
 flex-shrink: 0; /* Prevent button from shrinking */
 padding: 8px 15px;
-border: none;
+border: 2px solid black;
 border-radius: 4px;
 background-color: #007bff; /* Blue send button */
-color: white;
+color: black;
 font-size: 0.9em;
 font-weight: bold;
 cursor: pointer;
