@@ -24,8 +24,6 @@ let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTarg
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let userEnergyDisplay = null; // Will be assigned dynamically after HTML injection
 
-
-
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
 const warEnlistedStatus = document.getElementById('warEnlistedStatus');
