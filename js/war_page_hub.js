@@ -1409,9 +1409,7 @@ async function initializeAndLoadData(apiKey) {
     // Call user energy display update (now called from auth.onAuthStateChanged as per final plan)
     // Removed: updateUserEnergyDisplay(); // This call is now primarily from auth.onAuthStateChanged
 }
- * Builds and displays the table for the user's own faction members.
- * @param {object} members - The members object from the API.
- */
+
 function displayFriendlyMembersTable(members) {
     if (!friendlyMembersTbody) {
         console.error("JavaScript error: Cannot find the 'friendly-members-tbody' element.");
