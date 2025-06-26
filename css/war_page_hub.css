@@ -357,7 +357,7 @@ flex-shrink: 0; /* Prevent shrinking */
 
 .chat-input-text-send {
 display: flex;
-gap: 25px; /* Space between input and send button */
+gap: 10px; /* Space between input and send button */
 width: 100%;
 }
 
@@ -488,6 +488,7 @@ transition: background-color 0.2s ease;
     box-sizing: border-box; /* Include padding/border */
 	border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
+    padding-top: 5px;
 	
 }
 
