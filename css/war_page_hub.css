@@ -803,60 +803,7 @@ transition: background-color 0.2s ease;
     margin-top: 3px !important; /* Adjust this pixel value as needed to align it perfectly */
 }
 
-
-/* Active Ops Controls Grid (Tab 2) */
-/* General styling for all ops-control-items (Keep this as is, for now, to retain Chain Timer fix) */
-/* Active Ops Controls Grid (Tab 2) */
-.ops-controls-grid {
-    margin-top: 10px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222;
-}
-
-/* General styling for all ops-control-items */
-.ops-control-item {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    white-space: nowrap;
-    font-size: 0.9em;
-    /* Default alignment can be removed or set here if needed, but specific overrides are below */
-}
-
-/* General label styling within ops-control-item */
-.ops-control-item label {
-    color: #00a8ff;
-    font-weight: bold;
-    /* This rule should not have a text-align, as it's handled by more specific rules below */
-}
-
-/* General input/select/button styling within ops-control-item */
-.ops-control-item input[type="text"],
-.ops-control-item select,
-.ops-control-item button {
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 1em;
-    padding: 6px;
-}
-
-/* Specific styling for ops-timer (Chain Timer) - Forces this item to align left */
-.ops-control-item.ops-timer {
-    justify-self: start; /* Aligns this grid item to the start (left) of its cell */
-    text-align: left;    /* Aligns text content within this item to the left */
-}
-
-.ops-control-item.ops-timer label {
-    text-align: left; /* Ensures the label text is left-aligned */
-}
-
-/* Specific styling for Quick FF Targets container - Forces this item to align right */
+/*Specific styling for Quick FF Targets container - Forces this item to align right */
 .ops-control-item.ops-quick-targets {
     justify-content: flex-end; /* Aligns content (label and targets) to the top within this item */
     margin-top: 0 !important; /* Aggressively removes any top margin */
@@ -2761,4 +2708,120 @@ autocomplete-items {
     text-align: center;
     color:#28a745; /* Blue color for the energy value */
     font-weight: bold;
+}
+
+.member-actions .item-button {
+    background-color: #555; /* Default fallback grey */
+    color: white;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 1.1em; /* Makes the icons a little bigger */
+    line-height: 1; /* Helps with vertical alignment */
+    transition: filter 0.2s ease;
+}
+
+/* A simple effect to brighten any button when you hover over it */
+.member-actions .item-button:hover {
+    filter: brightness(1.2); 
+}
+
+/* Gold color for the message button (targets both classes) */
+.member-actions .letter-button,
+.member-actions .message-button {
+    background-color: #e0a71a;
+    color: #1e1e1e; /* Dark text on the gold background */
+}
+
+/* Red color for the trash/delete button */
+.member-actions .trash-button {
+    background-color: #dc3545;
+    color: white; /* White text on the red background */
+}
+
+/* --- Styles for the Ops Controls Grid (The main container for Chain Timer, new group, and QuickFight) --- */
+.ops-controls-grid {
+    display: grid;
+    /* This sets up 3 columns: Chain Timer | Energy/Online Group | QuickFight */
+    /* Adjust minmax(XXXpx) to control the width of the columns */
+    grid-template-columns: minmax(150px, 1fr) minmax(280px, 1.5fr) minmax(150px, 1fr);
+    gap: 15px; /* Spacing between the main grid items */
+    padding: 10px;
+    background-color: #1a1a1a;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    align-items: flex-start; /* Align items to the top of their grid cells */
+}
+
+/* --- Styles for the individual ops-control-item elements within ops-controls-grid --- */
+/* This applies to Chain Timer, and the items inside the new energy/online group. */
+.ops-control-item {
+    background-color: #2a2a2a; /* Dark background for each individual box */
+    border: 1px solid #444; /* Subtle border for each individual box */
+    border-radius: 5px; /* Rounded corners for each individual box */
+    padding: 10px; /* Internal spacing for each individual box */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers content horizontally (labels, values) */
+    justify-content: center; /* Centers content vertically */
+    text-align: center; /* Ensures text is centered */
+    white-space: nowrap; /* Prevents text from wrapping where possible */
+    box-sizing: border-box;
+    font-size: 0.9em; /* Consistent font size for these items */
+    gap: 3px; /* Small gap between stacked items (label and value) */
+    /* Chain Timer specific adjustments for alignment within its cell */
+    justify-self: stretch; /* Make it fill width of its grid cell */
+}
+
+/* --- Styles for the NEW Energy and Online Members Group Container --- */
+.energy-online-members-group {
+    display: grid;
+    /* This creates a 3-row, 1-column layout for Your Energy, Online Faction, Online Enemy */
+    grid-template-columns: 1fr; /* Single column */
+    grid-auto-rows: minmax(auto, 1fr); /* Each row takes its content height, but can grow */
+    gap: 10px; /* Spacing between the three items inside this group */
+    background-color: #1e1e1e; /* Slightly darker background for the overall group container */
+    border: 1px solid #333; /* Border for the overall group container */
+    border-radius: 8px; /* Rounded corners for the overall group container */
+    padding: 15px; /* Padding inside the overall group container */
+    box-sizing: border-box;
+    align-self: stretch; /* Makes the group stretch vertically to fill its grid cell */
+    min-width: 250px; /* Ensure it has a minimum width */
+}
+
+/* --- Styles for labels and values within the ops-control-items (both Chain Timer and inside the new group) --- */
+.ops-control-item label {
+    font-size: 0.85em;
+    color: #a0a0a0;
+    margin-bottom: 3px;
+}
+
+.ops-control-item .status-value-box {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #00a8ff;
+}
+
+/* --- Styles for the Quick FairFight Chain Saver (to correctly position it in the grid) --- */
+.ops-control-item.ops-quick-targets {
+    /* This item needs to align itself within the ops-controls-grid */
+    /* Ensure it aligns to the end (right) of its grid cell for desktop layout */
+    justify-self: end; /* Aligns the item to the right within its grid cell */
+    text-align: end; /* Aligns text within the item to the right */
+    /* Remove any aggressive margins or paddings if they were here */
+    margin: 0;
+    padding: 10px; /* Consistent padding with other ops-control-items */
+    width: auto; /* Allow content to dictate width if needed */
+}
+
+.ops-control-item.ops-quick-targets label {
+    text-align: end; /* Align the label text to the right */
+}
+
+.ops-control-item.ops-quick-targets .quick-ff-targets-container {
+    align-items: flex-end; /* Aligns the target buttons to the right within their container */
+    text-align: end; /* Ensures text (if any) is right-aligned */
 }

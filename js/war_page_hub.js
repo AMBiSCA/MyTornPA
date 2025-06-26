@@ -2696,229 +2696,72 @@ function setupEventListeners(apiKey) {
     }
 
     // --- Chat Input Buttons Functionality ---
+    // Mute Button Toggle (🔊 / 🔇)
     const muteSoundButton = document.getElementById('muteSoundButton');
     if (muteSoundButton) {
+        // Set initial icon based on saved state (isChatMuted is a global variable)
         muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.classList.toggle('muted', isChatMuted); // Apply 'muted' class if already muted
+
         muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
+            isChatMuted = !isChatMuted; // Toggle the global mute state
+            localStorage.setItem('isChatMuted', isChatMuted); // Save state to local storage
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊'; // Toggle icon
+            muteSoundButton.classList.toggle('muted', isChatMuted); // Toggle 'muted' class
             console.log(`Chat sounds ${isChatMuted ? 'muted' : 'unmuted'}.`);
+            // TODO: Actual sound muting logic will check the 'isChatMuted' flag.
+            // (e.g., if you have a sound notification function, it would `if (!isChatMuted) playSound();`)
         });
     }
 
+    // Aid Button (🚨) - Request general help/aid (Functionality removed as requested)
     const aidButton = document.querySelector('.aid-button');
     if (aidButton) {
         aidButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Aid button clicked. Functionality temporarily disabled.');
         });
     }
 
+    // Flight Button (✈️) - Quickly initiate travel/return
     const flightButton = document.querySelector('.flight-button');
     if (flightButton) {
         flightButton.addEventListener('click', () => {
+            // Open Torn travel page in a new tab
             window.open('https://www.torn.com/page.php?sid=travel', '_blank');
             console.log('Flight button clicked. Opening travel page.');
         });
     }
 
+    // Armory Button (💉️) - Link to Faction Armory
     const armoryButton = document.querySelector('.armory-button');
     if (armoryButton) {
         armoryButton.addEventListener('click', () => {
+            // Open Torn faction armory page in a new tab
             window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank');
             console.log('Armory button clicked. Opening armory page.');
         });
     }
 
+    // Refill Button (⛽) - Quick energy/nerve refill link
     const refillButton = document.querySelector('.refill-button');
     if (refillButton) {
         refillButton.addEventListener('click', () => {
+            // Open Torn points page for refills in a new tab
             window.open('https://www.torn.com/page.php?sid=points', '_blank');
             console.log('Refill button clicked. Opening points page.');
         });
     }
 
-    const alarmButton = document.querySelector('.siren-btn');
+    // Alarm / Siren Button (⚠️) - (Functionality removed as requested)
+    const alarmButton = document.querySelector('.siren-btn'); // Selects the Alarm/Siren button
     if (alarmButton) {
         alarmButton.addEventListener('click', () => {
+            // Functionality removed as requested - this button will now just log a click
             console.log('Alarm button clicked. Functionality temporarily disabled.');
         });
     }
-    
-    // This listener was for a modal that is not in the latest HTML, it can be removed or left if you plan to re-add it.
-    // I've commented it out for now to avoid potential errors.
-    /*
-    if (chainClaimButton) {
-        chainClaimButton.addEventListener('click', () => {
-            if (currentLiveChainSeconds <= 0) {
-                alert("Chain is not active! Cannot claim hits.");
-                return;
-            }
-            if (isChainingClaimActive) {
-                alert("A chain claim is already active! Only one claim at a time.");
-                return;
-            }
-            if (chainClaimModal) {
-                chainClaimModal.style.display = 'flex';
-                chainHitsInput.focus();
-            }
-        });
-    }
-    */
-    
-    if (chatSendBtn && chatTextInput) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
-            }
-        });
-    }
 
-    if (chatTabsContainer && chatTabButtons.length > 0) {
-        chatTabButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                handleChatTabClick(event);
-            });
-        });
-    }
-
-    if (postAnnouncementBtn) {
-        postAnnouncementBtn.addEventListener('click', async () => {
-            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
-                quickAnnouncementInput.value = '';
-                alert('Announcement posted!');
-            } catch (error) {
-                console.error('Error posting announcement:', error);
-                alert('Error posting announcement.');
-            }
-        });
-    }
-
-    if (saveWarStatusControlsBtn) {
-        saveWarStatusControlsBtn.addEventListener('click', async () => {
-            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = {
-                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-                toggleChaining: toggleChaining ? toggleChaining.checked : false,
-                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
-            };
-            try {
-                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                alert('War status saved!');
-                populateWarStatusDisplay(statusData);
-                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
-            } catch (error) {
-                console.error('Error saving war status:', error);
-                alert('Error saving war status.');
-            }
-        });
-    }
-
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                alert('Admins saved!');
-            } catch (error) {
-                console.error("Error saving admins:", error);
-            }
-        });
-    }
-
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                alert('Energy tracking members saved!');
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-            }
-        });
-    }
-
-    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
-    if (saveWatchlistSelectionsBtn) {
-        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                alert('Big Hitter Watchlist saved!');
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-            }
-        });
-    }
-
-    // --- START: Add Friend Button Listener ---
-    // This listener handles clicks inside the main chat content area
-    const chatDisplay = document.getElementById('chat-display-area');
-    if (chatDisplay) {
-        chatDisplay.addEventListener('click', function(event) {
-            // This checks if the thing you clicked was an 'add friend' button
-            const addButton = event.target.closest('.add-member-button');
-
-            // If you didn't click an add button, it does nothing.
-            if (!addButton) {
-                return;
-            }
-
-            // Disable the button to prevent multiple rapid clicks
-            addButton.disabled = true;
-
-            const friendIdToAdd = addButton.dataset.memberId;
-            const currentUser = auth.currentUser;
-
-            // First, make sure a user is actually logged in
-            if (!currentUser) {
-                console.error("Error: You must be logged in to add a friend.");
-                alert("You are not logged in. Please refresh the page.");
-                addButton.disabled = false; // Re-enable the button if there's an error
-                return;
-            }
-
-            const currentUserId = currentUser.uid;
-
-            // This creates a reference to where the friend will be saved in your database
-            const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
-
-            // Now, we save the friend's ID to the database
-            friendDocRef.set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                // This part runs ONLY if the save was successful
-                console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
-                // Now we hide the button because it worked
-                addButton.style.display = 'none';
-            })
-            .catch((error) => {
-                // This part runs if there was an error saving
-                console.error("Error adding friend to database: ", error);
-                alert("There was an error adding the friend. Please try again.");
-                addButton.disabled = false; // Re-enable the button so you can try again
-            });
-        });
-    }
-    // --- END: Add Friend Button Listener ---
-
-}
     // NEW: Chaining Claim Button (🔗)
     if (chainClaimButton) {
         chainClaimButton.addEventListener('click', () => {
@@ -3085,7 +2928,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
- // End of setupEventListeners function
+} 
 
 async function initializeAndLoadData(apiKey) {
     try {
@@ -3469,63 +3312,49 @@ function generateDummyRecentlyMet(count) {
     return dummyMet;
 }
 
-// NEW FUNCTION: Populates the content of the Recently Met tab with a grid layout
+// NEW FUNCTION: Populates the content of the Recently Met tab
 async function populateRecentlyMetTab(targetDisplayElement) {
-    console.log("[Recently Met Tab] Populating tab with new grid layout...");
+    console.log("[Recently Met Tab] Populating tab...");
 
     if (!targetDisplayElement) {
         console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
         return;
     }
 
-    // Create the grid container
-    targetDisplayElement.innerHTML = `<div class="members-list-container"></div>`;
-    const membersListContainer = targetDisplayElement.querySelector('.members-list-container');
-
-    if (!membersListContainer) {
-        console.error("Failed to create members-list-container.");
-        return;
-    }
-    
-    membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">Loading recently met players...</p>`;
-
-    // Using dummy data as before
-    const recentlyMetPlayers = generateDummyRecentlyMet(50);
-
-    if (!recentlyMetPlayers || recentlyMetPlayers.length === 0) {
-        membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">No recently met players found.</p>`;
-        return;
-    }
-
-    // Clear loading message
-    membersListContainer.innerHTML = '';
-
-    // Loop through players and create the new "member-item" divs
-    for (const player of recentlyMetPlayers) {
-        const memberItemDiv = document.createElement('div');
-        memberItemDiv.classList.add('member-item');
-
-        // --- THIS IS THE MODIFIED PART (Faction Tag is now removed) ---
-        memberItemDiv.innerHTML = `
-            <div class="member-identity">
-                <img src="${player.profile_image}" alt="Profile Pic" class="member-profile-pic">
-                <span class="member-name">${player.name}</span>
+    targetDisplayElement.innerHTML = `
+        <div class="recently-met-layout">
+            <div class="header-box">
+                <b>RECENTLY MET IN WAR</b>
             </div>
-            <div class="member-actions">
-                <button class="item-button letter-button" title="Send Message">✉️</button>
-                <button class="item-button trash-button" title="Remove">🗑️</button>
+            <div id="recentlyMetTableContainer" class="scrollable-table-container">
+                <table class="recently-met-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">NAME (ID)</th>
+                            <th class="col-level">LEVEL</th>
+                            <th class="col-faction">FACTION</th>
+                            <th class="col-last-action">LAST ACTION</th>
+                            <th class="col-status">STATUS</th>
+                            <th class="col-actions">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentlyMetTbody">
+                        <tr><td colspan="6" style="text-align:center; padding: 10px;">Loading recently met players...</td></tr>
+                    </tbody>
+                </table>
             </div>
-        `;
-        // --- END MODIFIED PART ---
-
-        membersListContainer.appendChild(memberItemDiv);
-    }
-    // TODO: Add event listeners for the new buttons if needed
-}
+        </div>
+    `;
 
     // Re-get elements after HTML is injected
     const recentlyMetTbody = document.getElementById('recentlyMetTbody');
 
+    if (!recentlyMetTbody) {
+        console.error("HTML Error: recentlyMetTbody not found after injection.");
+        return;
+    }
+
+    const dummyRecentlyMet = generateDummyRecentlyMet(50); // Generate 50 dummy entries
 
     let tableRowsHtml = '';
     dummyRecentlyMet.forEach(player => {
@@ -3554,7 +3383,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 
     // TODO: Add event listeners for the dynamically created buttons here (letter, trash)
     // using event delegation on recentlyMetTbody.
-
+}
 
 async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab with dummy data...");
