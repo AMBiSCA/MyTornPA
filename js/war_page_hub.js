@@ -1198,7 +1198,7 @@ function formatTornTime(timestamp) {
 }
 
 // UPDATED FUNCTION: Fetches and updates the user's energy display
-async function updateUserEnergyDisplay(apiKey, playerId) { // Now accepts apiKey and playerId
+async function updateUserEnergyDisplay(apiKey, playerId) {
     if (!userEnergyDisplay) { // Check for the DOM element being available
         console.error("HTML Error: userEnergyDisplay element not found for update. Cannot display energy.");
         return;
@@ -1213,14 +1213,14 @@ async function updateUserEnergyDisplay(apiKey, playerId) { // Now accepts apiKey
     try {
         const energyApiUrl = `https://api.torn.com/user/${playerId}?selections=bars&key=${apiKey}&comment=MyTornPA_UserEnergy`;
         const response = await fetch(energyApiUrl);
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(`Torn API HTTP Error fetching energy: ${response.status} ${response.statusText}. Error: ${errorData.error?.error || 'Unknown'}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.error) {
             throw new Error(`Torn API Error fetching energy: ${data.error.error}`);
         }
@@ -1237,6 +1237,7 @@ async function updateUserEnergyDisplay(apiKey, playerId) { // Now accepts apiKey
         userEnergyDisplay.textContent = 'Error';
     }
 }
+
 // Function: displayQuickFFTargets
 // Desc: Fetches and displays quick fair fight targets, adding alternating emojis.
 //       Prevents "blinking" by only updating the display after a successful fetch
@@ -3438,8 +3439,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button'); 
+    const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
     tabButtons.forEach(button => {
@@ -3449,13 +3449,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             showTab(targetTabId);
 
-            // --- CORRECTED PART: Call updateFriendlyMembersTable using the global 'userApiKey' ---
             if (targetTabDataset === 'friendly-status') {
                 const user = firebase.auth().currentUser;
-                // NOW CORRECTLY USING THE GLOBALLY SCOPED 'userApiKey'
-                
-                if (user && userApiKey) { // Check for userApiKey which is set by auth.onAuthStateChanged
-                    await updateFriendlyMembersTable(userApiKey, user.uid); 
+                if (user && userApiKey) {
+                    await updateFriendlyMembersTable(userApiKey, user.uid);
                 } else {
                     console.warn("User not logged in or API Key missing. Cannot update friendly members table.");
                     const tbody = document.getElementById('friendly-members-tbody');
@@ -3464,163 +3461,140 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            // --- END CORRECTED PART ---
         });
     });
     showTab('announcements-tab');
     let listenersInitialized = false;
 
-    // --- Chat Tab Functionality Elements and Handler ---
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
     const warChatBox = document.getElementById('warChatBox');
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-    // Function to handle chat tab clicks
-function handleChatTabClick(event) {
-    const clickedTab = event.currentTarget;
-    const targetTab = clickedTab.dataset.chatTab;
+    function handleChatTabClick(event) {
+        const clickedTab = event.currentTarget;
+        const targetTab = clickedTab.dataset.chatTab;
 
-    console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
+        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
 
-    // Remove 'active' class from all tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-    // Add active class to the clicked tab button
-    clickedTab.classList.add('active');
+        chatTabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        clickedTab.classList.add('active');
 
-    // IMPORTANT: Clear the main chat display area every time a tab is clicked
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = '';
-    } else {
-        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-        return;
-    }
+        if (chatDisplayArea) {
+            chatDisplayArea.innerHTML = '';
+        } else {
+            console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
+            return;
+        }
 
-    // Unsubscribe from any active real-time chat listener (important for Faction Chat)
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-        console.log("Unsubscribed from previous chat listener (tab switch).");
-    }
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null;
+            console.log("Unsubscribed from previous chat listener (tab switch).");
+        }
 
-    let showInputArea = true; // Default to showing input area for chat tabs
+        let showInputArea = true;
 
-    switch (targetTab) {
-        case 'faction-chat':
-            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>'; // Initial loading message
-            setupChatRealtimeListener(); // This function will populate chatDisplayArea
-            break;
+        switch (targetTab) {
+            case 'faction-chat':
+                chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
+                setupChatRealtimeListener();
+                break;
 
-        case 'war-chat':
-            // Dynamically generate War Chat content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to War Chat!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
-            `;
-            // If you later implement real-time war chat, you'd add setupWarChatListener() here
-            break;
+            case 'war-chat':
+                chatDisplayArea.innerHTML = `
+                    <p>Welcome to War Chat!</p>
+                    <p>Functionality not implemented yet for this dynamic tab.</p>
+                `;
+                break;
 
-        case 'private-chat':
-            // Dynamically generate Private Chat content into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to Private Chat!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
-            `;
-            break;
+            case 'private-chat':
+                chatDisplayArea.innerHTML = `
+                    <p>Welcome to Private Chat!</p>
+                    <p>Functionality not implemented yet for this dynamic tab.</p>
+                `;
+                break;
 
-        case 'faction-members':
-            // Dynamically generate Faction Members content into chatDisplayArea
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
-            if (factionApiFullData && factionApiFullData.members) {
-                // Pass chatDisplayArea as the target for displayFactionMembersInChatTab
-                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
-            }
-            showInputArea = false; // Hide input for non-chat tabs
-            break;
+            case 'faction-members':
+                chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+                if (factionApiFullData && factionApiFullData.members) {
+                    displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
+                }
+                showInputArea = false;
+                break;
 
-        case 'recently-met':
-            // Call the populateRecentlyMetTab function, passing the main dynamic display area
-            populateRecentlyMetTab(chatDisplayArea); // <--- CHANGE IS HERE: Passing chatDisplayArea
-            showInputArea = false; // Hide input for non-chat tabs
-            break;
-       
-            showInputArea = false;
-            break;
+            case 'recently-met':
+                populateRecentlyMetTab(chatDisplayArea);
+                showInputArea = false;
+                break;
 
-        case 'blocked-people':
-            // Dynamically generate the full Blocked People layout into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <div class="blocked-people-layout">
-                    <div class="friends-list-section">
-                        <div class="header-box">
-                            <b>Friends</b>
+            case 'blocked-people':
+                chatDisplayArea.innerHTML = `
+                    <div class="blocked-people-layout">
+                        <div class="friends-list-section">
+                            <div class="header-box">
+                                <b>Friends</b>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div id="friendsScrollableList" class="scrollable-list">
+                                <p style="text-align:center; padding: 10px;">Loading friends...</p>
+                            </div>
                         </div>
-                        <div class="search-bar">
-                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="friendsScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
-                        </div>
-                    </div>
 
-                    <div class="ignores-list-section">
-                        <div class="header-box">
-                            <b>Ignores / Blocked</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="ignoresScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                        <div class="ignores-list-section">
+                            <div class="header-box">
+                                <b>Ignores / Blocked</b>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div id="ignoresScrollableList" class="scrollable-list">
+                                <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            
-            // Re-get elements after they are injected into the DOM
-            // These dynamic elements exist *within* the chatDisplayArea content.
-            const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-            const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-            // Call your populate function, passing dynamically found elements
-            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+                `;
+                const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
+                const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
+                populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
 
-            showInputArea = false; // Hide input for non-chat tabs
-            break; 
+                showInputArea = false;
+                break;
 
-        case 'settings':
-            populateSettingsTab(chatDisplayArea); // Passing chatDisplayArea to populateSettingsTab
-            showInputArea = false; 
-            break;
+            case 'settings':
+                populateSettingsTab(chatDisplayArea);
+                showInputArea = false;
+                break;
 
-        default:
-            console.warn(`Unknown chat tab: ${targetTab}`);
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-            showInputArea = false;
-            break;
-    }
-    
-	
-    // Control visibility of the separate chat input area
-    if (showInputArea) {
-        if (chatInputArea) chatInputArea.style.display = 'flex';
-    } else {
-        if (chatInputArea) chatInputArea.style.display = 'none';
+            default:
+                console.warn(`Unknown chat tab: ${targetTab}`);
+                chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+                showInputArea = false;
+                break;
+        }
+
+        if (showInputArea) {
+            if (chatInputArea) chatInputArea.style.display = 'flex';
+        } else {
+            if (chatInputArea) chatInputArea.style.display = 'none';
+        }
+
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
     }
 
-    // Ensure the main chat display area scrolls to bottom after content is injected
-    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-}
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
-            
+
             const apiKey = userData.tornApiKey || null;
             const playerId = userData.tornProfileId || null;
             currentTornUserName = userData.preferredName || 'Unknown';
@@ -3632,18 +3606,23 @@ function handleChatTabClick(event) {
             } catch (firebaseError) {
                 console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
             }
-			
-			console.log(firebase.auth().currentUser);
+
+            console.log(firebase.auth().currentUser);
 
             if (apiKey && playerId) {
-                userApiKey = apiKey; // Assign to global userApiKey for other functions
+                userApiKey = apiKey;
 
+                // Initial load of comprehensive faction data and UI components
                 await initializeAndLoadData(apiKey, DEBUG_FACTION_ID);
                 populateUiComponents(warData, apiKey);
 
                 fetchAndDisplayChainData();
                 fetchAndDisplayRankedWarScores();
                 displayQuickFFTargets(userApiKey, playerId);
+
+                // --- NEW: Initial call for user energy display ---
+                await updateUserEnergyDisplay(userApiKey, playerId);
+
                 setupChatRealtimeListener();
 
                 if (!listenersInitialized) {
@@ -3658,10 +3637,11 @@ function handleChatTabClick(event) {
                     if (initialActiveChatTab) {
                         handleChatTabClick({ currentTarget: initialActiveChatTab });
                     }
-                    
+
                     listenersInitialized = true;
 
-                    setInterval(updateAllTimers, 1000);
+                    // All existing intervals
+                    setInterval(updateAllTimers, 1000); // Existing timer updates
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
@@ -3683,7 +3663,15 @@ function handleChatTabClick(event) {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
                     }, 300000);
-					
+
+                    // --- NEW: Periodic update for user energy display (every 1 minute) ---
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            updateUserEnergyDisplay(userApiKey, playerId);
+                        } else {
+                            console.warn("API key or Player ID not available for periodic user energy refresh.");
+                        }
+                    }, 60000); // 60000 milliseconds = 1 minute
                 }
             } else {
                 console.warn("API key or Player ID not found.");
@@ -3693,6 +3681,10 @@ function handleChatTabClick(event) {
                 if (quickFFTargetsDisplay) {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
                 }
+                // Ensure user energy display is N/A if API key/player ID is missing
+                if (userEnergyDisplay) {
+                    userEnergyDisplay.textContent = 'N/A';
+                }
             }
         } else {
             userApiKey = null;
@@ -3700,6 +3692,10 @@ function handleChatTabClick(event) {
             console.log("User not logged in.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+            // Ensure user energy display is N/A if user not logged in
+            if (userEnergyDisplay) {
+                userEnergyDisplay.textContent = 'N/A';
+            }
         }
     });
 });
