@@ -324,7 +324,7 @@ flex-grow: 1; /* Add ellipsis if tab text is too long */
 display: flex;
 justify-content: flex-start; /* Align buttons to the left */
 gap: 5px; /* Space between buttons */ 
-margin-top: 0px; /* This will pull the circular buttons up. Adjust the value (e.g., -5px for less, -15px for more) as needed. */
+margin-top: 5px; /* This will pull the circular buttons up. Adjust the value (e.g., -5px for less, -15px for more) as needed. */
 padding-bottom: 0; /* Ensures no extra padding pushes them down */
 margin-bottom: -15px;
 }
@@ -485,7 +485,7 @@ transition: background-color 0.2s ease;
     background-color: #333;
     padding: 5px 10px 8px;
     border-top: 1px solid #1e1e1e;
-    gap: 35px;
+    gap: 32px;
     box-sizing: border-box;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
