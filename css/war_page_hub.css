@@ -334,6 +334,7 @@ margin-bottom: -15px;
 .chat-action-btn {
 width: 35px; /* Small fixed width */
 height: 35px; /* Small fixed height */
+line-height: 35px;
 padding: 0; /* Remove default padding */
 border: 1px solid #00a8ff;
 border-radius: 50%; /* Make them circular */
