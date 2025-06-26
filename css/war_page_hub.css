@@ -320,9 +320,30 @@ flex-grow: 1; /* Add ellipsis if tab text is too long */
 
 /* Top row of smaller buttons (siren, blank) */
 .chat-input-buttons-top {
-display: flex;
-justify-content: flex-start; /* Align buttons to the left */
-gap: 5px; /* Space between buttons */
+    background-color: rgba(0,0,0,0.15);
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 5px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.chat-input-buttons-top .chat-action-btn {
+    background: transparent;
+    border: none;
+    color: white; /* Ensures emojis render clearly */
+    font-size: 1.3rem; /* Makes emojis a bit larger and easier to click */
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 5px;
+    transition: background-color 0.2s ease;
+}
+
+/* Adds a subtle highlight when you hover over the emoji buttons */
+.chat-input-buttons-top .chat-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Small action buttons (siren, blank) */
@@ -2592,21 +2613,6 @@ autocomplete-items {
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); /* A subtle inner shadow for depth */
 }
 
-/* Styles for each individual button group (label + button) */
-.action-button-group {
-    text-align: center;
-}
-
-/* The text label above each button */
-.action-button-label {
-    margin: 0 0 5px 0;
-    color: #ddd; /* Lighter text color to be readable on the dark background */
-    font-size: 13px;
-    font-weight: bold;
-    white-space: nowrap; /* Prevents text from wrapping */
-}
-
-/* --- General Styling for the Action Buttons --- */
 /* This applies to BOTH the red and green buttons */
 .action-button {
     display: inline-block;
@@ -2626,19 +2632,7 @@ autocomplete-items {
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
-/* --- Specific Colors for each Button --- */
 
-/* The red "Crimes" button */
-.action-button-red {
-    background-color: #e53935; /* A noticeable, clean red */
-}
-
-/* The green "Gym" button */
-.action-button-green {
-    background-color: #43a047; /* A noticeable, clean green */
-}
-
-/* --- CSS for Action Buttons in the Ops Control Bar --- */
 
 /* This new class on the grid item allows us to align it. */
 .ops-control-item--actions {
