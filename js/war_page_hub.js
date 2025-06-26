@@ -3569,7 +3569,7 @@ function handleChatTabClick(event) {
             if (apiKey && playerId) {
                 userApiKey = apiKey; // Assign to global userApiKey for other functions
 
-                await initializeAndLoadData(apiKey);
+                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID); // Ensure DEBUG_FACTION_ID is always passed
                 populateUiComponents(warData, apiKey);
 
                 fetchAndDisplayChainData();
