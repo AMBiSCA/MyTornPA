@@ -2792,3 +2792,13 @@ autocomplete-items {
     background-color: #dc3545;
     color: white; /* White text on the red background */
 }
+
+.add-member-button.success {
+    background-color: #28a745; /* A standard green color */
+    color: white;
+    border-color: #28a745;
+    font-size: 1.2em; /* Make the tick a little bigger */
+    font-weight: bold;
+    padding: 4px 8px; /* Ensure padding is consistent */
+    line-height: 1;
+}
