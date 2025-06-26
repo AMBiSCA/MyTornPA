@@ -485,7 +485,7 @@ transition: background-color 0.2s ease;
     background-color: #333;
     padding: 5px 10px 8px;
     border-top: 1px solid #1e1e1e;
-    gap: 32px;
+    gap: 25px;
     box-sizing: border-box;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
