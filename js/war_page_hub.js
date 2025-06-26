@@ -2216,7 +2216,6 @@ function setupMemberClickEvents() {
     document.addEventListener("click", function (e) {
         closeAllLists(e.target);
     });
-
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
     if (!tbody) {
@@ -2224,14 +2223,15 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         return;
     }
 
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>'; // Adjusted colspan
+    // Adjusted colspan to 10 for the new total number of columns
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>';
 
     try {
         const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
         const userProfileDoc = await userProfileDocRef.get();
         if (!userProfileDoc.exists) {
             console.error("Firebase Error: User profile document not found for Firebase Auth UID:", firebaseAuthUid);
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: red;">Error: Your user profile data not found in Firebase.</td></tr>'; // Adjusted colspan
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: red;">Error: Your user profile data not found in Firebase.</td></tr>';
             return;
         }
         const userProfileData = userProfileDoc.data();
@@ -2240,13 +2240,13 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         if (!currentUserTornId) {
             console.warn("Torn Player ID not found in your user profile. Cannot fetch user data.");
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Your Torn Player ID is not stored in your profile.</td></tr>'; // Adjusted colspan
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Your Torn Player ID is not stored in your profile.</td></tr>';
             return;
         }
 
         if (!userFactionId) {
             console.warn("Faction ID not found for current user in Firebase user profile. Cannot fetch faction members.");
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Not in a faction or Faction ID not stored in your profile.</td></tr>'; // Adjusted colspan
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Not in a faction or Faction ID not stored in your profile.</td></tr>';
             return;
         }
 
@@ -2258,7 +2258,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         if (!actualUserFactionId) {
             console.warn("Faction ID not available from either user's data or user profile. Cannot fetch faction members.");
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Faction ID could not be determined.</td></tr>'; // Adjusted colspan
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Faction ID could not be determined.</td></tr>';
             return;
         }
 
@@ -2269,24 +2269,21 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         if (!factionResponse.ok || factionData.error) {
             console.error("Error fetching faction members:", factionData.error || factionResponse.statusText);
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: red;">Error loading faction members: ${factionData.error?.error || 'API Error'}.</td></tr>`; // Adjusted colspan
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 20px; color: red;">Error loading faction members: ${factionData.error?.error || 'API Error'}.</td></tr>`;
             return;
         }
 
         const membersArray = factionData.members;
         if (!membersArray || membersArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>'; // Adjusted colspan
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>';
             return;
         }
 
         let tableRowsHtml = '';
         const memberPromises = [];
 
-        // Update the table header row (<th>)
-        // Note: The <thead> element is outside this function's scope, so it should be updated separately
-        // in your HTML or another JS function if you dynamically generate the whole table.
-        // For now, I'm assuming you have a fixed <thead> and this function just updates the <tbody>.
-        // However, I will include the corrected header row in comments as a reminder for you:
+        // REMINDER: Ensure your HTML <thead> matches this order and includes 'Position' and 'Revivable?'.
+        // Example:
         /*
         <thead>
             <tr>
@@ -2323,8 +2320,10 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 const statusDescription = memberTornData.status?.description || 'N/A';
                 // Correctly getting position and is_revivable from memberTornData
                 const position = memberTornData.position || 'N/A';
+                // Format is_revivable boolean to "Yes" or "No"
                 const isRevivable = memberTornData.is_revivable !== undefined ? (memberTornData.is_revivable ? 'Yes' : 'No') : 'N/A';
 
+                // Battle stats from Firebase data (or N/A if not available)
                 const strength = memberFirebaseData?.battlestats?.strength?.toLocaleString() || 'N/A';
                 const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
                 const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
@@ -2351,6 +2350,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 `;
             }).catch(error => {
                 console.error(`Error fetching Firebase data for member ${memberId}:`, error);
+                // Fallback using Torn API data even if Firebase data fetch fails
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
                 const lastAction = memberTornData.last_action ? memberTornData.last_action.relative : 'N/A';
