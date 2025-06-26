@@ -21,11 +21,15 @@ let lastEmojiIndex = -1; // To keep track of the last emoji used
 let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
+let combinedOpsStatsContainer = null; // NEW: Reference to the main container
+let userEnergyDisplay = null;
+let onlineFriendlyMembersDisplay = null;
+let onlineEnemyMembersDisplay = null;
+let chainTimerDisplay = null;       // Re-assigned from here
+let chainStartedDisplay = null;     // Re-assigned from here
+let currentChainNumberDisplay = null; // Re-assigned from here (was missing previous explicit setup)
 
-// NEW GLOBAL VARIABLES FOR NEW DISPLAYS
-let userEnergyDisplay = null; // Already existing
-let onlineFriendlyMembersDisplay = null; // Reference to the "Online Faction Members" DOM element
-let onlineEnemyMembersDisplay = null; // Reference to the "Online Enemy Members" DOM element
+
 
 
 // --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
@@ -156,6 +160,32 @@ async function processProfileFetchQueue() {
     }
     isProcessingQueue = false;
     console.log("Profile fetch queue finished processing.");
+}
+
+function createCombinedOpsStatsHtml() {
+    return `
+        <div id="combinedOpsStatsContainer" class="combined-ops-stats-container">
+            <div class="ops-control-item combined-stats-item">
+                <label>Chain Timer:</label>
+                <span id="chainTimerDisplay" class="status-value-box">Chain Over</span>
+                <label>Started:</label>
+                <span id="chainStartedDisplay" class="status-value-box">N/A</span>
+                <span id="currentChainNumberDisplay" class="status-value-box">N/A</span>
+            </div>
+            <div class="ops-control-item combined-stats-item">
+                <label>Your Energy:</label>
+                <span id="userEnergyDisplay" class="status-value-box">N/A</span>
+            </div>
+            <div class="ops-control-item combined-stats-item">
+                <label>Online Faction Members:</label>
+                <span id="onlineFriendlyMembersDisplay" class="status-value-box">N/A</span>
+            </div>
+            <div class="ops-control-item combined-stats-item">
+                <label>Online Enemy Members:</label>
+                <span id="onlineEnemyMembersDisplay" class="status-value-box">N/A</span>
+            </div>
+        </div>
+    `;
 }
 
 function updateMemberItemDisplay(itemElement, profileImageUrl) {
@@ -572,7 +602,8 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     }
 }
 
- function updateAllTimers() {
+ // MODIFIED FUNCTION: updateAllTimers
+function updateAllTimers() {
     console.count('updateAllTimers called');
     const nowInSeconds = Math.floor(Date.now() / 1000);
 
@@ -599,10 +630,9 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
         statusCells.forEach(cell => {
             const targetTime = parseInt(cell.dataset.until, 10);
-            const statusState = cell.dataset.statusState; // Original status state (e.g., 'Hospital', 'Traveling')
-            const originalDescription = cell.textContent.split('(')[0].trim(); // Get original text without timer
+            const statusState = cell.dataset.statusState;
+            const originalDescription = cell.textContent.split('(')[0].trim();
 
-            // First, remove all existing status classes to avoid conflicts
             cell.classList.remove('status-hospital', 'status-traveling', 'status-other', 'status-okay');
 
             let newStatusText = originalDescription;
@@ -623,44 +653,42 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
                         }
                         newStatusClass = 'status-traveling';
                     } else {
-                        // For other timed statuses (e.g., Jail with a timer), keep original description and specific class
                         newStatusText = `${originalDescription} (${formatTime(timeLeft)})`;
-                        newStatusClass = 'status-other'; // Or more specific like status-jail if you have it
+                        newStatusClass = 'status-other';
                     }
-                } else { // Timer has run out
-                    newStatusText = `Okay`; // Default to Okay when timer is up
-                    newStatusClass = 'status-okay'; // Apply okay status class
-                    cell.dataset.until = ''; // Clear data-until to prevent re-processing
-                    cell.dataset.statusState = 'Okay'; // Update state in dataset
+                } else {
+                    newStatusText = `Okay`;
+                    newStatusClass = 'status-okay';
+                    cell.dataset.until = '';
+                    cell.dataset.statusState = 'Okay';
                 }
             } else {
-                // If data-until is not a number or is 0 (meaning no timer or timer has expired and cleared)
-                // This branch handles statuses like "Okay" (which often have no timer) or fully expired ones.
-                newStatusText = statusState; // Use the stored statusState from dataset as the base
+                newStatusText = statusState;
                 if (statusState === 'Hospital') {
-                    newStatusText = 'Okay'; // If it was hospital originally and no timer, it's now okay
+                    newStatusText = 'Okay';
                     newStatusClass = 'status-okay';
                 } else if (statusState === 'Traveling') {
-                    newStatusText = originalDescription.replace('Traveling to ', '').replace('Traveling ', 'In '); // Show "In Destination"
-                    newStatusClass = 'status-traveling'; // Keep traveling class for "In X" status if desired
+                    const destination = originalDescription.replace('Traveling to ', '').replace('Traveling ', '');
+                    newStatusText = `In ${destination}`;
+                    newStatusClass = 'status-traveling';
                 } else if (statusState === 'Okay') {
                     newStatusText = 'Okay';
                     newStatusClass = 'status-okay';
                 } else {
-                    newStatusText = `${statusState}`; // For other non-timed statuses (e.g., Jail, Federal, Offline)
+                    newStatusText = `${statusState}`;
                     newStatusClass = 'status-other';
-                    // You might need more specific classes here if you have them (e.g., status-jail, status-offline)
                 }
             }
 
             cell.textContent = newStatusText;
             if (newStatusClass) {
-                cell.classList.add(newStatusClass); // Add the determined new class
+                cell.classList.add(newStatusClass);
             }
         });
     }
 
     // Update Chain Timer Display (smooth 1-second countdown)
+    // Ensure these elements are correctly assigned global references in populateUiComponents
     if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
         const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
         const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
@@ -671,10 +699,17 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
 
     // Update Chain Started Time Display
     if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-        chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+        chainStartedDisplay.textContent = formatTornTime(globalChainStartedTimestamp);
     } else if (chainStartedDisplay) {
-        chainStartedDisplay.textContent = 'Started: N/A';
+        chainStartedDisplay.textContent = 'N/A';
     }
+
+    // Update Chain Current Number Display (NEW - ensure this span ID exists in HTML)
+    // This value is directly from API, not a countdown
+    if (currentChainNumberDisplay) {
+        currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+    }
+
 
     // Update War Started Time Display (smooth 1-second relative countdown)
     if (warStartedTime && globalWarStartedActualTime > 0) {
@@ -682,53 +717,6 @@ async function fetchAndDisplayRankedWarScores() { // Reads userApiKey global and
     } else if (warStartedTime) {
         warStartedTime.textContent = 'N/A';
     }
-}
-
- // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
- if (enemyTargetsContainer) {
-    const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
-    statusCells.forEach(cell => {
-        const targetTime = parseInt(cell.dataset.until, 10);
-        const statusState = cell.dataset.statusState;
-        const originalDescription = cell.textContent.split('(')[0].trim();
-
-        if (!isNaN(targetTime) && targetTime > 0) {
-            const timeLeft = targetTime - nowInSeconds;
-
-            if (timeLeft > 0) {
-                if (statusState === 'Hospital') {
-                    cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                } else if (statusState === 'Traveling') {
-                    if (originalDescription === 'Returning') {
-                        cell.textContent = `Returning Home (${formatTime(timeLeft)})`;
-                    } else {
-                        cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                    }
-                }
-            } else {
-                if (statusState === 'Hospital') {
-                    cell.textContent = `Okay`;
-                    cell.classList.remove('status-hospital', 'status-other', 'status-okay');
-                } else if (statusState === 'Traveling') {
-                    if (originalDescription === 'Returning') {
-                        // CORRECTED: Set text to Okay and remove classes to revert to default (white) style.
-                        cell.textContent = `Okay`;
-                        cell.classList.remove('status-traveling', 'status-other', 'status-okay');
-                    } else {
-                        // Update text to "In [Destination]" and keep the orange style for arrived users.
-                        const destination = originalDescription.replace('Traveling to ', '').replace('Traveling ', '');
-                        cell.textContent = `In ${destination}`;
-                        // The class list is intentionally not changed here to keep the orange 'traveling' style.
-                    }
-                } else {
-                    cell.textContent = `${statusState} (Time Up)`;
-                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                    cell.classList.add('status-okay');
-                }
-            }
-        }
-    });
 }
 
  // Update Chain Timer Display (smooth 1-second countdown)
@@ -3444,9 +3432,11 @@ async function populateBlockedPeopleTab(friendsListEl, ignoresListEl) {
     // using event delegation on friendsListEl and ignoresListEl.
 }
 
+// MODIFIED Function: populateUiComponents
 function populateUiComponents(warData, apiKey) {
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
+        // Your existing faction info updates here...
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
         if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
         if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
@@ -3457,10 +3447,9 @@ function populateUiComponents(warData, apiKey) {
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            // displayFriendlyMembersTable(factionApiFullData.members); // This might be duplicated or replaced by updateFriendlyMembersTable
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
-            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
+            populateFriendlyMemberCheckboxes({}, []);
         }
     } else {
         console.warn("factionApiFullData not available in populateUiComponents.");
@@ -3469,22 +3458,22 @@ function populateUiComponents(warData, apiKey) {
         if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
     }
 
-    // Dynamically inject Energy, Online Friendly, and Online Enemy Display Boxes
+    // --- MODIFIED: Dynamically inject the NEW Combined Stats Box ---
     const opsControlsGrid = document.querySelector('.ops-controls-grid');
     if (opsControlsGrid) {
-        // Only inject if not already present to prevent duplicates on re-calls
-        if (!document.getElementById('userEnergyDisplay')) {
-            const timerItem = opsControlsGrid.querySelector('.ops-control-item.ops-timer');
-            if (timerItem) {
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
-                timerItem.insertAdjacentHTML('afterend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay')); // Order reversed to get it "underneath" in CSS grid
+        // Only inject if the combined container is not already present
+        if (!document.getElementById('combinedOpsStatsContainer')) {
+            const quickFightChainSaver = opsControlsGrid.querySelector('.ops-control-item.quick-fight-chain-saver'); // Assuming this is the element next to which the new container should be injected
+            if (quickFightChainSaver) {
+                quickFightChainSaver.insertAdjacentHTML('beforebegin', createCombinedOpsStatsHtml()); // Inject before the quick fight section
             } else {
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Your Energy', 'userEnergyDisplay'));
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Faction Members', 'onlineFriendlyMembersDisplay'));
-                opsControlsGrid.insertAdjacentHTML('beforeend', createStatusBoxHtml('Online Enemy Members', 'onlineEnemyMembersDisplay'));
+                opsControlsGrid.insertAdjacentHTML('beforeend', createCombinedOpsStatsHtml()); // Fallback to end of grid
             }
-            // Assign to global let variables after injection
+            // --- IMPORTANT: Assign global DOM references after the combined HTML is injected ---
+            combinedOpsStatsContainer = document.getElementById('combinedOpsStatsContainer');
+            chainTimerDisplay = document.getElementById('chainTimerDisplay');
+            chainStartedDisplay = document.getElementById('chainStartedDisplay');
+            currentChainNumberDisplay = document.getElementById('currentChainNumberDisplay');
             userEnergyDisplay = document.getElementById('userEnergyDisplay');
             onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
             onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
@@ -3492,7 +3481,7 @@ function populateUiComponents(warData, apiKey) {
     }
 
 
-    // Game Plan & Announcements (from Firebase warData)
+    // Game Plan & Announcements (from Firebase warData) - Existing code
     if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
     if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
@@ -3503,7 +3492,7 @@ function populateUiComponents(warData, apiKey) {
     // Store enemy faction ID globally (from Firebase warData)
     globalEnemyFactionID = warData.enemyFactionID || null;
 
-    // Display enemy targets table (still needs enemyData via separate fetch)
+    // Display enemy targets table (still needs enemyData via separate fetch) - Existing code
     if (warData.enemyFactionID) {
         fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
     } else {
@@ -3513,7 +3502,6 @@ function populateUiComponents(warData, apiKey) {
         displayEnemyTargetsTable(null); // This clears the table
     }
 }
-
 //       display after a successful fetch.
 //       Also prevents showing the same target pair more than two times in a row.
 async function displayQuickFFTargets(userApiKey, playerId) {
@@ -3702,7 +3690,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    showTab('announcements-tab'); // Sets initial tab to announcements
+    showTab('announcements-tab');
     let listenersInitialized = false;
 
     // Chat Tab Functionality Elements and Handler (unchanged, for completeness)
@@ -3853,18 +3841,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, DEBUG_FACTION_ID); // Populates factionApiFullData
-                populateUiComponents(warData, apiKey); // Injects the HTML elements
-
-                // Ensure global DOM references are assigned after HTML injection
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+                populateUiComponents(warData, apiKey); // Injects the HTML elements & assigns ALL global DOM refs now
 
                 // Initial calls for all dynamic ops panel displays
                 await updateUserEnergyDisplay(userApiKey, playerId);
-                await updateOnlineMemberCounts(); // NEW: Initial call for online counts
+                await updateOnlineMemberCounts(); // Initial call for online counts
 
-                fetchAndDisplayChainData();
+                // These functions now update elements that are part of the new combined container
+                fetchAndDisplayChainData(); // Updates chainTimerDisplay, chainStartedDisplay, currentChainNumberDisplay
                 fetchAndDisplayRankedWarScores();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
@@ -3884,7 +3868,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     listenersInitialized = true;
 
-                    setInterval(updateAllTimers, 1000); // Existing timer updates (e.g., enemy status in table)
+                    // All existing intervals
+                    setInterval(updateAllTimers, 1000); // Existing timer updates (e.g., enemy status in table, also Chain Timer display)
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Populates enemyDataGlobal
@@ -3910,11 +3895,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 300000); // Comprehensive faction data refresh (every 5 minutes)
 
-                    // NEW: Periodic update for user energy and online counts (every 1 minute)
+                    // Periodic update for user energy and online counts (every 1 minute)
                     setInterval(() => {
                         if (userApiKey && playerId) {
                             updateUserEnergyDisplay(userApiKey, playerId);
-                            updateOnlineMemberCounts(); // NEW: Call for online counts
+                            updateOnlineMemberCounts();
                         } else {
                             console.warn("API key or Player ID not available for periodic user energy/online member refresh.");
                         }
@@ -3932,6 +3917,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
                 if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
                 if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
+                if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+                if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+                if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
             }
         } else {
             userApiKey = null;
@@ -3943,6 +3931,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
             if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
             if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
+            if (chainTimerDisplay) chainTimerDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
         }
     });
 });

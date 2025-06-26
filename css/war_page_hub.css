@@ -1804,41 +1804,7 @@ autocomplete-items {
     /* display: flex; flex-direction: column; gap: 3px; white-space: nowrap; font-size: 0.9em; */
 }
 
-/* Specific styling for the new status display boxes (like Your Energy, Online Members) */
-/* This will override/add to .ops-control-item if needed, but primarily fine-tunes. */
-.ops-status-display {
-    /* Keep the flex properties here as they define internal layout */
-    /* display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; */
-    min-width: 100px; /* Keep minimum width */
 
-    /* If you want these boxes to look distinct AND they aren't getting inherited styles from .ops-control-item */
-    /* You might want to duplicate the background/border/padding here if .ops-control-item is NOT applying it well */
-    /* Example: */
-    /* background-color: #2a2a2a; */
-    /* border: 1px solid #00a8ff; /* A slightly different border perhaps? */
-    /* padding: 10px; */
-}
-
-/* Styles for the labels within the status boxes */
-.ops-status-display label {
-    font-size: 0.8em;
-    color: #a0a0a0;
-    margin-bottom: 0;
-}
-
-/* Styles for the numerical values within the status boxes */
-.ops-status-display .status-value-box {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #00a8ff;
-}
-
-/* General grid spacing */
-.ops-controls-grid {
-    gap: 10px; /* This is good for spacing *between* the boxes */
-    /* Make sure this is applying, as your output had gap: 0px on #warPageHubContainer which is a parent. */
-    /* If gap: 10px isn't working, check your .ops-controls-grid definition. */
-}
 
 .quick-ff-target-btn {
     width: auto; /* Allows the button to shrink to the width of its content (text + padding) */
@@ -2788,3 +2754,58 @@ autocomplete-items {
 /* For example, if you want "Your Energy", "Online Faction", "Online Enemy" all in one row: */
 /* Ensure the HTML injection order correctly places them. */
 /* The current JS inserts in reverse order (Enemy, Friendly, Energy) using afterend to achieve desired visual order. */
+
+/* Container for the 4 combined stats boxes */
+.combined-ops-stats-container {
+    display: grid;
+    /* This creates a 2x2 grid by default, or adapts to screen size */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjust minmax as needed */
+    gap: 10px; /* Spacing between the inner stat items */
+    background-color: #1a1a1a; /* Dark background for the overall container */
+    border: 1px solid #333; /* Border for the overall container */
+    border-radius: 8px; /* Rounded corners for the overall container */
+    padding: 15px; /* Padding inside the overall container */
+    margin-bottom: 20px; /* Space below this container */
+    box-sizing: border-box;
+}
+
+/* Styles for individual stat items within the combined container */
+.combined-stats-item {
+    background-color: #2a2a2a; /* Slightly lighter background for individual items */
+    border: 1px solid #444; /* Border for individual items */
+    border-radius: 5px; /* Rounded corners for individual items */
+    padding: 10px; /* Padding inside individual items */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap; /* Prevent text from wrapping where possible */
+    box-sizing: border-box;
+    /* Inherit font-size from .ops-control-item, or define here if needed */
+    font-size: 0.9em; /* Ensure font size is appropriate */
+}
+
+/* Specific styling for labels within these combined stat items */
+.combined-stats-item label {
+    font-size: 0.85em; /* Slightly larger label than default */
+    color: #a0a0a0;
+    margin-bottom: 3px;
+}
+
+/* Specific styling for the numerical values within these combined stat items */
+.combined-stats-item .status-value-box {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #00a8ff;
+}
+
+/* You might need to adjust the gap of .ops-controls-grid if it's too large now */
+.ops-controls-grid {
+    /* Ensure this grid's gap is appropriate, as it contains both the combined container and QuickFight */
+    /* Example: gap: 20px; or similar to space its main children */
+    display: grid; /* Assuming ops-controls-grid is a grid container */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust columns to fit new combined block */
+    /* You might want to explicitly define grid-template-columns here to ensure the combined block and QuickFight section lay out as desired (e.g., side by side) */
+    /* For side-by-side: grid-template-columns: 1fr 1fr; */
+}
