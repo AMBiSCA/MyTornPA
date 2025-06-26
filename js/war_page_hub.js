@@ -3575,7 +3575,7 @@ function handleChatTabClick(event) {
             if (apiKey && playerId) {
                 userApiKey = apiKey; // Assign to global userApiKey for other functions
 
-                await initializeAndLoadData(apiKey);
+                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID);
                 populateUiComponents(warData, apiKey);
 
                 fetchAndDisplayChainData();
@@ -3615,7 +3615,7 @@ function handleChatTabClick(event) {
                     }, 60000);
                     setInterval(() => {
                         if (userApiKey) {
-                            initializeAndLoadData(userApiKey);
+                            initializeAndLoadData(userApiKey, DEBUG_FACTION_ID);
                         } else {
                             console.warn("API key not available for periodic comprehensive faction data refresh.");
                         }
