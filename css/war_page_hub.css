@@ -439,7 +439,7 @@ transition: background-color 0.2s ease;
     flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
     flex-shrink: 0; /* CRITICAL: Prevent this area from shrinking */
     height: 40px; /* FIXED HEIGHT for the tabs bar (adjust if your tabs are taller/shorter) */
-    border-bottom: 2px solid #1e1e1e; /* Separator below tabs */
+    border-bottom: 2px solid black; /* Separator below tabs */
     background-color: #333; /* Slightly lighter background for tabs bar */
     border-radius: 8px 8px 0 0; /* Rounded top corners to match container */
     overflow-x: auto; /* Allow horizontal scrolling if tabs overflow */
