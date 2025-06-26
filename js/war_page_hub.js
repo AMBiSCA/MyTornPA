@@ -2273,8 +2273,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-        const membersArray = factionData.members; // This is now an array
-        if (!membersArray || membersArray.length === 0) { // Check length for array
+        const membersArray = factionData.members;
+        if (!membersArray || membersArray.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">No members found in this faction.</td></tr>';
             return;
         }
@@ -2282,13 +2282,12 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         let tableRowsHtml = '';
         const memberPromises = [];
 
-        // Corrected loop to iterate over the array of member objects
         for (const memberTornData of membersArray) {
-            const memberId = memberTornData.id; // Extract the actual Torn player ID from the member object
+            const memberId = memberTornData.id;
 
             if (!memberId) {
                 console.warn("Skipping member due to missing ID:", memberTornData);
-                continue; // Skip this member if ID is missing
+                continue;
             }
 
             const memberDocRef = db.collection('users').doc(String(memberId));
@@ -2297,7 +2296,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
-                const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
+                // CORRECTED LINE: Use the 'relative' property directly
+                const lastAction = memberTornData.last_action ? memberTornData.last_action.relative : 'N/A';
                 const statusState = memberTornData.status?.state || 'N/A';
                 const statusDescription = memberTornData.status?.description || 'N/A';
 
@@ -2314,7 +2314,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 else if (statusState === 'Okay') statusClass = 'status-okay';
 
                 return `
-                    <tr data-id="${memberId}"> <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                    <tr data-id="${memberId}">
+                        <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                         <td>${level}</td>
                         <td>${lastAction}</td>
                         <td>${strength}</td>
@@ -2328,13 +2329,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 `;
             }).catch(error => {
                 console.error(`Error fetching Firebase data for member ${memberId}:`, error);
-                // Fallback using Torn API data even if Firebase data fetch fails
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
-                const lastAction = memberTornData.last_action ? formatLastAction(memberTornData.last_action) : 'N/A';
+                // CORRECTED LINE: Use the 'relative' property directly for fallback too
+                const lastAction = memberTornData.last_action ? memberTornData.last_action.relative : 'N/A';
                 const statusDescription = memberTornData.status?.description || 'N/A';
                 return `
-                    <tr data-id="${memberId}"> <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                    <tr data-id="${memberId}">
+                        <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                         <td>${level}</td>
                         <td>${lastAction}</td>
                         <td>N/A</td>
