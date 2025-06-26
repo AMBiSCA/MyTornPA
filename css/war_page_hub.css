@@ -485,7 +485,7 @@ transition: background-color 0.2s ease;
     background-color: #333;
     padding: 5px 10px 8px;
     border-top: 1px solid #1e1e1e;
-    gap: 20px;
+    gap: 12px;
     box-sizing: border-box;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
@@ -1678,22 +1678,42 @@ autocomplete-items {
 }
 
 .chat-tab {
+    padding: 6px 10px;
     background-color: #333;
-    border: 1px solid #555;
-    border-bottom: none;
-    padding: 8px 15px;
-    cursor: pointer;
     color: #f0f0f0;
     font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    flex-grow: 1;
+    white-space: nowrap;
+    
+    /* Replicating the main tab border style */
+    border: 2px solid black;
+    border-bottom: none; /* Remove bottom border to blend with container */
+    border-right-width: 0; /* Temporarily remove right border */
     border-radius: 5px 5px 0 0;
-    margin-right: 2px;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+.chat-tab:not(:last-child) {
+    border-right: 1px solid #1e1e1e;
+}
+
+/* Style for when you hover over a non-active chat tab */
 .chat-tab:hover {
-    background-color: #444;
+    background-color: #555;
+    color: #f0f0f0; /* Text color stays light on hover */
+    border-color: #00a8ff; /* Blue border on hover, like main tabs */
 }
 
+/* Style for the currently active chat tab */
+.chat-tab.active {
+    background-color: #00a8ff; /* Blue background */
+    color: white; /* White text for better contrast */
+    border-color: #00a8ff;
+    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Matching glow effect */
+}
 .autocomplete-items div {
     padding: 10px;
     cursor: pointer;
