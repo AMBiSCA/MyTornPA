@@ -1710,7 +1710,7 @@ autocomplete-items {
 /* Style for the currently active chat tab */
 .chat-tab.active {
     background-color: #00a8ff; /* Blue background */
-    color: white; /* White text for better contrast */
+    color: black; /* White text for better contrast */
     border-color: #00a8ff;
     box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Matching glow effect */
 }
