@@ -3341,6 +3341,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 }
 // MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
 // MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
+// MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
 async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab. User ID:", currentUserId); // Log current user ID for debug
 
