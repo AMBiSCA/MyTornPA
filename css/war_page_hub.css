@@ -1560,7 +1560,7 @@ autocomplete-items {
 
 .member-rank {
     font-size: 0.8em;       /* Slightly smaller font for rank */
-    color: #e0a71a;         /* Gold color for rank */
+    color: #00a8ff;         /* Gold color for rank */
     font-weight: bold;
     margin-right: 5px;      /* Space between rank and profile pic/name */
     flex-shrink: 0;         /* Prevent this from shrinking */
@@ -1569,12 +1569,13 @@ autocomplete-items {
 
 /* Member name */
 .member-name {
-    flex-grow: 1;           /* Name takes up available space */
-    white-space: nowrap;    /* Prevent name from wrapping */
+    flex-grow: 1;
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if name is too long */
+    text-overflow: ellipsis;
     font-weight: bold;
     color: #f0f0f0;
+    text-align: center; /* This new line will center the name */
 }
 
 .add-member-button {
