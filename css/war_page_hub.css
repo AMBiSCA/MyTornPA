@@ -2715,9 +2715,7 @@ autocomplete-items {
     white-space: nowrap;
     font-size: 0.9em;
     padding: 5px; /* Adjust padding to match other ops-control-items */
-    
-    /* Inherit overall box styling from .ops-control-item if defined,
-       or add similar border/background/shadow as other ops-control-items */
+	grid-column: 2;
     border: 1px solid black;
     border-radius: 8px;
     background-color: #222; /* Dark background matching other boxes */
@@ -2725,7 +2723,7 @@ autocomplete-items {
 }
 
 .ops-control-item.ops-energy-display label {
-    color: #e0a71a; /* Gold color for label */
+    color:#28a745; /* Gold color for label */
     font-weight: bold;
     text-align: center;
 }
@@ -2743,6 +2741,6 @@ autocomplete-items {
     display: inline-block; /* Treat as inline-block to accept width/height */
     box-sizing: border-box;
     text-align: center;
-    color: #00a8ff; /* Blue color for the energy value */
+    color:#28a745; /* Blue color for the energy value */
     font-weight: bold;
 }
