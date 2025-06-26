@@ -483,7 +483,7 @@ transition: background-color 0.2s ease;
     padding: 10px;  /* Reverted to original padding */
     gap: 5px;       /* Keep this value for spacing between the two rows of controls */
     /* Ensure no other `padding-top` is overriding these values */
-    background-color: #222; /* As per our earlier discussion, for matching color */
+    background-color: #333; /* As per our earlier discussion, for matching color */
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
     border-top: 1px solid #1e1e1e;
