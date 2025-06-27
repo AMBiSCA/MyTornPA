@@ -2947,7 +2947,7 @@ autocomplete-items {
     padding: 8px 12px;
     text-align: center;
     flex-shrink: 0;
-    min-width: 140px; /* Give the boxes a consistent minimum width */
+    min-width: 80px; /* Give the boxes a consistent minimum width */
 }
 
 /* The label at the top of each box (e.g., "Your Chain") */
