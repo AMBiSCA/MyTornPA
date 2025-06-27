@@ -3897,12 +3897,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }, 2000); // Enemy data refresh (every 2 seconds)
 					
-					 setInterval(() => {
-                    if(userApiKey && factionApiFullData) {
+					    setInterval(() => {
+                    // This new log will show us the values of the variables each time it runs
+                    console.log("DEBUG: Checking variables for chain timer update:", {
+                        apiKey: userApiKey ? "Exists" : "MISSING",
+                        yourFactionId: factionApiFullData ? factionApiFullData.ID : "MISSING",
+                        enemyFactionId: globalEnemyFactionID ? globalEnemyFactionID : "MISSING"
+                    });
+
+                    if(userApiKey && factionApiFullData && factionApiFullData.ID) {
                         updateDualChainTimers(userApiKey, factionApiFullData.ID, globalEnemyFactionID);
                     }
-                }, 15000); // Refresh every 15 seconds
-
+                }, 15000);
 
                     setInterval(() => {
                         if (userApiKey) {
