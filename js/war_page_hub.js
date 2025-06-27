@@ -1141,14 +1141,6 @@ async function fetchAndDisplayChainScore(apiKey) {
       chainTimerDisplay.textContent = 'Chain Over';
   }
 
-  // --- ADD THIS NEW BLOCK BELOW YOUR EXISTING updateAllTimers LOGIC ---
-  if (userApiKey) {
-    fetchAndDisplayChainData(userApiKey);
-  } else {
-    console.warn("API key not available. Cannot update chain timer.");
-  }
-  
-// NEW: Function to handle claiming a target
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 function claimTarget(memberId) {
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
