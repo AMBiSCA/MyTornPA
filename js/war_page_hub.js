@@ -3901,6 +3901,13 @@ document.addEventListener('DOMContentLoaded', () => {
               
                 await updateOnlineMemberCounts(); // NEW: Initial call for online counts
 
+                   fetchAndDisplayChainData();
+                    displayQuickFFTargets(userApiKey, playerId);
+                    setupChatRealtimeListener();
+				
+
+                updateUserEnergyDisplay();
+                updateOnlineMemberCounts();
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
@@ -3920,39 +3927,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     listenersInitialized = true;
 
-                    setInterval(updateAllTimers, 1000); // Existing timer updates (e.g., enemy status in table)
+                    setInterval(updateAllTimers, 1000);
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Populates enemyDataGlobal
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 2000); // Enemy data refresh (every 2 seconds)
+                    }, 2000);
 					
-					   setInterval(() => {
-                    // This now uses the new reliable global variables
-                    if(userApiKey && globalYourFactionID) { 
-                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
-                    }
-                }, 15000); // Refresh every 15 seconds
+                    setInterval(() => {
+                        if(userApiKey && globalYourFactionID) {
+                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
+                        }
+                    }, 15000);
+
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            initializeAndLoadData(userApiKey, globalYourFactionID);
+                        } else {
+                            console.warn("API key or faction ID not available for periodic comprehensive faction data refresh.");
+                        }
+                    }, 300000);
 
                     setInterval(() => {
                         if (userApiKey) {
-                            // This interval updates factionApiFullData (needed for friendly online count)
-                            initializeAndLoadData(userApiKey, DEBUG_FACTION_ID);
+                            updateUserEnergyDisplay();
+                            updateOnlineMemberCounts();
                         } else {
-                            console.warn("API key not available for periodic comprehensive faction data refresh.");
+                            console.warn("API key not available for periodic user energy/online member refresh.");
                         }
-                    }, 300000); // Comprehensive faction data refresh (every 5 minutes)
+                    }, 60000);
 
-                    // NEW: Periodic update for user energy and online counts (every 1 minute)
-                    setInterval(() => {
-    if (userApiKey) { // No need for playerId check inside this function anymore if it only needs the API key
-        updateUserEnergyDisplay(); // <--- CALL IT WITHOUT ARGUMENTS
-    } else {
-        console.warn("API key not available for periodic user energy/online member refresh.");
-    }
-}, 60000); // 60000 milliseconds = 1 minute
                 }
             } else {
                 console.warn("API key or Player ID not found.");
