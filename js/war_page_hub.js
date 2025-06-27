@@ -1045,6 +1045,65 @@ function claimTarget(memberId) {
         targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
     }
 }
+
+/**
+ * Updates the displayed user energy (and optionally max energy).
+ * Fetches data from the Torn API using the global userApiKey.
+ */
+function updateUserEnergyDisplay() {
+    // This function now directly uses the global userApiKey
+    if (!userApiKey) {
+        console.warn("User API key not available for energy display.");
+        const userEnergyDisplayElement = document.getElementById('userEnergyDisplay');
+        if (userEnergyDisplayElement) {
+            userEnergyDisplayElement.textContent = 'Key Missing';
+        }
+        return;
+    }
+
+    const API_KEY = userApiKey; // Use the globally available API key
+
+    // Get the HTML element where energy will be displayed
+    const userEnergyDisplayElement = document.getElementById('userEnergyDisplay');
+
+    if (!userEnergyDisplayElement) {
+        console.warn("User energy display element with ID 'userEnergyDisplay' not found.");
+        return; // Exit if the element doesn't exist
+    }
+
+    // Clear current display or show a loading message
+    userEnergyDisplayElement.textContent = 'Loading E...'; 
+
+    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error("Torn API Error:", data.error.code, data.error.error);
+                userEnergyDisplayElement.textContent = 'API Error';
+                return;
+            }
+
+            const energy = data.energy.current;
+            const maxEnergy = data.energy.maximum;
+            const energyFullTime = data.energy.fulltime; // Unix timestamp for full energy
+
+            userEnergyDisplayElement.textContent = `${energy}/${maxEnergy}`;
+
+            const fullTimeDate = new Date(energyFullTime * 1000); // Convert to milliseconds
+            userEnergyDisplayElement.title = `Full E at: ${fullTimeDate.toLocaleTimeString()} ${fullTimeDate.toLocaleDateString()}`;
+
+        })
+        .catch(error => {
+            console.error("Error fetching user energy data:", error);
+            userEnergyDisplayElement.textContent = 'Fetch Error';
+        });
+}
+
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
     // Find all the new HTML elements by their ID
     const friendlyHitsEl = document.getElementById('friendly-chain-hits');
