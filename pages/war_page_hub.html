@@ -83,19 +83,6 @@
 
             <div class="tab-content-container">
                 <div id="announcements-tab" class="tab-pane active">
-                    <div class="ops-control-item ops-chain-score">
-                        <div class="score-faction-name" id="yourFactionNameScoreLabel">The SixthSense</div>
-                        <div class="score-faction-name" id="opponentFactionNameScoreLabel">Vs Waja Warriors</div>
-                        <div class="chain-score-display">
-                            <span class="score-value current-score" id="yourFactionRankedScore">N/A</span>
-                            <span class="score-target-info">
-                                <span class="score-label">LEAD TARGET</span>
-                                <span class="score-progress" id="warTargetScore">N/A</span>
-                            </span>
-                            <span class="score-value target-score" id="opponentFactionRankedScore">N/A</span>
-                        </div>
-                        <span id="warStartedTime" class="score-started-time">N/A</span>
-                    </div>
                     <div class="announcements-grid-container">
 
                         <div class="announcement-section-item">
@@ -158,6 +145,19 @@
                             </div>
                         </div>
 
+                    </div>
+                    <div class="ops-control-item ops-chain-score">
+                        <div class="score-faction-name" id="yourFactionNameScoreLabel">The SixthSense</div>
+                        <div class="score-faction-name" id="opponentFactionNameScoreLabel">Vs Waja Warriors</div>
+                        <div class="chain-score-display">
+                            <span class="score-value current-score" id="yourFactionRankedScore">N/A</span>
+                            <span class="score-target-info">
+                                <span class="score-label">LEAD TARGET</span>
+                                <span class="score-progress" id="warTargetScore">N/A</span>
+                            </span>
+                            <span class="score-value target-score" id="opponentFactionRankedScore">N/A</span>
+                        </div>
+                        <span id="warStartedTime" class="score-started-time">N/A</span>
                     </div>
                     </div>
 
@@ -419,31 +419,7 @@
             </div>
         </div>
     </div>
-	<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const apiUrl = 'https://api.torn.com/v2/user/personalstats?cat=popular&key=gCNmxrHxlOYeNiS7';
-        const energyDisplayElement = document.getElementById('rw-user-energy');
-
-        if (energyDisplayElement) {
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const energy = data.personalstats.items.used.energy;
-                    energyDisplayElement.textContent = energy;
-                })
-                .catch(error => {
-                    console.error('Error fetching energy data:', error);
-                    energyDisplayElement.textContent = 'Error';
-                });
-        } else {
-            console.warn('Element with ID "rw-user-energy" not found. Cannot display energy level.');
-        }
-    });
+	
 </script>
 </body>
 </html>
