@@ -2852,7 +2852,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
         finalFactionId = factionApiFullData.basic.id;
-    }
+    
     if (!finalFactionId && auth.currentUser) {
         try {
             const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
