@@ -4003,7 +4003,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(userApiKey && globalYourFactionID) {
                             updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
                         }
-                    }, 1500);
+                    }, 2000);
 
                     setInterval(() => {
                         if (userApiKey && globalYourFactionID) {
