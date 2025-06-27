@@ -173,26 +173,31 @@
                             <span id="currentChainNumberDisplay">N/A</span>
                         </div>
 
-                        <div class="ops-control-item ops-ranked-war-score">
-                            <div class="rw-header">
-                                <span id="rw-faction-one-name">Your Faction</span>
-                                <span class="rw-vs">vs</span>
-                                <span id="rw-faction-two-name">Opponent</span>
-                            </div>
-                            <div class="rw-scores">
-                                <div class="rw-score" id="rw-score-one">0</div>
-                                <div class="rw-lead-target">
-                                    <div class="rw-lead-label">LEAD TARGET</div>
-                                    <div class="rw-lead-value" id="rw-lead-value">0 / 0</div>
+                        <div class="ops-control-item">
+                            <div class="ranked-war-container">
+                                <div class="rw-header">
+                                    <span id="rw-faction-one-name">Your Faction</span>
+                                    <span class="rw-vs">vs</span>
+                                    <span id="rw-faction-two-name">Opponent</span>
                                 </div>
-                                <div class="rw-score" id="rw-score-two">0</div>
-                            </div>
-                            <div class="rw-progress-bar-container">
-                                <div class="rw-progress-bar-one" id="rw-progress-one" style="width: 50%;"></div>
-                                <div class="rw-progress-bar-two" id="rw-progress-two" style="width: 50%;"></div>
-                            </div>
-                            <div class="rw-footer">
-                                <div class="rw-footer-stat" id="rw-war-timer">00:00:00</div>
+                                <div class="rw-scores-new">
+                                    <div class="rw-stat-box-small">
+                                        <div class="rw-small-label">Energy</div>
+                                        <div class="rw-small-value" id="rw-user-energy">N/A</div>
+                                    </div>
+                                    <div class="rw-lead-target">
+                                        <div class="rw-lead-label">LEAD TARGET</div>
+                                        <div class="rw-lead-value" id="rw-lead-value">0 / 0</div>
+                                    </div>
+                                    <div class="rw-stat-box-small">
+                                        <div class="rw-small-label">War Time</div>
+                                        <div class="rw-small-value" id="rw-war-timer">0:00:00:00</div>
+                                    </div>
+                                </div>
+                                <div class="rw-progress-bar-container">
+                                    <div class="rw-progress-bar-one" id="rw-progress-one" style="width: 50%;"></div>
+                                    <div class="rw-progress-bar-two" id="rw-progress-two" style="width: 50%;"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="ops-control-item ops-quick-targets">
@@ -220,7 +225,7 @@
                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
                                    <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
-                                   <button class="chat-tab" data-chat-tab="blocked-people">😊 / 😡 </button>
+                                   <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
                                 </div>
                                 <div class="chat-messages-scroll-wrapper">
@@ -256,7 +261,7 @@
                         <div class="ops-control-item ops-control-item--actions">
                             <div class="action-buttons-container">
                                 <div class="action-button-group">
-                                    <p class="action-button-label">🚔Got the Nerve? 🚔</p>
+                                    <p class="action-button-label">🔪 Got the Nerve? 🚔</p>
                                     <a href="https://www.torn.com/crimes.php" target="_blank" rel="noopener noreferrer" class="action-button action-button-red">Crimes</a>
                                 </div>
                                 <div class="action-button-group">

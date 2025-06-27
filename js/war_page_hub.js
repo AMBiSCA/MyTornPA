@@ -936,14 +936,14 @@ function setupChatRealtimeListener() {
 function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     // Get all the HTML elements from the new score box by their ID
     const yourNameEl = document.getElementById('rw-faction-one-name');
-    const yourScoreEl = document.getElementById('rw-score-one');
     const opponentNameEl = document.getElementById('rw-faction-two-name');
-    const opponentScoreEl = document.getElementById('rw-score-two');
     const leadValueEl = document.getElementById('rw-lead-value');
-
+    const progressOneEl = document.getElementById('rw-progress-one');
+    const progressTwoEl = document.getElementById('rw-progress-two');
+    
     // Check if all elements were found before continuing
-    if (!yourNameEl || !yourScoreEl || !opponentNameEl || !opponentScoreEl || !leadValueEl) {
-        console.error("One or more HTML elements for the ranked war display are missing.");
+    if (!yourNameEl || !opponentNameEl || !leadValueEl || !progressOneEl || !progressTwoEl) {
+        console.error("One or more HTML elements for the new ranked war display are missing.");
         return;
     }
 
@@ -956,19 +956,29 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
         return;
     }
 
-    // --- Update Names and Scores (Your faction is always on the left) ---
+    // --- Update Faction Names ---
     yourNameEl.textContent = yourFaction.name;
-    yourScoreEl.textContent = yourFaction.score.toLocaleString();
     opponentNameEl.textContent = opponentFaction.name;
-    opponentScoreEl.textContent = opponentFaction.score.toLocaleString();
 
     // --- Calculate and Update Lead Target ---
     const leadAmount = Math.abs(yourFaction.score - opponentFaction.score);
     const targetScore = rankedWarData.target;
     leadValueEl.textContent = `${leadAmount.toLocaleString()} / ${targetScore.toLocaleString()}`;
 
-}
+    // --- Calculate and Update Progress Bar ---
+    const totalScore = yourFaction.score + opponentFaction.score;
+    let yourFactionProgress = 50; // Default to 50/50 if scores are 0
+    if (totalScore > 0) {
+        yourFactionProgress = (yourFaction.score / totalScore) * 100;
+    }
+    const opponentFactionProgress = 100 - yourFactionProgress;
 
+    progressOneEl.style.width = `${yourFactionProgress}%`;
+    progressTwoEl.style.width = `${opponentFactionProgress}%`;
+
+    // --- Set the global war start time for the timer (which we'll fix next) ---
+    globalWarStartedActualTime = rankedWarData.start || 0;
+}
 // ... (Your existing claimTarget and unclaimTarget functions) ...
   async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
