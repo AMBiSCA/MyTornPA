@@ -3893,12 +3893,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // NEW: Periodic update for user energy and online counts (every 1 minute)
                     setInterval(() => {
-                        if (userApiKey && playerId) {
-                            updateUserEnergyDisplay(userApiKey, playerId);
-                            updateOnlineMemberCounts(); // NEW: Call for online counts
+                        if (userApiKey) { // No need for playerId check inside this function anymore if it only needs the API key
+                         updateUserEnergyDisplay(); // <--- CALL IT WITHOUT ARGUMENTS
                         } else {
-                            console.warn("API key or Player ID not available for periodic user energy/online member refresh.");
-                        }
+                           console.warn("API key not available for periodic user energy/online member refresh.");
+                         }
                     }, 60000); // 60000 milliseconds = 1 minute
                 }
             } else {

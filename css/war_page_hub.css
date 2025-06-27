@@ -697,43 +697,71 @@ transition: background-color 0.2s ease;
 }
 
 /* MODIFIED: game-plan-display to match height and center content */
-.game-plan-display {
+/* MODIFIED: game-plan-display to handle images and center content */
+/* REPLACE your existing #gamePlanDisplay rule with this: */
+.game-plan-display { /* Note: This also applies to the class if used elsewhere */
     background-color: #333;
     color: #f0f0f0;
-    padding: 15px; /* Adjusted padding to fill space and align vertically */
+    padding: 15px;
     border-radius: 5px;
-    margin-bottom: 10px; /* NEW: Reduced margin (existing was 10px) */
-    min-height: 80px; /* NEW: Slightly reduced min-height (existing was 80px) */
+    margin-bottom: 10px;
+    min-height: 80px;
+    white-space: pre-wrap; /* Preserve white space for text */
+    font-family: 'Courier New', Courier, monospace; /* Font for text content */
+    font-size: 0.9em; /* Font size for text content */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Allow content (text or image) to stack vertically */
+    align-items: center; /* Center content (text or image) horizontally */
+    justify-content: center; /* Center content (text or image) vertically */
+    text-align: center; /* Ensure text alignment */
+    box-sizing: border-box;
+
+    overflow: hidden; /* IMPORTANT: Ensures images or large content don't break out of the box */
+}
+
+/* MODIFIED: factionAnnouncementsDisplay to handle images and center content */
+/* REPLACE your existing #factionAnnouncementsDisplay rule with this: */
+#factionAnnouncementsDisplay {
+    /* Inherits many styles from .game-plan-display. Ensure flex properties for centering. */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Allow content (text or image) to stack vertically */
+    align-items: center; /* Center content (text or image) horizontally */
+    justify-content: center; /* Center content (text or image) vertically */
+    text-align: center; /* Ensure text alignment */
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: #333;
+    color: #f0f0f0;
+    border-radius: 5px;
+    min-height: 80px;
     white-space: pre-wrap;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9em; /* NEW: Slightly smaller font (existing was 0.9em) */
-    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically center its content (e.g., "Loading game plan...") */
-    justify-content: center; /* Horizontally center its content */
-    text-align: center; /* Ensure text is centered */
-    box-sizing: border-box; /* Include padding in width/height */
+    font-size: 0.9em;
+
+    overflow: hidden; /* IMPORTANT: Ensures images or large content don't break out of the box */
 }
 
-/* NEW: factionAnnouncementsDisplay to match height and center content */
-#factionAnnouncementsDisplay {
-    /* Inherits from .game-plan-display for general look, but override for flex properties */
-    flex-grow: 1; /* Allow it to take up available vertical space in its parent flex container */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically center its content (e.g., "No current announcements.") */
-    justify-content: center; /* Horizontally center its content */
-    text-align: center; /* Ensure text is centered */
-    padding: 15px; /* Adjust internal padding to fill space and align vertically */
-    box-sizing: border-box;
-    background-color: #333; /* Explicitly set background if not fully inherited */
-    color: #f0f0f0; /* Explicitly set color if not fully inherited */
-    border-radius: 5px; /* Explicitly set border-radius if not fully inherited */
-    min-height: 80px; /* Ensure a minimum height similar to game-plan-display */
-    white-space: pre-wrap; /* Preserve white space for content */
-    font-family: 'Courier New', Courier, monospace; /* Font for content */
-    font-size: 0.9em; /* Font size for content */
+/* NEW: Styles for images displayed within gamePlanDisplay and factionAnnouncementsDisplay */
+/* ADD this new rule: */
+.game-plan-display img,
+#factionAnnouncementsDisplay img {
+    max-width: 100%; /* Ensures image doesn't overflow its container horizontally */
+    max-height: 100%; /* Ensures image doesn't overflow its container vertically (important for GIFs) */
+    height: auto; /* Maintains aspect ratio when scaling */
+    object-fit: contain; /* Scales image down to fit within the content box, preserving aspect ratio (adds letterboxing if needed) */
+    display: block; /* Removes any extra space that might appear below inline images */
+    margin: auto; /* Centers the image if it's smaller than the content box */
 }
 
+/* Ensure the direct content (p or img) of these display boxes is centered */
+/* REPLACE your existing .game-plan-display p, #factionAnnouncementsDisplay p rule with this: */
+.game-plan-display p,
+#factionAnnouncementsDisplay p {
+    margin: 0; /* Remove default paragraph margins */
+    width: 100%; /* Ensures paragraph takes full width within its flex container for proper text-align:center */
+}
 /* NEW: Adjust the direct content of these display boxes to center */
 .game-plan-display p,
 #factionAnnouncementsDisplay p {
@@ -3027,5 +3055,18 @@ autocomplete-items {
     display: inline-block; /* Or you can use 'inline-flex' if needed */
     width: auto; /* Allow width to shrink to content */
     text-align: center; /* Ensure text itself is centered if it wraps within its auto width */
+}
+
+/* Style for the new Upload Plan button */
+#uploadPlanButton {
+    /* Inherits from .action-btn. Add specific color if you want it different */
+    background-color: #00a8ff; /* Example: A blue color for upload */
+    color: #1e1e1e; /* Dark text on blue */
+    margin-top: 10px; /* Add some space above it if needed */
+}
+
+#uploadPlanButton:hover {
+    background-color: #007bff; /* Darker blue on hover */
+    color: white; /* White text on hover */
 }
 

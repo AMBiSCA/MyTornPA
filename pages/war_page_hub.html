@@ -7,6 +7,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -319,6 +320,7 @@
                             <h4>Edit Game Plan:</h4>
                             <textarea id="gamePlanEditArea"></textarea>
                             <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
+                            <button id="uploadPlanButton" class="action-btn">Upload Plan (Image/GIF)</button>
                         </div>
                         <div class="config-section">
                             <h4>War Status Controls:</h4>
@@ -419,7 +421,6 @@
             </div>
         </div>
     </div>
-	
-</script>
+    <input type="file" id="imageUploadInput" accept="image/png, image/jpeg, image/gif" style="display: none;">
 </body>
 </html>
