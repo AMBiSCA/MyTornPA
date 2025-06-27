@@ -3852,7 +3852,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKey && playerId) {
                 userApiKey = apiKey;
 
-                await initializeAndLoadData(apiKey, DEBUG_FACTION_ID); // Populates factionApiFullData
+                await initializeAndLoadData(apiKey, userData.faction_id); // Populates factionApiFullData
                 populateUiComponents(warData, apiKey); // Injects the HTML elements
 
                 // Ensure global DOM references are assigned after HTML injection
