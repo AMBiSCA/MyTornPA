@@ -2926,3 +2926,55 @@ autocomplete-items {
     margin-bottom: 5px; /* Adds a little space below the text, adjust as needed */
     padding-left: 5px; /* Adds a little padding to the left, adjust as needed to align with buttons */
 }
+/* --- New Chain Timers Display --- */
+
+/* This is the main container that holds the two boxes. It uses flexbox to place them side-by-side. */
+.ops-chain-timers-container {
+    display: flex;
+    gap: 10px; /* This creates space between the two boxes */
+    width: 100%;
+    justify-content: flex-start; /* Aligns the boxes to the start (left) */
+    align-items: center;
+}
+
+/* This is the styling for each individual box (Your Chain and Enemy Chain) */
+.chain-timer-box {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 5px 10px;
+    text-align: center;
+    flex-shrink: 0; /* Prevents the boxes from shrinking */
+}
+
+/* The label at the top of each box (e.g., "Your Chain") */
+.chain-timer-header {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #e0a71a; /* Gold color */
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+/* The container for the data (hits and time) */
+.chain-timer-data {
+    display: flex;
+    justify-content: center;
+    align-items: baseline; /* Aligns the text along the bottom */
+    gap: 10px;
+}
+
+/* The number of chain hits */
+.chain-timer-hits {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+/* The countdown timer text */
+.chain-timer-time {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #aaa;
+}
