@@ -98,6 +98,7 @@ const postAnnouncementBtn = document.getElementById('postAnnouncementBtn');
 const warNoFlyingStatus = document.getElementById('warNoFlyingStatus');
 const warTurtleStatus = document.getElementById('warTurtleStatus');
 const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
+const storage = firebase.storage();
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -166,6 +167,27 @@ function generateDummyFriends(count) {
     return dummyFriends;
 }
 
+async function handleImageUpload(event) {
+    const file = event.target.files[0]; // Get the selected file
+
+    if (!file) {
+        console.log("No file selected for upload.");
+        return;
+    }
+
+    // --- Basic File Type Check ---
+    if (!file.type.startsWith('image/')) {
+        alert("Please select an image file (JPG, PNG, GIF).");
+        event.target.value = ''; // Clear the input so 'change' event fires even if same file is selected again
+        return;
+    }
+
+    console.log("Selected file for upload:", file.name, file.type, file.size, "bytes");
+
+    // We'll add image validation (dimensions/aspect ratio) and Firebase Storage upload logic here in next steps.
+    // For now, let's just clear the input so the same file can be selected again later.
+    event.target.value = ''; // Clear the input to allow selecting the same file consecutively for testing
+}
 
 function generateDummyIgnores(count) {
     const dummyIgnores = [];
@@ -3718,7 +3740,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-document.addEventListener('DOMContentLoaded', () => {
+ddocument.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
@@ -3895,7 +3917,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Populates factionApiFullData
-                
+                populateUiComponents(warData, apiKey); // Injects the HTML elements
 
                 // Ensure global DOM references are assigned after HTML injection
                 userEnergyDisplay = document.getElementById('userEnergyDisplay');
@@ -3903,10 +3925,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
 
                 // Initial calls for all dynamic ops panel displays
-              
+                await updateUserEnergyDisplay(userApiKey, playerId);
                 await updateOnlineMemberCounts(); // NEW: Initial call for online counts
 
-                fetchAndDisplayChainData();
+                // --- MODIFIED: Await fetchAndDisplayChainData for proper sequencing ---
+                await fetchAndDisplayChainData(); // ADDED 'await' here
+                simulateActiveChain();            // ADDED THIS CALL HERE
+
+                await fetchAndDisplayRankedWarScores(); // ADDED 'await' here
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
 
@@ -3933,13 +3959,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
                     }, 2000); // Enemy data refresh (every 2 seconds)
-					
-					   setInterval(() => {
-                    // This now uses the new reliable global variables
-                    if(userApiKey && globalYourFactionID) { 
-                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
-                    }
-                }, 15000); // Refresh every 15 seconds
+
+                    setInterval(() => {
+                        // This now uses the new reliable global variables
+                        if(userApiKey && globalYourFactionID) {
+                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
+                        }
+                    }, 15000); // Refresh every 15 seconds
+
+                    setInterval(() => {
+                        if (userApiKey && playerId) {
+                            displayQuickFFTargets(userApiKey, playerId);
+                        } else {
+                            console.warn("API key or Player ID not available for periodic Quick FF targets refresh.");
+                        }
+                    }, 60000); // Quick FF targets refresh (every minute)
 
                     setInterval(() => {
                         if (userApiKey) {
@@ -3952,11 +3986,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // NEW: Periodic update for user energy and online counts (every 1 minute)
                     setInterval(() => {
-                        if (userApiKey) { // No need for playerId check inside this function anymore if it only needs the API key
-                         updateUserEnergyDisplay(); // <--- CALL IT WITHOUT ARGUMENTS
+                        if (userApiKey && playerId) { // No need for playerId check inside this function anymore if it only needs the API key
+                            updateUserEnergyDisplay(userApiKey, playerId); // Changed to pass args
+                            updateOnlineMemberCounts(); // NEW: Call for online counts
                         } else {
-                           console.warn("API key not available for periodic user energy/online member refresh.");
-                         }
+                            console.warn("API key or Player ID not available for periodic user energy/online member refresh.");
+                        }
                     }, 60000); // 60000 milliseconds = 1 minute
                 }
             } else {
