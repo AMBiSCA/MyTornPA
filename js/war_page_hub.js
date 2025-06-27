@@ -864,6 +864,7 @@ async function sendChatMessage() {
 
 
 
+
 function setupChatRealtimeListener() {
     if (!chatMessagesCollection) {
         console.error("Firebase chatMessagesCollection is not defined.");
