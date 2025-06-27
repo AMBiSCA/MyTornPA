@@ -1165,7 +1165,68 @@ function claimTarget(memberId) {
         targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
     }
 }
+async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
+    // Find all the new HTML elements by their ID
+    const friendlyHitsEl = document.getElementById('friendly-chain-hits');
+    const friendlyTimeEl = document.getElementById('friendly-chain-time');
+    const enemyHitsEl = document.getElementById('enemy-chain-hits');
+    const enemyTimeEl = document.getElementById('enemy-chain-time');
 
+    // If the elements don't exist on the page, stop.
+    if (!friendlyHitsEl || !friendlyTimeEl || !enemyHitsEl || !enemyTimeEl) {
+        return;
+    }
+
+    // --- Fetch and Display Your Faction's Chain ---
+    if (apiKey && yourFactionId) {
+        try {
+            const yourChainUrl = `https://api.torn.com/faction/${yourFactionId}?selections=chain&key=${apiKey}&comment=MyTornPA_YourChain`;
+            const yourChainResponse = await fetch(yourChainUrl);
+            const yourChainData = await yourChainResponse.json();
+
+            if (yourChainData.error) throw new Error(yourChainData.error.error);
+
+            if (yourChainData.chain && yourChainData.chain.current > 0) {
+                friendlyHitsEl.textContent = yourChainData.chain.current;
+                // Set global variables for the live countdown timer
+                currentLiveChainSeconds = yourChainData.chain.timeout || 0;
+                lastChainApiFetchTime = Date.now();
+            } else {
+                friendlyHitsEl.textContent = '0';
+                friendlyTimeEl.textContent = 'Over';
+                currentLiveChainSeconds = 0; // Reset timer if no chain
+            }
+        } catch (error) {
+            console.error("Error fetching your faction's chain:", error);
+            if(friendlyTimeEl) friendlyTimeEl.textContent = 'Error';
+        }
+    }
+
+    // --- Fetch and Display Enemy Faction's Chain ---
+    if (apiKey && enemyFactionId) {
+        try {
+            const enemyChainUrl = `https://api.torn.com/faction/${enemyFactionId}?selections=chain&key=${apiKey}&comment=MyTornPA_EnemyChain`;
+            const enemyChainResponse = await fetch(enemyChainUrl);
+            const enemyChainData = await enemyChainResponse.json();
+
+            if (enemyChainData.error) throw new Error(enemyChainData.error.error);
+
+            if (enemyChainData.chain && enemyChainData.chain.current > 0) {
+                enemyHitsEl.textContent = enemyChainData.chain.current;
+                enemyTimeEl.textContent = formatTime(enemyChainData.chain.timeout); // Direct display, no smooth countdown
+            } else {
+                enemyHitsEl.textContent = '0';
+                enemyTimeEl.textContent = 'Over';
+            }
+        } catch (error) {
+            console.error("Error fetching enemy faction's chain:", error);
+            if(enemyTimeEl) enemyTimeEl.textContent = 'Error';
+        }
+    } else {
+        if(enemyTimeEl) enemyTimeEl.textContent = 'No Enemy';
+        if(enemyHitsEl) enemyHitsEl.textContent = 'N/A';
+    }
+}
 function unclaimTarget(memberId) {
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
