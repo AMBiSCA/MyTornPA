@@ -6,6 +6,7 @@ let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
 let apiCallCounter = 0; // Counter for API call intervals
+let globalYourFactionID = null; // This will store your faction ID
 let globalEnemyFactionID = null; // Used to store the enemy ID for periodic fetches
 let currentLiveChainSeconds = 0; // Stores the remaining chain timeout for local countdown
 let lastChainApiFetchTime = 0; // Stores the timestamp of the last chain API fetch
@@ -22,12 +23,6 @@ let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previ
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 
-// --- TEMPORARY HARDCODE FOR DEBUGGING ONLY ---
-// !!! IMPORTANT: REMOVE THESE LINES AND USE `userData.tornApiKey` etc. IN PRODUCTION !!!
-const DEBUG_API_KEY = "tuFkU0vE2HYpO6XT"; // Forced API Key
-const DEBUG_FACTION_ID = "49028"; // Forced Faction ID
-const DEBUG_PLAYER_ID = "2662550"; // Forced Player ID
-// --- END TEMPORARY HARDCODE ---
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
