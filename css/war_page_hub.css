@@ -3080,7 +3080,7 @@ autocomplete-items {
 }
 
 .quick-action-label {
-    color: #e0a71a; /* Gold/yellow color for the text, matching your theme */
+    color: white; /* Gold/yellow color for the text, matching your theme */
     font-weight: bold;
     font-size: 0.9em; /* Adjust font size as needed */
 }

@@ -3997,13 +3997,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 2000);
+                    }, 1500);
 					
                     setInterval(() => {
                         if(userApiKey && globalYourFactionID) {
                             updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
                         }
-                    }, 15000);
+                    }, 1500);
 
                     setInterval(() => {
                         if (userApiKey && globalYourFactionID) {
