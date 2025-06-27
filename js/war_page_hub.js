@@ -2,6 +2,7 @@
 
 const db = firebase.firestore();
 const auth = firebase.auth();
+
 let userApiKey = null;
 let factionApiFullData = null;
 let currentTornUserName = 'Unknown';
@@ -452,6 +453,59 @@ function formatTime(seconds) {
     return result.trim();
 }
 
+function updateUserEnergyDisplay() {
+    // This function now directly uses the global userApiKey
+    if (!userApiKey) {
+        console.warn("User API key not available for energy display.");
+        const userEnergyDisplayElement = document.getElementById('userEnergyDisplay');
+        if (userEnergyDisplayElement) {
+            userEnergyDisplayElement.textContent = 'Key Missing';
+        }
+        return;
+    }
+
+    const API_KEY = userApiKey; // Use the globally available API key
+
+    // Get the HTML element where energy will be displayed
+    const userEnergyDisplayElement = document.getElementById('userEnergyDisplay');
+
+    if (!userEnergyDisplayElement) {
+        console.warn("User energy display element with ID 'userEnergyDisplay' not found.");
+        return; // Exit if the element doesn't exist
+    }
+
+    // Clear current display or show a loading message
+    userEnergyDisplayElement.textContent = 'Loading E...'; 
+
+    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error("Torn API Error:", data.error.code, data.error.error);
+                userEnergyDisplayElement.textContent = 'API Error';
+                return;
+            }
+
+            const energy = data.energy.current;
+            const maxEnergy = data.energy.maximum;
+            const energyFullTime = data.energy.fulltime; // Unix timestamp for full energy
+
+            userEnergyDisplayElement.textContent = `${energy}/${maxEnergy}`;
+
+            const fullTimeDate = new Date(energyFullTime * 1000); // Convert to milliseconds
+            userEnergyDisplayElement.title = `Full E at: ${fullTimeDate.toLocaleTimeString()} ${fullTimeDate.toLocaleDateString()}`;
+
+        })
+        .catch(error => {
+            console.error("Error fetching user energy data:", error);
+            userEnergyDisplayElement.textContent = 'Fetch Error';
+        });
+}
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
   if (!factionApiFullData || !factionApiFullData.chain) {
     console.warn("Chain data not fully available in factionApiFullData.chain.");
@@ -3836,7 +3890,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Populates factionApiFullData
-                populateUiComponents(warData, apiKey); // Injects the HTML elements
+                
 
                 // Ensure global DOM references are assigned after HTML injection
                 userEnergyDisplay = document.getElementById('userEnergyDisplay');
@@ -3893,13 +3947,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // NEW: Periodic update for user energy and online counts (every 1 minute)
                     setInterval(() => {
-                        if (userApiKey && playerId) {
-                            updateUserEnergyDisplay(userApiKey, playerId);
-                            updateOnlineMemberCounts(); // NEW: Call for online counts
-                        } else {
-                            console.warn("API key or Player ID not available for periodic user energy/online member refresh.");
-                        }
-                    }, 60000); // 60000 milliseconds = 1 minute
+    if (userApiKey) { // No need for playerId check inside this function anymore if it only needs the API key
+        updateUserEnergyDisplay(); // <--- CALL IT WITHOUT ARGUMENTS
+    } else {
+        console.warn("API key not available for periodic user energy/online member refresh.");
+    }
+}, 60000); // 60000 milliseconds = 1 minute
                 }
             } else {
                 console.warn("API key or Player ID not found.");
