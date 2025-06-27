@@ -1903,27 +1903,27 @@ autocomplete-items {
 }
 
 /* Define explicit column widths for Friendly Members Table to prevent overflow */
+/* Adjusted based on your request: Revivable (Status), Level, Position, Name */
 #friendly-members-table thead th:nth-child(1),
-#friendly-members-table tbody td:nth-child(1) { width: 18%; } /* Name */
+#friendly-members-table tbody td:nth-child(1) { width: 12%; } /* Name - Slightly smaller */
 #friendly-members-table thead th:nth-child(2),
-#friendly-members-table tbody td:nth-child(2) { width: 7%; }  /* Level */
+#friendly-members-table tbody td:nth-child(2) { width: 5%; }  /* Level - Smaller */
 #friendly-members-table thead th:nth-child(3),
-#friendly-members-table tbody td:nth-child(3) { width: 15%; } /* Last Action */
+#friendly-members-table tbody td:nth-child(3) { width: 15%; } /* Last Action (No change) */
 #friendly-members-table thead th:nth-child(4),
-#friendly-members-table tbody td:nth-child(4) { width: 9%; }  /* Strength */
+#friendly-members-table tbody td:nth-child(4) { width: 9%; }   /* Strength (No change) */
 #friendly-members-table thead th:nth-child(5),
-#friendly-members-table tbody td:nth-child(5) { width: 9%; }  /* Dexterity */
+#friendly-members-table tbody td:nth-child(5) { width: 9%; }   /* Dexterity (No change) */
 #friendly-members-table thead th:nth-child(6),
-#friendly-members-table tbody td:nth-child(6) { width: 9%; }  /* Speed */
+#friendly-members-table tbody td:nth-child(6) { width: 9%; }   /* Speed (No change) */
 #friendly-members-table thead th:nth-child(7),
-#friendly-members-table tbody td:nth-child(7) { width: 9%; }  /* Defense */
+#friendly-members-table tbody td:nth-child(7) { width: 9%; }   /* Defense (No change) */
 #friendly-members-table thead th:nth-child(8),
-#friendly-members-table tbody td:nth-child(8) { width: 8%; }  /* Status */
+#friendly-members-table tbody td:nth-child(8) { width: 10%; }   /* Status - Increased (Revivable is likely part of this or next) */
 #friendly-members-table thead th:nth-child(9),
-#friendly-members-table tbody td:nth-child(9) { width: 8%; }  /* Nerve */
+#friendly-members-table tbody td:nth-child(9) { width: 12%; }   /* Nerve - Increased (assuming this is your 'Revivable' column, based on common Torn tables) */
 #friendly-members-table thead th:nth-child(10),
-#friendly-members-table tbody td:nth-child(10) { width: 8%; } /* Energy */
-
+#friendly-members-table tbody td:nth-child(10) { width: 10%; } /* Energy - Default size if not used for Revivable */
 
 /* Responsive adjustments for Friendly Status tab layout */
 @media (max-width: 992px) {
