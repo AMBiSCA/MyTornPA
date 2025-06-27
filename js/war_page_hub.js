@@ -23,6 +23,7 @@ let lastEmojiIndex = -1; // To keep track of the last emoji used
 let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previous display (e.g., ['123', '456'])
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
+let scrollUpIndicatorEl = null;
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -189,6 +190,44 @@ function generateDummyIgnores(count) {
     }
     return dummyIgnores;
 }
+
+function toggleScrollIndicatorVisibility() {
+    if (!scrollUpIndicatorEl) {
+        scrollUpIndicatorEl = document.getElementById('scrollUpIndicator');
+        if (!scrollUpIndicatorEl) {
+            console.warn("Scroll Up Indicator element not found. Cannot manage visibility.");
+            return;
+        }
+        // Add click listener to scroll to top
+        scrollUpIndicatorEl.addEventListener('click', () => {
+            if (chatDisplayArea) {
+                chatDisplayArea.scrollTop = 0; // Scroll to the very top
+            }
+        });
+    }
+
+    if (!chatDisplayArea) {
+        return;
+    }
+
+    // Check if content overflows and if the user is not at the very top
+    // clientHeight is the visible height of the element
+    // scrollHeight is the total height of the content
+    // scrollTop is how far from the top the user has scrolled
+    const atTop = chatDisplayArea.scrollTop <= 5; // A small buffer to account for rounding or slight offsets
+    const hasOverflow = chatDisplayArea.scrollHeight > chatDisplayArea.clientHeight;
+
+    if (hasOverflow && !atTop) {
+        scrollUpIndicatorEl.classList.add('visible');
+    } else {
+        scrollUpIndicatorEl.classList.remove('visible');
+    }
+}
+
+function handleChatScroll() {
+    toggleScrollIndicatorVisibility();
+}
+
 
 function areTargetSetsIdentical(set1, set2) {
     if (set1.length !== set2.length) {
@@ -825,8 +864,7 @@ async function sendChatMessage() {
 
 
 
-// NEW: Function to set up real-time listener for chat messages
-function setupChatRealtimeListener() {
+/function setupChatRealtimeListener() {
     if (!chatMessagesCollection) {
         console.error("Firebase chatMessagesCollection is not defined.");
         return;
@@ -842,30 +880,51 @@ function setupChatRealtimeListener() {
         unsubscribeFromChat();
         console.log("Unsubscribed from previous chat listener.");
     }
-
-    // Set up the real-time listener, ordered by timestamp
+	
+    // Set up the real-time listener, ordered by timestamp descending (newest first from Firestore)
     unsubscribeFromChat = chatMessagesCollection
-        .orderBy('timestamp', 'asc') // Order messages by timestamp
-        .limit(100) // Limit to the last 100 messages for performance
+        .orderBy('timestamp', 'desc') // Fetch newest messages first from Firestore
+        .limit(100) // Limit to the last 100 messages
         .onSnapshot(snapshot => {
             // Clear the chat display area to re-render all messages
             if (chatDisplayArea) {
                 chatDisplayArea.innerHTML = '';
             }
 
+            const messagesToDisplay = []; // Array to hold messages before displaying
+
             if (snapshot.empty) {
                 if (chatDisplayArea) {
                     chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
                 }
                 console.log("No messages in chat collection.");
+                toggleScrollIndicatorVisibility(); // Update indicator visibility
                 return;
             }
 
+            // Iterate through snapshot and push data to array
             snapshot.forEach(doc => {
-                const message = doc.data();
-                displayChatMessage(message); // Use the existing function to display each message
+                messagesToDisplay.push(doc.data());
             });
+            
+            // Reverse the array to display oldest messages first, so newest ones are appended last (at the bottom)
+            messagesToDisplay.reverse();
+
+            // Display messages from the (now reversed) array
+            messagesToDisplay.forEach(message => {
+                displayChatMessage(message);
+            });
+            
             console.log("Chat messages updated in real-time.");
+            
+            // Ensure the chat automatically scrolls to the bottom after loading/updating
+            if (chatDisplayArea) {
+                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+            }
+
+            // Update scroll indicator visibility after messages are loaded and scrolled
+            toggleScrollIndicatorVisibility();
+
         }, error => {
             console.error("Error listening to chat messages:", error);
             if (chatDisplayArea) {
@@ -873,8 +932,13 @@ function setupChatRealtimeListener() {
             }
         });
     console.log("Chat real-time listener set up.");
+    
+    // Ensure the scroll listener is attached only once
+    if (chatDisplayArea) {
+        chatDisplayArea.removeEventListener('scroll', handleChatScroll); // Prevent multiple listeners
+        chatDisplayArea.addEventListener('scroll', handleChatScroll);
+    }
 }
-
 function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     // Get all the HTML elements from the new score box by their ID
     const yourNameEl = document.getElementById('rw-faction-one-name');
@@ -3906,7 +3970,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setupChatRealtimeListener();
 				
 
-                updateUserEnergyDisplay();
+               
                 updateOnlineMemberCounts();
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
@@ -3914,7 +3978,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-                    setupMemberClickEvents();
+   
 
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
