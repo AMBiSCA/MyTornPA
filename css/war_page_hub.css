@@ -2929,12 +2929,14 @@ autocomplete-items {
 /* --- New Chain Timers Display --- */
 
 /* This is the main container that holds the two boxes. It uses flexbox to place them side-by-side. */
+/* --- New Chain Timers Display --- */
+
+/* This is the main container that holds the two boxes. 
+   It uses flexbox to place them side-by-side. */
 .ops-chain-timers-container {
     display: flex;
     gap: 10px; /* This creates space between the two boxes */
-    width: 100%;
     justify-content: flex-start; /* Aligns the boxes to the start (left) */
-    align-items: center;
 }
 
 /* This is the styling for each individual box (Your Chain and Enemy Chain) */
@@ -2942,9 +2944,10 @@ autocomplete-items {
     background-color: #2a2a2a;
     border: 1px solid #444;
     border-radius: 6px;
-    padding: 5px 10px;
+    padding: 8px 12px;
     text-align: center;
-    flex-shrink: 0; /* Prevents the boxes from shrinking */
+    flex-shrink: 0;
+    min-width: 140px; /* Give the boxes a consistent minimum width */
 }
 
 /* The label at the top of each box (e.g., "Your Chain") */
@@ -2952,8 +2955,10 @@ autocomplete-items {
     font-size: 0.8em;
     font-weight: bold;
     color: #e0a71a; /* Gold color */
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     text-transform: uppercase;
+    border-bottom: 1px solid #444;
+    padding-bottom: 4px;
 }
 
 /* The container for the data (hits and time) */
@@ -2962,11 +2967,12 @@ autocomplete-items {
     justify-content: center;
     align-items: baseline; /* Aligns the text along the bottom */
     gap: 10px;
+    margin-top: 5px;
 }
 
 /* The number of chain hits */
 .chain-timer-hits {
-    font-size: 1.8em;
+    font-size: 2em;
     font-weight: bold;
     color: #f0f0f0;
 }
@@ -2974,7 +2980,7 @@ autocomplete-items {
 /* The countdown timer text */
 .chain-timer-time {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 1.1em;
+    font-size: 1.2em;
     font-weight: bold;
     color: #aaa;
 }
