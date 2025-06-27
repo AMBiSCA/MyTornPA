@@ -457,7 +457,7 @@ function updateUserEnergyDisplay() {
     // This function now directly uses the global userApiKey
     if (!userApiKey) {
         console.warn("User API key not available for energy display.");
-        const userEnergyDisplayElement = document.getElementById('userEnergyDisplay');
+ const userEnergyDisplayElement = document.getElementById('rw-user-energy');
         if (userEnergyDisplayElement) {
             userEnergyDisplayElement.textContent = 'Key Missing';
         }
@@ -467,7 +467,7 @@ function updateUserEnergyDisplay() {
     const API_KEY = userApiKey; // Use the globally available API key
 
     // Get the HTML element where energy will be displayed
-    const userEnergyDisplayElement = document.getElementById('userEnergyDisplay');
+  const userEnergyDisplayElement = document.getElementById('rw-user-energy');
 
     if (!userEnergyDisplayElement) {
         console.warn("User energy display element with ID 'userEnergyDisplay' not found.");
