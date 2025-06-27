@@ -7,8 +7,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script> <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script> <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/war_page_hub.css">
@@ -159,7 +158,7 @@
                         </div>
                         <span id="warStartedTime" class="score-started-time">N/A</span>
                     </div>
-                    </div>
+                </div>
 
                 <div id="active-ops-tab" class="tab-pane">
                     <div class="ops-controls-grid">
@@ -234,13 +233,16 @@
                                     <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
                                     <button class="chat-tab" data-chat-tab="settings">Settings</button>
                                 </div>
+                                <div id="scrollUpIndicator" class="scroll-indicator">
+                                    <span class="icon">⬆️</span> Scroll Up for More Messages <span class="icon">⬆️</span>
+                                </div>
                                 <div class="chat-messages-scroll-wrapper">
                                     <div id="chat-display-area" class="chat-display-area">
                                     </div>
                                 </div>
                                 <div class="chat-input-area">
                                     <div class="chat-input-buttons-top">
-                                        <button class="chat-action-btn siren-btn">⚠️</button>
+                                        <span class="quick-action-label">Quick Action:</span> <button class="chat-action-btn siren-btn">⚠️</button>
                                         <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
                                         <button class="chat-action-btn aid-button">🚨</button>
                                         <button class="chat-action-btn flight-button">✈️</button>
