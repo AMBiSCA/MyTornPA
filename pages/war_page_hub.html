@@ -83,6 +83,19 @@
 
             <div class="tab-content-container">
                 <div id="announcements-tab" class="tab-pane active">
+                    <div class="ops-control-item ops-chain-score">
+                        <div class="score-faction-name" id="yourFactionNameScoreLabel">The SixthSense</div>
+                        <div class="score-faction-name" id="opponentFactionNameScoreLabel">Vs Waja Warriors</div>
+                        <div class="chain-score-display">
+                            <span class="score-value current-score" id="yourFactionRankedScore">N/A</span>
+                            <span class="score-target-info">
+                                <span class="score-label">LEAD TARGET</span>
+                                <span class="score-progress" id="warTargetScore">N/A</span>
+                            </span>
+                            <span class="score-value target-score" id="opponentFactionRankedScore">N/A</span>
+                        </div>
+                        <span id="warStartedTime" class="score-started-time">N/A</span>
+                    </div>
                     <div class="announcements-grid-container">
 
                         <div class="announcement-section-item">
@@ -229,13 +242,13 @@
                         <div class="active-ops-chat-panel">
                             <div id="warChatBox" class="chat-container">
                                 <div class="chat-tabs-container">
-                                   <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
-                                   <button class="chat-tab" data-chat-tab="war-chat">War Chat</button>
-                                   <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
-                                   <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
-                                   <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
-                                   <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
-                                   <button class="chat-tab" data-chat-tab="settings">Settings</button>
+                                    <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
+                                    <button class="chat-tab" data-chat-tab="war-chat">War Chat</button>
+                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
+                                    <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
+                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
+                                    <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
+                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
                                 </div>
                                 <div class="chat-messages-scroll-wrapper">
                                     <div id="chat-display-area" class="chat-display-area">
