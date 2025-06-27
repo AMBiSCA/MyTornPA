@@ -419,5 +419,31 @@
             </div>
         </div>
     </div>
+	<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiUrl = 'https://api.torn.com/v2/user/personalstats?cat=popular&key=gCNmxrHxlOYeNiS7';
+        const energyDisplayElement = document.getElementById('rw-user-energy');
+
+        if (energyDisplayElement) {
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const energy = data.personalstats.items.used.energy;
+                    energyDisplayElement.textContent = energy;
+                })
+                .catch(error => {
+                    console.error('Error fetching energy data:', error);
+                    energyDisplayElement.textContent = 'Error';
+                });
+        } else {
+            console.warn('Element with ID "rw-user-energy" not found. Cannot display energy level.');
+        }
+    });
+</script>
 </body>
 </html>
