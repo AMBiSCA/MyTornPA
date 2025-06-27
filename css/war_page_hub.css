@@ -1494,7 +1494,7 @@ autocomplete-items {
 /* Styles for the chatbox to make it a fixed-position overlay */
 .active-ops-chat-panel {
     position: fixed; /* This takes the element out of the normal document flow */
-    top: 320px; /* Adjust this value to set the distance from the top of the browser window */
+    top: 350px; /* Adjust this value to set the distance from the top of the browser window */
     right: 90px; /* Adjust this value to set the distance from the right of the browser window */
     width:855px; /* Set a fixed width for your chatbox */
     height: 477px; /* Set a fixed height for your chatbox */
