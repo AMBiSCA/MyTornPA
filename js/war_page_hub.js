@@ -3603,17 +3603,28 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
     loadWarStatusForEdit(warData);     // Uses warData (Firebase)
 
     // Store enemy faction ID globally (from Firebase warData)
-    globalEnemyFactionID = warData.enemyFactionID || null;
+   // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
+    let determinedEnemyFactionID = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
+        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
+        if (opponentFactionInfo) {
+            determinedEnemyFactionID = opponentFactionInfo.id;
+            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
+        }
+    }
+    // Fallback to manually saved enemy ID if no active ranked war opponent detected
+    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
 
-    // Display enemy targets table (still needs enemyData via separate fetch)
-    if (warData.enemyFactionID) {
-        fetchAndDisplayEnemyFaction(warData.enemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []);
-        displayEnemyTargetsTable(null); // This clears the table
-    }
+    // Display enemy targets table using the determined ID
+    if (globalEnemyFactionID) {
+        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+        displayEnemyTargetsTable(null); // Clear the enemy targets table
+    }
 }
 //       Also prevents showing the same target pair more than two times in a row.
 async function displayQuickFFTargets(userApiKey, playerId) {
