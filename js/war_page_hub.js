@@ -192,13 +192,15 @@ function generateDummyIgnores(count) {
 }
 
 function toggleScrollIndicatorVisibility() {
-    if (!scrollUpIndicatorEl) {
-        scrollUpIndicatorEl = document.getElementById('scrollUpIndicator');
-        if (!scrollUpIndicatorEl) {
-            console.warn("Scroll Up Indicator element not found. Cannot manage visibility.");
-            return;
-        }
-        // Add click listener to scroll to top
+    // Ensure scrollUpIndicatorEl is obtained only when needed and exists
+    const currentScrollIndicatorEl = document.getElementById('scrollUpIndicator');
+    if (!currentScrollIndicatorEl) {
+        // console.warn("Scroll Up Indicator element not found. Cannot manage visibility."); // Suppress constant warnings if element truly absent
+        return;
+    }
+    // Assign to global variable only once to attach event listener
+    if (!scrollUpIndicatorEl) { // Only attach listener once
+        scrollUpIndicatorEl = currentScrollIndicatorEl; // Assign the element to the global variable
         scrollUpIndicatorEl.addEventListener('click', () => {
             if (chatDisplayArea) {
                 chatDisplayArea.scrollTop = 0; // Scroll to the very top
@@ -210,17 +212,13 @@ function toggleScrollIndicatorVisibility() {
         return;
     }
 
-    // Check if content overflows and if the user is not at the very top
-    // clientHeight is the visible height of the element
-    // scrollHeight is the total height of the content
-    // scrollTop is how far from the top the user has scrolled
-    const atTop = chatDisplayArea.scrollTop <= 5; // A small buffer to account for rounding or slight offsets
+    const atTop = chatDisplayArea.scrollTop <= 5;
     const hasOverflow = chatDisplayArea.scrollHeight > chatDisplayArea.clientHeight;
 
     if (hasOverflow && !atTop) {
-        scrollUpIndicatorEl.classList.add('visible');
+        currentScrollIndicatorEl.classList.add('visible');
     } else {
-        scrollUpIndicatorEl.classList.remove('visible');
+        currentScrollIndicatorEl.classList.remove('visible');
     }
 }
 

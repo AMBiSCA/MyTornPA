@@ -3070,3 +3070,18 @@ autocomplete-items {
     color: white; /* White text on hover */
 }
 
+/* Styling for the "Quick Action:" label and its associated button */
+.quick-action-group {
+    display: flex; /* Use flexbox to align the text and button horizontally */
+    align-items: center; /* Vertically align them in the middle */
+    gap: 5px; /* Space between the text and the button */
+    margin-right: 15px; /* Add some space to the right of this group */
+    white-space: nowrap; /* Prevent the label from wrapping */
+}
+
+.quick-action-label {
+    color: #e0a71a; /* Gold/yellow color for the text, matching your theme */
+    font-weight: bold;
+    font-size: 0.9em; /* Adjust font size as needed */
+}
+
