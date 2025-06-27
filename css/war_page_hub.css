@@ -2984,3 +2984,21 @@ autocomplete-items {
     font-weight: bold;
     color: #aaa;
 }
+.chain-score-header-names {
+    display: flex; /* Make the names display side-by-side */
+    justify-content: center; /* Center the names horizontally within their wrapper */
+    align-items: center; /* Vertically align the names */
+    gap: 8px; /* Space between the two faction names (adjust as needed) */
+    white-space: nowrap; /* Keep the names on a single line */
+    font-size: 1.2em; /* Adjust font size for the names as desired */
+    color: #f0f0f0; /* Light text color for the names */
+    font-weight: bold;
+}
+
+/* Ensure individual faction name spans are inline within the flex container */
+.score-faction-name {
+    /* MODIFIED: Ensure it behaves inline within the new flex container */
+    display: inline-block; /* Or you can use 'inline-flex' if needed */
+    width: auto; /* Allow width to shrink to content */
+    text-align: center; /* Ensure text itself is centered if it wraps within its auto width */
+}
