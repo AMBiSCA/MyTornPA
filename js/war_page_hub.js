@@ -568,10 +568,9 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
     }
 }
  function updateAllTimers() {
-    console.count('updateAllTimers called');
     const nowInSeconds = Math.floor(Date.now() / 1000);
 
-    // 1. Update Main Chain Timer (if nextChainTimeInput is a valid future timestamp - from Leader Config)
+    // Part 1: Updates the "Next Planned Chain Time" from the Leader Config tab
     if (warNextChainTimeStatus && nextChainTimeInput) {
         const nextChainTimeValue = nextChainTimeInput.value.trim();
         const targetChainTime = parseInt(nextChainTimeValue, 10);
@@ -588,156 +587,50 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
         }
     }
 
-    // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
+    // Part 2: Updates the timers in the enemy targets table (e.g. hospital/travel)
     if (enemyTargetsContainer) {
         const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
         statusCells.forEach(cell => {
             const targetTime = parseInt(cell.dataset.until, 10);
-            const statusState = cell.dataset.statusState; // Original status state (e.g., 'Hospital', 'Traveling')
-            const originalDescription = cell.textContent.split('(')[0].trim(); // Get original text without timer
-
-            // First, remove all existing status classes to avoid conflicts
-            cell.classList.remove('status-hospital', 'status-traveling', 'status-other', 'status-okay');
-
-            let newStatusText = originalDescription;
-            let newStatusClass = '';
-
             if (!isNaN(targetTime) && targetTime > 0) {
                 const timeLeft = targetTime - nowInSeconds;
-
+                const originalDescription = cell.textContent.split('(')[0].trim();
+                
                 if (timeLeft > 0) {
-                    if (statusState === 'Hospital') {
-                        newStatusText = `In Hospital (${formatTime(timeLeft)})`;
-                        newStatusClass = 'status-hospital';
-                    } else if (statusState === 'Traveling') {
-                        if (originalDescription === 'Returning') {
-                            newStatusText = `Returning Home (${formatTime(timeLeft)})`;
-                        } else {
-                            newStatusText = `${originalDescription} (${formatTime(timeLeft)})`;
-                        }
-                        newStatusClass = 'status-traveling';
-                    } else {
-                        // For other timed statuses (e.g., Jail with a timer), keep original description and specific class
-                        newStatusText = `${originalDescription} (${formatTime(timeLeft)})`;
-                        newStatusClass = 'status-other'; // Or more specific like status-jail if you have it
-                    }
-                } else { // Timer has run out
-                    newStatusText = `Okay`; // Default to Okay when timer is up
-                    newStatusClass = 'status-okay'; // Apply okay status class
-                    cell.dataset.until = ''; // Clear data-until to prevent re-processing
-                    cell.dataset.statusState = 'Okay'; // Update state in dataset
-                }
-            } else {
-                // If data-until is not a number or is 0 (meaning no timer or timer has expired and cleared)
-                // This branch handles statuses like "Okay" (which often have no timer) or fully expired ones.
-                newStatusText = statusState; // Use the stored statusState from dataset as the base
-                if (statusState === 'Hospital') {
-                    newStatusText = 'Okay'; // If it was hospital originally and no timer, it's now okay
-                    newStatusClass = 'status-okay';
-                } else if (statusState === 'Traveling') {
-                    newStatusText = originalDescription.replace('Traveling to ', '').replace('Traveling ', 'In '); // Show "In Destination"
-                    newStatusClass = 'status-traveling'; // Keep traveling class for "In X" status if desired
-                } else if (statusState === 'Okay') {
-                    newStatusText = 'Okay';
-                    newStatusClass = 'status-okay';
+                    cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
                 } else {
-                    newStatusText = `${statusState}`; // For other non-timed statuses (e.g., Jail, Federal, Offline)
-                    newStatusClass = 'status-other';
-                    // You might need more specific classes here if you have them (e.g., status-jail, status-offline)
+                    cell.textContent = 'Okay';
+                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
+                    cell.classList.add('status-okay');
+                    cell.removeAttribute('data-until');
                 }
-            }
-
-            cell.textContent = newStatusText;
-            if (newStatusClass) {
-                cell.classList.add(newStatusClass); // Add the determined new class
             }
         });
     }
-	
-	const rankedWarTimerEl = document.getElementById('rw-war-timer');
-    if (rankedWarTimerEl && globalWarStartedActualTime > 0) {
-        // Calculate the time elapsed since the war started
-        const timeElapsed = nowInSeconds - globalWarStartedActualTime;
-        // Update the element using our new formatDuration function
-        rankedWarTimerEl.textContent = formatDuration(timeElapsed);
-    } else if (rankedWarTimerEl) {
-        // If no war is active, show a default state
-        rankedWarTimerEl.textContent = '0:00:00:00';
-    }
-}
 
-    // Update Chain Timer Display (smooth 1-second countdown)
-    if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
-        const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
-        const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
-        chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
-    } else if (chainTimerDisplay) {
-        chainTimerDisplay.textContent = 'Chain Over';
-    }
-
-    // Update Chain Started Time Display
-    if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
-        chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-    } else if (chainStartedDisplay) {
-        chainStartedDisplay.textContent = 'Started: N/A';
-    }
-
-    // Update War Started Time Display (smooth 1-second relative countdown)
-    if (warStartedTime && globalWarStartedActualTime > 0) {
-        warStartedTime.textContent = formatRelativeTime(globalWarStartedActualTime);
-    } else if (warStartedTime) {
-        warStartedTime.textContent = 'N/A';
-    }
-
-
- // 2. Update Enemy Target Timers (Hospital and Traveling) - Local countdowns only
- if (enemyTargetsContainer) {
-    const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
-
-    statusCells.forEach(cell => {
-        const targetTime = parseInt(cell.dataset.until, 10);
-        const statusState = cell.dataset.statusState;
-        const originalDescription = cell.textContent.split('(')[0].trim();
-
-        if (!isNaN(targetTime) && targetTime > 0) {
-            const timeLeft = targetTime - nowInSeconds;
-
-            if (timeLeft > 0) {
-                if (statusState === 'Hospital') {
-                    cell.textContent = `In Hospital (${formatTime(timeLeft)})`;
-                } else if (statusState === 'Traveling') {
-                    if (originalDescription === 'Returning') {
-                        cell.textContent = `Returning Home (${formatTime(timeLeft)})`;
-                    } else {
-                        cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
-                    }
-                }
-            } else {
-                if (statusState === 'Hospital') {
-                    cell.textContent = `Okay`;
-                    cell.classList.remove('status-hospital', 'status-other', 'status-okay');
-                } else if (statusState === 'Traveling') {
-                    if (originalDescription === 'Returning') {
-                        // CORRECTED: Set text to Okay and remove classes to revert to default (white) style.
-                        cell.textContent = `Okay`;
-                        cell.classList.remove('status-traveling', 'status-other', 'status-okay');
-                    } else {
-                        // Update text to "In [Destination]" and keep the orange style for arrived users.
-                        const destination = originalDescription.replace('Traveling to ', '').replace('Traveling ', '');
-                        cell.textContent = `In ${destination}`;
-                        // The class list is intentionally not changed here to keep the orange 'traveling' style.
-                    }
-                } else {
-                    cell.textContent = `${statusState} (Time Up)`;
-                    cell.classList.remove('status-hospital', 'status-traveling', 'status-other');
-                    cell.classList.add('status-okay');
-                }
-            }
+    // Part 3: Updates "Your Chain" timer smoothly
+    const friendlyTimeEl = document.getElementById('friendly-chain-time');
+    if (friendlyTimeEl) {
+        if (currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+            const elapsedTime = (Date.now() - lastChainApiFetchTime) / 1000;
+            const timeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTime));
+            friendlyTimeEl.textContent = formatTime(timeLeft);
+        } else {
+            friendlyTimeEl.textContent = 'Over';
         }
-    });
-}
+    }
 
+    // Part 4: Updates the Ranked War elapsed timer
+    const rankedWarTimerEl = document.getElementById('rw-war-timer');
+    if (rankedWarTimerEl) {
+        if (globalWarStartedActualTime > 0) {
+            const timeElapsed = nowInSeconds - globalWarStartedActualTime;
+            rankedWarTimerEl.textContent = formatDuration(timeElapsed);
+        } else {
+            rankedWarTimerEl.textContent = '0:00:00:00';
+        }
+    }
+}
  // Update Chain Timer Display (smooth 1-second countdown)
  console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime);
  if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
@@ -4003,6 +3896,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
                     }, 2000); // Enemy data refresh (every 2 seconds)
+					
+					 setInterval(() => {
+                    if(userApiKey && factionApiFullData) {
+                        updateDualChainTimers(userApiKey, factionApiFullData.ID, globalEnemyFactionID);
+                    }
+                }, 15000); // Refresh every 15 seconds
+
 
                     setInterval(() => {
                         if (userApiKey) {
