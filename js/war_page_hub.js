@@ -3740,7 +3740,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-ddocument.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
