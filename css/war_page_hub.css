@@ -3085,3 +3085,73 @@ autocomplete-items {
     font-size: 0.9em; /* Adjust font size as needed */
 }
 
+/* Styles for Quick Actions within the Member Details Panel */
+.quick-actions-member-detail {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap to next line if space is limited */
+    justify-content: center; /* Center actions horizontally */
+    align-items: center;
+    gap: 10px; /* Space between the label and buttons, and between buttons */
+    margin-top: 15px; /* Space above this section */
+    padding-top: 15px; /* Internal padding */
+    border-top: 1px solid #444; /* Separator above this section */
+}
+
+.quick-action-label-detail {
+    color: #e0a71a; /* Gold color for the label */
+    font-weight: bold;
+    font-size: 0.9em;
+    flex-basis: 100%; /* Make the label take full width on its own line */
+    text-align: center;
+    margin-bottom: 5px; /* Space below the label */
+}
+
+/* Reusing existing .action-button styles for consistency,
+   but defining new colors if needed for this context */
+.quick-actions-member-detail .action-button {
+    /* Inherits general action-button styles (padding, border-radius, etc.) */
+    font-size: 0.8em; /* Slightly smaller font for action buttons in this panel */
+    padding: 6px 12px; /* Adjusted padding */
+}
+
+/* Specific colors for action buttons within the member detail panel */
+.quick-actions-member-detail .action-button-red {
+    background-color: #e53935; /* Red */
+    color: white; /* White text for contrast */
+}
+
+.quick-actions-member-detail .action-button-red:hover {
+    background-color: #c62828;
+}
+
+.quick-actions-member-detail .action-button-yellow {
+    background-color: #ffc107; /* Yellow/Orange */
+    color: black; /* Dark text for contrast */
+}
+
+.quick-actions-member-detail .action-button-yellow:hover {
+    background-color: #ffb300;
+}
+
+/* Remove default styles for .quick-action-group and .quick-action-label if they were placed in the wrong spot before */
+/* If you previously added .quick-action-group and .quick-action-label for the chat-input-buttons-top,
+   it's best to remove or adjust those specific rules if they now conflict with this new usage.
+   This CSS assumes you'll manage those two specific quick-action-groups separately if both are desired. */
+
+/* Here's the specific quick-action-group for the chat input top bar if you want both.
+   Ensure this is also in your CSS if you want it there: */
+/*
+.chat-input-buttons-top .quick-action-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-right: 15px;
+    white-space: nowrap;
+}
+
+.chat-input-buttons-top .quick-action-label {
+    color: #00a8ff; 
+    font-weight: bold;
+    font-size: 0.9em;
+}
+*/
