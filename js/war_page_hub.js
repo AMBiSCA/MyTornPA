@@ -3972,23 +3972,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
 
                 // Initial calls for all dynamic ops panel displays
-              
-                await updateOnlineMemberCounts(); // NEW: Initial call for online counts
-
-                   fetchAndDisplayChainData();
-                    displayQuickFFTargets(userApiKey, playerId);
-                    setupChatRealtimeListener();
-				
-
-               
+                // These functions run immediately upon successful authentication and API key availability.
+                updateUserEnergyDisplay();
                 updateOnlineMemberCounts();
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
 
+                // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-   
+                    setupMemberClickEvents(); // <--- **THIS LINE IS NOW CORRECTLY PLACED**
 
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
@@ -3999,22 +3993,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         handleChatTabClick({ currentTarget: initialActiveChatTab });
                     }
 
-                    listenersInitialized = true;
+                    listenersInitialized = true; // Set this flag to true after setup
 
-                    setInterval(updateAllTimers, 1000);
+                    // Recurring intervals (these will run periodically after initial setup)
+                    setInterval(updateAllTimers, 1000); // Every 1 second
+                    
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
                         } else {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1500);
+                    }, 1500); // Every 1.5 seconds
 					
                     setInterval(() => {
                         if(userApiKey && globalYourFactionID) {
                             updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
                         }
-                    }, 2000);
+                    }, 2000); // Every 2 seconds
 
                     setInterval(() => {
                         if (userApiKey && globalYourFactionID) {
@@ -4022,7 +4018,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key or faction ID not available for periodic comprehensive faction data refresh.");
                         }
-                    }, 300000);
+                    }, 300000); // Every 5 minutes
 
                     setInterval(() => {
                         if (userApiKey) {
@@ -4031,9 +4027,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             console.warn("API key not available for periodic user energy/online member refresh.");
                         }
-                    }, 60000);
+                    }, 60000); // Every 1 minute
 
-                }
+                } // End of if (!listenersInitialized)
             } else {
                 console.warn("API key or Player ID not found.");
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
