@@ -191,6 +191,40 @@ function generateDummyIgnores(count) {
     return dummyIgnores;
 }
 
+function handleImageUpload(fileInput, displayElement) {
+    // Get the first file that the user selected
+    const file = fileInput.files[0];
+
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+
+        // This function runs after the file has been read
+        reader.onload = function(e) {
+            // Clear any old content (like "Loading game plan...")
+            displayElement.innerHTML = ''; 
+            
+            // Create a new image element
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            
+            // Add some styles to make sure the image fits nicely
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '300px'; // You can adjust this value
+            img.style.borderRadius = '8px';
+            
+            // Add the new image to the display box
+            displayElement.appendChild(img);
+        };
+
+        // This reads the image file from the user's computer
+        reader.readAsDataURL(file);
+    } else if (file) {
+        // This runs if the selected file is not an image
+        alert("Please select a valid image file (png, jpg, gif).");
+    }
+}
+
+
 function toggleScrollIndicatorVisibility() {
     // Ensure scrollUpIndicatorEl is obtained only when needed and exists
     const currentScrollIndicatorEl = document.getElementById('scrollUpIndicator');
@@ -2888,57 +2922,54 @@ function setupEventListeners(apiKey) {
     if (chatDisplay) {
         chatDisplay.addEventListener('click', function(event) {
             const addButton = event.target.closest('.add-member-button');
+            if (!addButton) return;
 
-            if (!addButton) {
-                return;
-            }
-
-            // --- THIS IS THE FINAL, UPDATED LOGIC ---
-
-            // Disable the button to prevent multiple clicks while saving
             addButton.disabled = true;
-
             const friendIdToAdd = addButton.dataset.memberId;
             const currentUser = auth.currentUser;
-
-            // First, make sure a user is actually logged in
             if (!currentUser) {
                 console.error("Error: You must be logged in to add a friend.");
                 alert("You are not logged in. Please refresh the page.");
-                addButton.disabled = false; // Re-enable the button if there's an error
+                addButton.disabled = false;
                 return;
             }
-
             const currentUserId = currentUser.uid;
-
-            // This creates a reference to where the friend will be saved in your database
             const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
-
-            // Now, we save the friend's ID to the database
             friendDocRef.set({
                 addedAt: firebase.firestore.FieldValue.serverTimestamp()
             })
             .then(() => {
-                // This part runs ONLY if the save to the database is successful
                 console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
-                
-                // Now we do the visual change to the green tick
                 addButton.classList.add('success');
                 addButton.innerHTML = '✓';
-
-                // And set the timer to make it disappear
                 setTimeout(() => {
                     addButton.style.display = 'none';
                 }, 1500);
-
             })
             .catch((error) => {
-                // This part runs if there was an error saving
                 console.error("Error adding friend to database: ", error);
                 alert("There was an error adding the friend. Please check the console for errors.");
-                addButton.disabled = false; // Re-enable the button so you can try again
+                addButton.disabled = false;
             });
-            // --- END OF FINAL LOGIC ---
+        });
+    }
+    
+    // --- Event Listeners for Image Upload Buttons ---
+    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
+    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
+
+    if (gamePlanUploadInput && gamePlanDisplayDiv) {
+        gamePlanUploadInput.addEventListener('change', () => {
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv);
+        });
+    }
+
+    const announcementUploadInput = document.getElementById('announcementImageUpload');
+    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
+    
+    if (announcementUploadInput && announcementDisplayDiv) {
+        announcementUploadInput.addEventListener('change', () => {
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv);
         });
     }
 }

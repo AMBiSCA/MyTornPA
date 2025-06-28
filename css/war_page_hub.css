@@ -3085,7 +3085,7 @@ autocomplete-items {
     font-size: 0.9em; /* Adjust font size as needed */
 }
 
-/* New: Layout for Battle Stats, Work Stats, and Cooldowns to put them in one row */
+/* New: Layo for Battle Stats, Work Stats, and Cooldowns to put them in one row */
 .member-details-stats-layout {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Attempt 3 columns, then wrap as needed */
