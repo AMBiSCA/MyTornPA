@@ -3105,7 +3105,7 @@ autocomplete-items {
     font-size: 0.85em; /* Slightly smaller font for values to help fit */
 }
 
-/* Also ensure this style for the main section container is active */
+/* Also ensure thi style for the main section container is active */
 .member-stats-group-row { /* This old class should now just define basic flex properties if needed elsewhere */
     display: flex; /* Keep as flex if other elements use it for basic row behavior */
     justify-content: center;
