@@ -7,9 +7,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script> 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script> <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/war_page_hub.css">
@@ -227,22 +225,27 @@
                         <div class="active-ops-chat-panel">
                             <div id="warChatBox" class="chat-container">
                                 <div class="chat-tabs-container">
-                                   <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
-                                   <button class="chat-tab" data-chat-tab="war-chat">War Chat</button>
-                                   <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
-                                   <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
-                                   <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
-                                   <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
-                                   <button class="chat-tab" data-chat-tab="settings">Settings</button>
+                                    <button class="chat-tab active" data-chat-tab="faction-chat">Faction Chat</button>
+                                    <button class="chat-tab" data-chat-tab="war-chat">War Chat</button>
+                                    <button class="chat-tab" data-chat-tab="private-chat">Private Chat</button>
+                                    <button class="chat-tab" data-chat-tab="faction-members">Faction Members</button>
+                                    <button class="chat-tab" data-chat-tab="recently-met">Recently Met</button>
+                                    <button class="chat-tab" data-chat-tab="blocked-people">Blocked People</button>
+                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
+                                </div>
+                                <div id="scrollUpIndicator" class="scroll-indicator">
+                                    <span class="icon">⬆️</span> Scroll Up for More Messages <span class="icon">⬆️</span>
                                 </div>
                                 <div class="chat-messages-scroll-wrapper">
                                     <div id="chat-display-area" class="chat-display-area">
                                     </div>
                                 </div>
                                 <div class="chat-input-area">
-                                    <div class="quick-links-label">Your Quick Links:</div>
                                     <div class="chat-input-buttons-top">
-                                        <button class="chat-action-btn siren-btn">⚠️</button>
+                                       <span class="quick-action-group">
+                                            <span class="quick-action-label">Quick Action:</span> 
+                                            <button class="chat-action-btn siren-btn">⚠️</button>
+                                        </span>
                                         <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
                                         <button class="chat-action-btn aid-button">🚨</button>
                                         <button class="chat-action-btn flight-button">✈️</button>
@@ -320,11 +323,8 @@
                         <div class="config-section">
                             <h4>Edit Game Plan:</h4>
                             <textarea id="gamePlanEditArea"></textarea>
-                            <div class="config-actions">
-                                <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
-                                <label for="gamePlanImageUpload" class="action-btn upload-btn">Upload Image 🖼️</label>
-                                <input type="file" id="gamePlanImageUpload" accept="image/*" style="display: none;">
-                            </div>
+                            <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
+                            <button id="uploadPlanButton" class="action-btn">Upload Plan (Image/GIF)</button>
                         </div>
                         <div class="config-section">
                             <h4>War Status Controls:</h4>
@@ -371,11 +371,7 @@
                         <div class="config-section">
                             <h4>Faction Announcements:</h4>
                             <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
-                            <div class="config-actions">
-                                <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
-                                <label for="announcementImageUpload" class="action-btn upload-btn">Upload Image 🖼️</label>
-                                <input type="file" id="announcementImageUpload" accept="image/*" style="display: none;">
-                            </div>
+                            <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
                         </div>
                         <div class="config-section">
                             <h4>Designated Tab 4 Admins:</h4>
