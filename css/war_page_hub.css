@@ -3133,3 +3133,17 @@ autocomplete-items {
 .config-section .member-checkbox-list {
     flex-grow: 1;
 }
+/* --- TEMPORARY DEBUGGING BORDERS --- */
+.config-section {
+    border: 2px solid red !important;
+}
+
+.config-section .member-checkbox-list {
+    border: 2px solid lime !important;
+}
+
+#saveAdminSelectionsBtn,
+#saveWatchlistSelectionsBtn,
+#saveEnergyTrackMembersBtn {
+    outline: 2px solid cyan !important;
+}
