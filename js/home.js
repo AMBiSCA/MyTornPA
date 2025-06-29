@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
     personalStatsModal.classList.add('visible');
 
     // Selections to fetch all dashboard quick stats and personal stats
-    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns"; 
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
     console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
