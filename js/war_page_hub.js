@@ -2562,8 +2562,8 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
     personalStatsModal.classList.add('visible');
 
-    // Selections to fetch all dashboard quick stats and personal stats
-    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns"; 
+    // CORRECTED LINE: Added 'bars' to selections
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
     console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
@@ -2588,7 +2588,6 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         const data = await response.json();
         console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
 
-
         if (!response.ok) {
             const errorData = data || { message: "Failed to parse API error response." };
             console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
@@ -2597,24 +2596,34 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         }
         if (data.error) {
             console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+            if (data.error.code === 2 || data.error.code === 10) {
+                // Specific message for API key issues
+                throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
+            } else {
+                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+            }
+        }
+
+        if (!data || Object.keys(data).length === 0) {
+            throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
         // --- Call Netlify Function for Secure Firebase Storage ---
-        const userId = data.player_id; 
+        const userId = data.player_id;
         if (userId) {
             const userDataToSave = {
                 name: data.name,
                 level: data.level,
-                // NEW: Added faction_id to save to Firebase 'users' collection
-                faction_id: data.faction?.faction_id || null, // Get faction ID from Torn API 'profile' selection
-                faction_name: data.faction?.faction_name || null, // Also save faction name
+                faction_id: data.faction?.faction_id || null,
+                faction_name: data.faction?.faction_name || null,
+
+                // Quick Stats from 'bars' selection and status object
+                // These lines remain as previously corrected to extract current values
+                nerve: data.nerve?.current || 0,
+                energy: data.energy?.current || 0,
+                happy: data.happy?.current || 0,
+                life: data.life?.current || 0,
                 
-                // Quick Stats from 'basic' selection and status object
-                nerve: data.nerve || 0,
-                energy: data.energy || 0,
-                happy: data.happy || 0,
-                life: data.life || 0,
                 traveling: data.status?.state === 'Traveling' || false,
                 hospitalized: data.status?.state === 'Hospital' || false,
                 // Cooldowns from 'cooldowns' selection
@@ -2629,7 +2638,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     strength: data.strength || data.battlestats?.strength || 0,
                     defense: data.defense || data.battlestats?.defense || 0,
                     speed: data.speed || data.battlestats?.speed || 0,
-                    dexterity: data.dexterity || data.battlestats?.dexterity || 0, 
+                    dexterity: data.dexterity || data.battlestats?.dexterity || 0,
                     total: data.total || data.battlestats?.total || 0,
                     strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
                     defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
@@ -2682,7 +2691,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         let xanaxDisplay = 'N/A';
         if (data.personalstats && data.personalstats.xantaken !== undefined) {
-            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? xanaxDisplay.toLocaleString() : xanaxDisplay;
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : xanaxDisplay;
         }
         htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
 
