@@ -2,7 +2,6 @@
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK if not already initialized
-// This needs to be outside the handler for better performance (warm starts)
 if (!admin.apps.length) {
     try {
         const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
@@ -38,8 +37,8 @@ exports.handler = async (event, context) => {
     }
 
     // --- Security Check: Validate the secret header ---
-    const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET; // Ensure this env var is set
-    const incomingSecret = event.headers['x-worker-secret']; // Netlify converts header names to lowercase
+    const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET;
+    const incomingSecret = event.headers['x-worker-secret'];
 
     if (!WORKER_FUNCTION_SECRET || incomingSecret !== WORKER_FUNCTION_SECRET) {
         console.warn("[Worker] Unauthorized access attempt or missing secret header.");
@@ -71,12 +70,16 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
-        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch_OnlineCheck`;
+        // Ensure 'travel' selection is requested to get the full object
+        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars,travel"; // Added 'travel' here
+        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch_TravelData`;
 
         console.log(`[Worker] Fetching data for Torn ID: ${tornProfileId}`);
         const response = await fetch(apiUrl);
         const data = await response.json();
+
+        // Debug log for checking exact status from API
+        console.log(`[Worker Debug] Data for ${tornProfileId}: last_action:`, data.last_action, `status:`, data.status, `travel:`, data.travel, `name:`, data.name);
 
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : `HTTP error! status: ${response.status} ${response.statusText}`;
@@ -87,32 +90,28 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // --- NEW LOGIC: Check if user is currently online or recently active ---
-        // A user is considered online/active if their status is 'Okay' AND their last action is very recent.
-        // The 'relative' field in last_action tells us how long ago their last action was.
-        const lastActionStatus = data.last_action?.status;
-        const lastActionRelative = data.last_action?.relative;
+        // Check if user is currently active (Okay, Traveling, or Hospital)
         const mainStatusState = data.status?.state;
+        const lastActionRelative = data.last_action?.relative;
 
         const isUserCurrentlyOnlineOrActive = (
-            mainStatusState === 'Okay' &&
+            (mainStatusState === 'Okay' || mainStatusState === 'Traveling' || mainStatusState === 'Hospital') &&
             (
                 lastActionRelative === 'Now' ||
-                (lastActionRelative && lastActionRelative.includes('second')) || // e.g., "59 seconds ago"
-                (lastActionRelative && lastActionRelative.includes('minute') && parseInt(lastActionRelative.split(' ')[0]) <= 5) // e.g., "5 minutes ago"
+                (lastActionRelative && lastActionRelative.includes('second')) ||
+                (lastActionRelative && lastActionRelative.includes('minute') && parseInt(lastActionRelative.split(' ')[0]) <= 5)
             )
         );
 
         if (!isUserCurrentlyOnlineOrActive) {
-            console.log(`[Worker] Skipping save for ${tornProfileId}: User is currently offline or inactive (${lastActionRelative || 'N/A'}).`);
+            console.log(`[Worker] Skipping save for ${tornProfileId}: User is currently inactive (${mainStatusState}, ${lastActionRelative || 'N/A'}).`);
             return {
-                statusCode: 200, // Still return 200 as the process was successful, just no save was needed
-                body: JSON.stringify({ message: `Skipped save for ${tornProfileId}: User offline or inactive.` }),
+                statusCode: 200,
+                body: JSON.stringify({ message: `Skipped save for ${tornProfileId}: User inactive or in non-tracked status.` }),
             };
         }
-        // --- END NEW LOGIC ---
 
-        // Prepare the data to be saved (only if online/active)
+        // Prepare the data to be saved (only if online/active based on new criteria)
         const userDataToSave = {
             name: data.name,
             level: data.level,
@@ -124,6 +123,11 @@ exports.handler = async (event, context) => {
             life: data.life || {},
             traveling: data.status?.state === 'Traveling' || false,
             hospitalized: data.status?.state === 'Hospital' || false,
+            
+            // --- NEW: Store the full travel object ---
+            travel: data.travel || {}, 
+            // --- END NEW ---
+
             cooldowns: {
                 drug: data.cooldowns?.drug || 0,
                 booster: data.cooldowns?.booster || 0,
@@ -151,11 +155,11 @@ exports.handler = async (event, context) => {
         // Save to Firestore 'users' collection (using the user's Torn ID as document ID)
         await db.collection('users').doc(String(tornProfileId)).set(userDataToSave, { merge: true });
 
-        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId} (User is online).`);
+        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId} (User is active/online).`);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: `Data saved successfully for ${tornProfileId} (User is online).` }),
+            body: JSON.stringify({ message: `Data saved successfully for ${tornProfileId} (User is active/online).` }),
         };
 
     } catch (error) {
