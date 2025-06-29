@@ -4,7 +4,7 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
-    margin-top: 0px; /* Kept at 0px from previous adjustment */
+    margin-top: 0px; /* Changed from 15px to 0px to move it higher */
     margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
@@ -30,8 +30,8 @@
     /* Mimics .script-title from war_page_hub.css */
     color: #00a8ff; /* Blue theme color */
     text-align: center;
-    margin-bottom: 5px; /* Changed from 15px to 5px */
-    margin-top: 0px; /* Changed from 5px to 0px */
+    margin-bottom: 15px; /* Slightly more margin for a main title */
+    margin-top: 5px;
     font-size: 2.2em; /* Slightly larger for a main page title */
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     border-bottom: 2px solid #00a8ff; /* Add a bottom border for emphasis */
@@ -42,7 +42,7 @@
 
 .description-text {
     text-align: center;
-    margin-bottom: 10px; /* Changed from 25px to 10px */
+    margin-bottom: 25px;
     font-size: 1.1em;
     color: #ccc;
     width: 100%; /* Ensure it spans full width of its flex container */
@@ -380,3 +380,4 @@
 .header-text-link:hover {
     text-decoration: underline;
 }
+
