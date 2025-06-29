@@ -147,6 +147,19 @@
                         </div>
 
                     </div>
+                    <div class="ops-control-item ops-chain-score">
+                        <div class="score-faction-name" id="yourFactionNameScoreLabel">The SixthSense</div>
+                        <div class="score-faction-name" id="opponentFactionNameScoreLabel">Vs Waja Warriors</div>
+                        <div class="chain-score-display">
+                            <span class="score-value current-score" id="yourFactionRankedScore">N/A</span>
+                            <span class="score-target-info">
+                                <span class="score-label">LEAD TARGET</span>
+                                <span class="score-progress" id="warTargetScore">N/A</span>
+                            </span>
+                            <span class="score-value target-score" id="opponentFactionRankedScore">N/A</span>
+                        </div>
+                        <span id="warStartedTime" class="score-started-time">N/A</span>
+                    </div>
                 </div>
 
                 <div id="active-ops-tab" class="tab-pane">
@@ -167,7 +180,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="ops-control-item">
                             <div class="ranked-war-container">
                                 <div class="rw-header">
@@ -195,7 +207,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="ops-control-item ops-quick-targets">
                             <label>Quick FairFight Chain saver:</label>
                             <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
@@ -225,10 +236,14 @@
                                    <button class="chat-tab" data-chat-tab="settings">Settings</button>
                                 </div>
                                 <div class="chat-messages-scroll-wrapper">
+                                    <div id="scrollUpIndicator" class="scroll-indicator">
+                                        <span class="icon">⬆️</span> Scroll Up for More Messages <span class="icon">⬆️</span>
+                                    </div>
                                     <div id="chat-display-area" class="chat-display-area">
                                     </div>
                                 </div>
                                 <div class="chat-input-area">
+                                    <div class="quick-links-label">Your Quick Links:</div>
                                     <div class="chat-input-buttons-top">
                                         <button class="chat-action-btn siren-btn">⚠️</button>
                                         <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
@@ -361,7 +376,7 @@
                             <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
                             <div class="config-actions">
                                 <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
-                                <label for="announcementImageUpload" class="action-btn upload-btn">Upload Image 🖼️</label>
+                                <label for="announcementImageUpload" id="announcementUploadLabel" class="action-btn upload-btn">Upload Image 🖼️</label>
                                 <input type="file" id="announcementImageUpload" accept="image/*" style="display: none;">
                             </div>
                         </div>
