@@ -2562,7 +2562,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
     personalStatsModal.classList.add('visible');
 
-    // CORRECTED LINE: Added 'bars' to selections
+    // Make sure 'bars' is always included in the selections
     const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
@@ -2597,7 +2597,6 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         if (data.error) {
             console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
             if (data.error.code === 2 || data.error.code === 10) {
-                // Specific message for API key issues
                 throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
             } else {
                 throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
@@ -2617,23 +2616,22 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 faction_id: data.faction?.faction_id || null,
                 faction_name: data.faction?.faction_name || null,
 
-                // Quick Stats from 'bars' selection and status object
-                // These lines remain as previously corrected to extract current values
-                nerve: data.nerve?.current || 0,
-                energy: data.energy?.current || 0,
-                happy: data.happy?.current || 0,
-                life: data.life?.current || 0,
-                
+                // REVERTED LINES HERE: Send the entire objects
+                // We are now sending the full 'energy' and 'nerve' objects as maps,
+                // matching how 'life' and 'cooldowns' are handled.
+                nerve: data.nerve || {}, // Store the entire nerve object, default to empty object
+                energy: data.energy || {}, // Store the entire energy object, default to empty object
+                happy: data.happy || {}, // Store the entire happy object, default to empty object
+                life: data.life || {}, // Store the entire life object, default to empty object
+                // End of REVERTED LINES
+
                 traveling: data.status?.state === 'Traveling' || false,
                 hospitalized: data.status?.state === 'Hospital' || false,
-                // Cooldowns from 'cooldowns' selection
                 cooldowns: {
                     drug: data.cooldowns?.drug || 0,
                     booster: data.cooldowns?.booster || 0,
                 },
-                // Personal Stats
                 personalstats: data.personalstats || {},
-                // Battle Stats
                 battlestats: {
                     strength: data.strength || data.battlestats?.strength || 0,
                     defense: data.defense || data.battlestats?.defense || 0,
@@ -2645,26 +2643,24 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
                     dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
                 },
-                // Work Stats
                 workstats: {
                     manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
                     intelligence: data.intelligence || data.workstats?.intelligence || 0,
                     endurance: data.endurance || data.workstats?.endurance || 0,
                 },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for last update
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
 
             try {
-                // Call the new Netlify Function to securely save data to Firestore
                 const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        userId: String(userId), // Ensure userId is a string
+                        userId: String(userId),
                         userData: userDataToSave,
                     }),
                 });
@@ -2684,6 +2680,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         // --- End: Call Netlify Function for Secure Firebase Storage ---
 
 
+        // --- HTML Content Generation (This part uses the 'data' directly from Torn API, which now includes 'bars') ---
         let htmlContent = '<h4>User Information</h4>';
         htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
         htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
@@ -2697,6 +2694,39 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
         htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
+
+        // Re-extract nerve and energy specifically for HTML display (using the full 'data' object received)
+        const nerveForDisplay = data.nerve || {};
+        const energyForDisplay = data.energy || {};
+
+        const nerveCurrent = nerveForDisplay.current !== undefined ? nerveForDisplay.current : 'N/A';
+        const nerveMax = nerveForDisplay.maximum !== undefined ? nerveForDisplay.maximum : '';
+        const nerveIncrement = nerveForDisplay.increment !== undefined ? nerveForDisplay.increment : ''; // Assuming you meant increment as "gain"
+        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveIncrement ? `+${nerveIncrement}/5min` : ''}`.trim();
+
+        const energyCurrent = energyForDisplay.current !== undefined ? energyForDisplay.current : 'N/A';
+        const energyMax = energyForDisplay.maximum !== undefined ? energyForDisplay.maximum : '';
+        const energyIncrement = energyForDisplay.increment !== undefined ? energyForDisplay.increment : ''; // Assuming you meant increment as "gain"
+        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyIncrement ? `+${energyIncrement}/10min` : ''}`.trim();
+        // End of Nerve and Energy display re-extraction
+
+
+        htmlContent += `
+            <div class="member-detail-header">
+                <div class="member-header-top-row">
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Energy:</h5>
+                        <p>${energyDisplay}</p>
+                    </div>
+                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image">` : ''}
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Nerve:</h5>
+                        <p>${nerveDisplay}</p>
+                    </div>
+                </div>
+                <div class="member-detail-name-id">${data.name || 'Unknown'} [${data.player_id || 'N/A'}]</div>
+            </div>`;
+
 
         htmlContent += '<h4>Battle Stats</h4>';
         if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
