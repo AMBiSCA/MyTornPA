@@ -3126,12 +3126,11 @@ autocomplete-items {
 /* This new container helps align the buttons horizontally */
 .config-actions {
     display: flex;
-    justify-content: center; /* Centers the buttons within the section */
-    align-items: center;
+    justify-content: center; /* Centers the buttons horizontally */
+    align-items: baseline; /* This is the key change to align them vertically */
     gap: 10px; /* Adds space between the buttons */
     margin-top: 15px; /* Adds some space above the buttons */
 }
-
 /* This styles the 'Upload Image' label to look like the other buttons */
 .upload-btn {
     cursor: pointer;
