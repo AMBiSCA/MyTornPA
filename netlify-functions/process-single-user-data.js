@@ -59,7 +59,8 @@ exports.handler = async (event, context) => {
         };
     }
 
-    const { tornProfileId, tornApiKey } = requestBody;
+    // tornProfileId is passed from the dispatcher, tornApiKey is also passed
+    const { tornProfileId, tornApiKey } = requestBody; 
 
     if (!tornProfileId || !tornApiKey) {
         console.warn("[Worker] Missing tornProfileId or tornApiKey in request body.");
@@ -71,7 +72,7 @@ exports.handler = async (event, context) => {
 
     try {
         // Ensure 'travel' selection is requested to get the full object
-        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars,travel"; // Added 'travel' here
+        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars,travel"; 
         const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch_TravelData`;
 
         console.log(`[Worker] Fetching data for Torn ID: ${tornProfileId}`);
@@ -79,7 +80,7 @@ exports.handler = async (event, context) => {
         const data = await response.json();
 
         // Debug log for checking exact status from API
-        console.log(`[Worker Debug] Data for ${tornProfileId}: last_action:`, data.last_action, `status:`, data.status, `travel:`, data.travel, `name:`, data.name);
+        console.log(`[Worker Debug] Data for ${tornProfileId}: last_action:`, data.last_action, `status:`, data.status, `travel:`, data.travel, `name:`, data.name, `player_id (from API):`, data.player_id);
 
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : `HTTP error! status: ${response.status} ${response.statusText}`;
@@ -111,7 +112,7 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Prepare the data to be saved (only if online/active based on new criteria)
+        // Prepare the data to be saved 
         const userDataToSave = {
             name: data.name,
             level: data.level,
@@ -123,11 +124,7 @@ exports.handler = async (event, context) => {
             life: data.life || {},
             traveling: data.status?.state === 'Traveling' || false,
             hospitalized: data.status?.state === 'Hospital' || false,
-            
-            // --- NEW: Store the full travel object ---
             travel: data.travel || {}, 
-            // --- END NEW ---
-
             cooldowns: {
                 drug: data.cooldowns?.drug || 0,
                 booster: data.cooldowns?.booster || 0,
@@ -152,14 +149,14 @@ exports.handler = async (event, context) => {
             lastUpdated: admin.firestore.FieldValue.serverTimestamp() // Update timestamp on successful save
         };
 
-        // Save to Firestore 'users' collection (using the user's Torn ID as document ID)
-        await db.collection('users').doc(String(tornProfileId)).set(userDataToSave, { merge: true });
+        // --- MODIFIED LINE: Use data.player_id (the pure numeric ID from API) as the Firestore document ID ---
+        await db.collection('users').doc(String(data.player_id)).set(userDataToSave, { merge: true });
 
-        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId} (User is active/online).`);
+        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${data.player_id} (Originally ${tornProfileId}). User is active/online.`);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: `Data saved successfully for ${tornProfileId} (User is active/online).` }),
+            body: JSON.stringify({ message: `Data saved successfully for ${data.player_id} (Originally ${tornProfileId}). User is active/online.` }),
         };
 
     } catch (error) {
