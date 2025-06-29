@@ -4,7 +4,7 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
-    margin-top: 15px;
+    margin-top: 0px; /* Changed from 15px to 0px to move it higher */
     margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
@@ -15,9 +15,9 @@
     
     /* --- CRITICAL CHANGE FOR SIDE-BY-SIDE LAYOUT --- */
     display: flex;
-    flex-direction: row;     /* Arranges children horizontally */
-    flex-wrap: wrap;         /* Allows sections to wrap to the next line on smaller screens */
-    gap: 20px;               /* Space between the sections */
+    flex-direction: row;       /* Arranges children horizontally */
+    flex-wrap: wrap;           /* Allows sections to wrap to the next line on smaller screens */
+    gap: 20px;                 /* Space between the sections */
     align-items: flex-start; /* Aligns items to the start of the cross-axis (top) */
     /* --- END CRITICAL CHANGE --- */
 
@@ -62,8 +62,8 @@
     gap: 15px; /* Space between elements within a section */
     
     /* --- NEW: Define width for side-by-side sections --- */
-    flex: 1;           /* Allows sections to grow and shrink, and occupy equal space */
-    min-width: 450px;  /* Minimum width before wrapping to the next line */
+    flex: 1;             /* Allows sections to grow and shrink, and occupy equal space */
+    min-width: 450px;    /* Minimum width before wrapping to the next line */
     box-sizing: border-box; /* Include padding and border in width calculation */
     /* --- END NEW --- */
 }
