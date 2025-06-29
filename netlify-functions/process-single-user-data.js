@@ -2,6 +2,7 @@
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK if not already initialized
+// This needs to be outside the handler for better performance (warm starts)
 if (!admin.apps.length) {
     try {
         const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
@@ -15,8 +16,7 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error("Firebase Admin initialization error in worker:", error.stack);
-        // This worker function should indicate failure if Firebase init fails
-        exports.handler = async (event, context) => {
+        exports.handler = async (event, context) => { // This redefines handler to always return an error
             return {
                 statusCode: 500,
                 body: JSON.stringify({ message: "Firebase Admin initialization failed in worker. Check FIREBASE_CREDENTIALS_BASE64 env var.", error: error.message }),
@@ -72,7 +72,7 @@ exports.handler = async (event, context) => {
 
     try {
         const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
-        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch`;
+        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch_OnlineCheck`;
 
         console.log(`[Worker] Fetching data for Torn ID: ${tornProfileId}`);
         const response = await fetch(apiUrl);
@@ -87,7 +87,32 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Prepare the data to be saved (same structure as previous functions)
+        // --- NEW LOGIC: Check if user is currently online or recently active ---
+        // A user is considered online/active if their status is 'Okay' AND their last action is very recent.
+        // The 'relative' field in last_action tells us how long ago their last action was.
+        const lastActionStatus = data.last_action?.status;
+        const lastActionRelative = data.last_action?.relative;
+        const mainStatusState = data.status?.state;
+
+        const isUserCurrentlyOnlineOrActive = (
+            mainStatusState === 'Okay' &&
+            (
+                lastActionRelative === 'Now' ||
+                (lastActionRelative && lastActionRelative.includes('second')) || // e.g., "59 seconds ago"
+                (lastActionRelative && lastActionRelative.includes('minute') && parseInt(lastActionRelative.split(' ')[0]) <= 5) // e.g., "5 minutes ago"
+            )
+        );
+
+        if (!isUserCurrentlyOnlineOrActive) {
+            console.log(`[Worker] Skipping save for ${tornProfileId}: User is currently offline or inactive (${lastActionRelative || 'N/A'}).`);
+            return {
+                statusCode: 200, // Still return 200 as the process was successful, just no save was needed
+                body: JSON.stringify({ message: `Skipped save for ${tornProfileId}: User offline or inactive.` }),
+            };
+        }
+        // --- END NEW LOGIC ---
+
+        // Prepare the data to be saved (only if online/active)
         const userDataToSave = {
             name: data.name,
             level: data.level,
@@ -120,17 +145,17 @@ exports.handler = async (event, context) => {
                 intelligence: data.intelligence || data.workstats?.intelligence || 0,
                 endurance: data.endurance || data.workstats?.endurance || 0,
             },
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp() // Update timestamp on successful save
         };
 
         // Save to Firestore 'users' collection (using the user's Torn ID as document ID)
         await db.collection('users').doc(String(tornProfileId)).set(userDataToSave, { merge: true });
 
-        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId}`);
+        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId} (User is online).`);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: `Data saved successfully for ${tornProfileId}.` }),
+            body: JSON.stringify({ message: `Data saved successfully for ${tornProfileId} (User is online).` }),
         };
 
     } catch (error) {
