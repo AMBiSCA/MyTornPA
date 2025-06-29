@@ -2,137 +2,149 @@
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK if not already initialized
+// This needs to be outside the handler for better performance (warm starts)
 if (!admin.apps.length) {
     try {
+        // Decode the base64 credentials from Netlify environment variable
+        // This is how Firebase Admin SDK is typically initialized with Netlify for security
+        const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+        if (!serviceAccountBase64) {
+            throw new Error("FIREBASE_CREDENTIALS_BASE64 environment variable is missing.");
+        }
+        // Ensure Buffer is available in Node.js environment
+        const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
+
         admin.initializeApp({
-            credential: admin.credential.applicationDefault()
+            credential: admin.credential.cert(serviceAccount)
         });
     } catch (error) {
         console.error("Firebase Admin initialization error:", error.stack);
+        // If initialization fails, terminate the function with an error response
+        exports.handler = async (event, context) => { // This redefines handler to always return an error
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: "Firebase Admin initialization failed. Check FIREBASE_CREDENTIALS_BASE64 env var.", error: error.message }),
+            };
+        };
+        // Re-throw to prevent further execution of the outer handler if init failed on cold start
+        throw new Error("Firebase initialization failed during cold start.");
     }
 }
 const db = admin.firestore();
 
+// Define how often a user's data should be considered "stale" and updated
+const UPDATE_THRESHOLD_SECONDS = 60 * 60; // 1 hour (adjust as needed for API limits and data freshness needs)
+
 exports.handler = async (event, context) => {
     try {
-        // --- Step 1: Fetch all user profiles from Firestore ---
-        // We'll iterate through userProfiles to get each user's Torn ID and API Key.
-        const userProfilesSnapshot = await db.collection('userProfiles').get();
-        
-        if (userProfilesSnapshot.empty) {
-            console.log("[Scheduled Function] No user profiles found in Firestore to update.");
+        // Retrieve the secret for calling the worker function
+        const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET; // YOU MUST SET THIS IN NETLIFY ENV VARS
+
+        if (!WORKER_FUNCTION_SECRET) {
+            console.error("[Dispatcher] Configuration error: Missing WORKER_FUNCTION_SECRET environment variable.");
             return {
-                statusCode: 200,
-                body: JSON.stringify({ message: "No user profiles found." }),
+                statusCode: 500,
+                body: JSON.stringify({ message: "Configuration error: Missing worker function secret." }),
             };
         }
 
-        const usersToUpdate = [];
+        console.log("[Dispatcher] Starting scheduled data dispatch.");
+
+        // Query Firestore for all user profiles
+        const userProfilesSnapshot = await db.collection('userProfiles').get();
+
+        if (userProfilesSnapshot.empty) {
+            console.log("[Dispatcher] No user profiles found in Firestore.");
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ message: "No user profiles found to dispatch updates for." }),
+            };
+        }
+
+        const usersToDispatch = [];
+        const nowInSeconds = Math.floor(Date.now() / 1000); // Current time for comparison
+
         userProfilesSnapshot.forEach(doc => {
             const userData = doc.data();
-            // Ensure the user has both a Torn Profile ID and an API Key configured in their profile
-            if (userData.tornProfileId && userData.tornApiKey) {
-                usersToUpdate.push({
-                    uid: doc.id, // This is the Firebase Auth UID
+            const lastUpdatedTimestamp = userData.lastUpdated?.seconds || 0; // Get timestamp from Firestore Timestamp or default to 0
+
+            // Check if user has necessary Torn details and if their data is stale
+            if (userData.tornProfileId && userData.tornApiKey && 
+                (nowInSeconds - lastUpdatedTimestamp > UPDATE_THRESHOLD_SECONDS)) {
+                usersToDispatch.push({
                     tornProfileId: userData.tornProfileId,
                     tornApiKey: userData.tornApiKey
                 });
             }
         });
 
-        if (usersToUpdate.length === 0) {
-            console.log("[Scheduled Function] No users with configured Torn ID and API key found to update.");
+        if (usersToDispatch.length === 0) {
+            console.log("[Dispatcher] No users require an update at this time.");
             return {
                 statusCode: 200,
-                body: JSON.stringify({ message: "No relevant users found for update." }),
+                body: JSON.stringify({ message: "No users require updates based on threshold." }),
             };
         }
 
-        console.log(`[Scheduled Function] Found ${usersToUpdate.length} users with valid configurations to update.`);
+        console.log(`[Dispatcher] Found ${usersToDispatch.length} users to dispatch for update.`);
 
-        const results = [];
-        // Delay to help stay within Torn API rate limits (e.g., 100 calls/min = 600ms per call)
-        // Adjust this if you notice rate limit errors or hit Netlify's function execution limits.
-        const API_CALL_DELAY_MS = 650; 
+        const dispatchResults = [];
+        // Add a small delay between dispatching worker functions to prevent overwhelming the server
+        // or hitting burst limits on function invocations if you have many users.
+        const DISPATCH_DELAY_MS = 100; // Small delay, can be adjusted
 
-        // --- Step 2: Loop through each user and fetch/save their data ---
-        for (const user of usersToUpdate) {
-            const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
-            const apiUrl = `https://api.torn.com/user/${user.tornProfileId}?selections=${selections}&key=${user.tornApiKey}&comment=MyTornPA_ScheduledFetch_MultiUser`;
+        // --- Dispatch a worker function for each user ---
+        for (const user of usersToDispatch) {
+            // Construct the URL for the new worker function.
+            // Netlify functions are accessible via /.netlify/functions/YOUR_FUNCTION_NAME
+            // process.env.URL is provided by Netlify and is your site's base URL
+            const workerFunctionUrl = `${process.env.URL}/.netlify/functions/process-single-user-data`; 
 
             try {
-                // IMPORTANT: Introduce a delay before each API call to respect Torn's rate limits
-                // This might make the function run for a longer time depending on your number of users.
-                await new Promise(resolve => setTimeout(resolve, API_CALL_DELAY_MS));
+                // Trigger the worker function via HTTP POST
+                const dispatchResponse = await fetch(workerFunctionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Worker-Secret': WORKER_FUNCTION_SECRET // Pass the secret for authentication
+                    },
+                    body: JSON.stringify({
+                        tornProfileId: user.tornProfileId,
+                        tornApiKey: user.tornApiKey
+                    })
+                });
 
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+                const dispatchData = await dispatchResponse.json();
 
-                if (!response.ok || data.error) {
-                    console.warn(`[Scheduled Function] Torn API Error for ${user.tornProfileId}: ${data.error?.error || response.statusText}`);
-                    results.push({ id: user.tornProfileId, status: "failed", error: data.error?.error || response.statusText });
-                    continue; // Skip to the next user if there's an API error for this one
+                if (!dispatchResponse.ok) {
+                    console.warn(`[Dispatcher] Failed to dispatch for ${user.tornProfileId}: ${dispatchData.message || dispatchResponse.statusText}`);
+                    dispatchResults.push({ id: user.tornProfileId, status: "dispatch_failed", error: dispatchData.message || dispatchResponse.statusText });
+                } else {
+                    console.log(`[Dispatcher] Successfully dispatched for ${user.tornProfileId}: ${dispatchData.message}`);
+                    dispatchResults.push({ id: user.tornProfileId, status: "dispatched", message: dispatchData.message });
                 }
 
-                // Prepare the data to be saved to Firestore (using the refined structure)
-                const userDataToSave = {
-                    name: data.name,
-                    level: data.level,
-                    faction_id: data.faction?.faction_id || null,
-                    faction_name: data.faction?.faction_name || null,
-                    nerve: data.nerve || {},
-                    energy: data.energy || {},
-                    happy: data.happy || {},
-                    life: data.life || {},
-                    traveling: data.status?.state === 'Traveling' || false,
-                    hospitalized: data.status?.state === 'Hospital' || false,
-                    cooldowns: {
-                        drug: data.cooldowns?.drug || 0,
-                        booster: data.cooldowns?.booster || 0,
-                    },
-                    personalstats: data.personalstats || {},
-                    battlestats: {
-                        strength: data.strength || data.battlestats?.strength || 0,
-                        defense: data.defense || data.battlestats?.defense || 0,
-                        speed: data.speed || data.battlestats?.speed || 0,
-                        dexterity: data.dexterity || data.battlestats?.dexterity || 0,
-                        total: data.total || data.battlestats?.total || 0,
-                        strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
-                        defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
-                        speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
-                        dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
-                    },
-                    workstats: {
-                        manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
-                        intelligence: data.intelligence || data.workstats?.intelligence || 0,
-                        endurance: data.endurance || data.workstats?.endurance || 0,
-                    },
-                    lastUpdated: admin.firestore.FieldValue.serverTimestamp()
-                };
-
-                // Save to Firestore 'users' collection, using the user's Torn ID as the document ID
-                // (Make sure your Firestore security rules allow this write from server-side).
-                await db.collection('users').doc(String(user.tornProfileId)).set(userDataToSave, { merge: true });
-                results.push({ id: user.tornProfileId, status: "success" });
-
-            } catch (apiError) {
-                console.error(`[Scheduled Function] Error processing user ${user.tornProfileId}:`, apiError);
-                results.push({ id: user.tornProfileId, status: "failed", error: apiError.message });
+            } catch (dispatchError) {
+                console.error(`[Dispatcher] Network/unexpected error dispatching for ${user.tornProfileId}:`, dispatchError);
+                dispatchResults.push({ id: user.tornProfileId, status: "dispatch_failed", error: dispatchError.message });
             }
+
+            // Await a small delay before dispatching the next worker
+            await new Promise(resolve => setTimeout(resolve, DISPATCH_DELAY_MS));
         }
 
-        console.log(`[Scheduled Function] Completed processing for all users. Summary:`, results);
+        console.log("[Dispatcher] Data dispatching complete. Summary:", dispatchResults);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: "Scheduled data fetch completed for multiple users.", results: results }),
+            body: JSON.stringify({ message: "Scheduled data dispatch process initiated.", results: dispatchResults }),
         };
 
     } catch (mainError) {
-        console.error("[Scheduled Function] A top-level error occurred during multi-user fetch:", mainError);
+        console.error("[Dispatcher] Top-level error in scheduled dispatch function:", mainError);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: "An unexpected error occurred in the scheduled function.", error: mainError.message }),
+            body: JSON.stringify({ message: "An unexpected error occurred in the dispatcher function.", error: mainError.message }),
         };
     }
 };
