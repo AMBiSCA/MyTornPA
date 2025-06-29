@@ -70,59 +70,61 @@
     </header>
 
     <main class="recruitment-main-content">
-        <section class="recruitment-section">
-            <h2>Factions Seeking Members</h2>
-            <p>Browse factions currently looking for new recruits. Click 'Enlist' to send them your profile.</p>
-            
-            <div class="buttons-container">
-                <button id="advertise-faction-button" class="action-button" style="display:none;">Advertise My Faction</button> 
-            </div>
-
-            <table class="recruitment-table">
-                <thead>
-                    <tr>
-                        <th>Faction Name [ID]</th>
-                        <th>Respect</th>
-                        <th>Rank</th>
-                        <th>Members</th>
-                        <th>Apply</th>
-                    </tr>
-                </thead>
-                <tbody id="factions-seeking-members-tbody">
-                    <tr><td colspan="5">Loading recruiting factions...</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section class="recruitment-section">
-            <h2>Players Seeking Factions</h2>
-            <p>Players can list themselves here to find a faction.</p>
-            
-            <div class="buttons-container">
-                <button id="list-self-button" class="action-button">List Myself</button>
-            </div>
-            
-            <table class="recruitment-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Level</th>
-                        <th>Total Battle Stats</th>
-                        <th>Xanax Taken</th>
-                        <th>War Hits</th>
-                        <th>Energy Refills</th>
-                        <th>Best Active Streak</th>
-                    </tr>
-                </thead>
-                <tbody id="players-seeking-factions-tbody">
-                    <tr><td colspan="7">Players looking for factions will appear here...</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <div class="page-header-container">
+        <div class="recruitment-top-box">
             <h1 class="page-title">MyTornPA Recruitment Hub</h1>
             <p class="description-text">This is where you can find factions seeking members or list yourself as a player seeking a faction.</p>
+        </div>
+
+        <div class="recruitment-sections-wrapper">
+            <section class="recruitment-section">
+                <h2>Factions Seeking Members</h2>
+                <p>Browse factions currently looking for new recruits. Click 'Enlist' to send them your profile.</p>
+                
+                <div class="buttons-container">
+                    <button id="advertise-faction-button" class="action-button" style="display:none;">Advertise My Faction</button> 
+                </div>
+
+                <table class="recruitment-table">
+                    <thead>
+                        <tr>
+                            <th>Faction Name [ID]</th>
+                            <th>Respect</th>
+                            <th>Rank</th>
+                            <th>Members</th>
+                            <th>Apply</th>
+                        </tr>
+                    </thead>
+                    <tbody id="factions-seeking-members-tbody">
+                        <tr><td colspan="5">Loading recruiting factions...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="recruitment-section">
+                <h2>Players Seeking Factions</h2>
+                <p>Players can list themselves here to find a faction.</p>
+                
+                <div class="buttons-container">
+                    <button id="list-self-button" class="action-button">List Myself</button>
+                </div>
+                
+                <table class="recruitment-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Level</th>
+                            <th>Total Battle Stats</th>
+                            <th>Xanax Taken</th>
+                            <th>War Hits</th>
+                            <th>Energy Refills</th>
+                            <th>Best Active Streak</th>
+                        </tr>
+                    </thead>
+                    <tbody id="players-seeking-factions-tbody">
+                        <tr><td colspan="7">Players looking for factions will appear here...</td></tr>
+                    </tbody>
+                </table>
+            </section>
         </div>
     </main>
 

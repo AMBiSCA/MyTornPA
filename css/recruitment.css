@@ -4,7 +4,7 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
-    margin-top: 15px;
+    margin-top: 15px; /* Reverted to 15px as requested */
     margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
@@ -13,16 +13,30 @@
     max-width: 1800px;
     box-sizing: border-box;
     
-    /* --- CRITICAL CHANGE FOR SIDE-BY-SIDE LAYOUT --- */
+    /* --- CRITICAL CHANGE FOR 1x2 LAYOUT --- */
     display: flex;
-    flex-direction: row;     /* Arranges children horizontally */
-    flex-wrap: wrap;         /* Allows sections to wrap to the next line on smaller screens */
-    gap: 20px;               /* Space between the sections */
-    align-items: flex-start; /* Aligns items to the start of the cross-axis (top) */
+    flex-direction: column;   /* Stacks children (top box, then sections wrapper) vertically */
+    gap: 20px;                /* Space between the top box and the sections wrapper */
+    align-items: center;      /* Center items if they don't take full width */
     /* --- END CRITICAL CHANGE --- */
 
     min-height: calc(100vh - 170px); /* Ensures content area takes up most of the screen height */
     border: 3px solid black; /* Consistent border */
+}
+
+/* NEW: Style for the top box containing the page title and description */
+.recruitment-top-box {
+    background-color: #222; /* Consistent dark background */
+    border: 1px solid black;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    padding: 15px; /* Consistent padding */
+    width: 100%; /* Ensure it spans the full width of the main content area */
+    box-sizing: border-box;
+    display: flex; /* Use flex for internal alignment of title/description if needed */
+    flex-direction: column;
+    align-items: center; /* Center the text horizontally within this box */
+    gap: 10px; /* Space between title and description */
 }
 
 /* Page Title (h1) */
@@ -30,8 +44,8 @@
     /* Mimics .script-title from war_page_hub.css */
     color: #00a8ff; /* Blue theme color */
     text-align: center;
-    margin-bottom: 15px; /* Slightly more margin for a main title */
-    margin-top: 5px;
+    margin-bottom: 0px; /* Adjusted margin within new box */
+    margin-top: 0px; /* Adjusted margin within new box */
     font-size: 2.2em; /* Slightly larger for a main page title */
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     border-bottom: 2px solid #00a8ff; /* Add a bottom border for emphasis */
@@ -42,12 +56,24 @@
 
 .description-text {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 0px; /* Adjusted margin within new box */
     font-size: 1.1em;
     color: #ccc;
     width: 100%; /* Ensure it spans full width of its flex container */
     box-sizing: border-box;
 }
+
+/* NEW: Wrapper for the two main content sections */
+.recruitment-sections-wrapper {
+    display: flex;
+    flex-direction: row;       /* Arranges children horizontally */
+    flex-wrap: wrap;           /* Allows sections to wrap to the next line on smaller screens */
+    gap: 20px;                 /* Space between the sections */
+    align-items: flex-start; /* Aligns items to the start of the cross-axis (top) */
+    width: 100%; /* Take full width of parent */
+    box-sizing: border-box;
+}
+
 
 /* Section Containers (Factions Seeking, Players Seeking) */
 .recruitment-section {
@@ -61,11 +87,9 @@
     flex-direction: column;
     gap: 15px; /* Space between elements within a section */
     
-    /* --- NEW: Define width for side-by-side sections --- */
-    flex: 1;           /* Allows sections to grow and shrink, and occupy equal space */
-    min-width: 450px;  /* Minimum width before wrapping to the next line */
+    flex: 1;             /* Allows sections to grow and shrink, and occupy equal space */
+    min-width: 450px;    /* Minimum width before wrapping to the next line */
     box-sizing: border-box; /* Include padding and border in width calculation */
-    /* --- END NEW --- */
 }
 
 /* Section Headings (h2) */
@@ -165,13 +189,19 @@
     text-decoration: underline;
 }
 
-/* Responsive adjustments - applying principles from war_page_hub.css */
+/* Responsive adjustments */
 @media (max-width: 992px) {
     .recruitment-main-content {
+        gap: 15px; /* Adjust gap for smaller screens */
+        padding: 10px;
+    }
+    .recruitment-top-box {
+        padding: 10px;
+    }
+    .recruitment-sections-wrapper {
         flex-direction: column; /* Stack sections vertically on smaller screens */
         align-items: stretch; /* Stretch to fill width when stacked */
         gap: 15px;
-        padding: 10px;
     }
     .recruitment-section {
         min-width: unset; /* Remove min-width when stacking */
