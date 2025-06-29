@@ -1474,6 +1474,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     const keyToUse = apiKey;
     let finalFactionId = factionIdToUseOverride;
+	globalYourFactionID = finalFactionId;
 
     if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
         finalFactionId = factionApiFullData.basic.id;
@@ -2997,6 +2998,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     const keyToUse = apiKey;
     let finalFactionId = factionIdToUseOverride;
+	 
 
     if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
         finalFactionId = factionApiFullData.basic.id;
