@@ -2583,6 +2583,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 
     try {
+		console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`); // ADD THIS LINE HERE
         const response = await fetch(apiUrl);
         console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
         const data = await response.json();
