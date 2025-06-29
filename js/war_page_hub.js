@@ -3720,7 +3720,7 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            displayFriendlyMembersTable(factionApiFullData.members);
+            updateFriendlyMembersTable(userApiKey, auth.currentUser.uid); // <--- Use updateFriendlyMembersTable and pass required args
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
