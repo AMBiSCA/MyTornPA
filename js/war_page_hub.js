@@ -2848,83 +2848,6 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // === START OF addFriendBtn LISTENER (ONLY ONE INSTANCE) ===
-    if (addFriendBtn) {
-        addFriendBtn.addEventListener('click', async () => {
-            const friendId = addFriendIdInput.value.trim();
-            if (!friendId) {
-                addFriendStatus.textContent = "Please enter a Torn Player ID.";
-                addFriendStatus.style.color = 'orange';
-                return;
-            }
-
-            if (!auth.currentUser) {
-                addFriendStatus.textContent = "You must be logged in to add friends.";
-                addFriendStatus.style.color = 'red';
-                return;
-            }
-
-            addFriendStatus.textContent = "Adding friend...";
-            addFriendStatus.style.color = 'white';
-
-            try {
-                const userProfileDocRef = db.collection('userProfiles').doc(auth.currentUser.uid);
-                const userProfileDoc = await userProfileDocRef.get();
-                let currentFriends = userProfileDoc.exists && userProfileDoc.data().friends ? userProfileDoc.data().friends : [];
-
-                if (currentFriends.includes(friendId)) {
-                    addFriendStatus.textContent = "This player is already in your friends list.";
-                    addFriendStatus.style.color = 'orange';
-                    return;
-                }
-                
-                // Get friendName (defaulting if not found in 'users' collection)
-                const friendUserDoc = await db.collection('users').doc(friendId).get();
-                let friendName = `Player ${friendId}`; 
-                if (friendUserDoc.exists) {
-                    friendName = friendUserDoc.data().name || friendName;
-                } else {
-                    console.warn(`Friend ID ${friendId} not found in 'users' collection. Adding with default name.`);
-                }
-
-                // Add the new friend ID to the array
-                currentFriends.push(friendId);
-
-                // Update the user's profile with the new friends list
-                await userProfileDocRef.set({ friends: currentFriends }, { merge: true });
-                
-                // Create/update the friend's basic info in the top-level 'users' collection
-                await db.collection('users').doc(friendId).set({
-                    name: friendName, // Use fetched name or default
-                    tornId: friendId,
-                    // Add other basic info you'd want to store for this friend immediately if not present, e.g.:
-                    // level: '?', 
-                    // last_action: { timestamp: 0, relative: 'Never' }
-                }, { merge: true });
-
-
-                addFriendStatus.textContent = `Successfully added ${friendName} [${friendId}]!`;
-                addFriendStatus.style.color = 'lightgreen';
-                addFriendIdInput.value = ''; // Clear input
-
-                // *** IMPORTANT: Refresh the friends table after adding ***
-                fetchAndDisplayFriends(); // Refresh the display
-                // ****************************************************
-
-                // After 1.5 seconds, clear the status message
-                setTimeout(() => {
-                    addFriendStatus.textContent = '';
-                }, 1500);
-
-            } catch (error) {
-                console.error("Error adding friend:", error);
-                addFriendStatus.textContent = `Error adding friend: ${error.message}`;
-                addFriendStatus.style.color = 'red';
-            }
-        });
-    }
-    // === END OF addFriendBtn LISTENER ===
-
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
             if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
@@ -2979,7 +2902,7 @@ function setupEventListeners(apiKey) {
     }
 
     if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersMembersBtn.addEventListener('click', async () => { // Corrected variable name from EnergyTrackMembersBtn
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
             if (!energyTrackingContainer) return;
             const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             try {
@@ -3021,10 +2944,6 @@ function setupEventListeners(apiKey) {
                 return;
             }
             const currentUserId = currentUser.uid;
-            // NOTE: This part adds to a subcollection 'friends' under userProfiles.
-            // If you intend to use the top-level 'users' collection for friend data and
-            // the 'friends' array in userProfiles for tracking, this specific logic
-            // for 'add-member-button' might need adjustment to match the 'addFriendBtn' logic.
             const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
             friendDocRef.set({
                 addedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -3064,6 +2983,72 @@ function setupEventListeners(apiKey) {
         });
     }
 }
+
+if (addFriendBtn) {
+    addFriendBtn.addEventListener('click', async () => {
+        const friendId = addFriendIdInput.value.trim();
+        if (!friendId) {
+            addFriendStatus.textContent = "Please enter a Torn Player ID.";
+            addFriendStatus.style.color = 'orange';
+            return;
+        }
+
+        if (!auth.currentUser) {
+            addFriendStatus.textContent = "You must be logged in to add friends.";
+            addFriendStatus.style.color = 'red';
+            return;
+        }
+
+        addFriendStatus.textContent = "Adding friend...";
+        addFriendStatus.style.color = 'white';
+
+        try {
+            const userProfileDocRef = db.collection('userProfiles').doc(auth.currentUser.uid);
+            const userProfileDoc = await userProfileDocRef.get();
+            let currentFriends = userProfileDoc.exists && userProfileDoc.data().friends ? userProfileDoc.data().friends : [];
+
+            if (currentFriends.includes(friendId)) {
+                addFriendStatus.textContent = "This player is already in your friends list.";
+                addFriendStatus.style.color = 'orange';
+                return;
+            }
+			
+			currentFriends.push(friendId);
+
+            // Update the user's profile with the new friends list
+            await userProfileDocRef.set({ friends: currentFriends }, { merge: true });
+            
+            // If the friend wasn't already in the top-level 'users' collection, create/update their basic info
+            // This ensures displayFriendlyMembersTable can pull some info
+            await db.collection('users').doc(friendId).set({
+                name: friendName, // Use fetched name or default
+                tornId: friendId,
+                // Add other basic info you'd want to store for this friend immediately
+                // e.g., level: '?' if not fetched, last_action: { timestamp: 0 } etc.
+            }, { merge: true });
+
+
+            addFriendStatus.textContent = `Successfully added ${friendName} [${friendId}]!`;
+            addFriendStatus.style.color = 'lightgreen';
+            addFriendIdInput.value = ''; // Clear input
+
+            // *** IMPORTANT: Refresh the friends table after adding ***
+            fetchAndDisplayFriends(); // Refresh the display
+            // ****************************************************
+
+            // After 1.5 seconds, clear the status message
+            setTimeout(() => {
+                addFriendStatus.textContent = '';
+            }, 1500);
+
+        } catch (error) {
+            console.error("Error adding friend:", error);
+            addFriendStatus.textContent = `Error adding friend: ${error.message}`;
+            addFriendStatus.style.color = 'red';
+        }
+    });
+}
+
 
 function formatDuration(seconds) {
     if (seconds < 0) seconds = 0;
