@@ -3133,3 +3133,8 @@ autocomplete-items {
     cursor: pointer;
 }
 
+#saveAdminSelectionsBtn,
+#saveWatchlistSelectionsBtn,
+#saveEnergyTrackMembersBtn {
+    margin-top: auto;
+}
