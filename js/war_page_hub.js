@@ -2563,7 +2563,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     personalStatsModal.classList.add('visible');
 
     // Selections to fetch all dashboard quick stats and personal stats
-    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars"; // Ensured 'bars' is selected
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns"; 
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
     console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
@@ -2597,70 +2597,65 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         }
         if (data.error) {
             console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-            if (data.error.code === 2 || data.error.code === 10) {
-                // Specific message for API key issues
-                throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
-            } else {
-                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-            }
-        }
-
-        if (!data || Object.keys(data).length === 0) {
-            throw new Error("Failed to retrieve any meaningful data after API call.");
+            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
         }
 
         // --- Call Netlify Function for Secure Firebase Storage ---
-        const userId = data.player_id;
+        const userId = data.player_id; 
         if (userId) {
             const userDataToSave = {
                 name: data.name,
                 level: data.level,
-                faction_id: data.faction?.faction_id || null,
-                faction_name: data.faction?.faction_name || null,
-
-                // UPDATED LINES HERE: Accessing the .current property for numbers
-                nerve: data.nerve?.current || 0,
-                energy: data.energy?.current || 0,
-                happy: data.happy?.current || 0,
-                life: data.life?.current || 0,
-                // End of UPDATED LINES
-
+                // NEW: Added faction_id to save to Firebase 'users' collection
+                faction_id: data.faction?.faction_id || null, // Get faction ID from Torn API 'profile' selection
+                faction_name: data.faction?.faction_name || null, // Also save faction name
+                
+                // Quick Stats from 'basic' selection and status object
+                nerve: data.nerve || 0,
+                energy: data.energy || 0,
+                happy: data.happy || 0,
+                life: data.life || 0,
                 traveling: data.status?.state === 'Traveling' || false,
                 hospitalized: data.status?.state === 'Hospital' || false,
+                // Cooldowns from 'cooldowns' selection
                 cooldowns: {
                     drug: data.cooldowns?.drug || 0,
                     booster: data.cooldowns?.booster || 0,
                 },
+                // Personal Stats
                 personalstats: data.personalstats || {},
+                // Battle Stats
                 battlestats: {
                     strength: data.strength || data.battlestats?.strength || 0,
                     defense: data.defense || data.battlestats?.defense || 0,
                     speed: data.speed || data.battlestats?.speed || 0,
-                    dexterity: data.dexterity || data.battlestats?.dexterity || 0,
+                    dexterity: data.dexterity || data.battlestats?.dexterity || 0, 
                     total: data.total || data.battlestats?.total || 0,
                     strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
                     defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
                     speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
                     dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
                 },
+                // Work Stats
                 workstats: {
                     manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
                     intelligence: data.intelligence || data.workstats?.intelligence || 0,
                     endurance: data.endurance || data.workstats?.endurance || 0,
                 },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for last update
             };
 
             console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
 
             try {
+                // Call the new Netlify Function to securely save data to Firestore
                 const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        userId: String(userId),
+                        userId: String(userId), // Ensure userId is a string
                         userData: userDataToSave,
                     }),
                 });
@@ -2687,7 +2682,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         let xanaxDisplay = 'N/A';
         if (data.personalstats && data.personalstats.xantaken !== undefined) {
-            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : xanaxDisplay;
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? xanaxDisplay.toLocaleString() : xanaxDisplay;
         }
         htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
 
