@@ -3147,3 +3147,8 @@ autocomplete-items {
 #saveEnergyTrackMembersBtn {
     outline: 2px solid cyan !important;
 }
+
+.save-config-btn {
+    margin-top: auto;
+    margin-bottom: 10px;
+}
