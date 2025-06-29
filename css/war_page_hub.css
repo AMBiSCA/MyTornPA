@@ -1928,7 +1928,7 @@ autocomplete-items {
     table-layout: fixed; /* Important: Forces columns to respect declared widths */
 }
 
-/* Define explicit column widths for Friendly Members Table to prevent overflow */
+/* Define explicit column wle to prevent overflow */
 /* Adjusted based on your request: Revivable (Status), Level, Position, Name */
 #friendly-members-table thead th:nth-child(1),
 #friendly-members-table tbody td:nth-child(1) { width: 12%; } /* Name */
