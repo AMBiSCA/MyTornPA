@@ -27,7 +27,7 @@
     border: 3px solid black;
 }
 #factionWarHubTitle {
-    grid-area: title; /* Assign title to its grid area */
+    grid-area: title; /* Assignts grid area */
 }
 
 .tab-navigation {
