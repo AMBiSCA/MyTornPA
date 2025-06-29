@@ -380,3 +380,9 @@
 .header-text-link:hover {
     text-decoration: underline;
 }
+
+#saveAdminSelectionsBtn,
+#saveWatchlistSelectionsBtn,
+#saveEnergyTrackMembersBtn {
+    margin-top: auto;
+}
