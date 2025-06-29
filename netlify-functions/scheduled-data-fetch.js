@@ -48,7 +48,7 @@ exports.handler = async (event, context) => {
 
         // --- Step 1: Fetch ALL Faction Members using the Dispatcher's API key (public data) ---
         // This gives us the complete list of members in the faction.
-        const factionMembersApiUrl = `https://api.torn.com/faction/${TORN_FACTION_ID_TO_TRACK}?selections=members&key=${DISPATCHER_TORN_API_KEY}&comment=MyTornPA_DispatcherFetchAllFactionMembers`;
+        const factionMembersApiUrl = `https://api.torn.com/v2/faction/${TORN_FACTION_ID_TO_TRACK}?selections=members&key=${DISPATCHER_TORN_API_KEY}&comment=MyTornPA_DispatcherFetchAllFactionMembers`;
         console.log(`[Dispatcher] Fetching all faction members from Torn API for faction ${TORN_FACTION_ID_TO_TRACK}`);
         
         const factionResponse = await fetch(factionMembersApiUrl);
