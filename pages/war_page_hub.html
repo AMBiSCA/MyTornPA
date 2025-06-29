@@ -80,7 +80,6 @@
                 <button class="tab-button" data-tab="active-ops">Active Ops.</button>
                 <button class="tab-button" data-tab="friendly-status">Friendly Status.</button>
                 <button class="tab-button" data-tab="leader-config">Leader Config.</button>
-                <button class="tab-button" data-tab="friends">Friends</button>
             </div>
 
             <div class="tab-content-container">
@@ -124,13 +123,15 @@
                                         <span class="status-label">Turtle Mode:</span>
                                         <span id="warTurtleStatus" class="status-value">N/A</span>
                                     </div>
-                                    <div class="status-item">
-                                        <span class="status-label">Next Planned Chain Time:</span>
-                                        <span id="warNextChainTimeStatus" class="status-value status-value-box">N/A</span>
-                                    </div>
-                                    <div class="status-item">
-                                        <span class="status-label">Current Team Leader:</span>
-                                        <span id="warCurrentTeamLeadStatus" class="status-value status-value-box">N/A</span>
+                                    <div class="status-item-full-width status-summary-two-col">
+                                        <div class="status-item">
+                                            <span class="status-label">Next Planned Chain Time:</span>
+                                            <span id="warNextChainTimeStatus" class="status-value status-value-box">N/A</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span class="status-label">Current Team Leader:</span>
+                                            <span id="warCurrentTeamLeadStatus" class="status-value status-value-box">N/A</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -317,40 +318,6 @@
                     </div>
                 </div>
 
-                <div id="friends-tab" class="tab-pane">
-                    <div class="friends-list-panel">
-                        <div id="friendsListContainer">
-                            <table class="enemy-targets-table" id="friends-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Level</th>
-                                        <th>Last Action</th>
-                                        <th>Status</th>
-                                        <th>Strength</th>
-                                        <th>Dexterity</th>
-                                        <th>Speed</th>
-                                        <th>Defense</th>
-                                        <th>Nerve</th>
-                                        <th>Energy</th>
-                                        <th>Revivable?</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="friends-tbody">
-                                    <tr>
-                                        <td colspan="11" style="text-align:center; padding: 20px;">Loading friends data...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="add-friend-panel">
-                        <h4>Add New Friend:</h4>
-                        <input type="text" id="addFriendIdInput" placeholder="Enter Torn Player ID" class="modal-input">
-                        <button id="addFriendBtn" class="action-btn">Add Friend</button>
-                        <span id="addFriendStatus" style="margin-left: 10px;"></span>
-                    </div>
-                </div>
                 <div id="leader-config-tab" class="tab-pane">
                     <div class="config-grid">
                         <div class="config-section">
@@ -421,7 +388,7 @@
                             <button id="saveAdminSelectionsBtn" class="action-btn save-config-btn">Save Admins</button>
                         </div>
                         <div class="config-section">
-                            <h4>Big Hitters Watchlist:</h4>
+                            <h4>Big Hitter Watchlist:</h4>
                             <p>Select enemies to watch:</p>
                             <div id="bigHitterWatchlistContainer" class="member-checkbox-list"></div>
                             <button id="saveWatchlistSelectionsBtn" class="action-btn save-config-btn">Save Selections</button>
