@@ -100,6 +100,11 @@ const postAnnouncementBtn = document.getElementById('postAnnouncementBtn');
 const warNoFlyingStatus = document.getElementById('warNoFlyingStatus');
 const warTurtleStatus = document.getElementById('warTurtleStatus');
 const warNextChainTimeStatus = document.getElementById('warNextChainTimeStatus');
+const friendsTbody = document.getElementById('friends-tbody');
+const addFriendIdInput = document.getElementById('addFriendIdInput');
+const addFriendBtn = document.getElementById('addFriendBtn');
+const addFriendStatus = document.getElementById('addFriendStatus');
+
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -3436,6 +3441,99 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         membersListContainer.appendChild(memberItemDiv);
     }
     // TODO: Add event listeners for the new buttons if needed
+}
+
+async function fetchAndDisplayFriends() {
+    if (!auth.currentUser) {
+        console.log("No user logged in, cannot fetch friends.");
+        if (friendsTbody) {
+            friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view your friends.</td></tr>`;
+        }
+        return;
+    }
+
+    if (!friendsTbody) {
+        console.error("JavaScript error: Cannot find the 'friends-tbody' element.");
+        return;
+    }
+
+    friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">Loading friends...</td></tr>`;
+
+    try {
+        const userProfileDocRef = db.collection('userProfiles').doc(auth.currentUser.uid);
+        const userProfileDoc = await userProfileDocRef.get();
+
+        if (userProfileDoc.exists && userProfileDoc.data().friends) {
+            const friendTornIds = userProfileDoc.data().friends;
+            console.log("Friend Torn IDs from user profile:", friendTornIds);
+
+            if (friendTornIds.length === 0) {
+                friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">You have no friends added yet.</td></tr>`;
+                return;
+            }
+
+            const friendPromises = friendTornIds.map(id => db.collection('users').doc(String(id)).get());
+            const friendDocs = await Promise.all(friendPromises);
+
+            let allRowsHtml = '';
+            let friendsFound = 0;
+
+            for (const friendDoc of friendDocs) {
+                if (friendDoc.exists) {
+                    const friend = friendDoc.data();
+                    const tornPlayerId = friendDoc.id; // Document ID is the Torn Player ID
+
+                    // You might need to adjust these field names based on what you actually store in your 'users' collection
+                    const name = friend.name || 'N/A';
+                    const level = friend.level || 'N/A';
+                    const lastAction = friend.last_action ? formatRelativeTime(friend.last_action.timestamp) : 'N/A'; // Assuming formatRelativeTime exists
+                    const status = friend.status ? friend.status.description : 'N/A';
+                    
+                    // Placeholders for stats - You'll need to fetch these from Torn API or store them if needed
+                    const strength = friend.strength || 'N/A'; 
+                    const dexterity = friend.dexterity || 'N/A';
+                    const speed = friend.speed || 'N/A';
+                    const defense = friend.defense || 'N/A';
+                    const nerve = friend.nerve || 'N/A'; // Assuming you meant battle stats here, not actual nerve bar
+                    const energy = friend.energy || 'N/A'; // Assuming you meant battle stats here, not actual energy bar
+                    const revivable = (friend.status && friend.status.state === 'Hospital' && friend.status.description.includes('hospital')) ? 'Yes' : 'No';
+
+                    const profileUrl = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
+
+                    allRowsHtml += `
+                        <tr data-id="${tornPlayerId}">
+                            <td><a href="${profileUrl}" target="_blank">${name} [${tornPlayerId}]</a></td>
+                            <td>${level}</td>
+                            <td>${lastAction}</td>
+                            <td>${status}</td>
+                            <td>${strength}</td>
+                            <td>${dexterity}</td>
+                            <td>${speed}</td>
+                            <td>${defense}</td>
+                            <td>${nerve}</td>
+                            <td>${energy}</td>
+                            <td>${revivable}</td>
+                        </tr>
+                    `;
+                    friendsFound++;
+                } else {
+                    console.warn(`Friend document with ID ${friendDoc.id} does not exist in 'users' collection.`);
+                }
+            }
+
+            if (friendsFound === 0) {
+                friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">No friend data found for your listed friends.</td></tr>`;
+            } else {
+                friendsTbody.innerHTML = allRowsHtml;
+            }
+
+        } else {
+            friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">You have no friends added yet.</td></tr>`;
+        }
+    } catch (error) {
+        console.error("Error fetching or displaying friends:", error);
+        friendsTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">Error loading friends: ${error.message}</td></tr>`;
+    }
 }
 // MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
 async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl) {
