@@ -15,7 +15,8 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error("Firebase Admin initialization error in worker:", error.stack);
-        exports.handler = async (event, context) => { // This redefines handler to always return an error
+        // This worker function should indicate failure if Firebase init fails
+        exports.handler = async (event, context) => {
             return {
                 statusCode: 500,
                 body: JSON.stringify({ message: "Firebase Admin initialization failed in worker. Check FIREBASE_CREDENTIALS_BASE64 env var.", error: error.message }),
@@ -37,8 +38,8 @@ exports.handler = async (event, context) => {
     }
 
     // --- Security Check: Validate the secret header ---
-    const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET;
-    const incomingSecret = event.headers['x-worker-secret'];
+    const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET; // Ensure this env var is set
+    const incomingSecret = event.headers['x-worker-secret']; // Netlify converts header names to lowercase
 
     if (!WORKER_FUNCTION_SECRET || incomingSecret !== WORKER_FUNCTION_SECRET) {
         console.warn("[Worker] Unauthorized access attempt or missing secret header.");
@@ -59,8 +60,7 @@ exports.handler = async (event, context) => {
         };
     }
 
-    // tornProfileId, tornApiKey, and the new isPrivateData flag are passed from the dispatcher
-    const { tornProfileId, tornApiKey, isPrivateData } = requestBody; 
+    const { tornProfileId, tornApiKey } = requestBody;
 
     if (!tornProfileId || !tornApiKey) {
         console.warn("[Worker] Missing tornProfileId or tornApiKey in request body.");
@@ -71,126 +71,70 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        // --- NEW LOGIC: Adjust selections based on isPrivateData flag ---
-        let selections;
-        if (isPrivateData) {
-            // Full selections for users who have linked their own API key
-            selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars,travel"; 
-        } else {
-            // Limited selections for public data only (when using dispatcher's API key)
-            selections = "profile,basic,last_action,status"; // These are generally public selections
-        }
-        // --- END NEW LOGIC ---
+        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
+        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch`;
 
-        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch_${isPrivateData ? 'Private' : 'Public'}`;
-
-        console.log(`[Worker] Fetching ${isPrivateData ? 'private' : 'public'} data for Torn ID: ${tornProfileId} with selections: ${selections}`);
+        console.log(`[Worker] Fetching data for Torn ID: ${tornProfileId}`);
         const response = await fetch(apiUrl);
         const data = await response.json();
 
-        // Debug log for checking exact data from API
-        console.log(`[Worker Debug] Data for ${tornProfileId} (Private: ${isPrivateData}): name: ${data.name}, player_id: ${data.player_id}, last_action:`, data.last_action, `status:`, data.status, `travel:`, data.travel, `energy:`, data.energy, `nerve:`, data.nerve);
-
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : `HTTP error! status: ${response.status} ${response.statusText}`;
-            console.error(`[Worker] Torn API Error for ${tornProfileId} (Private: ${isPrivateData}):`, errorMessage);
+            console.error(`[Worker] Torn API Error for ${tornProfileId}:`, errorMessage);
             return {
                 statusCode: 500,
                 body: JSON.stringify({ message: `Torn API Error for ${tornProfileId}: ${errorMessage}` }),
             };
         }
 
-        // Check if user is currently active (Okay, Traveling, or Hospital)
-        const mainStatusState = data.status?.state;
-        const lastActionRelative = data.last_action?.relative;
-
-        const isUserCurrentlyOnlineOrActive = (
-            (mainStatusState === 'Okay' || mainStatusState === 'Traveling' || mainStatusState === 'Hospital') &&
-            (
-                lastActionRelative === 'Now' ||
-                (lastActionRelative && lastActionRelative.includes('second')) ||
-                (lastActionRelative && lastActionRelative.includes('minute') && parseInt(lastActionRelative.split(' ')[0]) <= 5)
-            )
-        );
-
-        if (!isUserCurrentlyOnlineOrActive) {
-            console.log(`[Worker] Skipping save for ${tornProfileId} (Private: ${isPrivateData}): User is currently inactive (${mainStatusState}, ${lastActionRelative || 'N/A'}).`);
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ message: `Skipped save for ${tornProfileId}: User inactive or in non-tracked status.` }),
-            };
-        }
-
-        // Prepare the data to be saved. Fields will be undefined if not fetched, and fallbacks will handle it.
+        // Prepare the data to be saved (same structure as previous functions)
         const userDataToSave = {
             name: data.name,
-            level: data.level, // Level is in 'profile' which is public
-            // Faction details are in 'profile' and public
-            faction_id: data.faction?.faction_id || null, 
+            level: data.level,
+            faction_id: data.faction?.faction_id || null,
             faction_name: data.faction?.faction_name || null,
-            faction_tag: data.faction?.faction_tag || null, // Added faction tag for potential use
-
-            // These will be present only if isPrivateData is true (from 'bars' selection)
             nerve: data.nerve || {},
             energy: data.energy || {},
             happy: data.happy || {},
             life: data.life || {},
-
-            // These are from 'status' and 'travel' selections (status is public, travel is private)
             traveling: data.status?.state === 'Traveling' || false,
             hospitalized: data.status?.state === 'Hospital' || false,
-            travel: data.travel || {}, // Full travel object is from 'travel' selection (private)
-            
-            // Cooldowns (private)
-            cooldowns: data.cooldowns || {}, 
-
-            // Personal Stats (private)
-            personalstats: data.personalstats || {}, 
-
-            // Battle Stats) - note: public profiles only give basic stats like level, not detailed breakdown
-            battlestats: {
-                strength: data.battlestats?.strength || 0,
-                defense: data.battlestats?.defense || 0,
-                speed: data.battlestats?.speed || 0,
-                dexterity: data.battlestats?.dexterity || 0,
-                total: data.battlestats?.total || 0,
-                // Modifiers are private, so they'll be 0 if not fetched
-                strength_modifier: data.battlestats?.strength_modifier || 0,
-                defense_modifier: data.battlestats?.defense_modifier || 0,
-                speed_modifier: data.battlestats?.speed_modifier || 0,
-                dexterity_modifier: data.battlestats?.dexterity_modifier || 0,
+            cooldowns: {
+                drug: data.cooldowns?.drug || 0,
+                booster: data.cooldowns?.booster || 0,
             },
-            // Work Stats (private)
-            workstats: data.workstats || {}, 
-
-            // Always save last_action and status as they are included in public selections
-            last_action: data.last_action || {}, 
-            status: data.status || {},
-
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp(), // Update timestamp on successful save
-            isPrivateDataFetched: isPrivateData // Store flag if private data was attempted
+            personalstats: data.personalstats || {},
+            battlestats: {
+                strength: data.strength || data.battlestats?.strength || 0,
+                defense: data.defense || data.battlestats?.defense || 0,
+                speed: data.speed || data.battlestats?.speed || 0,
+                dexterity: data.dexterity || data.battlestats?.dexterity || 0,
+                total: data.total || data.battlestats?.total || 0,
+                strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
+                defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
+                speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
+                dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
+            },
+            workstats: {
+                manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
+                intelligence: data.intelligence || data.workstats?.intelligence || 0,
+                endurance: data.endurance || data.workstats?.endurance || 0,
+            },
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        // Determine the Firestore document ID (Name [ID] format)
-        const documentId = `${data.name || 'Unknown'} [${data.player_id}]`;
-        // Use the pure numeric Torn Player ID for the *document path* if a conflict might exist,
-        // but still include the name in the document data for display later.
-        // For consistency and cleaner lookups, we'll revert to numeric ID for document path.
-        // The user wanted the name in the path for display, but that will create dupes.
-        // Let's stick with numeric ID as the actual document ID for now and let the name be a field.
-        // Reverting this decision: User wants Name [ID] in Firestore console, so we use it.
+        // Save to Firestore 'users' collection (using the user's Torn ID as document ID)
+        await db.collection('users').doc(String(tornProfileId)).set(userDataToSave, { merge: true });
 
-        await db.collection('users').doc(documentId).set(userDataToSave, { merge: true });
-
-        console.log(`[Worker] Successfully fetched and saved ${isPrivateData ? 'private' : 'public'} data for Torn ID: ${data.player_id} (Document ID: ${documentId}). User is active/online.`);
+        console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId}`);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: `Data saved successfully for ${data.player_id} (Private Data: ${isPrivateData}).` }),
+            body: JSON.stringify({ message: `Data saved successfully for ${tornProfileId}.` }),
         };
 
     } catch (error) {
-        console.error(`[Worker] Top-level error for ${tornProfileId} (Private: ${isPrivateData}):`, error);
+        console.error(`[Worker] Top-level error for ${tornProfileId}:`, error);
         return {
             statusCode: 500,
             body: JSON.stringify({ message: `Failed to process data for ${tornProfileId}.`, error: error.message }),
