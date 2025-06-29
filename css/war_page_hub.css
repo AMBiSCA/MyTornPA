@@ -1319,17 +1319,14 @@ transition: background-color 0.2s ease;
 
 /* Leader Configuration Section (Tab 4) */
 .config-section {
-    margin-bottom: 0px; /* Existing */
-    padding: 10px; /* Existing */
+    margin-bottom: 0px;
+    padding: 10px;
     border: 1px solid black;
-    border-radius: 8px; /* Existing */
-    background-color: #222; /* Existing */
-    text-align: left; /* Existing */
-
-    display: flex; /* ADDED */
-    flex-direction: column; /* ADDED */
-    align-items: center; /* ADDED */
-    justify-content: space-between;
+    border-radius: 8px;
+    background-color: #222;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
 }
 .war-status-toggles-grid {
     display: grid;
