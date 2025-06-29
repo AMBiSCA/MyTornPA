@@ -1812,6 +1812,10 @@ function switchChatTab(tabName) {
     } else {
         console.error(`No chat panel found for tab: ${tabName}`);
     }
+	
+	 if (tabName === 'friends') {
+        fetchAndDisplayFriends();
+    }
 }
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
@@ -2979,6 +2983,35 @@ function setupEventListeners(apiKey) {
         });
     }
 }
+
+if (addFriendBtn) {
+    addFriendBtn.addEventListener('click', async () => {
+        const friendId = addFriendIdInput.value.trim();
+        if (!friendId) {
+            addFriendStatus.textContent = "Please enter a Torn Player ID.";
+            addFriendStatus.style.color = 'orange';
+            return;
+        }
+
+        if (!auth.currentUser) {
+            addFriendStatus.textContent = "You must be logged in to add friends.";
+            addFriendStatus.style.color = 'red';
+            return;
+        }
+
+        addFriendStatus.textContent = "Adding friend...";
+        addFriendStatus.style.color = 'white';
+
+        try {
+            const userProfileDocRef = db.collection('userProfiles').doc(auth.currentUser.uid);
+            const userProfileDoc = await userProfileDocRef.get();
+            let currentFriends = userProfileDoc.exists && userProfileDoc.data().friends ? userProfileDoc.data().friends : [];
+
+            if (currentFriends.includes(friendId)) {
+                addFriendStatus.textContent = "This player is already in your friends list.";
+                addFriendStatus.style.color = 'orange';
+                return;
+            }
 
 function formatDuration(seconds) {
     if (seconds < 0) seconds = 0;
