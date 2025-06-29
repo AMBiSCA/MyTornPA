@@ -3136,5 +3136,6 @@ autocomplete-items {
 #saveAdminSelectionsBtn,
 #saveWatchlistSelectionsBtn,
 #saveEnergyTrackMembersBtn {
-    margin-top: auto;
+   margin-top: auto;
+   margin-bottom: 10px;
 }
