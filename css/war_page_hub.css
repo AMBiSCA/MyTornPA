@@ -3130,9 +3130,6 @@ autocomplete-items {
     cursor: pointer;
 }
 
-#saveAdminSelectionsBtn,
-#saveWatchlistSelectionsBtn,
-#saveEnergyTrackMembersBtn {
-   margin-top: auto;
-   margin-bottom: 10px;
+.config-section .member-checkbox-list {
+    flex-grow: 1;
 }
