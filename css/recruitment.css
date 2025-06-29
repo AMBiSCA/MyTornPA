@@ -4,7 +4,7 @@
     color: #f0f0f0; /* Light text */
     padding: 10px; /* Consistent padding */
     border-radius: 8px;
-    margin-top: 15px; /* Reverted to 15px as requested */
+    margin-top: 15px; /* Reverted to 15px as requested earlier */
     margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
     margin-left: auto;
     margin-right: auto;
@@ -88,7 +88,7 @@
     gap: 15px; /* Space between elements within a section */
     
     flex: 1;             /* Allows sections to grow and shrink, and occupy equal space */
-    min-width: 450px;    /* Minimum width before wrapping to the next line */
+    min-width: 480px;    /* Adjusted from 450px to 480px to accommodate the new column */
     box-sizing: border-box; /* Include padding and border in width calculation */
 }
 
