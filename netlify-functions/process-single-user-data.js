@@ -147,7 +147,7 @@ exports.handler = async (event, context) => {
             // Personal Stats (private)
             personalstats: data.personalstats || {}, 
 
-            // Battle Stats (private) - note: public profiles only give basic stats like level, not detailed breakdown
+            // Battle Stats) - note: public profiles only give basic stats like level, not detailed breakdown
             battlestats: {
                 strength: data.battlestats?.strength || 0,
                 defense: data.battlestats?.defense || 0,
