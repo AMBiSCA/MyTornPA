@@ -1722,10 +1722,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 
                 // --- Revivable Logic ---
                 const isRevivable = memberTornData.revive_setting || 'N/A';
-                let revivableClass = '';
-                if (isRevivable === 'Everyone') revivableClass = 'revivable-text-green';
-                else if (isRevivable === 'Friends' || isRevivable === 'Faction') revivableClass = 'revivable-text-orange';
-                else if (isRevivable === 'No one') revivableClass = 'revivable-text-red';
+let revivableClass = '';
+
+if (isRevivable === 'Everyone') {
+    revivableClass = 'revivable-text-green';
+} else if (isRevivable === 'Friends & faction') { // <-- CHANGE THIS LINE
+    revivableClass = 'revivable-text-orange';
+} else if (isRevivable === 'No one') {
+    revivableClass = 'revivable-text-red';
                 
                 // --- Return the final HTML row ---
                 return `
