@@ -1926,6 +1926,7 @@ autocomplete-items {
 #friendly-members-table {
     width: 100%; /* Important: Table takes full width of its panel */
     table-layout: fixed; /* Important: Forces columns to respect declared widths */
+	font-weight: bold;
 }
 
 /* Define explicit column wle to prevent overflow */
