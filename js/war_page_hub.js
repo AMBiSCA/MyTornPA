@@ -1652,6 +1652,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 				const statusState = memberTornData.status?.state || '';
 const originalDescription = memberTornData.status?.description || 'N/A';
 let formattedStatus = originalDescription; // Set a default value
+console.log(`STATUS CHECK -> State: '${statusState}', Description: '${originalDescription}'`);
 
 if (statusState === 'Traveling') {
     // Removes "In " from the start of the string
