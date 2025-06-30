@@ -1649,12 +1649,23 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const memberDocRef = db.collection('users').doc(String(memberId));
             memberPromises.push(memberDocRef.get().then(doc => {
                 const memberFirebaseData = doc.exists ? doc.data() : null;
+				const statusState = memberTornData.status?.state || '';
+const originalDescription = memberTornData.status?.description || 'N/A';
+let formattedStatus = originalDescription; // Set a default value
+
+if (statusState === 'Traveling') {
+    // Removes "In " from the start of the string
+    formattedStatus = originalDescription.replace('In ', '');
+} else if (statusState === 'Hospital') {
+    // Extracts the time part and adds "Hospital -"
+    const timePart = originalDescription.split(' for ')[1];
+    formattedStatus = timePart ? `Hospital - ${timePart}` : 'Hospital';
+}
 
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
                 const lastAction = memberTornData.last_action ? memberTornData.last_action.relative : 'N/A';
-                const statusState = memberTornData.status?.state || 'N/A';
-                const statusDescription = memberTornData.status?.description || 'N/A';
+            
                 const position = memberTornData.position || 'N/A';
 
                 // --- CORRECTED LOGIC FOR 'Revivable?' using revive_setting DIRECTLY ---
@@ -1688,7 +1699,7 @@ if (drugCooldownValue > 0) {
                 else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
                 else if (statusState === 'Okay') statusClass = 'status-okay';
 
-                return `
+               return `
     <tr data-id="${memberId}">
         <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
         <td>${position}</td>
@@ -1698,7 +1709,7 @@ if (drugCooldownValue > 0) {
         <td class="${getStatTierClass(dexterity)}">${dexterity}</td>
         <td class="${getStatTierClass(speed)}">${speed}</td>
         <td class="${getStatTierClass(defense)}">${defense}</td>
-        <td class="${statusClass}">${statusDescription}</td>
+        <td class="${statusClass}">${formattedStatus}</td>
         <td>${nerve}</td>
         <td>${energy}</td>
         <td>${drugCooldown}</td>
