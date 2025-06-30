@@ -1654,9 +1654,9 @@ const originalDescription = memberTornData.status?.description || 'N/A';
 let formattedStatus = originalDescription; // Set a default value
 console.log(`STATUS CHECK -> State: '${statusState}', Description: '${originalDescription}'`);
 
-if (statusState === 'Traveling') {
-    // Removes "In " from the start of the string
-    formattedStatus = originalDescription.replace('In ', '');
+if (statusState === 'Traveling' || statusState === 'Abroad') {
+    // Removes "In " or "Traveling to " from the start of the string
+    formattedStatus = originalDescription.replace('In ', '').replace('Traveling to ', '');
 } else if (statusState === 'Hospital') {
     // Extracts the time part and adds "Hospital -"
     const timePart = originalDescription.split(' for ')[1];
