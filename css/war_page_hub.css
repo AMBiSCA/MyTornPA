@@ -3168,9 +3168,9 @@ autocomplete-items {
     color: #4CAF50; /* Green Text for Energy Column */
 }
 
+/* Style for blue 'Abroad' status text */
 .status-abroad {
-    background-color: #42a5f5; /* A clear, pleasant blue */
-    color: #fff;
+    color: #42a5f5; /* A clear, pleasant blue */
 }
 
 #faction-hits-display {
