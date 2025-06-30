@@ -24,6 +24,7 @@ let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previ
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let scrollUpIndicatorEl = null;
+let factionMemberDetailsView = null; // New global variable for the member details view in chat tab
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -373,10 +374,13 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
     });
 }
 
-// NEW: Function to handle switching chat tabs (now hides input area for Settings)
 // MODIFIED FUNCTION: to handle switching chat tabs (now includes Settings tab and passes UID for Blocked People)
 async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
     console.log(`Switching to chat tab: ${tabName}`);
+
+    // Ensure global DOM references are correctly assigned *after* they might be injected by other parts of the script
+    const chatDisplayArea = document.getElementById('chat-display-area'); // Re-get for safety
+    const factionMembersChatContent = document.getElementById('factionMembersChatContent'); // New: Get the main content container for faction members tab
 
     if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
         console.error("Chat elements not found for tab switching.");
@@ -403,118 +407,157 @@ async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
         console.log("Unsubscribed from previous chat listener (tab switch).");
     }
 
-    // --- Clear the main chat display area every time a tab is clicked ---
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = '';
-    } else {
-        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-        return;
-    }
+    // --- Clear the main chat display area (only if it's the general chat area, not the specific tab containers) ---
+    // Instead of clearing chatDisplayArea, we'll hide/show specific content panels within it.
+    // Ensure all internal content areas are initially hidden to prevent overlap.
+    document.querySelectorAll('#chat-display-area > div').forEach(panel => {
+        panel.style.display = 'none'; // Hide all direct children of chat-display-area
+    });
 
     let showInputArea = true; // Default to showing input area for chat tabs
 
     switch (tabName) {
         case 'faction-chat':
-            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
+            // Display messages directly within chatDisplayArea if it's primarily for chat
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex'; // Ensure it's visible as a flex container for chat
+                chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>'; // Clear and set loading for chat
+                // IMPORTANT: If you have a dedicated 'factionChatPanel' div within chat-display-area, target that instead
+                // For now, assuming chatDisplayArea itself is where chat messages go.
+            }
             setupChatRealtimeListener(); // Start listening for messages in faction chat
             break;
 
         case 'war-chat':
-            chatDisplayArea.innerHTML = `<p>Welcome to War Chat! Functionality not implemented yet.</p>`;
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex';
+                chatDisplayArea.innerHTML = `<p>Welcome to War Chat! Functionality not implemented yet.</p>`;
+            }
             break;
 
         case 'private-chat':
-            chatDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex';
+                chatDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            }
             break;
 
         case 'faction-members':
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
-            if (factionApiFullData && factionApiFullData.members) {
-                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
+            if (factionMembersChatContent) { // Ensure the new container for faction members is displayed
+                factionMembersChatContent.style.display = 'flex'; // Show the main container for this tab
+                // Also ensure the list is shown and details are hidden when entering the tab
+                const listContainer = factionMembersChatContent.querySelector('#factionMembersListContainer');
+                const detailsView = factionMembersChatContent.querySelector('#factionMemberDetailsView');
+                if (listContainer) listContainer.style.display = 'block';
+                if (detailsView) detailsView.style.display = 'none';
+
+                // Initial loading message for the list
+                if (listContainer) {
+                    listContainer.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction member data...</p>`;
+                }
+                
+                // Fetch and display members if data is available
+                if (factionApiFullData && factionApiFullData.members) {
+                    displayFactionMembersInChatTab(factionApiFullData.members); // Now needs no target element, as it targets #factionMembersListContainer
+                }
+            } else {
+                console.error("HTML Error: factionMembersChatContent not found.");
             }
             showInputArea = false; // Hide input for non-chat tabs
             break;
 
         case 'recently-met':
-            populateRecentlyMetTab(chatDisplayArea);
+            // Assume recentlyMetDisplayArea is still the target within chat-display-area if you have one
+            // Or if not, we'll re-enable chatDisplayArea itself for this content
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex';
+                populateRecentlyMetTab(chatDisplayArea); // Pass chatDisplayArea as the target
+            }
             showInputArea = false; // Hide input for non-chat tabs
             break;
 
         case 'blocked-people':
-            // Dynamically generate the full Blocked People layout into chatDisplayArea
-            chatDisplayArea.innerHTML = `
-                <div class="blocked-people-layout">
-                    <div class="friends-list-section">
-                        <div class="header-box">
-                            <b>Friends</b>
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex';
+                // Dynamically generate the full Blocked People layout into chatDisplayArea
+                chatDisplayArea.innerHTML = `
+                    <div class="blocked-people-layout">
+                        <div class="friends-list-section">
+                            <div class="header-box">
+                                <b>Friends</b>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div id="friendsScrollableList" class="scrollable-list">
+                                <p style="text-align:center; padding: 10px;">Loading friends...</p>
+                            </div>
                         </div>
-                        <div class="search-bar">
-                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="friendsScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
+
+                        <div class="ignores-list-section">
+                            <div class="header-box">
+                                <b>Ignores / Blocked</b>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <div id="ignoresScrollableList" class="scrollable-list">
+                                <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                            </div>
                         </div>
                     </div>
+                `;
 
-                    <div class="ignores-list-section">
-                        <div class="header-box">
-                            <b>Ignores / Blocked</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="ignoresScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+                // Re-get elements AFTER they are injected into the DOM
+                setTimeout(async () => {
+                    const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
+                    const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
 
-            // Re-get elements AFTER they are injected into the DOM
-            // Add a small delay to ensure the browser has fully parsed the new HTML before looking for elements
-            setTimeout(async () => { // <--- THIS setTimeout CALLBACK IS ASYNC
-                const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-                const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-
-                console.log("[Blocked People Tab Debug] FriendsListEl before call:", dynamicFriendsScrollableList);
-                console.log("[Blocked People Tab Debug] IgnoresListEl before call:", dynamicIgnoresScrollableList);
-
-                const currentUser = auth.currentUser;
-                if (currentUser) {
-                    await populateBlockedPeopleTab(currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList); // <--- Use 'await' here
-                } else {
-                    console.warn("[Blocked People Tab] User not logged in. Cannot load real friends list.");
-                    if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your friends list.</p>`;
-                    if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your ignores list.</p>`;
-                }
-            }, 50); // Small delay of 50 milliseconds
-
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                        await populateBlockedPeopleTab(currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+                    } else {
+                        if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your friends list.</p>`;
+                        if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your ignores list.</p>`;
+                    }
+                }, 50);
+            }
             showInputArea = false; // Hide input for non-chat tabs
             break;
 
         case 'settings':
-            populateSettingsTab(chatDisplayArea);
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex';
+                populateSettingsTab(chatDisplayArea);
+            }
             showInputArea = false;
             break;
 
         default:
             console.warn(`Unknown chat tab: ${tabName}`);
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            if (chatDisplayArea) {
+                chatDisplayArea.style.display = 'flex';
+                chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            }
             showInputArea = false;
             break;
     }
 
     // Control visibility of the separate chat input area
-    if (showInputArea) {
-        if (chatInputArea) chatInputArea.style.display = 'flex';
-    } else {
-        if (chatInputArea) chatInputArea.style.display = 'none';
+    if (chatInputArea) {
+        if (showInputArea) {
+            chatInputArea.style.display = 'flex';
+        } else {
+            chatInputArea.style.display = 'none';
+        }
     }
 
     // Ensure the main chat display area scrolls to bottom after content is injected
-    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+    if (chatDisplayArea) {
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+    }
 }
 // NEW: Helper function to format time remaining from seconds (Moved for proper scope)
 function formatTime(seconds) {
@@ -1769,16 +1812,23 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     }
 }
 
-async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
-    if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for faction members list.");
+async function displayFactionMembersInChatTab(factionMembersApiData) {
+    const membersListContainer = document.getElementById('factionMembersListContainer');
+    factionMemberDetailsView = document.getElementById('factionMemberDetailsView'); // Ensure global ref is set
+
+    if (!membersListContainer || !factionMemberDetailsView) {
+        console.error("HTML Error: Faction members list or details container not found for chat tab.");
         return;
     }
 
-    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
+    // Ensure the list is visible and details are hidden
+    membersListContainer.style.display = 'grid'; // Use grid as per your existing styles
+    factionMemberDetailsView.style.display = 'none';
+
+    membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
 
     if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
-        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
+        membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
         return;
     }
 
@@ -1793,45 +1843,32 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         return a.name.localeCompare(b.name);
     });
 
+    let membersHtml = '';
     const fetchPromises = [];
-
-    const membersListContainer = document.createElement('div');
-    membersListContainer.classList.add('members-list-container');
-    
-    targetDisplayElement.innerHTML = ''; 
-    targetDisplayElement.appendChild(membersListContainer);
 
     for (const member of membersArray) {
         const tornPlayerId = member.id;
         const memberName = member.name;
         const memberRank = member.position;
 
-        const memberItemDiv = document.createElement('div');
-        memberItemDiv.classList.add('member-item');
+        // Construct HTML for each member item. We'll add click listener later.
+        membersHtml += `
+            <div class="member-item" data-member-id="${tornPlayerId}">
+                <span class="member-rank">${memberRank}</span>
+                
+                <div class="member-identity">
+                    <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                    <span class="member-name">${memberName}</span>
+                </div>
 
-        if (memberRank === "Leader" || memberRank === "Co-leader") {
-            memberItemDiv.classList.add('leader-member');
-        }
-
-        // --- THIS IS THE MODIFIED PART ---
-        memberItemDiv.innerHTML = `
-            <span class="member-rank">${memberRank}</span>
-            
-            <div class="member-identity">
-                <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
-                <span class="member-name">${memberName}</span>
-            </div>
-
-            <div class="member-actions">
-                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
-                    👤<span class="plus-sign">+</span>
-                </button>
-                <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+                <div class="member-actions">
+                    <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                        👤<span class="plus-sign">+</span>
+                    </button>
+                    <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+                </div>
             </div>
         `;
-        // --- END MODIFIED PART ---
-
-        membersListContainer.appendChild(memberItemDiv);
 
         fetchPromises.push((async () => {
             try {
@@ -1841,21 +1878,47 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 if (docSnap.exists) {
                     const firebaseMemberData = docSnap.data();
                     const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
-                    if (imgElement) {
-                        imgElement.src = profileImageUrl;
-                    }
+                    // We can't directly update the img src here as membersHtml is a string.
+                    // Instead, we'll update it *after* it's appended to the DOM.
+                    return { id: tornPlayerId, profile_image: profileImageUrl };
                 } else {
                     console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
+                    return { id: tornPlayerId, profile_image: '../../images/default_profile_icon.png' }; // Default if no data
                 }
             } catch (error) {
                 console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
+                return { id: tornPlayerId, profile_image: '../../images/default_profile_icon.png' }; // Default on error
             }
         })());
     }
 
-    await Promise.all(fetchPromises);
+    membersListContainer.innerHTML = membersHtml; // Render all member items
+    await Promise.all(fetchPromises).then(results => {
+        results.forEach(result => {
+            const imgElement = membersListContainer.querySelector(`.member-item[data-member-id="${result.id}"] .member-profile-pic`);
+            if (imgElement) {
+                imgElement.src = result.profile_image;
+            }
+        });
+    });
+
     console.log("Faction members list populated with available profile images from database.");
+
+    // --- ADD EVENT LISTENERS TO MEMBER ITEMS ---
+    const memberItems = membersListContainer.querySelectorAll('.member-item');
+    memberItems.forEach(item => {
+        item.addEventListener('click', async (event) => {
+            const memberId = item.dataset.memberId;
+            if (memberId) {
+                // Hide the list container
+                membersListContainer.style.display = 'none';
+                // Show the details container
+                factionMemberDetailsView.style.display = 'flex'; // Ensure it's displayed as flex for its internal layout
+                // Populate the details
+                await fetchAndDisplayMemberDetails(memberId, factionMemberDetailsView); // Pass the new target element
+            }
+        });
+    });
 }
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {
@@ -1958,17 +2021,16 @@ function switchChatTab(tabName) {
         fetchAndDisplayFriends();
     }
 }
-async function fetchAndDisplayMemberDetails(memberId) {
-    console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
+async function fetchAndDisplayMemberDetails(memberId, targetDisplayElement) { // Now accepts targetDisplayElement
+    console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}" into:`, targetDisplayElement);
 
-    const detailPanel = document.getElementById('selectedMemberDetailPanel');
-    if (!detailPanel) {
-        console.error("HTML Error: Cannot find the detail panel element.");
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for member details.");
         return;
     }
 
-    detailPanel.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
-    detailPanel.classList.add('detail-panel-loaded');
+    targetDisplayElement.innerHTML = `<div class="detail-panel-placeholder"><h4>Loading Details...</h4></div>`;
+    // Note: detail-panel-placeholder might need CSS adjustments if it was too tied to the old friendly-details-panel
 
     let tornApiData = null;
     let apiErrorMessage = '';
@@ -1977,12 +2039,14 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const querySnapshot = await db.collection('userProfiles').where('tornProfileId', '==', memberId).get();
 
         if (querySnapshot.empty) {
-            detailPanel.innerHTML = `
+            targetDisplayElement.innerHTML = `
+                <button class="back-to-list-button">← Back to List</button>
                 <h4>Details Unavailable</h4>
                 <p>This member has not registered on this site, or their Torn ID is not linked in our database.</p>
                 <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
             `;
             console.warn(`[DEBUG] No Firebase userProfile found for Torn ID: ${memberId}.`);
+            setupBackButton(targetDisplayElement); // Set up listener for the back button
             return;
         }
 
@@ -1992,20 +2056,22 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const preferredName = memberDataFromFirebase.preferredName || 'Unknown';
 
         console.log(`[DEBUG] Found Firebase profile for ${preferredName} [${memberId}]. API Key available: ${memberApiKey ? 'Yes' : 'No'}`);
-        console.log(`[DEBUG] Member API Key from Firebase: "${memberApiKey}"`); // Verify the key used
+        console.log(`[DEBUG] Member API Key from Firebase: "${memberApiKey}"`);
 
         if (!memberApiKey) {
-            detailPanel.innerHTML = `
+            targetDisplayElement.innerHTML = `
+                <button class="back-to-list-button">← Back to List</button>
                 <h4>API Key Missing for ${preferredName} [${memberId}]</h4>
                 <p>This member has registered but has not provided their Torn API key (or it's invalid).</p>
                 <p>Cannot fetch detailed stats.</p>
                 <p><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">View Torn Profile (Limited Info)</a></p>
             `;
+            setupBackButton(targetDisplayElement); // Set up listener for the back button
             return;
         }
 
         // Selections for the API call
-        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars'; // Keeping 'bars' to ensure Nerve/Energy are requested if needed from there.
+        const selections = 'profile,personalstats,battlestats,workstats,cooldowns,bars';
         const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections}&key=${memberApiKey}&comment=MyTornPA_MemberDetails`;
 
         console.log(`[DEBUG] Constructed Torn API URL: ${apiUrl}`);
@@ -2043,19 +2109,17 @@ async function fetchAndDisplayMemberDetails(memberId) {
         const jobData = tornApiData.job || {};
         const cooldowns = tornApiData.cooldowns || {};
         
-        // Extract nerve and energy from tornApiData.bars or directly if they appear there (fallback is handled below)
         const barsData = tornApiData.bars || {};
-        const nerve = barsData.nerve || tornApiData.nerve || {}; // Fallback to tornApiData.nerve if not in bars
-        const energy = barsData.energy || tornApiData.energy || {}; // Fallback to tornApiData.energy if not in bars
+        const nerve = barsData.nerve || tornApiData.nerve || {};
+        const energy = barsData.energy || tornApiData.energy || {};
 
-        // Access name, player_id, last_action, status directly from tornApiData (root)
         const memberName = tornApiData.name || 'Unknown';
         const memberPlayerId = tornApiData.player_id || 'N/A';
-        const memberLevel = tornApiData.level || 'N/A'; // Also use level from root
-        const memberProfileImage = tornApiData.profile_image || ''; // Also use profile_image from root
+        const memberLevel = tornApiData.level || 'N/A';
+        const memberProfileImage = tornApiData.profile_image || '';
 
-        const lastActionData = tornApiData.last_action || {}; // This is the object for last_action
-        const mainStatusData = tornApiData.status || {}; // This is the object for the main status (hospital, traveling)
+        const lastActionData = tornApiData.last_action || {};
+        const mainStatusData = tornApiData.status || {};
 
         console.log("[DEBUG] Extracted Profile Data (Root-level values used for Name/ID/Level/Image):", tornApiData.name, tornApiData.player_id, tornApiData.level, tornApiData.profile_image);
         console.log("[DEBUG] Extracted Last Action Data:", lastActionData);
@@ -2128,7 +2192,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
         let statusText = mainStatusData.description || 'Unknown';
         let statusClass = 'status-okay';
 
-        if (mainStatusData) { // Check if mainStatusData is not null/undefined
+        if (mainStatusData) {
             if (mainStatusData.state === 'Hospital') {
                 const timeLeft = mainStatusData.until - Math.floor(Date.now() / 1000);
                 statusText = `In Hospital (${formatTime(timeLeft)})`;
@@ -2151,6 +2215,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
         // --- NEW HTML STRUCTURE FOR PROFESSIONAL LAYOUT ---
         const detailsHtml = `
+            <button class="back-to-list-button">← Back to List</button>
             <div class="member-detail-header">
                 <div class="member-header-top-row">
                     <div class="member-stat-block member-stat-block-small">
@@ -2168,7 +2233,7 @@ async function fetchAndDisplayMemberDetails(memberId) {
 
             ${overallAccessMessage}
 
-            <div class="member-detail-info-row"> 
+            <div class="member-detail-info-row">
                 <p class="member-detail-info-paragraph">Last Action: ${lastActionText}</p>
                 <p class="member-detail-info-paragraph">Status: <span class="${statusClass}">${statusText}</span></p>
             </div>
@@ -2203,11 +2268,15 @@ async function fetchAndDisplayMemberDetails(memberId) {
             </div>
         `;
 
-        detailPanel.innerHTML = detailsHtml;
-
+        targetDisplayElement.innerHTML = detailsHtml;
+        setupBackButton(targetDisplayElement); // Set up listener for the back button
     } catch (error) {
         console.error("Error fetching member details:", error);
-        detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
+        targetDisplayElement.innerHTML = `
+            <button class="back-to-list-button">← Back to List</button>
+            <h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>
+        `;
+        setupBackButton(targetDisplayElement); // Set up listener for the back button
     }
 }
 async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
@@ -3805,6 +3874,27 @@ if (userFactionId) {
     ignoresListEl.innerHTML = ignoresHtml;
 }
 
+// NEW HELPER FUNCTION: Sets up the click listener for the "Back to List" button
+function setupBackButton(detailsContainer) {
+    const backButton = detailsContainer.querySelector('.back-to-list-button');
+    if (backButton) {
+        backButton.addEventListener('click', showMembersList);
+    }
+}
+
+// NEW HELPER FUNCTION: To hide details view and show members list
+function showMembersList() {
+    const membersListContainer = document.getElementById('factionMembersListContainer');
+    const detailsView = document.getElementById('factionMemberDetailsView');
+
+    if (membersListContainer && detailsView) {
+        detailsView.style.display = 'none'; // Hide details
+        membersListContainer.style.display = 'grid'; // Show the list (as grid)
+        // Optionally, clear the details view content to prevent stale data
+        detailsView.innerHTML = '';
+    }
+}
+
 function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
@@ -3818,7 +3908,7 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            displayFriendlyMembersTable(factionApiFullData.members);
+            // displayFriendlyMembersTable(factionApiFullData.members); // This call is now primarily for the Friendly Status TAB table
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -3836,31 +3926,30 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
     if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
 
     populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);      // Uses warData (Firebase)
 
-    // Store enemy faction ID globally (from Firebase warData)
-   // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
-    let determinedEnemyFactionID = null;
-    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
-        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
-        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
-        if (opponentFactionInfo) {
-            determinedEnemyFactionID = opponentFactionInfo.id;
-            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
-        }
-    }
-    // Fallback to manually saved enemy ID if no active ranked war opponent detected
-    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
+    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
+    let determinedEnemyFactionID = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
+        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
+        if (opponentFactionInfo) {
+            determinedEnemyFactionID = opponentFactionInfo.id;
+            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
+        }
+    }
+    // Fallback to manually saved enemy ID if no active ranked war opponent detected
+    globalEnemyFactionID = determinedEnemyEnemyFactionID || warData.enemyFactionID || null;
 
-    // Display enemy targets table using the determined ID
-    if (globalEnemyFactionID) {
-        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-        displayEnemyTargetsTable(null); // Clear the enemy targets table
-    }
+    // Display enemy targets table using the determined ID
+    if (globalEnemyFactionID) {
+        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+        displayEnemyTargetsTable(null); // Clear the enemy targets table
+    }
 }
 //       Also prevents showing the same target pair more than two times in a row.
 async function displayQuickFFTargets(userApiKey, playerId) {
@@ -4218,7 +4307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-                    setupMemberClickEvents(); // <--- **THIS LINE IS NOW CORRECTLY PLACED**
+                   
 
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);

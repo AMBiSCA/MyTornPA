@@ -3235,3 +3235,223 @@ autocomplete-items {
 #friendly-members-table .revivable-text-red {
     color: #d32f2f !important; /* A strong red */
 }
+
+/* --- NEW/MODIFIED: Styles for Faction Members Chat Tab Content --- */
+
+/* This targets the new main container for the Faction Members tab content */
+/* It acts like a regular chat-panel, occupying the full space */
+#factionMembersChatContent {
+    display: flex; /* Initially display as flex to show the list */
+    flex-direction: column; /* Stack its children (list or details) vertically */
+    flex-grow: 1; /* Allow it to fill the available height */
+    overflow-y: auto; /* Allow scrolling for its content if it overflows */
+    padding: 10px; /* Add some padding inside this content area */
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+    /* background-color: #2d3748; /* Optional: A slightly different background for this specific tab content area */
+    /* border-radius: 8px; /* Optional: Match other rounded corners */
+}
+
+/* This is the container for the list of members (inside factionMembersChatContent) */
+#factionMembersListContainer {
+    display: block; /* Ensure it's visible by default when the tab is active */
+    flex-grow: 1; /* Allow it to take available space */
+    /* Inherits styles from .members-list-container if defined globally */
+    /* Add specific padding/margin for this context if needed */
+}
+
+/* This is the container for the Member Details view within the Faction Members tab */
+#factionMemberDetailsView {
+    display: none; /* Crucial: Initially hide the details view */
+    flex-direction: column; /* Stack content vertically */
+    flex-grow: 1; /* Allow it to take available space */
+    padding: 15px; /* Add padding for the details content */
+    background-color: #2a2a2a; /* A slightly different background for the details box */
+    border-radius: 8px; /* Rounded corners for the details box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow scrolling within the details panel */
+    color: #f0f0f0; /* Default text color */
+}
+
+/* Styles for the "Back to List" button */
+.back-to-list-button {
+    background-color: #007bff; /* Blue, matching other action buttons */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px; /* Space below the button */
+    align-self: flex-start; /* Align to the left/start of the flex container */
+    transition: background-color 0.2s ease;
+}
+
+.back-to-list-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Re-apply some specific styles for member details elements
+   that were originally designed for the old 'detail-panel-placeholder' */
+.member-detail-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.member-header-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.member-detail-profile-image {
+    width: 64px; /* Larger profile image for details */
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #00a8ff; /* Blue border */
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Blue glow */
+}
+
+.member-detail-name-id {
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #e0a71a; /* Gold color for name */
+    text-align: center;
+}
+
+.member-detail-info-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #444;
+}
+
+.member-detail-info-paragraph {
+    margin: 0;
+    color: #f0f0f0;
+    font-size: 0.95em;
+}
+
+.member-stats-group-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid for stat blocks */
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.member-stat-block {
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Ensure blocks take full height in grid */
+}
+
+.member-stat-block h5 {
+    color: #00a8ff; /* Blue for stat block headers */
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.member-stats-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label then value */
+    gap: 5px 10px;
+    font-size: 0.9em;
+    flex-grow: 1; /* Allow grid to fill space within block */
+}
+
+.member-stats-grid span:nth-child(odd) {
+    font-weight: bold;
+    color: #e0a71a; /* Gold for labels */
+    text-align: right;
+}
+
+.member-stats-grid span:nth-child(even) {
+    color: #f0f0f0;
+    text-align: left;
+}
+
+.sub-detail {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-left: 5px;
+}
+
+.member-cooldowns-block {
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin-top: 15px; /* Space from stats blocks */
+}
+
+.member-cooldowns-block h5 {
+    color: #00a8ff;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.member-cooldowns-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid; /* Use grid for cooldowns list */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Try 2-3 columns */
+    gap: 8px 15px; /* Vertical and horizontal gap */
+}
+
+.member-cooldowns-list li {
+    background-color: #1a1a1a;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-cooldowns-list li strong {
+    color: #e0a71a; /* Gold for cooldown names */
+}
+
+.member-detail-error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Adjustments for smaller screens (media queries) */
+@media (max-width: 768px) {
+    .member-header-top-row {
+        flex-direction: column; /* Stack elements in header on small screens */
+        gap: 5px;
+    }
+    .member-stat-block.member-stat-block-small {
+        margin-top: 10px; /* Add some space when stacked */
+    }
+    .member-stats-group-row {
+        grid-template-columns: 1fr; /* Stack stat blocks vertically */
+    }
+    .member-cooldowns-list {
+        grid-template-columns: 1fr; /* Stack cooldowns vertically */
+    }
+}
