@@ -1448,6 +1448,7 @@ function formatRelativeTime(timestampInSeconds) {
 
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
+	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
     // These are the HTML elements we created earlier
     const tcHitsElement = document.getElementById('tc-hits-value');
     const abroadHitsElement = document.getElementById('abroad-hits-value');
@@ -4025,163 +4026,17 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
-    // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const targetTabDataset = event.currentTarget.dataset.tab;
-            const targetTabId = targetTabDataset + '-tab';
-
-            showTab(targetTabId);
-
-            if (targetTabDataset === 'friendly-status') {
-                const user = firebase.auth().currentUser;
-                if (user && userApiKey) {
-                    await updateFriendlyMembersTable(userApiKey, user.uid);
-                } else {
-                    console.warn("User not logged in or API Key missing. Cannot update friendly members table.");
-                    const tbody = document.getElementById('friendly-members-tbody');
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
-                    }
-                }
-            }
-        });
-    });
-    showTab('announcements-tab'); // Sets initial tab to announcements
-    let listenersInitialized = false;
-
-    // Chat Tab Functionality Elements and Handler (unchanged, for completeness)
-    const chatTabsContainer = document.querySelector('.chat-tabs-container');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox');
-    const chatDisplayArea = document.getElementById('chat-display-area');
-    const chatInputArea = document.querySelector('.chat-input-area');
-
-    function handleChatTabClick(event) {
-        const clickedTab = event.currentTarget;
-        const targetTab = clickedTab.dataset.chatTab;
-
-        console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
-
-        chatTabButtons.forEach(button => {
-            button.classList.remove('active');
-        });
-        clickedTab.classList.add('active');
-
-        if (chatDisplayArea) {
-            chatDisplayArea.innerHTML = '';
-        } else {
-            console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-            return;
-        }
-
-        if (unsubscribeFromChat) {
-            unsubscribeFromChat();
-            unsubscribeFromChat = null;
-            console.log("Unsubscribed from previous chat listener (tab switch).");
-        }
-
-        let showInputArea = true;
-
-        switch (targetTab) {
-            case 'faction-chat':
-                chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
-                setupChatRealtimeListener();
-                break;
-
-            case 'war-chat':
-                chatDisplayArea.innerHTML = `
-                    <p>Welcome to War Chat!</p>
-                    <p>Functionality not implemented yet for this dynamic tab.</p>
-                `;
-                break;
-
-            case 'private-chat':
-                chatDisplayArea.innerHTML = `
-                    <p>Welcome to Private Chat!</p>
-                    <p>Functionality not implemented yet for this dynamic tab.</p>
-                `;
-                break;
-
-            case 'faction-members':
-                chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
-                if (factionApiFullData && factionApiFullData.members) {
-                    displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
-                }
-                showInputArea = false;
-                break;
-
-            case 'recently-met':
-                populateRecentlyMetTab(chatDisplayArea);
-                showInputArea = false;
-                break;
-
-            case 'blocked-people':
-                chatDisplayArea.innerHTML = `
-                    <div class="blocked-people-layout">
-                        <div class="friends-list-section">
-                            <div class="header-box">
-                                <b>Friends</b>
-                            </div>
-                            <div class="search-bar">
-                                <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                                <span class="search-icon">🔍</span>
-                            </div>
-                            <div id="friendsScrollableList" class="scrollable-list">
-                                <p style="text-align:center; padding: 10px;">Loading friends...</p>
-                            </div>
-                        </div>
-
-                        <div class="ignores-list-section">
-                            <div class="header-box">
-                                <b>Ignores / Blocked</b>
-                            </div>
-                            <div class="search-bar">
-                                <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                                <span class="search-icon">🔍</span>
-                            </div>
-                            <div id="ignoresScrollableList" class="scrollable-list">
-                                <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-                const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-                populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
-
-                showInputArea = false;
-                break;
-
-            case 'settings':
-                populateSettingsTab(chatDisplayArea);
-                showInputArea = false;
-                break;
-
-            default:
-                console.warn(`Unknown chat tab: ${targetTab}`);
-                chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-                showInputArea = false;
-                break;
-        }
-
-        if (showInputArea) {
-            if (chatInputArea) chatInputArea.style.display = 'flex';
-        } else {
-            if (chatInputArea) chatInputArea.style.display = 'none';
-        }
-
-        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-    }
+    // ... (existing tab navigation setup) ...
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
+
+            // This console log will show globalYourFactionID BEFORE initializeAndLoadData
+            // At this point, it might still be null or an old value.
+            console.log("Global Your Faction ID (before initializeAndLoadData):", globalYourFactionID); // LINE 1 for console output
 
             const apiKey = userData.tornApiKey || null;
             const playerId = userData.tornProfileId || null;
@@ -4200,26 +4055,31 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKey && playerId) {
                 userApiKey = apiKey;
 
-                await initializeAndLoadData(apiKey, userData.faction_id); // Populates factionApiFullData
-                
+                // IMPORTANT: This call populates globalYourFactionID
+                await initializeAndLoadData(apiKey, userData.faction_id); 
+
+                // This console log will show globalYourFactionID AFTER it's potentially populated
+                console.log("Global Your Faction ID (after initializeAndLoadData):", globalYourFactionID); // LINE 2 for console output
 
                 // Ensure global DOM references are assigned after HTML injection
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+                let userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Ensure these are declared if not global already
+                let onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+                let onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
 
                 // Initial calls for all dynamic ops panel displays
-                // These functions run immediately upon successful authentication and API key availability.
                 updateUserEnergyDisplay();
                 updateOnlineMemberCounts();
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
-                setupChatRealtimeListener();
+
+                // --- CRITICAL CHANGE: Pass db and globalYourFactionID to the listener ---
+                setupFactionHitsListener(db, globalYourFactionID); // LINE 3 - The corrected function call
+                // --- END CRITICAL CHANGE ---
 
                 // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-                    setupMemberClickEvents(); // <--- **THIS LINE IS NOW CORRECTLY PLACED**
+                    setupMemberClickEvents();
 
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
@@ -4242,7 +4102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
                     }, 1500); // Every 1.5 seconds
-					
+                    
                     setInterval(() => {
                         if(userApiKey && globalYourFactionID) {
                             updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
@@ -4276,6 +4136,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
                 }
                 // Ensure all dynamic ops panel displays are N/A if API key/player ID is missing
+                let userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Also declare here if not global
+                let onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+                let onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
                 if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
                 if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
                 if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
@@ -4287,9 +4150,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
             // Ensure all dynamic ops panel displays are N/A if user not logged in
+            let userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Also declare here if not global
+            let onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+            let onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
             if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
             if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
             if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
         }
     });
 });
+
+// And also add this console.log inside the function itself:
+function setupFactionHitsListener(db, factionId) {
+    console.log("setupFactionHitsListener called with factionId:", factionId); // LINE 4 for console output
+    // ... rest of your function ...
+}
