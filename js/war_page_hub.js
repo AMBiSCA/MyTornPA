@@ -1447,7 +1447,7 @@ function formatRelativeTime(timestampInSeconds) {
 
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
-	
+    // These are the HTML elements we created earlier
     const tcHitsElement = document.getElementById('tc-hits-value');
     const abroadHitsElement = document.getElementById('abroad-hits-value');
 
@@ -1782,7 +1782,7 @@ if (statusState === 'Hospital') {
         <td>${nerve}</td>
         <td>${energy}</td>
         <td class="${drugCooldownClass}">${drugCooldown}</td>
-        <td class="${revivableClass}">${isRevivable}</td>
+        <td>${isRevivable}</td>
     </tr>
 `;
             }).catch(error => {
@@ -1795,16 +1795,30 @@ if (statusState === 'Hospital') {
 
                 // --- CORRECTED LOGIC FOR 'Revivable?' in error fallback DIRECTLY ---
                 const isRevivable = memberTornData.revive_setting || 'N/A';
-				// Logic for Revivable Column Text Color
-let revivableClass = '';
-if (isRevivable === 'Everyone') {
-    revivableClass = 'revivable-text-green';
-} else if (isRevivable === 'Friends' || isRevivable === 'Faction') {
-    revivableClass = 'revivable-text-orange';
-} else if (isRevivable === 'No one') {
-    revivableClass = 'revivable-text-red';
-}
-               
+                // --- END CORRECTED LOGIC ---
+
+                let statusClass = '';
+                if (statusState === 'Hospital') statusClass = 'status-hospital';
+                else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
+                else if (statusState === 'Okay') statusClass = 'status-okay';
+
+                return `
+                    <tr data-id="${memberId}">
+                        <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                        <td>${position}</td>
+                        <td>${level}</td>
+                        <td>${lastAction}</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td class="${statusClass}">${statusDescription}</td>
+                        <td>${isRevivable}</td>
+                    </tr>
+                `;
+            }));
+        }
+
         const resolvedRows = await Promise.all(memberPromises);
         tableRowsHtml = resolvedRows.join('');
         tbody.innerHTML = tableRowsHtml;
@@ -1814,6 +1828,9 @@ if (isRevivable === 'Everyone') {
         tbody.innerHTML = `<p style="color:red;">Error loading faction list: ${error.message || String(error)}.</p>`;
     }
 }
+
+
+
 
 
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
