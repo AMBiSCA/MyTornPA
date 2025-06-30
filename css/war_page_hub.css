@@ -3200,13 +3200,11 @@ autocomplete-items {
     font-weight: bold;
 }
 
-/* --- Nerve and Energy Column Colors --- */
-#friendly-members-table td:nth-child(10) {
-    background-color: #d32f2f; /* Red for Nerve Column */
-    color: #fff;
+/* --- Nerve and Energy Column Text Colors --- */
+#friendly-members-table td:nth-child(9) {
+    color: #d32f2f; /* Red Text for Nerve Column */
 }
 
-#friendly-members-table td:nth-child(11) {
-    background-color: #4CAF50; /* Green for Energy Column */
-    color: #fff;
+#friendly-members-table td:nth-child(10) {
+    color: #4CAF50; /* Green Text for Energy Column */
 }

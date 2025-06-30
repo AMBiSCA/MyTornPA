@@ -1757,7 +1757,6 @@ if (drugCooldownValue > 0) {
                return `
     <tr data-id="${memberId}">
         <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
-        <td>${position}</td>
         <td>${level}</td>
         <td>${lastAction}</td>
         <td class="${getStatTierClass(strength)}">${strength}</td>
