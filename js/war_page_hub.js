@@ -1668,6 +1668,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
             const memberDocRef = db.collection('users').doc(String(memberId));
             return memberDocRef.get().then(doc => {
+				console.log('MEMBER DATA:', memberTornData);
                 const memberFirebaseData = doc.exists ? doc.data() : {};
 
                 // --- Define all variables ---
