@@ -1919,7 +1919,7 @@ autocomplete-items {
     display: flex;
     flex-direction: column;
     flex: 1; /* This panel will take one unit of space */
-    min-width: 250px; /* Minimum width for the details panel */
+    min-width: 100px; /* Minimum width for the details panel */
 }
 
 /* Ensure the friendly members table fits its container */

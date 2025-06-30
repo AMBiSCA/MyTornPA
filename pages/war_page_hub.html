@@ -7,8 +7,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <link rel="stylesheet" href="../../css/global.css">
@@ -253,6 +253,12 @@
                                         <span class="icon">⬆️</span> Scroll Up for More Messages <span class="icon">⬆️</span>
                                     </div>
                                     <div id="chat-display-area" class="chat-display-area">
+                                        <div id="factionMembersChatContent" class="chat-panel">
+                                            <div id="factionMembersListContainer" class="members-list-container">
+                                                </div>
+                                            <div id="factionMemberDetailsView" class="member-detail-container" style="display: none;">
+                                                </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="chat-input-area">
@@ -301,7 +307,7 @@
                                 <table class="enemy-targets-table" id="friendly-members-table">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>                                    
+                                            <th>Name</th>
                                             <th>Level</th>
                                             <th>Last Action</th>
                                             <th>Strength</th>
@@ -319,14 +325,7 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="friendly-details-panel">
-                            <div id="selectedMemberDetailPanel" class="detail-panel-placeholder">
-                                <h4>Member Details</h4>
-                                <div class="detail-panel-icon">👤</div>
-                                <p><i>Select a member on the left to view their details.</i></p>
-                            </div>
                         </div>
-                    </div>
                 </div>
 
                 <div id="leader-config-tab" class="tab-pane">
