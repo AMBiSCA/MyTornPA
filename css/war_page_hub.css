@@ -1982,6 +1982,7 @@ autocomplete-items {
     background-color: #222; /* Match surrounding control items */
     box-sizing: border-box;
     white-space: nowrap; /* Prevent wrapping of contents if possible */
+    position: relative; /* ADD THIS LINE */
 }
 .faction-versus-section {
     display: flex;
@@ -3177,4 +3178,44 @@ autocomplete-items {
 .stat-tier-6 {
     background-color: #b71c1c; /* Dark Red */
     color: #fff;
+}
+
+#faction-hits-display {
+    /* This pulls the box out of the layout so it doesn't affect other elements */
+    position: absolute;
+    left: 34%; /* You can adjust this percentage to move it left or right */
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    /* Styling to match your theme */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 6px;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column; /* This stacks the 'TC' and 'Abroad' rows vertically */
+    gap: 4px; /* This is the space between the two rows */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.hits-row {
+    display: flex;
+    justify-content: space-between; /* Pushes the label to the left and the value to the right */
+    align-items: center;
+    gap: 15px; /* This is the space between the label and the value */
+}
+
+.hits-label {
+    color: #e0a71a; /* Gold color from your theme's labels */
+    font-size: 0.8em;
+    font-weight: bold;
+    white-space: nowrap; /* Prevents the text from wrapping to a new line */
+}
+
+/* We use a more specific selector here to avoid changing other numbers */
+#faction-hits-display .hits-value {
+    color: #00a8ff; /* Blue highlight color from your theme */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    font-weight: bold;
 }
