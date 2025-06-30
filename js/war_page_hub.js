@@ -1782,10 +1782,10 @@ if (statusState === 'Hospital') {
         <td>${nerve}</td>
         <td>${energy}</td>
         <td class="${drugCooldownClass}">${drugCooldown}</td>
-        <td>${isRevivable}</td>
+        <td class="${revivableClass}">${isRevivable}</td>
     </tr>
 `;
-            }).catch(error => {
+       }).catch(error => {
                 console.error(`Error fetching Firebase data for member ${memberId}:`, error);
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
