@@ -1721,14 +1721,21 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 }
                 
                 // --- Revivable Logic ---
-                const isRevivable = memberTornData.revive_setting || 'N/A';
+                // MODIFICATION HERE: Trim the string before comparison
+                const isRevivable = (memberTornData.revive_setting || '').trim(); // Ensure it's a string and trim whitespace
                 let revivableClass = '';
-                if (isRevivable === 'Everyone') revivableClass = 'revivable-text-green';
-                else if (isRevivable === 'Friends' || isRevivable === 'Faction') revivableClass = 'revivable-text-orange';
-                else if (isRevivable === 'No one') revivableClass = 'revivable-text-red';
-				
-				console.log('Member ID:', memberId, 'isRevivable:', isRevivable, 'Generated class:', revivableClass); // <--- ADD THIS LINE
+
+                if (isRevivable === 'Everyone') {
+                    revivableClass = 'revivable-text-green';
+                } else if (isRevivable === 'Friends & faction') { // Confirm this exact string including spaces and &
+                    revivableClass = 'revivable-text-orange';
+                } else if (isRevivable === 'No one') {
+                    revivableClass = 'revivable-text-red';
+                }
                 
+                // Add console.log here to re-confirm output
+                console.log('Member ID:', memberId, 'isRevivable (trimmed):', `"${isRevivable}"`, 'Generated class:', `"${revivableClass}"`);
+
                 // --- Return the final HTML row ---
                 return `
                     <tr data-id="${memberId}">
