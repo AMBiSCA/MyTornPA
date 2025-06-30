@@ -3159,30 +3159,9 @@ autocomplete-items {
     margin-bottom: 80px;
 }
 
-/* --- Battlestat Tier Colors (Monochromatic Red) --- */
-.stat-tier-1 {
-    background-color: #ffebee; /* Very Light Red */
-    color: #000;
-}
-.stat-tier-3 {
-    background-color: #ffcdd2; /* Light Red */
-    color: #000;
-}
-.stat-tier-4 {
-    background-color: #ef9a9a; /* Medium Red */
-    color: #000;
-}
-.stat-tier-5 {
-    background-color: #e53935; /* Strong Red */
-    color: #fff;
-}
-.stat-tier-6 {
-    background-color: #b71c1c; /* Dark Red */
-    color: #fff;
-}
 
 #faction-hits-display {
-    /* This pulls the box out of the layout so it doesn't affect other elements */
+    /* This pulls the box out of the layout so it doesn't   i have 5 tier!! colours availbalbe if i want it!!!! affect other elements */   
     position: absolute;
     left: 34%; /* You can adjust this percentage to move it left or right */
     top: 50%;
