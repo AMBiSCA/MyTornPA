@@ -3208,3 +3208,8 @@ autocomplete-items {
 #friendly-members-table td:nth-child(10) {
     color: #4CAF50; /* Green Text for Energy Column */
 }
+
+.status-abroad {
+    background-color: #42a5f5; /* A clear, pleasant blue */
+    color: #fff;
+}
