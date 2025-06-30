@@ -3159,47 +3159,6 @@ autocomplete-items {
     margin-bottom: 80px;
 }
 
-
-#faction-hits-display {
-    /* This pulls the box out of the layout so it doesn't   i have 5 tier!! colours availbalbe if i want it!!!! affect other elements */   
-    position: absolute;
-    left: 34%; /* You can adjust this percentage to move it left or right */
-    top: 50%;
-    transform: translate(-50%, -50%);
-
-    /* Styling to match your theme */
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 6px;
-    padding: 5px 10px;
-    display: flex;
-    flex-direction: column; /* This stacks the 'TC' and 'Abroad' rows vertically */
-    gap: 4px; /* This is the space between the two rows */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.hits-row {
-    display: flex;
-    justify-content: space-between; /* Pushes the label to the left and the value to the right */
-    align-items: center;
-    gap: 15px; /* This is the space between the label and the value */
-}
-
-.hits-label {
-    color: #e0a71a; /* Gold color from your theme's labels */
-    font-size: 0.8em;
-    font-weight: bold;
-    white-space: nowrap; /* Prevents the text from wrapping to a new line */
-}
-
-/* We use a more specific selector here to avoid changing other numbers */
-#faction-hits-display .hits-value {
-    color: #00a8ff; /* Blue highlight color from your theme */
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1.1em;
-    font-weight: bold;
-}
-
 /* --- Nerve and Energy Column Text Colors --- */
 #friendly-members-table td:nth-child(9) {
     color: #d32f2f; /* Red Text for Nerve Column */
@@ -3212,4 +3171,41 @@ autocomplete-items {
 .status-abroad {
     background-color: #42a5f5; /* A clear, pleasant blue */
     color: #fff;
+}
+
+#faction-hits-display {
+    /* Basic box styling to match your theme */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 6px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+
+    /* These lines make it fit correctly in the grid */
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Makes the box fill the height of its grid cell */
+    justify-content: center; /* Centers the content vertically */
+    gap: 4px; /* Space between the rows */
+}
+
+.hits-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.hits-label {
+    color: #e0a71a;
+    font-size: 0.8em;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+#faction-hits-display .hits-value {
+    color: #00a8ff;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    font-weight: bold;
 }
