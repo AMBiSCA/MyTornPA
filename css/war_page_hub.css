@@ -3159,18 +3159,22 @@ autocomplete-items {
     margin-bottom: 80px;
 }
 
+.enemy-targets-table .status-okay {
+    color: white; /* Green for okay status */
+}
+
 /* --- Nerve and Energy Column Text Colors --- */
 #friendly-members-table td:nth-child(9) {
     color: #d32f2f; /* Red Text for Nerve Column */
 }
 
 #friendly-members-table td:nth-child(10) {
-    color: white; /* Green Text for Energy Column */
+    color: #28a745; /* Green Text for Energy Column */
 }
 
 /* Style for blue 'Abroad' status text */
 .status-abroad {
-    color: #42a5f5; /* A clear, pleasant blue */
+    color: #42a5f5 !important; /* A clear, pleasant blue */
 }
 
 #faction-hits-display {
