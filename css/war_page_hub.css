@@ -3210,15 +3210,16 @@ autocomplete-items {
     font-weight: bold;
 }
 
-/* --- Revivable Column Text Colors --- */
-.revivable-text-green {
-    color: #4CAF50; /* A vibrant green */
+/* --- Revivable Column Text Colors (Adjusted for Specificity) --- */
+/* Target the classes directly on table data cells within the friendly-members-table */
+#friendly-members-table .revivable-text-green {
+    color: #4CAF50 !important; /* A vibrant green */
 }
 
-.revivable-text-orange {
-    color: #ff9800; /* A clear orange */
+#friendly-members-table .revivable-text-orange {
+    color: #ff9800 !important; /* A clear orange */
 }
 
-.revivable-text-red {
-    color: #d32f2f; /* A strong red */
+#friendly-members-table .revivable-text-red {
+    color: #d32f2f !important; /* A strong red */
 }
