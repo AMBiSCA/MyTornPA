@@ -1198,13 +1198,15 @@ transition: background-color 0.2s ease;
 }
 
 /* --- Sizing for the Main Panels (2-to-1 ratio) --- */
-#friendly-status-tab .active-ops-left-panel {
-    flex: 2; 
-}
-#friendly-status-tab .active-ops-right-panel {
-    flex: 1;
+#friendly-status-tab .friendly-members-panel {
+    flex: 2;
+    min-width: 750px; /* INCREASE THIS: Give the table more horizontal space */
 }
 
+#friendly-status-tab .friendly-details-panel {
+    flex: 1;
+    min-width: 250px;
+}
 /* --- Styling for Table & Placeholder Containers --- */
 #friendlyMembersListContainer {
     background-color: #222;
@@ -1216,10 +1218,11 @@ transition: background-color 0.2s ease;
     flex-direction: column;
 }
 
-#friendly-members-table {
-    flex-grow: 1;
+##friendly-members-table {
+    width: 100%; /* Important: Table takes full width of its panel */
+    table-layout: fixed; /* Important: Forces columns to respect declared widths */
+    font-weight: bold;
 }
-
 /* --- Placeholder for Member Details (Right Panel) --- */
 .detail-panel-placeholder { /* Using the new professional name */
     padding: 20px;
@@ -1929,32 +1932,30 @@ autocomplete-items {
 	font-weight: bold;
 }
 
-/* Define explicit column wle to prevent overflow */
-/* Adjusted based on your request: Revivable (Status), Level, Position, Name */
 #friendly-members-table thead th:nth-child(1),
-#friendly-members-table tbody td:nth-child(1) { width: 12%; } /* Name */
+#friendly-members-table tbody td:nth-child(1) { width: 14%; } /* Name - increased */
 #friendly-members-table thead th:nth-child(2),
-#friendly-members-table tbody td:nth-child(2) { width: 7%; }  /* Position */
+#friendly-members-table tbody td:nth-child(2) { width: 5%; }  /* Level - slightly reduced */
 #friendly-members-table thead th:nth-child(3),
-#friendly-members-table tbody td:nth-child(3) { width: 5%; }  /* Level */
+#friendly-members-table tbody td:nth-child(3) { width: 12%; } /* Last Action - same as your comment */
 #friendly-members-table thead th:nth-child(4),
-#friendly-members-table tbody td:nth-child(4) { width: 12%; } /* Last Action */
+#friendly-members-table tbody td:nth-child(4) { width: 8%; }  /* Strength - slightly reduced */
 #friendly-members-table thead th:nth-child(5),
-#friendly-members-table tbody td:nth-child(5) { width: 9%; }  /* Strength */
+#friendly-members-table tbody td:nth-child(5) { width: 8%; }  /* Dexterity - slightly reduced */
 #friendly-members-table thead th:nth-child(6),
-#friendly-members-table tbody td:nth-child(6) { width: 9%; }  /* Dexterity */
+#friendly-members-table tbody td:nth-child(6) { width: 8%; }  /* Speed - slightly reduced */
 #friendly-members-table thead th:nth-child(7),
-#friendly-members-table tbody td:nth-child(7) { width: 9%; }  /* Speed */
+#friendly-members-table tbody td:nth-child(7) { width: 8%; }  /* Defense - slightly reduced */
 #friendly-members-table thead th:nth-child(8),
-#friendly-members-table tbody td:nth-child(8) { width: 9%; }  /* Defense */
+#friendly-members-table tbody td:nth-child(8) { width: 10%; } /* Status - keep same or slightly increase */
 #friendly-members-table thead th:nth-child(9),
-#friendly-members-table tbody td:nth-child(9) { width: 10%; } /* Status */
+#friendly-members-table tbody td:nth-child(9) { width: 7%; }  /* Nerve - same */
 #friendly-members-table thead th:nth-child(10),
-#friendly-members-table tbody td:nth-child(10) { width: 7%; } /* Nerve */
+#friendly-members-table tbody td:nth-child(10) { width: 7%; } /* Energy - same */
 #friendly-members-table thead th:nth-child(11),
-#friendly-members-table tbody td:nth-child(11) { width: 7%; } /* Energy */
+#friendly-members-table tbody td:nth-child(11) { width: 8%; } /* Drug C/D - increased */
 #friendly-members-table thead th:nth-child(12),
-#friendly-members-table tbody td:nth-child(12) { width: 4%; } /* Revivable? */
+#friendly-members-table tbody td:nth-child(12) { width: 5%; } /* Revivable? - increased */
 
 /* Responsive adjustments for Friendly Status tab layout */
 @media (max-width: 992px) {
@@ -3172,10 +3173,18 @@ autocomplete-items {
     color: #28a745; /* Green Text for Energy Column */
 }
 
-/* Style for blue 'Abroad' status text */
-.status-abroad {
-    color: #42a5f5 !important; /* A clear, pleasant blue */
+#friendly-members-table tbody td.status-other {
+    color: #ffb86c !important; /* Orange for other states like Jail/Federal */
 }
+
+#friendly-members-table tbody td.status-okay {
+    color: #28a745 !important;
+}
+
+#friendly-members-table tbody td.status-abroad {
+    color: #17a2b8 !important; /* A clear, pleasant blue for 'Abroad' */
+}
+
 
 #faction-hits-display {
     /* Basic box styling to match your theme */
