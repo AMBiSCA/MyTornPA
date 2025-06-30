@@ -1658,19 +1658,21 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 else if (statusState === 'Okay') statusClass = 'status-okay';
 
                 return `
-                    <tr data-id="${memberId}">
-                        <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
-                        <td>${position}</td>
-                        <td>${level}</td>
-                        <td>${lastAction}</td>
-                        <td>${strength}</td>
-                        <td>${dexterity}</td>
-                        <td>${speed}</td>
-                        <td>${defense}</td>
-                        <td class="${statusClass}">${statusDescription}</td>
-                        <td>${isRevivable}</td>
-                    </tr>
-                `;
+    <tr data-id="${memberId}">
+        <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+        <td>${position}</td>
+        <td>${level}</td>
+        <td>${lastAction}</td>
+        <td>${strength}</td>
+        <td>${dexterity}</td>
+        <td>${speed}</td>
+        <td>${defense}</td>
+        <td class="${statusClass}">${statusDescription}</td>
+        <td>${nerve}</td>
+        <td>${energy}</td>
+        <td>${isRevivable}</td>
+    </tr>
+`;
             }).catch(error => {
                 console.error(`Error fetching Firebase data for member ${memberId}:`, error);
                 const name = memberTornData.name || 'Unknown';
