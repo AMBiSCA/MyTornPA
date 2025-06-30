@@ -1734,20 +1734,29 @@ if (statusState === 'Traveling' || statusState === 'Abroad') {
                 const nerve = `${memberFirebaseData?.nerve?.current ?? 'N/A'} / ${memberFirebaseData?.nerve?.maximum ?? 'N/A'}`;
                 const energy = `${memberFirebaseData?.energy?.current ?? 'N/A'} / ${memberFirebaseData?.energy?.maximum ?? 'N/A'}`;
                 const drugCooldownValue = memberFirebaseData?.cooldowns?.drug ?? 0;
-let drugCooldown = 'None';
+let drugCooldown;
+let drugCooldownClass = '';
+
 if (drugCooldownValue > 0) {
+    // Format the time
     const hours = Math.floor(drugCooldownValue / 3600);
     const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-    
     const hourText = hours > 0 ? `${hours}hr` : '';
     const minuteText = minutes > 0 ? `${minutes}m` : '';
-    
     drugCooldown = `${hourText} ${minuteText}`.trim();
+    if (drugCooldown === '') drugCooldown = '<1m';
 
-    // If the cooldown is less than a minute, show <1m
-    if (drugCooldown === '') {
-        drugCooldown = '<1m';
+    // Set background color class based on time
+    if (drugCooldownValue > 18000) { // Over 5 hours
+        drugCooldownClass = 'status-hospital'; // Red
+    } else if (drugCooldownValue > 7200) { // Over 2 hours
+        drugCooldownClass = 'status-other'; // Orange
+    } else { // Under 2 hours
+        drugCooldownClass = 'status-okay'; // Green
     }
+} else {
+    drugCooldown = 'None 🍁'; // Use Maple Leaf emoji when cooldown is zero
+    drugCooldownClass = 'status-okay'; // Make background green for 'ready' status
 }
 			   let statusClass = '';
                 if (statusState === 'Hospital') statusClass = 'status-hospital';
@@ -1766,7 +1775,7 @@ if (drugCooldownValue > 0) {
         <td class="${statusClass}">${formattedStatus}</td>
         <td>${nerve}</td>
         <td>${energy}</td>
-        <td>${drugCooldown}</td>
+        <td class="${drugCooldownClass}">${drugCooldown}</td>
         <td>${isRevivable}</td>
     </tr>
 `;
