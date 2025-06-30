@@ -1675,8 +1675,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
                 const lastAction = memberTornData.last_action?.relative || 'N/A';
-                // Logic for Revivable Column Text Color
-let revivableClass = '';
+                const isRevivable = memberTornData.revive_setting || 'N/A';
+                 let revivableClass = '';
 if (isRevivable === 'Everyone') {
     revivableClass = 'revivable-text-green';
 } else if (isRevivable === 'Friends' || isRevivable === 'Faction') {
