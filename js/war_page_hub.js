@@ -1748,7 +1748,7 @@ if (isRevivable === 'Everyone') {
                         <td class="${revivableClass}">${isRevivable}</td>
                     </tr>
                 `;
-            }).catch(error => {
+            ).catch(error => {
                 console.error(`Error processing member ${memberTornData.user_id}:`, error);
                 const name = memberTornData.name || 'Error';
                 return `<tr><td><a href="https://www.torn.com/profiles.php?XID=${memberTornData.user_id}" target="_blank">${name}</a></td><td colspan="11">Error loading this member's data.</td></tr>`;
