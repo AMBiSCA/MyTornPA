@@ -1722,14 +1722,10 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 
                 // --- Revivable Logic ---
                 const isRevivable = memberTornData.revive_setting || 'N/A';
-let revivableClass = '';
-
-if (isRevivable === 'Everyone') {
-    revivableClass = 'revivable-text-green';
-} else if (isRevivable === 'Friends & faction') { // <-- CHANGE THIS LINE
-    revivableClass = 'revivable-text-orange';
-} else if (isRevivable === 'No one') {
-    revivableClass = 'revivable-text-red';
+                let revivableClass = '';
+                if (isRevivable === 'Everyone') revivableClass = 'revivable-text-green';
+                else if (isRevivable === 'Friends' || isRevivable === 'Faction') revivableClass = 'revivable-text-orange';
+                else if (isRevivable === 'No one') revivableClass = 'revivable-text-red';
                 
                 // --- Return the final HTML row ---
                 return `
@@ -1748,7 +1744,7 @@ if (isRevivable === 'Everyone') {
                         <td class="${revivableClass}">${isRevivable}</td>
                     </tr>
                 `;
-            ).catch(error => {
+            }).catch(error => {
                 console.error(`Error processing member ${memberTornData.user_id}:`, error);
                 const name = memberTornData.name || 'Error';
                 return `<tr><td><a href="https://www.torn.com/profiles.php?XID=${memberTornData.user_id}" target="_blank">${name}</a></td><td colspan="11">Error loading this member's data.</td></tr>`;
@@ -2565,7 +2561,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 
     try {
-        console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`); // ADD THIS LINE HERE
+		console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`); // ADD THIS LINE HERE
         const response = await fetch(apiUrl);
         console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
         const data = await response.json();
@@ -2599,15 +2595,14 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 faction_id: data.faction?.faction_id || null,
                 faction_name: data.faction?.faction_name || null,
 
-                nerve: data.nerve || {},
-                energy: data.energy || {},
-                happy: data.happy || {},
-                life: data.life || {},
-                
-                // --- START OF MODIFICATION ---
-                // Add the 'revivable' field from the Torn API response to be saved in Firebase
-                revivable_setting: data.revivable || 'N/A', 
-                // --- END OF MODIFICATION ---
+                // REVERTED LINES HERE: Send the entire objects
+                // We are now sending the full 'energy' and 'nerve' objects as maps,
+                // matching how 'life' and 'cooldowns' are handled.
+                nerve: data.nerve || {}, // Store the entire nerve object, default to empty object
+                energy: data.energy || {}, // Store the entire energy object, default to empty object
+                happy: data.happy || {}, // Store the entire happy object, default to empty object
+                life: data.life || {}, // Store the entire life object, default to empty object
+                // End of REVERTED LINES
 
                 traveling: data.status?.state === 'Traveling' || false,
                 hospitalized: data.status?.state === 'Hospital' || false,
