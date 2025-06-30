@@ -1200,13 +1200,15 @@ transition: background-color 0.2s ease;
 /* --- Sizing for the Main Panels (2-to-1 ratio) --- */
 #friendly-status-tab .friendly-members-panel {
     flex: 2;
-    min-width: 750px; /* INCREASE THIS: Give the table more horizontal space */
+    /* Dramatically increase min-width to ensure ample space for the table */
+    min-width: 950px; /* Increased significantly */
+    /* Consider even higher if needed, e.g., 1000px, 1100px */
 }
-
 #friendly-status-tab .friendly-details-panel {
     flex: 1;
     min-width: 250px;
 }
+
 /* --- Styling for Table & Placeholder Containers --- */
 #friendlyMembersListContainer {
     background-color: #222;
@@ -1217,8 +1219,7 @@ transition: background-color 0.2s ease;
     display: flex;
     flex-direction: column;
 }
-
-##friendly-members-table {
+#friendly-members-table {
     width: 100%; /* Important: Table takes full width of its panel */
     table-layout: fixed; /* Important: Forces columns to respect declared widths */
     font-weight: bold;
@@ -1932,30 +1933,31 @@ autocomplete-items {
 	font-weight: bold;
 }
 
+/* Re-distributing percentages, giving more to content-heavy columns */
 #friendly-members-table thead th:nth-child(1),
-#friendly-members-table tbody td:nth-child(1) { width: 14%; } /* Name - increased */
+#friendly-members-table tbody td:nth-child(1) { width: 16%; } /* Name - Increased to give more room for names */
 #friendly-members-table thead th:nth-child(2),
-#friendly-members-table tbody td:nth-child(2) { width: 5%; }  /* Level - slightly reduced */
+#friendly-members-table tbody td:nth-child(2) { width: 5%; }  /* Level - Kept small */
 #friendly-members-table thead th:nth-child(3),
-#friendly-members-table tbody td:nth-child(3) { width: 12%; } /* Last Action - same as your comment */
+#friendly-members-table tbody td:nth-child(3) { width: 12%; } /* Last Action - Should be enough */
 #friendly-members-table thead th:nth-child(4),
-#friendly-members-table tbody td:nth-child(4) { width: 8%; }  /* Strength - slightly reduced */
+#friendly-members-table tbody td:nth-child(4) { width: 7%; }  /* Strength - Reduced slightly */
 #friendly-members-table thead th:nth-child(5),
-#friendly-members-table tbody td:nth-child(5) { width: 8%; }  /* Dexterity - slightly reduced */
+#friendly-members-table tbody td:nth-child(5) { width: 7%; }  /* Dexterity - Reduced slightly */
 #friendly-members-table thead th:nth-child(6),
-#friendly-members-table tbody td:nth-child(6) { width: 8%; }  /* Speed - slightly reduced */
+#friendly-members-table tbody td:nth-child(6) { width: 7%; }  /* Speed - Reduced slightly */
 #friendly-members-table thead th:nth-child(7),
-#friendly-members-table tbody td:nth-child(7) { width: 8%; }  /* Defense - slightly reduced */
+#friendly-members-table tbody td:nth-child(7) { width: 7%; }  /* Defense - Reduced slightly */
 #friendly-members-table thead th:nth-child(8),
-#friendly-members-table tbody td:nth-child(8) { width: 10%; } /* Status - keep same or slightly increase */
+#friendly-members-table tbody td:nth-child(8) { width: 12%; } /* Status - Increased for longer status messages */
 #friendly-members-table thead th:nth-child(9),
-#friendly-members-table tbody td:nth-child(9) { width: 7%; }  /* Nerve - same */
+#friendly-members-table tbody td:nth-child(9) { width: 6%; }  /* Nerve - Reduced */
 #friendly-members-table thead th:nth-child(10),
-#friendly-members-table tbody td:nth-child(10) { width: 7%; } /* Energy - same */
+#friendly-members-table tbody td:nth-child(10) { width: 6%; } /* Energy - Reduced */
 #friendly-members-table thead th:nth-child(11),
-#friendly-members-table tbody td:nth-child(11) { width: 8%; } /* Drug C/D - increased */
+#friendly-members-table tbody td:nth-child(11) { width: 7%; } /* Drug C/D - Should be enough for "None 🍁" */
 #friendly-members-table thead th:nth-child(12),
-#friendly-members-table tbody td:nth-child(12) { width: 5%; } /* Revivable? - increased */
+#friendly-members-table tbody td:nth-child(12) { width: 8%; } /* Revivable? - Increased to show "Everyone" / "No one" */
 
 /* Responsive adjustments for Friendly Status tab layout */
 @media (max-width: 992px) {
