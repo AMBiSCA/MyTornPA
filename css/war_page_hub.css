@@ -1912,7 +1912,7 @@ autocomplete-items {
     display: flex;
     flex-direction: column;
     flex: 2; /* This panel will take twice the space of the detail panel */
-    min-width: 550px; /* Adjust this min-width as needed for the table content */
+    min-width: 650px; /* Adjust this min-width as needed for the table content */
 }
 
 .friendly-details-panel {
