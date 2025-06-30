@@ -1198,15 +1198,11 @@ transition: background-color 0.2s ease;
 }
 
 /* --- Sizing for the Main Panels (2-to-1 ratio) --- */
-#friendly-status-tab .friendly-members-panel {
-    flex: 2;
-    /* Dramatically increase min-width to ensure ample space for the table */
-    min-width: 950px; /* Increased significantly */
-    /* Consider even higher if needed, e.g., 1000px, 1100px */
+#friendly-status-tab .active-ops-left-panel {
+    flex: 2; 
 }
-#friendly-status-tab .friendly-details-panel {
+#friendly-status-tab .active-ops-right-panel {
     flex: 1;
-    min-width: 250px;
 }
 
 /* --- Styling for Table & Placeholder Containers --- */
@@ -1219,11 +1215,11 @@ transition: background-color 0.2s ease;
     display: flex;
     flex-direction: column;
 }
+
 #friendly-members-table {
-    width: 100%; /* Important: Table takes full width of its panel */
-    table-layout: fixed; /* Important: Forces columns to respect declared widths */
-    font-weight: bold;
+    flex-grow: 1;
 }
+
 /* --- Placeholder for Member Details (Right Panel) --- */
 .detail-panel-placeholder { /* Using the new professional name */
     padding: 20px;
@@ -1933,31 +1929,32 @@ autocomplete-items {
 	font-weight: bold;
 }
 
-/* Re-distributing percentages, giving more to content-heavy columns */
+/* Define explicit column wle to prevent overflow */
+/* Adjusted based on your request: Revivable (Status), Level, Position, Name */
 #friendly-members-table thead th:nth-child(1),
-#friendly-members-table tbody td:nth-child(1) { width: 16%; } /* Name - Increased to give more room for names */
+#friendly-members-table tbody td:nth-child(1) { width: 12%; } /* Name */
 #friendly-members-table thead th:nth-child(2),
-#friendly-members-table tbody td:nth-child(2) { width: 5%; }  /* Level - Kept small */
+#friendly-members-table tbody td:nth-child(2) { width: 7%; }  /* Position */
 #friendly-members-table thead th:nth-child(3),
-#friendly-members-table tbody td:nth-child(3) { width: 12%; } /* Last Action - Should be enough */
+#friendly-members-table tbody td:nth-child(3) { width: 5%; }  /* Level */
 #friendly-members-table thead th:nth-child(4),
-#friendly-members-table tbody td:nth-child(4) { width: 7%; }  /* Strength - Reduced slightly */
+#friendly-members-table tbody td:nth-child(4) { width: 12%; } /* Last Action */
 #friendly-members-table thead th:nth-child(5),
-#friendly-members-table tbody td:nth-child(5) { width: 7%; }  /* Dexterity - Reduced slightly */
+#friendly-members-table tbody td:nth-child(5) { width: 9%; }  /* Strength */
 #friendly-members-table thead th:nth-child(6),
-#friendly-members-table tbody td:nth-child(6) { width: 7%; }  /* Speed - Reduced slightly */
+#friendly-members-table tbody td:nth-child(6) { width: 9%; }  /* Dexterity */
 #friendly-members-table thead th:nth-child(7),
-#friendly-members-table tbody td:nth-child(7) { width: 7%; }  /* Defense - Reduced slightly */
+#friendly-members-table tbody td:nth-child(7) { width: 9%; }  /* Speed */
 #friendly-members-table thead th:nth-child(8),
-#friendly-members-table tbody td:nth-child(8) { width: 12%; } /* Status - Increased for longer status messages */
+#friendly-members-table tbody td:nth-child(8) { width: 9%; }  /* Defense */
 #friendly-members-table thead th:nth-child(9),
-#friendly-members-table tbody td:nth-child(9) { width: 6%; }  /* Nerve - Reduced */
+#friendly-members-table tbody td:nth-child(9) { width: 10%; } /* Status */
 #friendly-members-table thead th:nth-child(10),
-#friendly-members-table tbody td:nth-child(10) { width: 6%; } /* Energy - Reduced */
+#friendly-members-table tbody td:nth-child(10) { width: 7%; } /* Nerve */
 #friendly-members-table thead th:nth-child(11),
-#friendly-members-table tbody td:nth-child(11) { width: 7%; } /* Drug C/D - Should be enough for "None 🍁" */
+#friendly-members-table tbody td:nth-child(11) { width: 7%; } /* Energy */
 #friendly-members-table thead th:nth-child(12),
-#friendly-members-table tbody td:nth-child(12) { width: 8%; } /* Revivable? - Increased to show "Everyone" / "No one" */
+#friendly-members-table tbody td:nth-child(12) { width: 4%; } /* Revivable? */
 
 /* Responsive adjustments for Friendly Status tab layout */
 @media (max-width: 992px) {
