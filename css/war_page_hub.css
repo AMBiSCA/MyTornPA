@@ -3165,7 +3165,7 @@ autocomplete-items {
 }
 
 #friendly-members-table td:nth-child(10) {
-    color: #4CAF50; /* Green Text for Energy Column */
+    color: white; /* Green Text for Energy Column */
 }
 
 /* Style for blue 'Abroad' status text */

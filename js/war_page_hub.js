@@ -1726,6 +1726,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 if (isRevivable === 'Everyone') revivableClass = 'revivable-text-green';
                 else if (isRevivable === 'Friends' || isRevivable === 'Faction') revivableClass = 'revivable-text-orange';
                 else if (isRevivable === 'No one') revivableClass = 'revivable-text-red';
+				
+				console.log('Member ID:', memberId, 'isRevivable:', isRevivable, 'Generated class:', revivableClass); // <--- ADD THIS LINE
                 
                 // --- Return the final HTML row ---
                 return `
