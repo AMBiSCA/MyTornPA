@@ -3209,3 +3209,16 @@ autocomplete-items {
     font-size: 1.1em;
     font-weight: bold;
 }
+
+/* --- Revivable Column Text Colors --- */
+.revivable-text-green {
+    color: #4CAF50; /* A vibrant green */
+}
+
+.revivable-text-orange {
+    color: #ff9800; /* A clear orange */
+}
+
+.revivable-text-red {
+    color: #d32f2f; /* A strong red */
+}
