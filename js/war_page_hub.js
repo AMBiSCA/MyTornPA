@@ -1447,7 +1447,7 @@ function formatRelativeTime(timestampInSeconds) {
 
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
-	
+    // These are the HTML elements we created earlier
     const tcHitsElement = document.getElementById('tc-hits-value');
     const abroadHitsElement = document.getElementById('abroad-hits-value');
 
@@ -1782,10 +1782,10 @@ if (statusState === 'Hospital') {
         <td>${nerve}</td>
         <td>${energy}</td>
         <td class="${drugCooldownClass}">${drugCooldown}</td>
-        <td class="${revivableClass}">${isRevivable}</td>
+        <td>${isRevivable}</td>
     </tr>
 `;
-       }).catch(error => {
+            }).catch(error => {
                 console.error(`Error fetching Firebase data for member ${memberId}:`, error);
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
@@ -1795,15 +1795,6 @@ if (statusState === 'Hospital') {
 
                 // --- CORRECTED LOGIC FOR 'Revivable?' in error fallback DIRECTLY ---
                 const isRevivable = memberTornData.revive_setting || 'N/A';
-				// Logic for Revivable Column Text Color
-let revivableClass = '';
-if (isRevivable === 'Everyone') {
-    revivableClass = 'revivable-text-green';
-} else if (isRevivable === 'Friends' || isRevivable === 'Faction') {
-    revivableClass = 'revivable-text-orange';
-} else if (isRevivable === 'No one') {
-    revivableClass = 'revivable-text-red';
-}
                 // --- END CORRECTED LOGIC ---
 
                 let statusClass = '';
