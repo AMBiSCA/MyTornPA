@@ -1651,8 +1651,23 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 const defense = memberFirebaseData?.battlestats?.defense?.toLocaleString() || 'N/A';
                 const nerve = `${memberFirebaseData?.nerve?.current ?? 'N/A'} / ${memberFirebaseData?.nerve?.maximum ?? 'N/A'}`;
                 const energy = `${memberFirebaseData?.energy?.current ?? 'N/A'} / ${memberFirebaseData?.energy?.maximum ?? 'N/A'}`;
+                const drugCooldownValue = memberFirebaseData?.cooldowns?.drug ?? 0;
+let drugCooldown = 'None';
+if (drugCooldownValue > 0) {
+    const hours = Math.floor(drugCooldownValue / 3600);
+    const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+    
+    const hourText = hours > 0 ? `${hours}hr` : '';
+    const minuteText = minutes > 0 ? `${minutes}m` : '';
+    
+    drugCooldown = `${hourText} ${minuteText}`.trim();
 
-                let statusClass = '';
+    // If the cooldown is less than a minute, show <1m
+    if (drugCooldown === '') {
+        drugCooldown = '<1m';
+    }
+}
+			   let statusClass = '';
                 if (statusState === 'Hospital') statusClass = 'status-hospital';
                 else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
                 else if (statusState === 'Okay') statusClass = 'status-okay';
@@ -1670,6 +1685,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         <td class="${statusClass}">${statusDescription}</td>
         <td>${nerve}</td>
         <td>${energy}</td>
+        <td>${drugCooldown}</td>
         <td>${isRevivable}</td>
     </tr>
 `;
