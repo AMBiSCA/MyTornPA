@@ -1675,7 +1675,15 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
                 const lastAction = memberTornData.last_action?.relative || 'N/A';
-                const isRevivable = memberTornData.revivable_until ? 'Yes' : (memberTornData.revivable_setting || 'N/A');
+                // Logic for Revivable Column Text Color
+let revivableClass = '';
+if (isRevivable === 'Everyone') {
+    revivableClass = 'revivable-text-green';
+} else if (isRevivable === 'Friends' || isRevivable === 'Faction') {
+    revivableClass = 'revivable-text-orange';
+} else if (isRevivable === 'No one') {
+    revivableClass = 'revivable-text-red';
+}
 
                 const strength = memberFirebaseData.battlestats?.strength?.toLocaleString() || 'N/A';
                 const dexterity = memberFirebaseData.battlestats?.dexterity?.toLocaleString() || 'N/A';
