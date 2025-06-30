@@ -1618,7 +1618,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         return;
     }
 
-    // Helper function to get the CSS class based on stat value
+    // Helper function to get the CSS class for battlestat colors
     const getStatTierClass = (statString) => {
         const numericStat = parseInt(String(statString).replace(/,/g, ''), 10);
         if (isNaN(numericStat)) return '';
@@ -1664,27 +1664,17 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
         const memberPromises = membersArray.map(memberTornData => {
             const memberId = memberTornData.user_id || memberTornData.id;
-            if (!memberId) return Promise.resolve(''); // Skip if no ID
+            if (!memberId) return Promise.resolve('');
 
             const memberDocRef = db.collection('users').doc(String(memberId));
             return memberDocRef.get().then(doc => {
-				console.log('MEMBER DATA:', memberTornData);
                 const memberFirebaseData = doc.exists ? doc.data() : {};
-
+                
                 // --- Define all variables ---
                 const name = memberTornData.name || 'Unknown';
                 const level = memberTornData.level || 'N/A';
                 const lastAction = memberTornData.last_action?.relative || 'N/A';
-                const isRevivable = memberTornData.revive_setting || 'N/A';
-                 let revivableClass = '';
-if (isRevivable === 'Everyone') {
-    revivableClass = 'revivable-text-green';
-} else if (isRevivable === 'Friends' || isRevivable === 'Faction') {
-    revivableClass = 'revivable-text-orange';
-} else if (isRevivable === 'No one') {
-    revivableClass = 'revivable-text-red';
-}
-
+                
                 const strength = memberFirebaseData.battlestats?.strength?.toLocaleString() || 'N/A';
                 const dexterity = memberFirebaseData.battlestats?.dexterity?.toLocaleString() || 'N/A';
                 const speed = memberFirebaseData.battlestats?.speed?.toLocaleString() || 'N/A';
@@ -1718,14 +1708,10 @@ if (isRevivable === 'Everyone') {
                 // --- Drug CD Logic ---
                 const drugCooldownValue = memberFirebaseData.cooldowns?.drug ?? 0;
                 let drugCooldown, drugCooldownClass = '';
-
                 if (drugCooldownValue > 0) {
                     const hours = Math.floor(drugCooldownValue / 3600);
                     const minutes = Math.floor((drugCooldownValue % 3600) / 60);
-                    const hourText = hours > 0 ? `${hours}hr` : '';
-                    const minuteText = minutes > 0 ? `${minutes}m` : '';
-                    drugCooldown = `${hourText} ${minuteText}`.trim() || '<1m';
-                    
+                    drugCooldown = `${hours > 0 ? `${hours}hr` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
                     if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital';
                     else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other';
                     else drugCooldownClass = 'status-okay';
@@ -1734,7 +1720,8 @@ if (isRevivable === 'Everyone') {
                     drugCooldownClass = 'status-okay';
                 }
                 
-                // --- Revivable Text Color Logic ---
+                // --- Revivable Logic ---
+                const isRevivable = memberTornData.revive_setting || 'N/A';
                 let revivableClass = '';
                 if (isRevivable === 'Everyone') revivableClass = 'revivable-text-green';
                 else if (isRevivable === 'Friends' || isRevivable === 'Faction') revivableClass = 'revivable-text-orange';
@@ -1760,7 +1747,7 @@ if (isRevivable === 'Everyone') {
             }).catch(error => {
                 console.error(`Error processing member ${memberTornData.user_id}:`, error);
                 const name = memberTornData.name || 'Error';
-                return `<tr><td>${name}</td><td colspan="11">Error loading this member's data.</td></tr>`;
+                return `<tr><td><a href="https://www.torn.com/profiles.php?XID=${memberTornData.user_id}" target="_blank">${name}</a></td><td colspan="11">Error loading this member's data.</td></tr>`;
             });
         });
 
@@ -1772,8 +1759,6 @@ if (isRevivable === 'Everyone') {
         tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
-
-
 
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     if (!targetDisplayElement) {
