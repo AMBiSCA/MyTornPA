@@ -3156,3 +3156,29 @@ autocomplete-items {
     margin-top: auto;
     margin-bottom: 80px;
 }
+
+/* --- Battlestat Tier Colors --- */
+.stat-tier-1 {
+    background-color: #e0e0e0; /* Light Grey */
+    color: #000; /* Black text for readability */
+}
+
+.stat-tier-3 {
+    background-color: #fff176; /* Yellow */
+    color: #000;
+}
+
+.stat-tier-4 {
+    background-color: #ffb74d; /* Orange */
+    color: #000;
+}
+
+.stat-tier-5 {
+    background-color: #e57373; /* Light Red */
+    color: #fff; /* White text for readability */
+}
+
+.stat-tier-6 {
+    background-color: #d32f2f; /* Dark Red */
+    color: #fff;
+}

@@ -1563,6 +1563,22 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         console.error("HTML Error: Friendly members table body (tbody) not found!");
         return;
     }
+	
+	const getStatTierClass = (statString) => {
+    // Remove commas and convert to a number
+    const numericStat = parseInt(String(statString).replace(/,/g, ''), 10);
+    if (isNaN(numericStat)) {
+        return ''; // No class if not a number
+    }
+
+    if (numericStat > 150000000) return 'stat-tier-6'; // Dark Red
+    if (numericStat > 100000000) return 'stat-tier-5'; // Light Red
+    if (numericStat > 10000000) return 'stat-tier-4'; // Orange
+    if (numericStat > 1000000) return 'stat-tier-3'; // Yellow
+    if (numericStat < 50000) return 'stat-tier-1'; // Light Grey
+    
+    return ''; // Tier 2 or default has no special class
+};
 
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Loading faction member stats...</td></tr>';
 
@@ -1678,10 +1694,10 @@ if (drugCooldownValue > 0) {
         <td>${position}</td>
         <td>${level}</td>
         <td>${lastAction}</td>
-        <td>${strength}</td>
-        <td>${dexterity}</td>
-        <td>${speed}</td>
-        <td>${defense}</td>
+        <td class="${getStatTierClass(strength)}">${strength}</td>
+        <td class="${getStatTierClass(dexterity)}">${dexterity}</td>
+        <td class="${getStatTierClass(speed)}">${speed}</td>
+        <td class="${getStatTierClass(defense)}">${defense}</td>
         <td class="${statusClass}">${statusDescription}</td>
         <td>${nerve}</td>
         <td>${energy}</td>
