@@ -1759,9 +1759,15 @@ if (drugCooldownValue > 0) {
     drugCooldownClass = 'status-okay'; // Make background green for 'ready' status
 }
 			   let statusClass = '';
-                if (statusState === 'Hospital') statusClass = 'status-hospital';
-                else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') statusClass = 'status-other';
-                else if (statusState === 'Okay') statusClass = 'status-okay';
+if (statusState === 'Hospital') {
+    statusClass = 'status-hospital'; // Red
+} else if (statusState === 'Abroad') {
+    statusClass = 'status-abroad'; // New Blue
+} else if (statusState === 'Jail' || statusState === 'Traveling' || statusState === 'Federal') {
+    statusClass = 'status-other'; // Orange
+} else if (statusState === 'Okay') {
+    statusClass = 'status-okay'; // Green
+}
 
                return `
     <tr data-id="${memberId}">
