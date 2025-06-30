@@ -1649,8 +1649,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 const dexterity = memberFirebaseData?.battlestats?.dexterity?.toLocaleString() || 'N/A';
                 const speed = memberFirebaseData?.battlestats?.speed?.toLocaleString() || 'N/A';
                 const defense = memberFirebaseData?.battlestats?.defense?.toLocaleString() || 'N/A';
-                const nerve = `${memberFirebaseData?.bars?.nerve?.current ?? 'N/A'} / ${memberFirebaseData?.bars?.nerve?.maximum ?? 'N/A'}`;
-                const energy = `${memberFirebaseData?.bars?.energy?.current ?? 'N/A'} / ${memberFirebaseData?.bars?.energy?.maximum ?? 'N/A'}`;
+                const nerve = `${memberFirebaseData?.nerve?.current ?? 'N/A'} / ${memberFirebaseData?.nerve?.maximum ?? 'N/A'}`;
+                const energy = `${memberFirebaseData?.energy?.current ?? 'N/A'} / ${memberFirebaseData?.energy?.maximum ?? 'N/A'}`;
 
                 let statusClass = '';
                 if (statusState === 'Hospital') statusClass = 'status-hospital';
