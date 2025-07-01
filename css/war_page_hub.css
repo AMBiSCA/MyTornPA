@@ -467,7 +467,7 @@ transition: background-color 0.2s ease;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    height: 120px; /* Reduced from 110px to make it shorter */
+    height: 110px; /* Reduced from 110px to make it shorter */
     background-color: #333;
     padding: 5px 10px 8px;
     border-top: 1px solid #1e1e1e;
