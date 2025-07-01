@@ -70,7 +70,6 @@
     background-color: #333;
     color: #f0f0f0;
     padding: 8px 12px; /* NEW: Slightly reduced padding */
-    border: 2px solid black; /* NEW: Added 1px black border */
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
     border-radius: 5px 5px 0 0; /* Rounded top corners */
