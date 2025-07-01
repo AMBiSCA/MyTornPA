@@ -1,99 +1,84 @@
-// netlify/functions/update-user-data.js
+// Correct code for: scheduled-dispatcher.js
 
-// Import necessary modules
-const admin = require('firebase-admin'); // Firebase Admin SDK for server-side operations
+const admin = require('firebase-admin');
 
-// Initialize Firebase Admin SDK if it hasn't been initialized yet
 if (!admin.apps.length) {
     try {
-        const base64Credentials = process.env.FIREBASE_CREDENTIALS_BASE64;
-        if (!base64Credentials) {
-            throw new Error('FIREBASE_CREDENTIALS_BASE64 environment variable is not set.');
+        const serviceAccountBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+        if (!serviceAccountBase64) {
+            throw new Error("FIREBASE_CREDENTIALS_BASE64 environment variable is missing.");
         }
-        const serviceAccount = JSON.parse(Buffer.from(base64Credentials, 'base64').toString('utf8'));
+        const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
     } catch (error) {
-        console.error('Firebase Admin SDK initialization failed:', error);
-        // It's critical that the function exits if Firebase initialization fails
-        // In a real Netlify environment, this might prevent the function from starting.
-        // For local development, you might need to handle this more gracefully.
+        console.error("Firebase Admin initialization error:", error);
+        throw new Error("Firebase initialization failed.");
     }
 }
-
-// Get a Firestore database instance
 const db = admin.firestore();
 
-// Main handler for the Netlify function
+// This is the correct threshold
+const UPDATE_THRESHOLD_SECONDS = 55;
+
 exports.handler = async (event, context) => {
-    // Only allow POST requests for this function
-    if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ message: 'Method Not Allowed' }),
-        };
-    }
-
-    let userId;
-    let userData;
-
     try {
-        // Parse the request body
-        const body = JSON.parse(event.body);
-        userId = body.userId; // Expecting the user's Torn Player ID
-        userData = body.userData; // Expecting the user data object to save
-
-        // Validate required parameters
-        if (!userId || !userData) {
-            console.warn('Missing userId or userData in request body.');
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'Missing userId or userData.' }),
-            };
+        const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET;
+        if (!WORKER_FUNCTION_SECRET) {
+            throw new Error("Configuration error: Missing WORKER_FUNCTION_SECRET.");
         }
 
-        // Optional: Implement additional security checks here
-        // For example, if you're using Netlify Identity, you could verify the user's identity:
-        // if (!context.clientContext || !context.clientContext.user) {
-        //     return {
-        //         statusCode: 401,
-        //         body: JSON.stringify({ error: 'Unauthorized: No authenticated user.' }),
-        //     };
-        // }
-        // const authenticatedFirebaseUID = context.clientContext.user.sub; // Firebase UID from Netlify Identity
-        // if (authenticatedFirebaseUID !== userId) { // If your Firebase UID is supposed to match Torn ID
-        //     return {
-        //         statusCode: 403,
-        //         body: JSON.stringify({ error: 'Forbidden: User ID mismatch.' }),
-        //     };
-        // }
+        console.log("[Dispatcher] Starting scheduled data dispatch.");
+        const userProfilesSnapshot = await db.collection('userProfiles').get();
 
-    } catch (parseError) {
-        console.error('Error parsing request body:', parseError);
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Invalid request body format.' }),
-        };
-    }
+        if (userProfilesSnapshot.empty) {
+            return { statusCode: 200, body: JSON.stringify({ message: "No user profiles found." }) };
+        }
 
-    try {
-        // Use the Admin SDK to securely save the user data to Firestore
-        // The { merge: true } option is important to only update specified fields
-        await db.collection('users').doc(String(userId)).set(userData, { merge: true });
+        const usersToDispatch = [];
+        const nowInSeconds = Math.floor(Date.now() / 1000);
 
-        console.log(`Successfully saved user ${userId} data to Firestore via Netlify Function.`);
+        userProfilesSnapshot.forEach(doc => {
+            const userData = doc.data();
+            const lastUpdatedTimestamp = userData.lastUpdated?.seconds || 0;
+            if (userData.tornProfileId && userData.tornApiKey && (nowInSeconds - lastUpdatedTimestamp > UPDATE_THRESHOLD_SECONDS)) {
+                usersToDispatch.push({
+                    tornProfileId: userData.tornProfileId,
+                    tornApiKey: userData.tornApiKey
+                });
+            }
+        });
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: 'User data updated successfully.' }),
-        };
+        if (usersToDispatch.length === 0) {
+            return { statusCode: 200, body: JSON.stringify({ message: "No users require an update." }) };
+        }
 
-    } catch (error) {
-        console.error(`Error saving user data for UID ${userId} via Netlify Function:`, error);
-        return {
-            statusCode: 500, // Server error for unexpected issues
-            body: JSON.stringify({ error: 'Failed to save user data due to internal server error.' }),
-        };
+        console.log(`[Dispatcher] Found ${usersToDispatch.length} users to dispatch for update.`);
+
+        // NOTE: The worker file this calls is assumed to be named 'process-single-user-data.js'
+        // based on our previous conversations.
+        const workerFunctionUrl = `${process.env.URL}/.netlify/functions/process-single-user-data`;
+
+        for (const user of usersToDispatch) {
+            await fetch(workerFunctionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Worker-Secret': WORKER_FUNCTION_SECRET
+                },
+                body: JSON.stringify({
+                    tornProfileId: user.tornProfileId,
+                    tornApiKey: user.tornApiKey
+                })
+            });
+            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+        }
+
+        return { statusCode: 200, body: JSON.stringify({ message: "Dispatch process initiated." }) };
+
+    } catch (mainError) {
+        console.error("[Dispatcher] Top-level error:", mainError);
+        return { statusCode: 500, body: JSON.stringify({ message: "Error in dispatcher.", error: mainError.message }) };
     }
 };
