@@ -613,7 +613,7 @@ async function loadRecentChats() {
         return;
     }
 
-    recentChatsListEl.innerHTML = '<li class="chat-item loading-message">Loading your recent chats...</li>'; // Show a loading message
+    recentChatsListEl.innerHTML = '<li class="chat-item loading-message">Loading your recent chats...</li>';
 
     if (!auth.currentUser) {
         recentChatsListEl.innerHTML = '<li class="chat-item message-placeholder" style="color: yellow;">Please log in to see your private chats.</li>';
@@ -622,11 +622,10 @@ async function loadRecentChats() {
     const currentUserIdFirebase = auth.currentUser.uid;
 
     try {
-        // Query Firebase for private chat documents where the current user is a participant
         const chatsSnapshot = await db.collection('privateChatMessages')
             .where('participants', 'array-contains', currentUserIdFirebase)
-            .orderBy('lastMessageAt', 'desc') // Order by the time of the last message (most recent first)
-            .limit(20) // Limit the number of recent chats displayed
+            .orderBy('lastMessageAt', 'desc')
+            .limit(20)
             .get();
 
         if (chatsSnapshot.empty) {
@@ -634,66 +633,67 @@ async function loadRecentChats() {
             return;
         }
 
-        let chatItemsHtml = '';
-        const friendDetailsPromises = []; // To fetch details of the other participant in parallel
+        const friendDetailsPromises = [];
 
         for (const chatDoc of chatsSnapshot.docs) {
             const chatDocId = chatDoc.id;
             const chatData = chatDoc.data();
-            const participants = chatData.participants; // This array contains two Firebase UIDs
+            const otherParticipantFirebaseUid = chatData.participants.find(uid => uid !== currentUserIdFirebase);
+            
+            if (!otherParticipantFirebaseUid) continue;
 
-            // Find the other participant's Firebase UID from the 'participants' array
-            const otherParticipantFirebaseUid = participants.find(uid => uid !== currentUserIdFirebase);
-            if (!otherParticipantFirebaseUid) continue; // Should not happen for a valid two-person chat
-
-            // Push a promise to fetch the other participant's name and profile picture
+            // Start the promise chain to get all user details
             friendDetailsPromises.push(
+                // 1. First, get the main profile from 'userProfiles' to find their Torn ID
                 db.collection('userProfiles').doc(otherParticipantFirebaseUid).get().then(userProfileDoc => {
-                    let friendName = `User (${otherParticipantFirebaseUid.substring(0, 5)}...)`; // Default display
-                    let friendProfileImage = '../../images/default_profile_icon.png';
-                    let friendTornId = null; // We need their Torn ID to pass to selectPrivateChat
-
-                    if (userProfileDoc.exists) {
-                        const profileData = userProfileDoc.data();
-                        friendName = profileData.preferredName || profileData.name || friendName;
-                        friendProfileImage = profileData.profile_image || friendProfileImage;
-                        friendTornId = profileData.tornProfileId || null; // Get their Torn ID
-                    } else {
-                        // Fallback: if not found in userProfiles (not a registered app user),
-                        // try to get basic name/profile from 'users' collection using Firebase UID as doc ID
-                        return db.collection('users').doc(otherParticipantFirebaseUid).get().then(userDoc => {
-                            if (userDoc.exists) {
-                                const userData = userDoc.data();
-                                friendName = userData.name || friendName;
-                                friendProfileImage = userData.profile_image || friendProfileImage;
-                                friendTornId = userDoc.id; // Assuming Torn ID is the doc ID in 'users' if found here
-                            }
-                            return { friendFirebaseUid: otherParticipantFirebaseUid, friendName, friendProfileImage, chatDocId, friendTornId };
-                        }).catch(err => {
-                            console.error(`Error fetching fallback user data for ${otherParticipantFirebaseUid}:`, err);
-                            return { friendFirebaseUid: otherParticipantFirebaseUid, friendName, friendProfileImage, chatDocId, friendTornId: null };
-                        });
+                    if (!userProfileDoc.exists) {
+                        console.warn(`[Recent Chats] User profile not found for UID: ${otherParticipantFirebaseUid}. Skipping.`);
+                        return null; // This user can't be displayed
                     }
-                    return { friendFirebaseUid: otherParticipantFirebaseUid, friendName, friendProfileImage, chatDocId, friendTornId };
+
+                    const profileData = userProfileDoc.data();
+                    const friendTornId = profileData.tornProfileId;
+                    let friendName = profileData.preferredName || profileData.name || `User ID ${friendTornId}`;
+
+                    if (!friendTornId) {
+                        console.warn(`[Recent Chats] User profile for ${friendName} is missing a Torn ID. Skipping.`);
+                        return null; // This user also can't be displayed
+                    }
+
+                    // 2. --- THIS IS THE NEW LOGIC ---
+                    // Now that we have their Torn ID, fetch their details from the 'users' collection
+                    return db.collection('users').doc(String(friendTornId)).get().then(userDoc => {
+                        let friendProfileImage = '../../images/default_profile_icon.png';
+                        if (userDoc.exists) {
+                            // Get the profile image from the 'users' collection as requested
+                            friendProfileImage = userDoc.data().profile_image || friendProfileImage;
+                        } else {
+                            console.warn(`[Recent Chats] No document found in 'users' collection for Torn ID: ${friendTornId}. Using default image.`);
+                        }
+                        
+                        // 3. Return the complete package of user info
+                        return { friendFirebaseUid: otherParticipantFirebaseUid, friendName, friendProfileImage, chatDocId, friendTornId };
+                    });
+                }).catch(error => {
+                    console.error(`Error fetching details for chat participant ${otherParticipantFirebaseUid}:`, error);
+                    return null; // Return null on error so it can be filtered out
                 })
             );
         }
 
-        // Wait for all friend details to be fetched
+        // Wait for all the data fetching to complete
         const resolvedFriendDetails = await Promise.all(friendDetailsPromises);
         
-        // Filter out any entries where friendTornId couldn't be resolved (cannot open chat with them)
-        // Also remove any entries where the friend's Firebase UID couldn't be found (e.g., if they deleted their profile)
-        const validChatsToDisplay = resolvedFriendDetails.filter(detail => 
-            detail && detail.friendTornId !== null && detail.friendFirebaseUid !== null
-        );
+        // Filter out any null results from users who couldn't be found
+        const validChatsToDisplay = resolvedFriendDetails.filter(detail => detail !== null);
 
         if (validChatsToDisplay.length === 0) {
-            recentChatsListEl.innerHTML = '<li class="chat-item message-placeholder">No chat partners found (they may not be registered users).</li>';
+            recentChatsListEl.innerHTML = '<li class="chat-item message-placeholder">No valid chat partners found.</li>';
             return;
         }
 
-        // Build the HTML for each recent chat item
+        // Build the final HTML
+        let chatItemsHtml = '';
         validChatsToDisplay.forEach(detail => {
             chatItemsHtml += `
                 <li class="chat-item" data-chat-doc-id="${detail.chatDocId}" data-friend-id="${detail.friendTornId}">
@@ -706,36 +706,28 @@ async function loadRecentChats() {
             `;
         });
         
-        recentChatsListEl.innerHTML = chatItemsHtml; // Update the UI
+        recentChatsListEl.innerHTML = chatItemsHtml;
 
-        // --- Attach Event Listeners to the newly created list items ---
-        // Use event delegation on the list itself for efficiency
+        // Attach event listeners to the new list items
         recentChatsListEl.addEventListener('click', (event) => {
             const chatItem = event.target.closest('.chat-item');
             if (!chatItem) return;
 
-            // If delete button was clicked, handle separately
             if (event.target.closest('.delete-chat-btn')) {
                 const chatDocIdToDelete = chatItem.dataset.chatDocId;
-                const friendIdToDelete = chatItem.dataset.friendId; // Torn ID
                 const friendName = chatItem.querySelector('.chat-name').textContent;
-
-                if (confirm(`Are you sure you want to delete the chat with ${friendName}? This will delete all messages for both parties in this chat.`)) {
+                if (confirm(`Are you sure you want to delete the chat with ${friendName}?`)) {
+                    // Call your delete function here if it exists
                     if (typeof deletePrivateChat === 'function') {
-                        // Pass required arguments for deletion and refreshing the list
-                        deletePrivateChat(chatDocIdToDelete, friendIdToDelete); 
-                    } else {
-                        console.warn("deletePrivateChat function not yet implemented.");
-                        alert("Delete chat functionality is not yet implemented.");
+                        deletePrivateChat(chatDocIdToDelete, chatItem.dataset.friendId);
                     }
                 }
-                return; // Prevent chat selection if delete button was clicked
+                return;
             }
 
-            // If anywhere else on the chat item was clicked, select the chat
             const selectedFriendIdTorn = chatItem.dataset.friendId;
             if (selectedFriendIdTorn) {
-                selectPrivateChat(selectedFriendIdTorn); // Call existing function to open chat
+                selectPrivateChat(selectedFriendIdTorn);
             }
         });
 
