@@ -231,6 +231,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
    // Replace your entire fetchDataForPersonalStatsModal function with this updated code
 // Replace your entire fetchDataForPersonalStatsModal function with this updated code
+// home.js
+
+// Replace your entire fetchDataForPersonalStatsModal function with this updated code
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
@@ -290,6 +293,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         }
 
         // --- Data to send to Netlify function (this remains comprehensive for saving) ---
+        // This part is the same as the code I provided in the previous turn, for context.
         const userId = data.player_id;
         if (userId) {
             const userDataToSave = {
@@ -341,7 +345,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
             try {
                 // Call the Netlify Function to securely save ALL data to Firestore
-                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-faction', { // Changed to update-user-faction
+                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-faction', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -368,28 +372,19 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
         let htmlContent = '<h4>User Information</h4>';
-        htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
-        htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
-        htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
-
-        let xanaxDisplay = 'N/A';
-        if (data.personalstats && data.personalstats.xantaken !== undefined) {
-            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
-        }
-        htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
-
-        const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
-        htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
-
-        // Add Profile Image (if available)
         htmlContent += `
-            <div class="member-detail-header">
-                <div class="member-header-top-row center-content-flex">
-                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
+            <div class="user-info-section-with-pic">
+                ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}'s profile picture" class="member-detail-profile-image-modal">` : ''}
+                <div class="user-info-details">
+                    <p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>
+                    <p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>
+                    <p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>
+                    <p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>
+                    <p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>
                 </div>
             </div>`;
 
-
+        // Battle Stats section
         htmlContent += '<h4>Battle Stats</h4>';
         if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
             const bsStrength = data.strength || data.battlestats?.strength;
@@ -419,6 +414,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
         }
 
+        // Work Stats section
         htmlContent += '<h4>Work Stats</h4>';
         if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
             htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
