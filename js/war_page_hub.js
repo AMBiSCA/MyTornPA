@@ -1481,7 +1481,6 @@ async function sendChatMessage() {
 
 
 
-
 function setupChatRealtimeListener() {
     if (!chatMessagesCollection) {
         console.error("Firebase chatMessagesCollection is not defined.");
@@ -1501,6 +1500,7 @@ function setupChatRealtimeListener() {
         .orderBy('timestamp', 'asc')
         .limit(100)
         .onSnapshot(snapshot => {
+            // This part is unchanged: it clears the chat and adds the messages.
             if (chatDisplayArea) {
                 chatDisplayArea.innerHTML = '';
             }
@@ -1519,18 +1519,33 @@ function setupChatRealtimeListener() {
             
             console.log("Chat messages updated in real-time.");
             
-            // --- NEW AND FINAL FIX ---
-            // This tells the browser to run our scroll command only AFTER it has
-            // finished drawing all the new messages. This is the most reliable
-            // way to solve this kind of timing issue.
+            // --- FINAL FIX ---
+            // This waits for the browser to be ready before trying to scroll.
             setTimeout(() => {
                 const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-                if (scrollWrapper) {
+                if (!scrollWrapper) return;
+
+                // Check if the chat box has rendered and has a height.
+                if (scrollWrapper.scrollHeight > 0) {
+                    // If it has, scroll down immediately.
                     scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+                    toggleScrollIndicatorVisibility();
+                } else {
+                    // If not, the page is still loading. We'll check every 100ms.
+                    let attempts = 0;
+                    const scrollCheckInterval = setInterval(() => {
+                        attempts++;
+                        // When the scroll height is finally calculated, or after 2 seconds,
+                        // scroll to the bottom and stop checking.
+                        if (scrollWrapper.scrollHeight > 0 || attempts > 20) {
+                            scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+                            toggleScrollIndicatorVisibility();
+                            clearInterval(scrollCheckInterval);
+                        }
+                    }, 100);
                 }
-                toggleScrollIndicatorVisibility();
             }, 0);
-            // --- END NEW AND FINAL FIX ---
+            // --- END FINAL FIX ---
 
         }, error => {
             console.error("Error listening to chat messages:", error);
