@@ -450,17 +450,6 @@ transition: background-color 0.2s ease;
     box-sizing: border-box; /* Include padding/border */
 }
 
-.chat-messages-scroll-wrapper {
-    flex-grow: 1;
-    height: calc(100% - 150px); /* Corrected calculation (110px for input + 40px for tabs) */
-    overflow-y: scroll;
-    scrollbar-gutter: stable;
-    padding: 2px 10px 10px;
-    background-color: #222;
-    border-radius: 8px;
-    margin-bottom: 0;
-    box-sizing: border-box;
-}
 
 /* Styles for the actual chat messages display area, *inside* the scroll wrapper */
 /* This div should NOT control its own height or overflow; its parent wrapper does. */
@@ -478,7 +467,7 @@ transition: background-color 0.2s ease;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    height: 95px; /* Reduced from 110px to make it shorter */
+    height: 140px; /* Reduced from 110px to make it shorter */
     background-color: #333;
     padding: 5px 10px 8px;
     border-top: 1px solid #1e1e1e;
@@ -1690,7 +1679,7 @@ autocomplete-items {
    and overflow-y: auto for scrolling within the chat box. Example: */
 .chat-messages-scroll-wrapper {
     flex-grow: 1;
-    height: calc(100% - 135px); /* Corrected calculation (95px for input + 40px for tabs) */
+    height: calc(100% - 180px); /* Corrected calculation (95px for input + 40px for tabs) */
     overflow-y: scroll;
     scrollbar-gutter: stable;
     padding: 2px 10px 10px;
