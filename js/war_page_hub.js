@@ -944,7 +944,7 @@ function setupChatRealtimeListener() {
                     scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
                 }
                 toggleScrollIndicatorVisibility();
-            }, 0);
+            }, 100); // A 100ms delay gives the browser more time on initial load.
 
         }, error => {
             console.error("Error listening to chat messages:", error);
