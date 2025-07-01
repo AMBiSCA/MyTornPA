@@ -9,6 +9,5 @@
 [functions."update-user-data"]
   schedule = "* * * * *"
   
- j
 #[functions."refresh-all-targets"]
  # schedule = "0 3 * * *"
