@@ -1892,7 +1892,6 @@ autocomplete-items {
 .active-ops-targets-panel {
     display: flex;
     flex-direction: column;
-    width: 855px;
     height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
     overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
     box-sizing: border-box;
