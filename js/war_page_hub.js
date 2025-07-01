@@ -3980,7 +3980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-   function handleChatTabClick(event) {
+  function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
 
@@ -3991,6 +3991,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     clickedTab.classList.add('active');
 
+    // This line clears the chat display area before new content is loaded for the selected tab.
     if (chatDisplayArea) {
         chatDisplayArea.innerHTML = '';
     } else {
@@ -4004,7 +4005,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Unsubscribed from previous chat listener (tab switch).");
     }
 
-    let showInputArea = true;
+    let showInputArea = true; // By default, show the global input area
 
     switch (targetTab) {
         case 'faction-chat':
@@ -4020,19 +4021,48 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
 
         case 'private-chat':
+            // --- NEW CODE FOR PRIVATE CHAT TAB LAYOUT ---
             chatDisplayArea.innerHTML = `
-                <p>Welcome to Private Chat!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
+                <div id="privateChatFullLayout" class="private-chat-tab-content">
+                    <div class="private-chat-layout-panels">
+                        <div class="recent-chats-panel">
+                            <div class="panel-header">Recent Chats</div>
+                            <div class="recent-chats-list-scroll-wrapper">
+                                <ul id="recentChatsList" class="recent-chats-list">
+                                    <li class="chat-item loading-message">Loading recent chats...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="selected-chat-panel">
+                            <div id="selectedChatHeader" class="panel-header">Select a Chat</div>
+                            <div class="selected-chat-messages-scroll-wrapper">
+                                <div id="selectedChatDisplay" class="chat-display-area">
+                                    <p class="message-placeholder">Click a chat on the left to start messaging.</p>
+                                </div>
+                            </div>
+                            <div class="selected-chat-input-area">
+                                <input type="text" id="privateChatMessageInput" class="chat-text-input" placeholder="Type your private message...">
+                                <button id="sendPrivateMessageBtn" class="chat-send-btn">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `;
+            showInputArea = false; // Hide the global input area for this tab
+            // TODO: Add private chat specific JS initialization here later (e.g., loadRecentChats())
             break;
+            // --- END NEW CODE FOR PRIVATE CHAT TAB LAYOUT ---
 
         case 'faction-members':
+            // --- CORRECTED CODE FOR FACTION MEMBERS TAB ---
             chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
             if (factionApiFullData && factionApiFullData.members) {
+                // Pass chatDisplayArea as the target element for rendering the member list
                 displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
             }
             showInputArea = false;
             break;
+            // --- END CORRECTED CODE ---
 
         case 'recently-met':
             populateRecentlyMetTab(chatDisplayArea);
@@ -4071,7 +4101,11 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
             const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+            // Populate blocked people tab, assuming auth.currentUser.uid is passed correctly (not in snippet, but needed)
+            // Original code: populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+            // This function needs currentUserId, so ensure it's fetched or passed from handleChatTabClick's caller.
+            // For now, assuming populateBlockedPeopleTab handles the currentUserId internally or from a global.
+            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList); // Retaining original call structure.
 
             showInputArea = false;
             break;
@@ -4088,13 +4122,12 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
     }
 
+    // This controls the visibility of the global chat input area at the bottom
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
-
-    // The conflicting scroll command that was here has been removed.
 }
     auth.onAuthStateChanged(async (user) => {
         if (user) {
