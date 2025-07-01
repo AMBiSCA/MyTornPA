@@ -3096,13 +3096,11 @@ function formatDuration(seconds) {
     return `${days}:${paddedHours}:${paddedMinutes}:${paddedSecs}`;
 }
 
-
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
     const keyToUse = apiKey;
     let finalFactionId = factionIdToUseOverride;
-	 
 
     if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
         finalFactionId = factionApiFullData.basic.id;
@@ -3121,6 +3119,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     globalYourFactionID = finalFactionId; // Set the global variable
 
     if (!finalFactionId) {
+        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
         return;
     }
@@ -3158,164 +3157,104 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
+        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data.`;
     }
 }
 
+// Chat Tab Listeners
 if (chatTabsContainer && chatTabButtons.length > 0) {
     chatTabButtons.forEach(button => {
         button.addEventListener('click', (event) => {
-            const tabName = event.currentTarget.dataset.chatTab; // Get the data-chat-tab value (e.g., 'faction-chat')
-            switchChatTab(tabName); // Call our new function to switch tabs
+            const tabName = event.currentTarget.dataset.chatTab;
+            switchChatTab(tabName);
         });
     });
 }
 
-    if (postAnnouncementBtn) {
-        postAnnouncementBtn.addEventListener('click', async () => {
-            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
-                quickAnnouncementInput.value = '';
-                alert('Announcement posted!');
-            } catch (error) {
-                console.error('Error posting announcement:', error);
-            }
-        });
-    }
-    
-    if (saveWarStatusControlsBtn) {
-        saveWarStatusControlsBtn.addEventListener('click', async () => {
-            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = {
-                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-                toggleChaining: toggleChaining ? toggleChaining.checked : false,
-                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
-            };
-            try {
-                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                alert('War status saved!');
-                populateWarStatusDisplay(statusData);
-                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
-            } catch (error) {
-                console.error('Error saving war status:', error);
-            }
-        });
-    }
-
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                alert('Admins saved!');
-            } catch (error) {
-                console.error("Error saving admins:", error);
-            }
-        });
-    
-
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                alert('Energy tracking members saved!');
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-            }
-        });
-    }
-
-    // NOTE: The typo in your original variable name is corrected here. 
-    // Make sure your save button's ID in the HTML is "saveWatchlistSelectionsBtn"
-    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
-    if (saveWatchlistSelectionsBtn) { 
-        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                alert('Big Hitter Watchlist saved!');
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-            }
-        });
-    }
+// Announcement Button Listener
+if (postAnnouncementBtn) {
+    postAnnouncementBtn.addEventListener('click', async () => {
+        if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
+        try {
+            await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
+            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
+            quickAnnouncementInput.value = '';
+            alert('Announcement posted!');
+        } catch (error) {
+            console.error('Error posting announcement:', error);
+        }
+    });
 }
-    
-    if (saveWarStatusControlsBtn) {
-        saveWarStatusControlsBtn.addEventListener('click', async () => {
-            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = {
-                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-                toggleChaining: toggleChaining ? toggleChaining.checked : false,
-                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
-            };
-            try {
-                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                alert('War status saved!');
-                populateWarStatusDisplay(statusData);
-                await fetchAndDisplayEnemyFaction(enemyId, apiKey);
-            } catch (error) {
-                console.error('Error saving war status:', error);
-            }
-        });
-    }
 
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                alert('Admins saved!');
-            } catch (error) {
-                console.error("Error saving admins:", error);
-            }
-        });
-    }
+// War Status Controls Listener
+if (saveWarStatusControlsBtn) {
+    saveWarStatusControlsBtn.addEventListener('click', async () => {
+        const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+        const statusData = {
+            toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+            toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+            toggleChaining: toggleChaining ? toggleChaining.checked : false,
+            toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+            toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+            toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+            nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+            enemyFactionID: enemyId
+        };
+        try {
+            await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+            alert('War status saved!');
+            populateWarStatusDisplay(statusData);
+            // Assuming 'apiKey' is available in this scope. If not, this might need userApiKey.
+            await fetchAndDisplayEnemyFaction(enemyId, userApiKey); 
+        } catch (error) {
+            console.error('Error saving war status:', error);
+        }
+    });
+}
 
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                alert('Energy tracking members saved!');
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-            }
-        });
-    }
+// Admins Save Listener
+if (saveAdminsBtn) {
+    saveAdminsBtn.addEventListener('click', async () => {
+        if (!designatedAdminsContainer) return;
+        const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        try {
+            await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+            alert('Admins saved!');
+        } catch (error) {
+            console.error("Error saving admins:", error);
+        }
+    });
+}
 
-    // NEW: Save button for Big Hitter Watchlist
-    if (saveSelectionsBtnBH) {
-        saveSelectionsBtnBH.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                alert('Big Hitter Watchlist saved!');
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-            }
-        });
-    }
+// Energy Tracking Members Save Listener
+if (saveEnergyTrackMembersBtn) {
+    saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+        if (!energyTrackingContainer) return;
+        const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        try {
+            await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+            alert('Energy tracking members saved!');
+        } catch (error) {
+            console.error("Error saving energy members:", error);
+        }
+    });
+}
 
+// Big Hitter Watchlist Save Listener
+const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
+if (saveWatchlistSelectionsBtn) { 
+    saveWatchlistSelectionsBtn.addEventListener('click', async () => {
+        if (!bigHitterWatchlistContainer) return;
+        const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        try {
+            await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+            alert('Big Hitter Watchlist saved!');
+        } catch (error) {
+            console.error("Error saving big hitter watchlist:", error);
+        }
+    });
+}
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
