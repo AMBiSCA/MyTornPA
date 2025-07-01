@@ -2950,43 +2950,47 @@ function setupEventListeners(apiKey) {
     }
 
     const chatDisplay = document.getElementById('chat-display-area');
-    if (chatDisplay) {
-        chatDisplay.addEventListener('click', function(event) {
-            const addButton = event.target.closest('.add-member-button');
-            if (!addButton) return;
+  // Locate this block in your war_page_hub.js file (around line 990 or where your .add-member-button click listener is)
+if (chatDisplay) {
+    chatDisplay.addEventListener('click', function(event) {
+        const addButton = event.target.closest('.add-member-button');
+        if (!addButton) return;
 
-            addButton.disabled = true;
-            const friendIdToAdd = addButton.dataset.memberId;
-            const currentUser = auth.currentUser;
-            if (!currentUser) {
-                console.error("Error: You must be logged in to add a friend.");
-                alert("You are not logged in. Please refresh the page.");
-                addButton.disabled = false;
-                return;
-            }
-            const currentUserId = currentUser.uid;
-            const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
-            friendDocRef.set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
-                addButton.classList.add('success');
-                addButton.innerHTML = '✓';
-                setTimeout(() => {
-                    addButton.style.display = 'none';
-                }, 1500);
-				
-				 fetchAndDisplayFriends(); 
-				 
-            })
-            .catch((error) => {
-                console.error("Error adding friend to database: ", error);
-                alert("There was an error adding the friend. Please check the console for errors.");
-                addButton.disabled = false;
-            });
+        addButton.disabled = true;
+        const friendIdToAdd = addButton.dataset.memberId;
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            console.error("Error: You must be logged in to add a friend.");
+            alert("You are not logged in. Please refresh the page.");
+            addButton.disabled = false;
+            return;
+        }
+        const currentUserId = currentUser.uid;
+        const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
+        friendDocRef.set({
+            addedAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
+            addButton.classList.add('success');
+            addButton.innerHTML = '✓';
+            setTimeout(() => {
+                // Ensure the button disappears only after friend is added
+                addButton.style.display = 'none'; 
+            }, 1500);
+
+            // !!! IMPORTANT: The line 'fetchAndDisplayFriends();' should NOT be here. !!!
+            // !!! If it's still present, remove it completely. !!!
+            // No other action is needed here. The 'Blocked People' tab will refresh when visited.
+
+        })
+        .catch((error) => {
+            console.error("Error adding friend to database: ", error);
+            alert("There was an error adding the friend. Please check the console for errors.");
+            addButton.disabled = false;
         });
-    }
+    });
+}
     
     // --- Event Listeners for Image Upload Buttons ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
