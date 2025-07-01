@@ -493,7 +493,7 @@ async function selectPrivateChat(friendIdTorn) {
         selectedChatItem.classList.add('active-chat');
     }
 
-    selectedChatHeaderEl.textContent = `Chat with ${friendName}`; 
+    selectedChatHeaderEl.textContent = `Chat with ${friendName}`; 
 
     const participants = [currentUserIdFirebase, friendFirebaseUid].sort();
     const chatDocId = `private_${participants[0]}_${participants[1]}`;
@@ -543,7 +543,27 @@ async function selectPrivateChat(friendIdTorn) {
                     displayPrivateChatMessage(messageData, selectedChatDisplayEl, isMyMessage);
                 });
             }
-            selectedChatDisplayEl.scrollTop = selectedChatDisplayEl.scrollHeight;
+
+            // --- FIX FOR PRIVATE CHAT SCROLLING ---
+            // This is the same patient scrolling logic from the main chat fix.
+            setTimeout(() => {
+                if (!selectedChatDisplayEl) return;
+
+                if (selectedChatDisplayEl.scrollHeight > 0) {
+                    selectedChatDisplayEl.scrollTop = selectedChatDisplayEl.scrollHeight;
+                } else {
+                    let attempts = 0;
+                    const scrollCheckInterval = setInterval(() => {
+                        attempts++;
+                        if (selectedChatDisplayEl.scrollHeight > 0 || attempts > 20) {
+                            selectedChatDisplayEl.scrollTop = selectedChatDisplayEl.scrollHeight;
+                            clearInterval(scrollCheckInterval);
+                        }
+                    }, 100);
+                }
+            }, 0);
+             // --- END FIX ---
+
         }, error => {
             console.error("Error listening to private chat messages:", error);
             selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error loading chat: ${error.message}</p>`;
@@ -553,9 +573,6 @@ async function selectPrivateChat(friendIdTorn) {
     sendPrivateMessageBtnEl.disabled = false;
     privateChatMessageInputEl.focus();
 }
-
-// Function to initialize event listeners specific to the Private Chat tab's elements
-// This function needs to be called AFTER the private chat HTML is injected into the DOM.
 // Function to initialize event listeners specific to the Private Chat tab's elements
 function initPrivateChatTabEventListeners() {
     console.log("[Private Chat Init] --- START: Initializing event listeners ---");
