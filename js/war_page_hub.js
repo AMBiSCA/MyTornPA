@@ -3149,16 +3149,6 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 }
 
-// Chat Tab Listeners
-if (chatTabsContainer && chatTabButtons.length > 0) {
-    chatTabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const tabName = event.currentTarget.dataset.chatTab;
-            switchChatTab(tabName);
-        });
-    });
-}
-
 // Announcement Button Listener
 if (postAnnouncementBtn) {
     postAnnouncementBtn.addEventListener('click', async () => {
