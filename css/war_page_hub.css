@@ -105,7 +105,7 @@
     background-color: #333;
     flex-grow: 1;
     height: auto;
-    overflow-y: hidden; /* CHANGE THIS: Will add a scrollbar if content overflows vertically */
+    overflow-y: auto; /* CHANGE THIS: Will add a scrollbar if content overflows vertically */
     box-sizing: border-box;
     margin-top: 0;
     padding-top: 0;
@@ -3447,4 +3447,9 @@ autocomplete-items {
   display: flex;
   align-items: center;
   gap: 10px; /* Adjust the space between the label and buttons */
+}
+@media (min-width: 993px) {
+    html, body {
+        overflow-y: hidden;
+    }
 }
