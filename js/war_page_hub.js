@@ -3980,7 +3980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-  function handleChatTabClick(event) {
+   function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
 
@@ -4020,37 +4020,11 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
 
         case 'private-chat':
-            // --- NEW CODE FOR PRIVATE CHAT TAB LAYOUT ---
             chatDisplayArea.innerHTML = `
-                <div id="privateChatFullLayout" class="private-chat-tab-content">
-                    <div class="private-chat-layout-panels">
-                        <div class="recent-chats-panel">
-                            <div class="panel-header">Recent Chats</div>
-                            <div class="recent-chats-list-scroll-wrapper">
-                                <ul id="recentChatsList" class="recent-chats-list">
-                                    <li class="chat-item loading-message">Loading recent chats...</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="selected-chat-panel">
-                            <div id="selectedChatHeader" class="panel-header">Select a Chat</div>
-                            <div class="selected-chat-messages-scroll-wrapper">
-                                <div id="selectedChatDisplay" class="chat-display-area">
-                                    <p class="message-placeholder">Click a chat on the left to start messaging.</p>
-                                </div>
-                            </div>
-                            <div class="selected-chat-input-area">
-                                <input type="text" id="privateChatMessageInput" class="chat-text-input" placeholder="Type your private message...">
-                                <button id="sendPrivateMessageBtn" class="chat-send-btn">Send</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p>Welcome to Private Chat!</p>
+                <p>Functionality not implemented yet for this dynamic tab.</p>
             `;
-            showInputArea = false; // Hide the global input area for this tab
-            // TODO: Add private chat specific JS initialization here later
             break;
-            // --- END NEW CODE FOR PRIVATE CHAT TAB LAYOUT ---
 
         case 'faction-members':
             chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
@@ -4097,9 +4071,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
             const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-            // Ensure auth.currentUser is available here if needed by populateBlockedPeopleTab
-            // The original code was missing currentUserId, you might need to fetch it or pass auth.currentUser.uid here.
-            // For now, retaining the previous parameters and assuming it handles null/undefined.
             populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
 
             showInputArea = false;
@@ -4122,6 +4093,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
+
+    // The conflicting scroll command that was here has been removed.
 }
     auth.onAuthStateChanged(async (user) => {
         if (user) {
