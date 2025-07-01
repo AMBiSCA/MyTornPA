@@ -907,21 +907,18 @@ function setupChatRealtimeListener() {
         return;
     }
 
-    // Clear existing messages before setting up a new listener
     if (chatDisplayArea) {
         chatDisplayArea.innerHTML = `<p>Loading messages...</p>`;
     }
 
-    // Unsubscribe from any previous listener to avoid multiple listeners
     if (unsubscribeFromChat) {
         unsubscribeFromChat();
         console.log("Unsubscribed from previous chat listener.");
     }
 
-    // Set up the real-time listener, ordered by timestamp ascending (oldest first)
     unsubscribeFromChat = chatMessagesCollection
-        .orderBy('timestamp', 'asc') 
-        .limit(100) 
+        .orderBy('timestamp', 'asc')
+        .limit(100)
         .onSnapshot(snapshot => {
             if (chatDisplayArea) {
                 chatDisplayArea.innerHTML = '';
@@ -931,25 +928,25 @@ function setupChatRealtimeListener() {
                 if (chatDisplayArea) {
                     chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
                 }
-                console.log("No messages in chat collection.");
                 toggleScrollIndicatorVisibility();
                 return;
             }
             
-            // Display messages directly as they are received from the snapshot
             snapshot.forEach(doc => {
                 displayChatMessage(doc.data());
             });
             
             console.log("Chat messages updated in real-time.");
             
-            // Use a small timeout to allow the browser to render new messages before scrolling
             setTimeout(() => {
-                if (chatDisplayArea) {
-                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+                // Find the correct scrolling element based on your CSS
+                const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+                if (scrollWrapper) {
+                    // Set the scrollTop of the wrapper, not the inner div
+                    scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
                 }
                 toggleScrollIndicatorVisibility();
-            }, 0); // A 0ms delay is often enough to push this to the next browser paint cycle.
+            }, 0);
 
         }, error => {
             console.error("Error listening to chat messages:", error);
@@ -959,10 +956,11 @@ function setupChatRealtimeListener() {
         });
     console.log("Chat real-time listener set up.");
     
-    // Ensure the scroll listener is attached only once
-    if (chatDisplayArea) {
-        chatDisplayArea.removeEventListener('scroll', handleChatScroll);
-        chatDisplayArea.addEventListener('scroll', handleChatScroll);
+    // The event listener also needs to be on the correct scrolling element
+    const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+    if (scrollWrapper) {
+        scrollWrapper.removeEventListener('scroll', handleChatScroll); // Prevent multiple listeners
+        scrollWrapper.addEventListener('scroll', handleChatScroll);
     }
 }
 function updateRankedWarDisplay(rankedWarData, yourFactionId) {
