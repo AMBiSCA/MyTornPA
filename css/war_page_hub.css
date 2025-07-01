@@ -76,8 +76,6 @@
     flex-grow: 1; /* Make buttons grow to fill space */
     min-width: 120px; /* Minimum width for each tab */
     text-align: center;
-    border-left: 2px solid black;
-    border-right: 2px solid black;
 	font-weight: bold;
 }
 
@@ -99,7 +97,6 @@
 .tab-content-container {
     /* Styles for the container holding tab contents */
     padding: 15px; /* NEW: Reduced padding */
-    border: 3px solid black;
     border-radius: 0 0 8px 8px;
     background-color: #333;
     flex-grow: 1;
