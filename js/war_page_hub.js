@@ -4215,27 +4215,22 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         return;
     }
 
-    // Check if the display is currently empty, and if so, show a loading message.
-    // This prevents blinking if previous content exists.
     if (quickFFTargetsDisplay.innerHTML === '') {
         quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">Loading targets...</span>';
     }
 
     if (!userApiKey || !playerId) {
-        // If API key or Player ID is missing, show an error (if not already showing content)
         if (!quickFFTargetsDisplay.innerHTML.includes('Error:') && !quickFFTargetsDisplay.innerHTML.includes('Login & API/ID needed')) {
             quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">API Key or Player ID missing.</span>';
         }
         console.warn("Cannot fetch Quick FF Targets: API Key or Player ID is missing.");
-        return; // Exit, keeping current content or error message
+        return;
     }
 
     try {
-        // 1. Get IDs of players currently in the main enemy table to exclude them
         const currentEnemyTableRows = enemyTargetsContainer.querySelectorAll('tr[id^="target-row-"]');
         const excludedPlayerIDs = Array.from(currentEnemyTableRows).map(row => row.id.replace('target-row-', ''));
-        // console.log("Excluded Player IDs (from main table):", excludedPlayerIDs); // Debugging line
-
+        
         const functionUrl = `/.netlify/functions/get-recommended-targets`;
         const response = await fetch(functionUrl, {
             method: 'POST',
@@ -4244,125 +4239,96 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         });
         const data = await response.json();
 
-        // If response is not OK or contains an API error
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error || JSON.stringify(data.error) : `Error from server: ${response.status} ${response.statusText}`;
             console.error("Error fetching Quick FF Targets:", errorMessage);
-            // On error, keep existing content. Only display general error if element was blank or "Loading".
             if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
                  quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Error: ${errorMessage}</span>`;
             }
-            return; // Exit, keeping previous valid content or the new error message
+            return;
         }
 
-        // If no targets are returned from the API function
         if (!data.targets || data.targets.length === 0) {
             quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No recommended targets found.</span>';
-            // Reset consecutive counter if no targets are found (as it's not the "same" pair)
             lastDisplayedTargetIDs = [];
             consecutiveSameTargetsCount = 0;
             return;
         }
 
-        // 2. Filter out already displayed targets from the fetched list
         let availableTargets = data.targets.filter(target => !excludedPlayerIDs.includes(target.playerID));
-        // console.log("Available targets after exclusion:", availableTargets); // Debugging line
 
         if (availableTargets.length === 0) {
             quickFFTargetsDisplay.innerHTML = '<span style="color: #6c757d;">No new targets available.</span>';
-            // Reset consecutive counter if no targets are found
             lastDisplayedTargetIDs = [];
             consecutiveSameTargetsCount = 0;
             return;
         }
 
-        // --- Logic to prevent showing the same targets more than two times in a row ---
-        const MAX_TARGETS_TO_DISPLAY = 2;
-        const MAX_SHUFFLE_ATTEMPTS = 10; // Prevent infinite loop for very limited target sets
+        // --- CHANGE IS HERE ---
+        const MAX_TARGETS_TO_DISPLAY = 3; // Changed from 2 to 3
+        const MAX_SHUFFLE_ATTEMPTS = 10; 
 
         let finalSelectedTargets = [];
         let currentDisplayedTargetIDs = [];
         let attempt = 0;
 
         do {
-            // Shuffle the available targets (Fisher-Yates algorithm)
             for (let i = availableTargets.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]]; // Swap elements
+                [availableTargets[i], availableTargets[j]] = [availableTargets[j], availableTargets[i]];
             }
 
-            // Select the first N targets for this attempt
             finalSelectedTargets = availableTargets.slice(0, MAX_TARGETS_TO_DISPLAY);
             currentDisplayedTargetIDs = finalSelectedTargets.map(t => t.playerID);
-
             attempt++;
 
-            // Condition to re-shuffle:
-            // 1. We have enough targets to actually pick a pair (>=2)
-            // 2. The newly selected pair is identical to the last one displayed
-            // 3. This is the 3rd or more consecutive time showing the same pair (consecutiveSameTargetsCount >= 2)
-            // 4. We haven't exceeded max shuffle attempts (to prevent infinite loop if no other options exist)
         } while (availableTargets.length >= MAX_TARGETS_TO_DISPLAY &&
                  areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs) &&
                  consecutiveSameTargetsCount >= 2 &&
                  attempt < MAX_SHUFFLE_ATTEMPTS);
 
-        // After the loop, update the consecutive counter and last displayed IDs
         if (areTargetSetsIdentical(currentDisplayedTargetIDs, lastDisplayedTargetIDs)) {
             consecutiveSameTargetsCount++;
             if (consecutiveSameTargetsCount >= 3) {
-                 console.warn("Warning: Displaying the same Quick FF Target pair for the 3rd+ consecutive time due to limited alternative targets.");
+                console.warn("Warning: Displaying the same Quick FF Target pair for the 3rd+ consecutive time due to limited alternative targets.");
             }
         } else {
-            consecutiveSameTargetsCount = 1; // New pair, reset count
+            consecutiveSameTargetsCount = 1;
         }
-        lastDisplayedTargetIDs = currentDisplayedTargetIDs; // Store the currently displayed pair for next check
+        lastDisplayedTargetIDs = currentDisplayedTargetIDs;
 
-        // console.log("Final selected target IDs for this display:", finalSelectedTargets.map(t => t.playerID)); // Debugging
-        // console.log("Consecutive same targets count:", consecutiveSameTargetsCount); // Debugging
-
-        // --- End of logic to prevent same targets showing too many times ---
-
-
-        // Prepare a new content container to build the new display, then replace the old one.
         const newTargetsHtmlContainer = document.createElement('div');
         let newTargetsHtml = '';
-
-        // Emoji selection logic to ensure unique emojis for targets displayed in this batch
         let currentEmojisUsedForBatch = new Set();
         let emojiCycleIndex = lastEmojiIndex;
 
-        // Display the final selected targets (which may be fewer than MAX_TARGETS_TO_DISPLAY if availableTargets.length is small)
         for (let i = 0; i < finalSelectedTargets.length; i++) {
-            const target = finalSelectedTargets[i]; // Use finalSelectedTargets here
+            const target = finalSelectedTargets[i];
             const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${target.playerID}`;
-            const targetName = target.playerName || `Target ${i + 1}`; // Fallback name
+            const targetName = target.playerName || `Target ${i + 1}`;
 
-            // Pick a unique emoji for this target from the global set
             let selectedEmoji = '';
             do {
                 emojiCycleIndex = (emojiCycleIndex + 1) % TARGET_EMOJIS.length;
                 selectedEmoji = TARGET_EMOJIS[emojiCycleIndex];
-            } while (currentEmojisUsedForBatch.has(selectedEmoji)); // Keep cycling until unique emoji is found
+            } while (currentEmojisUsedForBatch.has(selectedEmoji));
 
-            currentEmojisUsedForBatch.add(selectedEmoji); // Mark this emoji as used for this batch
-            lastEmojiIndex = emojiCycleIndex; // Update the global index for the next call of this function
+            currentEmojisUsedForBatch.add(selectedEmoji);
+            lastEmojiIndex = emojiCycleIndex;
 
             newTargetsHtml += `
                 <a href="${attackUrl}" target="_blank"
-                    class="quick-ff-target-btn"
-                    title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
+                   class="quick-ff-target-btn"
+                   title="${targetName} (ID: ${target.playerID}) - Fair Fight: ${target.fairFightScore} (${get_difficulty_text(parseFloat(target.fairFightScore))})">
                     <span class="emoji-wrapper">${selectedEmoji}</span> ${targetName} <span class="emoji-wrapper">${selectedEmoji}</span>
                 </a>
             `;
         }
 
-        // Only update the actual DOM element after the new content is fully prepared
         quickFFTargetsDisplay.innerHTML = newTargetsHtml;
 
     } catch (error) {
         console.error("Failed to fetch or display Quick FF Targets:", error);
-        // If an unexpected error occurs, keep the previous content or show a generic error
         if (quickFFTargetsDisplay.innerHTML.includes('Loading targets...') || quickFFTargetsDisplay.innerHTML === '') {
              quickFFTargetsDisplay.innerHTML = `<span style="color: #ff4d4d;">Failed to load targets.</span>`;
         }
