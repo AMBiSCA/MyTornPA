@@ -3455,3 +3455,204 @@ autocomplete-items {
         overflow-y: hidden;
     }
 }
+Great! That's excellent progress. Seeing the raw HTML load confirms the structure is in place.
+
+Now, let's add the CSS to make it look like the layout we discussed, with the "Selected Chat" panel wider and the "Recent Chats" list narrower. This will also add the necessary scrollbars and basic styling.
+
+Please add the following CSS code to your war_page_hub.css file, ideally towards the end or in a dedicated section for "Private Chat" styles.
+
+CSS
+
+/* --- Private Chat Tab Layout (war_page_hub.css) --- */
+
+/* Main container for the entire Private Chat tab content */
+.private-chat-tab-content {
+    display: flex; /* Enables flexbox for its direct children (panels) */
+    flex-direction: column; /* Stacks children vertically if needed, but layout-panels will handle horizontal */
+    height: 100%; /* Ensures it takes up the full height of its parent (.chat-display-area) */
+    box-sizing: border-box;
+    padding: 10px; /* Internal padding for the entire private chat tab area */
+    background-color: #2a2a2a; /* Background color for the tab's content area */
+    border-radius: 8px; /* Matches rounded corners of the main chat container */
+}
+
+/* Container for the two side-by-side panels (Recent Chats and Selected Chat) */
+.private-chat-layout-panels {
+    display: flex; /* Arranges the two main panels side-by-side */
+    flex-grow: 1; /* Allows this container to take up remaining vertical space */
+    gap: 15px; /* Space between the two panels */
+    height: 100%; /* Ensures panels fill the height of their parent */
+    box-sizing: border-box;
+}
+
+/* Styles for the "Recent Chats" panel on the left */
+.recent-chats-panel {
+    display: flex;
+    flex-direction: column; /* Stacks header and list vertically inside this panel */
+    width: 28%; /* Sets its width to be narrower (approx 28% of available width) */
+    min-width: 200px; /* Ensures it doesn't become too small on narrower views */
+    background-color: #222; /* Dark background for the panel */
+    border: 1px solid black; /* Border matching other elements */
+    border-radius: 8px; /* Rounded corners */
+    overflow: hidden; /* Hides content that overflows and helps with scrollbar */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    box-sizing: border-box;
+}
+
+/* Styles for the "Selected Chat" panel on the right (the main conversation area) */
+.selected-chat-panel {
+    display: flex;
+    flex-direction: column; /* Stacks header, messages, and input vertically inside this panel */
+    flex-grow: 1; /* Allows it to take up all remaining horizontal width */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden; /* Hides content that overflows and helps with scrollbar */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+/* Styling for the headers within both panels (Recent Chats, Select a Chat) */
+.private-chat-tab-content .panel-header {
+    background-color: #00a8ff; /* Blue background matching other headers */
+    color: #1e1e1e; /* Dark text on blue */
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-shrink: 0; /* Prevents header from shrinking when content grows */
+    border-bottom: 2px solid black; /* Separator below the header */
+}
+
+/* Scrollable wrapper for the "Recent Chats" list */
+.recent-chats-list-scroll-wrapper {
+    flex-grow: 1; /* Allows the list to take up all remaining vertical space in its panel */
+    overflow-y: auto; /* Enables vertical scrolling if the list is too long */
+    padding: 8px; /* Internal padding for the list area */
+    box-sizing: border-box;
+    scrollbar-gutter: stable; /* Keeps scrollbar space consistent even when not scrolling */
+}
+
+/* Base style for the unordered list of recent chats */
+.recent-chats-list {
+    list-style: none; /* Removes default bullet points */
+    padding: 0;
+    margin: 0;
+}
+
+/* Style for each individual chat item in the Recent Chats list */
+.recent-chats-list .chat-item {
+    display: flex;
+    align-items: center; /* Vertically aligns profile pic, name, and X button */
+    justify-content: space-between; /* Pushes chat info to left, delete button to right */
+    padding: 8px 5px;
+    border-bottom: 1px solid #3a3a40; /* Separator between chat items */
+    color: #f0f0f0; /* Light text color */
+    cursor: pointer; /* Indicates it's clickable */
+    transition: background-color 0.2s ease; /* Smooth hover effect */
+}
+
+.recent-chats-list .chat-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.recent-chats-list .chat-item:hover {
+    background-color: #38383e; /* Darker background on hover */
+}
+
+/* Style for the currently active/selected chat in the list */
+.recent-chats-list .chat-item.active-chat {
+    background-color: #007bff; /* Highlight color for active chat */
+    color: white;
+}
+
+/* Container for the profile picture and name within a chat item */
+.recent-chats-list .chat-item .chat-info {
+    display: flex;
+    align-items: center;
+    flex-grow: 1; /* Allows it to take up available space */
+    min-width: 0; /* Prevents content overflow within flex item */
+    margin-right: 5px; /* Small space before the delete button */
+}
+
+/* Style for the small profile picture in the Recent Chats list */
+.recent-chats-list .chat-item .profile-pic-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%; /* Makes it circular */
+    object-fit: cover; /* Ensures image covers the area without distortion */
+    margin-right: 8px;
+    flex-shrink: 0; /* Prevents it from shrinking */
+}
+
+/* Style for the chat name in the Recent Chats list */
+.recent-chats-list .chat-item .chat-name {
+    white-space: nowrap; /* Prevents the name from wrapping */
+    overflow: hidden; /* Hides overflowing text */
+    text-overflow: ellipsis; /* Adds "..." for overflowing text */
+    font-weight: bold;
+}
+
+/* Style for the delete/close button ('x') in Recent Chats list */
+.recent-chats-list .chat-item .delete-chat-btn {
+    background-color: #dc3545; /* Red background for delete */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.8em;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevents shrinking */
+    opacity: 0.7; /* Slightly transparent when not hovered */
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.recent-chats-list .chat-item .delete-chat-btn:hover {
+    opacity: 1; /* Fully opaque on hover */
+    background-color: #c82333; /* Darker red on hover */
+}
+
+/* Scrollable wrapper for the messages in the Selected Chat panel */
+.selected-chat-messages-scroll-wrapper {
+    flex-grow: 1; /* Allows this area to take up all remaining height in its panel */
+    overflow-y: auto; /* Enables vertical scrolling for messages */
+    padding: 10px; /* Padding for messages */
+    box-sizing: border-box;
+    scrollbar-gutter: stable;
+    display: flex; /* Use flex to manage messages stacking */
+    flex-direction: column; /* Stack messages vertically */
+}
+
+/* Reusing existing .chat-message styles for individual messages within private chat */
+/* If you need specific overrides for private chat messages, add them here */
+.selected-chat-messages-scroll-wrapper .chat-message {
+    margin-bottom: 8px; /* Space between messages */
+}
+
+/* Style for placeholder messages (e.g., "Click a chat...") */
+.selected-chat-messages-scroll-wrapper .message-placeholder {
+    text-align: center;
+    color: #bbb;
+    margin-top: 20px;
+}
+
+/* Input area for the Selected Chat panel (bottom of the right panel) */
+.selected-chat-input-area {
+    display: flex;
+    gap: 10px; /* Space between input field and send button */
+    padding: 10px; /* Padding around the input and button */
+    border-top: 1px solid #3a3a40; /* Separator from messages above */
+    background-color: #333; /* Slightly darker background for the input area */
+    flex-shrink: 0; /* Prevents this area from shrinking */
+}
+
+/* Reuse existing chat-text-input styles for the private chat input */
+.selected-chat-input-area .chat-text-input {
+    flex-grow: 1; /* Allows the input field to take up available space */
+    margin-right: 0 !important; /* Overrides any global margin-right that might interfere */
+}
+
+/* Reuse existing chat-send-btn styles for the private chat send button */
+.selected-chat-input-area .chat-send-btn {
+    flex-shrink: 0; /* Prevents the button from shrinking */
+}
