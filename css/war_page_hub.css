@@ -397,6 +397,7 @@ transition: background-color 0.2s ease;
     font-size: 0.9em; /* Adjust font size as needed for readability */
     word-wrap: break-word; /* Ensures long words break and wrap */
     overflow-wrap: break-word; /* Modern equivalent */
+	white-space: normal;
 }
 
 .chat-timestamp {
@@ -420,6 +421,9 @@ transition: background-color 0.2s ease;
 /* Ensure the main chat text also picks up the color if not inherited */
 .chat-text {
     color: #f0f0f0; /* Explicitly set main text color */
+	word-break: break-word; /* NEW: Forces long words to break and wrap onto the next line */
+    overflow-wrap: break-word; /* NEW: Modern equivalent for better browser compatibility */
+    white-space: normal; /* NEW: Ensures normal text wrapping (should already be there or inherited) */
 }
 
 #warChatBox {
@@ -3614,13 +3618,14 @@ CSS
 
 /* Scrollable wrapper for the messages in the Selected Chat panel */
 .selected-chat-messages-scroll-wrapper {
-    flex-grow: 1; /* Allows this area to take up all remaining height in its panel */
-    overflow-y: auto; /* Enables vertical scrolling for messages */
-    padding: 10px; /* Padding for messages */
+    flex-grow: 1; /* Keep this to allow it to fill space if smaller than max-height */
+    height: 300px; /* NEW/MODIFIED: Set a fixed height for the message display area */
+    overflow-y: auto; /* This ensures a scrollbar appears if messages exceed 300px */
+    padding: 10px;
     box-sizing: border-box;
     scrollbar-gutter: stable;
-    display: flex; /* Use flex to manage messages stacking */
-    flex-direction: column; /* Stack messages vertically */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Reusing existing .chat-message styles for individual messages within private chat */
