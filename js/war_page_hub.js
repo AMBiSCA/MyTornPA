@@ -114,6 +114,7 @@ const selectedChatDisplay = document.getElementById('selectedChatDisplay');
 const privateChatMessageInput = document.getElementById('privateChatMessageInput');
 const sendPrivateMessageBtn = document.getElementById('sendPrivateMessageBtn');
 const tabContentContainer = document.querySelector('.tab-content-container');
+const mainChatScrollWrapper = document.querySelector('#warChatBox > div.chat-messages-scroll-wrapper');
 
 
 function countFactionMembers(membersObject) {
@@ -165,6 +166,7 @@ async function processProfileFetchQueue() {
 }
 
 // Replace your entire handleChatTabClick function with this updated code
+// Replace your entire handleChatTabClick function with this updated code
 function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
@@ -195,13 +197,13 @@ function handleChatTabClick(event) {
 
     let showInputArea = true; // By default, show the global input area
 
-    // --- NEW: Control the main content scrollbar based on the active chat tab ---
-    if (tabContentContainer) {
+    // --- NEW CRITICAL FIX: Control the main chat module's scrollbar ---
+    if (mainChatScrollWrapper) {
         // Default to 'auto' for most tabs, then override for 'private-chat'
-        tabContentContainer.style.overflowY = 'auto'; 
-        tabContentContainer.style.overflowX = 'hidden'; // Keep horizontal hidden if it's generally unwanted
+        mainChatScrollWrapper.style.overflowY = 'auto'; 
+        mainChatScrollWrapper.style.overflowX = 'hidden'; // Keep horizontal hidden if generally unwanted
     }
-    // --- END NEW SCROLLBAR CONTROL ---
+    // --- END NEW CRITICAL FIX ---
 
 
     switch (targetTab) {
@@ -246,9 +248,9 @@ function handleChatTabClick(event) {
                 </div>
             `;
             showInputArea = false; // Hide the global input area for this tab
-            // --- NEW: Hide main content scrollbar for this tab ---
-            if (tabContentContainer) {
-                tabContentContainer.style.overflowY = 'hidden'; 
+            // --- NEW: Hide main chat module scrollbar for this tab ---
+            if (mainChatScrollWrapper) {
+                mainChatScrollWrapper.style.overflowY = 'hidden'; 
             }
             // --- END NEW ---
             setTimeout(() => {
