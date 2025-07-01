@@ -235,8 +235,12 @@ function handleChatTabClick(event) {
                 </div>
             `;
             showInputArea = false; // Hide the global input area for this tab
-            // TODO: Call a function to initialize private chat specific JS here later (e.g., loadRecentChats())
-            // This function would also set up event listeners for elements *within* the injected HTML.
+            // --- Call initialization function after HTML injection ---
+            // Use setTimeout with 0ms delay to ensure the browser has processed the innerHTML update
+            // and the elements are available in the DOM before we try to get them.
+            setTimeout(() => {
+                initPrivateChatTabEventListeners(); // <--- CALL THIS FUNCTION
+            }, 0); 
             break;
 
         case 'faction-members':
@@ -313,14 +317,13 @@ function handleChatTabClick(event) {
             break;
     }
 
-    // Control visibility of the global chat input area at the bottom
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
 }
-// --- NEW FUNCTION: Helper to display individual private chat messages ---
+
 function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('chat-message'); // Reuses existing chat-message styles
@@ -485,6 +488,38 @@ async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarit
     privateChatMessageInputEl.disabled = false;
     sendPrivateMessageBtnEl.disabled = false;
     privateChatMessageInputEl.focus(); // Automatically focus the input field
+}
+
+function initPrivateChatTabEventListeners() {
+    console.log("[Private Chat Init] --- START: Initializing event listeners ---"); // ADDED LOG
+
+    // Get references to elements that are part of the dynamically loaded Private Chat HTML
+    const privateChatMessageInputEl = document.getElementById('privateChatMessageInput');
+    const sendPrivateMessageBtnEl = document.getElementById('sendPrivateMessageBtn');
+    
+    console.log("[Private Chat Init] Input element found:", privateChatMessageInputEl); // ADDED LOG
+    console.log("[Private Chat Init] Send button found:", sendPrivateMessageBtnEl); // ADDED LOG
+
+    if (!privateChatMessageInputEl || !sendPrivateMessageBtnEl) {
+        console.error("Private chat input/send elements not found for event listeners. Check HTML injection and timing.");
+        console.log("[Private Chat Init] --- END (Error): Elements not found ---"); // ADDED LOG
+        return;
+    }
+
+    // Attach event listener for the Send button (remove previous to avoid duplicates)
+    sendPrivateMessageBtnEl.removeEventListener('click', sendPrivateChatMessage); 
+    sendPrivateMessageBtnEl.addEventListener('click', sendPrivateChatMessage);
+    console.log("[Private Chat Init] Send button listener attached."); // ADDED LOG
+
+    // Attach event listener for Enter key in the input field (remove previous to avoid duplicates)
+    privateChatMessageInputEl.removeEventListener('keydown', handlePrivateChatInputKeydown); 
+    privateChatMessageInputEl.addEventListener('keydown', handlePrivateChatInputKeydown);
+    console.log("[Private Chat Init] Input keydown listener attached."); // ADDED LOG
+
+    console.log("[Private Chat Init] --- END: Listeners initialized successfully ---"); // MODIFIED LOG
+
+    // TODO: Call loadRecentChats() here once that function is implemented
+    // loadRecentChats(); 
 }
 
 function updateMemberItemDisplay(itemElement, profileImageUrl) {
@@ -704,8 +739,6 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
     });
 }
 
-// NEW: Function to handle switching chat tabs (now hides input area for Settings)
-// MODIFIED FUNCTION: to handle switching chat tabs (now includes Settings tab and passes UID for Blocked People)
 async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
     console.log(`Switching to chat tab: ${tabName}`);
 
@@ -820,9 +853,9 @@ async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
                     if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your friends list.</p>`;
                     if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to see your ignores list.</p>`;
                 }
-            }, 50); // Small delay of 50 milliseconds
+            }, 50); 
 
-            showInputArea = false; // Hide input for non-chat tabs
+            showInputArea = false; 
             break;
 
         case 'settings':
@@ -844,10 +877,10 @@ async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
 
-    // Ensure the main chat display area scrolls to bottom after content is injected
+   
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
 }
-// NEW: Helper function to format time remaining from seconds (Moved for proper scope)
+
 function formatTime(seconds) {
     if (seconds <= 0) return '0s';
     const h = Math.floor(seconds / 3600);
@@ -861,7 +894,7 @@ function formatTime(seconds) {
 }
 
 function updateUserEnergyDisplay() {
-    // This function now directly uses the global userApiKey
+   
     if (!userApiKey) {
         console.warn("User API key not available for energy display.");
  const userEnergyDisplayElement = document.getElementById('rw-user-energy');
@@ -871,17 +904,17 @@ function updateUserEnergyDisplay() {
         return;
     }
 
-    const API_KEY = userApiKey; // Use the globally available API key
+    const API_KEY = userApiKey; 
 
-    // Get the HTML element where energy will be displayed
+   
   const userEnergyDisplayElement = document.getElementById('rw-user-energy');
 
     if (!userEnergyDisplayElement) {
         console.warn("User energy display element with ID 'userEnergyDisplay' not found.");
-        return; // Exit if the element doesn't exist
+        return;
     }
 
-    // Clear current display or show a loading message
+  
     userEnergyDisplayElement.textContent = 'Loading E...'; 
 
     fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}`)
