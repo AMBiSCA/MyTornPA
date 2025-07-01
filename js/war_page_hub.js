@@ -808,7 +808,6 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
   }
 
 
-// NEW: Function to display a message in the chat area
 function displayChatMessage(messageObj) {
     if (!chatDisplayArea) {
         console.error("Chat display area not found in displayChatMessage function.");
@@ -816,22 +815,26 @@ function displayChatMessage(messageObj) {
     }
 
     const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message'); // Add a class for styling messages (you can define this in your CSS)
+    messageElement.classList.add('chat-message');
 
-   const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
-                  ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Fallback if timestamp is missing or not a Firebase Timestamp
+    // Add a unique ID to each message element using its timestamp
+    if (messageObj.timestamp && typeof messageObj.timestamp.toMillis === 'function') {
+        messageElement.id = `msg-${messageObj.timestamp.toMillis()}`;
+    }
+
+    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
+        ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const senderName = messageObj.sender || 'Unknown';
     const messageText = messageObj.text || '';
 
-    // Basic structure for a chat message
-  messageElement.innerHTML = `
-    <span class="chat-timestamp">[${timestamp}]</span>
-    <span class="chat-sender">${senderName}:</span>
-    <span class="chat-text">${messageText}</span>
-`;
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[${timestamp}]</span>
+        <span class="chat-sender">${senderName}:</span>
+        <span class="chat-text">${messageText}</span>
+    `;
+    
     chatDisplayArea.appendChild(messageElement);
-
 }
 
 function manageChatMessages() {
@@ -937,14 +940,15 @@ function setupChatRealtimeListener() {
             console.log("Chat messages updated in real-time.");
             
             setTimeout(() => {
-                // Find the correct scrolling element based on your CSS
-                const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-                if (scrollWrapper) {
-                    // Set the scrollTop of the wrapper, not the inner div
-                    scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+                // Find the very last message element that was just added
+                const lastMessage = chatDisplayArea.querySelector('.chat-message:last-child');
+
+                // If it exists, tell it to scroll into view
+                if (lastMessage) {
+                    lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
                 }
                 toggleScrollIndicatorVisibility();
-            }, 100); // A 100ms delay gives the browser more time on initial load.
+            }, 100); // Keep a small delay for stability
 
         }, error => {
             console.error("Error listening to chat messages:", error);
@@ -954,10 +958,9 @@ function setupChatRealtimeListener() {
         });
     console.log("Chat real-time listener set up.");
     
-    // The event listener also needs to be on the correct scrolling element
     const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
     if (scrollWrapper) {
-        scrollWrapper.removeEventListener('scroll', handleChatScroll); // Prevent multiple listeners
+        scrollWrapper.removeEventListener('scroll', handleChatScroll);
         scrollWrapper.addEventListener('scroll', handleChatScroll);
     }
 }
