@@ -387,15 +387,6 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
         htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
 
-        // Add Profile Image (if available)
-        htmlContent += `
-            <div class="member-detail-header">
-                <div class="member-header-top-row center-content-flex">
-                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
-                </div>
-            </div>`;
-
-
         htmlContent += '<h4>Battle Stats</h4>';
         if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
             const bsStrength = data.strength || data.battlestats?.strength;
