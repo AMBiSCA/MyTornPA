@@ -161,6 +161,165 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
+function handleChatTabClick(event) {
+    const clickedTab = event.currentTarget;
+    const targetTab = clickedTab.dataset.chatTab;
+
+    console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
+
+    // Remove 'active' class from all chat tab buttons
+    chatTabButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+    // Add 'active' class to the clicked tab button
+    clickedTab.classList.add('active');
+
+    // This line clears the chat display area before new content is loaded for the selected tab.
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = '';
+    } else {
+        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
+        return;
+    }
+
+    // Unsubscribe from any active real-time chat listener
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous chat listener (tab switch).");
+    }
+
+    let showInputArea = true; // By default, show the global input area
+
+    switch (targetTab) {
+        case 'faction-chat':
+            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
+            setupChatRealtimeListener(); // This function will populate chatDisplayArea
+            break;
+
+        case 'war-chat':
+            chatDisplayArea.innerHTML = `
+                <p>Welcome to War Chat!</p>
+                <p>Functionality not implemented yet.</p>
+            `;
+            // No specific JS function to call for this placeholder
+            break;
+
+        case 'private-chat':
+            // --- HTML FOR NEW PRIVATE CHAT TAB LAYOUT ---
+            chatDisplayArea.innerHTML = `
+                <div id="privateChatFullLayout" class="private-chat-tab-content">
+                    <div class="private-chat-layout-panels">
+                        <div class="recent-chats-panel">
+                            <div class="panel-header">Recent Chats</div>
+                            <div class="recent-chats-list-scroll-wrapper">
+                                <ul id="recentChatsList" class="recent-chats-list">
+                                    <li class="chat-item loading-message">Loading recent chats...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="selected-chat-panel">
+                            <div id="selectedChatHeader" class="panel-header">Select a Chat</div>
+                            <div class="selected-chat-messages-scroll-wrapper">
+                                <div id="selectedChatDisplay" class="chat-display-area">
+                                    <p class="message-placeholder">Click a chat on the left to start messaging.</p>
+                                </div>
+                            </div>
+                            <div class="selected-chat-input-area">
+                                <input type="text" id="privateChatMessageInput" class="chat-text-input" placeholder="Type your private message...">
+                                <button id="sendPrivateMessageBtn" class="chat-send-btn">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            showInputArea = false; // Hide the global input area for this tab
+            // TODO: Call a function to initialize private chat specific JS here later (e.g., loadRecentChats())
+            // This function would also set up event listeners for elements *within* the injected HTML.
+            break;
+
+        case 'faction-members':
+            // --- CORRECTED CODE FOR FACTION MEMBERS TAB ---
+            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`; // Loading message
+            if (factionApiFullData && factionApiFullData.members) {
+                // Pass chatDisplayArea as the target element for rendering the member list
+                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
+            }
+            showInputArea = false;
+            break;
+
+        case 'recently-met':
+            populateRecentlyMetTab(chatDisplayArea); // chatDisplayArea is passed as target element
+            showInputArea = false;
+            break;
+
+        case 'blocked-people':
+            // --- HTML FOR BLOCKED PEOPLE TAB ---
+            chatDisplayArea.innerHTML = `
+                <div class="blocked-people-layout">
+                    <div class="friends-list-section">
+                        <div class="header-box">
+                            <b>Friends</b>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div id="friendsScrollableList" class="scrollable-list">
+                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
+                        </div>
+                    </div>
+
+                    <div class="ignores-list-section">
+                        <div class="header-box">
+                            <b>Ignores / Blocked</b>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div id="ignoresScrollableList" class="scrollable-list">
+                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Get references to the elements *after* they have been injected into the DOM
+            const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
+            const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
+
+            // --- CORRECTED CALL TO populateBlockedPeopleTab ---
+            if (auth.currentUser) { // Ensure user is logged in before getting UID
+                populateBlockedPeopleTab(auth.currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+            } else {
+                console.warn("User not logged in. Cannot load Blocked People tab data.");
+                if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
+                if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
+            }
+            // --- END CORRECTED CALL ---
+            showInputArea = false;
+            break;
+
+        case 'settings':
+            populateSettingsTab(chatDisplayArea); // chatDisplayArea is passed as target element
+            showInputArea = false;
+            break;
+
+        default:
+            console.warn(`Unknown chat tab: ${targetTab}`);
+            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            showInputArea = false;
+            break;
+    }
+
+    // Control visibility of the global chat input area at the bottom
+    if (showInputArea) {
+        if (chatInputArea) chatInputArea.style.display = 'flex';
+    } else {
+        if (chatInputArea) chatInputArea.style.display = 'none';
+    }
+}
+
 function updateMemberItemDisplay(itemElement, profileImageUrl) {
     const imgElement = itemElement.querySelector('.member-profile-pic');
     if (imgElement) {
@@ -4013,164 +4172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-  function handleChatTabClick(event) {
-    const clickedTab = event.currentTarget;
-    const targetTab = clickedTab.dataset.chatTab;
-
-    console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
-
-    // Remove 'active' class from all chat tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-    // Add 'active' class to the clicked tab button
-    clickedTab.classList.add('active');
-
-    // This line clears the chat display area before new content is loaded for the selected tab.
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = '';
-    } else {
-        console.error("HTML Error: chatDisplayArea (the main content display for tabs) not found.");
-        return;
-    }
-
-    // Unsubscribe from any active real-time chat listener
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-        console.log("Unsubscribed from previous chat listener (tab switch).");
-    }
-
-    let showInputArea = true; // By default, show the global input area
-
-    switch (targetTab) {
-        case 'faction-chat':
-            chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
-            setupChatRealtimeListener(); // This function will populate chatDisplayArea
-            break;
-
-        case 'war-chat':
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to War Chat!</p>
-                <p>Functionality not implemented yet.</p>
-            `;
-            // No specific JS function to call for this placeholder
-            break;
-
-        case 'private-chat':
-            // --- HTML FOR NEW PRIVATE CHAT TAB LAYOUT ---
-            chatDisplayArea.innerHTML = `
-                <div id="privateChatFullLayout" class="private-chat-tab-content">
-                    <div class="private-chat-layout-panels">
-                        <div class="recent-chats-panel">
-                            <div class="panel-header">Recent Chats</div>
-                            <div class="recent-chats-list-scroll-wrapper">
-                                <ul id="recentChatsList" class="recent-chats-list">
-                                    <li class="chat-item loading-message">Loading recent chats...</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="selected-chat-panel">
-                            <div id="selectedChatHeader" class="panel-header">Select a Chat</div>
-                            <div class="selected-chat-messages-scroll-wrapper">
-                                <div id="selectedChatDisplay" class="chat-display-area">
-                                    <p class="message-placeholder">Click a chat on the left to start messaging.</p>
-                                </div>
-                            </div>
-                            <div class="selected-chat-input-area">
-                                <input type="text" id="privateChatMessageInput" class="chat-text-input" placeholder="Type your private message...">
-                                <button id="sendPrivateMessageBtn" class="chat-send-btn">Send</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            showInputArea = false; // Hide the global input area for this tab
-            // TODO: Call a function to initialize private chat specific JS here later (e.g., loadRecentChats())
-            // This function would also set up event listeners for elements *within* the injected HTML.
-            break;
-
-        case 'faction-members':
-            // --- CORRECTED CODE FOR FACTION MEMBERS TAB ---
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`; // Loading message
-            if (factionApiFullData && factionApiFullData.members) {
-                // Pass chatDisplayArea as the target element for rendering the member list
-                displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
-            }
-            showInputArea = false;
-            break;
-
-        case 'recently-met':
-            populateRecentlyMetTab(chatDisplayArea); // chatDisplayArea is passed as target element
-            showInputArea = false;
-            break;
-
-        case 'blocked-people':
-            // --- HTML FOR BLOCKED PEOPLE TAB ---
-            chatDisplayArea.innerHTML = `
-                <div class="blocked-people-layout">
-                    <div class="friends-list-section">
-                        <div class="header-box">
-                            <b>Friends</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="friendsSearchInput" placeholder="Friends Search">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="friendsScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading friends...</p>
-                        </div>
-                    </div>
-
-                    <div class="ignores-list-section">
-                        <div class="header-box">
-                            <b>Ignores / Blocked</b>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                            <span class="search-icon">🔍</span>
-                        </div>
-                        <div id="ignoresScrollableList" class="scrollable-list">
-                            <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            // Get references to the elements *after* they have been injected into the DOM
-            const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
-            const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-
-            // --- CORRECTED CALL TO populateBlockedPeopleTab ---
-            if (auth.currentUser) { // Ensure user is logged in before getting UID
-                populateBlockedPeopleTab(auth.currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
-            } else {
-                console.warn("User not logged in. Cannot load Blocked People tab data.");
-                if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
-                if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
-            }
-            // --- END CORRECTED CALL ---
-            showInputArea = false;
-            break;
-
-        case 'settings':
-            populateSettingsTab(chatDisplayArea); // chatDisplayArea is passed as target element
-            showInputArea = false;
-            break;
-
-        default:
-            console.warn(`Unknown chat tab: ${targetTab}`);
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-            showInputArea = false;
-            break;
-    }
-
-    // Control visibility of the global chat input area at the bottom
-    if (showInputArea) {
-        if (chatInputArea) chatInputArea.style.display = 'flex';
-    } else {
-        if (chatInputArea) chatInputArea.style.display = 'none';
-    }
-}
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
