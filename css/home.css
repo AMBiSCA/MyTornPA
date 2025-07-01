@@ -298,7 +298,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 .member-detail-profile-image-modal {
     width: 60px;          /* Sets the width of the image */
     height: 60px;         /* Sets the height of the image (keep same as width for circular) */
-    object-fit: cover;    /* Ensures the image covers the area without distortion */
+    border-radius: 50%;   /* Makes the image perfectly circular */
+    object-fit: fill;    /* Ensures the image covers the area without distortion */
     border: 2px solid #00a8ff; /* Optional: adds a blue border */
     box-shadow: 0 0 5px rgba(0, 168, 255, 0.5); /* Optional: adds a subtle blue glow */
 }
