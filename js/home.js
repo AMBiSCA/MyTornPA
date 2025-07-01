@@ -387,7 +387,6 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 <div class="member-header-top-row center-content-flex">
                     ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
                 </div>
-                <div class="member-detail-name-id">${data.name || 'Unknown'} [${data.player_id || 'N/A'}]</div>
             </div>`;
 
 
