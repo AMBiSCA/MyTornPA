@@ -230,23 +230,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
    // Replace your entire fetchDataForPersonalStatsModal function with this updated code
+// Replace your entire fetchDataForPersonalStatsModal function with this updated code
 async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
-    const personalStatsModal = document.getElementById('personalStatsModal'); // Assuming this is defined globally
-    const personalStatsModalBody = document.getElementById('personalStatsModalBody'); // Assuming this is defined globally
+    const personalStatsModal = document.getElementById('personalStatsModal');
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
 
     if (!personalStatsModal || !personalStatsModalBody) {
         console.error("HTML Error: Personal Stats Modal elements not found!");
-        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false; // Assuming this is defined
+        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
         return;
     }
 
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-    personalStatsModal.classList.add('visible'); // Assuming 'visible' class shows the modal
+    personalStatsModal.classList.add('visible');
 
-    // Selections to fetch all dashboard quick stats and personal stats
-    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars"; // Keep all selections to fetch data
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
 
     function formatTcpAnniversaryDate(dateObject) {
@@ -289,14 +289,84 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             throw new Error("Failed to retrieve any meaningful data after API call.");
         }
 
-        // --- THE BLOCK THAT SENT DATA TO NETLIFY FUNCTION HAS BEEN REMOVED HERE ---
-        // This function will now ONLY display data and not send it to Firebase.
-        // This means profile_image and other comprehensive data will NOT be saved to Firebase via this path.
-        // Your personal stats modal should now open and display stats as intended.
-        // --- END OF REMOVAL ---
+        // --- Data to send to Netlify function (this remains comprehensive for saving) ---
+        const userId = data.player_id;
+        if (userId) {
+            const userDataToSave = {
+                name: data.name || null,
+                tornProfileId: data.player_id || null,
+                profile_image: data.profile_image || null,
+                level: data.level || null,
+                rank: data.rank || null,
+                age: data.age || null,
+                gender: data.gender || null,
+                role: data.role || null,
+                donator: data.donator || false,
+                revivable: data.revivable || null,
+                signup_date: data.signup || null,
+                last_action_timestamp: data.last_action?.timestamp || null,
+                faction_id: data.faction?.faction_id || null,
+                faction_name: data.faction?.faction_name || null,
+                faction_tag: data.faction?.faction_tag || null,
+                faction_position: data.faction?.position || null,
+                nerve: data.nerve || {},
+                energy: data.energy || {},
+                happy: data.happy || {},
+                life: data.life || {},
+                status: data.status || {},
+                traveling: data.status?.state === 'Traveling' || false,
+                hospitalized: data.status?.state === 'Hospital' || false,
+                cooldowns: data.cooldowns || {},
+                personalstats: data.personalstats || {},
+                battlestats: data.battlestats || {},
+                workstats: data.workstats || {},
+                awards: data.awards || null,
+                basicicons: data.basicicons || null,
+                chain: data.chain || null,
+                competition: data.competition || null,
+                enemies: data.enemies || null,
+                friends: data.friends || null,
+                job: data.job || null,
+                karma: data.karma || null,
+                married: data.married || null,
+                property: data.property || null,
+                property_id: data.property_id || null,
+                states: data.states || {},
+                travel: data.travel || {},
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
+            console.log(`[DEBUG] userDataToSave.profile_image:`, userDataToSave.profile_image);
+
+            try {
+                // Call the Netlify Function to securely save ALL data to Firestore
+                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-faction', { // Changed to update-user-faction
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid: auth.currentUser.uid, // Firebase UID
+                        tornPlayerId: String(userId), // Torn Player ID
+                        userData: userDataToSave // Send the whole comprehensive object
+                    }),
+                });
+
+                if (!netlifyFunctionResponse.ok) {
+                    const errorDetails = await netlifyFunctionResponse.json();
+                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
+                }
+
+                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
+            } catch (functionError) {
+                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
+            }
+        } else {
+            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
+        }
+        // --- End: Call Netlify Function for Secure Firebase Storage ---
 
 
-        // --- HTML Content Generation (This part uses the 'data' directly from Torn API) ---
+        // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
         let htmlContent = '<h4>User Information</h4>';
         htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
         htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
@@ -304,41 +374,18 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
         let xanaxDisplay = 'N/A';
         if (data.personalstats && data.personalstats.xantaken !== undefined) {
-            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : xanaxDisplay;
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
         }
         htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
 
         const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
         htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
 
-        // Re-extract nerve and energy specifically for HTML display (using the full 'data' object received)
-        const nerveForDisplay = data.nerve || {};
-        const energyForDisplay = data.energy || {};
-
-        const nerveCurrent = nerveForDisplay.current !== undefined ? nerveForDisplay.current : 'N/A';
-        const nerveMax = nerveForDisplay.maximum !== undefined ? nerveForDisplay.maximum : '';
-        const nerveIncrement = nerveForDisplay.increment !== undefined ? nerveForDisplay.increment : ''; // Assuming you meant increment as "gain"
-        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveIncrement ? `+${nerveIncrement}/5min` : ''}`.trim();
-
-        const energyCurrent = energyForDisplay.current !== undefined ? energyForDisplay.current : 'N/A';
-        const energyMax = energyForDisplay.maximum !== undefined ? energyForDisplay.maximum : '';
-        const energyIncrement = energyForDisplay.increment !== undefined ? energyForDisplay.increment : ''; // Assuming you meant increment as "gain"
-        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyIncrement ? `+${energyIncrement}/10min` : ''}`.trim();
-        // End of Nerve and Energy display re-extraction
-
-
+        // Add Profile Image (if available)
         htmlContent += `
             <div class="member-detail-header">
-                <div class="member-header-top-row">
-                    <div class="member-stat-block member-stat-block-small">
-                        <h5>Energy:</h5>
-                        <p>${energyDisplay}</p>
-                    </div>
-                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image">` : ''}
-                    <div class="member-stat-block member-stat-block-small">
-                        <h5>Nerve:</h5>
-                        <p>${nerveDisplay}</p>
-                    </div>
+                <div class="member-header-top-row center-content-flex">
+                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
                 </div>
                 <div class="member-detail-name-id">${data.name || 'Unknown'} [${data.player_id || 'N/A'}]</div>
             </div>`;
