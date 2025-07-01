@@ -27,6 +27,7 @@ let scrollUpIndicatorEl = null;
 let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
 
 
+
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
@@ -112,6 +113,7 @@ const selectedChatHeader = document.getElementById('selectedChatHeader');
 const selectedChatDisplay = document.getElementById('selectedChatDisplay');
 const privateChatMessageInput = document.getElementById('privateChatMessageInput');
 const sendPrivateMessageBtn = document.getElementById('sendPrivateMessageBtn');
+const tabContentContainer = document.querySelector('.tab-content-container');
 
 
 function countFactionMembers(membersObject) {
@@ -162,6 +164,7 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
+// Replace your entire handleChatTabClick function with this updated code
 function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
@@ -192,6 +195,15 @@ function handleChatTabClick(event) {
 
     let showInputArea = true; // By default, show the global input area
 
+    // --- NEW: Control the main content scrollbar based on the active chat tab ---
+    if (tabContentContainer) {
+        // Default to 'auto' for most tabs, then override for 'private-chat'
+        tabContentContainer.style.overflowY = 'auto'; 
+        tabContentContainer.style.overflowX = 'hidden'; // Keep horizontal hidden if it's generally unwanted
+    }
+    // --- END NEW SCROLLBAR CONTROL ---
+
+
     switch (targetTab) {
         case 'faction-chat':
             chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
@@ -203,7 +215,6 @@ function handleChatTabClick(event) {
                 <p>Welcome to War Chat!</p>
                 <p>Functionality not implemented yet.</p>
             `;
-            // No specific JS function to call for this placeholder
             break;
 
         case 'private-chat':
@@ -235,31 +246,30 @@ function handleChatTabClick(event) {
                 </div>
             `;
             showInputArea = false; // Hide the global input area for this tab
-            // --- Call initialization function after HTML injection ---
-            // Use setTimeout with 0ms delay to ensure the browser has processed the innerHTML update
-            // and the elements are available in the DOM before we try to get them.
+            // --- NEW: Hide main content scrollbar for this tab ---
+            if (tabContentContainer) {
+                tabContentContainer.style.overflowY = 'hidden'; 
+            }
+            // --- END NEW ---
             setTimeout(() => {
-                initPrivateChatTabEventListeners(); // <--- CALL THIS FUNCTION
+                initPrivateChatTabEventListeners(); 
             }, 0); 
             break;
 
         case 'faction-members':
-            // --- CORRECTED CODE FOR FACTION MEMBERS TAB ---
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`; // Loading message
+            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
             if (factionApiFullData && factionApiFullData.members) {
-                // Pass chatDisplayArea as the target element for rendering the member list
                 displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
             }
             showInputArea = false;
             break;
 
         case 'recently-met':
-            populateRecentlyMetTab(chatDisplayArea); // chatDisplayArea is passed as target element
+            populateRecentlyMetTab(chatDisplayArea);
             showInputArea = false;
             break;
 
         case 'blocked-people':
-            // --- HTML FOR BLOCKED PEOPLE TAB ---
             chatDisplayArea.innerHTML = `
                 <div class="blocked-people-layout">
                     <div class="friends-list-section">
@@ -289,24 +299,21 @@ function handleChatTabClick(event) {
                     </div>
                 </div>
             `;
-            // Get references to the elements *after* they have been injected into the DOM
             const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
             const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
 
-            // --- CORRECTED CALL TO populateBlockedPeopleTab ---
-            if (auth.currentUser) { // Ensure user is logged in before getting UID
+            if (auth.currentUser) {
                 populateBlockedPeopleTab(auth.currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
             } else {
                 console.warn("User not logged in. Cannot load Blocked People tab data.");
                 if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
                 if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
             }
-            // --- END CORRECTED CALL ---
             showInputArea = false;
             break;
 
         case 'settings':
-            populateSettingsTab(chatDisplayArea); // chatDisplayArea is passed as target element
+            populateSettingsTab(chatDisplayArea);
             showInputArea = false;
             break;
 
@@ -317,14 +324,13 @@ function handleChatTabClick(event) {
             break;
     }
 
+    // Control visibility of the global chat input area at the bottom
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
 }
-
-// --- Private Chat Related Functions (Corrected Order) ---
 
 // Helper function to display individual private chat messages
 // This is the earliest dependency, so it comes first.
