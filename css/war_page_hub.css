@@ -1514,21 +1514,19 @@ autocomplete-items {
     border-radius: 0 0 5px 5px; /* Rounded bottom corners */
 }
 
-/* In your war_page_hub.css: REPLACE existing rules for these elements */
+/* This is the PARENT container */
+.active-ops-layout-row {
+  display: flex;
+  gap: 20px; /* This adds a nice space between the columns */
+  align-items: stretch; /* This makes the columns equal height */
+}
 
-/* Revisit the main chatbox containers to ensure flexibility */
-/* Styles for the chatbox to make it a fixed-position overlay */
+/* This styles the two CHILDREN columns */
+.active-ops-targets-panel,
 .active-ops-chat-panel {
-    position: fixed; /* This takes the element out of the normal document flow */
-    top: 347px; /* Adjust this value to set the distance from the top of the browser window */
-    right: 90px; /* Adjust this value to set the distance from the right of the browser window */
-    width:855px; /* Set a fixed width for your chatbox */
-    height: 457px; /* Set a fixed height for your chatbox */
-    z-index: 1000; 
-	
-	/* Ensures it appears on top of other content. Use a high number. */
-    /* You may need to remove or override any 'flex', 'min-width', or 'height: 100%' properties
-       that were previously on .active-ops-chat-panel from its old layout. */
+  flex: 1; /* This tells both columns to take up equal space */
+  display: flex;
+  flex-direction: column;
 }
 
 
