@@ -229,26 +229,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
-   async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+   // Replace your entire fetchDataForPersonalStatsModal function with this updated code
+async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
-    const personalStatsModal = document.getElementById('personalStatsModal');
-    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
+    const personalStatsModal = document.getElementById('personalStatsModal'); // Assuming this is defined globally
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody'); // Assuming this is defined globally
 
     if (!personalStatsModal || !personalStatsModalBody) {
         console.error("HTML Error: Personal Stats Modal elements not found!");
-        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false; // Assuming this is defined
         return;
     }
 
     personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-    personalStatsModal.classList.add('visible');
+    personalStatsModal.classList.add('visible'); // Assuming 'visible' class shows the modal
 
     // Selections to fetch all dashboard quick stats and personal stats
     const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
-
-    console.log(`[DEBUG] Constructed Torn API URL for Personal Stats Modal: ${apiUrl}`);
 
     function formatTcpAnniversaryDate(dateObject) {
         if (!dateObject) return 'N/A';
@@ -265,11 +264,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     try {
+        console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`);
         const response = await fetch(apiUrl);
         console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
         const data = await response.json();
         console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
-
 
         if (!response.ok) {
             const errorData = data || { message: "Failed to parse API error response." };
@@ -279,81 +278,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (data.error) {
             console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-            throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-        }
-
-        // --- NEW: Call Netlify Function for Secure Firebase Storage ---
-        const userId = data.player_id; 
-        if (userId) {
-            const userDataToSave = {
-                name: data.name,
-                level: data.level,
-                profile_image: data.profile_image || null, // <--- ADDED THIS LINE
-                // Quick Stats from 'basic' selection and status object
-                nerve: data.nerve || 0,
-                energy: data.energy || 0,
-                happy: data.happy || 0,
-                life: data.life || 0,
-                traveling: data.status?.state === 'Traveling' || false,
-                hospitalized: data.status?.state === 'Hospital' || false,
-                // Cooldowns from 'cooldowns' selection
-                cooldowns: {
-                    drug: data.cooldowns?.drug || 0,
-                    booster: data.cooldowns?.booster || 0,
-                },
-                // Personal Stats
-                personalstats: data.personalstats || {},
-                // Battle Stats
-                battlestats: {
-                    strength: data.strength || data.battlestats?.strength || 0,
-                    defense: data.defense || data.battlestats?.defense || 0,
-                    speed: data.speed || data.battlestats?.speed || 0,
-                    dexterity: data.dexterity || data.battlestats?.dexterity || 0, 
-                    total: data.total || data.battlestats?.total || 0,
-                    strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
-                    defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
-                    speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
-                    dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
-                },
-                // Work Stats
-                workstats: {
-                    manual_labor: data.manual_labor || data.workstats?.manual_labor || 0,
-                    intelligence: data.intelligence || data.workstats?.intelligence || 0,
-                    endurance: data.endurance || data.workstats?.endurance || 0,
-                },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for last update
-            };
-
-            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
-
-            try {
-                // Call the new Netlify Function to securely save data to Firestore
-                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: String(userId), // Ensure userId is a string
-                        userData: userDataToSave,
-                    }),
-                });
-
-                if (!netlifyFunctionResponse.ok) {
-                    const errorDetails = await netlifyFunctionResponse.json();
-                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
-                }
-
-                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
-            } catch (functionError) {
-                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
+            if (data.error.code === 2 || data.error.code === 10) {
+                throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
+            } else {
+                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
             }
-        } else {
-            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
         }
-        // --- END: Call Netlify Function for Secure Firebase Storage ---
+
+        if (!data || Object.keys(data).length === 0) {
+            throw new Error("Failed to retrieve any meaningful data after API call.");
+        }
+
+        // --- THE BLOCK THAT SENT DATA TO NETLIFY FUNCTION HAS BEEN REMOVED HERE ---
+        // This function will now ONLY display data and not send it to Firebase.
+        // This means profile_image and other comprehensive data will NOT be saved to Firebase via this path.
+        // Your personal stats modal should now open and display stats as intended.
+        // --- END OF REMOVAL ---
 
 
+        // --- HTML Content Generation (This part uses the 'data' directly from Torn API) ---
         let htmlContent = '<h4>User Information</h4>';
         htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
         htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
@@ -361,12 +304,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let xanaxDisplay = 'N/A';
         if (data.personalstats && data.personalstats.xantaken !== undefined) {
-            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : xanaxDisplay;
         }
         htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
 
         const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
         htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
+
+        // Re-extract nerve and energy specifically for HTML display (using the full 'data' object received)
+        const nerveForDisplay = data.nerve || {};
+        const energyForDisplay = data.energy || {};
+
+        const nerveCurrent = nerveForDisplay.current !== undefined ? nerveForDisplay.current : 'N/A';
+        const nerveMax = nerveForDisplay.maximum !== undefined ? nerveForDisplay.maximum : '';
+        const nerveIncrement = nerveForDisplay.increment !== undefined ? nerveForDisplay.increment : ''; // Assuming you meant increment as "gain"
+        const nerveDisplay = nerveCurrent === 'N/A' ? 'Not available' : `${nerveCurrent}${nerveMax ? '/' + nerveMax : ''} ${nerveIncrement ? `+${nerveIncrement}/5min` : ''}`.trim();
+
+        const energyCurrent = energyForDisplay.current !== undefined ? energyForDisplay.current : 'N/A';
+        const energyMax = energyForDisplay.maximum !== undefined ? energyForDisplay.maximum : '';
+        const energyIncrement = energyForDisplay.increment !== undefined ? energyForDisplay.increment : ''; // Assuming you meant increment as "gain"
+        const energyDisplay = energyCurrent === 'N/A' ? 'Not available' : `${energyCurrent}${energyMax ? '/' + energyMax : ''} ${energyIncrement ? `+${energyIncrement}/10min` : ''}`.trim();
+        // End of Nerve and Energy display re-extraction
+
+
+        htmlContent += `
+            <div class="member-detail-header">
+                <div class="member-header-top-row">
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Energy:</h5>
+                        <p>${energyDisplay}</p>
+                    </div>
+                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image">` : ''}
+                    <div class="member-stat-block member-stat-block-small">
+                        <h5>Nerve:</h5>
+                        <p>${nerveDisplay}</p>
+                    </div>
+                </div>
+                <div class="member-detail-name-id">${data.name || 'Unknown'} [${data.player_id || 'N/A'}]</div>
+            </div>`;
+
 
         htmlContent += '<h4>Battle Stats</h4>';
         if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
