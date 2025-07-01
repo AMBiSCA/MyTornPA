@@ -4216,6 +4216,11 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
+				
+				const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
+    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
+}
 
                 // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
