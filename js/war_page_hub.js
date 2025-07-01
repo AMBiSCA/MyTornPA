@@ -1519,16 +1519,15 @@ function setupChatRealtimeListener() {
             
             console.log("Chat messages updated in real-time.");
             
-            setTimeout(() => {
-                // Find the very last message element that was just added
-                const lastMessage = chatDisplayArea.querySelector('.chat-message:last-child');
+            // --- FIX ---
+            // This directly scrolls the chat area to the very bottom.
+            // It's more reliable than the previous method.
+            if (chatDisplayArea) {
+                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+            }
+            // --- END FIX ---
 
-                // If it exists, tell it to scroll into view
-                if (lastMessage) {
-                    lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
-                }
-                toggleScrollIndicatorVisibility();
-            }, 100); // Keep a small delay for stability
+            toggleScrollIndicatorVisibility();
 
         }, error => {
             console.error("Error listening to chat messages:", error);
