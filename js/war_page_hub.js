@@ -3565,6 +3565,7 @@ async function fetchAndDisplayFriends() {
     }
 }
 // MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
+// MODIFIED FUNCTION: Populates the content of the Blocked People tab with Friends from Firebase and dummy Ignores
 async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl) {
     console.log("[Blocked People Tab] Populating tab. User ID:", currentUserId); // Log current user ID for debug
 
@@ -3682,8 +3683,33 @@ if (userFactionId) {
                 if (!friendId) return;
 
                 if (button.classList.contains('letter-button')) {
-                    console.log(`Message button clicked for friend ID: ${friendId}`);
-                    window.open(`https://www.torn.com/messages.php#/p=compose&XID=${friendId}`, '_blank');
+                    console.log(`Message button clicked for friend ID: ${friendId}. Switching to private chat.`);
+                    
+                    // --- NEW LOGIC HERE ---
+                    // 1. Trigger a switch to the "Private Chat" tab
+                    // We simulate the same event that a tab button click would cause.
+                    const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
+                    if (privateChatTabButton) {
+                        // Use handleChatTabClick directly to manage tab active state and content injection
+                        handleChatTabClick({ currentTarget: privateChatTabButton });
+                    } else {
+                        console.warn("Private Chat tab button not found. Cannot switch tab.");
+                        window.open(`https://www.torn.com/messages.php#/p=compose&XID=${friendId}`, '_blank');
+                        return;
+                    }
+                    
+                    // 2. Call a new function to select and load this specific private chat
+                    if (typeof selectPrivateChat === 'function') { // Check if the function exists
+                        selectPrivateChat(friendId); 
+                    } else {
+                        console.warn("selectPrivateChat function not yet implemented or not in scope. Cannot open specific private chat.");
+                        const selectedChatDisplay = document.getElementById('selectedChatDisplay');
+                        if (selectedChatDisplay) {
+                            selectedChatDisplay.innerHTML = `<p class="message-placeholder">Functionality for direct private chat selection is coming soon!</p>`;
+                        }
+                    }
+                    // --- END NEW LOGIC ---
+
                 } else if (button.classList.contains('trash-button')) {
                     if (confirm(`Are you sure you want to remove Torn ID: ${friendId} from your friends list?`)) {
                         try {
@@ -3735,7 +3761,6 @@ if (userFactionId) {
     });
     ignoresListEl.innerHTML = ignoresHtml;
 }
-
 function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
     // Basic Faction Info (from global factionApiFullData)
     if (factionApiFullData) {
