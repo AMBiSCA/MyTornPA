@@ -2976,6 +2976,9 @@ function setupEventListeners(apiKey) {
                 setTimeout(() => {
                     addButton.style.display = 'none';
                 }, 1500);
+				
+				 fetchAndDisplayFriends(); 
+				 
             })
             .catch((error) => {
                 console.error("Error adding friend to database: ", error);
@@ -3621,7 +3624,7 @@ async function populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresLis
                         console.log(`[Blocked People Tab] Fetched users/${friendTornId}. Document exists:`, userDoc.exists);
                         if (userDoc.exists) {
                             const userData = userDoc.data();
-							const userFactionId = userData.faction_id;
+                            const userFactionId = userData.faction_id;
 
 // If they have a faction ID, start the real-time listener for the new display
 if (userFactionId) {
@@ -3686,7 +3689,8 @@ if (userFactionId) {
                             }
                             await db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendId).delete();
                             alert(`Friend (ID: ${friendId}) removed successfully.`);
-                            populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl);
+                            // Re-populate the list after removal
+                            populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl); // RECURSIVE CALL TO REFRESH
                         } catch (error) {
                             console.error("Error removing friend from database:", error);
                             alert("Failed to remove friend. See console for details.");
