@@ -922,10 +922,9 @@ function setupChatRealtimeListener() {
 
     // Set up the real-time listener, ordered by timestamp ascending (oldest first)
     unsubscribeFromChat = chatMessagesCollection
-        .orderBy('timestamp', 'asc') // CHANGED: from 'desc' to 'asc'
-        .limit(100) // Limit to the last 100 messages
+        .orderBy('timestamp', 'asc') 
+        .limit(100) 
         .onSnapshot(snapshot => {
-            // Clear the chat display area to re-render all messages
             if (chatDisplayArea) {
                 chatDisplayArea.innerHTML = '';
             }
@@ -935,11 +934,9 @@ function setupChatRealtimeListener() {
                     chatDisplayArea.innerHTML = `<p>No messages yet. Be the first to say hello!</p>`;
                 }
                 console.log("No messages in chat collection.");
-                toggleScrollIndicatorVisibility(); // Update indicator visibility
+                toggleScrollIndicatorVisibility();
                 return;
             }
-
-            // REMOVED: The messagesToDisplay array and the .reverse() call are no longer needed.
             
             // Display messages directly as they are received from the snapshot
             snapshot.forEach(doc => {
@@ -948,13 +945,13 @@ function setupChatRealtimeListener() {
             
             console.log("Chat messages updated in real-time.");
             
-            // Ensure the chat automatically scrolls to the bottom after loading/updating
-            if (chatDisplayArea) {
-                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-            }
-
-            // Update scroll indicator visibility after messages are loaded and scrolled
-            toggleScrollIndicatorVisibility();
+            // Use a small timeout to allow the browser to render new messages before scrolling
+            setTimeout(() => {
+                if (chatDisplayArea) {
+                    chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+                }
+                toggleScrollIndicatorVisibility();
+            }, 0); // A 0ms delay is often enough to push this to the next browser paint cycle.
 
         }, error => {
             console.error("Error listening to chat messages:", error);
@@ -966,7 +963,7 @@ function setupChatRealtimeListener() {
     
     // Ensure the scroll listener is attached only once
     if (chatDisplayArea) {
-        chatDisplayArea.removeEventListener('scroll', handleChatScroll); // Prevent multiple listeners
+        chatDisplayArea.removeEventListener('scroll', handleChatScroll);
         chatDisplayArea.addEventListener('scroll', handleChatScroll);
     }
 }
