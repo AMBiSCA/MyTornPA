@@ -350,141 +350,121 @@ function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
 // Ensure 'currentSelectedPrivateChatId' is declared at the top of your file like this:
 // let currentSelectedPrivateChatId = null;
 
-async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarity: this is the Torn Player ID
-    if (!auth.currentUser || !userApiKey) {
-        console.warn("User not logged in or API key missing. Cannot select private chat.");
-        // Display a message to the user if not logged in
-        document.getElementById('selectedChatHeader').textContent = "Chat Unavailable";
-        document.getElementById('selectedChatDisplay').innerHTML = `<p class="message-placeholder" style="color: yellow;">Please log in to use private chat.</p>`;
-        document.getElementById('privateChatMessageInput').disabled = true;
-        document.getElementById('sendPrivateMessageBtn').disabled = true;
-        return;
-    }
-    const currentUserIdFirebase = auth.currentUser.uid; // Your Firebase User ID (UID)
+// Function to initialize event listeners specific to the Private Chat tab's elements
+function initPrivateChatTabEventListeners() {
+    console.log("[Private Chat Init] --- START: Initializing event listeners ---"); // ADDED LOG
 
-    // --- NEW CORE LOGIC: Find friend's Firebase UID from their Torn Player ID ---
-    let friendFirebaseUid = null;
-    let friendName = `User ID: ${friendIdTorn}`; // Default display name, in case Firebase data is missing
-
-    try {
-        const userProfilesSnapshot = await db.collection('userProfiles').where('tornProfileId', '==', friendIdTorn).limit(1).get();
-
-        if (!userProfilesSnapshot.empty) {
-            friendFirebaseUid = userProfilesSnapshot.docs[0].id; // The document ID is the Firebase UID
-            const friendProfileData = userProfilesSnapshot.docs[0].data();
-            friendName = friendProfileData.preferredName || friendProfileData.name || friendName; // Get preferred name if available
-            console.log(`[Private Chat] Found friend's Firebase UID: ${friendFirebaseUid} for Torn ID: ${friendIdTorn}`);
-        } else {
-            const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
-            const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
-            selectedChatHeaderEl.textContent = `Chat with Unknown User (${friendIdTorn})`;
-            selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error: User with Torn ID ${friendIdTorn} is not a registered user of this app. Private chat is only available between registered users.</p>`;
-            document.getElementById('privateChatMessageInput').disabled = true;
-            document.getElementById('sendPrivateMessageBtn').disabled = true;
-            return;
-        }
-    } catch (error) {
-        console.error("Error fetching friend's Firebase UID or name for private chat:", error);
-        const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
-        const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
-        selectedChatHeaderEl.textContent = `Chat with Error (${friendIdTorn})`;
-        selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error: Could not retrieve friend details for private chat. ${error.message}</p>`;
-        document.getElementById('privateChatMessageInput').disabled = true;
-        document.getElementById('sendPrivateMessageBtn').disabled = true;
-        return;
-    }
-    // --- END NEW CORE LOGIC for Firebase UID lookup ---
-
-
-    // Get references to the UI elements for private chat (these are injected by handleChatTabClick)
-    const recentChatsListEl = document.getElementById('recentChatsList');
-    const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
-    const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
     const privateChatMessageInputEl = document.getElementById('privateChatMessageInput');
     const sendPrivateMessageBtnEl = document.getElementById('sendPrivateMessageBtn');
+    
+    console.log("[Private Chat Init] Input element found:", privateChatMessageInputEl); // ADDED LOG
+    console.log("[Private Chat Init] Send button found:", sendPrivateMessageBtnEl); // ADDED LOG
 
-    if (!recentChatsListEl || !selectedChatHeaderEl || !selectedChatDisplayEl || !privateChatMessageInputEl || !sendPrivateMessageBtnEl) {
-        console.error("Private chat UI elements not found after tab switch. Ensure handleChatTabClick injected them correctly.");
+    if (!privateChatMessageInputEl || !sendPrivateMessageBtnEl) {
+        console.error("Private chat input/send elements not found for event listeners. Check HTML injection and timing.");
+        console.log("[Private Chat Init] --- END (Error): Elements not found ---"); // ADDED LOG
         return;
     }
 
-    // 1. Highlight the selected chat in the Recent Chats list (once we populate it later)
-    recentChatsListEl.querySelectorAll('.chat-item').forEach(item => {
-        item.classList.remove('active-chat');
-    });
-    const selectedChatItem = recentChatsListEl.querySelector(`.chat-item[data-friend-id="${friendIdTorn}"]`);
-    if (selectedChatItem) {
-        selectedChatItem.classList.add('active-chat');
+    // Attach event listener for the Send button (remove previous to avoid duplicates)
+    sendPrivateMessageBtnEl.removeEventListener('click', sendPrivateChatMessage); 
+    sendPrivateMessageBtnEl.addEventListener('click', sendPrivateChatMessage);
+    console.log("[Private Chat Init] Send button listener attached."); // ADDED LOG
+
+    // Attach event listener for Enter key in the input field (remove previous to avoid duplicates)
+    privateChatMessageInputEl.removeEventListener('keydown', handlePrivateChatInputKeydown); 
+    privateChatMessageInputEl.addEventListener('keydown', handlePrivateChatInputKeydown);
+    console.log("[Private Chat Init] Input keydown listener attached."); // ADDED LOG
+
+    console.log("[Private Chat Init] --- END: Listeners initialized successfully ---"); // MODIFIED LOG
+
+    // TODO: Call loadRecentChats() here once that function is implemented
+    // loadRecentChats(); 
+}
+
+// Add this new handler for Enter keypress in the private chat input
+function handlePrivateChatInputKeydown(event) {
+    console.log("[Private Chat Keydown] Keydown event detected. Key:", event.key); // ADDED LOG
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent new line in text area
+        sendPrivateChatMessage();
+        console.log("[Private Chat Keydown] Enter key pressed. Calling sendPrivateChatMessage."); // ADDED LOG
+    }
+}
+
+
+// Add this new function to send a private chat message
+async function sendPrivateChatMessage() {
+    console.log("[Private Chat Send] --- START: Attempting to send message ---"); // ADDED LOG
+
+    // Get references to elements that should exist after HTML injection
+    const privateChatMessageInputEl = document.getElementById('privateChatMessageInput');
+    const selectedChatDisplayEl = document.getElementById('selectedChatDisplay'); // To manage scrolling/display
+
+    // Basic validation
+    if (!privateChatMessageInputEl || !selectedChatDisplayEl || !auth.currentUser || !userApiKey || !currentSelectedPrivateChatId) {
+        console.warn("[Private Chat Send] Cannot send private message: Missing input field, logged-in user, API key, or no private chat selected.");
+        // alert("Please log in, select a chat, and ensure your API key is configured."); // KEEP OR COMMENT OUT ALERT
+        console.log("[Private Chat Send] --- END (Warning): Missing prerequisites ---"); // ADDED LOG
+        return;
     }
 
-    // 2. Update the header of the selected chat panel with the found friendName
-    selectedChatHeaderEl.textContent = `Chat with ${friendName}`; 
+    const messageText = privateChatMessageInputEl.value.trim();
+    if (messageText === '') {
+        console.log("[Private Chat Send] --- END (Info): Empty message, not sending ---"); // ADDED LOG
+        return; // Don't send empty messages
+    }
 
-    // 3. Construct a consistent chat ID for the private conversation using the *Firebase UIDs*
-    const participants = [currentUserIdFirebase, friendFirebaseUid].sort(); // Use Firebase UIDs here
-    const chatDocId = `private_${participants[0]}_${participants[1]}`; // Example: private_UID1_UID2
-    currentSelectedPrivateChatId = chatDocId; // Store this globally so send message function knows which chat to send to
+    console.log("[Private Chat Send] Message text is not empty. Proceeding."); // ADDED LOG
 
-    console.log(`[Private Chat Debug] Attempting to open chat: ${chatDocId}`);
-    console.log(`[Private Chat Debug] Your Firebase UID: ${currentUserIdFirebase}`);
-    console.log(`[Private Chat Debug] Friend's Firebase UID: ${friendFirebaseUid}`);
-    console.log(`[Private Chat Debug] Participants array for doc: ${participants}`);
+    const currentUserUid = auth.currentUser.uid;
+    const senderName = currentTornUserName; // Using the global Torn user name
+    const chatDocId = currentSelectedPrivateChatId; // This global variable holds the ID of the currently selected private chat
 
+    // If you have a profanity filter function, it will be used here.
+    // Ensure 'filterProfanity' is globally accessible if you use it.
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
 
-    // --- CRITICAL FIX: ENSURE PARENT CHAT DOCUMENT EXISTS WITH PARTICIPANTS FIELD BEFORE LISTENING ---
+    // The message object to be stored in Firebase
+    const messageObj = {
+        senderId: currentUserUid,
+        sender: senderName,
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
+    };
+
     try {
+        // Step 1: Ensure the parent private chat document exists in 'privateChatMessages' collection
+        // This is crucial for new private chats and for Firebase security rules that check 'participants'.
+        // It uses 'set({ ... }, { merge: true })' to create the document if it doesn't exist,
+        // or update it without overwriting other fields if it does.
+        
+        // Extract the other participant's ID from chatDocId (e.g., 'private_UID1_UID2')
+        const friendId = chatDocId.replace(`private_${currentUserUid}_`, '').replace(`private_`, '');
+        const participants = [currentUserUid, friendId].sort(); // Ensure consistent sorted order
+
+        console.log("[Private Chat Send] Ensuring parent chat document:", chatDocId, "with participants:", participants); // ADDED LOG
         await db.collection('privateChatMessages').doc(chatDocId).set(
-            { participants: participants, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
-            { merge: true } // Merge ensures we don't overwrite if document already exists
+            { participants: participants, lastMessageAt: firebase.firestore.FieldValue.serverTimestamp() },
+            { merge: true } // Use merge to avoid overwriting existing data if document exists
         );
-        console.log(`[Private Chat Debug] Successfully attempted to set parent chat document.`);
+        console.log(`[Private Chat Send] Successfully ensured parent chat document ${chatDocId} exists.`);
+
+        // Step 2: Add the new message to the 'messages' subcollection within that chat document
+        console.log("[Private Chat Send] Adding message to subcollection..."); // ADDED LOG
+        await db.collection('privateChatMessages').doc(chatDocId).collection('messages').add(messageObj);
+        console.log("[Private Chat Send] Private message sent to Firebase:", messageObj);
+
+        privateChatMessageInputEl.value = ''; // Clear the input field
+        privateChatMessageInputEl.focus(); // Keep focus on the input for quick replies
+
+        console.log("[Private Chat Send] --- END: Message sent successfully ---"); // ADDED LOG
+        
     } catch (error) {
-        console.error("[Private Chat] Error ensuring parent chat document existence before listening:", error);
-        selectedChatHeaderEl.textContent = `Error: Cannot initialize chat`;
-        selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Failed to set up chat. Permissions error: ${error.message}. Check console.</p>`;
-        privateChatMessageInputEl.disabled = true;
-        sendPrivateMessageBtnEl.disabled = true;
-        return; // Stop execution if the necessary parent document can't be created/updated
+        console.error("[Private Chat Send] Error sending private message to Firebase:", error); // MODIFIED LOG
+        alert("Failed to send private message. Please check the console for details.");
+        console.log("[Private Chat Send] --- END (Error): Message sending failed ---"); // ADDED LOG
     }
-    // --- END CRITICAL FIX ---
-
-
-    // 4. Set up real-time listener for private messages from Firebase
-    if (unsubscribeFromChat) { // Important: Unsubscribe from any previously active chat listener
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-    }
-
-    selectedChatDisplayEl.innerHTML = '<p class="message-placeholder">Loading messages...</p>'; // Clear previous messages and show loading
-
-    // This points to a subcollection for messages within a specific private chat document
-    const privateChatMessagesCollectionRef = db.collection('privateChatMessages').doc(chatDocId).collection('messages');
-
-    unsubscribeFromChat = privateChatMessagesCollectionRef
-        .orderBy('timestamp', 'asc') // Order messages by time, ascending
-        .limit(100) // Fetch last 100 messages
-        .onSnapshot(snapshot => {
-            selectedChatDisplayEl.innerHTML = ''; // Clear display area for new messages
-
-            if (snapshot.empty) {
-                selectedChatDisplayEl.innerHTML = `<p class="message-placeholder">No messages yet. Be the first to say hello to ${friendName}!</p>`;
-            } else {
-                snapshot.forEach(doc => {
-                    const messageData = doc.data();
-                    const isMyMessage = messageData.senderId === currentUserIdFirebase; // Check if message sender is current user
-                    displayPrivateChatMessage(messageData, selectedChatDisplayEl, isMyMessage); // Display the message
-                });
-            }
-            selectedChatDisplayEl.scrollTop = selectedChatDisplayEl.scrollHeight;
-        }, error => {
-            console.error("Error listening to private chat messages:", error);
-            selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error loading chat: ${error.message}</p>`;
-        });
-    
-    // 5. Enable input and focus the message box for sending
-    privateChatMessageInputEl.disabled = false;
-    sendPrivateMessageBtnEl.disabled = false;
-    privateChatMessageInputEl.focus(); // Automatically focus the input field
 }
 
 function updateMemberItemDisplay(itemElement, profileImageUrl) {
