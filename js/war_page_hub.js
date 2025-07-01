@@ -3994,9 +3994,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log(`[Chat Tab Debug] Clicked tab: ${targetTab}`);
 
+    // Remove 'active' class from all chat tab buttons
     chatTabButtons.forEach(button => {
         button.classList.remove('active');
     });
+    // Add 'active' class to the clicked tab button
     clickedTab.classList.add('active');
 
     // This line clears the chat display area before new content is loaded for the selected tab.
@@ -4007,6 +4009,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Unsubscribe from any active real-time chat listener
     if (unsubscribeFromChat) {
         unsubscribeFromChat();
         unsubscribeFromChat = null;
@@ -4018,18 +4021,19 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (targetTab) {
         case 'faction-chat':
             chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
-            setupChatRealtimeListener();
+            setupChatRealtimeListener(); // This function will populate chatDisplayArea
             break;
 
         case 'war-chat':
             chatDisplayArea.innerHTML = `
                 <p>Welcome to War Chat!</p>
-                <p>Functionality not implemented yet for this dynamic tab.</p>
+                <p>Functionality not implemented yet.</p>
             `;
+            // No specific JS function to call for this placeholder
             break;
 
         case 'private-chat':
-            // --- NEW CODE FOR PRIVATE CHAT TAB LAYOUT ---
+            // --- HTML FOR NEW PRIVATE CHAT TAB LAYOUT ---
             chatDisplayArea.innerHTML = `
                 <div id="privateChatFullLayout" class="private-chat-tab-content">
                     <div class="private-chat-layout-panels">
@@ -4057,27 +4061,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             showInputArea = false; // Hide the global input area for this tab
-            // TODO: Add private chat specific JS initialization here later (e.g., loadRecentChats())
+            // TODO: Call a function to initialize private chat specific JS here later (e.g., loadRecentChats())
+            // This function would also set up event listeners for elements *within* the injected HTML.
             break;
-            // --- END NEW CODE FOR PRIVATE CHAT TAB LAYOUT ---
 
         case 'faction-members':
             // --- CORRECTED CODE FOR FACTION MEMBERS TAB ---
-            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
+            chatDisplayArea.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`; // Loading message
             if (factionApiFullData && factionApiFullData.members) {
                 // Pass chatDisplayArea as the target element for rendering the member list
                 displayFactionMembersInChatTab(factionApiFullData.members, chatDisplayArea);
             }
             showInputArea = false;
             break;
-            // --- END CORRECTED CODE ---
 
         case 'recently-met':
-            populateRecentlyMetTab(chatDisplayArea);
+            populateRecentlyMetTab(chatDisplayArea); // chatDisplayArea is passed as target element
             showInputArea = false;
             break;
 
         case 'blocked-people':
+            // --- HTML FOR BLOCKED PEOPLE TAB ---
             chatDisplayArea.innerHTML = `
                 <div class="blocked-people-layout">
                     <div class="friends-list-section">
@@ -4107,19 +4111,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
+            // Get references to the elements *after* they have been injected into the DOM
             const dynamicFriendsScrollableList = document.getElementById('friendsScrollableList');
             const dynamicIgnoresScrollableList = document.getElementById('ignoresScrollableList');
-            // Populate blocked people tab, assuming auth.currentUser.uid is passed correctly (not in snippet, but needed)
-            // Original code: populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
-            // This function needs currentUserId, so ensure it's fetched or passed from handleChatTabClick's caller.
-            // For now, assuming populateBlockedPeopleTab handles the currentUserId internally or from a global.
-            populateBlockedPeopleTab(dynamicFriendsScrollableList, dynamicIgnoresScrollableList); // Retaining original call structure.
 
+            // --- CORRECTED CALL TO populateBlockedPeopleTab ---
+            if (auth.currentUser) { // Ensure user is logged in before getting UID
+                populateBlockedPeopleTab(auth.currentUser.uid, dynamicFriendsScrollableList, dynamicIgnoresScrollableList);
+            } else {
+                console.warn("User not logged in. Cannot load Blocked People tab data.");
+                if (dynamicFriendsScrollableList) dynamicFriendsScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
+                if (dynamicIgnoresScrollableList) dynamicIgnoresScrollableList.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view this content.</p>`;
+            }
+            // --- END CORRECTED CALL ---
             showInputArea = false;
             break;
 
         case 'settings':
-            populateSettingsTab(chatDisplayArea);
+            populateSettingsTab(chatDisplayArea); // chatDisplayArea is passed as target element
             showInputArea = false;
             break;
 
@@ -4130,7 +4139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
     }
 
-    // This controls the visibility of the global chat input area at the bottom
+    // Control visibility of the global chat input area at the bottom
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
     } else {
