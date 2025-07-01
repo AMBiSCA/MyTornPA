@@ -232,33 +232,31 @@ function handleImageUpload(fileInput, displayElement) {
 
 
 function toggleScrollIndicatorVisibility() {
-    // Ensure scrollUpIndicatorEl is obtained only when needed and exists
-    const currentScrollIndicatorEl = document.getElementById('scrollUpIndicator');
-    if (!currentScrollIndicatorEl) {
-        // console.warn("Scroll Up Indicator element not found. Cannot manage visibility."); // Suppress constant warnings if element truly absent
+    const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+    const scrollIndicator = document.getElementById('scrollUpIndicator');
+
+    if (!scrollIndicator || !scrollWrapper) {
         return;
     }
-    // Assign to global variable only once to attach event listener
-    if (!scrollUpIndicatorEl) { // Only attach listener once
-        scrollUpIndicatorEl = currentScrollIndicatorEl; // Assign the element to the global variable
+    
+    // Attach listener only once
+    if (!scrollUpIndicatorEl) { 
+        scrollUpIndicatorEl = scrollIndicator;
         scrollUpIndicatorEl.addEventListener('click', () => {
-            if (chatDisplayArea) {
-                chatDisplayArea.scrollTop = 0; // Scroll to the very top
+            const wrapper = document.querySelector('.chat-messages-scroll-wrapper');
+            if (wrapper) {
+                wrapper.scrollTop = 0;
             }
         });
     }
 
-    if (!chatDisplayArea) {
-        return;
-    }
-
-    const atTop = chatDisplayArea.scrollTop <= 5;
-    const hasOverflow = chatDisplayArea.scrollHeight > chatDisplayArea.clientHeight;
+    const atTop = scrollWrapper.scrollTop <= 5;
+    const hasOverflow = scrollWrapper.scrollHeight > scrollWrapper.clientHeight;
 
     if (hasOverflow && !atTop) {
-        currentScrollIndicatorEl.classList.add('visible');
+        scrollIndicator.classList.add('visible');
     } else {
-        currentScrollIndicatorEl.classList.remove('visible');
+        scrollIndicator.classList.remove('visible');
     }
 }
 
