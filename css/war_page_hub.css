@@ -3455,3 +3455,8 @@ autocomplete-items {
         grid-template-columns: 1fr; /* Stack cooldowns vertically */
     }
 }
+.quick-links-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the space between the label and buttons */
+}
