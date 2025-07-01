@@ -909,7 +909,7 @@ function setupChatRealtimeListener() {
         return;
     }
 
-    // Clear existing messages before setting up a new listener (important when switching tabs/channels later)
+    // Clear existing messages before setting up a new listener
     if (chatDisplayArea) {
         chatDisplayArea.innerHTML = `<p>Loading messages...</p>`;
     }
@@ -919,18 +919,16 @@ function setupChatRealtimeListener() {
         unsubscribeFromChat();
         console.log("Unsubscribed from previous chat listener.");
     }
-	
-    // Set up the real-time listener, ordered by timestamp descending (newest first from Firestore)
+
+    // Set up the real-time listener, ordered by timestamp ascending (oldest first)
     unsubscribeFromChat = chatMessagesCollection
-        .orderBy('timestamp', 'desc') // Fetch newest messages first from Firestore
+        .orderBy('timestamp', 'asc') // CHANGED: from 'desc' to 'asc'
         .limit(100) // Limit to the last 100 messages
         .onSnapshot(snapshot => {
             // Clear the chat display area to re-render all messages
             if (chatDisplayArea) {
                 chatDisplayArea.innerHTML = '';
             }
-
-            const messagesToDisplay = []; // Array to hold messages before displaying
 
             if (snapshot.empty) {
                 if (chatDisplayArea) {
@@ -941,17 +939,11 @@ function setupChatRealtimeListener() {
                 return;
             }
 
-            // Iterate through snapshot and push data to array
-            snapshot.forEach(doc => {
-                messagesToDisplay.push(doc.data());
-            });
+            // REMOVED: The messagesToDisplay array and the .reverse() call are no longer needed.
             
-            // Reverse the array to display oldest messages first, so newest ones are appended last (at the bottom)
-            messagesToDisplay.reverse();
-
-            // Display messages from the (now reversed) array
-            messagesToDisplay.forEach(message => {
-                displayChatMessage(message);
+            // Display messages directly as they are received from the snapshot
+            snapshot.forEach(doc => {
+                displayChatMessage(doc.data());
             });
             
             console.log("Chat messages updated in real-time.");
