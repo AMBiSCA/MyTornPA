@@ -1680,8 +1680,8 @@ autocomplete-items {
    and overflow-y: auto for scrolling within the chat box. Example: */
 .chat-messages-scroll-wrapper {
     flex-grow: 1;
-    height: calc(100% - 180px); /* Corrected calculation (95px for input + 40px for tabs) */
-    overflow-y: scroll;
+    height: 270px; /* MODIFIED: Fixed height in pixels */
+    overflow-y: scroll; /* Keep this to allow internal scrolling if messages exceed 270px */
     scrollbar-gutter: stable;
     padding: 2px 10px 10px;
     background-color: #222;
