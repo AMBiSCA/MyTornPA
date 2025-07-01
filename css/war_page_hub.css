@@ -3661,3 +3661,16 @@ CSS
 .selected-chat-input-area .chat-send-btn {
     flex-shrink: 0; /* Prevents the button from shrinking */
 }
+
+.ops-controls-grid {
+  display: flex;
+  justify-content: space-between; /* This spaces the 3 main items out */
+  align-items: center;
+  gap: 15px; /* Adjusts the space between items */
+}
+
+.ops-left-group {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* This spaces out the two boxes within the left group */
+}
