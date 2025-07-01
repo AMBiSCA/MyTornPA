@@ -320,10 +320,6 @@ function handleChatTabClick(event) {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
 }
-
-// Add this global variable to the top of your file, with the other 'let' declarations
-let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
-
 // --- NEW FUNCTION: Helper to display individual private chat messages ---
 function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
     const messageElement = document.createElement('div');
