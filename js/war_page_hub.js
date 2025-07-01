@@ -1519,17 +1519,18 @@ function setupChatRealtimeListener() {
             
             console.log("Chat messages updated in real-time.");
             
-            // --- NEW FIX ---
-            // Find the correct scrollable container, which has the scroll event listener.
-            const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-
-            // If the wrapper is found, scroll IT to the bottom. This is the correct element.
-            if (scrollWrapper) {
-                scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
-            }
-            // --- END NEW FIX ---
-
-            toggleScrollIndicatorVisibility();
+            // --- NEW AND FINAL FIX ---
+            // This tells the browser to run our scroll command only AFTER it has
+            // finished drawing all the new messages. This is the most reliable
+            // way to solve this kind of timing issue.
+            setTimeout(() => {
+                const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+                if (scrollWrapper) {
+                    scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+                }
+                toggleScrollIndicatorVisibility();
+            }, 0);
+            // --- END NEW AND FINAL FIX ---
 
         }, error => {
             console.error("Error listening to chat messages:", error);
