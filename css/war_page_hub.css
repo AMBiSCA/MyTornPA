@@ -451,18 +451,6 @@ transition: background-color 0.2s ease;
     box-sizing: border-box; /* Include padding/border */
 }
 
-.chat-messages-scroll-wrapper {
-    flex-grow: 1;
-    height: calc(100% - 150px); /* Corrected calculation (110px for input + 40px for tabs) */
-    overflow-y: scroll;
-    scrollbar-gutter: stable;
-    padding: 2px 10px 10px;
-    background-color: #222;
-    border-radius: 8px;
-    margin-bottom: 0;
-    box-sizing: border-box;
-}
-
 /* Styles for the actual chat messages display area, *inside* the scroll wrapper */
 /* This div should NOT control its own height or overflow; its parent wrapper does. */
 .chat-display-area {
@@ -1896,6 +1884,7 @@ autocomplete-items {
     overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
     box-sizing: border-box;
 }
+
 
 
 /* Responsive adjustments for Active Ops tab layout */
