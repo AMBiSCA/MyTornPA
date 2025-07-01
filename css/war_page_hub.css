@@ -3448,6 +3448,7 @@ autocomplete-items {
   align-items: center;
   gap: 10px; /* Adjust the space between the label and buttons */
 }
+
 @media (min-width: 993px) {
     html, body {
         overflow-y: hidden;
