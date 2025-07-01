@@ -344,14 +344,60 @@ function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
 }
 
 // --- NEW FUNCTION: To select and load a specific private chat ---
-async function selectPrivateChat(friendId) {
+// Ensure 'currentSelectedPrivateChatId' is declared at the top of your file like this:
+// let currentSelectedPrivateChatId = null;
+
+async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarity: this is the Torn Player ID
     if (!auth.currentUser || !userApiKey) {
         console.warn("User not logged in or API key missing. Cannot select private chat.");
+        // Display a message to the user if not logged in
+        document.getElementById('selectedChatHeader').textContent = "Chat Unavailable";
+        document.getElementById('selectedChatDisplay').innerHTML = `<p class="message-placeholder" style="color: yellow;">Please log in to use private chat.</p>`;
+        document.getElementById('privateChatMessageInput').disabled = true;
+        document.getElementById('sendPrivateMessageBtn').disabled = true;
         return;
     }
-    const currentUserId = auth.currentUser.uid; // Your Firebase User ID
+    const currentUserIdFirebase = auth.currentUser.uid; // Your Firebase User ID (UID)
 
-    // Get references to the UI elements for private chat (these were just injected by handleChatTabClick)
+    // --- NEW CORE LOGIC: Find friend's Firebase UID from their Torn Player ID ---
+    let friendFirebaseUid = null;
+    let friendName = `User ID: ${friendIdTorn}`; // Default display name, in case Firebase data is missing
+
+    try {
+        // Query the 'userProfiles' collection to find the Firebase UID associated with the Torn Player ID
+        // This assumes 'userProfiles' documents are named by Firebase UIDs and contain a 'tornProfileId' field.
+        const userProfilesSnapshot = await db.collection('userProfiles').where('tornProfileId', '==', friendIdTorn).limit(1).get();
+
+        if (!userProfilesSnapshot.empty) {
+            friendFirebaseUid = userProfilesSnapshot.docs[0].id; // The document ID is the Firebase UID
+            const friendProfileData = userProfilesSnapshot.docs[0].data();
+            friendName = friendProfileData.preferredName || friendProfileData.name || friendName; // Get preferred name if available
+            console.log(`[Private Chat] Found friend's Firebase UID: ${friendFirebaseUid} for Torn ID: ${friendIdTorn}`);
+        } else {
+            // If no userProfile is found, it means the friend is not a registered user of your app.
+            // Private chats in this system only work between registered app users.
+            const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
+            const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
+            selectedChatHeaderEl.textContent = `Chat with Unknown User (${friendIdTorn})`;
+            selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error: User with Torn ID ${friendIdTorn} is not a registered user of this app. Private chat is only available between registered users.</p>`;
+            document.getElementById('privateChatMessageInput').disabled = true;
+            document.getElementById('sendPrivateMessageBtn').disabled = true;
+            return; // Exit, as we cannot chat with an unregistered user in this system
+        }
+    } catch (error) {
+        console.error("Error fetching friend's Firebase UID or name for private chat:", error);
+        const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
+        const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
+        selectedChatHeaderEl.textContent = `Chat with Error (${friendIdTorn})`;
+        selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error: Could not retrieve friend details for private chat. ${error.message}</p>`;
+        document.getElementById('privateChatMessageInput').disabled = true;
+        document.getElementById('sendPrivateMessageBtn').disabled = true;
+        return;
+    }
+    // --- END NEW CORE LOGIC for Firebase UID lookup ---
+
+
+    // Get references to the UI elements for private chat (these are injected by handleChatTabClick)
     const recentChatsListEl = document.getElementById('recentChatsList');
     const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
     const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
@@ -368,25 +414,17 @@ async function selectPrivateChat(friendId) {
         item.classList.remove('active-chat');
     });
     // This will find the specific list item for the friend and add the 'active-chat' class
-    const selectedChatItem = recentChatsListEl.querySelector(`.chat-item[data-friend-id="${friendId}"]`);
+    // We still use data-friend-id as TornID here because the list items are populated by TornID initially
+    const selectedChatItem = recentChatsListEl.querySelector(`.chat-item[data-friend-id="${friendIdTorn}"]`);
     if (selectedChatItem) {
         selectedChatItem.classList.add('active-chat');
     }
 
-    // 2. Fetch friend's name and update the header of the selected chat panel
-    let friendName = `User ID: ${friendId}`; // Default display name
-    try {
-        const friendDoc = await db.collection('users').doc(friendId).get();
-        if (friendDoc.exists) {
-            friendName = friendDoc.data().name || friendName; // Use friend's Torn name if available
-        }
-    } catch (error) {
-        console.error("Error fetching friend name for private chat:", error);
-    }
-    selectedChatHeaderEl.textContent = `Chat with ${friendName}`; // Update the header
+    // 2. Update the header of the selected chat panel with the found friendName
+    selectedChatHeaderEl.textContent = `Chat with ${friendName}`; 
 
-    // 3. Construct a consistent chat ID for the private conversation (sorted to handle A-B or B-A chats consistently)
-    const participants = [currentUserId, friendId].sort();
+    // 3. Construct a consistent chat ID for the private conversation using the *Firebase UIDs*
+    const participants = [currentUserIdFirebase, friendFirebaseUid].sort(); // Use Firebase UIDs here
     const chatDocId = `private_${participants[0]}_${participants[1]}`; // Example: private_UID1_UID2
     currentSelectedPrivateChatId = chatDocId; // Store this globally so send message function knows which chat to send to
 
@@ -414,7 +452,7 @@ async function selectPrivateChat(friendId) {
             } else {
                 snapshot.forEach(doc => {
                     const messageData = doc.data();
-                    const isMyMessage = messageData.senderId === currentUserId; // Check if the message was sent by the current user
+                    const isMyMessage = messageData.senderId === currentUserIdFirebase; // Check if message sender is current user
                     displayPrivateChatMessage(messageData, selectedChatDisplayEl, isMyMessage); // Display the message
                 });
             }
@@ -425,7 +463,7 @@ async function selectPrivateChat(friendId) {
             selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error loading chat: ${error.message}</p>`;
         });
     
-    // 5. Enable input and focus the message box for sending (sending functionality will be added next)
+    // 5. Enable input and focus the message box for sending
     privateChatMessageInputEl.disabled = false;
     sendPrivateMessageBtnEl.disabled = false;
     privateChatMessageInputEl.focus(); // Automatically focus the input field
