@@ -3759,7 +3759,7 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
                 warData.tab4Admins || [],
                 warData.energyTrackingMembers || []
             );
-            displayFriendlyMembersTable(factionApiFullData.members);
+            // The broken line that called the non-existent function has been removed from here.
         } else {
             console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
             populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
@@ -3779,31 +3779,29 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
     populateWarStatusDisplay(warData); // Uses warData (Firebase)
     loadWarStatusForEdit(warData);     // Uses warData (Firebase)
 
-    // Store enemy faction ID globally (from Firebase warData)
-   // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
-    let determinedEnemyFactionID = null;
-    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
-        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
-        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
-        if (opponentFactionInfo) {
-            determinedEnemyFactionID = opponentFactionInfo.id;
-            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
-        }
-    }
-    // Fallback to manually saved enemy ID if no active ranked war opponent detected
-    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
+    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
+    let determinedEnemyFactionID = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
+        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
+        if (opponentFactionInfo) {
+            determinedEnemyFactionID = opponentFactionInfo.id;
+            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
+        }
+    }
+    // Fallback to manually saved enemy ID if no active ranked war opponent detected
+    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
 
-    // Display enemy targets table using the determined ID
-    if (globalEnemyFactionID) {
-        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-        displayEnemyTargetsTable(null); // Clear the enemy targets table
-    }
+    // Display enemy targets table using the determined ID
+    if (globalEnemyFactionID) {
+        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+        displayEnemyTargetsTable(null); // Clear the enemy targets table
+    }
 }
-//       Also prevents showing the same target pair more than two times in a row.
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
     if (!quickFFTargetsDisplay) {
