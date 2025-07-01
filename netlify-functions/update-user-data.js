@@ -12,7 +12,7 @@ if (!admin.apps.length) {
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
             // The private key needs special handling as it's a multi-line string
             // and often stored in environment variables with escaped newlines.
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'), 
+privateKey: Buffer.from(process.env.FIREBASE_CREDENTIALS_BASE64, 'base64').toString('utf8').replace(/\\n/g, '\n'), // <--- CORRECTED LINE!
         })
     });
 }
