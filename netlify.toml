@@ -6,6 +6,9 @@
   directory = "netlify-functions"
   node_bundler = "esbuild"
 
-
+[functions."update-user-data"]
+  schedule = "* * * * *"
+  
+  
 #[functions."refresh-all-targets"]
  # schedule = "0 3 * * *"
