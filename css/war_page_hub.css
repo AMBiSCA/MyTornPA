@@ -3619,7 +3619,7 @@ CSS
 /* Scrollable wrapper for the messages in the Selected Chat panel */
 .selected-chat-messages-scroll-wrapper {
     flex-grow: 1; /* Keep this to allow it to fill space if smaller than max-height */
-    height: 300px; /* NEW/MODIFIED: Set a fixed height for the message display area */
+    height: 280px; /* NEW/MODIFIED: Set a fixed height for the message display area */
     overflow-y: auto; /* This ensures a scrollbar appears if messages exceed 300px */
     padding: 10px;
     box-sizing: border-box;
