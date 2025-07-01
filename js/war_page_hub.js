@@ -25,7 +25,7 @@ let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTarg
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let scrollUpIndicatorEl = null;
 let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
-
+let claimedTargets = new Set(); // This will remember the claimed target IDs
 
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -1788,18 +1788,19 @@ async function fetchAndDisplayChainScore(apiKey) {
 
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 function claimTarget(memberId) {
+    // Add the member's ID to our "memory"
+    claimedTargets.add(memberId); 
+    
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
 
     if (claimBtn) {
-        // Change the button text and make its new function call unclaimTarget
         claimBtn.textContent = 'Unclaim';
         claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
+        claimBtn.classList.add('claimed'); // Add a class for styling
     }
-    
-    // Change the row color to show it's claimed
     if (targetRow) {
-        targetRow.style.backgroundColor = '#4a4a4a'; // A dark grey color
+        targetRow.classList.add('claimed-row'); // Add a class for styling
     }
 }
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
@@ -1876,18 +1877,19 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
     }
 }
 function unclaimTarget(memberId) {
+    // Remove the member's ID from our "memory"
+    claimedTargets.delete(memberId); 
+    
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
 
     if (claimBtn) {
-        // Change the button text and function back to 'Claim'
         claimBtn.textContent = 'Claim';
         claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
+        claimBtn.classList.remove('claimed'); // Remove the styling class
     }
-
     if (targetRow) {
-        // Reset the row's background color by removing the inline style
-        targetRow.style.backgroundColor = '';
+        targetRow.classList.remove('claimed-row'); // Remove the styling class
     }
 }
 
