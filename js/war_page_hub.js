@@ -4159,6 +4159,7 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
+				setupFactionHitsListener(db, userData.faction_id);
 				
 
                 // This ensures listeners and intervals are only set up ONCE.
