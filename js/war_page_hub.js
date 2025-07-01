@@ -1519,13 +1519,15 @@ function setupChatRealtimeListener() {
             
             console.log("Chat messages updated in real-time.");
             
-            // --- FIX ---
-            // This directly scrolls the chat area to the very bottom.
-            // It's more reliable than the previous method.
-            if (chatDisplayArea) {
-                chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+            // --- NEW FIX ---
+            // Find the correct scrollable container, which has the scroll event listener.
+            const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+
+            // If the wrapper is found, scroll IT to the bottom. This is the correct element.
+            if (scrollWrapper) {
+                scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
             }
-            // --- END FIX ---
+            // --- END NEW FIX ---
 
             toggleScrollIndicatorVisibility();
 
