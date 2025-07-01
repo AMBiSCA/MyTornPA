@@ -347,6 +347,9 @@ function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
 // Ensure 'currentSelectedPrivateChatId' is declared at the top of your file like this:
 // let currentSelectedPrivateChatId = null;
 
+// Ensure 'currentSelectedPrivateChatId' is declared at the top of your file like this:
+// let currentSelectedPrivateChatId = null;
+
 async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarity: this is the Torn Player ID
     if (!auth.currentUser || !userApiKey) {
         console.warn("User not logged in or API key missing. Cannot select private chat.");
@@ -364,8 +367,6 @@ async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarit
     let friendName = `User ID: ${friendIdTorn}`; // Default display name, in case Firebase data is missing
 
     try {
-        // Query the 'userProfiles' collection to find the Firebase UID associated with the Torn Player ID
-        // This assumes 'userProfiles' documents are named by Firebase UIDs and contain a 'tornProfileId' field.
         const userProfilesSnapshot = await db.collection('userProfiles').where('tornProfileId', '==', friendIdTorn).limit(1).get();
 
         if (!userProfilesSnapshot.empty) {
@@ -374,15 +375,13 @@ async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarit
             friendName = friendProfileData.preferredName || friendProfileData.name || friendName; // Get preferred name if available
             console.log(`[Private Chat] Found friend's Firebase UID: ${friendFirebaseUid} for Torn ID: ${friendIdTorn}`);
         } else {
-            // If no userProfile is found, it means the friend is not a registered user of your app.
-            // Private chats in this system only work between registered app users.
             const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
             const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
             selectedChatHeaderEl.textContent = `Chat with Unknown User (${friendIdTorn})`;
             selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error: User with Torn ID ${friendIdTorn} is not a registered user of this app. Private chat is only available between registered users.</p>`;
             document.getElementById('privateChatMessageInput').disabled = true;
             document.getElementById('sendPrivateMessageBtn').disabled = true;
-            return; // Exit, as we cannot chat with an unregistered user in this system
+            return;
         }
     } catch (error) {
         console.error("Error fetching friend's Firebase UID or name for private chat:", error);
@@ -413,8 +412,6 @@ async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarit
     recentChatsListEl.querySelectorAll('.chat-item').forEach(item => {
         item.classList.remove('active-chat');
     });
-    // This will find the specific list item for the friend and add the 'active-chat' class
-    // We still use data-friend-id as TornID here because the list items are populated by TornID initially
     const selectedChatItem = recentChatsListEl.querySelector(`.chat-item[data-friend-id="${friendIdTorn}"]`);
     if (selectedChatItem) {
         selectedChatItem.classList.add('active-chat');
@@ -428,10 +425,32 @@ async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarit
     const chatDocId = `private_${participants[0]}_${participants[1]}`; // Example: private_UID1_UID2
     currentSelectedPrivateChatId = chatDocId; // Store this globally so send message function knows which chat to send to
 
-    console.log(`[Private Chat] Opening chat: ${chatDocId} with ${friendName}`);
+    console.log(`[Private Chat Debug] Attempting to open chat: ${chatDocId}`);
+    console.log(`[Private Chat Debug] Your Firebase UID: ${currentUserIdFirebase}`);
+    console.log(`[Private Chat Debug] Friend's Firebase UID: ${friendFirebaseUid}`);
+    console.log(`[Private Chat Debug] Participants array for doc: ${participants}`);
 
-    // 4. Set up a real-time listener for private messages from Firebase
-    if (unsubscribeFromChat) { // Important: Unsubscribe from any previously active chat listener (faction, war, or another private chat)
+
+    // --- CRITICAL FIX: ENSURE PARENT CHAT DOCUMENT EXISTS WITH PARTICIPANTS FIELD BEFORE LISTENING ---
+    try {
+        await db.collection('privateChatMessages').doc(chatDocId).set(
+            { participants: participants, createdAt: firebase.firestore.FieldValue.serverTimestamp() },
+            { merge: true } // Merge ensures we don't overwrite if document already exists
+        );
+        console.log(`[Private Chat Debug] Successfully attempted to set parent chat document.`);
+    } catch (error) {
+        console.error("[Private Chat] Error ensuring parent chat document existence before listening:", error);
+        selectedChatHeaderEl.textContent = `Error: Cannot initialize chat`;
+        selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Failed to set up chat. Permissions error: ${error.message}. Check console.</p>`;
+        privateChatMessageInputEl.disabled = true;
+        sendPrivateMessageBtnEl.disabled = true;
+        return; // Stop execution if the necessary parent document can't be created/updated
+    }
+    // --- END CRITICAL FIX ---
+
+
+    // 4. Set up real-time listener for private messages from Firebase
+    if (unsubscribeFromChat) { // Important: Unsubscribe from any previously active chat listener
         unsubscribeFromChat();
         unsubscribeFromChat = null;
     }
@@ -456,7 +475,6 @@ async function selectPrivateChat(friendIdTorn) { // Renamed parameter for clarit
                     displayPrivateChatMessage(messageData, selectedChatDisplayEl, isMyMessage); // Display the message
                 });
             }
-            // Scroll to the bottom of the chat display after messages load
             selectedChatDisplayEl.scrollTop = selectedChatDisplayEl.scrollHeight;
         }, error => {
             console.error("Error listening to private chat messages:", error);
