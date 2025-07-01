@@ -295,3 +295,21 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     background-color: #333333;
     color: #00c0ff;
 }
+.member-detail-profile-image-modal {
+    width: 60px;          /* Sets the width of the image */
+    height: 60px;         /* Sets the height of the image (keep same as width for circular) */
+    border-radius: 50%;   /* Makes the image perfectly circular */
+    object-fit: cover;    /* Ensures the image covers the area without distortion */
+    border: 2px solid #00a8ff; /* Optional: adds a blue border */
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5); /* Optional: adds a subtle blue glow */
+}
+
+/* Adjust the container of the profile image for positioning */
+/* This ensures the image is centered horizontally and aligned to the top vertically */
+.member-header-top-row.center-content-flex {
+    display: flex;             /* Enables flexbox for alignment */
+    justify-content: center;   /* Horizontally centers the image */
+    align-items: flex-start;   /* Aligns the image to the top of its container */
+    padding-top: 10px;         /* Adds some space above the image (adjust as needed) */
+    margin-bottom: 15px;       /* Adds space below the image, separating it from content below (adjust as needed) */
+}
