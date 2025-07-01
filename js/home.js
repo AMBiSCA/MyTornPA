@@ -552,39 +552,42 @@ document.addEventListener('DOMContentLoaded', function() {
             const factionData = data?.profile?.faction || data?.faction || null;
             
             if (factionData) {
-                // These keys (faction_id, faction_name) now correctly match the API response.
-                const updatePayload = {
-                    uid: user.uid,
-                    faction_id: factionData.faction_id ?? null,
-                    faction_name: factionData.faction_name ?? null,
-                    position: factionData.position ?? null
-                };
+    const updatePayload = {
+        uid: user.uid, // User's Firebase UID
+        faction_id: factionData.faction_id ?? null,
+        faction_name: factionData.faction_name ?? null,
+        position: factionData.position ?? null,
+        // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
+        profile_image: data.profile_image || null, // The profile image URL from Torn API response
+        name: data.name || null, // The user's Torn name
+        tornProfileId: data.player_id || null // The user's Torn Player ID
+        // --- END NEW ---
+    };
 
-                console.log('Sending corrected faction data to Netlify function:', updatePayload);
+    console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
-                fetch('/.netlify/functions/update-user-faction', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatePayload),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(errorData => {
-                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Faction update successful:', data.message);
-                })
-                .catch(error => {
-                    console.error('Faction update via Netlify function failed:', error.message);
-                });
-            } else {
-                console.warn("No faction data found in API response to update.");
-            }
-            // --- *** END OF CORRECTED SECTION *** ---
+    try {
+        const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatePayload),
+        });
+
+        if (!factionUpdateResponse.ok) {
+            const errorData = await factionUpdateResponse.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error! Status: ${factionUpdateResponse.status}`);
+        }
+        const responseData = await factionUpdateResponse.json();
+        console.log('Faction & Profile data update successful:', responseData.message);
+
+    } catch (error) {
+        console.error('Faction & Profile data update via Netlify function failed:', error.message);
+    }
+} else {
+    // This 'else' block handles cases where no faction data is found, ensure it still clears errors
+    console.warn("No faction data found in API response to send to Netlify function.");
+    // Optionally, if you have a specific UI error display for this, update it here.
+}
 
         } catch (error) {
             console.error("Error in fetchAllRequiredData:", error);
