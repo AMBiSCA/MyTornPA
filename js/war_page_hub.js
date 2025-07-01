@@ -4145,6 +4145,7 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
                     });
+					
                     listenersInitialized = true; // Set this flag to true after setup
 
                     // Recurring intervals (these will run periodically after initial setup)
