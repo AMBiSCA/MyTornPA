@@ -24,6 +24,7 @@ let lastDisplayedTargetIDs = []; // Stores IDs of the targets shown in the previ
 let consecutiveSameTargetsCount = 0; // Counts how many times 'lastDisplayedTargetIDs' has been displayed consecutively
 let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute state, loads from local storage
 let scrollUpIndicatorEl = null;
+let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
 
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -318,6 +319,120 @@ function handleChatTabClick(event) {
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
+}
+
+// Add this global variable to the top of your file, with the other 'let' declarations
+let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
+
+// --- NEW FUNCTION: Helper to display individual private chat messages ---
+function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message'); // Reuses existing chat-message styles
+    // Adds a class to differentiate your messages from others for styling
+    messageElement.classList.add(isMyMessage ? 'user-message' : 'bot-message');
+
+    // Format timestamp
+    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function'
+        ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const senderName = messageObj.sender || 'Unknown';
+    const messageText = messageObj.text || '';
+
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[${timestamp}]</span>
+        <span class="chat-sender">${senderName}:</span>
+        <span class="chat-text">${messageText}</span>
+    `;
+    displayElement.appendChild(messageElement); // Add the message to the display area
+}
+
+// --- NEW FUNCTION: To select and load a specific private chat ---
+async function selectPrivateChat(friendId) {
+    if (!auth.currentUser || !userApiKey) {
+        console.warn("User not logged in or API key missing. Cannot select private chat.");
+        return;
+    }
+    const currentUserId = auth.currentUser.uid; // Your Firebase User ID
+
+    // Get references to the UI elements for private chat (these were just injected by handleChatTabClick)
+    const recentChatsListEl = document.getElementById('recentChatsList');
+    const selectedChatHeaderEl = document.getElementById('selectedChatHeader');
+    const selectedChatDisplayEl = document.getElementById('selectedChatDisplay');
+    const privateChatMessageInputEl = document.getElementById('privateChatMessageInput');
+    const sendPrivateMessageBtnEl = document.getElementById('sendPrivateMessageBtn');
+
+    if (!recentChatsListEl || !selectedChatHeaderEl || !selectedChatDisplayEl || !privateChatMessageInputEl || !sendPrivateMessageBtnEl) {
+        console.error("Private chat UI elements not found after tab switch. Ensure handleChatTabClick injected them correctly.");
+        return;
+    }
+
+    // 1. Highlight the selected chat in the Recent Chats list (once we populate it later)
+    recentChatsListEl.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('active-chat');
+    });
+    // This will find the specific list item for the friend and add the 'active-chat' class
+    const selectedChatItem = recentChatsListEl.querySelector(`.chat-item[data-friend-id="${friendId}"]`);
+    if (selectedChatItem) {
+        selectedChatItem.classList.add('active-chat');
+    }
+
+    // 2. Fetch friend's name and update the header of the selected chat panel
+    let friendName = `User ID: ${friendId}`; // Default display name
+    try {
+        const friendDoc = await db.collection('users').doc(friendId).get();
+        if (friendDoc.exists) {
+            friendName = friendDoc.data().name || friendName; // Use friend's Torn name if available
+        }
+    } catch (error) {
+        console.error("Error fetching friend name for private chat:", error);
+    }
+    selectedChatHeaderEl.textContent = `Chat with ${friendName}`; // Update the header
+
+    // 3. Construct a consistent chat ID for the private conversation (sorted to handle A-B or B-A chats consistently)
+    const participants = [currentUserId, friendId].sort();
+    const chatDocId = `private_${participants[0]}_${participants[1]}`; // Example: private_UID1_UID2
+    currentSelectedPrivateChatId = chatDocId; // Store this globally so send message function knows which chat to send to
+
+    console.log(`[Private Chat] Opening chat: ${chatDocId} with ${friendName}`);
+
+    // 4. Set up a real-time listener for private messages from Firebase
+    if (unsubscribeFromChat) { // Important: Unsubscribe from any previously active chat listener (faction, war, or another private chat)
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+    }
+
+    selectedChatDisplayEl.innerHTML = '<p class="message-placeholder">Loading messages...</p>'; // Clear previous messages and show loading
+
+    // This points to a subcollection for messages within a specific private chat document
+    const privateChatMessagesCollectionRef = db.collection('privateChatMessages').doc(chatDocId).collection('messages');
+
+    unsubscribeFromChat = privateChatMessagesCollectionRef
+        .orderBy('timestamp', 'asc') // Order messages by time, ascending
+        .limit(100) // Fetch last 100 messages
+        .onSnapshot(snapshot => {
+            selectedChatDisplayEl.innerHTML = ''; // Clear display area for new messages
+
+            if (snapshot.empty) {
+                selectedChatDisplayEl.innerHTML = `<p class="message-placeholder">No messages yet. Be the first to say hello to ${friendName}!</p>`;
+            } else {
+                snapshot.forEach(doc => {
+                    const messageData = doc.data();
+                    const isMyMessage = messageData.senderId === currentUserId; // Check if the message was sent by the current user
+                    displayPrivateChatMessage(messageData, selectedChatDisplayEl, isMyMessage); // Display the message
+                });
+            }
+            // Scroll to the bottom of the chat display after messages load
+            selectedChatDisplayEl.scrollTop = selectedChatDisplayEl.scrollHeight;
+        }, error => {
+            console.error("Error listening to private chat messages:", error);
+            selectedChatDisplayEl.innerHTML = `<p class="message-placeholder" style="color: red;">Error loading chat: ${error.message}</p>`;
+        });
+    
+    // 5. Enable input and focus the message box for sending (sending functionality will be added next)
+    privateChatMessageInputEl.disabled = false;
+    sendPrivateMessageBtnEl.disabled = false;
+    privateChatMessageInputEl.focus(); // Automatically focus the input field
 }
 
 function updateMemberItemDisplay(itemElement, profileImageUrl) {
@@ -1365,54 +1480,65 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         return;
     }
 
-    // --- Fetch and Display Your Faction's Chain ---
-    if (apiKey && yourFactionId) {
-        try {
-            const yourChainUrl = `https://api.torn.com/faction/${yourFactionId}?selections=chain&key=${apiKey}&comment=MyTornPA_YourChain`;
-            const yourChainResponse = await fetch(yourChainUrl);
-            const yourChainData = await yourChainResponse.json();
-
-            if (yourChainData.error) throw new Error(yourChainData.error.error);
-
-            if (yourChainData.chain && yourChainData.chain.current > 0) {
-                friendlyHitsEl.textContent = yourChainData.chain.current;
-                // Set global variables for the live countdown timer
-                currentLiveChainSeconds = yourChainData.chain.timeout || 0;
-                lastChainApiFetchTime = Date.now();
-            } else {
-                friendlyHitsEl.textContent = '0';
-                friendlyTimeEl.textContent = 'Over';
-                currentLiveChainSeconds = 0; // Reset timer if no chain
-            }
-        } catch (error) {
-            console.error("Error fetching your faction's chain:", error);
-            if(friendlyTimeEl) friendlyTimeEl.textContent = 'Error';
-        }
+    if (!apiKey || !yourFactionId) {
+        console.warn("API key or your Faction ID is missing. Cannot fetch chain data.");
+        friendlyHitsEl.textContent = 'N/A';
+        friendlyTimeEl.textContent = 'N/A';
+        enemyHitsEl.textContent = 'N/A';
+        enemyTimeEl.textContent = 'N/A';
+        return;
     }
 
-    // --- Fetch and Display Enemy Faction's Chain ---
-    if (apiKey && enemyFactionId) {
-        try {
-            const enemyChainUrl = `https://api.torn.com/faction/${enemyFactionId}?selections=chain&key=${apiKey}&comment=MyTornPA_EnemyChain`;
-            const enemyChainResponse = await fetch(enemyChainUrl);
-            const enemyChainData = await enemyChainResponse.json();
+    let factionIdsToFetch = [yourFactionId];
+    if (enemyFactionId) {
+        factionIdsToFetch.push(enemyFactionId);
+    }
 
-            if (enemyChainData.error) throw new Error(enemyChainData.error.error);
+    try {
+        // Combine the API call for both factions' chain data
+        const combinedChainUrl = `https://api.torn.com/faction/${factionIdsToFetch.join(',')}/?selections=chain&key=${apiKey}&comment=MyTornPA_DualChain`;
+        const response = await fetch(combinedChainUrl);
+        const data = await response.json();
 
-            if (enemyChainData.chain && enemyChainData.chain.current > 0) {
-                enemyHitsEl.textContent = enemyChainData.chain.current;
-                enemyTimeEl.textContent = formatTime(enemyChainData.chain.timeout); // Direct display, no smooth countdown
+        if (!response.ok || data.error) {
+            const errorMessage = data.error ? data.error.error : response.statusText;
+            throw new Error(`Torn API Error fetching combined chain data: ${errorMessage}`);
+        }
+
+        // Process your faction's chain data
+        const yourChainData = data[yourFactionId]?.chain;
+        if (yourChainData && yourChainData.current > 0) {
+            friendlyHitsEl.textContent = yourChainData.current;
+            // Set global variables for the live countdown timer
+            currentLiveChainSeconds = yourChainData.timeout || 0;
+            lastChainApiFetchTime = Date.now();
+        } else {
+            friendlyHitsEl.textContent = '0';
+            friendlyTimeEl.textContent = 'Over';
+            currentLiveChainSeconds = 0; // Reset timer if no chain
+        }
+
+        // Process enemy faction's chain data if an enemy ID was provided
+        if (enemyFactionId) {
+            const enemyChainData = data[enemyFactionId]?.chain;
+            if (enemyChainData && enemyChainData.current > 0) {
+                enemyHitsEl.textContent = enemyChainData.current;
+                enemyTimeEl.textContent = formatTime(enemyChainData.timeout); // Direct display, no smooth countdown
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
             }
-        } catch (error) {
-            console.error("Error fetching enemy faction's chain:", error);
-            if(enemyTimeEl) enemyTimeEl.textContent = 'Error';
+        } else {
+            enemyHitsEl.textContent = 'N/A';
+            enemyTimeEl.textContent = 'No Enemy Set';
         }
-    } else {
-        if(enemyTimeEl) enemyTimeEl.textContent = 'No Enemy';
-        if(enemyHitsEl) enemyHitsEl.textContent = 'N/A';
+
+    } catch (error) {
+        console.error("Error fetching combined chain data:", error);
+        friendlyHitsEl.textContent = 'Error';
+        friendlyTimeEl.textContent = 'Error';
+        enemyHitsEl.textContent = 'Error';
+        enemyTimeEl.textContent = 'Error';
     }
 }
 function unclaimTarget(memberId) {
