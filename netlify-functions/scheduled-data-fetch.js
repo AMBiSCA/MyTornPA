@@ -33,7 +33,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Define how often a user's data should be considered "stale" and updated
-const UPDATE_THRESHOLD_SECONDS = 60 * 60; // 1 hour (adjust as needed for API limits and data freshness needs)
+const UPDATE_THRESHOLD_SECONDS = 55; // 55 seconds
 
 exports.handler = async (event, context) => {
     try {
