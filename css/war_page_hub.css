@@ -360,7 +360,7 @@ display: flex;
 gap: 10px; /* Space between input and send button */
 width: 100%;
 padding-top: 0;
-margin-top: 5px; 
+margin-top: 10px; 
 }
 
 .chat-text-input {
