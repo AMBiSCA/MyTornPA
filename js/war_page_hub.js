@@ -3423,50 +3423,34 @@ if (addFriendBtn) {
 
         addFriendStatus.textContent = "Adding friend...";
         addFriendStatus.style.color = 'white';
+        addFriendBtn.disabled = true;
 
         try {
-            const userProfileDocRef = db.collection('userProfiles').doc(auth.currentUser.uid);
-            const userProfileDoc = await userProfileDocRef.get();
-            let currentFriends = userProfileDoc.exists && userProfileDoc.data().friends ? userProfileDoc.data().friends : [];
-
-            if (currentFriends.includes(friendId)) {
-                addFriendStatus.textContent = "This player is already in your friends list.";
+            // This now saves to the subcollection, matching your other code
+            const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
+            
+            const doc = await friendDocRef.get();
+            if (doc.exists) {
+                addFriendStatus.textContent = "This player is already your friend.";
                 addFriendStatus.style.color = 'orange';
+                addFriendBtn.disabled = false;
                 return;
             }
-			
-			currentFriends.push(friendId);
 
-            // Update the user's profile with the new friends list
-            await userProfileDocRef.set({ friends: currentFriends }, { merge: true });
-            
-            // If the friend wasn't already in the top-level 'users' collection, create/update their basic info
-            // This ensures displayFriendlyMembersTable can pull some info
-            await db.collection('users').doc(friendId).set({
-                name: friendName, // Use fetched name or default
-                tornId: friendId,
-                // Add other basic info you'd want to store for this friend immediately
-                // e.g., level: '?' if not fetched, last_action: { timestamp: 0 } etc.
-            }, { merge: true });
+            await friendDocRef.set({
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-
-            addFriendStatus.textContent = `Successfully added ${friendName} [${friendId}]!`;
+            addFriendStatus.textContent = `Successfully added friend [${friendId}]!`;
             addFriendStatus.style.color = 'lightgreen';
-            addFriendIdInput.value = ''; // Clear input
-
-            // *** IMPORTANT: Refresh the friends table after adding ***
-            fetchAndDisplayFriends(); // Refresh the display
-            // ****************************************************
-
-            // After 1.5 seconds, clear the status message
-            setTimeout(() => {
-                addFriendStatus.textContent = '';
-            }, 1500);
+            addFriendIdInput.value = '';
 
         } catch (error) {
             console.error("Error adding friend:", error);
             addFriendStatus.textContent = `Error adding friend: ${error.message}`;
             addFriendStatus.style.color = 'red';
+        } finally {
+            addFriendBtn.disabled = false;
         }
     });
 }
