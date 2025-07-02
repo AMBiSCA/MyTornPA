@@ -66,19 +66,19 @@
 }
 
 .tab-button {
-    /* Styles for individual tab buttons */
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 8px 12px; /* NEW: Slightly reduced padding */
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 120px; /* Minimum width for each tab */
-    text-align: center;
+    /* Styles for individual tab buttons */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 8px 10px; /* MODIFIED PADDING */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 120px; /* Minimum width for each tab */
+    text-align: center;
 	font-weight: bold;
+	font-size: 0.9em; /* ADD THIS LINE */
 }
-
 
 .tab-button:hover {
     background-color: #555; /* NEW: A slightly different hover color for non-active */
@@ -1742,6 +1742,19 @@ autocomplete-items {
     color: black; /* White text for better contrast */
     border-color: #00a8ff;
     
+}
+
+.enemy-targets-table thead th {
+background-color: #00a8ff; 
+color: #1e1e1e; 
+font-weight: bold;
+text-align: center; 
+padding: 8px 10px;
+border-bottom: 2px solid #1e1e1e;
+font-size: 0.9em;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
 }
 .autocomplete-items div {
     padding: 10px;
