@@ -695,7 +695,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             const profileDataToSave = {
                 preferredName: preferredNameVal,
                 tornApiKey: profileSetupApiKeyInput.value.trim() || null,
-                tornProfileId: profileSetupProfileIdInput.value.trim() || null,
+                tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
                 tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
                 profileSetupComplete: true,
                 shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
