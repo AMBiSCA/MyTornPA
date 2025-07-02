@@ -571,18 +571,18 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             const factionData = data?.profile?.faction || data?.faction || null;
             
             if (factionData) {
-    const updatePayload = {
-        uid: user.uid, // User's Firebase UID
-        faction_id: factionData.faction_id ?? null,
-        faction_name: factionData.faction_name ?? null,
-        position: factionData.position ?? null,
-        // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
-        profile_image: data.profile_image || null, // The profile image URL from Torn API response
-        name: data.name || null, // The user's Torn name
-        tornProfileId: data.player_id || null // The user's Torn Player ID
-        // --- END NEW ---
-    };
-
+   const updatePayload = {
+    uid: user.uid, // User's Firebase UID
+    faction_id: factionData.faction_id ?? null,
+    faction_name: factionData.faction_name ?? null,
+    position: factionData.position ?? null,
+    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
+    profile_image: data.profile_image || null,
+    name: data.name || null,
+    // THIS LINE IS NOW FIXED
+    tornProfileId: String(data.player_id || '') 
+    // --- END NEW ---
+};
     console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
     try {
