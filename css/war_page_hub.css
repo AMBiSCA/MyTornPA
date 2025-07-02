@@ -250,7 +250,6 @@ border-right: none; /* No border on the very last tab */
     background-color: #00a8ff; /* This makes the tab blue */
     color: #1e1e1e; /* This makes the text dark for contrast */
     border-color: #00a8ff; /* Adds a blue border to match */
-    box-shadow: 0 2px 5px rgba(0, 168, 255, 0.5); /* Adds a subtle glow */
 }
 .active-ops-left-panel {
 display: flex;
