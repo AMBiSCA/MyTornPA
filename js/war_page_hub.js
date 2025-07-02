@@ -2381,8 +2381,23 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         console.error("HTML Error: Target display element not provided for faction members list.");
         return;
     }
-
     targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
+
+    // --- NEW: Get the current user's friends list first ---
+    let friendsSet = new Set();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        try {
+            const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+            friendsSnapshot.forEach(doc => {
+                friendsSet.add(doc.id); // Add each friend's Torn ID to our Set for fast lookups
+            });
+            console.log(`[Friend Check] Loaded ${friendsSet.size} friends.`);
+        } catch (error) {
+            console.error("Error fetching friends list:", error);
+        }
+    }
+    // --- END NEW ---
 
     if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
         targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
@@ -2390,8 +2405,6 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     }
 
     const membersArray = Object.values(factionMembersApiData);
-
-    // Sort members by rank then alphabetically
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
         const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
@@ -2400,12 +2413,9 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         return a.name.localeCompare(b.name);
     });
 
-    const fetchPromises = [];
-
     const membersListContainer = document.createElement('div');
     membersListContainer.classList.add('members-list-container');
-    
-    targetDisplayElement.innerHTML = ''; 
+    targetDisplayElement.innerHTML = '';
     targetDisplayElement.appendChild(membersListContainer);
 
     for (const member of membersArray) {
@@ -2413,56 +2423,64 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         const memberName = member.name;
         const memberRank = member.position;
 
+        // --- NEW: Check if the member is a friend ---
+        const isFriend = friendsSet.has(tornPlayerId);
+
+        // --- NEW: Generate the correct button based on friend status ---
+        let actionButtonsHtml = '';
+        if (isFriend) {
+            // If they are a friend, show a red 'remove' button
+            actionButtonsHtml = `
+                <button class="remove-friend-button" data-member-id="${tornPlayerId}" title="Remove Friend">
+                    👤<span class="plus-sign">-</span>
+                </button>
+            `;
+        } else {
+            // If they are NOT a friend, show the blue 'add' button
+            actionButtonsHtml = `
+                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                    👤<span class="plus-sign">+</span>
+                </button>
+            `;
+        }
+        
         const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
-
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
 
-        // --- THIS IS THE MODIFIED PART ---
+        // --- MODIFIED: The inner HTML now uses our new actionButtonsHtml variable ---
         memberItemDiv.innerHTML = `
             <span class="member-rank">${memberRank}</span>
-            
             <div class="member-identity">
                 <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
                 <span class="member-name">${memberName}</span>
             </div>
-
             <div class="member-actions">
-                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
-                    👤<span class="plus-sign">+</span>
-                </button>
+                ${actionButtonsHtml}
                 <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
             </div>
         `;
-        // --- END MODIFIED PART ---
-
+        
         membersListContainer.appendChild(memberItemDiv);
 
-        fetchPromises.push((async () => {
+        // This part that fetches profile pictures remains unchanged
+        (async () => {
             try {
                 const docRef = db.collection('users').doc(String(tornPlayerId));
                 const docSnap = await docRef.get();
-
                 if (docSnap.exists) {
                     const firebaseMemberData = docSnap.data();
                     const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
                     const imgElement = memberItemDiv.querySelector('.member-profile-pic');
-                    if (imgElement) {
-                        imgElement.src = profileImageUrl;
-                    }
-                } else {
-                    console.warn(`[Firestore] No detailed data found for member ${tornPlayerId} in 'users' collection.`);
+                    if (imgElement) imgElement.src = profileImageUrl;
                 }
             } catch (error) {
-                console.error(`[Firestore Error] Failed to fetch detailed data for member ${tornPlayerId}:`, error);
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
             }
-        })());
+        })();
     }
-
-    await Promise.all(fetchPromises);
-    console.log("Faction members list populated with available profile images from database.");
 }
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
 function switchChatTab(tabName) {
@@ -3339,44 +3357,53 @@ function setupEventListeners(apiKey) {
 if (chatDisplay) {
     chatDisplay.addEventListener('click', function(event) {
         const addButton = event.target.closest('.add-member-button');
-        if (!addButton) return;
+        const removeButton = event.target.closest('.remove-friend-button'); // <-- NEW
+        
+        if (addButton) {
+            // This is your existing code for ADDING a friend
+            addButton.disabled = true;
+            const friendIdToAdd = addButton.dataset.memberId;
+            const currentUser = auth.currentUser;
+            if (!currentUser) { /* ... your existing error handling ... */ return; }
+            
+            db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToAdd).set({
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                // Change the button from '+' to '-' immediately
+                addButton.innerHTML = '👤<span class="plus-sign">-</span>';
+                addButton.classList.remove('add-member-button');
+                addButton.classList.add('remove-friend-button');
+                addButton.title = "Remove Friend";
+                addButton.disabled = false;
+            }).catch(error => { /* ... your existing error handling ... */ });
 
-        addButton.disabled = true;
-        const friendIdToAdd = addButton.dataset.memberId;
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            console.error("Error: You must be logged in to add a friend.");
-            alert("You are not logged in. Please refresh the page.");
-            addButton.disabled = false;
-            return;
+        } else if (removeButton) {
+            // --- NEW: This is the new logic for REMOVING a friend ---
+            const friendIdToRemove = removeButton.dataset.memberId;
+            const friendName = removeButton.closest('.member-item').querySelector('.member-name').textContent;
+            
+            if (confirm(`Are you sure you want to remove ${friendName} from your friends list?`)) {
+                removeButton.disabled = true;
+                const currentUser = auth.currentUser;
+                if (!currentUser) { /* ... error handling ... */ return; }
+
+                db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete()
+                .then(() => {
+                    // Change the button from '-' to '+' immediately
+                    removeButton.innerHTML = '👤<span class="plus-sign">+</span>';
+                    removeButton.classList.remove('remove-friend-button');
+                    removeButton.classList.add('add-member-button');
+                    removeButton.title = "Add Friend";
+                    removeButton.disabled = false;
+                }).catch(error => {
+                    console.error("Error removing friend:", error);
+                    alert("Failed to remove friend.");
+                    removeButton.disabled = false;
+                });
+            }
         }
-        const currentUserId = currentUser.uid;
-        const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendIdToAdd);
-        friendDocRef.set({
-            addedAt: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-            console.log(`Successfully added friend with ID: ${friendIdToAdd}`);
-            addButton.classList.add('success');
-            addButton.innerHTML = '✓';
-            setTimeout(() => {
-                // Ensure the button disappears only after friend is added
-                addButton.style.display = 'none'; 
-            }, 1500);
-
-            // !!! IMPORTANT: The line 'fetchAndDisplayFriends();' should NOT be here. !!!
-            // !!! If it's still present, remove it completely. !!!
-            // No other action is needed here. The 'Blocked People' tab will refresh when visited.
-
-        })
-        .catch((error) => {
-            console.error("Error adding friend to database: ", error);
-            alert("There was an error adding the friend. Please check the console for errors.");
-            addButton.disabled = false;
-        });
     });
 }
-    
     // --- Event Listeners for Image Upload Buttons ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');

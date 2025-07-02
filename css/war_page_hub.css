@@ -3665,3 +3665,49 @@ CSS
   align-items: center;
   gap: 15px; /* This spaces out the two boxes within the left group */
 }
+/* --- Faction Member Button Colors --- */
+
+/* This makes the message button blue */
+.member-item .message-button {
+    background-color: #3d84b8;  /* A nice blue from your theme */
+    color: #ffffff;             /* White icon */
+}
+.member-item .message-button:hover {
+    background-color: #4a9dcf;  /* A lighter blue on hover */
+}
+
+
+/* This styles the new red remove-friend button */
+.remove-friend-button {
+    background-color: #dc3545;  /* A strong red */
+    color: #f0f0f0;
+    border: 1px solid #444;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-left: 10px;
+    flex-shrink: 0;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.remove-friend-button:hover {
+    background-color: #c82333; /* A darker red on hover */
+}
+
+/* This makes the minus sign red to match the button */
+.remove-friend-button .plus-sign {
+    background-color: transparent !important; /* Overrides the blue from the add button */
+    color: #f0f0f0 !important;
+    font-size: 1.2em; /* Make the minus a bit bigger */
+    bottom: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    line-height: 26px; /* Adjust for vertical centering */
+}
