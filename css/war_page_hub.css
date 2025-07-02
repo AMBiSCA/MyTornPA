@@ -1718,14 +1718,11 @@ autocomplete-items {
     text-align: center;
     cursor: pointer;
     flex-grow: 1;
-    white-space: nowrap;
-    
-    /* Replicating the main tab border style */
-    border: 2px solid black;
-    border-bottom: none; /* Remove bottom border to blend with container */
-    border-right-width: 0; /* Temporarily remove right border */
+    white-space: nowrap;  
+
+    border-bottom: none;
+    border-right-width: 0; 
     border-radius: 5px 5px 0 0;
-    
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
