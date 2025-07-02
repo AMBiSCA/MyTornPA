@@ -1609,61 +1609,8 @@ autocomplete-items {
 }
 
 
-.add-member-button {
-    background-color: #555; /* Nice basic gray */
-    color: #f0f0f0;         /* Light text/icon color */
-    border: 1px solid #444;
-    border-radius: 50%;     /* Circular button */
-    width: 28px;            /* Fixed width for circular shape */
-    height: 28px;           /* Fixed height for circular shape */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.1em;       /* Icon size */
-    cursor: pointer;
-    margin-left: 10px;      /* Space from name */
-    flex-shrink: 0;
-    position: relative;     /* For positioning the plus sign */
-    transition: background-color 0.2s ease;
-}
 
-.add-member-button:hover {
-    background-color: #6a6a6a; /* Slightly lighter gray on hover */
-}
 
-/* Style for the plus sign (+) inside the button */
-.add-member-button .plus-sign {
-    font-size: 0.8em;      /* Size of the plus sign relative to icon */
-    font-weight: bold;
-    position: absolute;
-    bottom: -2px;          /* Adjust position to overlap the bottom-right of the person icon */
-    right: -2px;
-    background-color: #00a8ff; /* Blue background for the plus */
-    color: white;          /* White plus sign */
-    border-radius: 50%;
-    width: 12px;           /* Size of the plus circle */
-    height: 12px;
-    line-height: 12px;     /* Center text vertically */
-    text-align: center;
-    display: block;
-}
-
-/* Message button for each member */
-.member-item .message-button {
-    background-color: #e0a71a; /* Gold color for message button */
-    color: #1e1e1e;             /* Dark text/icon on gold */
-    border: none;               /* Reuse .item-button from Blocked People, or define here */
-    padding: 4px 8px;           /* Example padding */
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-left: 8px;           /* Space from the add button */
-    flex-shrink: 0;
-}
-
-.member-item .message-button:hover {
-    filter: brightness(1.2); /* Slightly brighten on hover */
-}
 
 /* Styles for loading and error messages within the tab */
 .loading-message, .error-message {
@@ -3677,10 +3624,12 @@ CSS
     background-color: #4a9dcf;  /* A lighter blue on hover */
 }
 
+/* --- Faction Member Button Styles (Corrected Final) --- */
 
-/* This styles the new red remove-friend button */
+/* This is the MAIN button style. It is ALWAYS grey. */
+.add-member-button,
 .remove-friend-button {
-    background-color: #dc3545;  /* A strong red */
+    background-color: #555;
     color: #f0f0f0;
     border: 1px solid #444;
     border-radius: 50%;
@@ -3693,22 +3642,48 @@ CSS
     cursor: pointer;
     margin-left: 10px;
     flex-shrink: 0;
-    position: relative;
+    position: relative; /* This is crucial for the overlay */
     transition: background-color 0.2s ease;
 }
 
+/* A simple hover effect for the main grey button */
+.add-member-button:hover,
 .remove-friend-button:hover {
-    background-color: #c82333; /* A darker red on hover */
+    background-color: #6a6a6a; 
 }
 
-/* This makes the minus sign red to match the button */
+/* This is the small OVERLAY circle style. It is ALWAYS the same size and position. */
+.plus-sign {
+    font-size: 0.8em;
+    font-weight: bold;
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    text-align: center;
+    display: block;
+    color: white;
+}
+
+/* This rule makes the overlay BLUE when it's an add button. */
+.add-member-button .plus-sign {
+    background-color: #00a8ff; /* Blue */
+}
+
+/* This rule makes the overlay RED when it's a remove button. */
 .remove-friend-button .plus-sign {
-    background-color: transparent !important; /* Overrides the blue from the add button */
-    color: #f0f0f0 !important;
-    font-size: 1.2em; /* Make the minus a bit bigger */
-    bottom: 0px;
-    right: 0px;
-    width: 100%;
-    height: 100%;
-    line-height: 26px; /* Adjust for vertical centering */
+    background-color: #dc3545; /* Red */
+}
+
+/* This makes the message button blue */
+.member-item .message-button {
+    background-color: #3d84b8;
+    color: #ffffff;
+}
+
+.member-item .message-button:hover {
+    background-color: #4a9dcf;
 }
