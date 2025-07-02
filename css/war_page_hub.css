@@ -66,19 +66,19 @@
 }
 
 .tab-button {
-    /* Styles for individual tab buttons */
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 8px 10px; /* MODIFIED PADDING */
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 120px; /* Minimum width for each tab */
-    text-align: center;
+    /* Styles for individual tab buttons */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 8px 12px; /* NEW: Slightly reduced padding */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Add color and border-color to transition */
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 120px; /* Minimum width for each tab */
+    text-align: center;
 	font-weight: bold;
-	font-size: 0.9em; /* ADD THIS LINE */
 }
+
 
 .tab-button:hover {
     background-color: #555; /* NEW: A slightly different hover color for non-active */
@@ -291,24 +291,24 @@ border-radius: 8px;
 overflow: hidden; /* Ensures rounded corners are respected and content is clipped */
 	height: 100%; /* MODIFIED: Fill the parent panel's new height */
 }
-
 .chat-tab {
-
-padding: 8px 5px; /* Compact padding for small tabs */
+padding: 8px 10px; /* MODIFIED PADDING */
 background-color: #333;
 color: #f0f0f0;
-border: none;
-border-right: 1px solid #1e1e1e; /* Separator between tabs */
-cursor: pointer;
-font-size: 0.9em; /* Small font size for tabs */
-font-weight: bold;
+ font-weight: bold;
+font-size: 0.9em; /* ADDED FONT-SIZE TO MATCH TABLE HEADER */
 text-align: center;
-transition: background-color 0.2s ease, color 0.2s ease;
-white-space: nowrap; /* Prevent tab text from wrapping */
-overflow: hidden;
-text-overflow: ellipsis;
-flex-grow: 1; /* Add ellipsis if tab text is too long */
-
+cursor: pointer;
+flex-grow: 1;
+white-space: nowrap;
+    
+    /* Replicating the main tab border style */
+ border: 2px solid black;
+border-bottom: none; /* Remove bottom border to blend with container */
+ border-right-width: 0; /* Temporarily remove right border */
+border-radius: 5px 5px 0 0;
+    
+transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Top row of smaller buttons (siren, blank) */
@@ -1742,19 +1742,6 @@ autocomplete-items {
     color: black; /* White text for better contrast */
     border-color: #00a8ff;
     
-}
-
-.enemy-targets-table thead th {
-background-color: #00a8ff; 
-color: #1e1e1e; 
-font-weight: bold;
-text-align: center; 
-padding: 8px 10px;
-border-bottom: 2px solid #1e1e1e;
-font-size: 0.9em;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
 }
 .autocomplete-items div {
     padding: 10px;
