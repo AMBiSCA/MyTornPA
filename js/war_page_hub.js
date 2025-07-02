@@ -447,7 +447,7 @@ async function selectPrivateChat(friendIdTorn) {
     let friendName = `User ID: ${friendIdTorn}`;
 
     try {
-        const userProfilesSnapshot = await db.collection('userProfiles').where('tornProfileId', '==', friendIdTorn).limit(1).get();
+        const userProfilesSnapshot = await db.collection('userProfiles').where('tornProfileId', '==', String(friendIdTorn)).limit(1).get();
 
         if (!userProfilesSnapshot.empty) {
             friendFirebaseUid = userProfilesSnapshot.docs[0].id;
