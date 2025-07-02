@@ -3661,6 +3661,7 @@ CSS
 }
 
 .ops-left-group {
+  margin-top: -10px;
   display: flex;
   align-items: center;
   gap: 15px; /* This spaces out the two boxes within the left group */
