@@ -1693,7 +1693,6 @@ autocomplete-items {
     display: flex;
     overflow-x: auto; /* Allow horizontal scrolling if many tabs */
     white-space: nowrap;
-    border-bottom: 1px solid black;
     padding-bottom: 5px;
     margin-bottom: 5px;
 }
