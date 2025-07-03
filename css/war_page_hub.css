@@ -132,6 +132,7 @@
     display: grid; 
     grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
     gap: 20px; 
+	align-items: end; /* <-- ADD THIS LINE */
     padding: 0; /* Adjust as needed, typically 0 here as sections have padding */
     box-sizing: border-box;
     max-width: 1750px; /* Max-width for the grid content */
