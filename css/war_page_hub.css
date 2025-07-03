@@ -3599,27 +3599,57 @@ CSS
     flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
+/* In your mysite/css/war_page_hub.css file */
+
+/* --- Overall Container for the Top of Active Ops Tab (Updated) --- */
 .ops-controls-grid {
-  display: flex;
-  justify-content: space-between; /* This spaces the 3 main items out */
-  align-items: center;
-  gap: 15px; /* Adjusts the space between items */
+    display: flex; /* Ensures its direct children (including ops-left-group and scoreboard) are on one line */
+    justify-content: space-between; /* Spreads out the main items (left group, scoreboard, quick targets) */
+    align-items: center; /* Vertically centers items within this grid */
+    gap: 15px; /* Space between the main items in this grid */
+    margin-top: 10px; /* Adjust this value to move the whole block up or down */
+    margin-bottom: 15px; /* Standard margin below the grid */
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: #222;
+    box-sizing: border-box;
+    max-width: 1200px; /* Optional: Limits max width of the grid itself */
+    margin-left: auto; /* Centers the whole grid horizontally if max-width is less than 100% */
+    margin-right: auto;
 }
 
+/* --- Left Group of Boxes (Your Chain, Total Hits, Enemy Chain) --- */
 .ops-left-group {
-  margin-top: -65px;
-  display: flex;
-  align-items: center;
-  gap: 15px; /* This spaces out the two boxes within the left group */
-  flex-grow: 1;
+    display: flex; /* Makes the boxes within this group go side-by-side */
+    align-items: center; /* Vertically centers items within this group */
+    gap: 15px; /* Space between the boxes within this group */
+    margin-top: -65px; /* Adjust this negative value to pull this whole left group upwards */
+
+    flex-grow: 1; /* CRITICAL: Allows this group to grow and push the scoreboard to the left */
+    flex-shrink: 1; /* Allows it to shrink if needed */
+    flex-basis: auto; /* Let content determine initial size */
 }
 
-ops-control-item.ops-chain-score {
-    /* ... (your existing styles) ... */
-    flex-shrink: 0; /* NEW: Ensures the scoreboard doesn't shrink and stays its size */
-    min-width: 320px; /* Ensure it has a reasonable minimum width */
-}
+/* --- The Scoreboard Itself (Your Faction vs Opponent Box) --- */
+.ops-control-item.ops-chain-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers content horizontally within the scoreboard box */
+    justify-content: center; /* Centers content vertically within the scoreboard box */
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: #222;
+    box-sizing: border-box;
+    white-space: nowrap; /* Prevents text inside from wrapping unless explicitly allowed */
+    position: relative; /* Needed for any absolute positioning inside, if you add later */
 
+    flex-shrink: 0; /* CRITICAL: Prevents the scoreboard from shrinking */
+    min-width: 320px; /* Ensures the scoreboard has a minimum display width */
+    /* DO NOT add 'flex-grow' here if you want it to be pushed left by ops-left-group */
+}
 /* --- Faction Member Button Colors --- */
 
 /* This makes the message button blue */
