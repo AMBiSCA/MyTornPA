@@ -815,22 +815,6 @@ transition: background-color 0.2s ease;
     margin-top: 3px !important; /* Adjust this pixel value as needed to align it perfectly */
 }
 
-
-/* Active Ops Controls Grid (Tab 2) */
-/* General styling for all ops-control-items (Keep this as is, for now, to retain Chain Timer fix) */
-/* Active Ops Controls Grid (Tab 2) */
-.ops-controls-grid {
-    margin-top: 10px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222;
-}
-
 /* General styling for all ops-control-items */
 .ops-control-item {
     display: flex;
@@ -1749,12 +1733,7 @@ autocomplete-items {
 .chat-container.chat-content-hidden .chat-input-area {
     display: none;
 }
-    .ops-controls-grid {
-    align-items: start; /* Forces all direct children in the grid to align their tops */
-    margin-top: 5px; /* Adjust this value to move the whole box closer to the tabs */
-    margin-bottom: 10px; /* Adjust this value if it affects overall column height */
-}
-	
+
 	.ops-controls-grid .ops-control-item {
     align-self: start;
     padding-top: 0; /* Remove top padding within grid item */
@@ -3599,12 +3578,7 @@ CSS
     flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
-.ops-controls-grid {
-  display: flex;
-  justify-content: space-between; /* This spaces the 3 main items out */
-  align-items: center;
-  gap: 15px; /* Adjusts the space between items */
-}
+
 
 .ops-left-group {
   margin-top: -65px;
