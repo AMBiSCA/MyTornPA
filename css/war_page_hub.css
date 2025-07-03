@@ -1904,8 +1904,8 @@ autocomplete-items {
 .ops-control-item.ops-chain-score {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the entire block horizontally within its grid cell */
-    justify-content: center; /* Center vertically if space allows */
+    align-items: center; !Important /* Center the entire block horizontally within its grid cell */
+    justify-content: center; !Important /* Center vertically if space allows */
     gap: 5px; /* Space between faction names and the main score display */
     padding: 5px;
     border: 1px solid black; /* Match surrounding control items */
