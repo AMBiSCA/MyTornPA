@@ -1900,21 +1900,6 @@ autocomplete-items {
     }
 }
 
-/* Styling for the new Chain Score Display within Active Ops */
-.ops-control-item.ops-chain-score {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center the entire block horizontally within its grid cell */
-    justify-content: center; /* Center vertically if space allows */
-    gap: 5px; /* Space between faction names and the main score display */
-    padding: 5px;
-    border: 1px solid black; /* Match surrounding control items */
-    border-radius: 8px; /* Match surrounding control items */
-    background-color: #222; /* Match surrounding control items */
-    box-sizing: border-box;
-    white-space: nowrap; /* Prevent wrapping of contents if possible */
-    position: relative; /* ADD THIS LINE */
-}
 .faction-versus-section {
     display: flex;
     justify-content: center;
@@ -1941,7 +1926,23 @@ autocomplete-items {
     text-align: center;
     width: 100%; /* Ensure it takes full width for centering */
 }
-
+/* Styling for the new Chain Score Display within Active Ops */
+.ops-control-item.ops-chain-score {
+display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center; 
+ flex-grow: 1; /* This makes the element expand to fill empty space */
+ gap: 5px;
+padding: 5px;
+border: 1px solid black;
+ border-radius: 8px;
+background-color: #222;
+box-sizing: border-box;
+ white-space: nowrap;
+ position: relative;
+min-width: 320px;
+}
 .ops-chain-score .chain-score-display {
     display: flex;
     align-items: center;
