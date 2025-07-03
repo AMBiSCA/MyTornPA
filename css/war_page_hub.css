@@ -3721,6 +3721,6 @@ CSS
 	margin-left: 248px;
 }
 #friendly-status-tab .friendly-members-panel {
-    width: 900px !important;     /* Set a fixed width */
+    width: 1250px !important;     /* Set a fixed width */
     flex: none !important;        /* Disable the flex ratio */
 }
