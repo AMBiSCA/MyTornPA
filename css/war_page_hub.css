@@ -129,13 +129,12 @@
 
 /* CORRECTED: Apply grid to the .config-grid class which is the direct parent of your sections */
 .config-grid {
-    display: grid; 
-    grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
-    gap: 20px; 
-    padding: 0; /* Adjust as needed, typically 0 here as sections have padding */
+    display: flex; /* Changed from grid */
+    gap: 20px;
+    padding: 0;
     box-sizing: border-box;
-    max-width: 1750px; /* Max-width for the grid content */
-    margin: 0 auto; /* Center the grid container horizontally */
+    max-width: 1750px;
+    margin: 0 auto;
 }
 
 /* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
@@ -1309,6 +1308,8 @@ transition: background-color 0.2s ease;
     text-align: left;
     display: flex;
     flex-direction: column;
+    flex: 1;           /* ADD THIS LINE */
+    min-width: 0;      /* ADD THIS LINE */
 }
 .war-status-toggles-grid {
     display: grid;
