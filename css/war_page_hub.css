@@ -3712,4 +3712,5 @@ CSS
 /* 4. Reset the scoreboard container just in case */
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
     flex-grow: 0 !important;
+	margin-left: 100px;
 }
