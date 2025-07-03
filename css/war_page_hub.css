@@ -2783,7 +2783,7 @@ min-width: 320px;
     flex-direction: column;
     justify-content: center;
     background-color: #2a2a2a;
-    border: 1px solid #444;
+    border: 1px solid black;
     border-radius: 8px;
     padding: 8px 12px;
     font-family: Arial, sans-serif;
@@ -3703,5 +3703,4 @@ CSS
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
     flex-grow: 0 !important;
 	margin-left: 248px;
-	border: 1px black;
 }
