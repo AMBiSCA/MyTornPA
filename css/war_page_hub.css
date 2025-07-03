@@ -3686,3 +3686,24 @@ CSS
 .member-item .message-button:hover {
     background-color: #4a9dcf;
 }
+/* ==========================================================================
+   FINAL CENTERING FIX - PASTE AT THE END OF CSS FILE
+   ========================================================================== */
+
+/* 1. Correctly set up the main container */
+#active-ops-tab .ops-controls-grid {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 2. CRITICAL FIX: Stop the left-side group from expanding */
+#active-ops-tab .ops-left-group {
+    flex-grow: 0; /* This stops the left side from taking all the space */
+    margin-top: 0;
+}
+
+/* 3. Force the scoreboard's container to expand and fill the middle */
+#active-ops-tab .ops-control-item:has(.ranked-war-container) {
+    flex-grow: 1; /* This makes the scoreboard container grow */
+}
