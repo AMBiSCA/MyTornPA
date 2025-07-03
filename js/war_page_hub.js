@@ -4491,4 +4491,4 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
         }
     });
 });
-// --- Function to attempt opening Xanax use dialog ---
+

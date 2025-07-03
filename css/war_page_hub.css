@@ -141,6 +141,7 @@
 /* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
 .config-section.designate-admins-section {
     grid-column: auto;
+	justify-content: flex-start !important;
 	
 }
 
