@@ -1904,19 +1904,24 @@ autocomplete-items {
 .ops-control-item.ops-chain-score {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the entire block horizontally within its grid cell */
-    justify-content: center; /* Center vertically if space allows */
-    gap: 5px; /* Space between faction names and the main score display */
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
     padding: 5px;
-    border: 1px solid black; /* Match surrounding control items */
-    border-radius: 8px; /* Match surrounding control items */
-    background-color: #222; /* Match surrounding control items */
+    border: 1px solid black;
+    border-radius: 8px;
+    background-color: #222;
     box-sizing: border-box;
-    white-space: nowrap; /* Prevent wrapping of contents if possible */
-    position: relative; /* ADD THIS LINE */
-	margin-left: 50px; /* NEW: Add this negative left margin to pull it left. Adjust -50px to a smaller or larger negative number. */
-    flex-shrink: 0;     /* NEW: Crucial to prevent it from shrinking when moved. */
-    min-width: 320px; 
+    white-space: nowrap;
+
+    /* --- CRITICAL CHANGE FOR POSITIONING --- */
+    position: relative; /* Ensure position context for its children if needed later. It was already there. */
+    left: -50px; /* NEW: Use 'left' with a negative value to pull it left relative to its normal position */
+    /* Remove 'margin-left: -50px;' if it's still there */
+
+    flex-shrink: 0; /* Keep this */
+    min-width: 320px; /* Keep this */
+    z-index: 1; /* Ensure it stays on top if it overlaps anything */
 }
 .faction-versus-section {
     display: flex;
