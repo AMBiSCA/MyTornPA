@@ -1914,9 +1914,6 @@ autocomplete-items {
     box-sizing: border-box;
     white-space: nowrap; /* Prevent wrapping of contents if possible */
     position: relative; /* ADD THIS LINE */
-	margin-left: -50px; /* NEW: Add this negative left margin to pull it left. Adjust -50px to a smaller or larger negative number. */
-    flex-shrink: 0;     /* NEW: Crucial to prevent it from shrinking when moved. */
-    min-width: 320px; 
 }
 .faction-versus-section {
     display: flex;
@@ -3602,25 +3599,18 @@ CSS
     flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
+.ops-controls-grid {
+  display: flex;
+  justify-content: space-between; /* This spaces the 3 main items out */
+  align-items: center;
+  gap: 15px; /* Adjusts the space between items */
+}
+
 .ops-left-group {
   margin-top: -65px;
   display: flex;
   align-items: center;
   gap: 15px; /* This spaces out the two boxes within the left group */
-  flex-grow: 1;
-}
-
-.ops-controls-grid {
-display: flex;
-justify-content: flex-start; /* This bunches items to the left */
-align-items: center;
-gap: 15px; /* Adjusts the space between items */
-}
-ops-control-item.ops-chain-score {
-    /* ... (your existing styles) ... */
-    flex-shrink: 0; /* NEW: Ensures the scoreboard doesn't shrink and stays its size */
-    min-width: 320px; /* Ensure it has a reasonable minimum width */
-	
 }
 /* --- Faction Member Button Colors --- */
 
