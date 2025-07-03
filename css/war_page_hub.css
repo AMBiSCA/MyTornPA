@@ -3080,9 +3080,6 @@ min-width: 320px;
     cursor: pointer;
 }
 
-.config-section .member-checkbox-list {
-    flex-grow: 1;
-}
 /* --- TEMPORARY DEBUGGERS --- */
 .config-section {
     border: 2px solid red !important;
