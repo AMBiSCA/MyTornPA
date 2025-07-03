@@ -1900,23 +1900,6 @@ autocomplete-items {
     }
 }
 
-/* Styling for the new Chain Score Display within Active Ops */
-.ops-control-item.ops-chain-score {
-    display: flex;
-    flex-direction: column;
-    align-items: center; !Important /* Center the entire block horizontally within its grid cell */
-    justify-content: center; !Important /* Center vertically if space allows */
-    gap: 5px; /* Space between faction names and the main score display */
-    padding: 5px;
-    border: 1px solid black; /* Match surrounding control items */
-    border-radius: 8px; /* Match surrounding control items */
-    background-color: #222; /* Match surrounding control items */
-    box-sizing: border-box;
-    white-space: nowrap; /* Prevent wrapping of contents if possible */
-    position: relative; /* ADD THIS LINE */
-    flex-shrink: 0;     /* NEW: Crucial to prevent it from shrinking when moved. */
-    min-width: 320px; 
-}
 .faction-versus-section {
     display: flex;
     justify-content: center;
@@ -1934,6 +1917,24 @@ autocomplete-items {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     
     box-sizing: border-box; /* ADD THIS LINE */
+}
+
+.ops-control-item.ops-chain-score {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ flex-grow: 1;
+ gap: 5px;
+ padding: 5px;
+ border: 1px solid black;
+ border-radius: 8px;
+ background-color: #222;
+ box-sizing: border-box;
+ white-space: nowrap;
+ position: relative;
+ flex-shrink: 0;
+ min-width: 320px;
 }
 
 .ops-chain-score .score-faction-name {
@@ -2618,7 +2619,6 @@ autocomplete-items {
 /* This new class on the grid item allows us to align it. */
 .ops-control-item--actions {
     display: flex;
-    margin-left: auto;/* This aligns our button box to the right */
     align-items: center;
    
 }
@@ -3611,7 +3611,6 @@ CSS
 
 .ops-controls-grid {
 display: flex;
-justify-content: flex-start; /* This bunches items to the left */
 align-items: center;
 gap: 15px; /* Adjusts the space between items */
 }
