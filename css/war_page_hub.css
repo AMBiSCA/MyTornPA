@@ -1897,24 +1897,26 @@ autocomplete-items {
     .friendly-details-panel {
         min-width: unset; /* Remove min-width to allow full width stacking */
         width: 100%; /* Take full width when stacked vertically */
+    }
 }
 
 /* Styling for the new Chain Score Display within Active Ops */
 .ops-control-item.ops-chain-score {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+    align-items: center; /* Center the entire block horizontally within its grid cell */
+    justify-content: center; /* Center vertically if space allows */
+    gap: 5px; /* Space between faction names and the main score display */
     padding: 5px;
-    border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222;
+    border: 1px solid black; /* Match surrounding control items */
+    border-radius: 8px; /* Match surrounding control items */
+    background-color: #222; /* Match surrounding control items */
     box-sizing: border-box;
-    white-space: nowrap;
-    position: relative; /* Ensure position context for its children if needed later. It was already there. */
-    left: -50px; 
-    z-index: 1; /* Ensure it stays on top if it overlaps anything */
+    white-space: nowrap; /* Prevent wrapping of contents if possible */
+    position: relative; /* ADD THIS LINE */
+	margin-left: -50px; /* NEW: Add this negative left margin to pull it left. Adjust -50px to a smaller or larger negative number. */
+    flex-shrink: 0;     /* NEW: Crucial to prevent it from shrinking when moved. */
+    min-width: 320px; 
 }
 .faction-versus-section {
     display: flex;
@@ -3613,10 +3615,21 @@ CSS
   align-items: center;
   gap: 15px; /* This spaces out the two boxes within the left group */
   flex-grow: 1;
-  
-:
 }
 
+ops-control-item.ops-chain-score {
+    /* ... (your existing styles) ... */
+    flex-shrink: 0; /* NEW: Ensures the scoreboard doesn't shrink and stays its size */
+    min-width: 320px; /* Ensure it has a reasonable minimum width */
+	
+}
+/* --- Faction Member Button Colors --- */
+
+/* This makes the message button blue */
+.member-item .message-button {
+    background-color: #3d84b8;  /* A nice blue from your theme */
+    color: #ffffff;             /* White icon */
+}
 .member-item .message-button:hover {
     background-color: #4a9dcf;  /* A lighter blue on hover */
 }
@@ -3649,10 +3662,6 @@ CSS
     background-color: #6a6a6a; 
 }
 
-.member-item .message-button {
-    background-color: #3d84b8;  /* A nice blue from your theme */
-    color: #ffffff;             /* White icon */
-}
 /* This is the small OVERLAY circle style. It is ALWAYS the same size and position. */
 .plus-sign {
     font-size: 0.8em;
