@@ -2810,9 +2810,13 @@ min-width: 320px;
 }
 #rw-faction-one-name { 
     color: #4CAF50;
+	flex: 1;
+	text-align: right;
 }
 #rw-faction-two-name { 
     color: #e53935;
+	flex: 1;
+	text-align: left;
 }
 
 /* The new middle row holding the 3 info blocks */
