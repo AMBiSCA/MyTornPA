@@ -1837,6 +1837,7 @@ autocomplete-items {
     width: 100%;
     align-items: flex-start; /* Aligns both panels to the top */
     flex-wrap: wrap; /* Allows panels to wrap on smaller screens */
+	justify-content: center;
 }
 
 .friendly-members-panel {
