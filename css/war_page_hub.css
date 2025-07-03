@@ -3687,35 +3687,29 @@ CSS
     background-color: #4a9dcf;
 }
 
-/* ==========================================================
-   FINAL, SELF-CONTAINED CONTROLS BAR FOR ACTIVE OPS TAB
-   ========================================================== */
+/* ==============================================
+   FORCE SCOREBOARD LEFT - FINAL CSS OVERRIDE
+   ============================================== */
 
-/* The main container for the bar */
-.war-controls-bar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 10px;
-    border: 1px solid black;
-    border-radius: 8px;
-    background-color: #222;
-    margin-bottom: 15px;
+/* 1. Force the main bar to be a flex row, starting from the left */
+#active-ops-tab .ops-controls-grid {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
 }
 
-/* The left and right groups of items */
-.war-controls-group-left,
-.war-controls-group-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0; /* Prevents these groups from shrinking */
+/* 2. Force the group of timers on the left to STOP expanding */
+#active-ops-tab .ops-left-group {
+    flex-grow: 0 !important;
+    margin-top: 0 !important;
 }
 
-/* The center group that holds the scoreboard */
-.war-controls-group-center {
-    flex-grow: 1; /* This is the key: it expands to fill all available empty space */
-    display: flex;
-    justify-content: center; /* This centers the scoreboard within that expanded space */
-    min-width: 0;
+/* 3. Force the Quick Targets on the right to push itself ALL the way to the right */
+#active-ops-tab .ops-control-item.ops-quick-targets {
+    margin-left: auto !important;
+}
+
+/* 4. Reset the scoreboard container just in case */
+#active-ops-tab .ops-control-item:has(.ranked-war-container) {
+    flex-grow: 0 !important;
 }
