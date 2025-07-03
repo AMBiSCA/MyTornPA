@@ -1914,7 +1914,7 @@ autocomplete-items {
     box-sizing: border-box;
     white-space: nowrap; /* Prevent wrapping of contents if possible */
     position: relative; /* ADD THIS LINE */
-	margin-left: -50px; /* NEW: Add this negative left margin to pull it left. Adjust -50px to a smaller or larger negative number. */
+	margin-left: 50px; /* NEW: Add this negative left margin to pull it left. Adjust -50px to a smaller or larger negative number. */
     flex-shrink: 0;     /* NEW: Crucial to prevent it from shrinking when moved. */
     min-width: 320px; 
 }
