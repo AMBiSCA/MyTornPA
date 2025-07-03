@@ -1859,8 +1859,8 @@ autocomplete-items {
 /* Make the table layout fixed and set font size */
 #friendly-status-tab #friendly-members-table {
     table-layout: fixed !important; /* This is crucial for forcing column widths */
-    width: 100% !important;
-    font-size: 0.8em !important;
+    width: 75% !important;
+    font-size: 0.9em !important;
     font-weight: bold;
 }
 
