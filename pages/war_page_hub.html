@@ -163,44 +163,37 @@
                 </div>
 
                 <div id="active-ops-tab" class="tab-pane">
-                    <div class="ops-controls-grid">
-                        
-                        <div class="ops-left-group">
-                            <div class="ops-control-item">
-                                <div class="chain-timer-box" id="friendly-chain-timer">
-                                    <div class="chain-timer-header">Your Current Chain</div>
-                                    <div class="chain-timer-data">
-                                        <span class="chain-timer-hits" id="friendly-chain-hits">0</span>
-                                        <span class="chain-timer-time" id="friendly-chain-time">Over</span>
-                                    </div>
+                    
+                    <div class="war-controls-bar">
+                
+                        <div class="war-controls-group-left">
+                            <div class="chain-timer-box" id="friendly-chain-timer">
+                                <div class="chain-timer-header">Your Current Chain</div>
+                                <div class="chain-timer-data">
+                                    <span class="chain-timer-hits" id="friendly-chain-hits">0</span>
+                                    <span class="chain-timer-time" id="friendly-chain-time">Over</span>
                                 </div>
                             </div>
-
-                            <div class="ops-control-item">
-                                <div id="faction-hits-display">
-                                    <div class="hits-row">
-                                        <span class="hits-label">TornCity Total Hits:</span>
-                                        <span id="tc-hits-value" class="hits-value">0</span>
-                                    </div>
-                                    <div class="hits-row">
-                                        <span class="hits-label">Abroad Total Hits:</span>
-                                        <span id="abroad-hits-value" class="hits-value">0</span>
-                                    </div>
+                            <div id="faction-hits-display">
+                                <div class="hits-row">
+                                    <span class="hits-label">TornCity Total Hits:</span>
+                                    <span id="tc-hits-value" class="hits-value">0</span>
+                                </div>
+                                <div class="hits-row">
+                                    <span class="hits-label">Abroad Total Hits:</span>
+                                    <span id="abroad-hits-value" class="hits-value">0</span>
                                 </div>
                             </div>
-
-                            <div class="ops-control-item">
-                                <div class="chain-timer-box" id="enemy-chain-timer">
-                                    <div class="chain-timer-header">Enemies Current Chain</div>
-                                    <div class="chain-timer-data">
-                                        <span class="chain-timer-hits" id="enemy-chain-hits">0</span>
-                                        <span class="chain-timer-time" id="enemy-chain-time">Over</span>
-                                    </div>
+                            <div class="chain-timer-box" id="enemy-chain-timer">
+                                <div class="chain-timer-header">Enemies Current Chain</div>
+                                <div class="chain-timer-data">
+                                    <span class="chain-timer-hits" id="enemy-chain-hits">0</span>
+                                    <span class="chain-timer-time" id="enemy-chain-time">Over</span>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="ops-control-item">
+                
+                        <div class="war-controls-group-center">
                             <div class="ranked-war-container">
                                 <div class="rw-header">
                                     <span id="rw-faction-one-name">Your Faction</span>
@@ -227,16 +220,18 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="ops-control-item ops-quick-targets">
-                            <label>Quick FairFight Chain saver:</label>
-                            <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
-                                <span>Target 1</span>
-                                <span>Target 2</span>
+                
+                        <div class="war-controls-group-right">
+                            <div class="ops-control-item ops-quick-targets">
+                                <label>Quick FairFight Chain saver:</label>
+                                <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
+                                    <span>Target 1</span>
+                                    <span>Target 2</span>
+                                </div>
                             </div>
                         </div>
+                
                     </div>
-
                     <div class="active-ops-layout-row">
                         <div class="active-ops-targets-panel">
                             <div class="enemy-targets-list-section">
@@ -269,23 +264,23 @@
                                     </div>
                                 </div>
                                 <div class="chat-input-area">
-    <div class="quick-links-container">
-        <div class="quick-links-label"> Quick Links:</div>
-        <div class="chat-input-buttons-top">
-            <button class="chat-action-btn siren-btn">⚠️</button>
-            <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
-            <button class="chat-action-btn aid-button">🚨</button>
-            <button class="chat-action-btn flight-button">✈️</button>
-            <button class="chat-action-btn armory-button">💉️</button>
-            <button class="chat-action-btn refill-button">⛽</button>
-            <button class="chat-action-btn chain-button" id="chainClaimButton">🔗</button>
-        </div>
-    </div>
-    <div class="chat-input-text-send">
-        <input type="text" class="chat-text-input" placeholder="Type your message...">
-        <button class="chat-send-btn">Send</button>
-    </div>
-</div>
+                                    <div class="quick-links-container">
+                                        <div class="quick-links-label"> Quick Links:</div>
+                                        <div class="chat-input-buttons-top">
+                                            <button class="chat-action-btn siren-btn">⚠️</button>
+                                            <button class="chat-action-btn mute-button" id="muteSoundButton">🔊</button>
+                                            <button class="chat-action-btn aid-button">🚨</button>
+                                            <button class="chat-action-btn flight-button">✈️</button>
+                                            <button class="chat-action-btn armory-button">💉️</button>
+                                            <button class="chat-action-btn refill-button">⛽</button>
+                                            <button class="chat-action-btn chain-button" id="chainClaimButton">🔗</button>
+                                        </div>
+                                    </div>
+                                    <div class="chat-input-text-send">
+                                        <input type="text" class="chat-text-input" placeholder="Type your message...">
+                                        <button class="chat-send-btn">Send</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -334,7 +329,7 @@
                                 </table>
                             </div>
                         </div>
-                        </div>
+                    </div>
                 </div>
 
                 <div id="leader-config-tab" class="tab-pane">
