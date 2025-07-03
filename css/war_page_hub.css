@@ -1852,40 +1852,54 @@ autocomplete-items {
     min-width: 100px; /* Minimum width for the details panel */
 }
 
-/* Ensure the friendly members table fits its container */
-#friendly-members-table {
-    width: 100%; /* Important: Table takes full width of its panel */
-    table-layout: fixed; /* Important: Forces columns to respect declared widths */
-	font-weight: bold;
+/* ==================================================================
+   FORCEFUL OVERRIDE for Friendly Status Table Columns
+   ================================================================== */
+
+/* Make the table layout fixed and set font size */
+#friendly-status-tab #friendly-members-table {
+    table-layout: fixed !important; /* This is crucial for forcing column widths */
+    width: 100% !important;
+    font-size: 0.8em !important;
+    font-weight: bold;
 }
 
-/* Define explicit column wle to prevent overflow */
-/* Adjusted based on your request: Revivable (Status), Level, Position, Name */
-#friendly-members-table thead th:nth-child(1),
-#friendly-members-table tbody td:nth-child(1) { width: 12%; } /* Name */
-#friendly-members-table thead th:nth-child(2),
-#friendly-members-table tbody td:nth-child(2) { width: 7%; }  /* Position */
-#friendly-members-table thead th:nth-child(3),
-#friendly-members-table tbody td:nth-child(3) { width: 5%; }  /* Level */
-#friendly-members-table thead th:nth-child(4),
-#friendly-members-table tbody td:nth-child(4) { width: 12%; } /* Last Action */
-#friendly-members-table thead th:nth-child(5),
-#friendly-members-table tbody td:nth-child(5) { width: 9%; }  /* Strength */
-#friendly-members-table thead th:nth-child(6),
-#friendly-members-table tbody td:nth-child(6) { width: 9%; }  /* Dexterity */
-#friendly-members-table thead th:nth-child(7),
-#friendly-members-table tbody td:nth-child(7) { width: 9%; }  /* Speed */
-#friendly-members-table thead th:nth-child(8),
-#friendly-members-table tbody td:nth-child(8) { width: 9%; }  /* Defense */
-#friendly-members-table thead th:nth-child(9),
-#friendly-members-table tbody td:nth-child(9) { width: 10%; } /* Status */
-#friendly-members-table thead th:nth-child(10),
-#friendly-members-table tbody td:nth-child(10) { width: 7%; } /* Nerve */
-#friendly-members-table thead th:nth-child(11),
-#friendly-members-table tbody td:nth-child(11) { width: 7%; } /* Energy */
-#friendly-members-table thead th:nth-child(12),
-#friendly-members-table tbody td:nth-child(12) { width: 4%; } /* Revivable? */
+/* Force specific widths for each of the 12 columns */
+#friendly-status-tab #friendly-members-table th:nth-child(1),
+#friendly-status-tab #friendly-members-table td:nth-child(1) { width: 15% !important; } /* Name */
 
+#friendly-status-tab #friendly-members-table th:nth-child(2),
+#friendly-status-tab #friendly-members-table td:nth-child(2) { width: 8% !important; }  /* Last Action */
+
+#friendly-status-tab #friendly-members-table th:nth-child(3),
+#friendly-status-tab #friendly-members-table td:nth-child(3) { width: 8% !important; }  /* Strength */
+
+#friendly-status-tab #friendly-members-table th:nth-child(4),
+#friendly-status-tab #friendly-members-table td:nth-child(4) { width: 8% !important; }  /* Dexterity */
+
+#friendly-status-tab #friendly-members-table th:nth-child(5),
+#friendly-status-tab #friendly-members-table td:nth-child(5) { width: 8% !important; }  /* Speed */
+
+#friendly-status-tab #friendly-members-table th:nth-child(6),
+#friendly-status-tab #friendly-members-table td:nth-child(6) { width: 8% !important; }  /* Defense */
+
+#friendly-status-tab #friendly-members-table th:nth-child(7),
+#friendly-status-tab #friendly-members-table td:nth-child(7) { width: 7% !important; }  /* Total */
+
+#friendly-status-tab #friendly-members-table th:nth-child(8),
+#friendly-status-tab #friendly-members-table td:nth-child(8) { width: 9% !important; }  /* Status */
+
+#friendly-status-tab #friendly-members-table th:nth-child(9),
+#friendly-status-tab #friendly-members-table td:nth-child(9) { width: 7% !important; }  /* Nerve */
+
+#friendly-status-tab #friendly-members-table th:nth-child(10),
+#friendly-status-tab #friendly-members-table td:nth-child(10){ width: 7% !important; }  /* Energy */
+
+#friendly-status-tab #friendly-members-table th:nth-child(11),
+#friendly-status-tab #friendly-members-table td:nth-child(11){ width: 7% !important; }  /* Drug C/D */
+
+#friendly-status-tab #friendly-members-table th:nth-child(12),
+#friendly-status-tab #friendly-members-table td:nth-child(12){ width: 8% !important; }  /* Revivable? */
 /* Responsive adjustments for Friendly Status tab layout */
 @media (max-width: 992px) {
     .friendly-status-layout-row {
@@ -2783,7 +2797,7 @@ min-width: 320px;
     flex-direction: column;
     justify-content: center;
     background-color: #2a2a2a;
-    border: 1px solid black;
+    border: 2px solid black;
     border-radius: 8px;
     padding: 8px 12px;
     font-family: Arial, sans-serif;
