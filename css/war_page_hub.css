@@ -1897,7 +1897,6 @@ autocomplete-items {
     .friendly-details-panel {
         min-width: unset; /* Remove min-width to allow full width stacking */
         width: 100%; /* Take full width when stacked vertically */
-    }
 }
 
 /* Styling for the new Chain Score Display within Active Ops */
@@ -1913,14 +1912,8 @@ autocomplete-items {
     background-color: #222;
     box-sizing: border-box;
     white-space: nowrap;
-
-    /* --- CRITICAL CHANGE FOR POSITIONING --- */
     position: relative; /* Ensure position context for its children if needed later. It was already there. */
-    left: -50px; /* NEW: Use 'left' with a negative value to pull it left relative to its normal position */
-    /* Remove 'margin-left: -50px;' if it's still there */
-
-    flex-shrink: 0; /* Keep this */
-    min-width: 320px; /* Keep this */
+    left: -50px; 
     z-index: 1; /* Ensure it stays on top if it overlaps anything */
 }
 .faction-versus-section {
@@ -3620,21 +3613,10 @@ CSS
   align-items: center;
   gap: 15px; /* This spaces out the two boxes within the left group */
   flex-grow: 1;
+  
+:
 }
 
-ops-control-item.ops-chain-score {
-    /* ... (your existing styles) ... */
-    flex-shrink: 0; /* NEW: Ensures the scoreboard doesn't shrink and stays its size */
-    min-width: 320px; /* Ensure it has a reasonable minimum width */
-	
-}
-/* --- Faction Member Button Colors --- */
-
-/* This makes the message button blue */
-.member-item .message-button {
-    background-color: #3d84b8;  /* A nice blue from your theme */
-    color: #ffffff;             /* White icon */
-}
 .member-item .message-button:hover {
     background-color: #4a9dcf;  /* A lighter blue on hover */
 }
@@ -3667,6 +3649,10 @@ ops-control-item.ops-chain-score {
     background-color: #6a6a6a; 
 }
 
+.member-item .message-button {
+    background-color: #3d84b8;  /* A nice blue from your theme */
+    color: #ffffff;             /* White icon */
+}
 /* This is the small OVERLAY circle style. It is ALWAYS the same size and position. */
 .plus-sign {
     font-size: 0.8em;
