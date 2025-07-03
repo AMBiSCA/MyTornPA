@@ -3611,7 +3611,15 @@ CSS
   display: flex;
   align-items: center;
   gap: 15px; /* This spaces out the two boxes within the left group */
+  flex-grow: 1;
 }
+
+ops-control-item.ops-chain-score {
+    /* ... (your existing styles) ... */
+    flex-shrink: 0; /* NEW: Ensures the scoreboard doesn't shrink and stays its size */
+    min-width: 320px; /* Ensure it has a reasonable minimum width */
+}
+
 /* --- Faction Member Button Colors --- */
 
 /* This makes the message button blue */
