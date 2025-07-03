@@ -3723,3 +3723,25 @@ CSS
     width: 1500px !important;     /* Set a fixed width */
     flex: none !important;        /* Disable the flex ratio */
 }
+/* --- NEW ACTION BUTTON COLORS --- */
+
+/* The orange "Travel" button */
+.action-button-orange {
+    background-color: #f39c12; /* A nice, vibrant orange */
+}
+
+/* The yellow "Xanax" button */
+.action-button-yellow {
+    background-color: #f1c40f; /* A rich yellow/gold */
+}
+
+/* --- NEW CENTERED TITLE FOR TABLE --- */
+.table-title-centered {
+    color: #00a8ff;
+    text-align: center;
+    margin-bottom: 15px; /* Adds some space below the title */
+    margin-top: 5px;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
