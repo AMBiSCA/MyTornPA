@@ -132,7 +132,6 @@
     display: grid; 
     grid-template-columns: 1fr 1fr 1fr; /* Three equal-width columns for desktop */
     gap: 20px; 
-	align-items: end; /* <-- ADD THIS LINE */
     padding: 0; /* Adjust as needed, typically 0 here as sections have padding */
     box-sizing: border-box;
     max-width: 1750px; /* Max-width for the grid content */
@@ -1837,7 +1836,7 @@ autocomplete-items {
     align-items: flex-start; /* Aligns both panels to the top */
     flex-wrap: wrap; /* Allows panels to wrap on smaller screens */
 	justify-content: center;
-	border: 1px solid black;
+	
 }
 
 .friendly-members-panel {
@@ -1868,7 +1867,7 @@ autocomplete-items {
 
 /* Force specific widths for each of the 12 columns */
 #friendly-status-tab #friendly-members-table th:nth-child(1),
-#friendly-status-tab #friendly-members-table td:nth-child(1) { width: 12% !important; } /* Name */
+#friendly-status-tab #friendly-members-table td:nth-child(1) { width: 11% !important; } /* Name */
 
 #friendly-status-tab #friendly-members-table th:nth-child(2),
 #friendly-status-tab #friendly-members-table td:nth-child(2) { width: 8% !important; }  /* Last Action */
@@ -1889,7 +1888,7 @@ autocomplete-items {
 #friendly-status-tab #friendly-members-table td:nth-child(7) { width: 7% !important; }  /* Total */
 
 #friendly-status-tab #friendly-members-table th:nth-child(8),
-#friendly-status-tab #friendly-members-table td:nth-child(8) { width: 12% !important; }  /* Status */
+#friendly-status-tab #friendly-members-table td:nth-child(8) { width: 13% !important; }  /* Status */
 
 #friendly-status-tab #friendly-members-table th:nth-child(9),
 #friendly-status-tab #friendly-members-table td:nth-child(9) { width: 7% !important; }  /* Nerve */
