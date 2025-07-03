@@ -141,6 +141,7 @@
 /* Ensure the "Designate Tab 4 Admins" section stays in one column (no full width) */
 .config-section.designate-admins-section {
     grid-column: auto;
+	
 }
 
 /* --- END LEADER CONFIG TAB SPECIFIC STYLES --- */
@@ -3717,4 +3718,8 @@ CSS
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
     flex-grow: 0 !important;
 	margin-left: 248px;
+}
+#friendly-status-tab .friendly-members-panel {
+    width: 900px !important;     /* Set a fixed width */
+    flex: none !important;        /* Disable the flex ratio */
 }
