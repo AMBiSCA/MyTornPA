@@ -3738,7 +3738,15 @@ min-width: 320px;
     max-width: 900px; /* Match width of the original if desired */
     margin-left: auto;
     margin-right: auto; /* Center it */
+    display: flex; /* Make it a flex container so its internal layout works */
+    flex-direction: column; /* Stack its internal elements vertically */
+    box-sizing: border-box; /* Include padding and border in its dimensions */
+    padding: 8px 12px; /* Add padding to match the original scoreboard's internal padding */
+    background-color: #2a2a2a; /* Add background color to match the original scoreboard */
+    border: 2px solid black; /* Add border to match the original scoreboard */
+    border-radius: 8px; /* Add border-radius to match the original scoreboard */
 }
+
 
 /* Hide the old static scoreboard text on the Announcements tab */
 #announcements-tab > div:last-child {
