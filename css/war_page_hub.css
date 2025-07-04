@@ -3727,5 +3727,5 @@ min-width: 320px;
 }
 
 #leader-config-tab {
-    padding-bottom: 30px; /* Adjust this value as needed to "shave off" the bottom */
+    padding-bottom: 500px !important;/* Adjust this value as needed to "shave off" the bottom */
 }
