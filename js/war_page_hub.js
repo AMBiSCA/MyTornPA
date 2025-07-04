@@ -1657,26 +1657,28 @@ function setupChatRealtimeListener() {
         scrollWrapper.addEventListener('scroll', handleChatScroll);
     }
 }
-function updateRankedWarDisplay(rankedWarData, yourFactionId) {
-    console.log("Calling updateRankedWarDisplay with received data.");
-    console.log("updateRankedWarDisplay: received rankedWarData:", rankedWarData);
+function updateRankedWarDisplay(warsData, yourFactionId) { // Renamed parameter from rankedWarData to warsData
+    console.log("Calling updateRankedWarDisplay with received warsData:", warsData); // Log the full warsData object
+
+    const rankedData = warsData?.ranked; // Extract ranked data here
 
     // Function to update a specific scoreboard instance
-    const applyDataToScoreboard = (containerId, rankedData, yourFactionID) => {
+    const applyDataToScoreboard = (containerId, currentRankedData, yourFactionID) => { // Renamed rankedData to currentRankedData
         console.log(`applyDataToScoreboard: Called for ${containerId}.`);
-        console.log(`applyDataToScoreboard: Data received for ${containerId}:`, rankedData);
+        console.log(`applyDataToScoreboard: Data received for ${containerId}:`, currentRankedData);
         const container = document.getElementById(containerId);
         if (!container) {
-            console.warn(`applyDataToScoreboard: Scoreboard container with ID '${containerId}' NOT found.`);
+            console.warn(`applyDataToScoreboard: Scoreboard container with ID '${containerId}' NOT found. Aborting update for this container.`);
             return;
         }
 
-        // Ensure the HTML structure exists within the container.
-        // We always ensure the full scoreboard structure is present here, regardless of active war.
-        if (container.querySelector('.ranked-war-container') === null) {
-            console.log(`applyDataToScoreboard: Re-injecting HTML structure for ${containerId}.`);
-            // Re-inject the full HTML structure (this needs to be robust for dynamic content)
-            container.innerHTML = `
+        // We assume the HTML structure is always present in the DOM (from HTML file)
+        // If it was dynamically cleared, it means some other script is doing it.
+        // For robustness, we can re-inject, but ideally, it should persist.
+        // For debugging, let's ensure it's not being overwritten by this function itself if data is null.
+        if (container.querySelector('.ranked-war-container') === null && currentRankedData) { // Only re-inject if data exists
+             console.log(`applyDataToScoreboard: Re-injecting HTML structure for ${containerId} because it was missing but data IS present.`);
+             container.innerHTML = `
                 <div class="ranked-war-container">
                     <div class="rw-header">
                         <span id="rw-faction-one-name${containerId.includes('announcement') ? '_announcement' : ''}">Your Faction</span>
@@ -1703,23 +1705,38 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
                     </div>
                 </div>
             `;
+        } else if (container.querySelector('.ranked-war-container') === null && !currentRankedData) {
+            console.log(`applyDataToScoreboard: HTML structure missing for ${containerId} and NO data. Setting fallback message.`);
+            container.innerHTML = '<p style="text-align:center; padding: 20px;">No Active Ranked War</p>'; // Only show this if structure is missing AND no data
+            return; // Exit early if no data AND no structure
         } else {
-            console.log(`applyDataToScoreboard: HTML structure already present for ${containerId}.`);
+             console.log(`applyDataToScoreboard: HTML structure found for ${containerId}. Proceeding with update.`);
         }
 
-        // Get references to elements within THIS specific container (after ensuring they exist)
-        const yourFactionNameEl = container.querySelector(`[id^="rw-faction-one-name${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        const opponentFactionNameEl = container.querySelector(`[id^="rw-faction-two-name${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        const leadValueEl = container.querySelector(`[id^="rw-lead-value${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        const progressOneEl = container.querySelector(`[id^="rw-progress-one${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        const progressTwoEl = container.querySelector(`[id^="rw-progress-two${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        const rwWarTimerEl = container.querySelector(`[id^="rw-war-timer${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        const rwUserEnergyEl = container.querySelector(`[id^="rw-user-energy${containerId.includes('announcement') ? '_announcement' : ''}"]`); // CRUCIAL: Captured energy element for THIS scoreboard
 
-        // Check if rankedData is available and not null/undefined
-        if (rankedData) {
-            const yourFactionInfo = rankedData.factions?.find(f => String(f.id) === String(yourFactionID));
-            const opponentFactionInfo = rankedData.factions?.find(f => String(f.id) !== String(yourFactionID));
+        // Get references to elements within THIS specific container after potential re-injection
+        const yourFactionNameEl = container.querySelector(`#rw-faction-one-name${containerId.includes('announcement') ? '_announcement' : ''}`);
+        const opponentFactionNameEl = container.querySelector(`#rw-faction-two-name${containerId.includes('announcement') ? '_announcement' : ''}`);
+        const leadValueEl = container.querySelector(`#rw-lead-value${containerId.includes('announcement') ? '_announcement' : ''}`);
+        const progressOneEl = container.querySelector(`#rw-progress-one${containerId.includes('announcement') ? '_announcement' : ''}`);
+        const progressTwoEl = container.querySelector(`#rw-progress-two${containerId.includes('announcement') ? '_announcement' : ''}`);
+        const rwWarTimerEl = container.querySelector(`#rw-war-timer${containerId.includes('announcement') ? '_announcement' : ''}`);
+        const rwUserEnergyEl = container.querySelector(`#rw-user-energy${containerId.includes('announcement') ? '_announcement' : ''}`);
+
+        // Console logs to confirm elements are found
+        console.log(`Debug ${containerId}: rwUserEnergyEl found: ${!!rwUserEnergyEl}`);
+        if (rwUserEnergyEl) console.log(`Debug ${containerId}: rwUserEnergyEl.id = ${rwUserEnergyEl.id}`);
+        console.log(`Debug ${containerId}: progressOneEl found: ${!!progressOneEl}`);
+        console.log(`Debug ${containerId}: progressTwoEl found: ${!!progressTwoEl}`);
+        console.log(`Debug ${containerId}: yourFactionNameEl found: ${!!yourFactionNameEl}`);
+        console.log(`Debug ${containerId}: opponentFactionNameEl found: ${!!opponentFactionNameEl}`);
+        console.log(`Debug ${containerId}: leadValueEl found: ${!!leadValueEl}`);
+        console.log(`Debug ${containerId}: rwWarTimerEl found: ${!!rwWarTimerEl}`);
+
+
+        if (currentRankedData) { // Use currentRankedData here
+            const yourFactionInfo = currentRankedData.factions?.find(f => String(f.id) === String(yourFactionID));
+            const opponentFactionInfo = currentRankedData.factions?.find(f => String(f.id) !== String(yourFactionID));
 
             if (yourFactionInfo && opponentFactionInfo) {
                 // Update Faction Names
@@ -1728,12 +1745,12 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
 
                 // Calculate and Update Lead Target
                 const leadAmount = Math.abs(yourFactionInfo.score - opponentFactionInfo.score);
-                const targetScore = rankedData.target;
+                const targetScore = currentRankedData.target;
                 if (leadValueEl) leadValueEl.textContent = `${leadAmount.toLocaleString()} / ${targetScore.toLocaleString()}`;
 
                 // Calculate and Update Progress Bar
                 const totalScore = yourFactionInfo.score + opponentFactionInfo.score;
-                let yourFactionProgress = 50; // Default to 50/50 if scores are 0
+                let yourFactionProgress = 50;
                 if (totalScore > 0) {
                     yourFactionProgress = (yourFactionInfo.score / totalScore) * 100;
                 }
@@ -1743,62 +1760,55 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
                 if (progressTwoEl) progressTwoEl.style.width = `${opponentFactionProgress}%`;
 
                 // Update War Time
-                globalWarStartedActualTime = rankedData.start || 0; // Ensure this is always set based on live data
+                globalWarStartedActualTime = currentRankedData.start || 0;
                 if (rwWarTimerEl) rwWarTimerEl.textContent = formatDuration(Math.max(0, Math.floor(Date.now() / 1000) - globalWarStartedActualTime));
 
                 // Update energy display for THIS scoreboard instance
-                // We'll update it from the global `factionApiFullData` or `userEnergyDisplay` if available
-                if (rwUserEnergyEl) {
-                    // Check if energy data is available globally
-                    if (factionApiFullData && factionApiFullData.bars && factionApiFullData.bars.energy) {
-                        const energy = factionApiFullData.bars.energy.current;
-                        const maxEnergy = factionApiFullData.bars.energy.maximum;
-                        rwUserEnergyEl.textContent = `${energy}/${maxEnergy}`;
-                        rwUserEnergyEl.classList.remove('status-hospital', 'status-other'); // Clean up old colors
-                        rwUserEnergyEl.classList.add('status-okay'); // Assume OK for display
-                    } else if (document.getElementById('rw-user-energy')) {
-                        // Fallback to the main Active Ops energy display content if available
-                        rwUserEnergyEl.textContent = document.getElementById('rw-user-energy').textContent;
-                        rwUserEnergyEl.className = document.getElementById('rw-user-energy').className; // Copy classes too for color
-                    } else {
-                        rwUserEnergyEl.textContent = 'N/A';
-                    }
+                // Use optional chaining for safety as factionApiFullData.bars might not exist immediately
+                if (rwUserEnergyEl && factionApiFullData?.bars?.energy) {
+                    const energy = factionApiFullData.bars.energy.current;
+                    const maxEnergy = factionApiFullData.bars.energy.maximum;
+                    rwUserEnergyEl.textContent = `${energy}/${maxEnergy}`;
+                    // Apply class for color, but ensure it's removed if state changes
+                    rwUserEnergyEl.classList.remove('status-hospital', 'status-other');
+                    rwUserEnergyEl.classList.add('status-okay'); // Assume green for live energy display
+                    console.log(`Debug ${containerId}: Energy updated to ${energy}/${maxEnergy}.`);
+                } else if (rwUserEnergyEl) {
+                    console.warn(`Debug ${containerId}: factionApiFullData.bars.energy not available for energy display. Setting N/A.`);
+                    rwUserEnergyEl.textContent = 'N/A';
                 }
 
             } else {
-                // If rankedData exists but factionInfo is missing (e.g., API error for faction details)
-                console.warn(`Could not find your faction or opponent faction info in ranked war data for container: ${containerId}. Displaying N/A.`);
+                console.warn(`Could not find your faction or opponent faction info in ranked war data for container: ${containerId}. Displaying N/A for core data.`);
                 if (yourFactionNameEl) yourFactionNameEl.textContent = 'Your Faction';
                 if (opponentFactionNameEl) opponentFactionNameEl.textContent = 'Opponent';
                 if (leadValueEl) leadValueEl.textContent = 'N/A / N/A';
                 if (progressOneEl) progressOneEl.style.width = '50%';
                 if (progressTwoEl) progressTwoEl.style.width = '50%';
                 if (rwWarTimerEl) rwWarTimerEl.textContent = 'N/A';
-                if (rwUserEnergyEl) rwUserEnergyEl.textContent = 'N/A'; // Also set energy to N/A
+                if (rwUserEnergyEl) rwUserEnergyEl.textContent = 'N/A';
             }
         } else {
-            // If rankedData is null/undefined (no active ranked war)
-            console.log(`No active ranked war data for container: ${containerId}. Populating with N/A. `);
+            console.log(`No active ranked war data for container: ${containerId}. Populating with default "0 / 0" or "N/A".`);
             if (yourFactionNameEl) yourFactionNameEl.textContent = 'Your Faction';
             if (opponentFactionNameEl) opponentFactionNameEl.textContent = 'Opponent';
             if (leadValueEl) leadValueEl.textContent = '0 / 0';
             if (progressOneEl) progressOneEl.style.width = '50%';
             if (progressTwoEl) progressTwoEl.style.width = '50%';
             if (rwWarTimerEl) rwWarTimerEl.textContent = '0:00:00:00';
-            if (rwUserEnergyEl) rwUserEnergyEl.textContent = 'N/A'; // Also set energy to N/A
+            if (rwUserEnergyEl) rwUserEnergyEl.textContent = 'N/A';
         }
     };
 
     // Apply data to the scoreboard in the Active Ops tab
-    // The Active Ops scoreboard ID is implicitly the tab's ID because its .ranked-war-container
-    // is directly within the .ops-control-item that lives in active-ops-tab
-    applyDataToScoreboard('active-ops-tab', rankedWarData, yourFactionId);
+    applyDataToScoreboard('active-ops-tab', rankedData, yourFactionId); // Pass extracted rankedData
 
     // Apply data to the scoreboard in the Announcements tab
-    applyDataToScoreboard('announcementScoreboardContainer', rankedWarData, yourFactionId);
+    applyDataToScoreboard('announcementScoreboardContainer', rankedData, yourFactionId); // Pass extracted rankedData
 
     // This function runs to update the main user energy display in Active Ops,
     // and also ensures global factionApiFullData.bars is updated for the Announcements scoreboard to pull from.
+    // Call it here to ensure factionApiFullData.bars is updated AFTER the main API fetch.
     updateUserEnergyDisplay();
 
     console.log("Successfully parsed and displayed ranked war data for relevant scoreboards.");
@@ -4278,9 +4288,6 @@ if (userFactionId) {
 }
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
-    // Add these console.logs back in for robust debugging if needed again
-    // console.log("API Key (init):", apiKey);
-    // console.log("Faction ID (init):", factionIdToUseOverride);
 
     const keyToUse = apiKey;
     let finalFactionId = factionIdToUseOverride;
@@ -4301,31 +4308,25 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     globalYourFactionID = finalFactionId; // Set the global variable
 
-    // Get references to both scoreboard containers (they will be managed by updateRankedWarDisplay)
+    // Get references to both scoreboard containers
     const activeOpsScoreBox = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
     const announcementScoreboardContainer = document.getElementById('announcementScoreboardContainer');
 
-    // It's good practice to clear or set an initial "Loading..." state if needed,
-    // but updateRankedWarDisplay will immediately fill it with N/A or actual data.
-    if (activeOpsScoreBox) {
-        // activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px;">Loading War Data...</p>'; // Optional: For initial load feedback
-    }
-    if (announcementScoreboardContainer) {
-        // announcementScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading War Data...</p>'; // Optional
-    }
+    // Initial loading state (if desired, remove if it causes flicker with the fix below)
+    // if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px;">Loading War Data...</p>';
+    // if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading War Data...</p>';
 
 
     if (!finalFactionId) {
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
-        // Ensure scoreboards show no data if faction ID is missing
         if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
         if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
         return;
     }
 
     try {
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`; // Added 'bars' selection here to ensure energy data is always fetched
         
         console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
         const userFactionResponse = await fetch(userFactionApiUrl);
@@ -4338,36 +4339,30 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
         factionApiFullData = await userFactionResponse.json();
         console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
-        // Add these console.logs back in for robust debugging if needed again
-        // console.log("initializeAndLoadData: Full Data (wars property):", factionApiFullData.wars);
-        // console.log("initializeAndLoadData: Full Data (wars.ranked property):", factionApiFullData.wars?.ranked);
-
-        if (factionApiFullData.error) {
-            // console.error("initializeAndLoadData: Torn API returned error:", factionApiFullData.error); // Debug if needed
-            throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
-        }
-        
-        // CRITICAL CHANGE: ALWAYS call updateRankedWarDisplay.
-        // It's now solely responsible for rendering the scoreboard, whether with data or "N/A".
-        updateRankedWarDisplay(factionApiFullData.wars?.ranked, finalFactionId);
-        console.log("initializeAndLoadData: updateRankedWarDisplay called successfully.");
+        // CRITICAL CHANGE: Pass the entire 'wars' object, not just 'wars.ranked'
+        updateRankedWarDisplay(factionApiFullData.wars, finalFactionId);
+        console.log("initializeAndLoadData: updateRankedWarDisplay called successfully with full wars object.");
 
         console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
 
         // After successful fetch, populate UI components (other than ranked war scores)
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // This also calls fetchAndDisplayEnemyFaction
-                                               // which further calls displayEnemyTargetsTable and populateEnemyMemberCheckboxes
+        populateUiComponents(warData, apiKey);
+        
+        // Ensure global DOM references are assigned (if not already via const at top)
+        // (These were often defined with `let` and assigned here, ensure they are not overwritten if already `const`)
+        // userEnergyDisplay = document.getElementById('userEnergyDisplay'); // Check if this is truly needed here or already handled
+        // onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+        // onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data.`;
-        // Ensure all scoreboards show error message on fetch failure
         if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
         if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
 
-        // Reset other related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
