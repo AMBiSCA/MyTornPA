@@ -3731,8 +3731,7 @@ min-width: 320px;
 }
 
 /* Styling for the duplicated scoreboard in the Announcements tab */
-/* Ensure it is positioned correctly */
-#announcements-tab .ops-chain-score {
+#announcementScoreboardContainer {
     margin-top: 20px; /* Adjust spacing from the boxes above */
     margin-bottom: 20px; /* Spacing below the scoreboard */
     max-width: 900px; /* Match width of the original if desired */
@@ -3741,14 +3740,21 @@ min-width: 320px;
     display: flex; /* Make it a flex container so its internal layout works */
     flex-direction: column; /* Stack its internal elements vertically */
     box-sizing: border-box; /* Include padding and border in its dimensions */
-    padding: 8px 12px; /* Add padding to match the original scoreboard's internal padding */
-    background-color: #2a2a2a; /* Add background color to match the original scoreboard */
-    border: 2px solid black; /* Add border to match the original scoreboard */
-    border-radius: 8px; /* Add border-radius to match the original scoreboard */
+    /* All the specific background, border, and padding are now part of .ranked-war-container */
+    /* Remove any styling here that conflicts with .ranked-war-container if it's applying to this outer div */
 }
 
+/* Ensure the .ranked-war-container within #announcementScoreboardContainer has the correct styling */
+#announcementScoreboardContainer .ranked-war-container {
+    background-color: #2a2a2a;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%; /* Ensure it fills its parent container */
+    box-sizing: border-box;
+}
 
 /* Hide the old static scoreboard text on the Announcements tab */
-#announcements-tab > div:last-child {
-    display: none; /* This targets the <div> containing the old text "TheSixthSense WA Dojo Warriors LEAD TABLET N/A" */
+#announcements-tab > div:last-child:not(#announcementScoreboardContainer) {
+    display: none; /* This targets the old <div> containing the text, ensuring it doesn't hide the new scoreboard container */
 }
