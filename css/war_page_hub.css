@@ -3729,3 +3729,18 @@ min-width: 320px;
 #leader-config-tab {
     padding-bottom: -60px !important;/* Adjust this value as needed to "shave off" the bottom */
 }
+
+/* Styling for the duplicated scoreboard in the Announcements tab */
+/* Ensure it is positioned correctly */
+#announcements-tab .ops-chain-score {
+    margin-top: 20px; /* Adjust spacing from the boxes above */
+    margin-bottom: 20px; /* Spacing below the scoreboard */
+    max-width: 900px; /* Match width of the original if desired */
+    margin-left: auto;
+    margin-right: auto; /* Center it */
+}
+
+/* Hide the old static scoreboard text on the Announcements tab */
+#announcements-tab > div:last-child {
+    display: none; /* This targets the <div> containing the old text "TheSixthSense WA Dojo Warriors LEAD TABLET N/A" */
+}

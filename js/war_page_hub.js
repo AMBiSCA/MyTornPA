@@ -1234,56 +1234,135 @@ async function fetchAndDisplayChainData() { // No apiKey param needed, reads use
 }
 
 // MODIFIED: This function now accepts the 'wars' object and your faction ID as parameters
+// MODIFIED: This function now accepts the 'wars' object and your faction ID as parameters
 async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
     console.log("Calling fetchAndDisplayRankedWarScores with received data.");
 
-    // Check if the necessary data was provided
-    if (!warsData || !warsData.ranked) {
-        console.warn("Ranked War Data not provided or no ranked war active.");
-        if (yourFactionRankedScore) yourFactionRankedScore.textContent = 'N/A';
-        if (opponentFactionRankedScore) opponentFactionRankedScore.textContent = 'N/A';
-        if (warTargetScore) warTargetScore.textContent = 'N/A';
-        if (warStartedTime) warStartedTime.textContent = 'No Active War';
-        if (yourFactionNameScoreLabel) yourFactionNameScoreLabel.textContent = 'Your Faction:';
-        if (opponentFactionNameScoreLabel) opponentFactionNameScoreLabel.textContent = 'Vs. Opponent:';
-        return;
-    }
+    // Selectors for the ORIGINAL scoreboard (Active Ops tab)
+    const yourFactionRankedScoreEl = document.getElementById('yourFactionRankedScore');
+    const opponentFactionRankedScoreEl = document.getElementById('opponentFactionRankedScore');
+    const warTargetScoreEl = document.getElementById('warTargetScore');
+    const warStartedTimeEl = document.getElementById('warStartedTime');
+    const yourFactionNameScoreLabelEl = document.getElementById('yourFactionNameScoreLabel');
+    const opponentFactionNameScoreLabelEl = document.getElementById('opponentFactionNameScoreLabel');
+    const progressOneEl = document.getElementById('rw-progress-one');
+    const progressTwoEl = document.getElementById('rw-progress-two');
+    const rwLeadValueEl = document.getElementById('rw-lead-value');
+    const rwFactionOneNameEl = document.getElementById('rw-faction-one-name');
+    const rwFactionTwoNameEl = document.getElementById('rw-faction-two-name');
 
-    try {
-        const rankedWarInfo = warsData.ranked;
 
-        // Get the target score and start time
-        const targetScoreValue = rankedWarInfo.target;
-        globalWarStartedActualTime = rankedWarInfo.start; // Set global for the live timer
+    // Selectors for the DUPLICATED scoreboard (Announcements tab)
+    const yourFactionRankedScoreAnnouncementEl = document.getElementById('yourFactionRankedScore_announcement');
+    const opponentFactionRankedScoreAnnouncementEl = document.getElementById('opponentFactionRankedScore_announcement');
+    const warTargetScoreAnnouncementEl = document.getElementById('warTargetScore_announcement');
+    const warStartedTimeAnnouncementEl = document.getElementById('warStartedTime_announcement');
+    const yourFactionNameScoreLabelAnnouncementEl = document.getElementById('yourFactionNameScoreLabel_announcement');
+    const opponentFactionNameScoreLabelAnnouncementEl = document.getElementById('opponentFactionNameScoreLabel_announcement');
+    // Note: The duplicated scoreboard in HTML doesn't currently have progress bars or lead value IDs with _announcement.
+    // If you want those to update, their IDs would also need _announcement and corresponding elements here.
+    // For now, I'll update the text labels and scores that were duplicated.
 
-        // Find your faction and the opponent's faction from the 'factions' array
+
+    // Function to update a set of scoreboard elements
+    const updateScoreboardElements = (
+        yourScoreEl, opponentScoreEl, targetScoreEl, warTimeEl,
+        yourNameLabelEl, opponentNameLabelEl,
+        progressOneBar = null, progressTwoBar = null, leadValueEl = null,
+        rwFactionOneName = null, rwFactionTwoName = null,
+        rankedWarInfo, yourFactionId
+    ) => {
+        if (!rankedWarInfo) {
+            if (yourScoreEl) yourScoreEl.textContent = 'N/A';
+            if (opponentScoreEl) opponentScoreEl.textContent = 'N/A';
+            if (targetScoreEl) targetScoreEl.textContent = 'N/A';
+            if (warTimeEl) warTimeEl.textContent = 'No Active War';
+            if (yourNameLabelEl) yourNameLabelEl.textContent = 'Your Faction:';
+            if (opponentNameLabelEl) opponentNameLabelEl.textContent = 'Vs. Opponent:';
+            if (progressOneBar) progressOneBar.style.width = '50%';
+            if (progressTwoBar) progressTwoBar.style.width = '50%';
+            if (leadValueEl) leadValueEl.textContent = '0 / 0';
+            if (rwFactionOneName) rwFactionOneName.textContent = 'Your Faction';
+            if (rwFactionTwoName) rwFactionTwoName.textContent = 'Opponent';
+            return;
+        }
+
         const yourFactionInfo = rankedWarInfo.factions.find(f => String(f.id) === String(yourFactionId));
         const opponentFactionInfo = rankedWarInfo.factions.find(f => String(f.id) !== String(yourFactionId));
 
-        // Update the UI elements with the fetched data
-        if (yourFactionRankedScore) {
-            yourFactionRankedScore.textContent = yourFactionInfo ? yourFactionInfo.score.toLocaleString() : 'N/A';
-        }
-        if (yourFactionNameScoreLabel) {
-            yourFactionNameScoreLabel.textContent = yourFactionInfo ? `${yourFactionInfo.name}:` : 'Your Faction:';
-        }
-        
-        if (opponentFactionRankedScore) {
-            opponentFactionRankedScore.textContent = opponentFactionInfo ? opponentFactionInfo.score.toLocaleString() : 'N/A';
-        }
-        if (opponentFactionNameScoreLabel) {
-            opponentFactionNameScoreLabel.textContent = opponentFactionInfo ? `Vs. ${opponentFactionInfo.name}:` : 'Vs. Opponent:';
+        if (yourFactionInfo && opponentFactionInfo) {
+            if (yourScoreEl) yourScoreEl.textContent = yourFactionInfo.score.toLocaleString();
+            if (opponentScoreEl) opponentScoreEl.textContent = opponentFactionInfo.score.toLocaleString();
+            if (targetScoreEl) targetScoreEl.textContent = rankedWarInfo.target ? rankedWarInfo.target.toLocaleString() : 'N/A';
+
+            if (yourNameLabelEl) yourNameLabelEl.textContent = `${yourFactionInfo.name}:`;
+            if (opponentNameLabelEl) opponentNameLabelEl.textContent = `Vs. ${opponentFactionInfo.name}:`;
+
+            // Update Progress Bar
+            if (progressOneBar && progressTwoBar) {
+                const totalScore = yourFactionInfo.score + opponentFactionInfo.score;
+                let yourFactionProgress = 50; // Default to 50/50 if scores are 0
+                if (totalScore > 0) {
+                    yourFactionProgress = (yourFactionInfo.score / totalScore) * 100;
+                }
+                const opponentFactionProgress = 100 - yourFactionProgress;
+                progressOneBar.style.width = `${yourFactionProgress}%`;
+                progressTwoBar.style.width = `${opponentFactionProgress}%`;
+            }
+
+            // Update Lead Value
+            if (leadValueEl) {
+                const leadAmount = Math.abs(yourFactionInfo.score - opponentFactionInfo.score);
+                const targetScore = rankedWarInfo.target;
+                leadValueEl.textContent = `${leadAmount.toLocaleString()} / ${targetScore.toLocaleString()}`;
+            }
+
+            // Update Header Faction Names
+            if (rwFactionOneName) rwFactionOneName.textContent = yourFactionInfo.name;
+            if (rwFactionTwoName) rwFactionTwoName.textContent = opponentFactionInfo.name;
+
+        } else {
+            // Handle case where faction info isn't found
+            console.warn("Could not find your faction or opponent faction info in ranked war data.");
+            if (yourScoreEl) yourScoreEl.textContent = 'N/A';
+            if (opponentScoreEl) opponentScoreEl.textContent = 'N/A';
+            if (targetScoreEl) targetScoreEl.textContent = 'N/A';
+            if (yourNameLabelEl) yourNameLabelEl.textContent = 'Your Faction:';
+            if (opponentNameLabelEl) opponentNameLabelEl.textContent = 'Vs. Opponent:';
+            if (progressOneBar) progressOneBar.style.width = '50%';
+            if (progressTwoBar) progressTwoBar.style.width = '50%';
+            if (leadValueEl) leadValueEl.textContent = '0 / 0';
+            if (rwFactionOneName) rwFactionOneName.textContent = 'Your Faction';
+            if (rwFactionTwoName) rwFactionTwoName.textContent = 'Opponent';
         }
 
-        if (warTargetScore) {
-            warTargetScore.textContent = targetScoreValue ? targetScoreValue.toLocaleString() : 'N/A';
+        // War Time update (applies to both if element exists)
+        if (warTimeEl) {
+            globalWarStartedActualTime = rankedWarInfo.start || 0; // Set global for the live timer
+            warTimeEl.textContent = formatDuration(Math.max(0, Math.floor(Date.now() / 1000) - globalWarStartedActualTime));
         }
-        
-        console.log("Successfully parsed and displayed ranked war data.");
+    };
 
-    } catch (error) {
-        console.error("Error displaying ranked war scores:", error);
-    }
+
+    // Call the updater for the ORIGINAL scoreboard elements
+    updateScoreboardElements(
+        yourFactionRankedScore, opponentFactionRankedScore, warTargetScore, warStartedTime,
+        yourFactionNameScoreLabel, opponentFactionNameScoreLabel,
+        progressOneEl, progressTwoEl, rwLeadValueEl,
+        rwFactionOneName, rwFactionTwoName,
+        warsData.ranked, yourFactionId
+    );
+
+    // Call the updater for the DUPLICATED scoreboard elements
+    updateScoreboardElements(
+        yourFactionRankedScoreAnnouncement, opponentFactionRankedScoreAnnouncement, warTargetScoreAnnouncement, warStartedTimeAnnouncement,
+        yourFactionNameScoreLabelAnnouncement, opponentFactionNameScoreLabelAnnouncement,
+        null, null, null, // Progress bars and lead value were NOT duplicated in HTML yet with _announcement IDs
+        null, null, // Header names were not duplicated in HTML yet with _announcement IDs
+        warsData.ranked, yourFactionId
+    );
+
+    console.log("Successfully parsed and displayed ranked war data for both scoreboards.");
 }
  function updateAllTimers() {
     const nowInSeconds = Math.floor(Date.now() / 1000);
