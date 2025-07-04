@@ -516,7 +516,7 @@ transition: background-color 0.2s ease;
     gap: 5px; /* Controls the small space between the label and checkbox */
     color: #f0f0f0;
     font-size: 0.9em;
-    max-height: 334px;
+    /* REMOVED: max-height: 334px; */ 
     background-color: #2a2a2a; /* A slightly lighter shade for the inner box background */
     border: 1px solid #444; /* A subtle border around each member's box */
     border-radius: 4px; /* Slightly rounded corners for the box */
@@ -3727,5 +3727,5 @@ min-width: 320px;
 }
 
 #leader-config-tab {
-    padding-bottom: -500px !important;/* Adjust this value as needed to "shave off" the bottom */
+    padding-bottom: -60px !important;/* Adjust this value as needed to "shave off" the bottom */
 }
