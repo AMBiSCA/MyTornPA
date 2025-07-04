@@ -1656,24 +1656,21 @@ function setupChatRealtimeListener() {
 }
 function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     console.log("Calling updateRankedWarDisplay with received data.");
+    console.log("updateRankedWarDisplay: received rankedWarData:", rankedWarData);
 
     // Function to update a specific scoreboard instance
     const applyDataToScoreboard = (containerId, rankedData, yourFactionID) => {
+        console.log(`applyDataToScoreboard: Called for ${containerId} with rankedData:`, rankedData);
         const container = document.getElementById(containerId);
         if (!container) {
             console.warn(`Scoreboard container with ID '${containerId}' not found.`);
             return;
         }
 
-        // If no ranked war data, display "No Active Ranked War" and reset.
-        if (!rankedData) {
-            container.innerHTML = '<p style="text-align:center; padding: 20px;">No Active Ranked War</p>';
-            return;
-        }
-
         // Ensure the HTML structure exists within the container.
-        // If it was dynamically set to 'No Active Ranked War', we need to re-inject the structure.
+        // We always ensure the full scoreboard structure is present here, regardless of active war.
         if (container.querySelector('.ranked-war-container') === null) {
+            // Re-inject the full HTML structure if it was cleared for some reason
             container.innerHTML = `
                 <div class="ranked-war-container">
                     <div class="rw-header">
@@ -1703,56 +1700,75 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
             `;
         }
 
-        // Get references to elements within THIS specific container
+        // Get references to elements within THIS specific container (after ensuring they exist)
         const yourFactionNameEl = container.querySelector(`[id^="rw-faction-one-name${containerId.includes('announcement') ? '_announcement' : ''}"]`);
         const opponentFactionNameEl = container.querySelector(`[id^="rw-faction-two-name${containerId.includes('announcement') ? '_announcement' : ''}"]`);
         const leadValueEl = container.querySelector(`[id^="rw-lead-value${containerId.includes('announcement') ? '_announcement' : ''}"]`);
         const progressOneEl = container.querySelector(`[id^="rw-progress-one${containerId.includes('announcement') ? '_announcement' : ''}"]`);
         const progressTwoEl = container.querySelector(`[id^="rw-progress-two${containerId.includes('announcement') ? '_announcement' : ''}"]`);
         const rwWarTimerEl = container.querySelector(`[id^="rw-war-timer${containerId.includes('announcement') ? '_announcement' : ''}"]`);
-        // For the energy, we'll keep updating the global one as it's typically tied to the current user.
-        // If you want a separate energy display for each scoreboard, that needs more specific HTML IDs.
+        const rwUserEnergyEl = container.querySelector(`[id^="rw-user-energy${containerId.includes('announcement') ? '_announcement' : ''}"]`); // Capture energy element for this scoreboard
 
+        // Check if rankedData is available and not null/undefined
+        if (rankedData) {
+            const yourFactionInfo = rankedData.factions?.find(f => String(f.id) === String(yourFactionID));
+            const opponentFactionInfo = rankedData.factions?.find(f => String(f.id) !== String(yourFactionID));
 
-        // Find your faction and the opponent's faction from the 'factions' array
-        const yourFactionInfo = rankedData.factions.find(f => String(f.id) === String(yourFactionID));
-        const opponentFactionInfo = rankedData.factions.find(f => String(f.id) !== String(yourFactionID));
+            if (yourFactionInfo && opponentFactionInfo) {
+                // Update Faction Names
+                if (yourFactionNameEl) yourFactionNameEl.textContent = yourFactionInfo.name;
+                if (opponentFactionNameEl) opponentFactionNameEl.textContent = opponentFactionInfo.name;
 
-        if (!yourFactionInfo || !opponentFactionInfo) {
-            console.warn(`Could not determine your faction vs opponent in the war data for container: ${containerId}.`);
-            // Show N/A if faction info is missing despite rankedData existing
+                // Calculate and Update Lead Target
+                const leadAmount = Math.abs(yourFactionInfo.score - opponentFactionInfo.score);
+                const targetScore = rankedData.target;
+                if (leadValueEl) leadValueEl.textContent = `${leadAmount.toLocaleString()} / ${targetScore.toLocaleString()}`;
+
+                // Calculate and Update Progress Bar
+                const totalScore = yourFactionInfo.score + opponentFactionInfo.score;
+                let yourFactionProgress = 50; // Default to 50/50 if scores are 0
+                if (totalScore > 0) {
+                    yourFactionProgress = (yourFactionInfo.score / totalScore) * 100;
+                }
+                const opponentFactionProgress = 100 - yourFactionProgress;
+
+                if (progressOneEl) progressOneEl.style.width = `${yourFactionProgress}%`;
+                if (progressTwoEl) progressTwoEl.style.width = `${opponentFactionProgress}%`;
+
+                // Update War Time
+                globalWarStartedActualTime = rankedData.start || 0; // Ensure this is always set based on live data
+                if (rwWarTimerEl) rwWarTimerEl.textContent = formatDuration(Math.max(0, Math.floor(Date.now() / 1000) - globalWarStartedActualTime));
+
+                // Update energy for this scoreboard (using the same global user energy value for now)
+                if (rwUserEnergyEl) {
+                    // Assuming updateUserEnergyDisplay already sets the correct global value or you want a simple placeholder here.
+                    // If you want actual faction member energy, you'd need another API call specific to this scoreboard.
+                    // For now, let's keep it simple and populate what we can.
+                    rwUserEnergyEl.textContent = document.getElementById('rw-user-energy')?.textContent || 'N/A';
+                }
+
+            } else {
+                // If rankedData exists but factionInfo is missing (e.g., API error for faction details)
+                console.warn(`Could not find your faction or opponent faction info in ranked war data for container: ${containerId}. Displaying N/A.`);
+                if (yourFactionNameEl) yourFactionNameEl.textContent = 'Your Faction';
+                if (opponentFactionNameEl) opponentFactionNameEl.textContent = 'Opponent';
+                if (leadValueEl) leadValueEl.textContent = 'N/A / N/A';
+                if (progressOneEl) progressOneEl.style.width = '50%';
+                if (progressTwoEl) progressTwoEl.style.width = '50%';
+                if (rwWarTimerEl) rwWarTimerEl.textContent = 'N/A';
+                if (rwUserEnergyEl) rwUserEnergyEl.textContent = 'N/A';
+            }
+        } else {
+            // If rankedData is null/undefined (no active ranked war)
+            console.log(`No active ranked war data for container: ${containerId}. Populating with N/A. `);
             if (yourFactionNameEl) yourFactionNameEl.textContent = 'Your Faction';
             if (opponentFactionNameEl) opponentFactionNameEl.textContent = 'Opponent';
-            if (leadValueEl) leadValueEl.textContent = 'N/A / N/A';
+            if (leadValueEl) leadValueEl.textContent = '0 / 0';
             if (progressOneEl) progressOneEl.style.width = '50%';
             if (progressTwoEl) progressTwoEl.style.width = '50%';
-            if (rwWarTimerEl) rwWarTimerEl.textContent = 'N/A';
-            return;
+            if (rwWarTimerEl) rwWarTimerEl.textContent = '0:00:00:00';
+            if (rwUserEnergyEl) rwUserEnergyEl.textContent = 'N/A';
         }
-
-        // --- Update Faction Names ---
-        if (yourFactionNameEl) yourFactionNameEl.textContent = yourFactionInfo.name;
-        if (opponentFactionNameEl) opponentFactionNameEl.textContent = opponentFactionInfo.name;
-
-        // --- Calculate and Update Lead Target ---
-        const leadAmount = Math.abs(yourFactionInfo.score - opponentFactionInfo.score);
-        const targetScore = rankedData.target;
-        if (leadValueEl) leadValueEl.textContent = `${leadAmount.toLocaleString()} / ${targetScore.toLocaleString()}`;
-
-        // --- Calculate and Update Progress Bar ---
-        const totalScore = yourFactionInfo.score + opponentFactionInfo.score;
-        let yourFactionProgress = 50; // Default to 50/50 if scores are 0
-        if (totalScore > 0) {
-            yourFactionProgress = (yourFactionInfo.score / totalScore) * 100;
-        }
-        const opponentFactionProgress = 100 - yourFactionProgress;
-
-        if (progressOneEl) progressOneEl.style.width = `${yourFactionProgress}%`;
-        if (progressTwoEl) progressTwoEl.style.width = `${opponentFactionProgress}%`;
-
-        // --- Update War Started Time for this scoreboard (using global var for consistency) ---
-        globalWarStartedActualTime = rankedData.start || 0; // Ensure this is always set based on live data
-        if (rwWarTimerEl) rwWarTimerEl.textContent = formatDuration(Math.floor(Date.now() / 1000) - globalWarStartedActualTime);
     };
 
     // Apply data to the scoreboard in the Active Ops tab
@@ -1761,7 +1777,7 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
     // Apply data to the scoreboard in the Announcements tab
     applyDataToScoreboard('announcementScoreboardContainer', rankedWarData, yourFactionId);
 
-    // Update the individual user energy display (only one of these, typically in Active Ops)
+    // This function still runs to update the main user energy display (usually in Active Ops)
     updateUserEnergyDisplay();
 
     console.log("Successfully parsed and displayed ranked war data for relevant scoreboards.");
