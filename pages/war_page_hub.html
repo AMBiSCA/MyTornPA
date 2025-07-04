@@ -31,40 +31,35 @@
 
             <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
 
-            <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
-                <button class="btn" id="homeButtonHeader">
-                    <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
-                </button>
-
-                <div class="dropdown align-right" id="usefulLinksDropdownContainer">
-                    <button class="btn header-btn" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span>
-                        <span class="btn-icon">🔗</span></button>
-                    <div class="dropdown-content" id="usefulLinksDropdown">
-                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                    </div>
+            <div class="dropdown align-right" id="usefulLinksDropdownContainer">
+                <button class="btn header-btn" id="usefulLinksBtn">
+                    <span class="btn-text">Useful Links:</span>
+                    <span class="btn-icon">🔗</span></button>
+                <div class="dropdown-content" id="usefulLinksDropdown">
+                    <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                    <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                    <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                    <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                    <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                    <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                    <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                    <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                    <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                    <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
                 </div>
+            </div>
 
-                <div class="dropdown align-right" id="contactUsDropdownContainer">
-                    <button class="btn header-btn" id="contactUsBtn">
-                        <span class="btn-text">Contact:</span><span class="btn-icon">💬</span></button>
-                    <div class="dropdown-content" id="contactUsDropdown">
-                        <a href="report.html">Report an Issue</a> <a href="#">Live Chat (Soon™)</a>
-                        <a href="FAQ.html">F.A.Q</a> </div>
-                </div>
+            <div class="dropdown align-right" id="contactUsDropdownContainer">
+                <button class="btn header-btn" id="contactUsBtn">
+                    <span class="btn-text">Contact:</span><span class="btn-icon">💬</span></button>
+                <div class="dropdown-content" id="contactUsDropdown">
+                    <a href="report.html">Report an Issue</a> <a href="#">Live Chat (Soon™)</a>
+                    <a href="FAQ.html">F.A.Q</a> </div>
+            </div>
 
-                <button class="btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
-                </button>
+            <button class="btn" id="logoutButtonHeader">
+                <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+            </button>
             </div>
 
             <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
@@ -145,21 +140,35 @@
                                 </div>
                             </div>
                         </div>
-
-                    </div>
-                    <div class="ops-control-item ops-chain-score">
-                        <div class="score-faction-name" id="yourFactionNameScoreLabel">The SixthSense</div>
-                        <div class="score-faction-name" id="opponentFactionNameScoreLabel">Vs Waja Warriors</div>
-                        <div class="chain-score-display">
-                            <span class="score-value current-score" id="yourFactionRankedScore">N/A</span>
-                            <span class="score-target-info">
-                                <span class="score-label">LEAD TARGET</span>
-                                <span class="score-progress" id="warTargetScore">N/A</span>
-                            </span>
-                            <span class="score-value target-score" id="opponentFactionRankedScore">N/A</span>
+                    </div> <div id="announcementScoreboardContainer" class="ops-control-item ops-ranked-war-score">
+                        <div class="ranked-war-container">
+                            <div class="rw-header">
+                                <span id="rw-faction-one-name_announcement">Your Faction</span>
+                                <span class="rw-vs">vs</span>
+                                <span id="rw-faction-two-name_announcement">Opponent</span>
+                            </div>
+                            <div class="rw-scores-new">
+                                <div class="rw-stat-box-small">
+                                    <div class="rw-small-label">Energy</div>
+                                    <div class="rw-small-value" id="rw-user-energy_announcement">N/A</div>
+                                </div>
+                                <div class="rw-lead-target">
+                                    <div class="rw-lead-label">LEAD TARGET</div>
+                                    <div class="rw-lead-value" id="rw-lead-value_announcement">0 / 0</div>
+                                </div>
+                                <div class="rw-stat-box-small">
+                                    <div class="rw-small-label">War Time</div>
+                                    <div class="rw-small-value" id="rw-war-timer_announcement">0:00:00:00</div>
+                                </div>
+                            </div>
+                            <div class="rw-progress-bar-container">
+                                <div class="rw-progress-bar-one" id="rw-progress-one_announcement" style="width: 50%;"></div>
+                                <div class="rw-progress-bar-two" id="rw-progress-two_announcement" style="width: 50%;"></div>
+                            </div>
                         </div>
-                        <span id="warStartedTime" class="score-started-time">N/A</span>
                     </div>
+                    <div>
+                        </div>
                 </div>
 
                 <div id="active-ops-tab" class="tab-pane">
@@ -458,7 +467,7 @@
         <div class="chain-claim-modal-content">
             <h3>Claim Next Hits</h3>
             <p>Rushing the next <input type="number" id="chainHitsInput" min="1" value="1" class="modal-input"> hits.</p>
-            <p>From Chain Number <input type="number" id="chainNumberInput" min="1" value="1" class="modal-input"> onwards.</p>
+            <p>From Chain Number <input type="number" id="chainNumberInput" min="1" value="1" class="modal-input"></p>
             <div class="modal-actions">
                 <button id="submitChainClaimBtn" class="action-button">Claim!</button>
                 <button id="cancelChainClaimBtn" class="action-button cancel">Cancel</button>
