@@ -140,24 +140,33 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="announcement-section-item"> 
-                            <div class="ops-control-item ops-chain-score">
-                                <div class="score-faction-name" id="yourFactionNameScoreLabel_announcement">The SixthSense</div>
-                                <div class="score-faction-name" id="opponentFactionNameScoreLabel_announcement">Vs Waja Warriors</div>
-                                <div class="chain-score-display">
-                                    <span class="score-value current-score" id="yourFactionRankedScore_announcement">N/A</span>
-                                    <span class="score-target-info">
-                                        <span class="score-label">LEAD TARGET</span>
-                                        <span class="score-progress" id="warTargetScore_announcement">N/A</span>
-                                    </span>
-                                    <span class="score-value target-score" id="opponentFactionRankedScore_announcement">N/A</span>
+                         <div class="ops-control-item">
+                            <div class="ranked-war-container">
+                                <div class="rw-header">
+                                    <span id="rw-faction-one-name">Your Faction</span>
+                                    <span class="rw-vs">vs</span>
+                                    <span id="rw-faction-two-name">Opponent</span>
                                 </div>
-                                <span id="warStartedTime_announcement" class="score-started-time">N/A</span>
+                                <div class="rw-scores-new">
+                                    <div class="rw-stat-box-small">
+                                        <div class="rw-small-label">Energy</div>
+                                        <div class="rw-small-value" id="rw-user-energy">N/A</div>
+                                    </div>
+                                    <div class="rw-lead-target">
+                                        <div class="rw-lead-label">LEAD TARGET</div>
+                                        <div class="rw-lead-value" id="rw-lead-value">0 / 0</div>
+                                    </div>
+                                    <div class="rw-stat-box-small">
+                                        <div class="rw-small-label">War Time</div>
+                                        <div class="rw-small-value" id="rw-war-timer">0:00:00:00</div>
+                                    </div>
+                                </div>
+                                <div class="rw-progress-bar-container">
+                                    <div class="rw-progress-bar-one" id="rw-progress-one" style="width: 50%;"></div>
+                                    <div class="rw-progress-bar-two" id="rw-progress-two" style="width: 50%;"></div>
+                                </div>
                             </div>
                         </div>
-                    </div> <div>
-                        </div>
-                </div>
 
                 <div id="active-ops-tab" class="tab-pane">
                     <div class="ops-controls-grid">
