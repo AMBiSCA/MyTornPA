@@ -793,11 +793,6 @@ function generateDummyIgnores(count) {
     return dummyIgnores;
 }
 
- * Handles image upload to Firebase Storage and saves the URL to Firestore.
- * @param {HTMLInputElement} fileInput The file input element.
- * @param {HTMLElement} displayElement The DOM element to display the image.
- * @param {string} firestoreKey The Firestore document key (e.g., 'gamePlanImage', 'announcementImage').
- */
 async function handleImageUpload(fileInput, displayElement, firestoreKey) {
     const file = fileInput.files[0];
 
