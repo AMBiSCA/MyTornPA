@@ -26,6 +26,9 @@ let isChatMuted = localStorage.getItem('isChatMuted') === 'true'; // Global mute
 let scrollUpIndicatorEl = null;
 let currentSelectedPrivateChatId = null; // Keeps track of the chat ID for sending messages
 let claimedTargets = new Set(); // This will remember the claimed target IDs
+let userEnergyDisplay = null;
+let onlineFriendlyMembersDisplay = null;
+let onlineEnemyMembersDisplay = null;
 
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -2301,96 +2304,7 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
     });
 }
 
-async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
-    console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
-    const keyToUse = apiKey;
-    let finalFactionId = factionIdToUseOverride;
-
-    if (!finalFactionId && factionApiFullData && factionApiFullData.basic && factionApiFullData.basic.id) {
-        finalFactionId = factionApiFullData.basic.id;
-    }
-    if (!finalFactionId && auth.currentUser) {
-        try {
-            const userProfileDoc = await db.collection('userProfiles').doc(auth.currentUser.uid).get();
-            if (userProfileDoc.exists) {
-                finalFactionId = userProfileDoc.data().faction_id;
-            }
-        } catch (error) {
-            console.error("Error fetching faction ID from user profile in initializeAndLoadData fallback:", error);
-        }
-    }
-
-    globalYourFactionID = finalFactionId; // Set the global variable
-
-    const activeOpsScoreBox = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
-    const announcementScoreBox = document.getElementById('announcementScoreboardContainer');
-
-    // Default messages if no war data
-    const noWarHtml = '<p style="text-align:center; padding: 20px;">No Active Ranked War</p>';
-
-    // Set initial states to "No Active Ranked War" or similar until data is fetched
-    if (activeOpsScoreBox) {
-        activeOpsScoreBox.innerHTML = noWarHtml; // This will be overwritten by updateRankedWarDisplay
-    }
-    if (announcementScoreBox) {
-        announcementScoreBox.innerHTML = noWarHtml; // This will also be overwritten
-    }
-
-
-    if (!finalFactionId) {
-        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
-        // Ensure scoreboxes show no data if faction ID is missing
-        if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
-        if (announcementScoreBox) announcementScoreBox.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
-        return;
-    }
-
-    try {
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
-        
-        console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
-        const userFactionResponse = await fetch(userFactionApiUrl);
-
-        if (!userFactionResponse.ok) {
-            const errorData = await userFactionResponse.json().catch(() => ({}));
-            const apiErrorMsg = errorData.error ? `: ${errorData.error.error}` : '';
-            throw new Error(`Torn API HTTP Error: ${userFactionResponse.status} ${userFactionResponse.statusText}${apiErrorMsg}.`);
-        }
-
-        factionApiFullData = await userFactionResponse.json();
-        console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
-
-        if (factionApiFullData.error) {
-            throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
-        }
-        
-        // Always call updateRankedWarDisplay with the fetched data
-        // This function is responsible for determining if a war is active and updating the scoreboards
-        updateRankedWarDisplay(factionApiFullData.wars?.ranked, finalFactionId); // Pass only ranked war data if it exists
-
-        console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
-
-        // After successful fetch, populate UI components (other than ranked war scores)
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); // This also calls fetchAndDisplayEnemyFaction
-                                               // which further calls displayEnemyTargetsTable and populateEnemyMemberCheckboxes
-    } catch (error) {
-        console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
-        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data.`;
-        // Ensure all scoreboards show error message on fetch failure
-        if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
-        if (announcementScoreBox) announcementScoreBox.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
-
-        // Reset other related displays on error
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-    }
-}
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
     if (!tbody) {
@@ -3622,7 +3536,62 @@ function formatDuration(seconds) {
     // Return in D:HH:MM:SS format
     return `${days}:${paddedHours}:${paddedMinutes}:${paddedSecs}`;
 }
+function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+    // Basic Faction Info (from global factionApiFullData)
+    if (factionApiFullData) {
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
+        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
 
+        if (factionApiFullData.members) {
+            populateFriendlyMemberCheckboxes(
+                factionApiFullData.members,
+                warData.tab4Admins || [],
+                warData.energyTrackingMembers || []
+            );
+            // The broken line that called the non-existent function has been removed from here.
+        } else {
+            console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
+            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
+        }
+    } else {
+        console.warn("factionApiFullData not available in populateUiComponents.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
+        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
+    }
+
+    // Game Plan & Announcements (from Firebase warData)
+    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
+    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
+    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
+
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);      // Uses warData (Firebase)
+
+    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
+    let determinedEnemyFactionID = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
+        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
+        if (opponentFactionInfo) {
+            determinedEnemyFactionID = opponentFactionInfo.id;
+            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
+        }
+    }
+    // Fallback to manually saved enemy ID if no active ranked war opponent detected
+    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
+
+    // Display enemy targets table using the determined ID
+    if (globalEnemyFactionID) {
+        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+        displayEnemyTargetsTable(null); // Clear the enemy targets table
+    }
+}
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
 
