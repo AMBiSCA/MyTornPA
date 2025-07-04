@@ -4177,39 +4177,7 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
         displayEnemyTargetsTable(null); // Clear the enemy targets table
     }
 }
-// --- Function to attempt opening Xanax use dialog ---
 
-function attemptXanaxUse() {
-    // Define the target URL
-    const xanaxUseUrl = 'https://www.torn.com/item.php#/283/use';
-
-    // Open the items page in a new tab
-    const newTab = window.open('https://www.torn.com/item.php', '_blank');
-
-    if (newTab) {
-        // If the tab was opened successfully, wait a moment for it to load
-        // and then try to change its location to the specific Xanax URL.
-        // This is the part that might be blocked by browser security.
-        setTimeout(() => {
-            try {
-                newTab.location.href = xanaxUseUrl;
-            } catch (e) {
-                console.error("Could not navigate the new tab to the Xanax URL. This is expected if the browser's security policy blocked it.");
-            }
-        }, 1200); // 1.2-second delay
-    } else {
-        // If the window failed to open, it was likely a popup blocker.
-        alert('A popup blocker may have prevented the tab from opening. Please allow popups for this site.');
-    }
-}
-
-// Wait for the page to fully load before attaching the click event
-document.addEventListener('DOMContentLoaded', (event) => {
-    const useXanaxButton = document.getElementById('useXanaxBtn');
-    if (useXanaxButton) {
-        useXanaxButton.addEventListener('click', attemptXanaxUse);
-    }
-});
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
     if (!quickFFTargetsDisplay) {
@@ -4491,4 +4459,36 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
         }
     });
 });
+// --- Function to attempt opening Xanax use dialog ---
 
+function attemptXanaxUse() {
+    // Define the target URL
+    const xanaxUseUrl = 'https://www.torn.com/item.php#/283/use';
+
+    // Open the items page in a new tab
+    const newTab = window.open('https://www.torn.com/item.php', '_blank');
+
+    if (newTab) {
+        // If the tab was opened successfully, wait a moment for it to load
+        // and then try to change its location to the specific Xanax URL.
+        // This is the part that might be blocked by browser security.
+        setTimeout(() => {
+            try {
+                newTab.location.href = xanaxUseUrl;
+            } catch (e) {
+                console.error("Could not navigate the new tab to the Xanax URL. This is expected if the browser's security policy blocked it.");
+            }
+        }, 1200); // 1.2-second delay
+    } else {
+        // If the window failed to open, it was likely a popup blocker.
+        alert('A popup blocker may have prevented the tab from opening. Please allow popups for this site.');
+    }
+}
+
+// Wait for the page to fully load before attaching the click event
+document.addEventListener('DOMContentLoaded', (event) => {
+    const useXanaxButton = document.getElementById('useXanaxBtn');
+    if (useXanaxButton) {
+        useXanaxButton.addEventListener('click', attemptXanaxUse);
+    }
+});
