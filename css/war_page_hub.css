@@ -3758,3 +3758,25 @@ min-width: 320px;
 #announcements-tab > div:last-child:not(#announcementScoreboardContainer) {
     display: none; /* This targets the old <div> containing the text, ensuring it doesn't hide the new scoreboard container */
 }
+/* Ensure the progress bars in the ANNOUNCEMENT scoreboard have the correct colors */
+#announcementScoreboardContainer .rw-progress-bar-one {
+    background-color: #4CAF50; /* Green */
+}
+
+#announcementScoreboardContainer .rw-progress-bar-two {
+    background-color: #e53935; /* Red */
+}
+
+/* Ensure the faction names within the ANNOUNCEMENT scoreboard get their specific colors */
+#rw-faction-one-name_announcement {
+    color: #4CAF50; /* Green */
+}
+
+#rw-faction-two-name_announcement {
+    color: #e53935; /* Red */
+}
+
+/* Ensure the energy value in the ANNOUNCEMENT scoreboard gets its green color */
+#rw-user-energy_announcement {
+    color: #4CAF50; /* Green */
+}
