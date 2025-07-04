@@ -3081,21 +3081,6 @@ min-width: 320px;
     cursor: pointer;
 }
 
-/* --- TEMPORARY DEBUGGERS --- */
-.config-section {
-    border: 2px solid red !important;
-}
-
-.config-section .member-checkbox-list {
-    border: 2px solid lime !important;
-}
-
-#saveAdminSelectionsBtn,
-#saveWatchlistSelectionsBtn,
-#saveEnergyTrackMembersBtn {
-    outline: 2px solid cyan !important;
-}
-
 .save-config-btn {
     margin-bottom: 80px;
 }
@@ -3407,15 +3392,7 @@ min-width: 320px;
         overflow-y: hidden;
     }
 }
-Great! That's excellent progress. Seeing the raw HTML load confirms the structure is in place.
 
-Now, let's add the CSS to make it look like the layout we discussed, with the "Selected Chat" panel wider and the "Recent Chats" list narrower. This will also add the necessary scrollbars and basic styling.
-
-Please add the following CSS code to your war_page_hub.css file, ideally towards the end or in a dedicated section for "Private Chat" styles.
-
-CSS
-
-/* --- Private Chat Tab Layout (war_page_hub.css) --- */
 
 /* Main container for the entire Private Chat tab content */
 .private-chat-tab-content {
