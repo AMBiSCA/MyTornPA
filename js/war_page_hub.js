@@ -4295,6 +4295,9 @@ if (userFactionId) {
 }
 async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     console.log(">>> ENTERING initializeAndLoadData FUNCTION <<<");
+    // Add these console.logs back in for robust debugging if needed again
+    // console.log("API Key (init):", apiKey);
+    // console.log("Faction ID (init):", factionIdToUseOverride);
 
     const keyToUse = apiKey;
     let finalFactionId = factionIdToUseOverride;
@@ -4315,22 +4318,31 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     globalYourFactionID = finalFactionId; // Set the global variable
 
-    // Get references to scoreboard containers (for error handling/initial state)
-    const activeOpsScoreboardContainer = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
+    // Get references to both scoreboard containers (they will be managed by updateRankedWarDisplay)
+    const activeOpsScoreBox = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
     const announcementScoreboardContainer = document.getElementById('announcementScoreboardContainer');
 
-    // Display initial loading/error states if faction ID is missing
+    // It's good practice to clear or set an initial "Loading..." state if needed,
+    // but updateRankedWarDisplay will immediately fill it with N/A or actual data.
+    if (activeOpsScoreBox) {
+        // activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px;">Loading War Data...</p>'; // Optional: For initial load feedback
+    }
+    if (announcementScoreboardContainer) {
+        // announcementScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading War Data...</p>'; // Optional
+    }
+
+
     if (!finalFactionId) {
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
-        if (activeOpsScoreboardContainer) activeOpsScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
+        // Ensure scoreboards show no data if faction ID is missing
+        if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
         if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
         return;
     }
 
     try {
-        // Ensure 'bars' selection is included in the main fetch
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
         
         console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
         const userFactionResponse = await fetch(userFactionApiUrl);
@@ -4343,39 +4355,36 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
         factionApiFullData = await userFactionResponse.json();
         console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
-        console.log("initializeAndLoadData: factionApiFullData.wars object:", factionApiFullData.wars);
-        console.log("initializeAndLoadData: factionApiFullData.wars.ranked object:", factionApiFullData.wars?.ranked);
-        console.log("initializeAndLoadData: factionApiFullData.bars object:", factionApiFullData.bars);
+        // Add these console.logs back in for robust debugging if needed again
+        // console.log("initializeAndLoadData: Full Data (wars property):", factionApiFullData.wars);
+        // console.log("initializeAndLoadData: Full Data (wars.ranked property):", factionApiFullData.wars?.ranked);
 
         if (factionApiFullData.error) {
+            // console.error("initializeAndLoadData: Torn API returned error:", factionApiFullData.error); // Debug if needed
             throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
         }
         
-        // Call updateUserEnergyDisplay to populate factionApiFullData.bars (if not already done by main fetch)
-        // This is important because the 'bars' selection might not always guarantee 'energy' sub-property on every API key level.
-        await updateUserEnergyDisplay(); // Call it here to ensure factionApiFullData.bars is updated globally
-
-        // Update ranked war scoreboards with the fetched data
-        updateRankedWarDisplay(factionApiFullData.wars, finalFactionId);
-        console.log("initializeAndLoadData: updateRankedWarDisplay called successfully with factionApiFullData.wars.");
-
-        // Call the new specific function for Announcements energy bar
-        updateAnnouncementEnergyDisplay(); // Call here to ensure it updates after relevant data is ready
+        // CRITICAL CHANGE: ALWAYS call updateRankedWarDisplay.
+        // It's now solely responsible for rendering the scoreboard, whether with data or "N/A".
+        updateRankedWarDisplay(factionApiFullData.wars?.ranked, finalFactionId);
+        console.log("initializeAndLoadData: updateRankedWarDisplay called successfully.");
 
         console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
 
         // After successful fetch, populate UI components (other than ranked war scores)
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey);
-
+        populateUiComponents(warData, apiKey); // This also calls fetchAndDisplayEnemyFaction
+                                               // which further calls displayEnemyTargetsTable and populateEnemyMemberCheckboxes
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data.`;
-        if (activeOpsScoreboardContainer) activeOpsScoreboardContainer.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
+        // Ensure all scoreboards show error message on fetch failure
+        if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
         if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
 
+        // Reset other related displays on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
