@@ -115,7 +115,7 @@ const privateChatMessageInput = document.getElementById('privateChatMessageInput
 const sendPrivateMessageBtn = document.getElementById('sendPrivateMessageBtn');
 const tabContentContainer = document.querySelector('.tab-content-container');
 const mainChatScrollWrapper = document.querySelector('#warChatBox > div.chat-messages-scroll-wrapper');
-const storage = firebase.storage();
+
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -793,158 +793,39 @@ function generateDummyIgnores(count) {
     return dummyIgnores;
 }
 
-async function handleImageUpload(fileInput, displayElement, firestoreKey) {
+function handleImageUpload(fileInput, displayElement) {
+    // Get the first file that the user selected
     const file = fileInput.files[0];
 
-    if (!file) {
-        alert("Please select an image file to upload.");
-        return;
-    }
-    if (!file.type.startsWith('image/')) {
-        alert("Invalid file type. Please select a valid image file (png, jpg, gif).");
-        return;
-    }
-    if (!auth.currentUser) {
-        alert("You must be logged in to upload images.");
-        return;
-    }
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
 
-    // Indicate loading
-    displayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Uploading image...</p>';
+        // This function runs after the file has been read
+        reader.onload = function(e) {
+            // Clear any old content (like "Loading game plan...")
+            displayElement.innerHTML = ''; 
+            
+            // Create a new image element
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            
+            // Add some styles to make sure the image fits nicely
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '300px'; // You can adjust this value
+            img.style.borderRadius = '8px';
+            
+            // Add the new image to the display box
+            displayElement.appendChild(img);
+        };
 
-    const uniqueFileName = `${Date.now()}_${file.name}`;
-    const storageRef = storage.ref(`faction_images/${auth.currentUser.uid}/${uniqueFileName}`); // Path in Storage
-    
-    try {
-        // Upload file to Firebase Storage
-        const snapshot = await storageRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-
-        console.log(`Image uploaded successfully: ${downloadURL}`);
-
-        // Save the download URL to Firestore
-        await db.collection('factionWars').doc('currentWar').set({
-            [firestoreKey]: downloadURL // Use bracket notation for dynamic key
-        }, { merge: true });
-
-        console.log(`Image URL saved to Firestore under '${firestoreKey}'.`);
-
-        // Display the image using the URL from storage
-        displayElement.innerHTML = '';
-        const img = document.createElement('img');
-        img.src = downloadURL;
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '300px';
-        img.style.borderRadius = '8px';
-        displayElement.appendChild(img);
-
-        alert('Image uploaded and saved successfully!');
-
-    } catch (error) {
-        console.error("Error during image upload or saving:", error);
-        alert(`Failed to upload or save image: ${error.message}`);
-        // Revert display to old content or a generic error message
-        displayElement.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Failed to load image.</p>';
-        // Optionally, try to reload the last saved image if it exists in warData
-        db.collection('factionWars').doc('currentWar').get().then(doc => {
-            if (doc.exists && doc.data()[firestoreKey]) {
-                const oldImgUrl = doc.data()[firestoreKey];
-                displayElement.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = oldImgUrl;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '300px';
-                img.style.borderRadius = '8px';
-                displayElement.appendChild(img);
-            }
-        });
+        // This reads the image file from the user's computer
+        reader.readAsDataURL(file);
+    } else if (file) {
+        // This runs if the selected file is not an image
+        alert("Please select a valid image file (png, jpg, gif).");
     }
 }
 
-// --- UPDATED populateUiComponents FUNCTION ---
-function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
-    // Basic Faction Info (from global factionApiFullData)
-    if (factionApiFullData) {
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
-        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
-
-        if (factionApiFullData.members) {
-            populateFriendlyMemberCheckboxes(
-                factionApiFullData.members,
-                warData.tab4Admins || [],
-                warData.energyTrackingMembers || []
-            );
-        } else {
-            console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
-            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
-        }
-    } else {
-        console.warn("factionApiFullData not available in populateUiComponents.");
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
-        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
-        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
-    }
-
-    // --- START: Game Plan & Announcements (from Firebase warData) - UPDATED FOR IMAGES ---
-    // Game Plan
-    if (gamePlanDisplay) {
-        if (warData.gamePlanImage) {
-            gamePlanDisplay.innerHTML = ''; // Clear existing text/image
-            const img = document.createElement('img');
-            img.src = warData.gamePlanImage;
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '300px';
-            img.style.borderRadius = '8px';
-            gamePlanDisplay.appendChild(img);
-        } else {
-            gamePlanDisplay.innerHTML = warData.gamePlan || 'No game plan available.';
-        }
-    }
-    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
-
-    // Faction Announcements
-    if (factionAnnouncementsDisplay) {
-        if (warData.announcementImage) {
-            factionAnnouncementsDisplay.innerHTML = ''; // Clear existing text/image
-            const img = document.createElement('img');
-            img.src = warData.announcementImage;
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '300px';
-            img.style.borderRadius = '8px';
-            factionAnnouncementsDisplay.appendChild(img);
-        } else {
-            factionAnnouncementsDisplay.innerHTML = warData.quickAnnouncement || 'No current announcements.';
-        }
-    }
-    // --- END: Game Plan & Announcements ---
-
-    populateWarStatusDisplay(warData); // Uses warData (Firebase)
-    loadWarStatusForEdit(warData);      // Uses warData (Firebase)
-
-    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
-    let determinedEnemyFactionID = null;
-    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
-        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
-        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
-        if (opponentFactionInfo) {
-            determinedEnemyFactionID = opponentFactionInfo.id;
-            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
-        }
-    }
-    // Fallback to manually saved enemy ID if no active ranked war opponent detected
-    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
-
-    // Display enemy targets table using the determined ID
-    if (globalEnemyFactionID) {
-        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
-    } else {
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
-        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-        displayEnemyTargetsTable(null); // Clear the enemy targets table
-    }
-}
 
 function toggleScrollIndicatorVisibility() {
     const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
@@ -4239,6 +4120,62 @@ if (userFactionId) {
         }
     });
     ignoresListEl.innerHTML = ignoresHtml;
+}
+function populateUiComponents(warData, apiKey) { // warData is passed from initializeAndLoadData
+    // Basic Faction Info (from global factionApiFullData)
+    if (factionApiFullData) {
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `${factionApiFullData.basic.name || "Your Faction"}'s War Hub.`;
+        if (factionOneNameEl) factionOneNameEl.textContent = factionApiFullData.basic.name || 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = `Total Members: ${factionApiFullData.members ? (factionApiFullData.members.total || Object.keys(factionApiFullData.members).length) : 'N/A'}`;
+
+        if (factionApiFullData.members) {
+            populateFriendlyMemberCheckboxes(
+                factionApiFullData.members,
+                warData.tab4Admins || [],
+                warData.energyTrackingMembers || []
+            );
+            // The broken line that called the non-existent function has been removed from here.
+        } else {
+            console.warn("factionApiFullData.members not available for friendly member checkboxes or table display.");
+            populateFriendlyMemberCheckboxes({}, []); // Clear checkboxes if members data is missing
+        }
+    } else {
+        console.warn("factionApiFullData not available in populateUiComponents.");
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Data Loading...)";
+        if (factionOneNameEl) factionOneNameEl.textContent = 'Your Faction';
+        if (factionOneMembersEl) factionOneMembersEl.textContent = 'N/A';
+    }
+
+    // Game Plan & Announcements (from Firebase warData)
+    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
+    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
+    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
+
+    populateWarStatusDisplay(warData); // Uses warData (Firebase)
+    loadWarStatusForEdit(warData);     // Uses warData (Firebase)
+
+    // Determine Enemy Faction ID: Prioritize active ranked war opponent, then saved ID
+    let determinedEnemyFactionID = null;
+    if (factionApiFullData && factionApiFullData.wars && factionApiFullData.wars.ranked) {
+        const yourFactionId = factionApiFullData.basic.id; // Your faction ID from fetched data
+        const opponentFactionInfo = factionApiFullData.wars.ranked.factions.find(f => String(f.id) !== String(yourFactionId));
+        if (opponentFactionInfo) {
+            determinedEnemyFactionID = opponentFactionInfo.id;
+            console.log(`Automatically detected ranked war opponent: ${opponentFactionInfo.name} (ID: ${determinedEnemyFactionID})`);
+        }
+    }
+    // Fallback to manually saved enemy ID if no active ranked war opponent detected
+    globalEnemyFactionID = determinedEnemyFactionID || warData.enemyFactionID || null;
+
+    // Display enemy targets table using the determined ID
+    if (globalEnemyFactionID) {
+        fetchAndDisplayEnemyFaction(globalEnemyFactionID, apiKey);
+    } else {
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'No Enemy Set';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+        displayEnemyTargetsTable(null); // Clear the enemy targets table
+    }
 }
 
 async function displayQuickFFTargets(userApiKey, playerId) {
