@@ -4342,8 +4342,8 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     }
 
     try {
-        // CHANGE THIS LINE
-        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars,bars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
+        // THIS LINE IS NOW FIXED
+        const userFactionApiUrl = `https://api.torn.com/v2/faction/${finalFactionId}?selections=basic,members,chain,wars&key=${keyToUse}&comment=MyTornPA_WarHub_Combined`;
         
         console.log("initializeAndLoadData: Attempting to fetch faction data from URL:", userFactionApiUrl);
         const userFactionResponse = await fetch(userFactionApiUrl);
