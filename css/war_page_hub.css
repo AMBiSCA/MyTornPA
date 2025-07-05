@@ -3768,7 +3768,7 @@ min-width: 320px;
     text-align: center;      /* This centers the text inside that space */
     margin: 0; 	/* Removes the old side margins */
 	position: relative;
-    left: -5px; /* <-- Now you can adjust this value */
+    left: -10px; /* <-- Now you can adjust this value */
 
 }
 
