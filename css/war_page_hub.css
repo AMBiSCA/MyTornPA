@@ -3767,9 +3767,11 @@ min-width: 320px;
     flex-grow: 1;          /* This makes the 'vs' container take all available middle space */
     text-align: center;      /* This centers the text inside that space */
     margin: 0; 	/* Removes the old side margins */
-	position: relative;
-    left: -10px; /* <-- Now you can adjust this value */
+}
 
+#announcementScoreboardContainer .rw-vs {
+    position: relative;
+    left: 0px; /* <-- Adjust this value to move the 'vs' */
 }
 
 #rw-faction-one-name,
