@@ -3453,7 +3453,19 @@ function setupEventListeners(apiKey) {
         });
     }
 
-
+    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
+    if (saveWatchlistSelectionsBtn) {
+        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
+            if (!bigHitterWatchlistContainer) return;
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+                alert('Big Hitter Watchlist saved!');
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
+            }
+        });
+    }
 
     const chatDisplay = document.getElementById('chat-display-area');
   // Locate this block in your war_page_hub.js file (around line 990 or where your .add-member-button click listener is)
@@ -3794,20 +3806,6 @@ if (saveEnergyTrackMembersBtn) {
     });
 }
 
-// Big Hitter Watchlist Save Listener
-const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
-if (saveWatchlistSelectionsBtn) { 
-    saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-        if (!bigHitterWatchlistContainer) return;
-        const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-        try {
-            await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-            alert('Big Hitter Watchlist saved!');
-        } catch (error) {
-            console.error("Error saving big hitter watchlist:", error);
-        }
-    });
-}
 function showTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
