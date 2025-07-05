@@ -3735,18 +3735,14 @@ min-width: 320px;
 
 /* Styling for the duplicated scoreboard in the Announcements tab */
 #announcementScoreboardContainer {
-    /* Makes the scoreboard smaller */
     max-width: 550px;
-
-    /* Centers the smaller scoreboard on the page */
     margin-left: auto;
     margin-right: auto;
-
-    /* Adds space above and below */
-    margin-top: 20px;
+    
+    /* This moves it up. Try -10px or -20px if you want it even closer. */
+    margin-top: 0px; 
+    
     margin-bottom: 20px;
-
-    /* Keeps the internal layout working correctly */
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
