@@ -3529,6 +3529,8 @@ if (chatDisplay) {
             handleImageUpload(announcementUploadInput, announcementDisplayDiv, 'announcement');
         });
     }
+}	
+
 if (addFriendBtn) {
     addFriendBtn.addEventListener('click', async () => {
         const friendId = addFriendIdInput.value.trim();
