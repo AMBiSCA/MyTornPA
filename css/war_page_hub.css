@@ -3766,7 +3766,8 @@ min-width: 320px;
 .rw-vs {
     flex-grow: 1;          /* This makes the 'vs' container take all available middle space */
     text-align: center;      /* This centers the text inside that space */
-    margin: 0;               /* Removes the old side margins */
+    margin: 0; 	/* Removes the old side margins */
+	left: -5px;
 }
 
 #rw-faction-one-name,
