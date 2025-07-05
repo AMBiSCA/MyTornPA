@@ -3732,11 +3732,21 @@ min-width: 320px;
 
 /* Styling for the duplicated scoreboard in the Announcements tab */
 #announcementScoreboardContainer {
+    /* Makes the scoreboard smaller */
+    max-width: 550px;
+
+    /* Centers the smaller scoreboard on the page */
+    margin-left: auto;
+    margin-right: auto;
+
+    /* Adds space above and below */
+    margin-top: 20px;
+    margin-bottom: 20px;
+
+    /* Keeps the internal layout working correctly */
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    flex-grow: 1; /* Allows it to fill the vertical space of the box */
-    height: 100%; /* Makes sure it fills its parent container */
 }
 /* Ensure the .ranked-war-container within #announcementScoreboardContainer has the correct styling */
 #announcementScoreboardContainer .ranked-war-container {
