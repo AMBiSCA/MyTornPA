@@ -3758,7 +3758,7 @@ min-width: 320px;
 #announcements-tab > div:last-child:not(#announcementScoreboardContainer) {
     display: none; /* This targets the old <div> containing the text, ensuring it doesn't hide the new scoreboard container */
 }
-/* Ensure the progress bars in the ANNOUNCEMENT scoreboard have the correct colors */
+/* Ensure the progress bars in the ANNOUNCEMENT scboard have the correct colors */
 #announcementScoreboardContainer .rw-progress-bar-one {
     background-color: #4CAF50; /* Green */
 }
