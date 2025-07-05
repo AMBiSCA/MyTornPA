@@ -796,39 +796,57 @@ function generateDummyIgnores(count) {
     return dummyIgnores;
 }
 
-function handleImageUpload(fileInput, displayElement) {
-    // Get the first file that the user selected
+async function handleImageUpload(fileInput, displayElement, type) {
     const file = fileInput.files[0];
+    if (!file || !file.type.startsWith('image/')) {
+        alert("Please select a valid image file.");
+        return;
+    }
 
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
+    // Give feedback to the user that the upload has started
+    displayElement.innerHTML = `<p>Uploading image, please wait...</p>`;
 
-        // This function runs after the file has been read
-        reader.onload = function(e) {
-            // Clear any old content (like "Loading game plan...")
-            displayElement.innerHTML = ''; 
-            
-            // Create a new image element
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            
-            // Add some styles to make sure the image fits nicely
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '300px'; // You can adjust this value
-            img.style.borderRadius = '8px';
-            
-            // Add the new image to the display box
-            displayElement.appendChild(img);
-        };
+    // Create a reference in Firebase Storage
+    const storageRef = firebase.storage().ref();
+    // Use a consistent file name to automatically overwrite the old image
+    const filePath = `war_images/${type}_${globalYourFactionID}.jpg`;
+    const fileRef = storageRef.child(filePath);
 
-        // This reads the image file from the user's computer
-        reader.readAsDataURL(file);
-    } else if (file) {
-        // This runs if the selected file is not an image
-        alert("Please select a valid image file (png, jpg, gif).");
+    try {
+        // 1. Upload the file to Firebase Storage
+        const snapshot = await fileRef.put(file);
+        
+        // 2. Get the public download URL of the uploaded file
+        const downloadURL = await snapshot.ref.getDownloadURL();
+        console.log('File successfully uploaded. URL:', downloadURL);
+
+        // 3. Prepare the data to save in your Firestore database
+        const dataToSave = {};
+        if (type === 'gamePlan') {
+            dataToSave.gamePlanImageUrl = downloadURL; // Save the image URL
+            dataToSave.gamePlan = ""; // Clear out any old text plan
+        } else if (type === 'announcement') {
+            dataToSave.announcementsImageUrl = downloadURL; // Save the image URL
+            dataToSave.quickAnnouncement = ""; // Clear out any old text announcement
+        }
+
+        // 4. Save the new image URL to your 'currentWar' document
+        await db.collection('factionWars').doc('currentWar').set(dataToSave, { merge: true });
+
+        // 5. Display the newly uploaded image on the page
+        displayElement.innerHTML = ''; // Clear "Uploading..." message
+        const img = document.createElement('img');
+        img.src = downloadURL;
+        displayElement.appendChild(img);
+
+        alert('Image uploaded and saved successfully!');
+
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        displayElement.innerHTML = `<p style="color: red;">Error uploading image. See console.</p>`;
+        alert("An error occurred while uploading the image. Please check the console for details.");
     }
 }
-
 
 function toggleScrollIndicatorVisibility() {
     const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
@@ -3493,13 +3511,13 @@ if (chatDisplay) {
         }
     });
 }
-    // --- Event Listeners for Image Upload Buttons ---
+// --- Event Listeners for Image Upload Buttons ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
 
     if (gamePlanUploadInput && gamePlanDisplayDiv) {
         gamePlanUploadInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv);
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, 'gamePlan');
         });
     }
 
@@ -3508,11 +3526,9 @@ if (chatDisplay) {
     
     if (announcementUploadInput && announcementDisplayDiv) {
         announcementUploadInput.addEventListener('change', () => {
-            handleImageUpload(announcementUploadInput, announcementDisplayDiv);
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv, 'announcement');
         });
     }
-}
-
 if (addFriendBtn) {
     addFriendBtn.addEventListener('click', async () => {
         const friendId = addFriendIdInput.value.trim();
@@ -3604,9 +3620,30 @@ function populateUiComponents(warData, apiKey) { // warData is passed from initi
     }
 
     // Game Plan & Announcements (from Firebase warData)
-    if (gamePlanDisplay) gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
-    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
-    if (gamePlanEditArea) gamePlanEditArea.value = warData.gamePlan || '';
+   // Game Plan & Announcements (from Firebase warData)
+if (gamePlanDisplay) {
+    // Check if a saved image URL exists
+    if (warData.gamePlanImageUrl) {
+        gamePlanDisplay.innerHTML = `<img src="${warData.gamePlanImageUrl}" alt="Game Plan">`;
+    } else {
+        // Otherwise, show the text content
+        gamePlanDisplay.textContent = warData.gamePlan || 'No game plan available.';
+    }
+}
+
+if (factionAnnouncementsDisplay) {
+    // Check if a saved image URL exists
+    if (warData.announcementsImageUrl) {
+        factionAnnouncementsDisplay.innerHTML = `<img src="${warData.announcementsImageUrl}" alt="Faction Announcement">`;
+    } else {
+        // Otherwise, show the text content
+        factionAnnouncementsDisplay.textContent = warData.quickAnnouncement || 'No current announcements.';
+    }
+}
+
+if (gamePlanEditArea) {
+    gamePlanEditArea.value = warData.gamePlan || '';
+}
 
     populateWarStatusDisplay(warData); // Uses warData (Firebase)
     loadWarStatusForEdit(warData);      // Uses warData (Firebase)
