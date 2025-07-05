@@ -3732,18 +3732,12 @@ min-width: 320px;
 
 /* Styling for the duplicated scoreboard in the Announcements tab */
 #announcementScoreboardContainer {
-    margin-top: 20px; /* Adjust spacing from the boxes above */
-    margin-bottom: 20px; /* Spacing below the scoreboard */
-    max-width: 900px; /* Match width of the original if desired */
-    margin-left: auto;
-    margin-right: auto; /* Center it */
-    display: flex; /* Make it a flex container so its internal layout works */
-    flex-direction: column; /* Stack its internal elements vertically */
-    box-sizing: border-box; /* Include padding and border in its dimensions */
-    /* All the specific background, border, and padding are now part of .ranked-war-container */
-    /* Remove any styling here that conflicts with .ranked-war-container if it's applying to this outer div */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    flex-grow: 1; /* Allows it to fill the vertical space of the box */
+    height: 100%; /* Makes sure it fills its parent container */
 }
-
 /* Ensure the .ranked-war-container within #announcementScoreboardContainer has the correct styling */
 #announcementScoreboardContainer .ranked-war-container {
     background-color: #2a2a2a;
