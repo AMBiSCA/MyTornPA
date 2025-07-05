@@ -3759,19 +3759,29 @@ min-width: 320px;
 }
 
 .rw-header {
-    justify-content: space-between; /* This is the main change */
-}
-
-#rw-faction-one-name,
-#rw-faction-two-name {
-    flex: none; /* Removes the rule that was breaking the alignment */
-    text-align: center; /* Ensures text is centered within its own space */
+    display: flex;
+    align-items: center;
 }
 
 .rw-vs {
     flex-grow: 1;          /* This makes the 'vs' container take all available middle space */
     text-align: center;      /* This centers the text inside that space */
     margin: 0;               /* Removes the old side margins */
+}
+
+#rw-faction-one-name,
+#rw-faction-two-name {
+    flex: 1;                 /* Give equal space to the names */
+}
+
+#rw-faction-one-name {
+    text-align: right;      /* Aligns the first name to the right (towards the center) */
+    padding-right: 15px;    /* Adds some space between the name and 'vs' */
+}
+
+#rw-faction-two-name {
+    text-align: left;       /* Aligns the second name to the left (towards the center) */
+    padding-left: 15px;     /* Adds some space between 'vs' and the name */
 }
 /* Hide the old static scoreboard text on the Announcements tab */
 #announcements-tab > div:last-child:not(#announcementScoreboardContainer) {
