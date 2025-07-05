@@ -3735,16 +3735,9 @@ min-width: 320px;
 
 /* Styling for the duplicated scoreboard in the Announcements tab */
 #announcementScoreboardContainer {
-    max-width: 550px;
-    margin-left: auto;
-    margin-right: auto;
-    
-    /* This moves it up. Try -10px or -20px if you want it even closer. */
-    margin-top: 0px; 
-    
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
+    width: 100%;             /* Make it fill the width of the box */
+    margin-top: 20px;          /* Add some space above it */
+    grid-column: 1 / -1;     /* Make it span the full width of the status grid */
     box-sizing: border-box;
 }
 /* Ensure the .ranked-war-container within #announcementScoreboardContainer has the correct styling */
