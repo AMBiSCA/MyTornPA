@@ -3771,7 +3771,7 @@ min-width: 320px;
 
 #announcementScoreboardContainer .rw-vs {
     position: relative;
-    left: 0px; /* <-- Adjust this value to move the 'vs' */
+    left: -10px; /* <-- Adjust this value to move the 'vs' */
 }
 
 #rw-faction-one-name,
