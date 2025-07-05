@@ -3758,6 +3758,15 @@ min-width: 320px;
     box-sizing: border-box;
 }
 
+.rw-header {
+    justify-content: space-between; /* This is the main change */
+}
+
+#rw-faction-one-name,
+#rw-faction-two-name {
+    flex: none; /* Removes the rule that was breaking the alignment */
+    text-align: center; /* Ensures text is centered within its own space */
+}
 /* Hide the old static scoreboard text on the Announcements tab */
 #announcements-tab > div:last-child:not(#announcementScoreboardContainer) {
     display: none; /* This targets the old <div> containing the text, ensuring it doesn't hide the new scoreboard container */
