@@ -2017,9 +2017,9 @@ async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
             displayEnemyTargetsTable(enemyData.members);
             populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
             
-            // --- CRITICAL: NEW CALL TO autoUnclaimHitTargets() ---
+            // --- RE-ADDED: Call autoUnclaimHitTargets() here ---
             autoUnclaimHitTargets(); 
-            // --- END CRITICAL ---
+            // --- END RE-ADDED ---
 
         } else {
             console.warn("Enemy faction members data not found.");
