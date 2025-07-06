@@ -4616,6 +4616,101 @@ document.addEventListener('DOMContentLoaded', () => {
         if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
             factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
         }
+		
+		// --- WAR AVAILABILITY TAB LOGIC ---
+const availabilityFormsContainer = document.getElementById('availability-forms-container');
+
+if (availabilityFormsContainer) {
+    // Use event delegation to listen for changes on any availability dropdown
+    availabilityFormsContainer.addEventListener('change', (event) => {
+        if (event.target.matches('.availability-status')) {
+            const dropdown = event.target;
+            const dayForm = dropdown.closest('.availability-day-form'); // Find the parent form for the day
+            
+            const timeDetails = dayForm.querySelector('.time-details');
+            const reasonDetails = dayForm.querySelector('.reason-details');
+
+            const selectedValue = dropdown.value;
+
+            // Hide both details sections by default
+            timeDetails.style.display = 'none';
+            reasonDetails.style.display = 'none';
+
+            if (selectedValue === 'yes' || selectedValue === 'partial') {
+                // Show time input for 'YES' or 'Partially'
+                timeDetails.style.display = 'block';
+            } else if (selectedValue === 'no') {
+                // Show reason input for 'NO'
+                reasonDetails.style.display = 'block';
+            }
+        }
+    });
+}
+
+availabilityFormsContainer.addEventListener('click', async (event) => {
+        // Check if an "Update Day" button was clicked
+        if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
+            const button = event.target;
+            const dayForm = button.closest('.availability-day-form');
+            const dayNumber = dayForm.dataset.day;
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to update your status.");
+                return;
+            }
+
+            // --- Read all the data from the form ---
+            const status = dayForm.querySelector('.availability-status').value;
+            const timeRange = dayForm.querySelector('.time-details input').value.trim();
+            const reason = dayForm.querySelector('.reason-details input').value.trim();
+            const role = dayForm.querySelector('select[id^="role-day-"]').value;
+            const isAvailableForStart = dayForm.querySelector('input[type="checkbox"]').checked;
+
+            // --- Prepare the data object to save ---
+            const availabilityData = {
+                status: status,
+                timeRange: timeRange,
+                reason: reason,
+                role: role,
+                isAvailableForStart: isAvailableForStart,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // --- Save to Firebase ---
+            try {
+                button.textContent = "Saving...";
+                button.disabled = true;
+
+                // We will save each day's data as a separate field (e.g., day_1, day_2)
+                // in a document named after the user's Torn ID.
+                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
+                    throw new Error("Your Torn Profile ID is not linked to your account.");
+                }
+                const tornUserId = userProfileDoc.data().tornProfileId;
+                
+                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+
+                // Using .set with { merge: true } allows us to update one day's data
+                // without overwriting the data for other days.
+                await availabilityDocRef.set({
+                    [`day_${dayNumber}`]: availabilityData,
+                    // Also save the player's name for easier lookup later
+                    playerName: currentTornUserName 
+                }, { merge: true });
+
+                alert(`Availability for Day ${dayNumber} saved successfully!`);
+
+            } catch (error) {
+                console.error("Error saving availability:", error);
+                alert("Error: " + error.message);
+            } finally {
+                button.textContent = `Update Day ${dayNumber}`;
+                button.disabled = false;
+            }
+        }
+    });
                 
 console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID); // ADD THIS LINE
                 // Ensure global DOM references are assigned after HTML injection
