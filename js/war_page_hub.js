@@ -915,6 +915,7 @@ async function sendClaimChatMessage(claimerName, targetName, chainNumber, custom
 }
 
 // UPDATED: Automatically unclaims targets based on their status, but only if claimed by current user.
+// UPDATED: Automatically unclaims targets based on their status, now for any claimant.
 function autoUnclaimHitTargets() {
     console.log("Running autoUnclaimHitTargets check...");
     if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
@@ -930,20 +931,16 @@ function autoUnclaimHitTargets() {
         return;
     }
 
-    const currentAuthUid = auth.currentUser.uid;
+    const currentAuthUid = auth.currentUser.uid; // This variable is no longer used in the check below.
     const membersToCheck = Object.values(enemyDataGlobal.members);
 
     for (const memberId in globalActiveClaims) {
         if (globalActiveClaims.hasOwnProperty(memberId)) {
             const activeClaim = globalActiveClaims[memberId];
 
-            // --- CRITICAL FIX: Only attempt to unclaim if *this* user made the claim ---
-            if (activeClaim.claimedByUserId !== currentAuthUid) {
-                console.log(`Skipping auto-unclaim for ${memberId}: Claimed by another user (${activeClaim.claimedByUserName}).`);
-                continue; // Skip to the next claimed target
-            }
-            // --- END CRITICAL FIX ---
-
+            // --- CRITICAL FIX: REMOVED the 'if (activeClaim.claimedByUserId !== currentAuthUid)' check ---
+            // Because your Firebase rules now allow any authenticated user to delete claims.
+            
             const claimedMemberData = membersToCheck.find(m => String(m.id) === String(memberId));
 
             if (claimedMemberData) {
@@ -951,7 +948,7 @@ function autoUnclaimHitTargets() {
                 const currentServerTime = Math.floor(Date.now() / 1000); 
                 const statusUntil = claimedMemberData.status?.until;
 
-                // Condition for auto-unclaim: Target is in Hospital, Jail, or actively Traveling
+                // Condition for auto-unclaim: Target is in Hospital, Jail, or actively Traveling with active timer
                 const shouldUnclaim = 
                     currentStatusState === 'Hospital' ||
                     currentStatusState === 'Jail' ||
@@ -964,7 +961,7 @@ function autoUnclaimHitTargets() {
                     console.log(`Claimed target ${claimedMemberData.name} (${memberId}) is OK or Traveling is expired. No auto-unclaim needed.`);
                 }
             } else {
-                console.warn(`Claimed target ${memberId} not found in current enemy data (might be removed or not fetched). Auto-unclaiming this user's claim.`);
+                console.warn(`Claimed target ${memberId} not found in current enemy data (might be removed or not fetched). Auto-unclaiming.`);
                 unclaimTarget(memberId); // Unclaim if the target is no longer in the enemy list
             }
         }
