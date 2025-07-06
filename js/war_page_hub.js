@@ -2123,22 +2123,22 @@ async function displayWarRoster() {
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
     try {
-        // 1. Get all saved availability data from the database
+        // 1. Get all saved availability data
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const availabilityData = {};
         availabilitySnapshot.forEach(doc => {
-            availabilityData[doc.id] = doc.data(); // Keyed by Torn User ID
+            availabilityData[doc.id] = doc.data();
         });
 
-        // 2. Get the full list of faction members from our global variable
+        // 2. Get the full list of faction members
         if (!factionApiFullData || !factionApiFullData.members) {
-            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
+            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
+        rosterDisplay.innerHTML = ''; // Clear loading message
 
-        // 3. Build the roster HTML
-        let rosterHtml = '';
+        // 3. Build the roster HTML for each member
         for (const member of allMembers) {
             const memberId = member.id;
             const memberName = member.name;
@@ -2147,7 +2147,6 @@ async function displayWarRoster() {
             let statusClass = 'status-grey';
             let statusText = '(No response yet)';
 
-            // If the member has saved availability for Day 1
             if (memberAvailability && memberAvailability.day_1) {
                 const day1Status = memberAvailability.day_1;
                 switch (day1Status.status) {
@@ -2165,16 +2164,38 @@ async function displayWarRoster() {
                         break;
                 }
             }
-            
-            rosterHtml += `
-                <div class="roster-player ${statusClass}">
-                    <span class="player-name">${memberName}</span>
-                    <span class="player-status">${statusText}</span>
+
+            // --- NEW: HTML now includes an <img> tag for the profile picture ---
+            const playerHtml = `
+                <div class="roster-player ${statusClass}" data-member-id="${memberId}">
+                    <img src="../../images/default_profile_icon.png" class="roster-player-pic">
+                    <div class="roster-player-info">
+                        <span class="player-name">${memberName}</span>
+                        <span class="player-status">${statusText}</span>
+                    </div>
                 </div>
             `;
+            rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        rosterDisplay.innerHTML = rosterHtml;
+        // --- NEW: Loop again to fetch profile pictures asynchronously ---
+        const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
+        for (const item of rosterItems) {
+            const memberId = item.dataset.memberId;
+            try {
+                const userDoc = await db.collection('users').doc(String(memberId)).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const profileImageUrl = userData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = item.querySelector('.roster-player-pic');
+                    if (imgElement) {
+                        imgElement.src = profileImageUrl;
+                    }
+                }
+            } catch (err) {
+                console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
+            }
+        }
 
     } catch (error) {
         console.error("Error displaying war roster:", error);
