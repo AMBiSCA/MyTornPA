@@ -878,28 +878,39 @@ async function handleImageUpload(fileInput, displayElement, type) {
     }
 }
 
-async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
+async function sendClaimChatMessage(claimerName, targetName, chainNumber, customMessage = null) {
     if (!chatMessagesCollection || !auth.currentUser) {
-        console.warn("Cannot send claim message: Firebase collection or user not available.");
+        console.warn("Cannot send claim/unclaim message: Firebase collection or user not available.");
         return;
     }
 
-    const messageText = `${claimerName} has claimed ${targetName} as hit number ${chainNumber}!`;
+    let messageText;
+    if (customMessage) {
+        messageText = customMessage; // Use the provided custom message
+    } else {
+        // Default message for a 'claim' action
+        messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
+    }
+    
     const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
 
     const messageObj = {
         senderId: auth.currentUser.uid,
-        sender: "System/MyTornPA", // Or currentTornUserName if you want it to appear as the user who clicked
+        sender: "Chain Alert:", // --- CHANGED SENDER PREFIX HERE ---
         text: filteredMessage,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        type: 'claim_notification' // Add a type to distinguish these messages if needed for future styling
+        type: 'claim_notification'
     };
 
     try {
         await chatMessagesCollection.add(messageObj);
-        console.log("Claim message sent to Faction Chat:", messageObj);
+        console.log("Claim/Unclaim message sent to Firebase:", messageObj);
+
+        // Display locally immediately without waiting for Firebase listener
+        displayChatMessage(messageObj); 
+
     } catch (error) {
-        console.error("Error sending claim message to Firebase:", error);
+        console.error("Error sending claim/unclaim message to Firebase:", error);
     }
 }
 function toggleScrollIndicatorVisibility() {
@@ -1912,13 +1923,10 @@ async function unclaimTarget(memberId) {
         await db.collection('warClaims').doc(memberId).delete();
         console.log(`Claim for ${memberId} deleted from Firebase.`);
 
-        // --- NEW: Send an "unclaim" message to faction chat ---
-        const unclaimMessageText = `📢 ${currentTornUserName} has unclaimed ${memberName}.`;
+        // --- UPDATED: Send an "unclaim" message with new wording ---
+        const unclaimMessageText = `📢 ${currentTornUserName} has unclaimed his hit against ${memberName}.`;
         await sendClaimChatMessage(currentTornUserName, memberName, null, unclaimMessageText); // Pass null for chainNumber, custom message
-        // Re-using sendClaimChatMessage, but sending a specific message text for unclaim.
-        // I'll adjust sendClaimChatMessage slightly in the next step to properly handle custom messages.
-        // For now, this will send the unclaim message.
-        // --- END NEW ---
+        // --- END UPDATED ---
 
     } catch (error) {
         console.error("Error deleting claim from Firebase:", error);
