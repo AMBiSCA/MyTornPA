@@ -2123,16 +2123,16 @@ async function displayWarRoster() {
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
     try {
-        // 1. Get all saved availability data
+        // 1. Get all saved availability data from the database
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const availabilityData = {};
         availabilitySnapshot.forEach(doc => {
-            availabilityData[doc.id] = doc.data();
+            availabilityData[doc.id] = doc.data(); // Keyed by Torn User ID
         });
 
-        // 2. Get the full list of faction members
+        // 2. Get the full list of faction members from our global variable
         if (!factionApiFullData || !factionApiFullData.members) {
-            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available.</p>';
+            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
@@ -2147,6 +2147,7 @@ async function displayWarRoster() {
             let statusClass = 'status-grey';
             let statusText = '(No response yet)';
 
+            // If the member has saved availability for Day 1
             if (memberAvailability && memberAvailability.day_1) {
                 const day1Status = memberAvailability.day_1;
                 switch (day1Status.status) {
@@ -2163,9 +2164,21 @@ async function displayWarRoster() {
                         statusText = `No (${day1Status.reason || 'Unavailable'})`;
                         break;
                 }
-            }
 
-            // --- NEW: HTML now includes an <img> tag for the profile picture ---
+                // --- THIS IS THE NEW PART ---
+                // Add Role and "At Start" info to the status text
+                if (day1Status.role && day1Status.role !== 'none') {
+                    // This makes the role name look nice, e.g., "all-round-attacker" becomes "All Round Attacker"
+                    const formattedRole = day1Status.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    statusText += ` | Role: ${formattedRole}`;
+                }
+                if (day1Status.isAvailableForStart) {
+                    statusText += ' | At Start';
+                }
+                // --- END OF NEW PART ---
+
+            }
+            
             const playerHtml = `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
                     <img src="../../images/default_profile_icon.png" class="roster-player-pic">
@@ -2178,7 +2191,7 @@ async function displayWarRoster() {
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // --- NEW: Loop again to fetch profile pictures asynchronously ---
+        // 4. Loop again to fetch profile pictures asynchronously
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
         for (const item of rosterItems) {
             const memberId = item.dataset.memberId;
