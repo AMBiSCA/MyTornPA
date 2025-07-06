@@ -4004,3 +4004,6 @@ min-width: 320px;
     font-style: normal; /* Removes italics for a cleaner look */
     opacity: 0.8;
 }
+#announcements-tab > .ops-ranked-war-score {
+    display: none !important;
+}
