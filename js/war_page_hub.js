@@ -2123,19 +2123,22 @@ async function displayWarRoster() {
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
     try {
+        // 1. Get all saved availability data
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const availabilityData = {};
         availabilitySnapshot.forEach(doc => {
             availabilityData[doc.id] = doc.data();
         });
 
+        // 2. Get the full list of faction members
         if (!factionApiFullData || !factionApiFullData.members) {
-            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
+            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
-        rosterDisplay.innerHTML = '';
+        rosterDisplay.innerHTML = ''; // Clear loading message
 
+        // 3. Build the roster HTML for each member
         for (const member of allMembers) {
             const memberId = member.id;
             const memberName = member.name;
@@ -2160,52 +2163,7 @@ async function displayWarRoster() {
                         statusText = `No (${day1Status.reason || 'Unavailable'})`;
                         break;
                 }
-                
-                // --- NEW: Add Role and "At Start" info to the status text ---
-                if (day1Status.role && day1Status.role !== 'none') {
-                    statusText += ` | Role: ${day1Status.role}`;
-                }
-                if (day1Status.isAvailableForStart) {
-                    statusText += ' | At Start';
-                }
-                // --- END NEW ---
             }
-            
-            const playerHtml = `
-                <div class="roster-player ${statusClass}" data-member-id="${memberId}">
-                    <img src="../../images/default_profile_icon.png" class="roster-player-pic">
-                    <div class="roster-player-info">
-                        <span class="player-name">${memberName}</span>
-                        <span class="player-status">${statusText}</span>
-                    </div>
-                </div>
-            `;
-            rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
-        }
-
-        const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
-        for (const item of rosterItems) {
-            const memberId = item.dataset.memberId;
-            try {
-                const userDoc = await db.collection('users').doc(String(memberId)).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    const profileImageUrl = userData.profile_image || '../../images/default_profile_icon.png';
-                    const imgElement = item.querySelector('.roster-player-pic');
-                    if (imgElement) {
-                        imgElement.src = profileImageUrl;
-                    }
-                }
-            } catch (err) {
-                console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
-            }
-        }
-
-    } catch (error) {
-        console.error("Error displaying war roster:", error);
-        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
-    }
-}
 
             // --- NEW: HTML now includes an <img> tag for the profile picture ---
             const playerHtml = `
