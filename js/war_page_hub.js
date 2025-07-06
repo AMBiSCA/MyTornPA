@@ -2209,19 +2209,17 @@ async function claimTarget(memberId, memberName) {
 }
 
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
-    // Find all the new HTML elements by their ID
     const friendlyHitsEl = document.getElementById('friendly-chain-hits');
     const friendlyTimeEl = document.getElementById('friendly-chain-time');
     const enemyHitsEl = document.getElementById('enemy-chain-hits');
     const enemyTimeEl = document.getElementById('enemy-chain-time');
 
-    // If the elements don't exist on the page, stop.
     if (!friendlyHitsEl || !friendlyTimeEl || !enemyHitsEl || !enemyTimeEl) {
         return;
     }
 
     if (!apiKey || !yourFactionId) {
-        console.warn("API key or your Faction ID is missing. Cannot fetch chain data.");
+        console.warn("API key or your Faction ID is missing. Cannot fetch chain data for dual timers.");
         friendlyHitsEl.textContent = 'N/A';
         friendlyTimeEl.textContent = 'N/A';
         enemyHitsEl.textContent = 'N/A';
@@ -2235,7 +2233,6 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
     }
 
     try {
-        // Combine the API call for both factions' chain data
         const combinedChainUrl = `https://api.torn.com/faction/${factionIdsToFetch.join(',')}/?selections=chain&key=${apiKey}&comment=MyTornPA_DualChain`;
         const response = await fetch(combinedChainUrl);
         const data = await response.json();
@@ -2247,23 +2244,29 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
 
         // Process your faction's chain data
         const yourChainData = data[yourFactionId]?.chain;
-        if (yourChainData && yourChainData.current > 0) {
-            friendlyHitsEl.textContent = yourChainData.current;
-            // Set global variables for the live countdown timer
-            currentLiveChainSeconds = yourChainData.timeout || 0;
-            lastChainApiFetchTime = Date.now();
+        
+        // --- CRITICAL FIX: Update currentLiveChainSeconds and lastChainApiFetchTime even if current chain is 0 ---
+        if (yourChainData) {
+            friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
+            friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0); // Display time based on API timeout
+
+            currentLiveChainSeconds = yourChainData.timeout || 0; // Always update this
+            lastChainApiFetchTime = Date.now(); // Always update this
         } else {
             friendlyHitsEl.textContent = '0';
             friendlyTimeEl.textContent = 'Over';
-            currentLiveChainSeconds = 0; // Reset timer if no chain
+            currentLiveChainSeconds = 0; // Only reset if no chainData object at all
+            lastChainApiFetchTime = 0;
         }
+        // --- END CRITICAL FIX ---
+
 
         // Process enemy faction's chain data if an enemy ID was provided
         if (enemyFactionId) {
             const enemyChainData = data[enemyFactionId]?.chain;
-            if (enemyChainData && enemyChainData.current > 0) {
-                enemyHitsEl.textContent = enemyChainData.current;
-                enemyTimeEl.textContent = formatTime(enemyChainData.timeout); // Direct display, no smooth countdown
+            if (enemyChainData) {
+                enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
+                enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
