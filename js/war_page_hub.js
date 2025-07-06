@@ -848,6 +848,30 @@ async function handleImageUpload(fileInput, displayElement, type) {
     }
 }
 
+async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
+    if (!chatMessagesCollection || !auth.currentUser) {
+        console.warn("Cannot send claim message: Firebase collection or user not available.");
+        return;
+    }
+
+    const messageText = `${claimerName} has claimed ${targetName} as hit number ${chainNumber}!`;
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: "System/MyTornPA", // Or currentTornUserName if you want it to appear as the user who clicked
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'claim_notification' // Add a type to distinguish these messages if needed for future styling
+    };
+
+    try {
+        await chatMessagesCollection.add(messageObj);
+        console.log("Claim message sent to Faction Chat:", messageObj);
+    } catch (error) {
+        console.error("Error sending claim message to Firebase:", error);
+    }
+}
 function toggleScrollIndicatorVisibility() {
     const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
     const scrollIndicator = document.getElementById('scrollUpIndicator');
@@ -2008,22 +2032,48 @@ async function fetchAndDisplayChainScore(apiKey) {
   }
 
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
-function claimTarget(memberId) {
+async function claimTarget(memberId, memberName) {
+    // Ensure the current user is known
+    if (!currentTornUserName) {
+        alert("Cannot claim: Your Torn username is not loaded. Please ensure you are logged in and your API key is linked.");
+        return;
+    }
+
     // Add the member's ID to our "memory"
-    claimedTargets.add(memberId); 
-    
+    claimedTargets.add(memberId);
+
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
 
+    // UI Update: Show who claimed it and change button
     if (claimBtn) {
-        claimBtn.textContent = 'Unclaim';
+        claimBtn.innerHTML = `${currentTornUserName}<br>Unclaim`; // Show current user and 'Unclaim'
         claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
-        claimBtn.classList.add('claimed'); // Add a class for styling
+        claimBtn.classList.add('claimed'); // Add a class for styling (e.g., green background)
+        claimBtn.classList.add('claimed-by-me'); // Indicate it's claimed by current user
     }
     if (targetRow) {
-        targetRow.classList.add('claimed-row'); // Add a class for styling
+        targetRow.classList.add('claimed-row'); // Add a class for row styling
     }
+
+    // Determine the next chain number based on globalChainCurrentNumber
+    // Assuming globalChainCurrentNumber is a string like "123" or "N/A"
+    let nextChainHitNumber = 0;
+    if (globalChainCurrentNumber && globalChainCurrentNumber !== 'N/A') {
+        nextChainHitNumber = parseInt(globalChainCurrentNumber, 10) + 1;
+        // Optionally update globalChainCurrentNumber immediately if you want visual feedback on the main chain counter
+        // globalChainCurrentNumber = nextChainHitNumber.toString();
+        // if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+    } else {
+        nextChainHitNumber = 1; // Start at 1 if no chain is active or number is N/A
+    }
+
+    // Send message to faction chat
+    await sendClaimChatMessage(currentTornUserName, memberName, nextChainHitNumber);
+
+    console.log(`Target ${memberName} (ID: ${memberId}) claimed by ${currentTornUserName}. Next hit will be #${nextChainHitNumber}`);
 }
+
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
     // Find all the new HTML elements by their ID
     const friendlyHitsEl = document.getElementById('friendly-chain-hits');
@@ -2099,19 +2149,21 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
 }
 function unclaimTarget(memberId) {
     // Remove the member's ID from our "memory"
-    claimedTargets.delete(memberId); 
-    
+    claimedTargets.delete(memberId);
+
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     const targetRow = document.getElementById(`target-row-${memberId}`);
 
     if (claimBtn) {
-        claimBtn.textContent = 'Claim';
-        claimBtn.setAttribute('onclick', `claimTarget('${memberId}')`);
-        claimBtn.classList.remove('claimed'); // Remove the styling class
+        claimBtn.innerHTML = 'Claim'; // Revert button text
+        claimBtn.setAttribute('onclick', `claimTarget('${memberId}', '${targetRow.dataset.memberName}')`); // Revert onclick handler
+        claimBtn.classList.remove('claimed'); // Remove styling class
+        claimBtn.classList.remove('claimed-by-me'); // Remove my-claimed class
     }
     if (targetRow) {
-        targetRow.classList.remove('claimed-row'); // Remove the styling class
+        targetRow.classList.remove('claimed-row'); // Remove row styling class
     }
+    console.log(`Target ID: ${memberId} unclaimed.`);
 }
 
 function generateDayFormHTML(dayNumber) {
@@ -2287,7 +2339,8 @@ function displayEnemyTargetsTable(members) {
                              <tr>
                                  <th class="col-name">Name (ID)</th>
                                  <th class="col-level">Level</th>
-                                 <th class="col-last-action">Last Action</th> <th class="col-status">Status</th>
+                                 <th class="col-last-action">Last Action</th>
+                                 <th class="col-status">Status</th>
                                  <th class="col-claim">Claim</th>
                                  <th class="col-attack">Attack</th>
                              </tr>
@@ -2297,8 +2350,14 @@ function displayEnemyTargetsTable(members) {
     const membersArray = Object.values(members);
     const nowInSeconds = Math.floor(Date.now() / 1000); // Get current time once for efficiency
 
+    // Keep track of claimed targets by other users, if you have a Firebase collection for them
+    // For now, `claimedTargets` only tracks current user's claims.
+    // If you plan to store other users' claims in Firebase, you'd fetch that here
+    // and use it to set the initial state. For this step, we only care about YOUR claims.
+
     for (const member of membersArray) {
         const memberId = member.id;
+        const memberName = member.name; // Get member name for the chat message
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
@@ -2319,7 +2378,7 @@ function displayEnemyTargetsTable(members) {
             if (timeLeft <= 0) {
                 statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
             } else {
-                statusText = `${member.status.description} (${formatTime(timeLeft)})`; // <-- MODIFIED LINE
+                statusText = `${member.status.description} (${formatTime(timeLeft)})`;
             }
         } else if (member.status.state !== 'Okay') {
             statusClass = 'status-other';
@@ -2327,13 +2386,27 @@ function displayEnemyTargetsTable(members) {
 
         // Determine Last Action text
         const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
-        const lastActionText = formatRelativeTime(lastActionTimestamp); // Use the new function here
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
 
-        tableHtml += `<tr id="target-row-${memberId}">
+        // --- CLAIM BUTTON LOGIC ---
+        let claimButtonHtml;
+        let rowClass = '';
+        if (claimedTargets.has(memberId)) {
+            // This target is claimed by the current user
+            claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed claimed-by-me" onclick="unclaimTarget('${memberId}')">${currentTornUserName}<br>Unclaim</button>`;
+            rowClass = 'claimed-row';
+        } else {
+            // Default "Claim" button
+            claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}', '${memberName}')">Claim</button>`;
+        }
+        // --- END CLAIM BUTTON LOGIC ---
+
+        tableHtml += `<tr id="target-row-${memberId}" class="${rowClass}" data-member-name="${memberName}">
                                <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
                                <td class="col-level">${member.level}</td>
-                               <td class="col-last-action">${lastActionText}</td> <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
-                               <td class="col-claim"><button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}')">Claim</button></td>
+                               <td class="col-last-action">${lastActionText}</td>
+                               <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                               <td class="col-claim">${claimButtonHtml}</td>
                                <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
                            </tr>`;
     }
@@ -2341,7 +2414,6 @@ function displayEnemyTargetsTable(members) {
 
     enemyTargetsContainer.innerHTML = tableHtml;
 }
-
 function rgbToHex(r, g, b) {
     return (
         "#" +
