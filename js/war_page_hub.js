@@ -2123,22 +2123,19 @@ async function displayWarRoster() {
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
     try {
-        // 1. Get all saved availability data
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const availabilityData = {};
         availabilitySnapshot.forEach(doc => {
             availabilityData[doc.id] = doc.data();
         });
 
-        // 2. Get the full list of faction members
         if (!factionApiFullData || !factionApiFullData.members) {
-            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available.</p>';
+            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
-        rosterDisplay.innerHTML = ''; // Clear loading message
+        rosterDisplay.innerHTML = '';
 
-        // 3. Build the roster HTML for each member
         for (const member of allMembers) {
             const memberId = member.id;
             const memberName = member.name;
@@ -2163,7 +2160,52 @@ async function displayWarRoster() {
                         statusText = `No (${day1Status.reason || 'Unavailable'})`;
                         break;
                 }
+                
+                // --- NEW: Add Role and "At Start" info to the status text ---
+                if (day1Status.role && day1Status.role !== 'none') {
+                    statusText += ` | Role: ${day1Status.role}`;
+                }
+                if (day1Status.isAvailableForStart) {
+                    statusText += ' | At Start';
+                }
+                // --- END NEW ---
             }
+            
+            const playerHtml = `
+                <div class="roster-player ${statusClass}" data-member-id="${memberId}">
+                    <img src="../../images/default_profile_icon.png" class="roster-player-pic">
+                    <div class="roster-player-info">
+                        <span class="player-name">${memberName}</span>
+                        <span class="player-status">${statusText}</span>
+                    </div>
+                </div>
+            `;
+            rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
+        }
+
+        const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
+        for (const item of rosterItems) {
+            const memberId = item.dataset.memberId;
+            try {
+                const userDoc = await db.collection('users').doc(String(memberId)).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const profileImageUrl = userData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = item.querySelector('.roster-player-pic');
+                    if (imgElement) {
+                        imgElement.src = profileImageUrl;
+                    }
+                }
+            } catch (err) {
+                console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
+            }
+        }
+
+    } catch (error) {
+        console.error("Error displaying war roster:", error);
+        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
+    }
+}
 
             // --- NEW: HTML now includes an <img> tag for the profile picture ---
             const playerHtml = `
@@ -4734,71 +4776,75 @@ if (availabilityFormsContainer) {
     });
 }
 
+// Listen for clicks on the update buttons
 availabilityFormsContainer.addEventListener('click', async (event) => {
-        // Check if an "Update Day" button was clicked
-        if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
-            const button = event.target;
-            const dayForm = button.closest('.availability-day-form');
-            const dayNumber = dayForm.dataset.day;
+    // Check if an "Update Day" button was clicked
+    if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
+        const button = event.target;
+        const dayForm = button.closest('.availability-day-form');
+        const dayNumber = dayForm.dataset.day;
 
-            const user = auth.currentUser;
-            if (!user) {
-                alert("You must be logged in to update your status.");
-                return;
-            }
-
-            // --- Read all the data from the form ---
-            const status = dayForm.querySelector('.availability-status').value;
-            const timeRange = dayForm.querySelector('.time-details input').value.trim();
-            const reason = dayForm.querySelector('.reason-details input').value.trim();
-            const role = dayForm.querySelector('select[id^="role-day-"]').value;
-            const isAvailableForStart = dayForm.querySelector('input[type="checkbox"]').checked;
-
-            // --- Prepare the data object to save ---
-            const availabilityData = {
-                status: status,
-                timeRange: timeRange,
-                reason: reason,
-                role: role,
-                isAvailableForStart: isAvailableForStart,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // --- Save to Firebase ---
-            try {
-                button.textContent = "Saving...";
-                button.disabled = true;
-
-                // We will save each day's data as a separate field (e.g., day_1, day_2)
-                // in a document named after the user's Torn ID.
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
-                    throw new Error("Your Torn Profile ID is not linked to your account.");
-                }
-                const tornUserId = userProfileDoc.data().tornProfileId;
-                
-                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-
-                // Using .set with { merge: true } allows us to update one day's data
-                // without overwriting the data for other days.
-                await availabilityDocRef.set({
-                    [`day_${dayNumber}`]: availabilityData,
-                    // Also save the player's name for easier lookup later
-                    playerName: currentTornUserName 
-                }, { merge: true });
-
-                alert(`Availability for Day ${dayNumber} saved successfully!`);
-				displayWarRoster(); 
-
-            } catch (error) {
-                console.error("Error saving availability:", error);
-                alert("Error: " + error.message);
-            } finally {
-                button.textContent = `Update Day ${dayNumber}`;
-                button.disabled = false;
-            }
+        const user = auth.currentUser;
+        if (!user) {
+            alert("You must be logged in to update your status.");
+            return;
         }
-    });
+
+        // --- Read all the data from the form ---
+        const status = dayForm.querySelector('.availability-status').value;
+        const timeRange = dayForm.querySelector('.time-details input').value.trim();
+        const reason = dayForm.querySelector('.reason-details input').value.trim();
+        const role = dayForm.querySelector('select[id^="role-day-"]').value;
+        const isAvailableForStart = dayForm.querySelector('input[type="checkbox"]').checked;
+
+        // --- NEW: VALIDATION ---
+        // If status is "NO" but no reason is provided, stop the function.
+        if (status === 'no' && reason === '') {
+            alert("Please provide a reason for being unavailable.");
+            return; // Stop the save process
+        }
+        // --- END NEW VALIDATION ---
+
+        // --- Prepare the data object to save ---
+        const availabilityData = {
+            status: status,
+            timeRange: timeRange,
+            reason: reason,
+            role: role,
+            isAvailableForStart: isAvailableForStart,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // --- Save to Firebase ---
+        try {
+            button.textContent = "Saving...";
+            button.disabled = true;
+
+            const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+            if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
+                throw new Error("Your Torn Profile ID is not linked to your account.");
+            }
+            const tornUserId = userProfileDoc.data().tornProfileId;
+            
+            const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+
+            await availabilityDocRef.set({
+                [`day_${dayNumber}`]: availabilityData,
+                playerName: currentTornUserName 
+            }, { merge: true });
+
+            alert(`Availability for Day ${dayNumber} saved successfully!`);
+            displayWarRoster(); 
+
+        } catch (error) {
+            console.error("Error saving availability:", error);
+            alert("Error: " + error.message);
+        } finally {
+            button.textContent = `Update Day ${dayNumber}`;
+            button.disabled = false;
+        }
+    }
+});
                 
 console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID); // ADD THIS LINE
                 // Ensure global DOM references are assigned after HTML injection
