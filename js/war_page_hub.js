@@ -2113,6 +2113,57 @@ function unclaimTarget(memberId) {
         targetRow.classList.remove('claimed-row'); // Remove the styling class
     }
 }
+
+function generateDayFormHTML(dayNumber) {
+    return `
+        <div class="availability-day-form" data-day="${dayNumber}">
+            <h5>--- Day ${dayNumber} ---</h5>
+            <div class="form-group">
+                <label for="status-day-${dayNumber}">Will you be available?</label>
+                <select id="status-day-${dayNumber}" class="availability-status">
+                    <option value="no-response" selected>-- Select --</option>
+                    <option value="yes">YES</option>
+                    <option value="partial">Partially</option>
+                    <option value="no">NO</option>
+                </select>
+            </div>
+            <div class="time-details" style="display: none;">
+                <div class="form-group">
+                    <label for="time-from-day-${dayNumber}">Time Range:</label>
+                    <input type="text" id="time-from-day-${dayNumber}" placeholder="e.g., 2pm - 7pm">
+                </div>
+            </div>
+            <div class="reason-details" style="display: none;">
+                <div class="form-group">
+                    <label for="reason-day-${dayNumber}">Reason:</label>
+                    <input type="text" id="reason-day-${dayNumber}" placeholder="e.g., Sickness, Work">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="role-day-${dayNumber}">Primary Role:</label>
+                <select id="role-day-${dayNumber}">
+                    <option value="none">-- Select Role --</option>
+                    <option value="all-round-attacker">All Round Attacker</option>
+                    <option value="chain-watcher">Chain Watcher</option>
+                    <option value="outside-attacker">Outside Attacker</option>
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="war-start-day-${dayNumber}">
+                <label for="war-start-day-${dayNumber}">Available for war start?</label>
+            </div>
+            <button class="action-btn">Update Day ${dayNumber}</button>
+        </div>
+    `;
+}
+
+function showDayForm(dayNumber) {
+    const formsContainer = document.getElementById('availability-forms-container');
+    if (formsContainer) {
+        const formHtml = generateDayFormHTML(dayNumber);
+        formsContainer.innerHTML = formHtml;
+    }
+}
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
     if (!rosterDisplay) {
@@ -4864,6 +4915,7 @@ availabilityFormsContainer.addEventListener('click', async (event) => {
 
                 alert(`Availability for Day ${dayNumber} saved successfully!`);
 				displayWarRoster(); 
+				showDayForm(1); 
 
             } catch (error) {
                 console.error("Error saving availability:", error);
