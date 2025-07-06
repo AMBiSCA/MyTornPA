@@ -30,6 +30,7 @@ let userEnergyDisplay = null;
 let onlineFriendlyMembersDisplay = null;
 let onlineEnemyMembersDisplay = null;
 let globalActiveClaims = {};
+let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -2474,8 +2475,10 @@ function displayEnemyTargetsTable(members) {
 function setupWarClaimsListener() {
     console.log("Setting up real-time listener for war claims...");
     db.collection('warClaims').onSnapshot(snapshot => {
-        // Clear previous claims
+        // Clear previous claims for a full re-sync
         globalActiveClaims = {};
+
+        let highestClaimNumberInSnapshot = localCurrentClaimHitCounter; // Start with current local value
 
         snapshot.forEach(doc => {
             const claimData = doc.data();
@@ -2484,7 +2487,17 @@ function setupWarClaimsListener() {
                 claimedByUserName: claimData.claimedByUserName,
                 chainHitNumber: claimData.chainHitNumber
             };
+            // Update highestClaimNumberInSnapshot if this claim is higher
+            if (claimData.chainHitNumber && typeof claimData.chainHitNumber === 'number' && claimData.chainHitNumber > highestClaimNumberInSnapshot) {
+                highestClaimNumberInSnapshot = claimData.chainHitNumber;
+            }
         });
+
+        // After processing all claims in the snapshot, update the local counter if a higher one was found
+        if (highestClaimNumberInSnapshot > localCurrentClaimHitCounter) {
+            localCurrentClaimHitCounter = highestClaimNumberInSnapshot;
+            console.log(`localCurrentClaimHitCounter updated by listener to: ${localCurrentClaimHitCounter}`);
+        }
 
         console.log("Updated globalActiveClaims:", globalActiveClaims);
 
@@ -2495,14 +2508,6 @@ function setupWarClaimsListener() {
         } else {
             console.warn("Enemy faction members data not available to re-render table after claim update.");
         }
-
-        // Also, send chat message for newly added claims if this listener reacts to an 'add' event.
-        // For existing claims, we don't resend the chat message.
-        // This part needs careful logic to avoid spamming chat on every load/re-sync.
-        // A simple way for now is to rely solely on `claimTarget` for sending the message.
-        // If we want this listener to also send messages (e.g., if another user claims),
-        // we'd need to compare `snapshot.docChanges()` and filter for 'added' types.
-        // For now, `claimTarget` (which calls `sendClaimChatMessage`) is the single source.
 
     }, error => {
         console.error("Error listening to war claims:", error);
