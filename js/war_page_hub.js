@@ -915,8 +915,9 @@ async function sendClaimChatMessage(claimerName, targetName, chainNumber, custom
 }
 
 // Function: Automatically unclaims targets based on their status changing to unavailable
+// UPDATED: Automatically unclaims targets when the overall chain number surpasses their claimed hit number.
 function autoUnclaimHitTargets() {
-    console.log("Running autoUnclaimHitTargets check...");
+    console.log("Running autoUnclaimHitTargets check (chain progression-based)...");
     if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
         console.log("No active claims to check for auto-unclaim.");
         return;
@@ -937,29 +938,26 @@ function autoUnclaimHitTargets() {
         if (globalActiveClaims.hasOwnProperty(memberId)) {
             const activeClaim = globalActiveClaims[memberId]; // The current claim from Firebase
 
-            const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
-
-            if (claimedMemberData) {
-                const currentStatusState = claimedMemberData.status?.state;
-                const currentServerTime = Math.floor(Date.now() / 1000); 
-                const statusUntil = claimedMemberData.status?.until;
-
-                // --- CRITICAL RE-ADDITION: Condition for auto-unclaim based on unavailable status ---
-                const shouldUnclaim = 
-                    currentStatusState === 'Hospital' ||
-                    currentStatusState === 'Jail' ||
-                    (currentStatusState === 'Traveling' && statusUntil > currentServerTime); // Target is actively traveling
-
-                if (shouldUnclaim) {
-                    console.log(`Auto-unclaiming ${claimedMemberData.name} (${memberId}). Status: ${currentStatusState}.`);
-                    unclaimTarget(memberId); // Call the unclaim function for this target
-                } else {
-                    console.log(`Claimed target ${claimedMemberData.name} (${memberId}) is OK or Traveling has expired. No auto-unclaim needed based on status.`);
-                }
-            } else {
-                // If the claimed target is no longer found in the enemy data at all (e.g., left faction, was manually removed from enemy list)
+            // --- Condition 1: Auto-unclaim if target has disappeared from enemy data ---
+            if (!currentEnemyMemberIds.has(memberId)) {
                 console.warn(`Claimed target ${memberId} not found in current enemy data (might have disappeared). Auto-unclaiming.`);
-                unclaimTarget(memberId); 
+                unclaimTarget(memberId); // Unclaim if the target is no longer in the enemy list
+                continue; // Move to the next claim
+            }
+
+            // --- Condition 2: Auto-unclaim if the chain has progressed past this claimed hit number ---
+            // This is the NEW logic you requested.
+            // Check if localCurrentClaimHitCounter (which represents the faction's current chain status)
+            // is greater than or equal to the hit number this target was claimed for.
+            if (localCurrentClaimHitCounter >= activeClaim.chainHitNumber && activeClaim.chainHitNumber > 0) {
+                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
+                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
+                console.log(`Auto-unclaiming ${memberName} (${memberId}). Chain (${localCurrentClaimHitCounter}) has surpassed claimed hit (${activeClaim.chainHitNumber}).`);
+                unclaimTarget(memberId); // Call the unclaim function for this target
+            } else {
+                const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
+                const memberName = claimedMemberData ? claimedMemberData.name : 'Unknown Target';
+                console.log(`Claimed target ${memberName} (${memberId}) is still active. Chain: ${localCurrentClaimHitCounter}, Claimed for: ${activeClaim.chainHitNumber}.`);
             }
         }
     }
@@ -2368,6 +2366,57 @@ function generateDayFormHTML(dayNumber) {
             <button class="action-btn">Update Day ${dayNumber}</button>
         </div>
     `;
+}
+
+function generateDayFormHTML(dayNumber) {
+    return `
+        <div class="availability-day-form" data-day="${dayNumber}">
+            <h5>--- Day ${dayNumber} ---</h5>
+            <div class="form-group">
+                <label for="status-day-${dayNumber}">Will you be available?</label>
+                <select id="status-day-${dayNumber}" class="availability-status">
+                    <option value="no-response" selected>-- Select --</option>
+                    <option value="yes">YES</option>
+                    <option value="partial">Partially</option>
+                    <option value="no">NO</option>
+                </select>
+            </div>
+            <div class="time-details" style="display: none;">
+                <div class="form-group">
+                    <label for="time-from-day-${dayNumber}">Time Range:</label>
+                    <input type="text" id="time-from-day-${dayNumber}" placeholder="e.g., 2pm - 7pm">
+                </div>
+            </div>
+            <div class="reason-details" style="display: none;">
+                <div class="form-group">
+                    <label for="reason-day-${dayNumber}">Reason:</label>
+                    <input type="text" id="reason-day-${dayNumber}" placeholder="e.g., Sickness, Work">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="role-day-${dayNumber}">Primary Role:</label>
+                <select id="role-day-${dayNumber}">
+                    <option value="none">-- Select Role --</option>
+                    <option value="all-round-attacker">All Round Attacker</option>
+                    <option value="chain-watcher">Chain Watcher</option>
+                    <option value="outside-attacker">Outside Attacker</option>
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="war-start-day-${dayNumber}">
+                <label for="war-start-day-${dayNumber}">Available for war start?</label>
+            </div>
+            <button class="action-btn">Update Day ${dayNumber}</button>
+        </div>
+    `;
+}
+
+function showDayForm(dayNumber) {
+    const formsContainer = document.getElementById('availability-forms-container');
+    if (formsContainer) {
+        const formHtml = generateDayFormHTML(dayNumber);
+        formsContainer.innerHTML = formHtml;
+    }
 }
 
 function showDayForm(dayNumber) {
@@ -5205,6 +5254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
                 displayWarRoster();
+				showDayForm(1);
                 setupFactionHitsListener(db, userData.faction_id);
                 setupWarClaimsListener(); // <--- THIS IS THE NEW LINE YOU NEEDED TO ADD
 
