@@ -3428,64 +3428,80 @@ async function fetchAndDisplayMemberDetails(memberId) {
         detailPanel.innerHTML = `<h4>Error</h4><p>Could not load member details.</p><p><i>${error.message}</i></p>`;
     }
 }
-async function fetchAndDisplayChainData() { // No apiKey param needed, reads userApiKey global and factionApiFullData
-  if (!factionApiFullData || !factionApiFullData.chain) {
-    console.warn("Chain data not fully available in factionApiFullData.chain.");
-    // Ensure display elements are reset if data is missing
-    currentLiveChainSeconds = 0;
-    lastChainApiFetchTime = 0;
-    globalChainStartedTimestamp = 0;
-    globalChainCurrentNumber = 'N/A';
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over'; // Also reset timer display
-    return;
-  }
-
-  const chainData = factionApiFullData; // Use the globally fetched full data
-  console.log("Chain API Data (from factionApiFullData):", chainData.chain); // Log for debugging
-
-  if (chainData && chainData.chain) {
-    // Store the relevant values globally for updateAllTimers to use
-    currentLiveChainSeconds = chainData.chain.timeout || 0;
-    lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
-    globalChainStartedTimestamp = chainData.chain.start || 0;
-    globalChainCurrentNumber = chainData.chain.current || 'N/A'; // Store the actual chain number
-
-    // Update the chain number display directly here, as it's not a countdown
-    if (currentChainNumberDisplay) {
-      currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+// UPDATED: Now performs its own API call to fetch current chain data regularly.
+async function fetchAndDisplayChainData() {
+    // Only proceed if API key and faction ID are available globally.
+    if (!userApiKey || !globalYourFactionID) {
+        console.warn("API key or Faction ID not available for fetching chain data.");
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
+        globalChainStartedTimestamp = 0;
+        globalChainCurrentNumber = 'N/A';
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+        return;
     }
 
-    // Logic for Chain Started time display (no change from previous as requested)
-    if (chainStartedDisplay) {
-      const newChainStartedTimestamp = chainData.chain.start || 0;
-      if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
-          globalChainStartedTimestamp = newChainStartedTimestamp;
-          chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
-      } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
-          globalChainStartedTimestamp = 0;
-          chainStartedDisplay.textContent = 'Started: N/A';
-      } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
-          // No change needed
-      }
+    try {
+        const chainApiUrl = `https://api.torn.com/v2/faction/${globalYourFactionID}?selections=chain&key=${userApiKey}&comment=MyTornPA_ChainDataDisplay`;
+        const response = await fetch(chainApiUrl);
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            const errorMessage = data.error ? data.error.error : response.statusText;
+            throw new Error(`Torn API Error fetching chain data: ${errorMessage}`);
+        }
+
+        const chainData = data.chain;
+        console.log("Chain API Data (fetched directly by fetchAndDisplayChainData):", chainData); // Log for debugging
+
+        if (chainData) {
+            // Store the relevant values globally for updateAllTimers to use
+            currentLiveChainSeconds = chainData.timeout || 0;
+            lastChainApiFetchTime = Date.now(); // Store current time in milliseconds
+            globalChainStartedTimestamp = chainData.start || 0;
+            globalChainCurrentNumber = chainData.current || 'N/A'; // Store the actual chain number
+
+            // Update the chain number display directly
+            if (currentChainNumberDisplay) {
+                currentChainNumberDisplay.textContent = globalChainCurrentNumber;
+            }
+
+            // Logic for Chain Started time display
+            if (chainStartedDisplay) {
+                const newChainStartedTimestamp = chainData.start || 0;
+                if (newChainStartedTimestamp > 0 && newChainStartedTimestamp !== globalChainStartedTimestamp) {
+                    globalChainStartedTimestamp = newChainStartedTimestamp;
+                    chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+                } else if (newChainStartedTimestamp === 0 && globalChainStartedTimestamp !== 0) {
+                    globalChainStartedTimestamp = 0;
+                    chainStartedDisplay.textContent = 'Started: N/A';
+                } else if (newChainStartedTimestamp === 0 && chainStartedDisplay.textContent === 'Started: N/A') {
+                    // No change needed
+                }
+            }
+
+        } else {
+            console.warn("Chain data not found within API response.");
+            currentLiveChainSeconds = 0;
+            lastChainApiFetchTime = 0;
+            globalChainStartedTimestamp = 0;
+            globalChainCurrentNumber = 'N/A';
+            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        }
+    } catch (error) {
+        console.error('Error in fetchAndDisplayChainData:', error);
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
+        globalChainStartedTimestamp = 0;
+        globalChainCurrentNumber = 'N/A';
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     }
-
-  } else { // Should ideally not be hit if outer if (factionApiFullData.chain) handles it
-    console.warn("Chain data not found within factionApiFullData.chain.");
-    // Reset global variables if no chain data
-    currentLiveChainSeconds = 0;
-    lastChainApiFetchTime = 0;
-    globalChainStartedTimestamp = 0;
-    globalChainCurrentNumber = 'N/A';
-
-    // Ensure display elements are reset if data is missing/invalid
-    if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-    if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-    if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
-  }
 }
-
 function populateWarStatusDisplay(warData = {}) {
     if (warEnlistedStatus) warEnlistedStatus.textContent = warData.toggleEnlisted ? 'Yes' : 'No';
     if (warTermedStatus) warTermedStatus.textContent = warData.toggleTermedWar ? 'Yes' : 'No';
