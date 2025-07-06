@@ -82,94 +82,125 @@
                 <div id="announcements-tab" class="tab-pane active">
                     <div class="announcements-grid-container">
 
-    <div class="announcement-section-item">
-        <div class="war-announcement-section">
-            <h3>Game Plan:</h3>
-            <div id="gamePlanDisplay" class="game-plan-display">
-                <p>Loading game plan...</p>
-            </div>
-        </div>
-    </div>
+                        <div class="announcement-section-item">
+                            <div class="war-announcement-section">
+                                <h3>Game Plan:</h3>
+                                <div id="gamePlanDisplay" class="game-plan-display">
+                                    <p>Loading game plan...</p>
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="announcement-section-item">
-        <div class="war-announcement-section">
-            <h3>Current War Status:</h3>
-            <div class="war-status-display">
+                        <div class="announcement-section-item">
+    <div class="war-announcement-section">
+        <h3>Current War Status:</h3>
+        <div class="war-status-display">
+            <div class="status-item">
+                <span class="status-label">Enlisted:</span>
+                <span id="warEnlistedStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Termed War:</span>
+                <span id="warTermedStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Win/Loss Termed:</span>
+                <span id="warTermedWinLoss" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Chaining:</span>
+                <span id="warChainingStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">No Flying:</span>
+                <span id="warNoFlyingStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Turtle Mode:</span>
+                <span id="warTurtleStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item-full-width status-summary-two-col">
                 <div class="status-item">
-                    <span class="status-label">Enlisted:</span>
-                    <span id="warEnlistedStatus" class="status-value">N/A</span>
+                    <span class="status-label">Next Planned Chain Time:</span>
+                    <span id="warNextChainTimeStatus" class="status-value status-value-box">N/A</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Termed War:</span>
-                    <span id="warTermedStatus" class="status-value">N/A</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Win/Loss Termed:</span>
-                    <span id="warTermedWinLoss" class="status-value">N/A</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Chaining:</span>
-                    <span id="warChainingStatus" class="status-value">N/A</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">No Flying:</span>
-                    <span id="warNoFlyingStatus" class="status-value">N/A</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Turtle Mode:</span>
-                    <span id="warTurtleStatus" class="status-value">N/A</span>
-                </div>
-                <div class="status-item-full-width status-summary-two-col">
-                    <div class="status-item">
-                        <span class="status-label">Next Planned Chain Time:</span>
-                        <span id="warNextChainTimeStatus" class="status-value status-value-box">N/A</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Current Team Leader:</span>
-                        <span id="warCurrentTeamLeadStatus" class="status-value status-value-box">N/A</span>
-                    </div>
-                </div>
-                <div id="announcementScoreboardContainer">
-                    <div class="ranked-war-container">
-                        <div class="rw-header">
-                            <span id="rw-faction-one-name_announcement">Your Faction</span>
-                            <span class="rw-vs">vs</span>
-                            <span id="rw-faction-two-name_announcement">Opponent</span>
-                        </div>
-                        <div class="rw-scores-new">
-                            <div class="rw-stat-box-small">
-                                <div class="rw-small-label">Energy</div>
-                                <div class="rw-small-value" id="rw-user-energy_announcement">N/A</div>
-                            </div>
-                            <div class="rw-lead-target">
-                                <div class="rw-lead-label">LEAD TARGET</div>
-                                <div class="rw-lead-value" id="rw-lead-value_announcement">0 / 0</div>
-                            </div>
-                            <div class="rw-stat-box-small">
-                                <div class="rw-small-label">War Time</div>
-                                <div class="rw-small-value" id="rw-war-timer_announcement">0:00:00:00</div>
-                            </div>
-                        </div>
-                        <div class="rw-progress-bar-container">
-                            <div class="rw-progress-bar-one" id="rw-progress-one_announcement" style="width: 50%;"></div>
-                            <div class="rw-progress-bar-two" id="rw-progress-two_announcement" style="width: 50%;"></div>
-                        </div>
-                    </div>
+                    <span class="status-label">Current Team Leader:</span>
+                    <span id="warCurrentTeamLeadStatus" class="status-value status-value-box">N/A</span>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="announcement-section-item">
-        <div class="war-announcement-section">
-            <h3>Faction Announcements:</h3>
-            <div id="factionAnnouncementsDisplay" class="game-plan-display">
-                <p>No current announcements.</p>
+            <div id="announcementScoreboardContainer">
+                <div class="ranked-war-container">
+                    <div class="rw-header">
+                        <span id="rw-faction-one-name_announcement">Your Faction</span>
+                        <span class="rw-vs">vs</span>
+                        <span id="rw-faction-two-name_announcement">Opponent</span>
+                    </div>
+                    <div class="rw-scores-new">
+                        <div class="rw-stat-box-small">
+                            <div class="rw-small-label">Energy</div>
+                            <div class="rw-small-value" id="rw-user-energy_announcement">N/A</div>
+                        </div>
+                        <div class="rw-lead-target">
+                            <div class="rw-lead-label">LEAD TARGET</div>
+                            <div class="rw-lead-value" id="rw-lead-value_announcement">0 / 0</div>
+                        </div>
+                        <div class="rw-stat-box-small">
+                            <div class="rw-small-label">War Time</div>
+                            <div class="rw-small-value" id="rw-war-timer_announcement">0:00:00:00</div>
+                        </div>
+                    </div>
+                    <div class="rw-progress-bar-container">
+                        <div class="rw-progress-bar-one" id="rw-progress-one_announcement" style="width: 50%;"></div>
+                        <div class="rw-progress-bar-two" id="rw-progress-two_announcement" style="width: 50%;"></div>
+                    </div>
+                </div>
             </div>
+            
         </div>
     </div>
-    
 </div>
+
+                        <div class="announcement-section-item">
+                            <div class="war-announcement-section">
+                                <h3>Faction Announcements:</h3>
+                                <div id="factionAnnouncementsDisplay" class="game-plan-display">
+                                    <p>No current announcements.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <div id="announcementScoreboardContainer" class="ops-control-item ops-ranked-war-score">
+                        <div class="ranked-war-container">
+                            <div class="rw-header">
+                                <span id="rw-faction-one-name_announcement">Your Faction</span>
+                                <span class="rw-vs">vs</span>
+                                <span id="rw-faction-two-name_announcement">Opponent</span>
+                            </div>
+                            <div class="rw-scores-new">
+                                <div class="rw-stat-box-small">
+                                    <div class="rw-small-label">Energy</div>
+                                    <div class="rw-small-value" id="rw-user-energy_announcement">N/A</div>
+                                </div>
+                                <div class="rw-lead-target">
+                                    <div class="rw-lead-label">LEAD TARGET</div>
+                                    <div class="rw-lead-value" id="rw-lead-value_announcement">0 / 0</div>
+                                </div>
+                                <div class="rw-stat-box-small">
+                                    <div class="rw-small-label">War Time</div>
+                                    <div class="rw-small-value" id="rw-war-timer_announcement">0:00:00:00</div>
+                                </div>
+                            </div>
+                            <div class="rw-progress-bar-container">
+                                <div class="rw-progress-bar-one" id="rw-progress-one_announcement" style="width: 50%;"></div>
+                                <div class="rw-progress-bar-two" id="rw-progress-two_announcement" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        </div>
+                </div>
+
                 <div id="active-ops-tab" class="tab-pane">
                     <div class="ops-controls-grid">
                         
