@@ -2113,8 +2113,74 @@ function unclaimTarget(memberId) {
         targetRow.classList.remove('claimed-row'); // Remove the styling class
     }
 }
+async function displayWarRoster() {
+    const rosterDisplay = document.getElementById('war-roster-display');
+    if (!rosterDisplay) {
+        console.error("Roster display container not found.");
+        return;
+    }
 
-// NEW: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
+    rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
+
+    try {
+        // 1. Get all saved availability data from the database
+        const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
+        const availabilityData = {};
+        availabilitySnapshot.forEach(doc => {
+            availabilityData[doc.id] = doc.data(); // Keyed by Torn User ID
+        });
+
+        // 2. Get the full list of faction members from our global variable
+        if (!factionApiFullData || !factionApiFullData.members) {
+            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
+            return;
+        }
+        const allMembers = Object.values(factionApiFullData.members);
+
+        // 3. Build the roster HTML
+        let rosterHtml = '';
+        for (const member of allMembers) {
+            const memberId = member.id;
+            const memberName = member.name;
+            const memberAvailability = availabilityData[memberId];
+
+            let statusClass = 'status-grey';
+            let statusText = '(No response yet)';
+
+            // If the member has saved availability for Day 1
+            if (memberAvailability && memberAvailability.day_1) {
+                const day1Status = memberAvailability.day_1;
+                switch (day1Status.status) {
+                    case 'yes':
+                        statusClass = 'status-green';
+                        statusText = `Yes (${day1Status.timeRange || 'All Day'})`;
+                        break;
+                    case 'partial':
+                        statusClass = 'status-orange';
+                        statusText = `Partial (${day1Status.timeRange || 'N/A'})`;
+                        break;
+                    case 'no':
+                        statusClass = 'status-red';
+                        statusText = `No (${day1Status.reason || 'Unavailable'})`;
+                        break;
+                }
+            }
+            
+            rosterHtml += `
+                <div class="roster-player ${statusClass}">
+                    <span class="player-name">${memberName}</span>
+                    <span class="player-status">${statusText}</span>
+                </div>
+            `;
+        }
+
+        rosterDisplay.innerHTML = rosterHtml;
+
+    } catch (error) {
+        console.error("Error displaying war roster:", error);
+        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
+    }
+}
 // MODIFIED: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
