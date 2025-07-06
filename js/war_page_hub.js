@@ -1978,6 +1978,51 @@ async function unclaimTarget(memberId) {
     }
 }
 
+async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+    if (!factionID || !apiKey) return;
+    try {
+        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
+        const response = await fetch(enemyApiUrl);
+        if (!response.ok) {
+            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
+        }
+        enemyDataGlobal = await response.json(); // Store enemy data globally
+        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
+        console.log("Enemy Faction API Data:", enemyData);
+        if (enemyData.error) {
+            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
+            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
+        }
+
+        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
+
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const warData = warDoc.exists ? warDoc.data() : {};
+        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
+
+        if (enemyData.members) {
+            displayEnemyTargetsTable(enemyData.members);
+            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
+            
+            // --- CRITICAL: NEW CALL TO autoUnclaimHitTargets() ---
+            autoUnclaimHitTargets(); 
+            // --- END CRITICAL ---
+
+        } else {
+            console.warn("Enemy faction members data not found.");
+            displayEnemyTargetsTable(null);
+            populateEnemyMemberCheckboxes({}, []);
+        }
+    } catch (error) {
+        console.error('Error fetching enemy faction data:', error);
+        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
+        if (factionTwoMembersEl) factionTwoMembersEl.textContent = 'N/A';
+        displayEnemyTargetsTable(null);
+        populateEnemyMemberCheckboxes({}, []);
+    }
+}
+// ... (Your existing claimTarget and unclaimTarget functions) ...
  fetchAndDisplayEnemyFaction
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
   if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
