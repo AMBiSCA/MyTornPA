@@ -4767,6 +4767,7 @@ availabilityFormsContainer.addEventListener('click', async (event) => {
                 }, { merge: true });
 
                 alert(`Availability for Day ${dayNumber} saved successfully!`);
+				displayWarRoster(); 
 
             } catch (error) {
                 console.error("Error saving availability:", error);
@@ -4791,6 +4792,7 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
+				displayWarRoster();
 				setupFactionHitsListener(db, userData.faction_id);
 				
 
