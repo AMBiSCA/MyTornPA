@@ -2237,29 +2237,32 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         const response = await fetch(combinedChainUrl);
         const data = await response.json();
 
+        // --- NEW LOGGING HERE ---
+        console.log("updateDualChainTimers: Full API response data:", data);
+        console.log(`updateDualChainTimers: Your Faction ID used: ${yourFactionId}`);
+        const yourChainData = data[yourFactionId]?.chain;
+        console.log("updateDualChainTimers: Extracted yourChainData:", yourChainData);
+        // --- END NEW LOGGING ---
+
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : response.statusText;
             throw new Error(`Torn API Error fetching combined chain data: ${errorMessage}`);
         }
 
-        // Process your faction's chain data
-        const yourChainData = data[yourFactionId]?.chain;
-        
-        // --- CRITICAL FIX: Update currentLiveChainSeconds and lastChainApiFetchTime even if current chain is 0 ---
         if (yourChainData) {
             friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
-            friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0); // Display time based on API timeout
+            friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
 
-            currentLiveChainSeconds = yourChainData.timeout || 0; // Always update this
-            lastChainApiFetchTime = Date.now(); // Always update this
+            currentLiveChainSeconds = yourChainData.timeout || 0;
+            lastChainApiFetchTime = Date.now();
         } else {
+            // This 'else' block is the one causing the reset if yourChainData is not valid.
+            console.warn("updateDualChainTimers: yourChainData is not available. Resetting chain timers to 0.");
             friendlyHitsEl.textContent = '0';
             friendlyTimeEl.textContent = 'Over';
-            currentLiveChainSeconds = 0; // Only reset if no chainData object at all
+            currentLiveChainSeconds = 0;
             lastChainApiFetchTime = 0;
         }
-        // --- END CRITICAL FIX ---
-
 
         // Process enemy faction's chain data if an enemy ID was provided
         if (enemyFactionId) {
@@ -2277,11 +2280,14 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         }
 
     } catch (error) {
-        console.error("Error fetching combined chain data:", error);
+        console.error("Error in updateDualChainTimers:", error);
         friendlyHitsEl.textContent = 'Error';
         friendlyTimeEl.textContent = 'Error';
         enemyHitsEl.textContent = 'Error';
         enemyTimeEl.textContent = 'Error';
+        // Ensure globals are reset on error to avoid stale data
+        currentLiveChainSeconds = 0;
+        lastChainApiFetchTime = 0;
     }
 }
 async function claimTarget(memberId, memberName) {
