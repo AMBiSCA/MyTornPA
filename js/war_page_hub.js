@@ -2237,31 +2237,36 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         const response = await fetch(combinedChainUrl);
         const data = await response.json();
 
-        // --- NEW LOGGING HERE (same as before) ---
-        console.log("updateDualChainTimers: Full API response data:", data);
+        console.log("updateDualChainTimers: Full API response data (after fetch):", data);
         console.log(`updateDualChainTimers: Your Faction ID used: ${yourFactionId}`);
-        // --- END NEW LOGGING ---
 
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : response.statusText;
             throw new Error(`Torn API Error fetching combined chain data: ${errorMessage}`);
         }
 
-        let yourChainData;
-        let enemyChainData;
+        let yourChainData = null;
+        let enemyChainData = null;
 
-        // --- CRITICAL FIX: Adjust how yourChainData and enemyChainData are extracted based on response structure ---
-        if (factionIdsToFetch.length === 1 && factionIdsToFetch[0] == yourFactionId) {
-            // If only your faction was requested, data.chain is at the root
-            yourChainData = data.chain;
-        } else if (factionIdsToFetch.length === 2) {
-            // If both factions were requested, they are nested under their IDs
+        // --- CRITICAL FIX: Make extraction of chain data more resilient ---
+        // Check if data is nested (multiple IDs requested) or direct (single ID requested)
+        if (factionIdsToFetch.length > 1) {
+            // Nested structure: data maps faction IDs to their chain objects
             yourChainData = data[yourFactionId]?.chain;
-            enemyChainData = data[enemyFactionId]?.chain; // Make sure enemyChainData is also correctly extracted
+            if (enemyFactionId) {
+                enemyChainData = data[enemyFactionId]?.chain;
+            }
+        } else if (factionIdsToFetch.length === 1) {
+            // Direct structure: data.chain is at the root if only one ID was requested
+            if (data.chain) {
+                yourChainData = data.chain;
+            } else if (data[yourFactionId]?.chain) { // Fallback in case it's still nested for some reason
+                yourChainData = data[yourFactionId].chain;
+            }
         }
         // --- END CRITICAL FIX ---
         
-        console.log("updateDualChainTimers: Extracted yourChainData:", yourChainData); // Keep this log
+        console.log("updateDualChainTimers: Extracted yourChainData (after fix):", yourChainData);
 
         if (yourChainData) {
             friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
@@ -2270,18 +2275,23 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
             currentLiveChainSeconds = yourChainData.timeout || 0;
             lastChainApiFetchTime = Date.now();
         } else {
-            console.warn("updateDualChainTimers: yourChainData is not available. Resetting chain timers to 0.");
+            console.warn("updateDualChainTimers: yourChainData is still not available after extraction. Resetting chain timers to 0.");
             friendlyHitsEl.textContent = '0';
             friendlyTimeEl.textContent = 'Over';
             currentLiveChainSeconds = 0;
             lastChainApiFetchTime = 0;
         }
 
-        // Process enemy faction's chain data (now using the correctly extracted enemyChainData)
+        // Process enemy faction's chain data
         if (enemyFactionId) {
-            if (enemyChainData) { // Use enemyChainData already extracted above
-                enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
-                enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
+            // If enemyChainData was already extracted in the multi-faction case, use it.
+            // Otherwise, if only enemy was requested, it might be at root.
+            if (enemyChainData) { 
+                 enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
+                 enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
+            } else if (factionIdsToFetch.length === 1 && factionIdsToFetch[0] == enemyFactionId && data.chain) { // If only enemy was fetched
+                 enemyHitsEl.textContent = data.chain.current !== undefined ? data.chain.current.toLocaleString() : '0';
+                 enemyTimeEl.textContent = formatTime(data.chain.timeout || 0);
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
