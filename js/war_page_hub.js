@@ -1900,6 +1900,33 @@ function updateRankedWarDisplay(rankedWarData, yourFactionId) {
 
     console.log("Successfully parsed and displayed ranked war data for relevant scoreboards.");
 }
+
+async function unclaimTarget(memberId) {
+    if (!auth.currentUser) {
+        alert("You must be logged in to unclaim targets.");
+        return;
+    }
+
+    // Immediately disable the button to prevent double-clicks
+    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
+    if (claimBtn) claimBtn.disabled = true;
+
+    try {
+        // Delete the claim from Firebase
+        await db.collection('warClaims').doc(memberId).delete();
+        console.log(`Claim for ${memberId} deleted from Firebase.`);
+
+        // The UI update is now handled by the real-time listener for `warClaims`
+        // so we don't need to do it directly here. The `onSnapshot` will pick up the change.
+
+    } catch (error) {
+        console.error("Error deleting claim from Firebase:", error);
+        alert(`Failed to unclaim target: ${error.message}`);
+    } finally {
+        // Re-enable the button regardless of success/failure (listener will update its state)
+        if (claimBtn) claimBtn.disabled = false;
+    }
+}
 // ... (Your existing claimTarget and unclaimTarget functions) ...
   async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
     if (!factionID || !apiKey) return;
