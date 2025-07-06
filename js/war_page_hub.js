@@ -31,7 +31,7 @@ let onlineFriendlyMembersDisplay = null;
 let onlineEnemyMembersDisplay = null;
 let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
-
+let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -69,7 +69,6 @@ const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
 const chatTextInput = document.querySelector('.chat-text-input');
 const chatSendBtn = document.querySelector('.chat-send-btn');
 const currentTeamLeadDisplay = document.getElementById('warCurrentTeamLeadStatus');
-const chatMessagesCollection = db.collection('factionChatMessages');
 const MAX_MESSAGES_VISIBLE = 7;
 const REMOVAL_DELAY_MS = 500;
 const memberProfileCache = {};
@@ -1658,8 +1657,12 @@ async function sendChatMessage() {
 
 
 function setupChatRealtimeListener() {
+    // Crucially, chatMessagesCollection must be initialized by initializeAndLoadData first.
     if (!chatMessagesCollection) {
-        console.error("Firebase chatMessagesCollection is not defined.");
+        console.error("Firebase chatMessagesCollection is not defined. Cannot set up chat listener.");
+        if (chatDisplayArea) {
+            chatDisplayArea.innerHTML = `<p style="color: red;">Error: Faction chat not available (Faction ID missing or chat not initialized).</p>`;
+        }
         return;
     }
 
@@ -1676,7 +1679,6 @@ function setupChatRealtimeListener() {
         .orderBy('timestamp', 'asc')
         .limit(100)
         .onSnapshot(snapshot => {
-            // This part is unchanged: it clears the chat and adds the messages.
             if (chatDisplayArea) {
                 chatDisplayArea.innerHTML = '';
             }
@@ -1695,24 +1697,17 @@ function setupChatRealtimeListener() {
             
             console.log("Chat messages updated in real-time.");
             
-            // --- FINAL FIX ---
-            // This waits for the browser to be ready before trying to scroll.
             setTimeout(() => {
                 const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
                 if (!scrollWrapper) return;
 
-                // Check if the chat box has rendered and has a height.
                 if (scrollWrapper.scrollHeight > 0) {
-                    // If it has, scroll down immediately.
                     scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
                     toggleScrollIndicatorVisibility();
                 } else {
-                    // If not, the page is still loading. We'll check every 100ms.
                     let attempts = 0;
                     const scrollCheckInterval = setInterval(() => {
                         attempts++;
-                        // When the scroll height is finally calculated, or after 2 seconds,
-                        // scroll to the bottom and stop checking.
                         if (scrollWrapper.scrollHeight > 0 || attempts > 20) {
                             scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
                             toggleScrollIndicatorVisibility();
@@ -1721,7 +1716,6 @@ function setupChatRealtimeListener() {
                     }, 100);
                 }
             }, 0);
-            // --- END FINAL FIX ---
 
         }, error => {
             console.error("Error listening to chat messages:", error);
@@ -1737,7 +1731,6 @@ function setupChatRealtimeListener() {
         scrollWrapper.addEventListener('scroll', handleChatScroll);
     }
 }
-
 function updateAnnouncementEnergyDisplay() {
     const announcementEnergyElement = document.getElementById('rw-user-energy_announcement');
 
@@ -4703,7 +4696,16 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     globalYourFactionID = finalFactionId; // Set the global variable
 
-    // Get references to both scoreboard containers (they will be managed by updateRankedWarDisplay)
+    // --- NEW: Dynamically set the chatMessagesCollection based on the user's faction ID ---
+    if (globalYourFactionID) {
+        chatMessagesCollection = db.collection('factionChats').doc(String(globalYourFactionID)).collection('messages');
+        console.log(`Chat messages collection set to: factionChats/${globalYourFactionID}/messages`);
+    } else {
+        chatMessagesCollection = null; // Reset if no faction ID
+        console.warn("Could not determine user's faction ID. Faction chat will not be available.");
+    }
+    // --- END NEW ---
+
     const activeOpsScoreBox = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
     const announcementScoreboardContainer = document.getElementById('announcementScoreboardContainer');
 
@@ -4711,10 +4713,8 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
     if (!finalFactionId) {
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "ERROR: Faction ID not found.";
-        // Ensure scoreboards show no data if faction ID is missing
         if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
         if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: red;">Error: Faction ID Missing</p>';
-        // Also ensure chain displays are reset
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
@@ -4734,14 +4734,12 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         }
 
         factionApiFullData = await userFactionResponse.json();
-        // This console.log should be here, after factionApiFullData is assigned.
         console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
 
         if (factionApiFullData.error) {
             throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
         }
         
-        // --- THIS IS THE CORRECT AND FINAL PLACEMENT FOR localCurrentClaimHitCounter INITIALIZATION ---
         if (factionApiFullData.chain && typeof factionApiFullData.chain.current === 'number') {
             localCurrentClaimHitCounter = factionApiFullData.chain.current;
             console.log(`Initialized localCurrentClaimHitCounter to: ${localCurrentClaimHitCounter}`);
@@ -4749,15 +4747,12 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
             localCurrentClaimHitCounter = 0; // Default to 0 if no chain data
             console.log("Faction chain data not found, localCurrentClaimHitCounter initialized to 0.");
         }
-        // --- END OF THE localCurrentClaimHitCounter INITIALIZATION BLOCK ---
             
-        // CRITICAL: Always call updateRankedWarDisplay.
         updateRankedWarDisplay(factionApiFullData.wars?.ranked, finalFactionId);
         console.log("initializeAndLoadData: updateRankedWarDisplay called successfully.");
 
         console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
 
-        // After successful fetch, populate UI components (other than ranked war scores)
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
         populateUiComponents(warData, apiKey); 
@@ -4766,17 +4761,14 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
         const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
         if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = `Error Loading War Hub Data.`;
-        // Ensure all scoreboards show error message on fetch failure
         if (activeOpsScoreBox) activeOpsScoreBox.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
         if (announcementScoreboardContainer) announcementScoreboardContainer.innerHTML = `<p style="text-align:center; padding: 20px; color: red;">Error: ${error.message}</p>`;
 
-        // Also ensure chain/timer displays are reset on error
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
     }
 }
-
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
     if (!quickFFTargetsDisplay) {
