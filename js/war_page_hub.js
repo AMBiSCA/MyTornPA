@@ -4014,6 +4014,8 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
             console.error("Error fetching faction ID from user profile in initializeAndLoadData fallback:", error);
         }
     }
+	
+	
 
     globalYourFactionID = finalFactionId; // Set the global variable
 
@@ -4041,6 +4043,8 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (factionApiFullData.error) {
             throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
         }
+		
+		
         
         // After fetching, update the UI components
         if (factionApiFullData.wars && factionApiFullData.wars.ranked) {
@@ -4280,28 +4284,6 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
     
 }
 
-// Helper function to generate dummy recently met data
-function generateDummyRecentlyMet(count) {
-    const dummyMet = [];
-    const factionTags = ['[FOE]', '[RIVAL]', '[ENEMY]', '[OPP]'];
-    const statuses = ['Online', 'Offline', 'Hospital', 'Traveling', 'Jail'];
-    const names = ['AggroUser', 'QuickStrike', 'DecoyDiver', 'GhostHunter', 'WarHawk'];
-
-    for (let i = 1; i <= count; i++) {
-        dummyMet.push({
-            id: `met_user_${i}`,
-            name: `${names[Math.floor(Math.random() * names.length)]}${i}`,
-            level: Math.floor(Math.random() * (99 - 10 + 1)) + 10,
-            faction_tag: factionTags[Math.floor(Math.random() * factionTags.length)],
-            last_action_timestamp: Math.floor(Date.now() / 1000) - (Math.floor(Math.random() * 86400 * 3)), // within 3 days
-            status_description: statuses[Math.floor(Math.random() * statuses.length)],
-            profile_image: `../../images/default_profile_icon.png`
-        });
-    }
-    return dummyMet;
-}
-
-// NEW FUNCTION: Populates the content of the Recently Met tab
 // NEW FUNCTION: Populates the content of the Recently Met tab with a grid layout
 async function populateRecentlyMetTab(targetDisplayElement) {
     console.log("[Recently Met Tab] Populating tab with new grid layout...");
@@ -4709,6 +4691,13 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         }
 
         factionApiFullData = await userFactionResponse.json();
+       if (factionApiFullData.chain && typeof factionApiFullData.chain.current === 'number') {
+            localCurrentClaimHitCounter = factionApiFullData.chain.current;
+            console.log(`Initialized localCurrentClaimHitCounter to: ${localCurrentClaimHitCounter}`);
+        } else {
+            localCurrentClaimHitCounter = 0; // Default to 0 if no chain data
+            console.log("Faction chain data not found, localCurrentClaimHitCounter initialized to 0.");
+        }
         console.log("initializeAndLoadData: Faction API Full Data fetched:", factionApiFullData);
         // Add these console.logs back in for robust debugging if needed again
         // console.log("initializeAndLoadData: Full Data (wars property):", factionApiFullData.wars);
