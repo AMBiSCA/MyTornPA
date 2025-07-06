@@ -2218,7 +2218,7 @@ async function displayWarRoster() {
                 </div>
             `;
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
-        }
+        
 
         // --- NEW: Loop again to fetch profile pictures asynchronously ---
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
