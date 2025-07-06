@@ -423,16 +423,15 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="role-day-1">Primary Role:</label>
-                        <select id="role-day-1">
-                            <option value="none">-- Select Role --</option>
-                            <option value="attacker">Attacker</option>
-                            <option value="defender">Defender</option>
-                            <option value="chain-watcher">Chain Watcher</option>
-                        </select>
-                    </div>
-
+                   <div class="form-group">
+                     <label for="role-day-1">Primary Role:</label>
+                     <select id="role-day-1">
+                     <option value="none">-- Select Role --</option>
+                     <option value="all-round-attacker">All Round Attacker</option>
+					 <option value="outside-attacker">Outside Attacker</option>
+                     <option value="chain-watcher">Chain Watcher</option>
+                     </select>
+                   </div>
                     <div class="form-group checkbox-group">
                         <input type="checkbox" id="war-start-day-1">
                         <label for="war-start-day-1">Available for war start?</label>
@@ -445,7 +444,7 @@
         </div>
 
         <div class="team-roster-panel">
-            <h4>Team Roster</h4>
+            <h4>Your Factions Roster.</h4>
             <div id="war-roster-display" class="roster-list">
                 <div class="roster-player status-green">
                     <span class="player-name">Ketchup</span>
