@@ -2193,9 +2193,10 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         enemyTimeEl.textContent = 'Error';
     }
 }
-async function unclaimTarget(memberId) {
-    if (!auth.currentUser) {
-        alert("You must be logged in to unclaim targets.");
+async function claimTarget(memberId, memberName) {
+    if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
+        alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
+        console.error("Claim failed: Missing auth, Torn username, API key, or Faction ID.");
         return;
     }
 
@@ -2203,17 +2204,33 @@ async function unclaimTarget(memberId) {
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     if (claimBtn) claimBtn.disabled = true;
 
-    try {
-        // Delete the claim from Firebase
-        await db.collection('warClaims').doc(memberId).delete();
-        console.log(`Claim for ${memberId} deleted from Firebase.`);
+    // --- CRITICAL CHANGE HERE: Use and increment the localCurrentClaimHitCounter directly. ---
+    // We are trusting that localCurrentClaimHitCounter is correctly initialized by initializeAndLoadData
+    // and kept up-to-date by setupWarClaimsListener.
+    const nextChainHitNumber = localCurrentClaimHitCounter + 1;
+    // --- END CRITICAL CHANGE ---
 
-        // The UI update is now handled by the real-time listener for `warClaims`
-        // so we don't need to do it directly here. The `onSnapshot` will pick up the change.
+    try {
+        // Save the claim to Firebase
+        await db.collection('warClaims').doc(memberId).set({
+            claimedByUserId: auth.currentUser.uid,
+            claimedByUserName: currentTornUserName,
+            chainHitNumber: nextChainHitNumber, // Use our local, incrementing counter
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`Claim for ${memberName} (${memberId}) saved to Firebase. Chain hit: ${nextChainHitNumber}`);
+
+        // Update the local counter *after* a successful save
+        // This makes sure our local state for subsequent claims reflects this new claim
+        localCurrentClaimHitCounter = nextChainHitNumber;
+        console.log(`localCurrentClaimHitCounter updated to: ${localCurrentClaimHitCounter}`);
+
+        // Send message to faction chat (this calls the function that also displays locally)
+        await sendClaimChatMessage(currentTornUserName, memberName, nextChainHitNumber);
 
     } catch (error) {
-        console.error("Error deleting claim from Firebase:", error);
-        alert(`Failed to unclaim target: ${error.message}`);
+        console.error("Error saving claim to Firebase:", error);
+        alert(`Failed to claim target: ${error.message}`);
     } finally {
         // Re-enable the button regardless of success/failure (listener will update its state)
         if (claimBtn) claimBtn.disabled = false;
