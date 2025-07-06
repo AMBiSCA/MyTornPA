@@ -29,6 +29,7 @@ let claimedTargets = new Set(); // This will remember the claimed target IDs
 let userEnergyDisplay = null;
 let onlineFriendlyMembersDisplay = null;
 let onlineEnemyMembersDisplay = null;
+let globalActiveClaims = {};
 
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
@@ -337,7 +338,32 @@ function handleChatTabClick(event) {
     }
 }
 
-// Helper function to display individual private chat messages
+async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
+    if (!chatMessagesCollection || !auth.currentUser) {
+        console.warn("Cannot send claim message: Firebase collection or user not available.");
+        return;
+    }
+
+    // Ensure the message format is clear and distinctive
+    const messageText = `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: "MyTornPA System", // Can be 'System' or the user's name as preferred for announcement
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'claim_notification' // Add a type to distinguish these messages
+    };
+
+    try {
+        await chatMessagesCollection.add(messageObj);
+        console.log("Claim message sent to Faction Chat:", messageObj);
+    } catch (error) {
+        console.error("Error sending claim message to Firebase:", error);
+    }
+}
+
 // This is the earliest dependency, so it comes first.
 function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
     const messageElement = document.createElement('div');
@@ -2033,45 +2059,43 @@ async function fetchAndDisplayChainScore(apiKey) {
 
 // UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
 async function claimTarget(memberId, memberName) {
-    // Ensure the current user is known
-    if (!currentTornUserName) {
-        alert("Cannot claim: Your Torn username is not loaded. Please ensure you are logged in and your API key is linked.");
+    if (!auth.currentUser || !currentTornUserName) {
+        alert("You must be logged in with your Torn username loaded to claim targets.");
         return;
     }
 
-    // Add the member's ID to our "memory"
-    claimedTargets.add(memberId);
-
+    // Immediately disable the button to prevent double-clicks
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    const targetRow = document.getElementById(`target-row-${memberId}`);
+    if (claimBtn) claimBtn.disabled = true;
 
-    // UI Update: Show who claimed it and change button
-    if (claimBtn) {
-        claimBtn.innerHTML = `${currentTornUserName}<br>Unclaim`; // Show current user and 'Unclaim'
-        claimBtn.setAttribute('onclick', `unclaimTarget('${memberId}')`);
-        claimBtn.classList.add('claimed'); // Add a class for styling (e.g., green background)
-        claimBtn.classList.add('claimed-by-me'); // Indicate it's claimed by current user
-    }
-    if (targetRow) {
-        targetRow.classList.add('claimed-row'); // Add a class for row styling
-    }
-
-    // Determine the next chain number based on globalChainCurrentNumber
-    // Assuming globalChainCurrentNumber is a string like "123" or "N/A"
+    // Calculate the chain number *at the moment of claiming*
     let nextChainHitNumber = 0;
-    if (globalChainCurrentNumber && globalChainCurrentNumber !== 'N/A') {
+    if (globalChainCurrentNumber && globalChainCurrentNumber !== 'N/A' && !isNaN(parseInt(globalChainCurrentNumber, 10))) {
         nextChainHitNumber = parseInt(globalChainCurrentNumber, 10) + 1;
-        // Optionally update globalChainCurrentNumber immediately if you want visual feedback on the main chain counter
-        // globalChainCurrentNumber = nextChainHitNumber.toString();
-        // if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = globalChainCurrentNumber;
     } else {
-        nextChainHitNumber = 1; // Start at 1 if no chain is active or number is N/A
+        nextChainHitNumber = 1; // Default to 1 if no chain is active or number is N/A
     }
 
-    // Send message to faction chat
-    await sendClaimChatMessage(currentTornUserName, memberName, nextChainHitNumber);
+    try {
+        // Save the claim to Firebase
+        await db.collection('warClaims').doc(memberId).set({
+            claimedByUserId: auth.currentUser.uid,
+            claimedByUserName: currentTornUserName,
+            chainHitNumber: nextChainHitNumber,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`Claim for ${memberName} (${memberId}) saved to Firebase. Chain hit: ${nextChainHitNumber}`);
 
-    console.log(`Target ${memberName} (ID: ${memberId}) claimed by ${currentTornUserName}. Next hit will be #${nextChainHitNumber}`);
+        // The UI update and chat message are now handled by the real-time listener for `warClaims`
+        // so we don't need to do it directly here. The `onSnapshot` will pick up the change.
+
+    } catch (error) {
+        console.error("Error saving claim to Firebase:", error);
+        alert(`Failed to claim target: ${error.message}`);
+    } finally {
+        // Re-enable the button regardless of success/failure (listener will update its state)
+        if (claimBtn) claimBtn.disabled = false;
+    }
 }
 
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
@@ -2147,23 +2171,31 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         enemyTimeEl.textContent = 'Error';
     }
 }
-function unclaimTarget(memberId) {
-    // Remove the member's ID from our "memory"
-    claimedTargets.delete(memberId);
+async function unclaimTarget(memberId) {
+    if (!auth.currentUser) {
+        alert("You must be logged in to unclaim targets.");
+        return;
+    }
 
+    // Immediately disable the button to prevent double-clicks
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    const targetRow = document.getElementById(`target-row-${memberId}`);
+    if (claimBtn) claimBtn.disabled = true;
 
-    if (claimBtn) {
-        claimBtn.innerHTML = 'Claim'; // Revert button text
-        claimBtn.setAttribute('onclick', `claimTarget('${memberId}', '${targetRow.dataset.memberName}')`); // Revert onclick handler
-        claimBtn.classList.remove('claimed'); // Remove styling class
-        claimBtn.classList.remove('claimed-by-me'); // Remove my-claimed class
+    try {
+        // Delete the claim from Firebase
+        await db.collection('warClaims').doc(memberId).delete();
+        console.log(`Claim for ${memberId} deleted from Firebase.`);
+
+        // The UI update is now handled by the real-time listener for `warClaims`
+        // so we don't need to do it directly here. The `onSnapshot` will pick up the change.
+
+    } catch (error) {
+        console.error("Error deleting claim from Firebase:", error);
+        alert(`Failed to unclaim target: ${error.message}`);
+    } finally {
+        // Re-enable the button regardless of success/failure (listener will update its state)
+        if (claimBtn) claimBtn.disabled = false;
     }
-    if (targetRow) {
-        targetRow.classList.remove('claimed-row'); // Remove row styling class
-    }
-    console.log(`Target ID: ${memberId} unclaimed.`);
 }
 
 function generateDayFormHTML(dayNumber) {
@@ -2350,14 +2382,11 @@ function displayEnemyTargetsTable(members) {
     const membersArray = Object.values(members);
     const nowInSeconds = Math.floor(Date.now() / 1000); // Get current time once for efficiency
 
-    // Keep track of claimed targets by other users, if you have a Firebase collection for them
-    // For now, `claimedTargets` only tracks current user's claims.
-    // If you plan to store other users' claims in Firebase, you'd fetch that here
-    // and use it to set the initial state. For this step, we only care about YOUR claims.
+    const currentAuthUid = auth.currentUser ? auth.currentUser.uid : null;
 
     for (const member of membersArray) {
         const memberId = member.id;
-        const memberName = member.name; // Get member name for the chat message
+        const memberName = member.name;
         const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
         const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
 
@@ -2384,22 +2413,28 @@ function displayEnemyTargetsTable(members) {
             statusClass = 'status-other';
         }
 
-        // Determine Last Action text
         const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
         const lastActionText = formatRelativeTime(lastActionTimestamp);
 
-        // --- CLAIM BUTTON LOGIC ---
+        // --- UPDATED CLAIM BUTTON LOGIC ---
         let claimButtonHtml;
         let rowClass = '';
-        if (claimedTargets.has(memberId)) {
-            // This target is claimed by the current user
-            claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed claimed-by-me" onclick="unclaimTarget('${memberId}')">${currentTornUserName}<br>Unclaim</button>`;
-            rowClass = 'claimed-row';
+        const activeClaim = globalActiveClaims[memberId]; // Check the global claims map
+
+        if (activeClaim) {
+            rowClass = 'claimed-row'; // Style the row if claimed by anyone
+            if (activeClaim.claimedByUserId === currentAuthUid) {
+                // Claimed by *this* user
+                claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed-by-me" onclick="unclaimTarget('${memberId}')">Unclaim</button>`;
+            } else {
+                // Claimed by *another* user
+                claimButtonHtml = `<span class="claimed-by-other">${activeClaim.claimedByUserName}</span><br><button id="claim-btn-${memberId}" class="claim-btn claimed-by-other-btn" disabled>Claimed</button>`;
+            }
         } else {
-            // Default "Claim" button
+            // Not claimed by anyone
             claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}', '${memberName}')">Claim</button>`;
         }
-        // --- END CLAIM BUTTON LOGIC ---
+        // --- END UPDATED CLAIM BUTTON LOGIC ---
 
         tableHtml += `<tr id="target-row-${memberId}" class="${rowClass}" data-member-name="${memberName}">
                                <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
@@ -2413,6 +2448,44 @@ function displayEnemyTargetsTable(members) {
     tableHtml += `</tbody></table>`;
 
     enemyTargetsContainer.innerHTML = tableHtml;
+}
+
+function setupWarClaimsListener() {
+    console.log("Setting up real-time listener for war claims...");
+    db.collection('warClaims').onSnapshot(snapshot => {
+        // Clear previous claims
+        globalActiveClaims = {};
+
+        snapshot.forEach(doc => {
+            const claimData = doc.data();
+            globalActiveClaims[doc.id] = { // Use doc.id as the targetMemberId
+                claimedByUserId: claimData.claimedByUserId,
+                claimedByUserName: claimData.claimedByUserName,
+                chainHitNumber: claimData.chainHitNumber
+            };
+        });
+
+        console.log("Updated globalActiveClaims:", globalActiveClaims);
+
+        // Re-render the enemy targets table to reflect the latest claims
+        // Ensure enemyDataGlobal is available before re-rendering
+        if (enemyDataGlobal && enemyDataGlobal.members) {
+            displayEnemyTargetsTable(enemyDataGlobal.members);
+        } else {
+            console.warn("Enemy faction members data not available to re-render table after claim update.");
+        }
+
+        // Also, send chat message for newly added claims if this listener reacts to an 'add' event.
+        // For existing claims, we don't resend the chat message.
+        // This part needs careful logic to avoid spamming chat on every load/re-sync.
+        // A simple way for now is to rely solely on `claimTarget` for sending the message.
+        // If we want this listener to also send messages (e.g., if another user claims),
+        // we'd need to compare `snapshot.docChanges()` and filter for 'added' types.
+        // For now, `claimTarget` (which calls `sendClaimChatMessage`) is the single source.
+
+    }, error => {
+        console.error("Error listening to war claims:", error);
+    });
 }
 function rgbToHex(r, g, b) {
     return (
@@ -4832,174 +4905,181 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKey && playerId) {
                 userApiKey = apiKey;
 
-                await initializeAndLoadData(apiKey, userData.faction_id); 
-				
-				
-		const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-        if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
-            factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
-        }
-		
-		// --- WAR AVAILABILITY TAB LOGIC ---
-const availabilityFormsContainer = document.getElementById('availability-forms-container');
+                await initializeAndLoadData(apiKey, userData.faction_id);
 
-if (availabilityFormsContainer) {
-    // Use event delegation to listen for changes on any availability dropdown
-    availabilityFormsContainer.addEventListener('change', (event) => {
-        if (event.target.matches('.availability-status')) {
-            const dropdown = event.target;
-            const dayForm = dropdown.closest('.availability-day-form'); // Find the parent form for the day
-            
-            const timeDetails = dayForm.querySelector('.time-details');
-            const reasonDetails = dayForm.querySelector('.reason-details');
 
-            const selectedValue = dropdown.value;
-
-            // Hide both details sections by default
-            timeDetails.style.display = 'none';
-            reasonDetails.style.display = 'none';
-
-            if (selectedValue === 'yes' || selectedValue === 'partial') {
-                // Show time input for 'YES' or 'Partially'
-                timeDetails.style.display = 'block';
-            } else if (selectedValue === 'no') {
-                // Show reason input for 'NO'
-                reasonDetails.style.display = 'block';
-            }
-        }
-    });
-}
-
-// --- Add Another Day Button Logic ---
-const addDayBtn = document.getElementById('add-availability-day-btn');
-
-if (addDayBtn) {
-    addDayBtn.addEventListener('click', () => {
-        const formsContainer = document.getElementById('availability-forms-container');
-        // Find the last day form to determine the next day's number
-        const lastDayForm = formsContainer.querySelector('.availability-day-form:last-child');
-        const lastDayNumber = lastDayForm ? parseInt(lastDayForm.dataset.day, 10) : 0;
-        const nextDayNumber = lastDayNumber + 1;
-
-        // Create the HTML for the new day's form, including the updated roles
-        const newDayFormHtml = `
-            <div class="availability-day-form" data-day="${nextDayNumber}">
-                <h5>--- Day ${nextDayNumber} ---</h5>
-                <div class="form-group">
-                    <label for="status-day-${nextDayNumber}">Will you be available?</label>
-                    <select id="status-day-${nextDayNumber}" class="availability-status">
-                        <option value="no-response" selected>-- Select --</option>
-                        <option value="yes">YES</option>
-                        <option value="partial">Partially</option>
-                        <option value="no">NO</option>
-                    </select>
-                </div>
-
-                <div class="time-details" style="display: none;">
-                    <div class="form-group">
-                        <label for="time-from-day-${nextDayNumber}">Time Range:</label>
-                        <input type="text" id="time-from-day-${nextDayNumber}" placeholder="e.g., 2pm - 7pm">
-                    </div>
-                </div>
-
-                <div class="reason-details" style="display: none;">
-                    <div class="form-group">
-                        <label for="reason-day-${nextDayNumber}">Reason:</label>
-                        <input type="text" id="reason-day-${nextDayNumber}" placeholder="e.g., Sickness, Work">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="role-day-${nextDayNumber}">Primary Role:</label>
-                    <select id="role-day-${nextDayNumber}">
-                        <option value="none">-- Select Role --</option>
-                        <option value="all-round-attacker">All Round Attacker</option>
-                        <option value="chain-watcher">Chain Watcher</option>
-                        <option value="outside-attacker">Outside Attacker</option>
-                    </select>
-                </div>
-
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="war-start-day-${nextDayNumber}">
-                    <label for="war-start-day-${nextDayNumber}">Available for war start?</label>
-                </div>
-                <button class="action-btn">Update Day ${nextDayNumber}</button>
-            </div>
-        `;
-
-        // Append the new form to the container
-        formsContainer.insertAdjacentHTML('beforeend', newDayFormHtml);
-    });
-}
-
-availabilityFormsContainer.addEventListener('click', async (event) => {
-        // Check if an "Update Day" button was clicked
-        if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
-            const button = event.target;
-            const dayForm = button.closest('.availability-day-form');
-            const dayNumber = dayForm.dataset.day;
-
-            const user = auth.currentUser;
-            if (!user) {
-                alert("You must be logged in to update your status.");
-                return;
-            }
-
-            // --- Read all the data from the form ---
-            const status = dayForm.querySelector('.availability-status').value;
-            const timeRange = dayForm.querySelector('.time-details input').value.trim();
-            const reason = dayForm.querySelector('.reason-details input').value.trim();
-            const role = dayForm.querySelector('select[id^="role-day-"]').value;
-            const isAvailableForStart = dayForm.querySelector('input[type="checkbox"]').checked;
-
-            // --- Prepare the data object to save ---
-            const availabilityData = {
-                status: status,
-                timeRange: timeRange,
-                reason: reason,
-                role: role,
-                isAvailableForStart: isAvailableForStart,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            // --- Save to Firebase ---
-            try {
-                button.textContent = "Saving...";
-                button.disabled = true;
-
-                // We will save each day's data as a separate field (e.g., day_1, day_2)
-                // in a document named after the user's Torn ID.
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
-                    throw new Error("Your Torn Profile ID is not linked to your account.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
+                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
                 }
-                const tornUserId = userProfileDoc.data().tornProfileId;
-                
-                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
 
-                // Using .set with { merge: true } allows us to update one day's data
-                // without overwriting the data for other days.
-                await availabilityDocRef.set({
-                    [`day_${dayNumber}`]: availabilityData,
-                    // Also save the player's name for easier lookup later
-                    playerName: currentTornUserName 
-                }, { merge: true });
+                // --- WAR AVAILABILITY TAB LOGIC ---
+                const availabilityFormsContainer = document.getElementById('availability-forms-container');
 
-                alert(`Availability for Day ${dayNumber} saved successfully!`);
-				displayWarRoster(); 
-				showDayForm(1); 
+                if (availabilityFormsContainer) {
+                    // Use event delegation to listen for changes on any availability dropdown
+                    availabilityFormsContainer.addEventListener('change', (event) => {
+                        if (event.target.matches('.availability-status')) {
+                            const dropdown = event.target;
+                            const dayForm = dropdown.closest('.availability-day-form'); // Find the parent form for the day
 
-            } catch (error) {
-                console.error("Error saving availability:", error);
-                alert("Error: " + error.message);
-            } finally {
-                button.textContent = `Update Day ${dayNumber}`;
-                button.disabled = false;
-            }
-        }
-    });
-                
-console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID); // ADD THIS LINE
+                            const timeDetails = dayForm.querySelector('.time-details');
+                            const reasonDetails = dayForm.querySelector('.reason-details');
+
+                            const selectedValue = dropdown.value;
+
+                            // Hide both details sections by default
+                            timeDetails.style.display = 'none';
+                            reasonDetails.style.display = 'none';
+
+                            if (selectedValue === 'yes' || selectedValue === 'partial') {
+                                // Show time input for 'YES' or 'Partially'
+                                timeDetails.style.display = 'block';
+                            } else if (selectedValue === 'no') {
+                                // Show reason input for 'NO'
+                                reasonDetails.style.display = 'block';
+                            }
+                        }
+                    });
+                }
+
+                // --- Add Another Day Button Logic ---
+                const addDayBtn = document.getElementById('add-availability-day-btn');
+
+                if (addDayBtn) {
+                    addDayBtn.addEventListener('click', () => {
+                        const formsContainer = document.getElementById('availability-forms-container');
+                        // Find the last day form to determine the next day's number
+                        const lastDayForm = formsContainer.querySelector('.availability-day-form:last-child');
+                        const lastDayNumber = lastDayForm ? parseInt(lastDayForm.dataset.day, 10) : 0;
+                        const nextDayNumber = lastDayNumber + 1;
+
+                        // Create the HTML for the new day's form, including the updated roles
+                        const newDayFormHtml = `
+                            <div class="availability-day-form" data-day="${nextDayNumber}">
+                                <h5>--- Day ${nextDayNumber} ---</h5>
+                                <div class="form-group">
+                                    <label for="status-day-${nextDayNumber}">Will you be available?</label>
+                                    <select id="status-day-${nextDayNumber}" class="availability-status">
+                                        <option value="no-response" selected>-- Select --</option>
+                                        <option value="yes">YES</option>
+                                        <option value="partial">Partially</option>
+                                        <option value="no">NO</option>
+                                    </select>
+                                </div>
+
+                                <div class="time-details" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="time-from-day-${nextDayNumber}">Time Range:</label>
+                                        <input type="text" id="time-from-day-${nextDayNumber}" placeholder="e.g., 2pm - 7pm">
+                                    </div>
+                                </div>
+
+                                <div class="reason-details" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="reason-day-${nextDayNumber}">Reason:</label>
+                                        <input type="text" id="reason-day-${nextDayNumber}" placeholder="e.g., Sickness, Work">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="role-day-${nextDayNumber}">Primary Role:</label>
+                                    <select id="role-day-${nextDayNumber}">
+                                        <option value="none">-- Select Role --</option>
+                                        <option value="all-round-attacker">All Round Attacker</option>
+                                        <option value="chain-watcher">Chain Watcher</option>
+                                        <option value="outside-attacker">Outside Attacker</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group checkbox-group">
+                                    <input type="checkbox" id="war-start-day-${nextDayNumber}">
+                                    <label for="war-start-day-${nextDayNumber}">Available for war start?</label>
+                                </div>
+                                <button class="action-btn">Update Day ${nextDayNumber}</button>
+                            </div>
+                        `;
+
+                        // Append the new form to the container
+                        formsContainer.insertAdjacentHTML('beforeend', newDayFormHtml);
+                    });
+                }
+
+                // IMPORTANT: This event listener needs to be attached to the availabilityFormsContainer itself,
+                // and should be outside of the addDayBtn click listener,
+                // so it applies to dynamically added day forms as well.
+                // Assuming 'availabilityFormsContainer' is a globally accessible element
+                if (availabilityFormsContainer) { // Check if it exists
+                    availabilityFormsContainer.addEventListener('click', async (event) => {
+                        // Check if an "Update Day" button was clicked
+                        if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
+                            const button = event.target;
+                            const dayForm = button.closest('.availability-day-form');
+                            const dayNumber = dayForm.dataset.day;
+
+                            const user = auth.currentUser;
+                            if (!user) {
+                                alert("You must be logged in to update your status.");
+                                return;
+                            }
+
+                            // --- Read all the data from the form ---
+                            const status = dayForm.querySelector('.availability-status').value;
+                            const timeRange = dayForm.querySelector('.time-details input').value.trim();
+                            const reason = dayForm.querySelector('.reason-details input').value.trim();
+                            const role = dayForm.querySelector('select[id^="role-day-"]').value;
+                            const isAvailableForStart = dayForm.querySelector('input[type="checkbox"]').checked;
+
+                            // --- Prepare the data object to save ---
+                            const availabilityData = {
+                                status: status,
+                                timeRange: timeRange,
+                                reason: reason,
+                                role: role,
+                                isAvailableForStart: isAvailableForStart,
+                                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                            };
+
+                            // --- Save to Firebase ---
+                            try {
+                                button.textContent = "Saving...";
+                                button.disabled = true;
+
+                                // We will save each day's data as a separate field (e.g., day_1, day_2)
+                                // in a document named after the user's Torn ID.
+                                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                                if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
+                                    throw new Error("Your Torn Profile ID is not linked to your account.");
+                                }
+                                const tornUserId = userProfileDoc.data().tornProfileId;
+
+                                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+
+                                // Using .set with { merge: true } allows us to update one day's data
+                                // without overwriting the data for other days.
+                                await availabilityDocRef.set({
+                                    [`day_${dayNumber}`]: availabilityData,
+                                    // Also save the player's name for easier lookup later
+                                    playerName: currentTornUserName
+                                }, { merge: true });
+
+                                alert(`Availability for Day ${dayNumber} saved successfully!`);
+                                displayWarRoster();
+                                showDayForm(1);
+
+                            } catch (error) {
+                                console.error("Error saving availability:", error);
+                                alert("Error: " + error.message);
+                            } finally {
+                                button.textContent = `Update Day ${dayNumber}`;
+                                button.disabled = false;
+                            }
+                        }
+                    });
+                }
+
+
+                console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID);
                 // Ensure global DOM references are assigned after HTML injection
                 userEnergyDisplay = document.getElementById('userEnergyDisplay');
                 onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
@@ -5012,9 +5092,10 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
-				displayWarRoster();
-				setupFactionHitsListener(db, userData.faction_id);
-				
+                displayWarRoster();
+                setupFactionHitsListener(db, userData.faction_id);
+                setupWarClaimsListener(); // <--- THIS IS THE NEW LINE YOU NEEDED TO ADD
+
 
                 // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
@@ -5024,12 +5105,12 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
                     });
-					
+
                     listenersInitialized = true; // Set this flag to true after setup
 
                     // Recurring intervals (these will run periodically after initial setup)
                     setInterval(updateAllTimers, 1000); // Every 1 second
-                    
+
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
@@ -5037,7 +5118,7 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
                             console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
                     }, 1500); // Every 1.5 seconds
-					
+
                     setInterval(() => {
                         if(userApiKey && globalYourFactionID) {
                             updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
@@ -5087,37 +5168,4 @@ console.log("Global Your Faction ID before calling setupFactionHitsListener:", g
             if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
         }
     });
-});
-// --- Function to attempt opening Xanax use dialog ---
-
-function attemptXanaxUse() {
-    // Define the target URL
-    const xanaxUseUrl = 'https://www.torn.com/item.php#/283/use';
-
-    // Open the items page in a new tab
-    const newTab = window.open('https://www.torn.com/item.php', '_blank');
-
-    if (newTab) {
-        // If the tab was opened successfully, wait a moment for it to load
-        // and then try to change its location to the specific Xanax URL.
-        // This is the part that might be blocked by browser security.
-        setTimeout(() => {
-            try {
-                newTab.location.href = xanaxUseUrl;
-            } catch (e) {
-                console.error("Could not navigate the new tab to the Xanax URL. This is expected if the browser's security policy blocked it.");
-            }
-        }, 1200); // 1.2-second delay
-    } else {
-        // If the window failed to open, it was likely a popup blocker.
-        alert('A popup blocker may have prevented the tab from opening. Please allow popups for this site.');
-    }
-}
-
-// Wait for the page to fully load before attaching the click event
-document.addEventListener('DOMContentLoaded', (event) => {
-    const useXanaxButton = document.getElementById('useXanaxBtn');
-    if (useXanaxButton) {
-        useXanaxButton.addEventListener('click', attemptXanaxUse);
-    }
 });
