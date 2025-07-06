@@ -1907,23 +1907,30 @@ async function unclaimTarget(memberId) {
         return;
     }
 
-    // Immediately disable the button to prevent double-clicks
     const claimBtn = document.getElementById(`claim-btn-${memberId}`);
     if (claimBtn) claimBtn.disabled = true;
+
+    // Get the member's name from the data-member-name attribute on the row
+    const targetRow = document.getElementById(`target-row-${memberId}`);
+    const memberName = targetRow ? targetRow.dataset.memberName : 'Unknown Target';
 
     try {
         // Delete the claim from Firebase
         await db.collection('warClaims').doc(memberId).delete();
         console.log(`Claim for ${memberId} deleted from Firebase.`);
 
-        // The UI update is now handled by the real-time listener for `warClaims`
-        // so we don't need to do it directly here. The `onSnapshot` will pick up the change.
+        // --- NEW: Send an "unclaim" message to faction chat ---
+        const unclaimMessageText = `📢 ${currentTornUserName} has unclaimed ${memberName}.`;
+        await sendClaimChatMessage(currentTornUserName, memberName, null, unclaimMessageText); // Pass null for chainNumber, custom message
+        // Re-using sendClaimChatMessage, but sending a specific message text for unclaim.
+        // I'll adjust sendClaimChatMessage slightly in the next step to properly handle custom messages.
+        // For now, this will send the unclaim message.
+        // --- END NEW ---
 
     } catch (error) {
         console.error("Error deleting claim from Firebase:", error);
         alert(`Failed to unclaim target: ${error.message}`);
     } finally {
-        // Re-enable the button regardless of success/failure (listener will update its state)
         if (claimBtn) claimBtn.disabled = false;
     }
 }
