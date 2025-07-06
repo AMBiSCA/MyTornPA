@@ -930,36 +930,36 @@ function autoUnclaimHitTargets() {
         return;
     }
 
-    const membersToCheck = Object.values(enemyDataGlobal.members);
+    const membersInCurrentEnemyData = Object.values(enemyDataGlobal.members);
+    const currentEnemyMemberIds = new Set(membersInCurrentEnemyData.map(m => String(m.id)));
 
     for (const memberId in globalActiveClaims) {
         if (globalActiveClaims.hasOwnProperty(memberId)) {
             const activeClaim = globalActiveClaims[memberId]; // The current claim from Firebase
 
-            // No check here for 'claimedByUserId !== currentAuthUid' because Firebase rules now allow any authenticated user to delete.
-
-            const claimedMemberData = membersToCheck.find(m => String(m.id) === String(memberId));
+            const claimedMemberData = membersInCurrentEnemyData.find(m => String(m.id) === String(memberId));
 
             if (claimedMemberData) {
                 const currentStatusState = claimedMemberData.status?.state;
                 const currentServerTime = Math.floor(Date.now() / 1000); 
                 const statusUntil = claimedMemberData.status?.until;
 
-                // Condition for auto-unclaim: Target is in Hospital, Jail, or actively Traveling
+                // --- CRITICAL RE-ADDITION: Condition for auto-unclaim based on unavailable status ---
                 const shouldUnclaim = 
                     currentStatusState === 'Hospital' ||
                     currentStatusState === 'Jail' ||
-                    (currentStatusState === 'Traveling' && statusUntil > currentServerTime);
-                
+                    (currentStatusState === 'Traveling' && statusUntil > currentServerTime); // Target is actively traveling
+
                 if (shouldUnclaim) {
                     console.log(`Auto-unclaiming ${claimedMemberData.name} (${memberId}). Status: ${currentStatusState}.`);
                     unclaimTarget(memberId); // Call the unclaim function for this target
                 } else {
-                    console.log(`Claimed target ${claimedMemberData.name} (${memberId}) is OK or Traveling is expired. No auto-unclaim needed.`);
+                    console.log(`Claimed target ${claimedMemberData.name} (${memberId}) is OK or Traveling has expired. No auto-unclaim needed based on status.`);
                 }
             } else {
-                console.warn(`Claimed target ${memberId} not found in current enemy data (might be out of range or removed). Auto-unclaiming.`);
-                unclaimTarget(memberId); // Unclaim if the target is no longer in the enemy list
+                // If the claimed target is no longer found in the enemy data at all (e.g., left faction, was manually removed from enemy list)
+                console.warn(`Claimed target ${memberId} not found in current enemy data (might have disappeared). Auto-unclaiming.`);
+                unclaimTarget(memberId); 
             }
         }
     }
