@@ -392,13 +392,56 @@
                        <div id="war-availability-tab" class="tab-pane">
     <div class="war-availability-grid">
 
-       <div class="user-status-panel">
+        <<div class="user-status-panel">
     <h4>Your Availability</h4>
 
     <div id="availability-forms-container"></div>
 
     <div id="availability-summary-container" style="display: none;"></div>
 </div>
+                    <div class="form-group">
+                        <label for="status-day-1">Will you be available?</label>
+                        <select id="status-day-1" class="availability-status">
+                            <option value="no-response" selected>-- Select --</option>
+                            <option value="yes">YES</option>
+                            <option value="partial">Partially</option>
+                            <option value="no">NO</option>
+                        </select>
+                    </div>
+
+                    <div class="time-details" style="display: none;">
+                        <div class="form-group">
+                            <label for="time-from-day-1">Time Range:</label>
+                            <input type="text" id="time-from-day-1" placeholder="e.g., 2pm - 7pm">
+                        </div>
+                    </div>
+
+                    <div class="reason-details" style="display: none;">
+                        <div class="form-group">
+                            <label for="reason-day-1">Reason:</label>
+                            <input type="text" id="reason-day-1" placeholder="e.g., Sickness, Work">
+                        </div>
+                    </div>
+                    
+                   <div class="form-group">
+                     <label for="role-day-1">Primary Role:</label>
+                     <select id="role-day-1">
+                     <option value="none">-- Select Role --</option>
+                     <option value="all-round-attacker">All Round Attacker</option>
+					 <option value="outside-attacker">Outside Attacker</option>
+                     <option value="chain-watcher">Chain Watcher</option>
+                     </select>
+                   </div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="war-start-day-1">
+                        <label for="war-start-day-1">Available for war start?</label>
+                    </div>
+                     <button class="action-btn">Update Day 1</button>
+                </div>
+            </div>
+
+            <button id="add-availability-day-btn" class="action-btn">+ Add Another Day</button>
+        </div>
 
         <div class="team-roster-panel">
             <h4>Your Factions Roster.</h4>
