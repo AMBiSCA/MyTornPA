@@ -4007,3 +4007,22 @@ min-width: 320px;
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
 }
+/* --- Availability Summary Styles --- */
+#availability-summary-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 15px 0;
+    text-align: center;
+}
+
+#availability-summary-container li {
+    background-color: #333;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    font-size: 1em;
+}
+
+#availability-summary-container li strong {
+    color: #00a8ff;
+}

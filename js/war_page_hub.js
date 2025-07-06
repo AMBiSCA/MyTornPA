@@ -2448,11 +2448,52 @@ function showDayForm(dayNumber) {
     }
 }
 
-function showDayForm(dayNumber) {
+/**
+ * Fetches the user's availability and displays a summary.
+ */
+async function displayAvailabilitySummary() {
     const formsContainer = document.getElementById('availability-forms-container');
-    if (formsContainer) {
-        const formHtml = generateDayFormHTML(dayNumber);
-        formsContainer.innerHTML = formHtml;
+    const summaryContainer = document.getElementById('availability-summary-container');
+    const user = auth.currentUser;
+
+    if (!formsContainer || !summaryContainer || !user) return;
+
+    formsContainer.innerHTML = ''; // Clear the forms
+    summaryContainer.style.display = 'block';
+    summaryContainer.innerHTML = '<p>Loading your summary...</p>';
+
+    try {
+        const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+        if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
+            throw new Error("Your Torn Profile ID is not linked to your account.");
+        }
+        const tornUserId = userProfileDoc.data().tornProfileId;
+        
+        const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+        const doc = await availabilityDocRef.get();
+
+        if (!doc.exists) {
+            summaryContainer.innerHTML = '<p>No availability set.</p><button id="edit-availability-btn" class="action-btn">Set Availability</button>';
+            return;
+        }
+
+        const availabilityData = doc.data();
+        let summaryHtml = '<ul>';
+
+        // Loop through up to 5 days to display the summary
+        for (let i = 1; i <= 5; i++) {
+            if (availabilityData[`day_${i}`]) {
+                const dayData = availabilityData[`day_${i}`];
+                let statusText = dayData.status.charAt(0).toUpperCase() + dayData.status.slice(1);
+                summaryHtml += `<li><strong>Day ${i}:</strong> ${statusText}</li>`;
+            }
+        }
+        summaryHtml += '</ul><button id="edit-availability-btn" class="action-btn">Edit Availability</button>';
+        summaryContainer.innerHTML = summaryHtml;
+
+    } catch (error) {
+        console.error("Error displaying availability summary:", error);
+        summaryContainer.innerHTML = `<p style="color: red;">Error loading summary.</p><button id="edit-availability-btn" class="action-btn">Try Again</button>`;
     }
 }
 async function displayWarRoster() {
@@ -5212,82 +5253,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 availabilityFormsContainer.addEventListener('click', async (event) => {
-    // Check if an "Update Day" button was clicked
     if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
+        // (All the saving logic from before remains the same)
         const button = event.target;
         const dayForm = button.closest('.availability-day-form');
-        const dayNumber = parseInt(dayForm.dataset.day, 10); // Make sure this is a number
-
+        const dayNumber = parseInt(dayForm.dataset.day, 10);
         const user = auth.currentUser;
-        if (!user) {
-            alert("You must be logged in to update your status.");
-            return;
-        }
-
+        if (!user) { alert("You must be logged in."); return; }
         const status = dayForm.querySelector('.availability-status').value;
-        const timeRange = dayForm.querySelector('.time-details input').value.trim();
         const reason = dayForm.querySelector('.reason-details input').value.trim();
-        const role = dayForm.querySelector('select[id^="role-day-"]').value;
-        const isAvailableForStart = dayForm.querySelector('input[type="checkbox"]').checked;
-
-        // Validation for the 'NO' option
-        if (status === 'no' && reason === '') {
-            alert("Please provide a reason for being unavailable.");
-            return; 
-        }
-
+        if (status === 'no' && reason === '') { alert("Please provide a reason."); return; }
         const availabilityData = {
             status: status,
-            timeRange: timeRange,
+            timeRange: dayForm.querySelector('.time-details input').value.trim(),
             reason: reason,
-            role: role,
-            isAvailableForStart: isAvailableForStart,
+            role: dayForm.querySelector('select[id^="role-day-"]').value,
+            isAvailableForStart: dayForm.querySelector('input[type="checkbox"]').checked,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         };
-        
         try {
             button.textContent = "Saving...";
             button.disabled = true;
-
             const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-            if (!userProfileDoc.exists || !userProfileDoc.data().tornProfileId) {
-                throw new Error("Your Torn Profile ID is not linked to your account.");
-            }
             const tornUserId = userProfileDoc.data().tornProfileId;
-            
             const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-
             await availabilityDocRef.set({
                 [`day_${dayNumber}`]: availabilityData,
-                playerName: currentTornUserName 
+                playerName: currentTornUserName
             }, { merge: true });
-
-            alert(`Availability for Day ${dayNumber} saved successfully!`);
             
-            // --- NEW: LOGIC TO ADVANCE TO NEXT DAY ---
+            // --- THIS IS THE UPDATED PART ---
             const nextDayNumber = dayNumber + 1;
             if (nextDayNumber <= 3) {
-                // If the next day is 2 or 3, show that form.
                 showDayForm(nextDayNumber);
             } else {
-                // If we've finished Day 3, show a final message for now.
-                alert("You have completed the initial availability setup!");
-                // We will replace this alert with the summary view in the next step.
-                document.getElementById('availability-forms-container').innerHTML = '';
+                // After finishing Day 3, show the summary view.
+                displayAvailabilitySummary();
             }
-            
-            // Refresh the roster on the right
-            displayWarRoster(); 
-
+            displayWarRoster();
         } catch (error) {
             console.error("Error saving availability:", error);
             alert("Error: " + error.message);
-        } finally {
-            // This 'finally' block is no longer needed to reset the button,
-            // because the form gets replaced by the next one.
+            button.textContent = `Update Day ${dayNumber}`;
+            button.disabled = false;
         }
     }
 });
+
+// --- Listener for the Edit button in the summary view ---
+const summaryContainer = document.getElementById('availability-summary-container');
+if (summaryContainer) {
+    summaryContainer.addEventListener('click', (event) => {
+        if (event.target.matches('#edit-availability-btn')) {
+            summaryContainer.style.display = 'none'; // Hide summary
+            showDayForm(1); // Go back to the Day 1 form
+        }
+    });
+}
 
 
                 console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID);
