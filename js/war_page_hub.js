@@ -4747,6 +4747,68 @@ if (availabilityFormsContainer) {
     });
 }
 
+// --- Add Another Day Button Logic ---
+const addDayBtn = document.getElementById('add-availability-day-btn');
+
+if (addDayBtn) {
+    addDayBtn.addEventListener('click', () => {
+        const formsContainer = document.getElementById('availability-forms-container');
+        // Find the last day form to determine the next day's number
+        const lastDayForm = formsContainer.querySelector('.availability-day-form:last-child');
+        const lastDayNumber = lastDayForm ? parseInt(lastDayForm.dataset.day, 10) : 0;
+        const nextDayNumber = lastDayNumber + 1;
+
+        // Create the HTML for the new day's form, including the updated roles
+        const newDayFormHtml = `
+            <div class="availability-day-form" data-day="${nextDayNumber}">
+                <h5>--- Day ${nextDayNumber} ---</h5>
+                <div class="form-group">
+                    <label for="status-day-${nextDayNumber}">Will you be available?</label>
+                    <select id="status-day-${nextDayNumber}" class="availability-status">
+                        <option value="no-response" selected>-- Select --</option>
+                        <option value="yes">YES</option>
+                        <option value="partial">Partially</option>
+                        <option value="no">NO</option>
+                    </select>
+                </div>
+
+                <div class="time-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="time-from-day-${nextDayNumber}">Time Range:</label>
+                        <input type="text" id="time-from-day-${nextDayNumber}" placeholder="e.g., 2pm - 7pm">
+                    </div>
+                </div>
+
+                <div class="reason-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="reason-day-${nextDayNumber}">Reason:</label>
+                        <input type="text" id="reason-day-${nextDayNumber}" placeholder="e.g., Sickness, Work">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role-day-${nextDayNumber}">Primary Role:</label>
+                    <select id="role-day-${nextDayNumber}">
+                        <option value="none">-- Select Role --</option>
+                        <option value="all-round-attacker">All Round Attacker</option>
+                        <option value="chain-watcher">Chain Watcher</option>
+                        <option value="outside-attacker">Outside Attacker</option>
+                    </select>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="war-start-day-${nextDayNumber}">
+                    <label for="war-start-day-${nextDayNumber}">Available for war start?</label>
+                </div>
+                <button class="action-btn">Update Day ${nextDayNumber}</button>
+            </div>
+        `;
+
+        // Append the new form to the container
+        formsContainer.insertAdjacentHTML('beforeend', newDayFormHtml);
+    });
+}
+
 availabilityFormsContainer.addEventListener('click', async (event) => {
         // Check if an "Update Day" button was clicked
         if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
