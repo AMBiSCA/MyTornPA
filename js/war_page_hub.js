@@ -913,6 +913,48 @@ async function sendClaimChatMessage(claimerName, targetName, chainNumber, custom
         console.error("Error sending claim/unclaim message to Firebase:", error);
     }
 }
+
+function autoUnclaimHitTargets() {
+    console.log("Running autoUnclaimHitTargets check...");
+    if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
+        console.log("No active claims to check for auto-unclaim.");
+        return;
+    }
+    if (!enemyDataGlobal || !enemyDataGlobal.members) {
+        console.warn("Enemy data not available for auto-unclaim check.");
+        return;
+    }
+
+    const membersToCheck = Object.values(enemyDataGlobal.members);
+
+    for (const memberId in globalActiveClaims) {
+        if (globalActiveClaims.hasOwnProperty(memberId)) {
+            const claimedMemberData = membersToCheck.find(m => String(m.id) === String(memberId));
+
+            if (claimedMemberData) {
+                const currentStatusState = claimedMemberData.status?.state;
+                // Get current server time (in seconds)
+                const currentServerTime = Math.floor(Date.now() / 1000); 
+                const statusUntil = claimedMemberData.status?.until;
+
+                // Condition for auto-unclaim:
+                // If they are in Hospital or Jail, OR if they are traveling and their timer is active
+                const shouldUnclaim = 
+                    currentStatusState === 'Hospital' ||
+                    currentStatusState === 'Jail' ||
+                    (currentStatusState === 'Traveling' && statusUntil > currentServerTime);
+                
+                if (shouldUnclaim) {
+                    console.log(`Auto-unclaiming ${claimedMemberData.name} (${memberId}). Status: ${currentStatusState}.`);
+                    unclaimTarget(memberId); // Call the unclaim function for this target
+                }
+            } else {
+                console.warn(`Claimed target ${memberId} not found in current enemy data. Auto-unclaiming as they might be out of range or removed.`);
+                unclaimTarget(memberId); // Unclaim if target is no longer in the enemy list
+            }
+        }
+    }
+}
 function toggleScrollIndicatorVisibility() {
     const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
     const scrollIndicator = document.getElementById('scrollUpIndicator');
@@ -1935,49 +1977,8 @@ async function unclaimTarget(memberId) {
         if (claimBtn) claimBtn.disabled = false;
     }
 }
-// ... (Your existing claimTarget and unclaimTarget functions) ...
-  async function fetchAndDisplayEnemyFaction(factionID, apiKey) {
-    if (!factionID || !apiKey) return;
-    try {
-        const enemyApiUrl = `https://api.torn.com/v2/faction/${factionID}?selections=basic,members&key=${apiKey}&comment=MyTornPA_EnemyFaction`;
-        const response = await fetch(enemyApiUrl);
-        if (!response.ok) {
-            throw new Error(`Server responded with an error: ${response.status} ${response.statusText}`);
-        }
-        enemyDataGlobal = await response.json(); // Store enemy data globally
-        const enemyData = enemyDataGlobal; // Use local alias for function's internal logic
-        console.log("Enemy Faction API Data:", enemyData);
-        if (enemyData.error) {
-            console.error('Torn API responded with a detailed error for enemy faction:', enemyData.error);
-            throw new Error(`Torn API Error: ${JSON.stringify(enemyData.error.error)}`);
-        }
 
-        if (factionTwoNameEl) factionTwoNameEl.textContent = enemyData.basic.name || 'Unknown Faction';
-        if (factionTwoMembersEl) factionTwoMembersEl.textContent = `Total Members: ${countFactionMembers(enemyData.members) || 'N/A'}`;
-
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const warData = warDoc.exists ? warDoc.data() : {};
-        const savedWatchlistMembers = warData.bigHitterWatchlist || [];
-
-        if (enemyData.members) {
-            // Corrected function call
-            displayEnemyTargetsTable(enemyData.members);
-            populateEnemyMemberCheckboxes(enemyData.members, savedWatchlistMembers);
-        } else {
-            console.warn("Enemy faction members data not found.");
-            // Corrected function call
-            displayEnemyTargetsTable(null);
-            populateEnemyMemberCheckboxes({}, []);
-        }
-    } catch (error) {
-        console.error('Error fetching enemy faction data:', error);
-        if (factionTwoNameEl) factionTwoNameEl.textContent = 'Invalid Enemy ID';
-        if (factionTwoMembersEl) factionTwoTwoMembersEl.textContent = 'N/A';
-        // REMOVED: if (factionTwoPicEl) factionTwoPicEl.style.backgroundImage = ''; // This line is now removed
-        displayEnemyTargetsTable(null);
-        populateEnemyMemberCheckboxes({}, []);
-    }
-}
+ fetchAndDisplayEnemyFaction
   console.log('Chain countdown state:', currentLiveChainSeconds, lastChainApiFetchTime); // NEW: Added console.log
   if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
       const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000; // Time in seconds since last API fetch
