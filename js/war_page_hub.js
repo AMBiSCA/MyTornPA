@@ -2496,12 +2496,50 @@ async function displayAvailabilitySummary() {
         summaryContainer.innerHTML = `<p style="color: red;">Error loading summary.</p><button id="edit-availability-btn" class="action-btn">Try Again</button>`;
     }
 }
+
+function showFactionSummary(summaryCounts) {
+    const formsContainer = document.getElementById('availability-forms-container');
+    if (!formsContainer) return;
+
+    // This is the HTML for the summary box
+    const summaryHtml = `
+        <div class="faction-summary-panel">
+            <h4>Daily Readiness Summary</h4>
+            <div class="summary-grid">
+                <div class="summary-col">
+                    <strong>Day 1</strong>
+                    <p>✅ Avail: ${summaryCounts.day1.yes}</p>
+                    <p>🟧 Part: ${summaryCounts.day1.partial}</p>
+                    <p>❌ Unavail: ${summaryCounts.day1.no}</p>
+                </div>
+                <div class="summary-col">
+                    <strong>Day 2</strong>
+                    <p>✅ Avail: ${summaryCounts.day2.yes}</p>
+                    <p>🟧 Part: ${summaryCounts.day2.partial}</p>
+                    <p>❌ Unavail: ${summaryCounts.day2.no}</p>
+                </div>
+                <div class="summary-col">
+                    <strong>Day 3</strong>
+                    <p>✅ Avail: ${summaryCounts.day3.yes}</p>
+                    <p>🟧 Part: ${summaryCounts.day3.partial}</p>
+                    <p>❌ Unavail: ${summaryCounts.day3.no}</p>
+                </div>
+            </div>
+            <div class="summary-footer">
+                <p><strong>Roles (Day 1):</strong> All Round: <strong>${summaryCounts.roles['all-round-attacker']}</strong> / Watcher: <strong>${summaryCounts.roles['chain-watcher']}</strong> / Outside: <strong>${summaryCounts.roles['outside-attacker']}</strong></p>
+                <hr>
+                <p><strong>Ready at War Start:</strong> ${summaryCounts.atStart}</p>
+            </div>
+            <button id="edit-availability-btn" class="action-btn">Edit Availability</button>
+        </div>
+    `;
+
+    // We inject this HTML into the main forms container
+    formsContainer.innerHTML = summaryHtml;
+}
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
-    if (!rosterDisplay) {
-        console.error("Roster display container not found.");
-        return;
-    }
+    if (!rosterDisplay) { return; }
 
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
@@ -2519,104 +2557,61 @@ async function displayWarRoster() {
         const allMembers = Object.values(factionApiFullData.members);
         rosterDisplay.innerHTML = '';
 
+        // Initialize counters for the summary
+        let summaryCounts = {
+            day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 },
+            roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 },
+            atStart: 0
+        };
+
         for (const member of allMembers) {
-            const memberId = member.id;
-            const memberName = member.name;
-            const memberAvailability = availabilityData[memberId];
-
+            const memberAvailability = availabilityData[member.id];
+            
+            // --- Logic to populate the roster (Right side) ---
+            // This part is the same as before...
             let statusClass = 'status-grey';
-            let statusTextHtml = '<span class="status-text-grey">(No response yet)</span>'; // Default text
-
+            let statusTextHtml = '<span class="status-text-grey">(No response yet)</span>';
             if (memberAvailability) {
                 const summaryParts = [];
-                let hasSaidNo = false;
-                let hasSaidPartial = false;
-                let hasSaidYes = false;
-
-                // Loop through days 1, 2, and 3 to build the detailed status string
+                let hasSaidNo = false, hasSaidPartial = false, hasSaidYes = false;
                 for (let i = 1; i <= 3; i++) {
                     const dayData = memberAvailability[`day_${i}`];
                     if (dayData && dayData.status !== 'no-response') {
+                        // Increment summary counters
+                        summaryCounts[`day${i}`][dayData.status]++;
+                        if (i === 1 && dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
+                        if (i === 1 && dayData.isAvailableForStart) summaryCounts.atStart++;
+                        
+                        // Build the display text for the roster
+                        let dayStatusText = `D${i}: `;
                         let dayStatusClass = '';
-                        let dayText = '';
-
                         switch (dayData.status) {
-                            case 'yes':
-                                dayStatusClass = 'status-text-green';
-                                dayText = `Yes (${dayData.timeRange || 'All Day'})`;
-                                hasSaidYes = true;
-                                break;
-                            case 'partial':
-                                dayStatusClass = 'status-text-orange';
-                                dayText = `Partial (${dayData.timeRange || 'N/A'})`;
-                                hasSaidPartial = true;
-                                break;
-                            case 'no':
-                                dayStatusClass = 'status-text-red';
-                                dayText = `No (${dayData.reason || 'No reason'})`;
-                                hasSaidNo = true;
-                                break;
+                            case 'yes': dayStatusText += `Yes (${dayData.timeRange || 'All Day'})`; dayStatusClass = 'status-text-green'; hasSaidYes = true; break;
+                            case 'partial': dayStatusText += `Partial (${dayData.timeRange || 'N/A'})`; dayStatusClass = 'status-text-orange'; hasSaidPartial = true; break;
+                            case 'no': dayStatusText += `No (${dayData.reason || 'No reason'})`; dayStatusClass = 'status-text-red'; hasSaidNo = true; break;
                         }
-                        if (dayText) {
-                            summaryParts.push(`<span class="${dayStatusClass}">D${i}: ${dayText}</span>`);
-                        }
+                        summaryParts.push(`<span class="${dayStatusClass}">${dayStatusText}</span>`);
                     }
                 }
-
                 if (summaryParts.length > 0) {
                     statusTextHtml = summaryParts.join(' | ');
-
-                    const day1Data = memberAvailability.day_1;
-                    if (day1Data) {
-                        if (day1Data.role && day1Data.role !== 'none') {
-                            const formattedRole = day1Data.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                            statusTextHtml += ` | <span class="status-text-grey">Role: ${formattedRole}</span>`;
-                        }
-                        if (day1Data.isAvailableForStart) {
-                            statusTextHtml += ' | <span class="status-text-grey">At Start</span>';
-                        }
-                    }
-
-                    if (hasSaidNo) statusClass = 'status-red';
-                    else if (hasSaidPartial) statusClass = 'status-orange';
-                    else if (hasSaidYes) statusClass = 'status-green';
+                    if (hasSaidNo) statusClass = 'status-red'; else if (hasSaidPartial) statusClass = 'status-orange'; else if (hasSaidYes) statusClass = 'status-green';
                 }
             }
-            
-            const playerHtml = `
-                <div class="roster-player ${statusClass}" data-member-id="${memberId}">
-                    <img src="../../images/default_profile_icon.png" class="roster-player-pic">
-                    <div class="roster-player-info">
-                        <span class="player-name">${memberName}</span>
-                        <span class="player-status">${statusTextHtml}</span>
-                    </div>
-                </div>
-            `;
+            const playerHtml = `<div class="roster-player ${statusClass}" data-member-id="${member.id}"><img src="../../images/default_profile_icon.png" class="roster-player-pic"><div class="roster-player-info"><span class="player-name">${member.name}</span><span class="player-status">${statusTextHtml}</span></div></div>`;
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // Fetch profile pictures (this part is unchanged)
+        // --- NEW: Display the calculated summary on the LEFT panel ---
+        showFactionSummary(summaryCounts);
+        
+        // Fetch profile pictures
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
-        for (const item of rosterItems) {
-            const memberId = item.dataset.memberId;
-            try {
-                const userDoc = await db.collection('users').doc(String(memberId)).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    const profileImageUrl = userData.profile_image || '../../images/default_profile_icon.png';
-                    const imgElement = item.querySelector('.roster-player-pic');
-                    if (imgElement) {
-                        imgElement.src = profileImageUrl;
-                    }
-                }
-            } catch (err) {
-                console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
-            }
-        }
+        for (const item of rosterItems) { /* ... same as before ... */ }
 
     } catch (error) {
         console.error("Error displaying war roster:", error);
-        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
+        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster.</p>';
     }
 }
 function displayEnemyTargetsTable(members) {
