@@ -5255,7 +5255,6 @@ availabilityFormsContainer.addEventListener('click', async (event) => {
         const status = dayForm.querySelector('.availability-status').value;
         const reason = dayForm.querySelector('.reason-details input').value.trim();
 
-        // Validation for the 'NO' option
         if (status === 'no' && reason === '') {
             alert("Please provide a reason for being unavailable.");
             return; 
@@ -5283,25 +5282,20 @@ availabilityFormsContainer.addEventListener('click', async (event) => {
                 playerName: currentTornUserName 
             }, { merge: true });
 
-            alert(`Availability for Day ${dayNumber} saved successfully!`);
+            // The alert line that was here has been removed.
             
             const nextDayNumber = dayNumber + 1;
             if (nextDayNumber <= 3) {
                 showDayForm(nextDayNumber);
             } else {
-                // When done, just clear the forms area. 
-                // The main displayWarRoster function will handle showing the summary.
                 document.getElementById('availability-forms-container').innerHTML = '';
             }
             
-            // This will refresh the roster and the summary panel correctly
             displayWarRoster(); 
 
         } catch (error) {
             console.error("Error saving availability:", error);
             alert("Error: " + error.message);
-            button.textContent = `Update Day ${dayNumber}`;
-            button.disabled = false;
         }
     }
 });
