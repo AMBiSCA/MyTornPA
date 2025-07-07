@@ -2459,15 +2459,15 @@ function showFactionSummary(summaryCounts) {
             <div class="summary-grid">
                 <div class="summary-col">
                     <strong>Day 1</strong>
-                    <p>✅ Avail: ${summaryCounts.day1.yes}</p><p>🟧 Part: ${summaryCounts.day1.partial}</p><p>❌ Unavail: ${summaryCounts.day1.no}</p>
+                    <p>✅ Available: ${summaryCounts.day1.yes}</p><p>🟧 Partially: ${summaryCounts.day1.partial}</p><p>❌ Unavailable: ${summaryCounts.day1.no}</p>
                 </div>
                 <div class="summary-col">
                     <strong>Day 2</strong>
-                    <p>✅ Avail: ${summaryCounts.day2.yes}</p><p>🟧 Part: ${summaryCounts.day2.partial}</p><p>❌ Unavail: ${summaryCounts.day2.no}</p>
+                    <p>✅ Available: ${summaryCounts.day2.yes}</p><p>🟧 Partially: ${summaryCounts.day2.partial}</p><p>❌ Unavailable: ${summaryCounts.day2.no}</p>
                 </div>
                 <div class="summary-col">
                     <strong>Day 3</strong>
-                    <p>✅ Avail: ${summaryCounts.day3.yes}</p><p>🟧 Part: ${summaryCounts.day3.partial}</p><p>❌ Unavail: ${summaryCounts.day3.no}</p>
+                    <p>✅ Available: ${summaryCounts.day3.yes}</p><p>🟧 Partially: ${summaryCounts.day3.partial}</p><p>❌ Unavailable: ${summaryCounts.day3.no}</p>
                 </div>
             </div>
             <div class="summary-footer">
