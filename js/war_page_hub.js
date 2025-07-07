@@ -2442,23 +2442,30 @@ function generateDayFormHTML(dayNumber) {
 
 async function checkAndShowAdminControls() {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) return; // Not logged in
 
     try {
+        // Check user's position from their profile
         const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
         const userPosition = userProfileDoc.exists ? userProfileDoc.data().position : '';
+
+        // Check the designated admins list from the war data
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const tab4Admins = warDoc.exists ? warDoc.data().tab4Admins || [] : [];
         
-        const isAdmin = userPosition === 'Leader' || userPosition === 'Co-leader' || tab4Admins.includes(user.uid);
+        // --- THIS IS THE FIX ---
+        // Convert the user's position to lowercase before checking it.
+        const userPositionLower = userPosition.toLowerCase();
+        const isAdmin = userPositionLower === 'leader' || userPositionLower === 'co-leader' || tab4Admins.includes(user.uid);
+        // --- END OF FIX ---
 
         if (isAdmin) {
             const adminControls = document.getElementById('availability-admin-controls');
             if (adminControls) {
                 adminControls.style.display = 'block';
             }
-            // --- ADD THIS LINE ---
-            setupReminderTemplateControls(); // This will activate the save/load logic for the template box.
+            // This call is correct and should remain.
+            setupReminderTemplateControls();
         }
     } catch (error) {
         console.error("Error checking admin status:", error);
