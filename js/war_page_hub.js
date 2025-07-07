@@ -2506,22 +2506,19 @@ async function displayWarRoster() {
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
 
     try {
-        // 1. Get all saved availability data from the database
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const availabilityData = {};
         availabilitySnapshot.forEach(doc => {
-            availabilityData[doc.id] = doc.data(); // Keyed by Torn User ID
+            availabilityData[doc.id] = doc.data();
         });
 
-        // 2. Get the full list of faction members from our global variable
         if (!factionApiFullData || !factionApiFullData.members) {
             rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
-        rosterDisplay.innerHTML = ''; // Clear loading message
+        rosterDisplay.innerHTML = '';
 
-        // 3. Build the roster HTML for each member
         for (const member of allMembers) {
             const memberId = member.id;
             const memberName = member.name;
@@ -2529,38 +2526,41 @@ async function displayWarRoster() {
 
             let statusClass = 'status-grey';
             let statusText = '(No response yet)';
+            
+            // --- NEW: Logic to build a multi-day summary ---
+            if (memberAvailability) {
+                const summaryParts = [];
+                let hasSaidNo = false;
+                let hasSaidPartial = false;
+                let hasSaidYes = false;
 
-            // If the member has saved availability for Day 1
-            if (memberAvailability && memberAvailability.day_1) {
-                const day1Status = memberAvailability.day_1;
-                switch (day1Status.status) {
-                    case 'yes':
-                        statusClass = 'status-green';
-                        statusText = `Yes (${day1Status.timeRange || 'All Day'})`;
-                        break;
-                    case 'partial':
-                        statusClass = 'status-orange';
-                        statusText = `Partial (${day1Status.timeRange || 'N/A'})`;
-                        break;
-                    case 'no':
+                // Loop through days 1, 2, and 3
+                for (let i = 1; i <= 3; i++) {
+                    const dayData = memberAvailability[`day_${i}`];
+                    if (dayData && dayData.status !== 'no-response') {
+                        let dayStatus = dayData.status.charAt(0).toUpperCase(); // Y, P, N
+                        summaryParts.push(`D${i}: ${dayStatus}`);
+                        
+                        if(dayData.status === 'no') hasSaidNo = true;
+                        if(dayData.status === 'partial') hasSaidPartial = true;
+                        if(dayData.status === 'yes') hasSaidYes = true;
+                    }
+                }
+
+                if (summaryParts.length > 0) {
+                    statusText = summaryParts.join(' | ');
+
+                    // Set overall color: Red > Orange > Green
+                    if (hasSaidNo) {
                         statusClass = 'status-red';
-                        statusText = `No (${day1Status.reason || 'Unavailable'})`;
-                        break;
+                    } else if (hasSaidPartial) {
+                        statusClass = 'status-orange';
+                    } else if (hasSaidYes) {
+                        statusClass = 'status-green';
+                    }
                 }
-
-                // --- THIS IS THE NEW PART ---
-                // Add Role and "At Start" info to the status text
-                if (day1Status.role && day1Status.role !== 'none') {
-                    // This makes the role name look nice, e.g., "all-round-attacker" becomes "All Round Attacker"
-                    const formattedRole = day1Status.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    statusText += ` | Role: ${formattedRole}`;
-                }
-                if (day1Status.isAvailableForStart) {
-                    statusText += ' | At Start';
-                }
-                // --- END OF NEW PART ---
-
             }
+            // --- END NEW LOGIC ---
             
             const playerHtml = `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
@@ -2574,7 +2574,7 @@ async function displayWarRoster() {
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // 4. Loop again to fetch profile pictures asynchronously
+        // Loop to fetch profile pictures (this part remains the same)
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
         for (const item of rosterItems) {
             const memberId = item.dataset.memberId;
