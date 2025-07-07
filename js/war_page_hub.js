@@ -2536,9 +2536,15 @@ function showFactionSummary(summaryCounts) {
 }
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
-    if (!rosterDisplay) { return; }
+    const summaryPanel = document.getElementById('faction-readiness-summary');
+
+    if (!rosterDisplay || !summaryPanel) {
+        console.error("Roster display or summary panel container not found.");
+        return;
+    }
 
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
+    summaryPanel.style.display = 'none';
 
     try {
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
@@ -2554,7 +2560,6 @@ async function displayWarRoster() {
         const allMembers = Object.values(factionApiFullData.members);
         rosterDisplay.innerHTML = '';
 
-        // Initialize counters for the summary
         let summaryCounts = {
             day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 },
             roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 },
@@ -2562,24 +2567,23 @@ async function displayWarRoster() {
         };
 
         for (const member of allMembers) {
-            const memberAvailability = availabilityData[member.id];
-            
-            // --- Logic to populate the roster (Right side) ---
-            // This part is the same as before...
+            const memberId = member.id;
+            const memberName = member.name;
+            const memberAvailability = availabilityData[memberId];
             let statusClass = 'status-grey';
             let statusTextHtml = '<span class="status-text-grey">(No response yet)</span>';
+
             if (memberAvailability) {
                 const summaryParts = [];
                 let hasSaidNo = false, hasSaidPartial = false, hasSaidYes = false;
                 for (let i = 1; i <= 3; i++) {
                     const dayData = memberAvailability[`day_${i}`];
                     if (dayData && dayData.status !== 'no-response') {
-                        // Increment summary counters
                         summaryCounts[`day${i}`][dayData.status]++;
-                        if (i === 1 && dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
-                        if (i === 1 && dayData.isAvailableForStart) summaryCounts.atStart++;
-                        
-                        // Build the display text for the roster
+                        if (i === 1) { // Only count roles and start status from Day 1 submission
+                           if (dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
+                           if (dayData.isAvailableForStart) summaryCounts.atStart++;
+                        }
                         let dayStatusText = `D${i}: `;
                         let dayStatusClass = '';
                         switch (dayData.status) {
@@ -2595,16 +2599,41 @@ async function displayWarRoster() {
                     if (hasSaidNo) statusClass = 'status-red'; else if (hasSaidPartial) statusClass = 'status-orange'; else if (hasSaidYes) statusClass = 'status-green';
                 }
             }
-            const playerHtml = `<div class="roster-player ${statusClass}" data-member-id="${member.id}"><img src="../../images/default_profile_icon.png" class="roster-player-pic"><div class="roster-player-info"><span class="player-name">${member.name}</span><span class="player-status">${statusTextHtml}</span></div></div>`;
+            
+            const playerHtml = `
+                <div class="roster-player ${statusClass}" data-member-id="${memberId}">
+                    <img src="../../images/default_profile_icon.png" class="roster-player-pic">
+                    <div class="roster-player-info">
+                        <span class="player-name">${memberName}</span>
+                        <span class="player-status">${statusTextHtml}</span>
+                    </div>
+                </div>
+            `;
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // --- NEW: Display the calculated summary on the LEFT panel ---
         showFactionSummary(summaryCounts);
         
-        // Fetch profile pictures
+        // --- THIS IS THE RESTORED CODE BLOCK ---
+        // This loop fetches the profile pictures after the roster is built.
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
-        for (const item of rosterItems) { /* ... same as before ... */ }
+        for (const item of rosterItems) {
+            const memberId = item.dataset.memberId;
+            try {
+                const userDoc = await db.collection('users').doc(String(memberId)).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const profileImageUrl = userData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = item.querySelector('.roster-player-pic');
+                    if (imgElement) {
+                        imgElement.src = profileImageUrl;
+                    }
+                }
+            } catch (err) {
+                console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
+            }
+        }
+        // --- END OF RESTORED CODE ---
 
     } catch (error) {
         console.error("Error displaying war roster:", error);
