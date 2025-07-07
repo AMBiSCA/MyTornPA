@@ -2487,16 +2487,9 @@ function showFactionSummary(summaryCounts) {
 }
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
-    
-    // THIS IS THE FIX: We only check for the rosterDisplay here.
-    if (!rosterDisplay) {
-        console.error("Roster display container ('war-roster-display') not found.");
-        return;
-    }
+    if (!rosterDisplay) { return; }
 
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
-    
-    // We no longer need to find the summaryPanel here.
 
     try {
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
@@ -2512,11 +2505,8 @@ async function displayWarRoster() {
         const allMembers = Object.values(factionApiFullData.members);
         rosterDisplay.innerHTML = '';
 
-        let summaryCounts = {
-            day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 },
-            roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 },
-            atStart: 0
-        };
+        // (The summary logic remains the same)
+        let summaryCounts = { day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 }, roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 }, atStart: 0 };
 
         for (const member of allMembers) {
             const memberId = member.id;
@@ -2554,7 +2544,7 @@ async function displayWarRoster() {
             
             const playerHtml = `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
-                    <img src="../../images/default_profile_icon.png" class="roster-player-pic">
+                    <img src="../../images/default_user_icon.svg" class="roster-player-pic">
                     <div class="roster-player-info">
                         <span class="player-name">${memberName}</span>
                         <span class="player-status">${statusTextHtml}</span>
@@ -2564,21 +2554,25 @@ async function displayWarRoster() {
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // Now that all members are looped and counted, display the summary
         showFactionSummary(summaryCounts);
         
+        // This loop now reliably sets a default image
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
         for (const item of rosterItems) {
             const memberId = item.dataset.memberId;
             try {
                 const userDoc = await db.collection('users').doc(String(memberId)).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    const profileImageUrl = userData.profile_image || '../../images/default_profile_icon.png';
-                    const imgElement = item.querySelector('.roster-player-pic');
-                    if (imgElement) {
-                        imgElement.src = profileImageUrl;
-                    }
+                const imgElement = item.querySelector('.roster-player-pic');
+                let profileImageUrl = '../../images/default_user_icon.svg'; // The default path
+
+                if (userDoc.exists && userDoc.data().profile_image) {
+                    // If the user exists and has a profile image, use it
+                    profileImageUrl = userDoc.data().profile_image;
+                }
+                
+                // Set the src attribute of the image
+                if (imgElement) {
+                    imgElement.src = profileImageUrl;
                 }
             } catch (err) {
                 console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
@@ -2587,9 +2581,9 @@ async function displayWarRoster() {
 
     } catch (error) {
         console.error("Error displaying war roster:", error);
-        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
+        rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster.</p>';
     }
-  }
+}
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
