@@ -4068,6 +4068,73 @@ min-width: 320px;
 .roster-player-info {
     flex-grow: 1;
 }
+
+/* --- Faction-Wide Summary Panel Styles --- */
+
+.faction-summary-panel {
+    border-top: 2px solid #444; /* A separator from the form above */
+    margin-top: 20px;
+    padding-top: 15px;
+}
+
+.faction-summary-panel h4 {
+    font-size: 1.2em;
+    color: #e0a71a; /* Gold color for the title */
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* This creates the 3-column layout */
+    gap: 10px; /* Space between the columns */
+    text-align: center;
+}
+
+.summary-col {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.summary-col strong {
+    color: #00a8ff; /* Blue for the "Day 1", "Day 2", etc. headers */
+    border-bottom: 1px solid #555;
+    display: block;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.summary-col p {
+    margin: 4px 0;
+    font-size: 0.9em;
+    color: #f0f0f0;
+}
+
+.summary-footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.summary-footer hr {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 10px auto;
+    width: 80%;
+}
+
+.summary-footer p {
+    margin: 5px 0;
+}
+
+.summary-footer strong {
+    color: #e0a71a; /* Gold color for the labels */
+}
+
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
 }
