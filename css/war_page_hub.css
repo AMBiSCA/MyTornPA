@@ -4153,6 +4153,12 @@ min-width: 320px;
     flex-grow: 1;          /* Makes all buttons take up equal space in the row */
 }
 
+.availability-day-form .action-btn:disabled {
+    color: black !important;
+    background-color: #bbbbbb;
+    cursor: not-allowed;
+}
+
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
 }
