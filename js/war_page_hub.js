@@ -2526,29 +2526,50 @@ async function displayWarRoster() {
 
             let statusClass = 'status-grey';
             let statusText = '(No response yet)';
-            
-            // --- NEW: Logic to build a multi-day summary ---
+
             if (memberAvailability) {
                 const summaryParts = [];
                 let hasSaidNo = false;
                 let hasSaidPartial = false;
                 let hasSaidYes = false;
 
-                // Loop through days 1, 2, and 3
-                for (let i = 1; i <= 3; i++) {
+                // --- NEW: Detailed status generation for each day ---
+                for (let i = 1; i <= 3; i++) { // Check up to 3 days
                     const dayData = memberAvailability[`day_${i}`];
                     if (dayData && dayData.status !== 'no-response') {
-                        let dayStatus = dayData.status.charAt(0).toUpperCase(); // Y, P, N
-                        summaryParts.push(`D${i}: ${dayStatus}`);
-                        
-                        if(dayData.status === 'no') hasSaidNo = true;
-                        if(dayData.status === 'partial') hasSaidPartial = true;
-                        if(dayData.status === 'yes') hasSaidYes = true;
+                        let dayStatusText = `D${i}: `;
+                        switch (dayData.status) {
+                            case 'yes':
+                                dayStatusText += `Yes (${dayData.timeRange || 'All Day'})`;
+                                hasSaidYes = true;
+                                break;
+                            case 'partial':
+                                dayStatusText += `Partial (${dayData.timeRange || 'N/A'})`;
+                                hasSaidPartial = true;
+                                break;
+                            case 'no':
+                                dayStatusText += `No (${dayData.reason || 'No reason'})`;
+                                hasSaidNo = true;
+                                break;
+                        }
+                        summaryParts.push(dayStatusText);
                     }
                 }
 
                 if (summaryParts.length > 0) {
                     statusText = summaryParts.join(' | ');
+
+                    // Add general info (like role/start time) from Day 1 data, if it exists
+                    const day1Data = memberAvailability.day_1;
+                    if (day1Data) {
+                        if (day1Data.role && day1Data.role !== 'none') {
+                            const formattedRole = day1Data.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            statusText += ` | Role: ${formattedRole}`;
+                        }
+                        if (day1Data.isAvailableForStart) {
+                            statusText += ' | At Start';
+                        }
+                    }
 
                     // Set overall color: Red > Orange > Green
                     if (hasSaidNo) {
@@ -2560,7 +2581,6 @@ async function displayWarRoster() {
                     }
                 }
             }
-            // --- END NEW LOGIC ---
             
             const playerHtml = `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
@@ -2574,7 +2594,7 @@ async function displayWarRoster() {
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // Loop to fetch profile pictures (this part remains the same)
+        // This loop for fetching profile pictures remains the same
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
         for (const item of rosterItems) {
             const memberId = item.dataset.memberId;
