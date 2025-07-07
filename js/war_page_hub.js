@@ -2536,15 +2536,16 @@ function showFactionSummary(summaryCounts) {
 }
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
-    const summaryPanel = document.getElementById('faction-readiness-summary');
-
-    if (!rosterDisplay || !summaryPanel) {
-        console.error("Roster display or summary panel container not found.");
+    
+    // THIS IS THE FIX: We only check for the rosterDisplay here.
+    if (!rosterDisplay) {
+        console.error("Roster display container ('war-roster-display') not found.");
         return;
     }
 
     rosterDisplay.innerHTML = '<p>Loading team roster...</p>';
-    summaryPanel.style.display = 'none';
+    
+    // We no longer need to find the summaryPanel here.
 
     try {
         const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
@@ -2584,7 +2585,6 @@ async function displayWarRoster() {
                            if (dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
                            if (dayData.isAvailableForStart) summaryCounts.atStart++;
                         }
-                        
                         let dayStatusText = `D${i}: `;
                         let dayStatusClass = '';
                         switch (dayData.status) {
@@ -2613,9 +2613,9 @@ async function displayWarRoster() {
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
+        // Now that all members are looped and counted, display the summary
         showFactionSummary(summaryCounts);
         
-        // --- THIS IS THE CORRECTED PICTURE-FETCHING LOOP ---
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
         for (const item of rosterItems) {
             const memberId = item.dataset.memberId;
@@ -2633,12 +2633,12 @@ async function displayWarRoster() {
                 console.warn(`Could not fetch profile picture for member ${memberId}:`, err);
             }
         }
-        // --- END OF CORRECTION ---
 
     } catch (error) {
         console.error("Error displaying war roster:", error);
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
     }
+}  }
 }
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
