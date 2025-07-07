@@ -3980,73 +3980,71 @@ min-width: 320px;
 /* --- UPDATED Roster Color Coding --- */
 
 /* First, set the default text colors */
-.roster-player .player-name {
-    color: #FFFFFF; /* Player name is now always solid white */
-    font-weight: bold;
-    font-size: 1.1em;
-}
+/* --- FINAL Roster Layout & Color Fix --- */
 
-.roster-player .player-status {
-    font-size: 0.9em;
-    font-style: italic;
-    color: #bbbbbb; /* Default color for status text */
-}
-
-/* Now, apply specific colors ONLY to the status text based on the parent class */
-.roster-player.status-green .player-status {
-    color: #66bb6a; /* A pleasant, readable green */
-    font-weight: bold;
-    font-style: normal;
-}
-
-.roster-player.status-orange .player-status {
-    color: #ffa726; /* A readable orange */
-    font-weight: bold;
-    font-style: normal;
-}
-
-.roster-player.status-red .player-status {
-    color: #ef5350; /* A readable red */
-    font-weight: bold;
-    font-style: normal;
-}
-
-/* Keep the left border for a strong visual cue */
-.roster-player.status-green {
-    border-left-color: #4CAF50;
-}
-
-.roster-player.status-orange {
-    border-left-color: #ff9800;
-}
-
-.roster-player.status-red {
-    border-left-color: #f44336;
-}
-
-.roster-player.status-grey {
-    border-left-color: #666;
-}
-
+/* This is the main container for each player's row */
 .roster-player {
-    display: flex;
-    align-items: center; /* Vertically centers the picture with the text block */
-    gap: 12px;           /* Sets the space between the picture and the text */
+    display: flex;           /* This makes the items inside go side-by-side */
+    align-items: center;     /* This vertically centers the picture with the text block */
+    gap: 12px;               /* This is the space between the picture and the text */
+    padding: 8px 10px;
 }
 
-/* This fixes the profile picture size and makes it a circle */
+/* This styles the profile picture itself */
 .roster-player-pic {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     border: 2px solid #555;
-    flex-shrink: 0; /* Prevents the image from being squished */
+    flex-shrink: 0; /* This stops the image from being squished */
 }
 
-/* This ensures the text block takes up the available space */
+/* This is the container for the text (Name and Status) */
 .roster-player-info {
-    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* This is correct - it stacks the Name on top of the Status */
+    gap: 3px;
 }
+
+/* This forces the player's name to be solid white */
+.roster-player .player-name {
+    color: #FFFFFF !important;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* This is the default style for the status text */
+.roster-player .player-status {
+    color: #bbbbbb !important;
+    font-size: 0.85em;
+    font-style: normal !important;
+}
+
+
+/* --- INDIVIDUAL TEXT COLORS (These are correct, but included for completeness) --- */
+
+.status-text-green {
+    color: #66bb6a !important;
+    font-weight: bold;
+}
+.status-text-orange {
+    color: #ffa726 !important;
+    font-weight: bold;
+}
+.status-text-red {
+    color: #ef5350 !important;
+    font-weight: bold;
+}
+.status-text-grey {
+    color: #9E9E9E !important;
+    font-style: italic;
+}
+
+/* This keeps the colored border on the left of the whole row */
+.roster-player.status-green { border-left-color: #4CAF50; }
+.roster-player.status-orange { border-left-color: #ff9800; }
+.roster-player.status-red { border-left-color: #f44336; }
+.roster-player.status-grey { border-left-color: #666; }
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
 }
