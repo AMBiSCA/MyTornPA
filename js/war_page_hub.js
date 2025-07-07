@@ -2638,7 +2638,7 @@ async function displayWarRoster() {
         console.error("Error displaying war roster:", error);
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
     }
-}  }
+  }
 }
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
