@@ -4045,6 +4045,29 @@ min-width: 320px;
 .roster-player.status-orange { border-left-color: #ff9800; }
 .roster-player.status-red { border-left-color: #f44336; }
 .roster-player.status-grey { border-left-color: #666; }
+
+/* --- FIX for Roster Layout --- */
+
+/* This makes each player row a flex container to align items side-by-side */
+.roster-player {
+    display: flex;
+    align-items: center; /* Vertically centers the picture with the text block */
+    gap: 12px;           /* Sets the space between the picture and the text */
+}
+
+/* This fixes the profile picture size and makes it a circle */
+.roster-player-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #555;
+    flex-shrink: 0; /* Prevents the image from being squished */
+}
+
+/* This ensures the text block takes up the available space */
+.roster-player-info {
+    flex-grow: 1;
+}
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
 }
