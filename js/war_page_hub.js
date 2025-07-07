@@ -2473,7 +2473,7 @@ function showFactionSummary(summaryCounts) {
             <div class="summary-footer">
                 <p id="summary-roles"><strong>Primary Roles:</strong> All Rounder: <strong>${summaryCounts.roles['all-round-attacker']}</strong> / Chain Watcher: <strong>${summaryCounts.roles['chain-watcher']}</strong> / Outside Hitter: <strong>${summaryCounts.roles['outside-attacker']}</strong></p>
                 <hr>
-                <p id="summary-war-start"><strong>Ready at War Start:</strong> ${summaryCounts.atStart}</p>
+                <p id="summary-war-start"><strong>Available at War Start:</strong> ${summaryCounts.atStart}</p>
             </div>
             <div class="summary-edit-buttons">
                 <button class="action-btn edit-day-btn" data-day-to-edit="1">Edit Day 1</button>
