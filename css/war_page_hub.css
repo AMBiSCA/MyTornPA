@@ -4135,6 +4135,24 @@ min-width: 320px;
     color: #e0a71a; /* Gold color for the labels */
 }
 
+/* --- Styling for the "Edit Day" buttons in the summary --- */
+
+
+.summary-edit-buttons {
+    display: flex;
+    justify-content: space-around; /* This spaces the buttons out evenly */
+    gap: 10px;                     /* Adds a little space between the buttons */
+    margin-top: 15px;              /* Space above the buttons */
+}
+
+/* This styles the individual buttons */
+.summary-edit-buttons .action-btn {
+    padding: 5px 12px;     /* Makes the buttons smaller (less vertical padding) */
+    font-size: 0.9em;      /* Makes the font a little smaller */
+    color: black;          /* Changes the text color to black */
+    flex-grow: 1;          /* Makes all buttons take up equal space in the row */
+}
+
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
 }
