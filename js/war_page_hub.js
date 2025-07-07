@@ -2639,7 +2639,6 @@ async function displayWarRoster() {
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
     }
   }
-}
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
