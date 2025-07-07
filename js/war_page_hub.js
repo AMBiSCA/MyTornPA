@@ -2501,40 +2501,37 @@ function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
 
-    // This is the HTML for the summary box
+    // This is the HTML for the summary box with the new buttons
     const summaryHtml = `
         <div class="faction-summary-panel">
             <h4>Daily Readiness Summary</h4>
             <div class="summary-grid">
                 <div class="summary-col">
                     <strong>Day 1</strong>
-                    <p>✅ Avail: ${summaryCounts.day1.yes}</p>
-                    <p>🟧 Part: ${summaryCounts.day1.partial}</p>
-                    <p>❌ Unavail: ${summaryCounts.day1.no}</p>
+                    <p>✅ Avail: ${summaryCounts.day1.yes}</p><p>🟧 Part: ${summaryCounts.day1.partial}</p><p>❌ Unavail: ${summaryCounts.day1.no}</p>
                 </div>
                 <div class="summary-col">
                     <strong>Day 2</strong>
-                    <p>✅ Avail: ${summaryCounts.day2.yes}</p>
-                    <p>🟧 Part: ${summaryCounts.day2.partial}</p>
-                    <p>❌ Unavail: ${summaryCounts.day2.no}</p>
+                    <p>✅ Avail: ${summaryCounts.day2.yes}</p><p>🟧 Part: ${summaryCounts.day2.partial}</p><p>❌ Unavail: ${summaryCounts.day2.no}</p>
                 </div>
                 <div class="summary-col">
                     <strong>Day 3</strong>
-                    <p>✅ Avail: ${summaryCounts.day3.yes}</p>
-                    <p>🟧 Part: ${summaryCounts.day3.partial}</p>
-                    <p>❌ Unavail: ${summaryCounts.day3.no}</p>
+                    <p>✅ Avail: ${summaryCounts.day3.yes}</p><p>🟧 Part: ${summaryCounts.day3.partial}</p><p>❌ Unavail: ${summaryCounts.day3.no}</p>
                 </div>
             </div>
             <div class="summary-footer">
-                <p><strong>Roles (Day 1):</strong> All Round: <strong>${summaryCounts.roles['all-round-attacker']}</strong> / Watcher: <strong>${summaryCounts.roles['chain-watcher']}</strong> / Outside: <strong>${summaryCounts.roles['outside-attacker']}</strong></p>
+                <p id="summary-roles"><strong>Roles:</strong> All Round: <strong>${summaryCounts.roles['all-round-attacker']}</strong> / Watcher: <strong>${summaryCounts.roles['chain-watcher']}</strong> / Outside: <strong>${summaryCounts.roles['outside-attacker']}</strong></p>
                 <hr>
-                <p><strong>Ready at War Start:</strong> ${summaryCounts.atStart}</p>
+                <p id="summary-war-start"><strong>Ready at War Start:</strong> ${summaryCounts.atStart}</p>
             </div>
-            <button id="edit-availability-btn" class="action-btn">Edit Availability</button>
+            <div class="summary-edit-buttons">
+                <button class="action-btn edit-day-btn" data-day-to-edit="1">Edit Day 1</button>
+                <button class="action-btn edit-day-btn" data-day-to-edit="2">Edit Day 2</button>
+                <button class="action-btn edit-day-btn" data-day-to-edit="3">Edit Day 3</button>
+            </div>
         </div>
     `;
 
-    // We inject this HTML into the main forms container
     formsContainer.innerHTML = summaryHtml;
 }
 async function displayWarRoster() {
@@ -5315,17 +5312,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- Listener for the Edit button in the summary view ---
-const summaryContainer = document.getElementById('availability-summary-container');
-if (summaryContainer) {
-    summaryContainer.addEventListener('click', (event) => {
-        if (event.target.matches('#edit-availability-btn')) {
-            summaryContainer.style.display = 'none'; // Hide summary
-            showDayForm(1); // Go back to the Day 1 form
+// --- Listener for the Edit buttons in the summary view ---
+const formsContainerForEdit = document.getElementById('availability-forms-container');
+if (formsContainerForEdit) {
+    formsContainerForEdit.addEventListener('click', (event) => {
+        // Check if any of our new "Edit Day" buttons were clicked
+        if (event.target.matches('.edit-day-btn')) {
+            const dayToEdit = event.target.dataset.dayToEdit;
+            if (dayToEdit) {
+                // Show the form for the specific day that was clicked
+                showDayForm(parseInt(dayToEdit, 10));
+            }
         }
     });
 }
-
 
                 console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID);
                 // Ensure global DOM references are assigned after HTML injection
