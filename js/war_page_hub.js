@@ -2440,6 +2440,30 @@ function generateDayFormHTML(dayNumber) {
     `;
 }
 
+async function checkAndShowAdminControls() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+        const userPosition = userProfileDoc.exists ? userProfileDoc.data().position : '';
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const tab4Admins = warDoc.exists ? warDoc.data().tab4Admins || [] : [];
+        
+        const isAdmin = userPosition === 'Leader' || userPosition === 'Co-leader' || tab4Admins.includes(user.uid);
+
+        if (isAdmin) {
+            const adminControls = document.getElementById('availability-admin-controls');
+            if (adminControls) {
+                adminControls.style.display = 'block';
+            }
+            // --- ADD THIS LINE ---
+            setupReminderTemplateControls(); // This will activate the save/load logic for the template box.
+        }
+    } catch (error) {
+        console.error("Error checking admin status:", error);
+    }
+}
 function showDayForm(dayNumber) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (formsContainer) {
@@ -2452,7 +2476,7 @@ function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
 
-    // This is the HTML for the summary box with the new buttons
+    // This is the HTML for the summary box with your text and the new admin buttons
     const summaryHtml = `
         <div class="faction-summary-panel">
             <h4>Daily Readiness Summary</h4>
@@ -2480,7 +2504,17 @@ function showFactionSummary(summaryCounts) {
                 <button class="action-btn edit-day-btn" data-day-to-edit="2">Edit Day 2</button>
                 <button class="action-btn edit-day-btn" data-day-to-edit="3">Edit Day 3</button>
             </div>
-        </div>
+
+            <div id="availability-admin-controls" style="display: none;">
+                <hr>
+                <h4>Leader Controls</h4>
+                <div class="summary-edit-buttons">
+                    <button id="reset-availability-btn" class="action-btn">Reset All</button>
+                    <button id="notify-members-btn" class="action-btn">Send Reminders</button>
+                </div>
+                <div id="reminder-list-container"></div>
+            </div>
+            </div>
     `;
 
     formsContainer.innerHTML = summaryHtml;
