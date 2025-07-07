@@ -2464,6 +2464,76 @@ async function checkAndShowAdminControls() {
         console.error("Error checking admin status:", error);
     }
 }
+
+const adminControls = document.getElementById('availability-admin-controls');
+if (adminControls) {
+    adminControls.addEventListener('click', (event) => {
+        const buttonId = event.target.id;
+
+        if (buttonId === 'notify-members-btn') {
+            generateReminderList();
+        }
+
+        if (buttonId === 'reset-availability-btn') {
+            // We will add the logic for this button later if you wish.
+            alert("Reset functionality is not yet implemented.");
+        }
+    });
+}
+
+async function generateReminderList() {
+    const reminderListContainer = document.getElementById('reminder-list-container');
+    if (!reminderListContainer) return;
+
+    reminderListContainer.innerHTML = '<p>Finding members who need a reminder...</p>';
+
+    try {
+        // --- Step 1: Get all necessary data ---
+        
+        // Get the saved reminder template
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const reminderTemplate = warDoc.exists ? doc.data().reminderTemplate || "Reminder: Please set your war availability." : "Reminder: Please set your war availability.";
+
+        // Get the list of users who have already responded
+        const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
+        const respondedUserIds = new Set();
+        availabilitySnapshot.forEach(doc => {
+            respondedUserIds.add(doc.id);
+        });
+
+        // Get the full list of all faction members
+        if (!factionApiFullData || !factionApiFullData.members) {
+            throw new Error("Faction member list is not available.");
+        }
+        const allMembers = Object.values(factionApiFullData.members);
+
+        // --- Step 2: Find who has NOT responded ---
+        const nonResponders = allMembers.filter(member => !respondedUserIds.has(member.id));
+
+        if (nonResponders.length === 0) {
+            reminderListContainer.innerHTML = '<p style="color: #4CAF50; font-weight: bold;">Everyone has responded!</p>';
+            return;
+        }
+
+        // --- Step 3: Build the list of reminder links ---
+        const subject = encodeURIComponent("War Availability Reminder");
+
+        const reminderLinksHtml = nonResponders.map(member => {
+            // Replace [name] placeholder with the actual member name
+            const personalizedMessage = reminderTemplate.replace(/\[name\]/gi, member.name);
+            const body = encodeURIComponent(personalizedMessage);
+            const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
+            
+            return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Send Reminder</a></li>`;
+        }).join('');
+
+        reminderListContainer.innerHTML = `<h4>Members to Remind:</h4><ul>${reminderLinksHtml}</ul>`;
+
+    } catch (error) {
+        console.error("Error generating reminder list:", error);
+        reminderListContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+    }
+}
 function showDayForm(dayNumber) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (formsContainer) {
