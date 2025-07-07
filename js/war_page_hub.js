@@ -2513,7 +2513,7 @@ async function displayWarRoster() {
         });
 
         if (!factionApiFullData || !factionApiFullData.members) {
-            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available. Cannot build roster.</p>';
+            rosterDisplay.innerHTML = '<p style="color: red;">Faction member list not available.</p>';
             return;
         }
         const allMembers = Object.values(factionApiFullData.members);
@@ -2525,7 +2525,7 @@ async function displayWarRoster() {
             const memberAvailability = availabilityData[memberId];
 
             let statusClass = 'status-grey';
-            let statusText = '(No response yet)';
+            let statusTextHtml = '<span class="status-text-grey">(No response yet)</span>'; // Default text
 
             if (memberAvailability) {
                 const summaryParts = [];
@@ -2533,52 +2533,53 @@ async function displayWarRoster() {
                 let hasSaidPartial = false;
                 let hasSaidYes = false;
 
-                // --- NEW: Detailed status generation for each day ---
-                for (let i = 1; i <= 3; i++) { // Check up to 3 days
+                // Loop through days 1, 2, and 3 to build the detailed status string
+                for (let i = 1; i <= 3; i++) {
                     const dayData = memberAvailability[`day_${i}`];
                     if (dayData && dayData.status !== 'no-response') {
-                        let dayStatusText = `D${i}: `;
+                        let dayStatusClass = '';
+                        let dayText = '';
+
                         switch (dayData.status) {
                             case 'yes':
-                                dayStatusText += `Yes (${dayData.timeRange || 'All Day'})`;
+                                dayStatusClass = 'status-text-green';
+                                dayText = `Yes (${dayData.timeRange || 'All Day'})`;
                                 hasSaidYes = true;
                                 break;
                             case 'partial':
-                                dayStatusText += `Partial (${dayData.timeRange || 'N/A'})`;
+                                dayStatusClass = 'status-text-orange';
+                                dayText = `Partial (${dayData.timeRange || 'N/A'})`;
                                 hasSaidPartial = true;
                                 break;
                             case 'no':
-                                dayStatusText += `No (${dayData.reason || 'No reason'})`;
+                                dayStatusClass = 'status-text-red';
+                                dayText = `No (${dayData.reason || 'No reason'})`;
                                 hasSaidNo = true;
                                 break;
                         }
-                        summaryParts.push(dayStatusText);
+                        if (dayText) {
+                            summaryParts.push(`<span class="${dayStatusClass}">D${i}: ${dayText}</span>`);
+                        }
                     }
                 }
 
                 if (summaryParts.length > 0) {
-                    statusText = summaryParts.join(' | ');
+                    statusTextHtml = summaryParts.join(' | ');
 
-                    // Add general info (like role/start time) from Day 1 data, if it exists
                     const day1Data = memberAvailability.day_1;
                     if (day1Data) {
                         if (day1Data.role && day1Data.role !== 'none') {
                             const formattedRole = day1Data.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                            statusText += ` | Role: ${formattedRole}`;
+                            statusTextHtml += ` | <span class="status-text-grey">Role: ${formattedRole}</span>`;
                         }
                         if (day1Data.isAvailableForStart) {
-                            statusText += ' | At Start';
+                            statusTextHtml += ' | <span class="status-text-grey">At Start</span>';
                         }
                     }
 
-                    // Set overall color: Red > Orange > Green
-                    if (hasSaidNo) {
-                        statusClass = 'status-red';
-                    } else if (hasSaidPartial) {
-                        statusClass = 'status-orange';
-                    } else if (hasSaidYes) {
-                        statusClass = 'status-green';
-                    }
+                    if (hasSaidNo) statusClass = 'status-red';
+                    else if (hasSaidPartial) statusClass = 'status-orange';
+                    else if (hasSaidYes) statusClass = 'status-green';
                 }
             }
             
@@ -2587,14 +2588,14 @@ async function displayWarRoster() {
                     <img src="../../images/default_profile_icon.png" class="roster-player-pic">
                     <div class="roster-player-info">
                         <span class="player-name">${memberName}</span>
-                        <span class="player-status">${statusText}</span>
+                        <span class="player-status">${statusTextHtml}</span>
                     </div>
                 </div>
             `;
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
         }
 
-        // This loop for fetching profile pictures remains the same
+        // Fetch profile pictures (this part is unchanged)
         const rosterItems = rosterDisplay.querySelectorAll('.roster-player');
         for (const item of rosterItems) {
             const memberId = item.dataset.memberId;
@@ -2618,7 +2619,6 @@ async function displayWarRoster() {
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster. Check console.</p>';
     }
 }
-// MODIFIED: Function to build and display the enemy targets table (Single Table & Sticky Header compatible)
 function displayEnemyTargetsTable(members) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
