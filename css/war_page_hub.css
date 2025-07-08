@@ -3892,31 +3892,75 @@ min-width: 320px;
     font-size: 0.8em;
 }
 
-/* Update: Colors for the unified control based on status */
+/* CRITICAL FIX: Make the unified control div look and behave exactly like an action-btn */
+#discordWebhookUnifiedControl {
+    /* Mimic .action-btn styling for appearance */
+    padding: 6px 15px; /* Adjust padding to closely match your other action-buttons */
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    color: black; /* Default text color (will be overridden by status classes) */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Standard button shadow */
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    box-sizing: border-box; /* Crucial for consistent sizing */
+
+    /* Force background and border colors to ensure no container styles bleed through */
+    background-color: #007bff !important; /* Force default blue background */
+    border: 1px solid black !important; /* Force a dark border like your other buttons */
+    
+    /* Ensure its content is centered */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Positioning for the overlaying edit area */
+    position: relative; /* CRITICAL for absolute positioning of the edit area */
+    overflow: hidden; /* Hide anything that goes outside its bounds (like edit area when hidden) */
+    
+    /* Ensure it aligns and sizes like other buttons in the row */
+    flex: 1; /* Make it grow/shrink equally with other buttons */
+    min-width: 120px; /* Adjusted from 120px to match edit day buttons based on screenshot */
+    max-width: 250px; /* Adjusted from 250px to match edit day buttons based on screenshot */
+}
+
+/* IMPORTANT: Ensure these hover rules are also updated and apply !important if needed */
+#discordWebhookUnifiedControl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    /* Specific hover colors for configured/not-set will override this */
+}
+
+/* Ensure the status-based colors also use !important */
 #discordWebhookUnifiedControl.configured-status {
-    background-color: #4CAF50; /* Green for configured */
-    border-color: #4CAF50;
-    color: white; /* Text color */
+    background-color: #4CAF50 !important; /* Green for configured */
+    border-color: #4CAF50 !important;
+    color: white !important;
 }
-
 #discordWebhookUnifiedControl.configured-status:hover {
-    background-color: #5cb85c;
+    background-color: #5cb85c !important;
 }
-
 #discordWebhookUnifiedControl.not-set-status {
-    background-color: #FF6347; /* Red for not set */
-    border-color: #FF6347;
-    color: white;
+    background-color: #FF6347 !important; /* Red for not set */
+    border-color: #FF6347 !important;
+    color: white !important;
 }
-
 #discordWebhookUnifiedControl.not-set-status:hover {
-    background-color: #e5533d;
+    background-color: #e5533d !important;
 }
 
-/* Optional: Style when the unified control is in 'editing' mode */
 #discordWebhookUnifiedControl.editing {
-    border-color: #00a8ff; /* Highlight border when editing */
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.7); /* Add a glow */
+    border-color: #00a8ff !important; /* Highlight border when editing */
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.7) !important; /* Add a glow */
+}
+
+/* Adjust the font size of the text *inside* the button to match other buttons */
+#discordWebhookStatusText {
+    font-size: 0.9em; /* Match standard action-btn font size */
+    color: inherit; /* Inherit color from parent (unified control) */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 
