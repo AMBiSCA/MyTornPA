@@ -3907,6 +3907,13 @@ min-width: 320px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.summary-edit-buttons.leader-controls-row > .action-btn {
+    display: flex; /* Make sure these buttons also behave as flex containers */
+    align-items: center; /* Center their text vertically */
+    justify-content: center; /* Center their text horizontally */
+    /* You might remove padding from the .action-btn rule if it's causing issues here and specify it on this new rule */
+}
 /* ==================================================================
    War Availability Tab Styles
    ================================================================== */
