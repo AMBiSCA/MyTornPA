@@ -5483,17 +5483,30 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
+    // --- START OF DOMCONTENTLOADED ---
+
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
+    // The corrected tab click listener with the security check
     tabButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
             const targetTabDataset = event.currentTarget.dataset.tab;
             const targetTabId = targetTabDataset + '-tab';
 
+            // Permission check for the Leadership Settings tab
+            if (targetTabDataset === 'leader-config') {
+                const userIsAdmin = await checkIfUserIsAdmin();
+                if (!userIsAdmin) {
+                    alert("You do not have permission to view leadership settings.");
+                    return; // Stop if not an admin
+                }
+            }
+
             showTab(targetTabId);
 
+            // Logic to load the friendly members table when its tab is clicked
             if (targetTabDataset === 'friendly-status') {
                 const user = firebase.auth().currentUser;
                 if (user && userApiKey) {
@@ -5508,16 +5521,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
     showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
 
-    // Chat Tab Functionality Elements and Handler (unchanged, for completeness)
+    // References to chat elements
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
     const warChatBox = document.getElementById('warChatBox');
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
+    // This handles all the data loading after a user logs in
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -5533,295 +5548,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 const warDoc = await db.collection('factionWars').doc('currentWar').get();
                 warData = warDoc.exists ? warDoc.data() : {};
             } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase (Firebase data might be missing):", firebaseError);
+                console.error("Error fetching warData from Firebase:", firebaseError);
             }
-
-            console.log(firebase.auth().currentUser);
 
             if (apiKey && playerId) {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, userData.faction_id);
 
-
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
                     factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
                 }
 
-                // --- WAR AVAILABILITY TAB LOGIC ---
-                const availabilityFormsContainer = document.getElementById('availability-forms-container');
+                displayWarRoster();
+                setupFactionHitsListener(db, userData.faction_id);
+                setupWarClaimsListener();
 
-                if (availabilityFormsContainer) {
-                    // Use event delegation to listen for changes on any availability dropdown
-                    availabilityFormsContainer.addEventListener('change', (event) => {
-                        if (event.target.matches('.availability-status')) {
-                            const dropdown = event.target;
-                            const dayForm = dropdown.closest('.availability-day-form'); // Find the parent form for the day
-
-                            const timeDetails = dayForm.querySelector('.time-details');
-                            const reasonDetails = dayForm.querySelector('.reason-details');
-
-                            const selectedValue = dropdown.value;
-
-                            // Hide both details sections by default
-                            timeDetails.style.display = 'none';
-                            reasonDetails.style.display = 'none';
-
-                            if (selectedValue === 'yes' || selectedValue === 'partial') {
-                                // Show time input for 'YES' or 'Partially'
-                                timeDetails.style.display = 'block';
-                            } else if (selectedValue === 'no') {
-                                // Show reason input for 'NO'
-                                reasonDetails.style.display = 'block';
-                            }
-                        }
-                    });
-                }
-
-                // --- Add Another Day Button Logic ---
-                const addDayBtn = document.getElementById('add-availability-day-btn');
-
-                if (addDayBtn) {
-                    addDayBtn.addEventListener('click', () => {
-                        const formsContainer = document.getElementById('availability-forms-container');
-                        // Find the last day form to determine the next day's number
-                        const lastDayForm = formsContainer.querySelector('.availability-day-form:last-child');
-                        const lastDayNumber = lastDayForm ? parseInt(lastDayForm.dataset.day, 10) : 0;
-                        const nextDayNumber = lastDayNumber + 1;
-
-                        // Create the HTML for the new day's form, including the updated roles
-                        const newDayFormHtml = `
-                            <div class="availability-day-form" data-day="${nextDayNumber}">
-                                <h5>--- Day ${nextDayNumber} ---</h5>
-                                <div class="form-group">
-                                    <label for="status-day-${nextDayNumber}">Will you be available?</label>
-                                    <select id="status-day-${nextDayNumber}" class="availability-status">
-                                        <option value="no-response" selected>-- Select --</option>
-                                        <option value="yes">YES</option>
-                                        <option value="partial">Partially</option>
-                                        <option value="no">NO</option>
-                                    </select>
-                                </div>
-
-                                <div class="time-details" style="display: none;">
-                                    <div class="form-group">
-                                        <label for="time-from-day-${nextDayNumber}">Time Range:</label>
-                                        <input type="text" id="time-from-day-${nextDayNumber}" placeholder="e.g., 2pm - 7pm">
-                                    </div>
-                                </div>
-
-                                <div class="reason-details" style="display: none;">
-                                    <div class="form-group">
-                                        <label for="reason-day-${nextDayNumber}">Reason:</label>
-                                        <input type="text" id="reason-day-${nextDayNumber}" placeholder="e.g., Sickness, Work">
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="role-day-${nextDayNumber}">Primary Role:</label>
-                                    <select id="role-day-${nextDayNumber}">
-                                        <option value="none">-- Select Role --</option>
-                                        <option value="all-round-attacker">All Round Attacker</option>
-                                        <option value="chain-watcher">Chain Watcher</option>
-                                        <option value="outside-attacker">Outside Attacker</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group checkbox-group">
-                                    <input type="checkbox" id="war-start-day-${nextDayNumber}">
-                                    <label for="war-start-day-${nextDayNumber}">Available for war start?</label>
-                                </div>
-                                <button class="action-btn">Update Day ${nextDayNumber}</button>
-                            </div>
-                        `;
-
-                        // Append the new form to the container
-                        formsContainer.insertAdjacentHTML('beforeend', newDayFormHtml);
-                    });
-                }
-				
-// --- UNIFIED CLICK LISTENER FOR THE AVAILABILITY PANEL ---
-// This listener should be the ONLY one handling clicks within the 'availability-admin-controls' div.
-const availabilityPanel = document.querySelector('.user-status-panel'); // Re-using existing variable name
-                                                                      // that targets the parent container.
-if (availabilityPanel) {
-    availabilityPanel.addEventListener('click', async (event) => {
-        const button = event.target;
-
-        // --- Logic for "Update Day" buttons ---
-        if (button.matches('.action-btn') && button.textContent.includes('Update Day')) {
-            const dayForm = button.closest('.availability-day-form');
-            const dayNumber = parseInt(dayForm.dataset.day, 10);
-            const user = auth.currentUser;
-            if (!user) { return alert("You must be logged in."); }
-
-            const status = dayForm.querySelector('.availability-status').value;
-            const reason = dayForm.querySelector('.reason-details input').value.trim();
-            if (status === 'no' && reason === '') { return alert("Please provide a reason for being unavailable."); }
-
-            button.textContent = "Saving...";
-            button.disabled = true;
-
-            const availabilityData = {
-                status,
-                reason,
-                timeRange: dayForm.querySelector('.time-details input').value.trim(),
-                role: dayForm.querySelector('select[id^="role-day-"]').value,
-                isAvailableForStart: dayForm.querySelector('input[type="checkbox"]').checked,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            try {
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                const tornUserId = userProfileDoc.data().tornProfileId;
-                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-                await availabilityDocRef.set({ [`day_${dayNumber}`]: availabilityData }, { merge: true });
-
-                const nextDayNumber = dayNumber + 1;
-                if (nextDayNumber <= 3) {
-                    showDayForm(nextDayNumber);
-                } else {
-                    displayWarRoster(); // This will re-calculate and show the summary
-                }
-            } catch (error) {
-                console.error("Error saving availability:", error);
-                alert("Error saving: " + error.message);
-                button.textContent = `Update Day ${dayNumber}`;
-                button.disabled = false;
-            }
-        }
-
-        // --- Logic for "Edit Day" buttons ---
-        if (button.matches('.edit-day-btn')) {
-            const dayToEdit = button.dataset.dayToEdit;
-            if (dayToEdit) {
-                showDayForm(parseInt(dayToEdit, 10));
-            }
-        }
-
-        // --- Logic for "Send Reminders" button (notify-members-btn) ---
-        // This is the specific block that caused the "Generating" issue due to old logic.
-        // It now correctly calls the webhook-enabled sendReminderNotifications.
-        if (button.id === 'notify-members-btn') {
-            if (confirm("Are you sure you want to send reminders to all members who haven't set their war availability via Discord webhook?")) {
-                button.textContent = "Sending...";
-                button.disabled = true;
-                try {
-                    await sendReminderNotifications(); // Calls the now-correct webhook function
-                    // No alert here, as sendReminderNotifications already handles alerts based on success/failure
-                } catch (error) {
-                    console.error("Error initiating reminder send:", error);
-                    // Alert is handled by sendReminderNotifications' catch block
-                } finally {
-                    button.textContent = "Send Reminders";
-                    button.disabled = false;
-                }
-            }
-        }
-
-        // --- Logic for "Reset All" button ---
-        if (button.id === 'reset-availability-btn') {
-            alert("Reset functionality is not yet implemented.");
-        }
-
-        // --- Logic for Discord Webhook Edit/Save/Cancel buttons ---
-        // These listeners are attached within setupDiscordWebhookControls(), so no need to manage them here.
-    });
-}
-
-// --- Listener for the Edit buttons in the summary view ---
-const formsContainerForEdit = document.getElementById('availability-forms-container');
-if (formsContainerForEdit) {
-    formsContainerForEdit.addEventListener('click', (event) => {
-        // Check if any of our new "Edit Day" buttons were clicked
-        if (event.target.matches('.edit-day-btn')) {
-            const dayToEdit = event.target.dataset.dayToEdit;
-            if (dayToEdit) {
-                // Show the form for the specific day that was clicked
-                showDayForm(parseInt(dayToEdit, 10));
-            }
-        }
-    });
-}
-
-                console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID);
-                // Ensure global DOM references are assigned after HTML injection
                 userEnergyDisplay = document.getElementById('userEnergyDisplay');
                 onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
                 onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
 
-                // Initial calls for all dynamic ops panel displays
-                // These functions run immediately upon successful authentication and API key availability.
                 updateUserEnergyDisplay();
                 updateOnlineMemberCounts();
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
-                displayWarRoster();
-				checkAndShowAdminControls(playerId);
-                setupFactionHitsListener(db, userData.faction_id);
-                setupWarClaimsListener(); // <--- THIS IS THE NEW LINE YOU NEEDED TO ADD
 
-
-                // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-                    setupMemberClickEvents(); // <--- **THIS LINE IS NOW CORRECTLY PLACED**
+                    setupMemberClickEvents();
 
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
                     });
 
-                    listenersInitialized = true; // Set this flag to true after setup
+                    listenersInitialized = true;
 
-                    // Recurring intervals (these will run periodically after initial setup)
-                    setInterval(updateAllTimers, 1000); // Every 1 second
-
+                    setInterval(updateAllTimers, 1000);
                     setInterval(() => {
                         if (userApiKey && globalEnemyFactionID) {
                             fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        } else {
-                            console.warn("API key or enemy faction ID not available for periodic enemy data refresh.");
                         }
-                    }, 1500); // Every 1.5 seconds
-
+                    }, 1500);
                     setInterval(() => {
-                        if(userApiKey && globalYourFactionID) {
+                        if (userApiKey && globalYourFactionID) {
                             updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
                         }
-                    }, 2000); // Every 2 seconds
-
+                    }, 2000);
                     setInterval(() => {
                         if (userApiKey && globalYourFactionID) {
                             initializeAndLoadData(userApiKey, globalYourFactionID);
-                        } else {
-                            console.warn("API key or faction ID not available for periodic comprehensive faction data refresh.");
                         }
-                    }, 300000); // Every 5 minutes
-
+                    }, 300000);
                     setInterval(() => {
                         if (userApiKey) {
                             updateUserEnergyDisplay();
                             updateOnlineMemberCounts();
-                        } else {
-                            console.warn("API key not available for periodic user energy/online member refresh.");
                         }
-                    }, 60000); // Every 1 minute
-
-                } // End of if (!listenersInitialized)
+                    }, 60000);
+                }
             } else {
                 console.warn("API key or Player ID not found.");
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
-                if (quickFFTargetsDisplay) {
-                    quickFFTargetsDisplay.innerHTML = '<span style="color: #ff4d4d;">Login & API/ID needed.</span>';
-                }
-                // Ensure all dynamic ops panel displays are N/A if API key/player ID is missing
-                if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
-                if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
-                if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
             }
         } else {
             userApiKey = null;
@@ -5829,10 +5619,8 @@ if (formsContainerForEdit) {
             console.log("User not logged in.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
             if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-            // Ensure all dynamic ops panel displays are N/A if user not logged in
-            if (userEnergyDisplay) userEnergyDisplay.textContent = 'N/A';
-            if (onlineFriendlyMembersDisplay) onlineFriendlyMembersDisplay.textContent = 'N/A';
-            if (onlineEnemyMembersDisplay) onlineEnemyMembersDisplay.textContent = 'N/A';
         }
     });
+
+// --- END OF DOMCONTENTLOADED ---
 });
