@@ -2744,10 +2744,36 @@ async function setupDiscordWebhookControls() {
     });
 }
 // Locate this function in your war_page_hub.js
-function showFactionSummary(summaryCounts) {
+// NEW: This function is now async to handle the admin check internally
+async function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
 
+    // --- Admin check logic is now integrated directly into this function ---
+    let isAdmin = false;
+    let adminDisplayStyle = 'display: none;'; // Default to hidden
+    const user = auth.currentUser;
+
+    if (user) {
+        try {
+            // Fetch user's role and the list of designated admins
+            const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+            const userPosition = userProfileDoc.exists ? userProfileDoc.data().position.toLowerCase() : '';
+            const warDoc = await db.collection('factionWars').doc('currentWar').get();
+            const tab4Admins = warDoc.exists ? warDoc.data().tab4Admins || [] : [];
+            
+            // Check if the user is a leader, co-leader, or on the designated admin list
+            if (userPosition === 'leader' || userPosition === 'co-leader' || tab4Admins.includes(user.uid)) {
+                isAdmin = true;
+                adminDisplayStyle = 'display: block;'; // If they are an admin, set the controls to be visible
+            }
+        } catch (error) {
+            console.error("Error checking admin status within showFactionSummary:", error);
+        }
+    }
+    // --- End of integrated admin check ---
+
+    // The HTML is now built with the correct style from the start
     const summaryHtml = `
         <div class="faction-summary-panel">
             <h4>Daily Readiness Summary</h4>
@@ -2776,13 +2802,12 @@ function showFactionSummary(summaryCounts) {
                 <button class="action-btn edit-day-btn" data-day-to-edit="3">Edit Day 3</button>
             </div>
 
-            <div id="availability-admin-controls" style="display: none;">
+            <div id="availability-admin-controls" style="${adminDisplayStyle}">
                 <hr>
                 <h4>Leader Controls</h4>
                 <div class="summary-edit-buttons leader-controls-row">
                     <button id="reset-availability-btn" class="action-btn">Reset All</button>
                     <button id="notify-members-btn" class="action-btn">Send Reminders</button>
-                    
                     <div id="discordWebhookUnifiedControl" class="action-btn discord-webhook-unified-control">
                         <span id="discordWebhookStatusText">Set Webhook</span>
                     </div>
@@ -2793,9 +2818,7 @@ function showFactionSummary(summaryCounts) {
         
         <div id="discordWebhookModalOverlay" class="webhook-modal-overlay" style="display: none;">
             <div id="discordWebhookEditArea" class="webhook-edit-area">
-                <div class="modal-header">
-                    <h4>Configure Discord Webhook</h4>
-                </div>
+                <div class="modal-header"><h4>Configure Discord Webhook</h4></div>
                 <div class="modal-body">
                     <label for="discordWebhookUrlInput">Webhook URL:</label>
                     <input type="text" id="discordWebhookUrlInput" placeholder="Paste Discord Webhook URL here" class="webhook-input">
@@ -2807,13 +2830,17 @@ function showFactionSummary(summaryCounts) {
                 </div>
             </div>
         </div>
-        `;
+    `;
 
     formsContainer.innerHTML = summaryHtml;
     
-    setTimeout(() => { 
-        setupDiscordWebhookControls(); 
-    }, 0); 
+    // Only set up the listeners for the webhook controls if the user is an admin
+    if (isAdmin) {
+        setTimeout(() => {
+            setupDiscordWebhookControls();
+            setupReminderTemplateControls();
+        }, 0);
+    }
 }
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
@@ -2840,7 +2867,6 @@ async function displayWarRoster() {
 
         let summaryCounts = { day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 }, roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 }, atStart: 0 };
 
-        // Create an array to hold all promises for fetching user profile images
         const memberDisplayPromises = allMembers.map(async (member) => {
             const memberId = member.id;
             const memberName = member.name;
@@ -2848,7 +2874,6 @@ async function displayWarRoster() {
             let statusClass = 'status-grey';
             let statusTextHtml = '<span class="status-text-grey">(No response yet)</span>';
 
-            // Calculate summary counts
             if (memberAvailability) {
                 const summaryParts = [];
                 let hasSaidNo = false, hasSaidPartial = false, hasSaidYes = false;
@@ -2857,8 +2882,8 @@ async function displayWarRoster() {
                     if (dayData && dayData.status !== 'no-response') {
                         summaryCounts[`day${i}`][dayData.status]++;
                         if (i === 1) {
-                           if (dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
-                           if (dayData.isAvailableForStart) summaryCounts.atStart++;
+                            if (dayData.role && dayData.role !== 'none') summaryCounts.roles[dayData.role]++;
+                            if (dayData.isAvailableForStart) summaryCounts.atStart++;
                         }
                         let dayStatusText = `D${i}: `;
                         let dayStatusClass = '';
@@ -2876,24 +2901,18 @@ async function displayWarRoster() {
                 }
             }
 
-            // Determine profileImageUrl HERE for each member
-            // If you have a specific "random figure icon" image, replace this path:
             const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
             let profileImageUrl = DEFAULT_PROFILE_ICONS[randomIndex];
             try {
-                // Check cache first
                 if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
                     profileImageUrl = memberProfileCache[memberId].profile_image;
                 } else {
-                    // Fetch user document from 'users' collection for the profile image
                     const userDoc = await db.collection('users').doc(String(memberId)).get();
                     if (userDoc.exists) {
                         const userData = userDoc.data();
-                        // ONLY use profile_image if it exists AND is not an empty string
                         if (userData.profile_image && userData.profile_image.trim() !== '') {
                             profileImageUrl = userData.profile_image;
                         }
-                        // Cache the result. Store default if no custom image found.
                         memberProfileCache[memberId] = { profile_image: profileImageUrl, name: userData.name || memberName };
                     } else {
                         console.log(`User document not found in 'users' collection for member ${memberId}. Using default profile image.`);
@@ -2901,10 +2920,9 @@ async function displayWarRoster() {
                 }
             } catch (err) {
                 console.warn(`Error fetching profile picture from Firebase for member ${memberId}:`, err);
-                profileImageUrl = '../../images/default_user_icon.svg'; // Fallback on error
+                profileImageUrl = '../../images/default_user_icon.svg';
             }
 
-            // Return the full HTML string for this player
             return `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
                     <img src="${profileImageUrl}" alt="${memberName}'s profile pic" class="roster-player-pic">
@@ -2916,11 +2934,11 @@ async function displayWarRoster() {
             `;
         });
 
-        // Wait for all member HTML strings to be generated (including their profile image lookups)
         const allPlayerHtml = await Promise.all(memberDisplayPromises);
-        rosterDisplay.innerHTML = allPlayerHtml.join(''); // Insert all HTML at once
+        rosterDisplay.innerHTML = allPlayerHtml.join('');
 
-        showFactionSummary(summaryCounts);
+        // The only change is adding 'await' here
+        await showFactionSummary(summaryCounts);
         
     } catch (error) {
         console.error("Error displaying war roster:", error);
