@@ -3851,7 +3851,7 @@ min-width: 320px;
 
     /* Force the appearance to match other action-buttons */
     background-color: #007bff !important; /* Default blue, will be overridden by status for background */
-    border: 1px solid #222 !important; /* Force dark border, matches .action-btn */
+    border: 2px solid black !important; /* Force dark border, matches .action-btn */
     color: black !important; /* Force black text */
 
     /* Flex properties for content centering */
@@ -3893,7 +3893,6 @@ min-width: 320px;
 }
 
 #discordWebhookUnifiedControl.editing {
-    border-color: #00a8ff !important; /* Highlight border when editing */
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.7) !important; /* Add a glow */
 }
 
