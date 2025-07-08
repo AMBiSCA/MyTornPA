@@ -4451,6 +4451,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // --- MODIFIED ADMIN SAVE LISTENER ---
     // Replace the existing Admins Save Listener with this one
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
@@ -4486,6 +4487,8 @@ function setupEventListeners(apiKey) {
             }
         });
     }
+    // --- END MODIFIED LISTENER ---
+}
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
             if (!energyTrackingContainer) return;
