@@ -4577,18 +4577,26 @@ function setupEventListeners(apiKey) {
         });
     }
     
-    // Image Upload Listeners
+    // --- Event Listeners for Image Upload Buttons ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
-    if (gamePlanUploadInput) {
+    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
+    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
+
+    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
         gamePlanUploadInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplay, 'gamePlan');
+            // Pass the label element to the handler function
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
         });
     }
 
     const announcementUploadInput = document.getElementById('announcementImageUpload');
-    if (announcementUploadInput) {
+    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
+    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
+    
+    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
         announcementUploadInput.addEventListener('change', () => {
-            handleImageUpload(announcementUploadInput, factionAnnouncementsDisplay, 'announcement');
+            // Pass the label element to the handler function
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
         });
     }
 }
