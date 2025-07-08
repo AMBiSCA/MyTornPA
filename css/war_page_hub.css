@@ -3815,28 +3815,38 @@ min-width: 320px;
 /* Updated: For the inner leader controls section to make them all inline */
 .summary-edit-buttons.leader-controls-row {
     display: flex;
-    flex-direction: row; /* Makes its children align horizontally */
+    flex-direction: row; /* THIS IS THE KEY: Makes its children align horizontally */
     align-items: center; /* Vertically align all items in the row */
     justify-content: space-around; /* Distribute space evenly across the row */
     gap: 10px; /* Space between the elements */
     width: 100%; /* Ensure it takes full width of its parent */
     flex-wrap: wrap; /* Allows items to wrap onto next line if screen is too small */
     padding: 10px; /* Padding around this whole row */
-    background-color: #2a2a2a; /* Visual grouping background */
+    background-color: #2a2a2a; /* Give it a background to visually group */
     border-radius: 5px;
     border: 1px solid #444;
 }
+/* NEW RULE: This forces the children (buttons and webhook block) of the leader-controls-row to be equal width */
+.summary-edit-buttons.leader-controls-row > .action-btn,
+.summary-edit-buttons.leader-controls-row > .discord-webhook-setup-unified {
+    flex: 1; /* This makes all three elements (Reset, Send, Webhook-Block) grow/shrink equally */
+    min-width: 120px; /* Ensure a reasonable minimum width so they don't get too small */
+    max-width: 250px; /* Adjust this max-width to match the desired size of your "Edit Day" buttons */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+    text-align: center; /* Center the text within these buttons/blocks */
+}
 
-/* NEW RULE: Styles for the unified Discord webhook setup container */
+/* Updated: Styles for the unified Discord webhook setup container */
 .discord-webhook-setup-unified {
-    display: flex; /* Makes the button and edit area align */
-    align-items: center; /* Vertically align its children */
-    justify-content: center; /* Center horizontally in available space */
-    gap: 8px; /* Space between the button and the edit area (though only one shows at a time) */
-    flex-grow: 1; /* Allow it to grow to fill space in the leader-controls-row */
-    min-width: 150px; /* Adjust min-width as needed for the button */
-    padding: 5px 8px; /* Padding inside this container */
-    background-color: #333; /* Background for this section */
+    display: flex; 
+    flex-direction: row; /* Ensure internal content (button, edit area) is row-based */
+    align-items: center; 
+    justify-content: space-around; /* Distribute space horizontally within this block */
+    gap: 8px; 
+    flex-grow: 1; 
+    min-width: 150px; 
+    padding: 5px 8px; 
+    background-color: #333; 
     border-radius: 4px;
     border: 1px solid #555;
     box-sizing: border-box;
