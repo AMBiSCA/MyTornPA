@@ -3851,7 +3851,7 @@ min-width: 320px;
 
     /* Force the appearance to match other action-buttons */
     background-color: #007bff !important; /* Default blue, will be overridden by status for background */
-    border: 2px solid #222 !important; /* Force dark border, matches .action-btn */
+    border: 1px solid #222 !important; /* Force dark border, matches .action-btn */
     color: black !important; /* Force black text */
 
     /* Flex properties for content centering */
@@ -4355,14 +4355,14 @@ margin-right: auto !important;
 }
 .webhook-edit-area .modal-body label {
     font-weight: bold;
-    color: black !important;
+    color: #f0f0f0;
 }
 .webhook-edit-area .webhook-input {
     width: 100%; /* Make input fill available space */
     padding: 8px;
     border: 1px solid #555;
     background-color: #1e1e1e;
-    color: black !important;
+    color: #f0f0f0;
     border-radius: 4px;
     box-sizing: border-box;
 }
