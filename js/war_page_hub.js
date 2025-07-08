@@ -1102,6 +1102,100 @@ async function updateOnlineMemberCounts() {
     }
 }
 
+/**
+ * Displays a custom-styled alert message created entirely with JavaScript.
+ * @param {string} message The message to display.
+ * @param {string} [title="Alert"] Optional title for the alert box.
+ */
+function showCustomAlert(message, title = "Alert") {
+    //--- Create Elements ---
+    const overlay = document.createElement('div');
+    const alertBox = document.createElement('div');
+    const titleEl = document.createElement('h4');
+    const messageEl = document.createElement('p');
+    const closeBtn = document.createElement('button');
+
+    //--- Apply Styles (CSS-in-JS) ---
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: '2000',
+        backdropFilter: 'blur(5px)'
+    });
+
+    Object.assign(alertBox.style, {
+        background: '#1e2a38',
+        padding: '25px 30px',
+        borderRadius: '8px',
+        border: '1px solid #4a6a8a',
+        boxShadow: '0 5px 20px rgba(0, 0, 0, 0.6)',
+        textAlign: 'center',
+        width: '90%',
+        maxWidth: '450px',
+        color: '#ecf0f1'
+    });
+
+    Object.assign(titleEl.style, {
+        margin: '0 0 15px 0',
+        color: '#3498db',
+        fontSize: '1.4em',
+        fontWeight: '600'
+    });
+
+    Object.assign(messageEl.style, {
+        margin: '0 0 25px 0',
+        fontSize: '1.1em',
+        lineHeight: '1.6'
+    });
+    
+    // Style the button to look like your ".action-btn"
+    Object.assign(closeBtn.style, {
+        backgroundColor: '#3498db',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        padding: '10px 20px',
+        fontSize: '1em',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s ease'
+    });
+    
+    // Add a hover effect for the button
+    closeBtn.onmouseover = () => { closeBtn.style.backgroundColor = '#2980b9'; };
+    closeBtn.onmouseout = () => { closeBtn.style.backgroundColor = '#3498db'; };
+
+    //--- Set Content ---
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    closeBtn.textContent = 'OK';
+
+    //--- Add Event Listeners for Cleanup ---
+    const closeModal = () => {
+        document.body.removeChild(overlay);
+    };
+
+    closeBtn.onclick = closeModal;
+    overlay.onclick = (event) => {
+        if (event.target === overlay) { // Only close if clicking the dark background
+            closeModal();
+        }
+    };
+
+    //--- Assemble and Append to DOM ---
+    alertBox.appendChild(titleEl);
+    alertBox.appendChild(messageEl);
+    alertBox.appendChild(closeBtn);
+    overlay.appendChild(alertBox);
+    document.body.appendChild(overlay);
+}
+
 
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
