@@ -666,62 +666,238 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStatus("Comparison report and charts downloaded.", 'success');
     }
 
-    // *** MODIFIED FUNCTION *** (Change #3 from previous turn, not part of the current issue)
-    // This function is still rebuilt to generate a proper faction-wide report.
-    async function generateAndDownloadFactionWideReport() {
+   async function generateAndDownloadFactionWideReport() {
         if (historicalData.length < 2) {
-            alert("Not enough data has been recorded for a full report. Please track for at least one full interval.");
+            alert("Not enough data has been recorded for a full report. Please track for at least two intervals.");
             return;
         }
 
-        // --- 1. Capture Main Chart Images ---
-        const rawActivityChartImg = rawActivityChartCanvas ? rawActivityChartCanvas.toDataURL('image/png') : null;
-        const activityDifferenceChartImg = activityDifferenceChartCanvas ? activityDifferenceChartCanvas.toDataURL('image/png') : null;
-
-        // --- 2. Generate Comprehensive Text Report ---
-        let reportContent = `Faction Activity Report\nGenerated: ${new Date().toLocaleString()}\n\n`;
-        const myFactionName = historicalData[0].myFaction.name;
-        const enemyFactionName = historicalData[0].enemyFaction.name;
+        const myFactionName = historicalData[0].myFaction.name || 'My Faction';
+        const enemyFactionName = historicalData[0].enemyFaction.name || 'Enemy Faction';
         const latestRecord = historicalData[historicalData.length - 1];
-        reportContent += `My Faction: ${myFactionName} (ID: ${latestRecord.myFaction.id}, Members: ${latestRecord.myFaction.totalMembers})\n`;
-        reportContent += `Enemy Faction: ${enemyFactionName} (ID: ${latestRecord.enemyFaction.id}, Members: ${latestRecord.enemyFaction.totalMembers})\n\n`;
+        const firstRecordTime = new Date(historicalData[0].timestamp);
+        const lastRecordTime = new Date(latestRecord.timestamp);
         
-        // ... (This is the detailed reporting logic from your original script) ...
-        reportContent += `--- Hourly Activity Summary ---\n`;
-        const hourlySummary = {};
+        // Calculate tracking duration
+        const durationMs = lastRecordTime.getTime() - firstRecordTime.getTime();
+        const durationHours = (durationMs / (1000 * 60 * 60)).toFixed(1);
+        const avgIntervalMs = historicalData.length > 1 ? durationMs / (historicalData.length - 1) : 0;
+        const avgIntervalMinutes = (avgIntervalMs / (1000 * 60)).toFixed(0);
+
+        // --- 1. Overall Dominance Calculation ---
+        let myFactionWins = 0;
+        let enemyFactionWins = 0;
+        let ties = 0;
+
+        historicalData.forEach(record => {
+            if (record.activityDifference > 0) {
+                myFactionWins++;
+            } else if (record.activityDifference < 0) {
+                enemyFactionWins++;
+            } else {
+                ties++;
+            }
+        });
+
+        const totalIntervals = historicalData.length;
+        const myFactionWinPercent = ((myFactionWins / totalIntervals) * 100).toFixed(1);
+        const enemyFactionWinPercent = ((enemyFactionWins / totalIntervals) * 100).toFixed(1);
+        const tiesPercent = ((ties / totalIntervals) * 100).toFixed(1);
+
+        // --- 2. Hourly Activity Analysis for Strategic Windows ---
+        const hourlySummaryMap = new Map(); // Key: hour (0-23), Value: { myTotalActive, enemyTotalActive, count, totalDifference }
+
         historicalData.forEach(record => {
             const hourKey = new Date(record.timestamp).getHours();
-            if (!hourlySummary[hourKey]) {
-                hourlySummary[hourKey] = { myWins: 0, enemyWins: 0, ties: 0, totalIntervals: 0, myTotalActive: 0, enemyTotalActive: 0 };
+            if (!hourlySummaryMap.has(hourKey)) {
+                hourlySummaryMap.set(hourKey, {
+                    myTotalActive: 0,
+                    enemyTotalActive: 0,
+                    count: 0,
+                    totalDifference: 0
+                });
             }
-            if (record.activityDifference > 0) hourlySummary[hourKey].myWins++;
-            else if (record.activityDifference < 0) hourlySummary[hourKey].enemyWins++;
-            else hourlySummary[hourKey].ties++;
-            hourlySummary[hourKey].totalIntervals++;
-            hourlySummary[hourKey].myTotalActive += record.myFaction.activeMembers;
-            hourlySummary[hourKey].enemyTotalActive += record.enemyFaction.activeMembers;
+            const currentHourData = hourlySummaryMap.get(hourKey);
+            currentHourData.myTotalActive += record.myFaction.activeMembers;
+            currentHourData.enemyTotalActive += record.enemyFaction.activeMembers;
+            currentHourData.totalDifference += record.activityDifference;
+            currentHourData.count++;
         });
 
-        Object.keys(hourlySummary).sort((a,b) => a-b).forEach(hourKey => {
-            const summary = hourlySummary[hourKey];
-            const avgMy = (summary.myTotalActive / summary.totalIntervals).toFixed(1);
-            const avgEn = (summary.enemyTotalActive / summary.totalIntervals).toFixed(1);
-            reportContent += `\nHour ${hourKey}:00 - Wins: ${myFactionName} (${summary.myWins}) vs ${enemyFactionName} (${summary.enemyWins}), Ties (${summary.ties}). Avg Active: ${avgMy} vs ${avgEn}`;
-        });
-        reportContent += `\n\n--- End of Report ---\n`;
+        const hourlyAverages = Array.from(hourlySummaryMap.entries()).map(([hour, data]) => ({
+            hour,
+            avgMyActive: (data.myTotalActive / data.count).toFixed(1),
+            avgEnemyActive: (data.enemyTotalActive / data.count).toFixed(1),
+            avgDifference: (data.totalDifference / data.count).toFixed(1)
+        })).sort((a, b) => a.hour - b.hour); // Sort by hour for proper analysis
 
-        // --- 3. Trigger Downloads ---
-        closeReportOptionsModal();
+        let bestAttackWindows = [];
+        let bestTurtleWindows = [];
+
+        // Identify strategic hours based on average difference
+        // Higher positive difference for attack, higher enemy activity / lower positive difference for turtle
+        const sortedByAttackAdvantage = [...hourlyAverages].sort((a, b) => b.avgDifference - a.avgDifference);
+        const sortedByTurtleAdvantage = [...hourlyAverages].sort((a, b) => a.avgDifference - b.avgDifference); // Or b.avgEnemyActive - a.avgEnemyActive
+
+        // Find top 3 best attack hours (non-contiguous for simplicity in first pass)
+        // Then attempt to group them if they are sequential.
+        const topAttackHours = sortedByAttackAdvantage.slice(0, 3).map(h => h.hour).sort((a,b) => a-b);
+        bestAttackWindows = getContiguousRanges(topAttackHours);
+
+        // Find top 3 best turtle hours (non-contiguous for simplicity in first pass)
+        // Then attempt to group them if they are sequential.
+        const topTurtleHours = sortedByTurtleAdvantage.slice(0, 3).map(h => h.hour).sort((a,b) => a-b);
+        bestTurtleWindows = getContiguousRanges(topTurtleHours);
+
+        // Helper to format hours into ranges
+        function formatHour(hour) {
+            const h = hour % 12;
+            const ampm = hour < 12 ? 'AM' : 'PM';
+            return `${h === 0 ? 12 : h}:00 ${ampm}`;
+        }
+
+        function formatRange(range) {
+            if (range.length === 1) {
+                return `${formatHour(range[0])}`;
+            }
+            return `${formatHour(range[0])} - ${formatHour(range[range.length - 1] + 1)}`;
+        }
+
+        // Helper to get contiguous ranges from sorted hours
+        function getContiguousRanges(hours) {
+            if (hours.length === 0) return [];
+            const ranges = [];
+            let currentRange = [hours[0]];
+
+            for (let i = 1; i < hours.length; i++) {
+                if (hours[i] === hours[i-1] + 1) {
+                    currentRange.push(hours[i]);
+                } else {
+                    ranges.push(currentRange);
+                    currentRange = [hours[i]];
+                }
+            }
+            ranges.push(currentRange); // Add the last range
+
+            return ranges.map(range => formatRange(range));
+        }
+
+        // --- 3. Individual Member Activity Calculations ---
+        const myFactionMembersActivity = new Map(); // id -> { name, totalIntervals, activeIntervals }
+        const enemyFactionMembersActivity = new Map(); // id -> { name, totalIntervals, activeIntervals }
+
+        historicalData.forEach(record => {
+            record.myFaction.individuals.forEach(member => {
+                if (!myFactionMembersActivity.has(member.id)) {
+                    myFactionMembersActivity.set(member.id, { name: member.name, totalIntervals: 0, activeIntervals: 0 });
+                }
+                const data = myFactionMembersActivity.get(member.id);
+                data.totalIntervals++;
+                if (member.active === 1) {
+                    data.activeIntervals++;
+                }
+            });
+
+            record.enemyFaction.individuals.forEach(member => {
+                if (!enemyFactionMembersActivity.has(member.id)) {
+                    enemyFactionMembersActivity.set(member.id, { name: member.name, totalIntervals: 0, activeIntervals: 0 });
+                }
+                const data = enemyFactionMembersActivity.get(member.id);
+                data.totalIntervals++;
+                if (member.active === 1) {
+                    data.activeIntervals++;
+                }
+            });
+        });
+
+        // Convert maps to arrays and calculate percentages
+        const myMembersRanked = Array.from(myFactionMembersActivity.entries()).map(([id, data]) => ({
+            id,
+            name: data.name,
+            activityPercent: ((data.activeIntervals / data.totalIntervals) * 100).toFixed(1)
+        })).sort((a, b) => parseFloat(b.activityPercent) - parseFloat(a.activityPercent));
+
+        const enemyMembersRanked = Array.from(enemyFactionMembersActivity.entries()).map(([id, data]) => ({
+            id,
+            name: data.name,
+            activityPercent: ((data.activeIntervals / data.totalIntervals) * 100).toFixed(1)
+        })).sort((a, b) => parseFloat(b.activityPercent) - parseFloat(a.activityPercent));
+
+        // --- 4. Generate Report Content ---
+        let reportContent = `## 24-Hour War Activity Snapshot: ${myFactionName} vs. ${enemyFactionName}\n\n`;
+        reportContent += `**Report Generated:** ${new Date().toLocaleString('en-GB', { hour12: false, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} BST\n`;
+        reportContent += `**Analyzed Period:** Last ${durationHours} Hours (across ${totalIntervals} data points)\n`;
+        reportContent += `**Average Check Interval:** ~${avgIntervalMinutes} minutes\n\n`;
+
+        reportContent += `---\n\n### War Outlook: Your Advantage Over the Last 24 Hours\n\n`;
+        reportContent += `* **${myFactionName} (Your Faction):** Had **more active members** than ${enemyFactionName} during **${myFactionWinPercent}%** of the total tracking time.\n`;
+        reportContent += `* **${enemyFactionName} (Enemy Faction):** Had **more active members** than ${myFactionName} during **${enemyFactionWinPercent}%** of the total tracking time.\n`;
+        reportContent += `* **Tied:** For the remaining **${tiesPercent}%** of the time.\n\n`;
+
+        reportContent += `---\n\n### **Strategic Windows:** Best Times to Attack & Defend\n\n`;
+
+        reportContent += `#### **🔥 Best Time to Push (Attack / High Activity for You):**\n\n`;
+        if (bestAttackWindows.length > 0) {
+            bestAttackWindows.forEach(window => {
+                reportContent += `* **When:** ${window}\n`;
+            });
+            reportContent += `* **Why:** Enemy activity was consistently *lowest* during these hours, offering your faction the biggest advantage.\n`;
+            reportContent += `* **Key Enemy Members Often Offline During These Windows:** (To be manually filled or added later with advanced logic)\n\n`; // Placeholder
+        } else {
+            reportContent += `* No clear attack windows identified in this period based on significant difference. Check individual charts.\n\n`;
+        }
         
+        reportContent += `#### **🛡️ Best Time to Turtle (Defend / Consolidate / Fly):**\n\n`;
+        if (bestTurtleWindows.length > 0) {
+            bestTurtleWindows.forEach(window => {
+                reportContent += `* **When:** ${window}\n`;
+            });
+            reportContent += `* **Why:** Enemy activity was at its *highest peak* during these hours. Be prepared for higher resistance.\n`;
+            reportContent += `* **Key Enemy Members Often Online During These Windows:** (To be manually filled or added later with advanced logic)\n\n`; // Placeholder
+        } else {
+            reportContent += `* No clear turtle windows identified in this period based on significant enemy activity. Be vigilant.\n\n`;
+        }
+
+        reportContent += `---\n\n### Notable Activity Changes (Last 24 Hours)\n\n`;
+        reportContent += `* This section could highlight significant changes like key players coming online/offline.\n`;
+        reportContent += `* (Advanced logic needed here to identify these changes from historical data trends.)\n\n`; // Placeholder
+
+        reportContent += `---\n\n### Your Team's Top Performers (Most Active / Reliable)\n\n`;
+        if (myMembersRanked.length > 0) {
+            myMembersRanked.slice(0, 5).forEach((member, index) => { // Top 5
+                reportContent += `${index + 1}. **${member.name} [${member.id}]:** Active for ${member.activityPercent}% of the time.\n`;
+            });
+        } else {
+            reportContent += `* No members found for your faction.\n`;
+        }
+        reportContent += `\n`; // Add a newline for separation
+
+        reportContent += `---\n\n### Enemy Team's Top Performers (Most Active / Reliable)\n\n`;
+        if (enemyMembersRanked.length > 0) {
+            enemyMembersRanked.slice(0, 5).forEach((member, index) => { // Top 5
+                reportContent += `${index + 1}. **${member.name} [${member.id}]:** Active for ${member.activityPercent}% of the time.\n`;
+            });
+        } else {
+            reportContent += `* No members found for enemy faction.\n`;
+        }
+        reportContent += `\n`;
+
+        // --- 5. Trigger Downloads ---
+        closeReportOptionsModal();
+
         const blob = new Blob([reportContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Faction_Activity_Report_${myFactionName}_vs_${enemyFactionName}.txt`;
+        a.download = `War_Activity_Report_${myFactionName}_vs_${enemyFactionName}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+
+        // Download main charts (as before)
+        const rawActivityChartImg = rawActivityChartCanvas ? rawActivityChartCanvas.toDataURL('image/png') : null;
+        const activityDifferenceChartImg = activityDifferenceChartCanvas ? activityDifferenceChartCanvas.toDataURL('image/png') : null;
 
         if (rawActivityChartImg) {
             await new Promise(resolve => setTimeout(resolve, 500));
