@@ -3707,7 +3707,7 @@ min-width: 320px;
 
 /* The orange "Travel" button */
 .action-button-orange {
-    background-color: #f39c12; /* A nice, vibrantnge */
+    background-color: #f39c12; /* A nice, vibrannge */
 }
 
 /* The yellow "Xanax" button */
@@ -4163,6 +4163,101 @@ min-width: 320px;
     background-color: #bbbbbb;
     cursor: not-allowed;
 }
+
+/* Add to your war_page_hub.css */
+
+/* General container for the webhook setup (NEW) */
+.discord-webhook-setup {
+    margin-top: 15px; /* Spacing from buttons above */
+    padding: 10px;
+    background-color: #2a2a2a; /* Slightly different background for visual grouping */
+    border-radius: 5px;
+    border: 1px solid #444;
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; /* Stack items vertically */
+    gap: 10px; /* Space between elements */
+}
+
+.discord-webhook-setup label {
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+/* Area displaying the URL and Edit button (NEW) */
+.webhook-display-area {
+    display: flex;
+    align-items: center; /* Vertically align items */
+    gap: 10px;
+}
+
+.webhook-url-text {
+    flex-grow: 1; /* Allows the text to take up available space */
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden; /* Hides overflowing text */
+    text-overflow: ellipsis; /* Adds "..." for overflow */
+    background-color: #333;
+    padding: 8px 10px;
+    border-radius: 3px;
+    color: #bbb;
+    font-family: 'Courier New', Courier, monospace; /* Monospace font for URLs */
+    font-size: 0.9em;
+    border: 1px solid #555;
+    min-height: 20px; /* Ensure a minimum height even if empty */
+    display: flex; /* For vertical centering of text if short */
+    align-items: center;
+}
+
+/* Area for the input field and save/cancel buttons (initially hidden) (NEW) */
+.webhook-edit-area {
+    display: flex; /* Use flexbox for input and buttons */
+    flex-direction: column; /* Stack input and buttons vertically */
+    gap: 10px;
+}
+
+.webhook-input {
+    width: 100%; /* Take full width of its container */
+    padding: 8px 10px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: #eee;
+    border-radius: 3px;
+    box-sizing: border-box; /* Include padding/border in width */
+}
+
+/* Container for Save/Cancel buttons (NEW) */
+.edit-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px;
+}
+
+/* Small button styling (NEW) */
+.action-btn.small-btn {
+    padding: 5px 10px;
+    font-size: 0.85em;
+    min-width: unset; /* Remove min-width if inherited from other action-btn */
+    line-height: 1.2; /* Adjust line-height for better vertical centering of text */
+}
+
+.action-btn.small-btn.cancel {
+    background-color: #dc3545; /* Red for cancel */
+    border-color: #dc3545;
+}
+
+.action-btn.small-btn:hover {
+    filter: brightness(1.2);
+}
+
+/* Ensure the parent div for this section is also a flex container to align items correctly */
+/* Find your .summary-edit-buttons rule and ensure it supports vertical stacking if needed,
+   or add this specific override for the parent of .discord-webhook-setup if needed: */
+.summary-edit-buttons {
+    display: flex;
+    flex-direction: column; /* This is key to make the new webhook setup stack below the other buttons */
+    align-items: center; /* Center items horizontally within the column */
+    gap: 10px; /* Adjust gap between elements */
+}
+
 
 #announcements-tab > .ops-ranked-war-score {
     display: none !important;
