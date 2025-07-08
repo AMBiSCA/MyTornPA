@@ -860,53 +860,58 @@ function generateDummyIgnores(count) {
 
 async function handleImageUpload(fileInput, displayElement, type) {
     const file = fileInput.files[0];
+    const MAX_FILE_SIZE_MB = 2; // You can change this number to your desired max size in MB
+    const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
     if (!file || !file.type.startsWith('image/')) {
-        alert("Please select a valid image file.");
+        showCustomAlert("Please select a valid image file.", "Invalid File Type");
         return;
     }
 
-    // Give feedback to the user that the upload has started
+    // --- NEW: File size check ---
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        showCustomAlert(`The selected image is too large. Please upload an image smaller than ${MAX_FILE_SIZE_MB}MB.`, "File Too Large");
+        fileInput.value = ''; // Reset the file input so the user can select a different file
+        return;
+    }
+    // --- END: File size check ---
+
     displayElement.innerHTML = `<p>Uploading image, please wait...</p>`;
 
     // Create a reference in Firebase Storage
     const storageRef = firebase.storage().ref();
-    // Use a consistent file name to automatically overwrite the old image
     const filePath = `war_images/${type}_${globalYourFactionID}.jpg`;
     const fileRef = storageRef.child(filePath);
 
     try {
-        // 1. Upload the file to Firebase Storage
         const snapshot = await fileRef.put(file);
-        
-        // 2. Get the public download URL of the uploaded file
         const downloadURL = await snapshot.ref.getDownloadURL();
         console.log('File successfully uploaded. URL:', downloadURL);
 
-        // 3. Prepare the data to save in your Firestore database
         const dataToSave = {};
         if (type === 'gamePlan') {
-            dataToSave.gamePlanImageUrl = downloadURL; // Save the image URL
+            dataToSave.gamePlanImageUrl = downloadURL;
             dataToSave.gamePlan = ""; // Clear out any old text plan
         } else if (type === 'announcement') {
-            dataToSave.announcementsImageUrl = downloadURL; // Save the image URL
+            dataToSave.announcementsImageUrl = downloadURL;
             dataToSave.quickAnnouncement = ""; // Clear out any old text announcement
         }
 
-        // 4. Save the new image URL to your 'currentWar' document
         await db.collection('factionWars').doc('currentWar').set(dataToSave, { merge: true });
 
-        // 5. Display the newly uploaded image on the page
-        displayElement.innerHTML = ''; // Clear "Uploading..." message
+        // Display the newly uploaded image on the page
+        displayElement.innerHTML = ''; 
         const img = document.createElement('img');
         img.src = downloadURL;
         displayElement.appendChild(img);
 
-        alert('Image uploaded and saved successfully!');
+        // We don't need an alert here anymore, the visual update is enough
+        // alert('Image uploaded and saved successfully!');
 
     } catch (error) {
         console.error("Error uploading image:", error);
         displayElement.innerHTML = `<p style="color: red;">Error uploading image. See console.</p>`;
-        alert("An error occurred while uploading the image. Please check the console for details.");
+        showCustomAlert("An error occurred while uploading the image. Please check the console for details.", "Upload Failed");
     }
 }
 
