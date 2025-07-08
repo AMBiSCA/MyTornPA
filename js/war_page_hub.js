@@ -5481,9 +5481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, userData.faction_id);
-				
-
-
+                
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
                     factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
@@ -5581,134 +5579,117 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 				
-// --- UNIFIED CLICK LISTENER FOR THE AVAILABILITY PANEL ---
-// This listener should be the ONLY one handling clicks within the 'availability-admin-controls' div.
-const availabilityPanel = document.querySelector('.user-status-panel'); // Re-using existing variable name
-                                                                      // that targets the parent container.
-if (availabilityPanel) {
-    availabilityPanel.addEventListener('click', async (event) => {
-        const button = event.target;
+                // --- UNIFIED CLICK LISTENER FOR THE AVAILABILITY PANEL ---
+                const availabilityPanel = document.querySelector('.user-status-panel');
+                if (availabilityPanel) {
+                    availabilityPanel.addEventListener('click', async (event) => {
+                        const button = event.target;
 
-        // --- Logic for "Update Day" buttons ---
-        if (button.matches('.action-btn') && button.textContent.includes('Update Day')) {
-            const dayForm = button.closest('.availability-day-form');
-            const dayNumber = parseInt(dayForm.dataset.day, 10);
-            const user = auth.currentUser;
-            if (!user) { return alert("You must be logged in."); }
+                        // --- Logic for "Update Day" buttons ---
+                        if (button.matches('.action-btn') && button.textContent.includes('Update Day')) {
+                            const dayForm = button.closest('.availability-day-form');
+                            const dayNumber = parseInt(dayForm.dataset.day, 10);
+                            const user = auth.currentUser;
+                            if (!user) { return alert("You must be logged in."); }
 
-            const status = dayForm.querySelector('.availability-status').value;
-            const reason = dayForm.querySelector('.reason-details input').value.trim();
-            if (status === 'no' && reason === '') { return alert("Please provide a reason for being unavailable."); }
+                            const status = dayForm.querySelector('.availability-status').value;
+                            const reason = dayForm.querySelector('.reason-details input').value.trim();
+                            if (status === 'no' && reason === '') { return alert("Please provide a reason for being unavailable."); }
 
-            button.textContent = "Saving...";
-            button.disabled = true;
+                            button.textContent = "Saving...";
+                            button.disabled = true;
 
-            const availabilityData = {
-                status,
-                reason,
-                timeRange: dayForm.querySelector('.time-details input').value.trim(),
-                role: dayForm.querySelector('select[id^="role-day-"]').value,
-                isAvailableForStart: dayForm.querySelector('input[type="checkbox"]').checked,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
+                            const availabilityData = {
+                                status,
+                                reason,
+                                timeRange: dayForm.querySelector('.time-details input').value.trim(),
+                                role: dayForm.querySelector('select[id^="role-day-"]').value,
+                                isAvailableForStart: dayForm.querySelector('input[type="checkbox"]').checked,
+                                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                            };
 
-            try {
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                const tornUserId = userProfileDoc.data().tornProfileId;
-                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-                await availabilityDocRef.set({ [`day_${dayNumber}`]: availabilityData }, { merge: true });
+                            try {
+                                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                                const tornUserId = userProfileDoc.data().tornProfileId;
+                                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+                                await availabilityDocRef.set({ [`day_${dayNumber}`]: availabilityData }, { merge: true });
 
-                const nextDayNumber = dayNumber + 1;
-                if (nextDayNumber <= 3) {
-                    showDayForm(nextDayNumber);
-                } else {
-                    displayWarRoster(); // This will re-calculate and show the summary
+                                const nextDayNumber = dayNumber + 1;
+                                if (nextDayNumber <= 3) {
+                                    showDayForm(nextDayNumber);
+                                } else {
+                                    displayWarRoster(); // This will re-calculate and show the summary
+                                }
+                            } catch (error) {
+                                console.error("Error saving availability:", error);
+                                alert("Error saving: " + error.message);
+                                button.textContent = `Update Day ${dayNumber}`;
+                                button.disabled = false;
+                            }
+                        }
+
+                        // --- Logic for "Edit Day" buttons ---
+                        if (button.matches('.edit-day-btn')) {
+                            const dayToEdit = button.dataset.dayToEdit;
+                            if (dayToEdit) {
+                                showDayForm(parseInt(dayToEdit, 10));
+                            }
+                        }
+
+                        // --- Logic for "Send Reminders" button (notify-members-btn) ---
+                        if (button.id === 'notify-members-btn') {
+                            if (confirm("Are you sure you want to send reminders to all members who haven't set their war availability via Discord webhook?")) {
+                                button.textContent = "Sending...";
+                                button.disabled = true;
+                                try {
+                                    await sendReminderNotifications();
+                                } catch (error) {
+                                    console.error("Error initiating reminder send:", error);
+                                } finally {
+                                    button.textContent = "Send Reminders";
+                                    button.disabled = false;
+                                }
+                            }
+                        }
+
+                        // --- Logic for "Reset All" button ---
+                        if (button.id === 'reset-availability-btn') {
+                            alert("Reset functionality is not yet implemented.");
+                        }
+                    });
                 }
-            } catch (error) {
-                console.error("Error saving availability:", error);
-                alert("Error saving: " + error.message);
-                button.textContent = `Update Day ${dayNumber}`;
-                button.disabled = false;
-            }
-        }
 
-        // --- Logic for "Edit Day" buttons ---
-        if (button.matches('.edit-day-btn')) {
-            const dayToEdit = button.dataset.dayToEdit;
-            if (dayToEdit) {
-                showDayForm(parseInt(dayToEdit, 10));
-            }
-        }
-
-        // --- Logic for "Send Reminders" button (notify-members-btn) ---
-        // This is the specific block that caused the "Generating" issue due to old logic.
-        // It now correctly calls the webhook-enabled sendReminderNotifications.
-        if (button.id === 'notify-members-btn') {
-            if (confirm("Are you sure you want to send reminders to all members who haven't set their war availability via Discord webhook?")) {
-                button.textContent = "Sending...";
-                button.disabled = true;
-                try {
-                    await sendReminderNotifications(); // Calls the now-correct webhook function
-                    // No alert here, as sendReminderNotifications already handles alerts based on success/failure
-                } catch (error) {
-                    console.error("Error initiating reminder send:", error);
-                    // Alert is handled by sendReminderNotifications' catch block
-                } finally {
-                    button.textContent = "Send Reminders";
-                    button.disabled = false;
+                // --- Listener for the Edit buttons in the summary view ---
+                const formsContainerForEdit = document.getElementById('availability-forms-container');
+                if (formsContainerForEdit) {
+                    formsContainerForEdit.addEventListener('click', (event) => {
+                        if (event.target.matches('.edit-day-btn')) {
+                            const dayToEdit = event.target.dataset.dayToEdit;
+                            if (dayToEdit) {
+                                showDayForm(parseInt(dayToEdit, 10));
+                            }
+                        }
+                    });
                 }
-            }
-        }
-
-        // --- Logic for "Reset All" button ---
-        if (button.id === 'reset-availability-btn') {
-            alert("Reset functionality is not yet implemented.");
-        }
-
-        // --- Logic for Discord Webhook Edit/Save/Cancel buttons ---
-        // These listeners are attached within setupDiscordWebhookControls(), so no need to manage them here.
-    });
-}
-
-// --- Listener for the Edit buttons in the summary view ---
-const formsContainerForEdit = document.getElementById('availability-forms-container');
-if (formsContainerForEdit) {
-    formsContainerForEdit.addEventListener('click', (event) => {
-        // Check if any of our new "Edit Day" buttons were clicked
-        if (event.target.matches('.edit-day-btn')) {
-            const dayToEdit = event.target.dataset.dayToEdit;
-            if (dayToEdit) {
-                // Show the form for the specific day that was clicked
-                showDayForm(parseInt(dayToEdit, 10));
-            }
-        }
-    });
-}
-
-                console.log("Global Your Faction ID before calling setupFactionHitsListener:", globalYourFactionID);
-                // Ensure global DOM references are assigned after HTML injection
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-
+                
                 // Initial calls for all dynamic ops panel displays
-                // These functions run immediately upon successful authentication and API key availability.
                 updateUserEnergyDisplay();
                 updateOnlineMemberCounts();
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
                 displayWarRoster();
-				showDayForm(1);
-				checkAndShowAdminControls(playerId);
+                showDayForm(1); 
                 setupFactionHitsListener(db, userData.faction_id);
-                setupWarClaimsListener(); // <--- THIS IS THE NEW LINE YOU NEEDED TO ADD
+                setupWarClaimsListener();
 
+                // Call checkAndShowAdminControls here after all necessary DOM elements should be loaded
+                checkAndShowAdminControls(); // This is the corrected placement.
 
                 // This ensures listeners and intervals are only set up ONCE.
                 if (!listenersInitialized) {
                     setupEventListeners(apiKey);
-                    setupMemberClickEvents(); // <--- **THIS LINE IS NOW CORRECTLY PLACED**
+                    setupMemberClickEvents(); 
 
                     chatTabs.forEach(tab => {
                         tab.addEventListener('click', handleChatTabClick);
