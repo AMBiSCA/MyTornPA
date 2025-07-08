@@ -961,7 +961,7 @@ async function sendClaimChatMessage(claimerName, targetName, chainNumber, custom
     } catch (error) {
         console.error("Error sending claim/unclaim message to Firebase:", error);
     }
-}
+
 
 // Function: Automatically unclaims targets based on their status changing to unavailable
 // UPDATED: Automatically unclaims targets when the overall chain number surpasses their claimed hit number.
@@ -5604,38 +5604,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
-   tabButtons.forEach(button => {
-    button.addEventListener('click', async (event) => {
-        const targetTabDataset = event.currentTarget.dataset.tab;
-        const targetTabId = targetTabDataset + '-tab';
+    // The corrected tab click listener with the security check
+    tabButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const targetTabDataset = event.currentTarget.dataset.tab;
+            const targetTabId = targetTabDataset + '-tab';
 
-        if (targetTabDataset === 'leader-config') {
-            const userIsAdmin = await checkIfUserIsAdmin();
-            if (!userIsAdmin) {
-                // --- THIS IS THE CHANGE ---
-                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
-                showCustomAlert(permissionMessage, "Access Denied");
-                return; 
-                // --- END OF CHANGE ---
-            }
-        }
-
-        showTab(targetTabId);
-
-        if (targetTabDataset === 'friendly-status') {
-            const user = firebase.auth().currentUser;
-            if (user && userApiKey) {
-                await updateFriendlyMembersTable(userApiKey, user.uid);
-            } else {
-                console.warn("User not logged in or API Key missing.");
-                const tbody = document.getElementById('friendly-members-tbody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+            // Permission check for the Leadership Settings tab
+            if (targetTabDataset === 'leader-config') {
+                const userIsAdmin = await checkIfUserIsAdmin();
+                if (!userIsAdmin) {
+                    const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                    showCustomAlert(permissionMessage, "Access Denied");
+                    return; 
                 }
             }
-        }
+
+            showTab(targetTabId);
+
+            // Logic to load the friendly members table when its tab is clicked
+            if (targetTabDataset === 'friendly-status') {
+                const user = firebase.auth().currentUser;
+                if (user && userApiKey) {
+                    await updateFriendlyMembersTable(userApiKey, user.uid);
+                } else {
+                    console.warn("User not logged in or API Key missing.");
+                    const tbody = document.getElementById('friendly-members-tbody');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                    }
+                }
+            }
+        });
     });
-});
 
     showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
