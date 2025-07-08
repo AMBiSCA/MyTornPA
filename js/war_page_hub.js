@@ -4451,29 +4451,41 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // --- MODIFIED ADMIN SAVE LISTENER ---
+   // Replace the existing Admins Save Listener with this one
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
-            console.log("Save Admins button clicked!"); // DEBUG
+            const originalText = saveAdminsBtn.textContent;
+            saveAdminsBtn.disabled = true;
+            saveAdminsBtn.textContent = 'Saving...';
+
             if (!designatedAdminsContainer) {
-                console.error("designatedAdminsContainer not found!"); // DEBUG
+                console.error("Designated admins container not found!");
+                saveAdminsBtn.textContent = 'Error!';
+                // Revert button after 2 seconds on error
+                setTimeout(() => {
+                    saveAdminsBtn.disabled = false;
+                    saveAdminsBtn.textContent = originalText;
+                }, 2000);
                 return;
             }
+
             const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            console.log("Selected IDs to save:", selectedAdminIds); // DEBUG
 
             try {
                 await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                alert('Admins saved!');
-                console.log("Successfully wrote to Firebase."); // DEBUG
+                saveAdminsBtn.textContent = 'Saved!';
             } catch (error) {
                 console.error("Error saving admins:", error);
-                alert("Error saving admins. See console."); // DEBUG
+                saveAdminsBtn.textContent = 'Error!';
+            } finally {
+                // After 2 seconds, revert the button to its original state
+                setTimeout(() => {
+                    saveAdminsBtn.disabled = false;
+                    saveAdminsBtn.textContent = originalText;
+                }, 2000);
             }
         });
     }
-    // --- END MODIFIED LISTENER ---
-}
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
             if (!energyTrackingContainer) return;
