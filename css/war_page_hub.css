@@ -3837,7 +3837,7 @@ min-width: 320px;
     /* CRITICAL ADDITION: Force content alignment to the left within this div */
     text-align: left !important; /* THIS IS THE KEY TO FIX CENTERING PROPAGATION */
 }
-/* Update: #discordWebhookUnifiedControl */
+/* Update: l */
 #discordWebhookUnifiedControl {
     /* Mimic .action-btn basic styling (you can remove any redundant padding/border-radius if they're already on .action-btn) */
     padding: 6px 15px; /* Adjust this to match your other buttons exactly */
