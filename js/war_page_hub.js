@@ -4451,7 +4451,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-   // Replace the existing Admins Save Listener with this one
+    // Replace the existing Admins Save Listener with this one
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
             const originalText = saveAdminsBtn.textContent;
