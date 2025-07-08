@@ -858,27 +858,35 @@ function generateDummyIgnores(count) {
     return dummyIgnores;
 }
 
-async function handleImageUpload(fileInput, displayElement, type) {
+async function handleImageUpload(fileInput, displayElement, labelElement, type) {
+    // Safety check to make sure the button/label element was passed correctly
+    if (!labelElement) {
+        console.error("The label element was not provided to handleImageUpload.");
+        return;
+    }
+    
+    const originalLabelHTML = labelElement.innerHTML;
+    labelElement.innerHTML = 'Uploading...'; // Change button text
+
     const file = fileInput.files[0];
-    const MAX_FILE_SIZE_MB = 2; // You can change this number to your desired max size in MB
+    const MAX_FILE_SIZE_MB = 2;
     const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
     if (!file || !file.type.startsWith('image/')) {
         showCustomAlert("Please select a valid image file.", "Invalid File Type");
+        labelElement.innerHTML = originalLabelHTML; // Revert button text on error
         return;
     }
 
-    // --- NEW: File size check ---
     if (file.size > MAX_FILE_SIZE_BYTES) {
         showCustomAlert(`The selected image is too large. Please upload an image smaller than ${MAX_FILE_SIZE_MB}MB.`, "File Too Large");
-        fileInput.value = ''; // Reset the file input so the user can select a different file
+        fileInput.value = '';
+        labelElement.innerHTML = originalLabelHTML; // Revert button text on error
         return;
     }
-    // --- END: File size check ---
 
     displayElement.innerHTML = `<p>Uploading image, please wait...</p>`;
 
-    // Create a reference in Firebase Storage
     const storageRef = firebase.storage().ref();
     const filePath = `war_images/${type}_${globalYourFactionID}.jpg`;
     const fileRef = storageRef.child(filePath);
@@ -891,27 +899,31 @@ async function handleImageUpload(fileInput, displayElement, type) {
         const dataToSave = {};
         if (type === 'gamePlan') {
             dataToSave.gamePlanImageUrl = downloadURL;
-            dataToSave.gamePlan = ""; // Clear out any old text plan
+            dataToSave.gamePlan = "";
         } else if (type === 'announcement') {
             dataToSave.announcementsImageUrl = downloadURL;
-            dataToSave.quickAnnouncement = ""; // Clear out any old text announcement
+            dataToSave.quickAnnouncement = "";
         }
 
         await db.collection('factionWars').doc('currentWar').set(dataToSave, { merge: true });
 
-        // Display the newly uploaded image on the page
-        displayElement.innerHTML = ''; 
+        displayElement.innerHTML = '';
         const img = document.createElement('img');
         img.src = downloadURL;
         displayElement.appendChild(img);
-
-        // We don't need an alert here anymore, the visual update is enough
-        // alert('Image uploaded and saved successfully!');
+        
+        labelElement.innerHTML = 'Uploaded! ✅'; // Show success on button
 
     } catch (error) {
         console.error("Error uploading image:", error);
         displayElement.innerHTML = `<p style="color: red;">Error uploading image. See console.</p>`;
-        showCustomAlert("An error occurred while uploading the image. Please check the console for details.", "Upload Failed");
+        showCustomAlert("An error occurred while uploading the image.", "Upload Failed");
+        labelElement.innerHTML = 'Error! ❌'; // Show error on button
+    } finally {
+        // After 2 seconds, revert the button text
+        setTimeout(() => {
+            labelElement.innerHTML = originalLabelHTML;
+        }, 2000);
     }
 }
 
@@ -4565,21 +4577,28 @@ function setupEventListeners(apiKey) {
         });
     }
     
-    // Image Upload Listeners
+  
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
-    if (gamePlanUploadInput) {
+    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
+    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
+
+    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
         gamePlanUploadInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplay, 'gamePlan');
+          
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
         });
     }
 
     const announcementUploadInput = document.getElementById('announcementImageUpload');
-    if (announcementUploadInput) {
+    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
+    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
+    
+    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
         announcementUploadInput.addEventListener('change', () => {
-            handleImageUpload(announcementUploadInput, factionAnnouncementsDisplay, 'announcement');
+            
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
         });
     }
-}
 
 if (addFriendBtn) {
     addFriendBtn.addEventListener('click', async () => {
