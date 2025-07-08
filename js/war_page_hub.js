@@ -5481,6 +5481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, userData.faction_id);
+				checkAndShowAdminControls();
 
 
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
