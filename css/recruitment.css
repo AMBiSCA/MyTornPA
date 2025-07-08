@@ -111,6 +111,12 @@
 }
 
 /* Table Styles (Faction and Player listings) */
+/* recruitment.css */
+
+/* ... (your existing CSS code above this) ... */
+
+
+/* Table Styles (Faction and Player listings) */
 .recruitment-table {
     width: 100%;
     border-collapse: collapse;
@@ -119,6 +125,8 @@
     background-color: #2a2a2a; /* Slightly lighter background for the table itself */
     border-radius: 4px; /* Slight rounding for tables */
     overflow: hidden; /* Ensures rounded corners are respected */
+    /* NEW: Force fixed table layout for better column control */
+    table-layout: fixed;
 }
 
 .recruitment-table th,
@@ -139,6 +147,68 @@
     font-size: 0.95em;
     border-bottom: 2px solid #1e1e1e;
 }
+
+/* NEW: Specific column widths for Factions Seeking Members table */
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(1), /* Faction Name */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(1) {
+    width: 35%; /* Give more space to faction name */
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(2), /* Respect */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(2) {
+    width: 15%;
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(3), /* Rank */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(3) {
+    width: 15%;
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(4), /* Members */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(4) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(5), /* Apply */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(5) {
+    width: 25%; /* Space for button */
+    text-align: center; /* Center the apply button */
+}
+
+
+/* NEW: Specific column widths for Players Seeking Factions table */
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(1), /* Name */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(1) {
+    width: 20%; /* Adjusted width for player name */
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(2), /* Level */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(2) {
+    width: 8%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(3), /* Total Battle Stats */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(3) {
+    width: 14%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(4), /* Xanax Taken */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(4) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(5), /* War Hits */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(5) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(6), /* Energy Refills */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(6) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(7), /* Best Active Streak */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(7) {
+    width: 13%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(8), /* Message */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(8) {
+    width: 15%; /* Sufficient space for the button */
+    text-align: center; /* Center the message button */
+}
+
+
+/* ... (rest of your CSS code below this) ... */
 
 .recruitment-table tbody tr:nth-child(even) {
     background-color: #333; /* Alternate row color */
