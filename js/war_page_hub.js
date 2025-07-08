@@ -2765,10 +2765,10 @@ function showFactionSummary(summaryCounts) {
                 <button class="action-btn edit-day-btn" data-day-to-edit="3">Edit Day 3</button>
             </div>
 
-            <div id="availability-admin-controls" style="display: none;">
+            <div id="availability-admin-controls" class="leader-controls-container-new" style="display: none;">
                 <hr>
                 <h4>Leader Controls</h4>
-                <div class="summary-edit-buttons leader-controls-row">
+                <div class="leader-buttons-row">
                     <button id="reset-availability-btn" class="action-btn">Reset All</button>
                     <button id="notify-members-btn" class="action-btn">Send Reminders</button>
                     
