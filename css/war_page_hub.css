@@ -3838,72 +3838,7 @@ min-width: 320px;
     text-align: left !important; /* THIS IS THE KEY TO FIX CENTERING PROPAGATION */
 }
 /* Update: l */
-#discordWebhookUnifiedControl {
-    /* Mimic .action-btn basic styling (you can remove any redundant padding/border-radius if they're already on .action-btn) */
-    padding: 6px 15px; /* Adjust this to match your other buttons exactly */
-    border-radius: 5px; /* Adjust this to match your other buttons exactly */
-    font-weight: bold;
-    text-decoration: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out, background-color 0.2s ease, border-color 0.2s ease; /* Remove color from transition */
-    cursor: pointer;
-    box-sizing: border-box;
 
-    /* Force the appearance to match other action-buttons */
-    background-color: #007bff !important; /* Default blue, will be overridden by status for background */
-    border: 2px solid black !important; /* Force dark border, matches .action-btn */
-    color: black !important; /* Force black text */
-
-    /* Flex properties for content centering */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* Positioning for overlaying edit area */
-    position: relative;
-    overflow: hidden;
-    
-    /* Sizing for alignment with other buttons */
-    flex: 1; 
-    min-width: 120px; /* Adjust to match your other action-buttons */
-    max-width: 250px; /* Adjust to match your other action-buttons */
-}
-
-/* Update: Hover styles for #discordWebhookUnifiedControl */
-#discordWebhookUnifiedControl:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-/* Update: Status-based colors for #discordWebhookUnifiedControl (only background and border-color) */
-#discordWebhookUnifiedControl.configured-status {
-    background-color: #4CAF50 !important; /* Green background */
-    /* REMOVED 'color: white !important;' to keep text black */
-}
-#discordWebhookUnifiedControl.configured-status:hover {
-    background-color: #5cb85c !important;
-}
-
-#discordWebhookUnifiedControl.not-set-status {
-    background-color: #FF6347 !important; /* Red background */
-    /* REMOVED 'color: white !important;' to keep text black */
-}
-#discordWebhookUnifiedControl.not-set-status:hover {
-    background-color: #e5533d !important;
-}
-
-#discordWebhookUnifiedControl.editing {
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.7) !important; /* Add a glow */
-}
-
-/* Ensure the text inside the button picks up the new black color */
-#discordWebhookStatusText {
-    font-size: 0.9em; /* Match standard action-btn font size */
-    color: inherit; /* This means it will inherit the black color from #discordWebhookUnifiedControl */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
 /* Rule for equal width children */
 .summary-edit-buttons.leader-controls-row > .action-btn,
