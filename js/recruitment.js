@@ -186,7 +186,7 @@ async function displayPlayersSeekingFactions() {
     }
 
     console.log("1. Starting to display players."); // DEBUG
-    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="7">Loading player listings...</td></tr>';
+    playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">Loading player listings...</td></tr>'; // Adjusted colspan to 8
 
     try {
         const snapshot = await db.collection('playersSeekingFactions')
@@ -199,7 +199,7 @@ async function displayPlayersSeekingFactions() {
 
         if (snapshot.empty) {
             console.log("3. Snapshot is empty, showing 'No players' message."); // DEBUG
-            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="7">No players currently seeking factions.</td></tr>';
+            playersSeekingFactionsTbody.innerHTML = '<tr><td colspan="8">No players currently seeking factions.</td></tr>'; // Adjusted colspan to 8
             return;
         }
 
@@ -209,6 +209,8 @@ async function displayPlayersSeekingFactions() {
             const player = doc.data();
             console.log("5. Adding row for player: ", player.playerName); // DEBUG
             const profileUrl = `https://www.torn.com/profiles.php?XID=${player.playerId}`;
+            const messageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${player.playerId}`; // Torn message URL
+
             tableHtml += `
                 <tr>
                     <td><a href="${profileUrl}" target="_blank" rel="noopener noreferrer">${player.playerName}</a></td>
@@ -218,6 +220,7 @@ async function displayPlayersSeekingFactions() {
                     <td>${(player.warHits || 0).toLocaleString()}</td>
                     <td>${(player.energyRefills || 0).toLocaleString()}</td>
                     <td>${(player.bestActiveStreak || 0).toLocaleString()}</td>
+                    <td><a href="${messageUrl}" target="_blank" rel="noopener noreferrer" class="action-button">Message</a></td>
                 </tr>
             `;
         });
@@ -227,7 +230,7 @@ async function displayPlayersSeekingFactions() {
 
     } catch (error) {
         console.error("7. Error fetching players:", error); // DEBUG
-        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="7">Error loading player listings.</td></tr>`;
+        playersSeekingFactionsTbody.innerHTML = `<tr><td colspan="8">Error loading player listings.</td></tr>`; // Adjusted colspan to 8
     }
 }
 
