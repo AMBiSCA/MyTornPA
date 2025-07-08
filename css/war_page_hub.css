@@ -3824,7 +3824,7 @@ min-width: 320px;
     flex-wrap: wrap;
     padding: 10px; /* Keep padding to ensure internal spacing for buttons */
     border-radius: 5px;
-	margin-left: 0 !important;
+	margin-left: -50px
     margin-right: auto !important;
 }
 
