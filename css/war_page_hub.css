@@ -4309,7 +4309,7 @@ margin-right: auto !important;
     margin-top: 5px; /* Adjust if needed */
 }
 
-/* Styling for the new Remove button */
+/* Styling for Remove button */
 .webhook-edit-area .action-btn.remove {
     background-color: #dc3545; /* Red color for remove */
     order: -1; /* Push to the left if justify-content is space-between */
