@@ -2521,10 +2521,12 @@ async function generateReminderList() {
         
         const reminderTemplate = warDoc.exists && warDoc.data().reminderTemplate 
             ? warDoc.data().reminderTemplate 
-            : "Hi [name], this is a reminder to please set your war availability on the hub. Thanks!";
+            : "Reminder: Please set your war availability on the hub.";
 
         const respondedUserIds = new Set();
-        availabilitySnapshot.forEach(doc => respondedUserIds.add(doc.id));
+        availabilitySnapshot.forEach(doc => {
+            respondedUserIds.add(doc.id);
+        });
 
         if (!factionApiFullData || !factionApiFullData.members) {
             throw new Error("Faction member list is not available.");
@@ -2538,24 +2540,21 @@ async function generateReminderList() {
             return;
         }
 
-        // Build the list of links that only pre-fill the user ID
+        // --- THIS IS THE TEST ---
+        // We will build the full link with all parameters after the #
+        const subject = encodeURIComponent("War Availability Reminder");
+        
         const reminderLinksHtml = nonResponders.map(member => {
-            const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}`;
-            return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Compose Message</a></li>`;
+            const personalizedMessage = reminderTemplate.replace(/\[name\]/gi, member.name);
+            const body = encodeURIComponent(personalizedMessage);
+            // This link includes XID, subject, and body.
+            const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
+            
+            return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Send Reminder</a></li>`;
         }).join('');
+        // --- END OF TEST CODE ---
 
-        // NEW: Create the final HTML, including the template text and a copy button
-        const finalHtml = `
-            <h4>Members to Remind:</h4>
-            <ul class="reminder-list">${reminderLinksHtml}</ul>
-            <div class="reminder-template-display">
-                <p><strong>Your Message Template:</strong></p>
-                <div id="message-to-copy">${reminderTemplate}</div>
-                <button id="copy-reminder-btn" class="action-btn-small">Copy Message</button>
-            </div>
-        `;
-
-        reminderListContainer.innerHTML = finalHtml;
+        reminderListContainer.innerHTML = `<h4>Members to Remind:</h4><ul>${reminderLinksHtml}</ul>`;
 
     } catch (error) {
         console.error("Error generating reminder list:", error);
