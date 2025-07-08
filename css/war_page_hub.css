@@ -3823,6 +3823,7 @@ min-width: 320px;
     flex-wrap: wrap; /* Keep for responsiveness */
     padding: 10px;
     border-radius: 5px;
+	margin-left: -8px !important;
     /* Background and border should be removed from here as per previous step */
 }
 
