@@ -3878,7 +3878,6 @@ min-width: 320px;
 /* Update: Status-based colors for #discordWebhookUnifiedControl (only background and border-color) */
 #discordWebhookUnifiedControl.configured-status {
     background-color: #4CAF50 !important; /* Green background */
-    border-color: #4CAF50 !important; /* Matching green border */
     /* REMOVED 'color: white !important;' to keep text black */
 }
 #discordWebhookUnifiedControl.configured-status:hover {
@@ -3887,7 +3886,6 @@ min-width: 320px;
 
 #discordWebhookUnifiedControl.not-set-status {
     background-color: #FF6347 !important; /* Red background */
-    border-color: #FF6347 !important; /* Matching red border */
     /* REMOVED 'color: white !important;' to keep text black */
 }
 #discordWebhookUnifiedControl.not-set-status:hover {
