@@ -1832,13 +1832,14 @@ autocomplete-items {
 
 /* Layout for the Friendly Status tab: Members List and Member Details */
 .friendly-status-layout-row {
-    display: flex; 
-    flex-grow: 1;
-    gap: 20px; 
-    width: 100%;
-    align-items: flex-start; 
-    flex-wrap: wrap; 
-	justify-content: flex-start; /* MODIFIED THIS LINE */
+    display: flex; /* Arranges children (panels) side-by-side */
+    flex-grow: 1;
+    gap: 20px; /* Space between the left and right panels */
+    width: 100%;
+    align-items: flex-start; /* Aligns both panels to the top */
+    flex-wrap: wrap; /* Allows panels to wrap on smaller screens */
+	justify-content: center;
+	
 }
 
 .friendly-members-panel {
@@ -3723,6 +3724,11 @@ min-width: 320px;
     font-size: 2em;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.table-title-centered {
+    position: relative;
+    left: -50px; 
 }
 #saveAdminSelectionsBtn {
     margin-top: -35.5px !important; 
