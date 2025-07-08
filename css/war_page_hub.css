@@ -4302,3 +4302,139 @@ width: 60%;          
 margin-left: auto !important;   /* These two lines automatically center it. */
 margin-right: auto !important;
 }
+
+/* NEW: Styles for the full-screen transparent modal overlay */
+.webhook-modal-overlay {
+    position: fixed; /* Fixes it to the viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Dark, semi-transparent background */
+    display: flex; /* Use flexbox to center the modal content */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    z-index: 9999; /* Ensure it's on top of everything */
+    /* display: none; will be set by JS initially */
+}
+
+/* Styles for the modal's content box (the webhook-edit-area when it's a modal) */
+.webhook-edit-area {
+    /* REMOVE position: absolute, top, left, width: 100%, height: 100%, z-index from previous definition */
+    /* This rule will now define the appearance of the central modal box */
+    background-color: #2a2a2a; /* Dark background for the modal content */
+    border: 1px solid #00a8ff; /* Theme blue border */
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    padding: 20px; /* Internal padding */
+    box-sizing: border-box;
+    width: 90%; /* Max width for responsiveness */
+    max-width: 400px; /* Maximum width for the modal */
+    display: flex; /* Use flex to stack its internal elements */
+    flex-direction: column;
+    gap: 15px; /* Space between header, body, footer */
+}
+
+/* Styles for header within the modal */
+.webhook-edit-area .modal-header {
+    text-align: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+.webhook-edit-area .modal-header h4 {
+    color: #e0a71a; /* Gold title */
+    margin: 0;
+    font-size: 1.4em;
+}
+
+/* Styles for body within the modal (input field) */
+.webhook-edit-area .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.webhook-edit-area .modal-body label {
+    font-weight: bold;
+    color: #f0f0f0;
+}
+.webhook-edit-area .webhook-input {
+    width: 100%; /* Make input fill available space */
+    padding: 8px;
+    border: 1px solid #555;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Styles for footer within the modal (buttons) */
+.webhook-edit-area .modal-footer {
+    display: flex;
+    justify-content: space-between; /* Space buttons out */
+    gap: 10px;
+    border-top: 1px solid #444;
+    padding-top: 15px;
+    margin-top: 5px; /* Adjust if needed */
+}
+
+/* Styling for the new Remove button */
+.webhook-edit-area .action-btn.remove {
+    background-color: #dc3545; /* Red color for remove */
+    order: -1; /* Push to the left if justify-content is space-between */
+}
+.webhook-edit-area .action-btn.remove:hover {
+    background-color: #c82333;
+}
+
+/* Re-ensure the correct styles for #discordWebhookUnifiedControl itself */
+/* This ensures it matches other action-buttons in the row */
+#discordWebhookUnifiedControl {
+    padding: 6px 15px; /* Adjust padding to match your other action-buttons */
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    background-color: #007bff !important; /* Default blue, will be overridden by status for background */
+    border: 1px solid #222 !important; /* Force dark border */
+    color: black !important; /* Force black text */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    position: relative; /* Keep this */
+    overflow: hidden; /* Keep this */
+    
+    flex: 1; /* Make it grow/shrink equally with other buttons */
+    min-width: 120px; /* Adjust to match your other action-buttons */
+    max-width: 250px; /* Adjust to match your other action-buttons */
+}
+/* Ensure these hover rules are updated and apply !important if needed */
+#discordWebhookUnifiedControl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Update status-based colors for #discordWebhookUnifiedControl */
+#discordWebhookUnifiedControl.configured-status {
+    background-color: #4CAF50 !important; /* Green */
+    border-color: #4CAF50 !important;
+}
+#discordWebhookUnifiedControl.configured-status:hover {
+    background-color: #5cb85c !important;
+}
+#discordWebhookUnifiedControl.not-set-status {
+    background-color: #FF6347 !important; /* Red */
+    border-color: #FF6347 !important;
+}
+#discordWebhookUnifiedControl.not-set-status:hover {
+    background-color: #e5533d !important;
+}
+#discordWebhookUnifiedControl.editing {
+    /* No need for specific background here, as modal will cover */
+    /* You can apply a visual highlight to the button that launched the modal */
+}
