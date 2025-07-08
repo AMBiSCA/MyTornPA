@@ -2797,29 +2797,23 @@ min-width: 320px;
 
 /* The main container for the entire score box */
 .ranked-war-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background-color: #2a2a2a;
-    border: 2px solid black;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-family: Arial, sans-serif;
-    color: #f0f0f0;
-    min-width: 320px;
-    box-sizing: border-box;
-}
+    /* Use a fixed width to make it wider, or max-width if you want it responsive up to a point. */
+    /* Let's try a significantly larger width here. Adjust this value as needed! */
+    width: 480px; /* Start with a larger fixed width, e.g., 480px. You can go to 500px, 550px etc. */
+    /* If 'width' is too restrictive, you can use 'max-width' instead: */
+    /* max-width: 550px; */
 
+    /* To make it less squashed vertically, ensure generous padding */
+    padding: 15px 20px; /* Increase vertical and horizontal padding */
+    box-sizing: border-box;
+    
+    /* Ensure it doesn't get squashed if its parent is a flex/grid item */
+    flex-shrink: 0; 
+}
 /* Header: Faction 1 vs Faction 2 */
 .rw-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.1em;
-    font-weight: bold;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #444;
+    margin-bottom: 12px; /* More space below the faction names */
+    font-size: 1.2em;
 }
 .rw-vs {
     color: #aaa;
@@ -2839,31 +2833,24 @@ min-width: 320px;
 
 /* The new middle row holding the 3 info blocks */
 .rw-scores-new {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
+    /* This section contains Energy, Lead Target, War Time. */
+    /* 'gap' adds space between these items. */
+    gap: 25px; /* Increase space between the three columns */
+    margin-bottom: 15px; /* More space below this row */
+    justify-content: space-between; /* Ensures even distribution of space */
+    flex-wrap: nowrap; /* Prevent wrapping unless absolutely necessary */
 }
-
 /* The small boxes for Energy and War Time */
 .rw-stat-box-small {
-    padding: 4px 8px;
-    border: 1px solid #383838;
-    border-radius: 5px;
-    background-color: rgba(0,0,0,0.2);
-    min-width: 95px; /* Gives them a consistent width */
+    /* Ensure these small boxes don't shrink too much and contribute to the overall width */
+    min-width: 100px; /* Give a solid minimum width */
+    flex-grow: 1; /* Allow them to grow if extra space is available */
 }
-.rw-small-label {
-    font-size: 0.7em;
-    font-weight: bold;
-    color: #e0a71a; /* Gold */
-    text-transform: uppercase;
+.rw-small-value, .rw-lead-value {
+    font-size: 1.4em; /* Make the numbers/times more prominent */
 }
-.rw-small-value {
-    font-size: 1.1em;
-    font-weight: bold;
-    font-family: 'Courier New', Courier, monospace;
-    color: #ddd;
+.rw-small-label, .rw-lead-label {
+    font-size: 0.9em; /* Slightly larger labels */
 }
 #rw-user-energy {
     color: #4CAF50; /* Green for energy value */
@@ -2871,8 +2858,11 @@ min-width: 320px;
 
 /* Center block: LEAD TARGET */
 .rw-lead-target {
-    text-align: center;
+    /* Give the lead target section more room, as it's the central focus */
+    min-width: 140px; /* Provide a larger minimum width for the middle section */
+    flex-grow: 2; /* Allow it to grow more than side boxes */
 }
+
 .rw-lead-label {
     color: #e0a71a;
     font-size: 0.8em;
@@ -2887,14 +2877,8 @@ min-width: 320px;
 
 /* Progress Bar */
 .rw-progress-bar-container {
-    display: flex;
-    height: 10px;
-    width: 90%;
-    margin: 12px auto 0 auto; /* Adds space above the bar and centers it */
-    border-radius: 5px;
-    overflow: hidden;
-    background-color: #1e1e1e;
-    border: 1px solid #111;
+    height: 20px; /* Slightly taller progress bar */
+    margin-top: 15px; /* More space above progress bar */
 }
 .rw-progress-bar-one {
     background-color: #4CAF50;
