@@ -2515,7 +2515,7 @@ async function generateReminderList() {
         ]);
 
         // --- THIS IS THE CORRECTED LINE ---
-        // It now correctly uses 'warDoc.data()' instead of the non-existent 'doc.data()'
+        // It now correctly uses 'warDoc.data()'
         const reminderTemplate = warDoc.exists && warDoc.data().reminderTemplate 
             ? warDoc.data().reminderTemplate 
             : "Reminder: Please set your war availability.";
