@@ -2461,30 +2461,35 @@ async function checkAndShowAdminControls() {
 
 // --- FINAL STEP: Add Click Listeners for Admin Buttons ---
 
-// This listener is attached to the parent container of the buttons
 const adminControlsContainer = document.getElementById('availability-admin-controls');
 if (adminControlsContainer) {
     adminControlsContainer.addEventListener('click', async (event) => {
-        const button = event.target; // The specific button that was clicked
+        const button = event.target;
 
-        // Logic for the "Send Reminders" button
         if (button.id === 'notify-members-btn') {
             button.textContent = "Generating...";
             button.disabled = true;
-            await generateReminderList(); // This calls the function we already made
+            await generateReminderList();
             button.textContent = "Send Reminders";
             button.disabled = false;
         }
 
-        // Logic for the "Reset All" button
         if (button.id === 'reset-availability-btn') {
-            // As we discussed, this feature is complex and would require a Cloud Function.
-            // For now, it will just show an alert.
             alert("Reset functionality is not yet implemented.");
+        }
+
+        // --- NEW: Logic for the Copy button ---
+        if (button.id === 'copy-reminder-btn') {
+            const textToCopy = document.getElementById('message-to-copy').innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                button.textContent = "Copied!";
+                setTimeout(() => { button.textContent = "Copy Message"; }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
         }
     });
 }
-
 const adminControls = document.getElementById('availability-admin-controls');
 if (adminControls) {
     adminControls.addEventListener('click', (event) => {
@@ -2513,15 +2518,13 @@ async function generateReminderList() {
             warDocRef.get(),
             warDocRef.collection('availability').get()
         ]);
-
+        
         const reminderTemplate = warDoc.exists && warDoc.data().reminderTemplate 
             ? warDoc.data().reminderTemplate 
-            : "Reminder: Please set your war availability.";
+            : "Hi [name], this is a reminder to please set your war availability on the hub. Thanks!";
 
         const respondedUserIds = new Set();
-        availabilitySnapshot.forEach(doc => {
-            respondedUserIds.add(doc.id);
-        });
+        availabilitySnapshot.forEach(doc => respondedUserIds.add(doc.id));
 
         if (!factionApiFullData || !factionApiFullData.members) {
             throw new Error("Faction member list is not available.");
@@ -2535,20 +2538,24 @@ async function generateReminderList() {
             return;
         }
 
-        const subject = encodeURIComponent("War Availability Reminder");
-
+        // Build the list of links that only pre-fill the user ID
         const reminderLinksHtml = nonResponders.map(member => {
-            const personalizedMessage = reminderTemplate.replace(/\[name\]/gi, member.name);
-            const body = encodeURIComponent(personalizedMessage);
-            
-            // --- THIS IS THE CORRECTED LINE ---
-            // Changed the '#' to a '?' to create a valid link
-            const mailLink = `https://www.torn.com/messages.php?p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
-            
-            return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Send Reminder</a></li>`;
+            const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}`;
+            return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Compose Message</a></li>`;
         }).join('');
 
-        reminderListContainer.innerHTML = `<h4>Members to Remind:</h4><ul>${reminderLinksHtml}</ul>`;
+        // NEW: Create the final HTML, including the template text and a copy button
+        const finalHtml = `
+            <h4>Members to Remind:</h4>
+            <ul class="reminder-list">${reminderLinksHtml}</ul>
+            <div class="reminder-template-display">
+                <p><strong>Your Message Template:</strong></p>
+                <div id="message-to-copy">${reminderTemplate}</div>
+                <button id="copy-reminder-btn" class="action-btn-small">Copy Message</button>
+            </div>
+        `;
+
+        reminderListContainer.innerHTML = finalHtml;
 
     } catch (error) {
         console.error("Error generating reminder list:", error);
