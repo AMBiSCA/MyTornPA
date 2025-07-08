@@ -3813,18 +3813,17 @@ min-width: 320px;
 }
 
 /* Updated: For the inner leader controls section to make them all inline */
+/* CORRECTED: Remove unwanted box from the entire leader controls row */
 .summary-edit-buttons.leader-controls-row {
     display: flex;
-    flex-direction: row; /* THIS IS THE KEY: Makes its children align horizontally */
-    align-items: center; /* Vertically align all items in the row */
-    justify-content: space-around; /* Distribute space evenly across the row */
-    gap: 10px; /* Space between the elements */
-    width: 100%; /* Ensure it takes full width of its parent */
-    flex-wrap: wrap; /* Allows items to wrap onto next line if screen is too small */
-    padding: 10px; /* Padding around this whole row */
-    background-color: #2a2a2a; /* Give it a background to visually group */
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around; /* Or space-between, depending on exact spacing preference */
+    gap: 10px; /* Space between the buttons */
+    width: 100%;
+    flex-wrap: wrap;
+    padding: 10px; /* Keep padding to ensure internal spacing for buttons */
     border-radius: 5px;
-    border: 1px solid #444;
 }
 /* NEW RULE: This forces the children (buttons and webhook block) of the leader-controls-row to be equal width */
 .summary-edit-buttons.leader-controls-row > .action-btn,
