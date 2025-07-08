@@ -2514,12 +2514,9 @@ async function generateReminderList() {
             warDocRef.collection('availability').get()
         ]);
 
-        // --- THIS IS THE CORRECTED LINE ---
-        // It now correctly uses 'warDoc.data()'
         const reminderTemplate = warDoc.exists && warDoc.data().reminderTemplate 
             ? warDoc.data().reminderTemplate 
             : "Reminder: Please set your war availability.";
-        // --- END OF CORRECTION ---
 
         const respondedUserIds = new Set();
         availabilitySnapshot.forEach(doc => {
@@ -2539,10 +2536,14 @@ async function generateReminderList() {
         }
 
         const subject = encodeURIComponent("War Availability Reminder");
+
         const reminderLinksHtml = nonResponders.map(member => {
             const personalizedMessage = reminderTemplate.replace(/\[name\]/gi, member.name);
             const body = encodeURIComponent(personalizedMessage);
-            const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
+            
+            // --- THIS IS THE CORRECTED LINE ---
+            // Changed the '#' to a '?' to create a valid link
+            const mailLink = `https://www.torn.com/messages.php?p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
             
             return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Send Reminder</a></li>`;
         }).join('');
