@@ -5481,7 +5481,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 userApiKey = apiKey;
 
                 await initializeAndLoadData(apiKey, userData.faction_id);
-				
 
 
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
