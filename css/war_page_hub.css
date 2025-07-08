@@ -3830,13 +3830,13 @@ min-width: 320px;
 
 #availability-admin-controls {
     display: none; /* Keep this as it's controlled by JS */
-    /* Add these lines to make it align to the left within its parent */
-    align-self: flex-start; /* If its parent is a flex container, align to start */
-    margin-right: auto;    /* Pushes it to the left if its parent is also a flex/grid item */
-    width: 100%;           /* Ensure it spans full width so children can align within it */
+    align-self: flex-start; /* Keep this, can help with cross-axis alignment if parent is flex */
+    width: 100%;           /* Ensure it spans full width so its children can align within it */
     box-sizing: border-box; /* Include padding/border in width */
 
-    /* The existing padding, hr, h4, etc. rules should remain as they are */
+    /* CRITICAL ADDITION: Override parent's centering and force left alignment for this element */
+    margin-left: 0 !important;
+    margin-right: auto !important; /* This now has a clear function: push to left by consuming right space */
 }
 /* NEW RULE: This forces the children (buttons and webhook block) of the leader-controls-row to be equal width */
 .summary-edit-buttons.leader-controls-row > .action-btn,
