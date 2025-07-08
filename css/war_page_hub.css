@@ -4355,14 +4355,14 @@ margin-right: auto !important;
 }
 .webhook-edit-area .modal-body label {
     font-weight: bold;
-    color: #f0f0f0;
+    color: black !important;
 }
 .webhook-edit-area .webhook-input {
     width: 100%; /* Make input fill available space */
     padding: 8px;
     border: 1px solid #555;
     background-color: #1e1e1e;
-    color: #f0f0f0;
+    color: black !important;
     border-radius: 4px;
     box-sizing: border-box;
 }
