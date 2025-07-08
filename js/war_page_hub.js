@@ -2508,26 +2508,29 @@ async function generateReminderList() {
     reminderListContainer.innerHTML = '<p>Finding members who need a reminder...</p>';
 
     try {
-        // --- Step 1: Get all necessary data ---
-        
-        // Get the saved reminder template
-        const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const reminderTemplate = warDoc.exists ? doc.data().reminderTemplate || "Reminder: Please set your war availability." : "Reminder: Please set your war availability.";
+        const warDocRef = db.collection('factionWars').doc('currentWar');
+        const [warDoc, availabilitySnapshot] = await Promise.all([
+            warDocRef.get(),
+            warDocRef.collection('availability').get()
+        ]);
 
-        // Get the list of users who have already responded
-        const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
+        // --- THIS IS THE CORRECTED LINE ---
+        // It now correctly uses 'warDoc.data()' instead of the non-existent 'doc.data()'
+        const reminderTemplate = warDoc.exists && warDoc.data().reminderTemplate 
+            ? warDoc.data().reminderTemplate 
+            : "Reminder: Please set your war availability.";
+        // --- END OF CORRECTION ---
+
         const respondedUserIds = new Set();
         availabilitySnapshot.forEach(doc => {
             respondedUserIds.add(doc.id);
         });
 
-        // Get the full list of all faction members
         if (!factionApiFullData || !factionApiFullData.members) {
             throw new Error("Faction member list is not available.");
         }
         const allMembers = Object.values(factionApiFullData.members);
 
-        // --- Step 2: Find who has NOT responded ---
         const nonResponders = allMembers.filter(member => !respondedUserIds.has(member.id));
 
         if (nonResponders.length === 0) {
@@ -2535,11 +2538,8 @@ async function generateReminderList() {
             return;
         }
 
-        // --- Step 3: Build the list of reminder links ---
         const subject = encodeURIComponent("War Availability Reminder");
-
         const reminderLinksHtml = nonResponders.map(member => {
-            // Replace [name] placeholder with the actual member name
             const personalizedMessage = reminderTemplate.replace(/\[name\]/gi, member.name);
             const body = encodeURIComponent(personalizedMessage);
             const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
