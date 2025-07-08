@@ -4181,3 +4181,13 @@ min-width: 320px;
 #availability-summary-container li strong {
     color: #00a8ff;
 }
+
+/* ==================================================================
+   FIX for Scoreboard Width and Centering
+   ================================================================== */
+#active-ops-scoreboard {
+width: 60%;           
+ max-width: 700px;         /* Prevents it from getting too big on very wide screens. */
+margin-left: auto !important;   /* These two lines automatically center it. */
+margin-right: auto !important;
+}

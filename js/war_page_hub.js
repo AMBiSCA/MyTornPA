@@ -5360,6 +5360,81 @@ document.addEventListener('DOMContentLoaded', () => {
                         formsContainer.insertAdjacentHTML('beforeend', newDayFormHtml);
                     });
                 }
+				
+				// --- UNIFIED CLICK LISTENER FOR THE AVAILABILITY PANEL ---
+
+const availabilityPanel = document.querySelector('.user-status-panel');
+
+if (availabilityPanel) {
+    availabilityPanel.addEventListener('click', async (event) => {
+        const button = event.target;
+
+        // --- Logic for "Update Day" buttons ---
+        if (button.matches('.action-btn') && button.textContent.includes('Update Day')) {
+            const dayForm = button.closest('.availability-day-form');
+            const dayNumber = parseInt(dayForm.dataset.day, 10);
+            const user = auth.currentUser;
+            if (!user) { return alert("You must be logged in."); }
+            
+            const status = dayForm.querySelector('.availability-status').value;
+            const reason = dayForm.querySelector('.reason-details input').value.trim();
+            if (status === 'no' && reason === '') { return alert("Please provide a reason for being unavailable."); }
+
+            button.textContent = "Saving...";
+            button.disabled = true;
+
+            const availabilityData = {
+                status,
+                reason,
+                timeRange: dayForm.querySelector('.time-details input').value.trim(),
+                role: dayForm.querySelector('select[id^="role-day-"]').value,
+                isAvailableForStart: dayForm.querySelector('input[type="checkbox"]').checked,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+                const tornUserId = userProfileDoc.data().tornProfileId;
+                const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
+                await availabilityDocRef.set({ [`day_${dayNumber}`]: availabilityData }, { merge: true });
+
+                const nextDayNumber = dayNumber + 1;
+                if (nextDayNumber <= 3) {
+                    showDayForm(nextDayNumber);
+                } else {
+                    displayWarRoster(); // This will re-calculate and show the summary
+                }
+            } catch (error) {
+                console.error("Error saving availability:", error);
+                alert("Error saving: " + error.message);
+                button.textContent = `Update Day ${dayNumber}`;
+                button.disabled = false;
+            }
+        }
+
+        // --- Logic for "Edit Day" buttons ---
+        if (button.matches('.edit-day-btn')) {
+            const dayToEdit = button.dataset.dayToEdit;
+            if (dayToEdit) {
+                showDayForm(parseInt(dayToEdit, 10));
+            }
+        }
+
+        // --- Logic for "Send Reminders" button ---
+        if (button.id === 'notify-members-btn') {
+            button.textContent = "Generating...";
+            button.disabled = true;
+            await generateReminderList();
+            button.textContent = "Send Reminders";
+            button.disabled = false;
+        }
+
+        // --- Logic for "Reset All" button ---
+        if (button.id === 'reset-availability-btn') {
+            alert("Reset functionality is not yet implemented.");
+        }
+    });
+}
 
 
 // --- Listener for the Edit buttons in the summary view ---
