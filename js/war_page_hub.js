@@ -2969,32 +2969,33 @@ async function displayWarRoster() {
 
 async function checkIfUserIsAdmin() {
     const user = auth.currentUser;
-    if (!user) return false; // If not logged in, they can't be an admin.
+    if (!user) return false;
 
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-        if (!userProfileDoc.exists) return false; // If they don't have a profile in the database.
+        if (!userProfileDoc.exists) return false;
 
         const userProfile = userProfileDoc.data();
         const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
         const userTornId = userProfile.tornProfileId || '';
 
-        // First, check if their role is Leader or Co-leader.
         if (userPosition === 'leader' || userPosition === 'co-leader') {
             return true;
         }
 
-        // If not, check if their Torn ID is in the designated admins list.
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         if (!warDoc.exists) return false;
 
         const tab4Admins = warDoc.data().tab4Admins || [];
         
-        return tab4Admins.includes(userTornId);
+        // --- THIS IS THE FIX ---
+        // We now convert the user's Torn ID to a String before checking
+        // if it's in the array of admin ID strings.
+        return tab4Admins.includes(String(userTornId));
 
     } catch (error) {
         console.error("Error during admin check:", error);
-        return false; // On any error, deny permission for safety.
+        return false;
     }
 }
 function displayEnemyTargetsTable(members) {
