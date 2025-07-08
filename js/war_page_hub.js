@@ -119,7 +119,12 @@ const privateChatMessageInput = document.getElementById('privateChatMessageInput
 const sendPrivateMessageBtn = document.getElementById('sendPrivateMessageBtn');
 const tabContentContainer = document.querySelector('.tab-content-container');
 const mainChatScrollWrapper = document.querySelector('#warChatBox > div.chat-messages-scroll-wrapper');
-
+const discordWebhookDisplay = document.getElementById('discordWebhookDisplay');
+const editDiscordWebhookBtn = document.getElementById('editDiscordWebhookBtn');
+const discordWebhookUrlInput = document.getElementById('discordWebhookUrlInput');
+const saveDiscordWebhookBtn = document.getElementById('saveDiscordWebhookBtn');
+const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn');
+const discordWebhookEditArea = document.getElementById('discordWebhookEditArea');
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -2493,6 +2498,8 @@ if (adminControls) {
     });
 }
 
+// ... (inside your war_page_hub.js file) ...
+
 async function sendReminderNotifications() {
     const reminderListContainer = document.getElementById('reminder-list-container');
     if (!reminderListContainer) return;
@@ -2513,34 +2520,49 @@ async function sendReminderNotifications() {
         }
         const allMembers = Object.values(factionApiFullData.members);
 
-        // Find who has NOT responded
-        const nonResponders = allMembers.filter(member => !respondedUserIds.has(member.id));
+        // Find who has NOT responded, and get their Torn IDs and names
+        const nonRespondersDetails = allMembers
+            .filter(member => !respondedUserIds.has(String(member.id))) // Ensure member.id is string for consistent comparison
+            .map(member => ({
+                id: String(member.id), // Ensure ID is a string
+                name: member.name
+            }));
 
-        if (nonResponders.length === 0) {
+        if (nonRespondersDetails.length === 0) {
             reminderListContainer.innerHTML = '<p style="color: #4CAF50; font-weight: bold;">Everyone has responded!</p>';
             return;
         }
 
-        // --- NEW LOGIC: Write to the database for each non-responder ---
-        const batch = db.batch();
-        const notificationMessage = "Your faction leadership is requesting you set your war availability.";
+        // Fetch the saved reminder template from Firebase
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        const reminderTemplate = warDoc.exists ? warDoc.data().reminderTemplate || "A friendly reminder to set your war availability!" : "A friendly reminder to set your war availability!";
 
-        nonResponders.forEach(member => {
-            const newNotificationRef = db.collection('userNotifications').doc(member.id).collection('reminders').doc();
-            batch.set(newNotificationRef, {
-                message: notificationMessage,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                read: false,
-                source: 'war-availability'
-            });
+        // --- Frontend calls your Netlify Function here ---
+        const netlifyFunctionEndpoint = '/.netlify/functions/send-availability-webhook'; 
+
+        const response = await fetch(netlifyFunctionEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nonResponders: nonRespondersDetails, // Array of { id, name }
+                reminderMessage: reminderTemplate,
+                factionName: factionApiFullData.basic.name,
+                factionId: globalYourFactionID
+            })
         });
 
-        await batch.commit();
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Netlify Function failed: ${errorData.message || response.statusText}`);
+        }
 
-        reminderListContainer.innerHTML = `<p style="color: #4CAF50; font-weight: bold;">Reminders sent to ${nonResponders.length} members!</p>`;
+        reminderListContainer.innerHTML = `<p style="color: #4CAF50; font-weight: bold;">Reminders sent to ${nonRespondersDetails.length} members via Discord webhook!</p>`;
+        console.log("Availability reminders successfully dispatched via Netlify Function.");
 
     } catch (error) {
-        console.error("Error sending reminder notifications:", error);
+        console.error("Error sending reminder notifications via Netlify Function:", error);
         reminderListContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
     }
 }
@@ -2557,7 +2579,6 @@ function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
 
-    // This is the HTML for the summary box with your text and the new admin buttons
     const summaryHtml = `
         <div class="faction-summary-panel">
             <h4>Daily Readiness Summary</h4>
@@ -2592,13 +2613,36 @@ function showFactionSummary(summaryCounts) {
                 <div class="summary-edit-buttons">
                     <button id="reset-availability-btn" class="action-btn">Reset All</button>
                     <button id="notify-members-btn" class="action-btn">Send Reminders</button>
+
+                    <div class="discord-webhook-setup">
+                        <label for="discordWebhookUrlInput">Discord Reminder Webhook:</label>
+                        <div class="webhook-display-area">
+                            <span id="discordWebhookDisplay" class="webhook-url-text">Not set</span>
+                            <button id="editDiscordWebhookBtn" class="action-btn small-btn">Edit</button>
+                        </div>
+                        <div id="discordWebhookEditArea" class="webhook-edit-area" style="display: none;">
+                            <input type="text" id="discordWebhookUrlInput" placeholder="Paste Discord Webhook URL here" class="webhook-input">
+                            <div class="edit-actions">
+                                <button id="saveDiscordWebhookBtn" class="action-btn small-btn">Save</button>
+                                <button id="cancelDiscordWebhookBtn" class="action-btn small-btn cancel">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="reminder-list-container"></div>
             </div>
-            </div>
+        </div>
     `;
 
     formsContainer.innerHTML = summaryHtml;
+    
+    // IMPORTANT: Call the function to setup controls AFTER the HTML is injected
+    // This function will also load the saved URL from Firebase and display it.
+    // We'll define setupDiscordWebhookControls in the next step.
+    setTimeout(() => { // Small delay to ensure DOM is ready
+        setupDiscordWebhookControls(); 
+    }, 0); 
+
 }
 async function displayWarRoster() {
     const rosterDisplay = document.getElementById('war-roster-display');
