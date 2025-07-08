@@ -2500,6 +2500,7 @@ if (adminControls) {
 }
 
 // Locate this function in your war_page_hub.js file
+// Locate this function in your war_page_hub.js file
 async function sendReminderNotifications() {
     const reminderListContainer = document.getElementById('reminder-list-container');
     if (!reminderListContainer) return;
@@ -2522,30 +2523,33 @@ async function sendReminderNotifications() {
 
         // Find who has NOT responded, and get their Torn IDs and names
         const nonRespondersDetails = allMembers
-            .filter(member => !respondedUserIds.has(String(member.id))) // Ensure member.id is string for consistent comparison
+            .filter(member => !respondedUserIds.has(String(member.id))) 
             .map(member => ({
-                id: String(member.id), // Ensure ID is a string
+                id: String(member.id), 
                 name: member.name
             }));
 
         if (nonRespondersDetails.length === 0) {
             reminderListContainer.innerHTML = '<p style="color: #4CAF50; font-weight: bold;">Everyone has responded!</p>';
+            console.log("No users require reminders. All have responded."); // Console log instead of alert
             return;
         }
 
-        // --- NEW: Fetch Discord Webhook URL and Reminder Template from Firebase ---
+        // Fetch Discord Webhook URL and Reminder Template from Firebase
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
 
-        const discordWebhookUrl = warData.discordWebhookUrl; // Get the URL saved by the new controls
+        const discordWebhookUrl = warData.discordWebhookUrl; 
         const reminderTemplate = warData.reminderTemplate || "A friendly reminder to set your war availability!";
 
         if (!discordWebhookUrl || !discordWebhookUrl.startsWith("https://discord.com/api/webhooks/")) {
-            throw new Error("Discord Webhook URL is not set or is invalid in Leader Controls. Please configure it.");
+            // Provide error message in UI if webhook is not configured
+            reminderListContainer.innerHTML = '<p style="color: red; font-weight: bold;">Error: Discord Webhook URL is not configured or invalid. Please set it in Leader Controls.</p>';
+            console.error("Discord Webhook URL is not set or is invalid in Leader Controls."); // Console log error
+            return; // Exit function as we can't send
         }
-        // --- END NEW FETCH ---
 
-        const backendWebhookEndpoint = '/.netlify/functions/send-availability-webhook'; // Your Netlify Function endpoint
+        const backendWebhookEndpoint = '/.netlify/functions/send-availability-webhook'; 
 
         const response = await fetch(backendWebhookEndpoint, {
             method: 'POST',
@@ -2553,8 +2557,8 @@ async function sendReminderNotifications() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                discordWebhookUrl: discordWebhookUrl, // Pass the URL from Firebase to your Netlify Function
-                nonResponders: nonRespondersDetails, // Array of { id, name }
+                discordWebhookUrl: discordWebhookUrl, 
+                nonResponders: nonRespondersDetails, 
                 reminderMessage: reminderTemplate,
                 factionName: factionApiFullData.basic.name,
                 factionId: globalYourFactionID
@@ -2571,7 +2575,7 @@ async function sendReminderNotifications() {
 
     } catch (error) {
         console.error("Error sending reminder notifications via webhook:", error);
-        reminderListContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        reminderListContainer.innerHTML = `<p style="color: red; font-weight: bold;">Error sending reminders: ${error.message}</p>`;
     }
 }
 
@@ -2585,6 +2589,8 @@ function showDayForm(dayNumber) {
 
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+// --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+// Locate this function in your war_page_hub.js
 async function setupDiscordWebhookControls() {
     // Get references to the dynamically added elements
     const discordWebhookDisplayEl = document.getElementById('discordWebhookDisplay');
@@ -2593,92 +2599,106 @@ async function setupDiscordWebhookControls() {
     const saveDiscordWebhookBtn = document.getElementById('saveDiscordWebhookBtn');
     const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn');
     const discordWebhookEditArea = document.getElementById('discordWebhookEditArea');
-    const webhookDisplayArea = document.querySelector('.webhook-display-area'); // Need to get this by class name as it's not global
+    const webhookDisplayArea = document.querySelector('.webhook-display-area'); 
 
-    // Ensure all elements exist before proceeding
+    // Critical check: Ensure all elements exist before trying to attach listeners
     if (!discordWebhookDisplayEl || !editDiscordWebhookBtn || !discordWebhookUrlInputEl ||
         !saveDiscordWebhookBtn || !cancelDiscordWebhookBtn || !discordWebhookEditArea || !webhookDisplayArea) {
-        console.warn("One or more Discord Webhook control elements not found. Skipping setup.");
+        console.warn("One or more Discord Webhook control elements not found. Skipping webhook setup.");
         return;
     }
 
-    let currentSavedWebhookUrl = null; // Changed to null to explicitly track if a URL is actually loaded
+    let currentSavedWebhookUrl = null; 
 
-    // Function to update the UI based on state (display vs. edit)
+    // Helper function to switch between display and edit modes
     function setDisplayMode(isEditMode) {
         if (isEditMode) {
-            webhookDisplayArea.style.display = 'none';
-            discordWebhookEditArea.style.display = 'flex'; // Use flex for column layout
-            discordWebhookUrlInputEl.value = currentSavedWebhookUrl || ''; // Populate with saved URL or empty string
-            discordWebhookUrlInputEl.focus();
+            webhookDisplayArea.style.display = 'none'; 
+            discordWebhookEditArea.style.display = 'flex'; 
+            discordWebhookUrlInputEl.value = currentSavedWebhookUrl || ''; 
+            discordWebhookUrlInputEl.focus(); 
         } else {
-            webhookDisplayArea.style.display = 'flex'; // Use flex for row layout
-            discordWebhookEditArea.style.display = 'none';
-            // Determine display text based on whether a URL is saved
+            webhookDisplayArea.style.display = 'flex'; 
+            discordWebhookEditArea.style.display = 'none'; 
+            
             discordWebhookDisplayEl.textContent = currentSavedWebhookUrl ? "Discord Webhook: Configured" : "Discord Webhook: Not Set";
-            // You could also add a class to discordWebhookDisplayEl here for different colors (e.g., 'configured-status' / 'not-set-status')
-            discordWebhookDisplayEl.classList.toggle('configured-status', !!currentSavedWebhookUrl); // Add class if URL exists
-            discordWebhookDisplayEl.classList.toggle('not-set-status', !currentSavedWebhookUrl); // Add class if URL doesn't exist
+            
+            discordWebhookDisplayEl.classList.toggle('configured-status', !!currentSavedWebhookUrl);
+            discordWebhookDisplayEl.classList.toggle('not-set-status', !currentSavedWebhookUrl);
         }
     }
 
-    // 1. Load the saved URL from Firebase
+    // 1. Load the saved URL from Firebase on initial setup
     try {
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         if (warDoc.exists && warDoc.data().discordWebhookUrl) {
             currentSavedWebhookUrl = warDoc.data().discordWebhookUrl;
-            console.log("Loaded Discord Webhook URL from Firebase."); // Avoid logging raw URL to console
+            console.log("Discord Webhook URL loaded from Firebase (status will be displayed, not raw URL).");
         } else {
-            console.log("No Discord Webhook URL found in Firebase. Status will show 'Not Set'.");
+            console.log("No Discord Webhook URL found in Firebase. Status will be 'Not Set'.");
         }
     } catch (error) {
         console.error("Error fetching Discord Webhook URL from Firebase:", error);
-        currentSavedWebhookUrl = null; // Ensure it's null on error too
+        currentSavedWebhookUrl = null; 
     }
 
-    // Set initial display state
-    setDisplayMode(false); // Start in display mode
+    // Set the initial UI state (display mode, showing status)
+    setDisplayMode(false); 
 
-    // 2. Add Event Listeners (These largely remain the same, just ensure they call setDisplayMode correctly)
+    // 2. Attach Event Listeners for the buttons
 
-    // Edit Button Click
+    // Event listener for the 'Edit' button
     editDiscordWebhookBtn.addEventListener('click', () => {
-        setDisplayMode(true); // Switch to edit mode
+        setDisplayMode(true); 
     });
 
-    // Save Button Click
+    // Event listener for the 'Save' button
     saveDiscordWebhookBtn.addEventListener('click', async () => {
         const newUrl = discordWebhookUrlInputEl.value.trim();
 
+        // Basic validation for the URL format
         if (newUrl === "" || !newUrl.startsWith("https://discord.com/api/webhooks/")) {
-            alert("Please enter a valid Discord Webhook URL (must start with https://discord.com/api/webhooks/).");
+            // Instead of an alert, we can provide temporary inline feedback
+            discordWebhookUrlInputEl.style.borderColor = 'red'; // Highlight input with red border
+            discordWebhookUrlInputEl.style.color = 'red'; // Change text color to red
+            discordWebhookUrlInputEl.value = "Invalid URL. Re-enter or Cancel."; // Provide direct feedback
+            console.warn("Invalid Discord Webhook URL entered by user.");
+            setTimeout(() => { // Revert styles after a short delay
+                discordWebhookUrlInputEl.style.borderColor = ''; // Revert to default
+                discordWebhookUrlInputEl.style.color = ''; // Revert to default
+                discordWebhookUrlInputEl.value = newUrl; // Restore original input value
+            }, 3000); // 3 seconds
             return;
         }
 
-        saveDiscordWebhookBtn.disabled = true; // Disable button while saving
+        saveDiscordWebhookBtn.disabled = true; 
         saveDiscordWebhookBtn.textContent = "Saving...";
 
         try {
             await db.collection('factionWars').doc('currentWar').set(
                 { discordWebhookUrl: newUrl },
-                { merge: true }
+                { merge: true } 
             );
-            currentSavedWebhookUrl = newUrl; // Update local variable
-            alert('Discord Webhook URL saved successfully!');
-            console.log("Discord Webhook URL updated in Firebase."); // Avoid logging raw URL to console
+            currentSavedWebhookUrl = newUrl; 
+            console.log("Discord Webhook URL saved successfully to Firebase."); // Console log instead of alert
         } catch (error) {
             console.error("Error saving Discord Webhook URL to Firebase:", error);
-            alert('Failed to save Discord Webhook URL. See console for details.');
+            // More subtle error feedback if you have a dedicated message area
+            // For now, console.error is sufficient for removal of alerts
         } finally {
-            saveDiscordWebhookBtn.disabled = false;
-            saveDiscordWebhookBtn.textContent = "Save";
-            setDisplayMode(false); // Switch back to display mode
+            saveDiscordWebhookBtn.disabled = false; 
+            saveDiscordWebhookBtn.textContent = "Save"; 
+            setDisplayMode(false); 
         }
     });
 
-    // Cancel Button Click
+    // Event listener for the 'Cancel' button
     cancelDiscordWebhookBtn.addEventListener('click', () => {
-        setDisplayMode(false); // Switch back to display mode, discard changes
+        // Discard changes and revert to display mode
+        // Reset the input field's visual state in case it was red/invalid
+        discordWebhookUrlInputEl.style.borderColor = ''; 
+        discordWebhookUrlInputEl.style.color = '';
+        setDisplayMode(false); 
     });
 }
 function showFactionSummary(summaryCounts) {
