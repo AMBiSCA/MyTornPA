@@ -3824,6 +3824,8 @@ min-width: 320px;
     flex-wrap: wrap;
     padding: 10px; /* Keep padding to ensure internal spacing for buttons */
     border-radius: 5px;
+	margin-left: 0 !important;
+    margin-right: auto !important;
 }
 /* NEW RULE: This forces the children (buttons and webhook block) of the leader-controls-row to be equal width */
 .summary-edit-buttons.leader-controls-row > .action-btn,
