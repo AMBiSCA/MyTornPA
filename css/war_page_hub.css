@@ -4391,3 +4391,7 @@ margin-right: auto !important;
     object-fit: contain;  /* This is the magic part: it scales the image to fit inside */
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
+
+button, .action-btn {
+    color: black;
+}
