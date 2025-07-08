@@ -1101,12 +1101,6 @@ async function updateOnlineMemberCounts() {
         onlineEnemyMembersDisplay.textContent = 'N/A';
     }
 }
-
-/**
- * Displays a custom-styled alert message created entirely with JavaScript.
- * @param {string} message The message to display.
- * @param {string} [title="Alert"] Optional title for the alert box.
- */
 function showCustomAlert(message, title = "Alert") {
     //--- Create Elements ---
     const overlay = document.createElement('div');
