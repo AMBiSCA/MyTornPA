@@ -2500,6 +2500,7 @@ if (adminControls) {
 
 // ... (inside your war_page_hub.js file) ...
 
+// Locate this function in your war_page_hub.js file
 async function sendReminderNotifications() {
     const reminderListContainer = document.getElementById('reminder-list-container');
     if (!reminderListContainer) return;
@@ -2533,19 +2534,27 @@ async function sendReminderNotifications() {
             return;
         }
 
-        // Fetch the saved reminder template from Firebase
+        // --- NEW: Fetch Discord Webhook URL and Reminder Template from Firebase ---
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        const reminderTemplate = warDoc.exists ? warDoc.data().reminderTemplate || "A friendly reminder to set your war availability!" : "A friendly reminder to set your war availability!";
+        const warData = warDoc.exists ? warDoc.data() : {};
 
-        // --- Frontend calls your Netlify Function here ---
-        const netlifyFunctionEndpoint = '/.netlify/functions/send-availability-webhook'; 
+        const discordWebhookUrl = warData.discordWebhookUrl; // Get the URL saved by the new controls
+        const reminderTemplate = warData.reminderTemplate || "A friendly reminder to set your war availability!";
 
-        const response = await fetch(netlifyFunctionEndpoint, {
+        if (!discordWebhookUrl || !discordWebhookUrl.startsWith("https://discord.com/api/webhooks/")) {
+            throw new Error("Discord Webhook URL is not set or is invalid in Leader Controls. Please configure it.");
+        }
+        // --- END NEW FETCH ---
+
+        const backendWebhookEndpoint = '/.netlify/functions/send-availability-webhook'; // Your Netlify Function endpoint
+
+        const response = await fetch(backendWebhookEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                discordWebhookUrl: discordWebhookUrl, // Pass the URL from Firebase to your Netlify Function
                 nonResponders: nonRespondersDetails, // Array of { id, name }
                 reminderMessage: reminderTemplate,
                 factionName: factionApiFullData.basic.name,
@@ -2562,7 +2571,7 @@ async function sendReminderNotifications() {
         console.log("Availability reminders successfully dispatched via Netlify Function.");
 
     } catch (error) {
-        console.error("Error sending reminder notifications via Netlify Function:", error);
+        console.error("Error sending reminder notifications via webhook:", error);
         reminderListContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
     }
 }
@@ -2573,6 +2582,100 @@ function showDayForm(dayNumber) {
         const formHtml = generateDayFormHTML(dayNumber);
         formsContainer.innerHTML = formHtml;
     }
+}
+
+// --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+async function setupDiscordWebhookControls() {
+    // Get references to the dynamically added elements
+    const discordWebhookDisplayEl = document.getElementById('discordWebhookDisplay');
+    const editDiscordWebhookBtn = document.getElementById('editDiscordWebhookBtn');
+    const discordWebhookUrlInputEl = document.getElementById('discordWebhookUrlInput');
+    const saveDiscordWebhookBtn = document.getElementById('saveDiscordWebhookBtn');
+    const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn');
+    const discordWebhookEditArea = document.getElementById('discordWebhookEditArea');
+    const webhookDisplayArea = document.querySelector('.webhook-display-area'); // Need to get this by class name as it's not global
+
+    // Ensure all elements exist before proceeding
+    if (!discordWebhookDisplayEl || !editDiscordWebhookBtn || !discordWebhookUrlInputEl ||
+        !saveDiscordWebhookBtn || !cancelDiscordWebhookBtn || !discordWebhookEditArea || !webhookDisplayArea) {
+        console.warn("One or more Discord Webhook control elements not found. Skipping setup.");
+        return;
+    }
+
+    let currentSavedWebhookUrl = "Not set"; // Stores the URL currently loaded from Firebase
+
+    // Function to update the UI based on state (display vs. edit)
+    function setDisplayMode(isEditMode) {
+        if (isEditMode) {
+            webhookDisplayArea.style.display = 'none';
+            discordWebhookEditArea.style.display = 'flex'; // Use flex for column layout
+            discordWebhookUrlInputEl.value = currentSavedWebhookUrl !== "Not set" ? currentSavedWebhookUrl : '';
+            discordWebhookUrlInputEl.focus();
+        } else {
+            webhookDisplayArea.style.display = 'flex'; // Use flex for row layout
+            discordWebhookEditArea.style.display = 'none';
+            discordWebhookDisplayEl.textContent = currentSavedWebhookUrl;
+        }
+    }
+
+    // 1. Load the saved URL from Firebase
+    try {
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        if (warDoc.exists && warDoc.data().discordWebhookUrl) {
+            currentSavedWebhookUrl = warDoc.data().discordWebhookUrl;
+            console.log("Loaded Discord Webhook URL from Firebase:", currentSavedWebhookUrl);
+        } else {
+            console.log("No Discord Webhook URL found in Firebase. Displaying 'Not set'.");
+        }
+    } catch (error) {
+        console.error("Error fetching Discord Webhook URL from Firebase:", error);
+        currentSavedWebhookUrl = "Error loading";
+    }
+
+    // Set initial display state
+    setDisplayMode(false); // Start in display mode
+
+    // 2. Add Event Listeners
+
+    // Edit Button Click
+    editDiscordWebhookBtn.addEventListener('click', () => {
+        setDisplayMode(true); // Switch to edit mode
+    });
+
+    // Save Button Click
+    saveDiscordWebhookBtn.addEventListener('click', async () => {
+        const newUrl = discordWebhookUrlInputEl.value.trim();
+
+        if (newUrl === "" || !newUrl.startsWith("https://discord.com/api/webhooks/")) {
+            alert("Please enter a valid Discord Webhook URL (must start with https://discord.com/api/webhooks/).");
+            return;
+        }
+
+        saveDiscordWebhookBtn.disabled = true; // Disable button while saving
+        saveDiscordWebhookBtn.textContent = "Saving...";
+
+        try {
+            await db.collection('factionWars').doc('currentWar').set(
+                { discordWebhookUrl: newUrl },
+                { merge: true } // Merge so it doesn't overwrite other data
+            );
+            currentSavedWebhookUrl = newUrl; // Update local variable
+            alert('Discord Webhook URL saved successfully!');
+            console.log("Discord Webhook URL saved to Firebase:", newUrl);
+        } catch (error) {
+            console.error("Error saving Discord Webhook URL to Firebase:", error);
+            alert('Failed to save Discord Webhook URL. See console for details.');
+        } finally {
+            saveDiscordWebhookBtn.disabled = false;
+            saveDiscordWebhookBtn.textContent = "Save";
+            setDisplayMode(false); // Switch back to display mode
+        }
+    });
+
+    // Cancel Button Click
+    cancelDiscordWebhookBtn.addEventListener('click', () => {
+        setDisplayMode(false); // Switch back to display mode, discard changes
+    });
 }
 
 function showFactionSummary(summaryCounts) {
