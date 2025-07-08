@@ -4287,7 +4287,7 @@ margin-right: auto !important;
 }
 .webhook-edit-area .modal-body label {
     font-weight: bold;
-    color: black;
+    color: #f0f0f0;
 }
 .webhook-edit-area .webhook-input {
     width: 100%; /* Make input fill available space */
@@ -4316,6 +4316,21 @@ margin-right: auto !important;
 }
 .webhook-edit-area .action-btn.remove:hover {
     background-color: #c82333;
+}
+
+/* Update: Styles for buttons inside the modal (e.g., Save, Cancel, Remove) */
+.webhook-edit-area .action-btn.small-btn {
+    /* Existing properties (padding, font-size, border-radius etc.) */
+    max-width: 90px; /* From previous step, adjust as needed for width */
+    padding: 6px 10px; /* From previous step, adjust as needed for padding */
+    font-size: 0.85em; /* From previous step, adjust as needed for font size */
+    min-width: unset;
+    flex-grow: 0;
+    flex-shrink: 1;
+    box-sizing: border-box;
+
+    /* CRITICAL ADDITION: Force text color to black */
+    color: black !important; /* Force black text */
 }
 
 /* Re-ensure the correct styles for #discordWebhookUnifiedControl itself */
