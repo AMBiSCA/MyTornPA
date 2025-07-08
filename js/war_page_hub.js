@@ -2968,30 +2968,44 @@ async function displayWarRoster() {
 }
 
 async function checkIfUserIsAdmin() {
+    console.log("--- Running Admin Check ---"); // DEBUG
     const user = auth.currentUser;
-    if (!user) return false;
+    if (!user) {
+        console.log("Check failed: User not logged in."); // DEBUG
+        return false;
+    }
 
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-        if (!userProfileDoc.exists) return false;
+        if (!userProfileDoc.exists) {
+            console.log("Check failed: User profile not found in database."); // DEBUG
+            return false;
+        }
 
         const userProfile = userProfileDoc.data();
         const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
         const userTornId = userProfile.tornProfileId || '';
+        
+        console.log(`Checking user: ${userProfile.name} [${userTornId}] with position: ${userPosition}`); // DEBUG
 
         if (userPosition === 'leader' || userPosition === 'co-leader') {
+            console.log("Check passed: User is Leader or Co-leader."); // DEBUG
             return true;
         }
 
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
-        if (!warDoc.exists) return false;
+        if (!warDoc.exists) {
+            console.log("Check failed: currentWar document not found."); // DEBUG
+            return false;
+        }
 
         const tab4Admins = warDoc.data().tab4Admins || [];
+        console.log("Admins list from database:", tab4Admins); // DEBUG
         
-        // --- THIS IS THE FIX ---
-        // We now convert the user's Torn ID to a String before checking
-        // if it's in the array of admin ID strings.
-        return tab4Admins.includes(String(userTornId));
+        const isIncluded = tab4Admins.includes(String(userTornId));
+        console.log(`Is user's Torn ID (${userTornId}) in the admin list?`, isIncluded); // DEBUG
+
+        return isIncluded;
 
     } catch (error) {
         console.error("Error during admin check:", error);
