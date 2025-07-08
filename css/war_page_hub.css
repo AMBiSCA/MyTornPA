@@ -3852,6 +3852,12 @@ min-width: 320px;
     box-sizing: border-box;
 }
 
+.webhook-edit-area {
+    display: flex;
+    flex-direction: column; /* This is crucial for stacking the input and buttons */
+    gap: 10px;
+}
+
 /* New style for the unified webhook button (Set Webhook / Edit Webhook) */
 #manageDiscordWebhookBtn {
     /* Inherits from .action-btn.small-btn, but add specific overrides */
