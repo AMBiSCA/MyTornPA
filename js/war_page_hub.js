@@ -4844,7 +4844,6 @@ if (saveWarStatusControlsBtn) {
         };
         try {
             await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-            alert('War status saved!');
             populateWarStatusDisplay(statusData);
             // Assuming 'apiKey' is available in this scope. If not, this might need userApiKey.
             await fetchAndDisplayEnemyFaction(enemyId, userApiKey); 
