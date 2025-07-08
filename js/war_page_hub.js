@@ -4375,20 +4375,30 @@ function switchChatTab(tabName) {
 }
 
 function setupEventListeners(apiKey) {
+    // Game Plan Section
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
             if (!gamePlanEditArea) return;
+            const originalText = saveGamePlanBtn.textContent;
+            saveGamePlanBtn.disabled = true;
+            saveGamePlanBtn.textContent = "Saving...";
             try {
                 await db.collection('factionWars').doc('currentWar').set({ gamePlan: gamePlanEditArea.value }, { merge: true });
                 if (gamePlanDisplay) gamePlanDisplay.textContent = gamePlanEditArea.value;
-                alert('Game plan saved!');
+                saveGamePlanBtn.textContent = "Saved!";
             } catch (error) {
                 console.error('Error saving game plan:', error);
-                alert('Error saving game plan.');
+                saveGamePlanBtn.textContent = "Error!";
+            } finally {
+                setTimeout(() => {
+                    saveGamePlanBtn.disabled = false;
+                    saveGamePlanBtn.textContent = originalText;
+                }, 2000);
             }
         });
     }
 
+    // Quick Links & Chat Buttons
     const muteSoundButton = document.getElementById('muteSoundButton');
     if (muteSoundButton) {
         muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
@@ -4401,7 +4411,20 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // Other button listeners can remain the same...
+    const aidButton = document.querySelector('.aid-button');
+    if (aidButton) aidButton.addEventListener('click', () => console.log('Aid button clicked.'));
+
+    const flightButton = document.querySelector('.flight-button');
+    if (flightButton) flightButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=travel', '_blank'));
+
+    const armoryButton = document.querySelector('.armory-button');
+    if (armoryButton) armoryButton.addEventListener('click', () => window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank'));
+
+    const refillButton = document.querySelector('.refill-button');
+    if (refillButton) refillButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=points', '_blank'));
+
+    const alarmButton = document.querySelector('.siren-btn');
+    if (alarmButton) alarmButton.addEventListener('click', () => console.log('Alarm button clicked.'));
 
     if (chatSendBtn && chatTextInput) {
         chatSendBtn.addEventListener('click', sendChatMessage);
@@ -4412,23 +4435,36 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
+    
+    // Leadership Settings Tab Buttons
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
             if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
+            const originalText = postAnnouncementBtn.textContent;
+            postAnnouncementBtn.disabled = true;
+            postAnnouncementBtn.textContent = "Posting...";
             try {
                 await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
                 if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
                 quickAnnouncementInput.value = '';
-                alert('Announcement posted!');
+                postAnnouncementBtn.textContent = "Posted!";
             } catch (error) {
                 console.error('Error posting announcement:', error);
+                postAnnouncementBtn.textContent = "Error!";
+            } finally {
+                setTimeout(() => {
+                    postAnnouncementBtn.disabled = false;
+                    postAnnouncementBtn.textContent = originalText;
+                }, 2000);
             }
         });
     }
 
     if (saveWarStatusControlsBtn) {
         saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const originalText = saveWarStatusControlsBtn.textContent;
+            saveWarStatusControlsBtn.disabled = true;
+            saveWarStatusControlsBtn.textContent = "Saving...";
             const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
             const statusData = {
                 toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
@@ -4442,36 +4478,28 @@ function setupEventListeners(apiKey) {
             };
             try {
                 await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                alert('War status saved!');
                 populateWarStatusDisplay(statusData);
                 await fetchAndDisplayEnemyFaction(enemyId, userApiKey);
+                saveWarStatusControlsBtn.textContent = "Saved!";
             } catch (error) {
                 console.error('Error saving war status:', error);
+                saveWarStatusControlsBtn.textContent = "Error!";
+            } finally {
+                setTimeout(() => {
+                    saveWarStatusControlsBtn.disabled = false;
+                    saveWarStatusControlsBtn.textContent = originalText;
+                }, 2000);
             }
         });
     }
 
-    // --- MODIFIED ADMIN SAVE LISTENER ---
-    // Replace the existing Admins Save Listener with this one
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
             const originalText = saveAdminsBtn.textContent;
             saveAdminsBtn.disabled = true;
             saveAdminsBtn.textContent = 'Saving...';
-
-            if (!designatedAdminsContainer) {
-                console.error("Designated admins container not found!");
-                saveAdminsBtn.textContent = 'Error!';
-                // Revert button after 2 seconds on error
-                setTimeout(() => {
-                    saveAdminsBtn.disabled = false;
-                    saveAdminsBtn.textContent = originalText;
-                }, 2000);
-                return;
-            }
-
+            if (!designatedAdminsContainer) return;
             const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-
             try {
                 await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
                 saveAdminsBtn.textContent = 'Saved!';
@@ -4479,7 +4507,6 @@ function setupEventListeners(apiKey) {
                 console.error("Error saving admins:", error);
                 saveAdminsBtn.textContent = 'Error!';
             } finally {
-                // After 2 seconds, revert the button to its original state
                 setTimeout(() => {
                     saveAdminsBtn.disabled = false;
                     saveAdminsBtn.textContent = originalText;
@@ -4487,17 +4514,25 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-    // --- END MODIFIED LISTENER ---
-}
+
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+            const originalText = saveEnergyTrackMembersBtn.textContent;
+            saveEnergyTrackMembersBtn.disabled = true;
+            saveEnergyTrackMembersBtn.textContent = 'Saving...';
             if (!energyTrackingContainer) return;
             const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             try {
                 await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                alert('Energy tracking members saved!');
+                saveEnergyTrackMembersBtn.textContent = 'Saved!';
             } catch (error) {
                 console.error("Error saving energy members:", error);
+                saveEnergyTrackMembersBtn.textContent = 'Error!';
+            } finally {
+                setTimeout(() => {
+                    saveEnergyTrackMembersBtn.disabled = false;
+                    saveEnergyTrackMembersBtn.textContent = originalText;
+                }, 2000);
             }
         });
     }
@@ -4505,80 +4540,41 @@ function setupEventListeners(apiKey) {
     const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
     if (saveWatchlistSelectionsBtn) {
         saveWatchlistSelectionsBtn.addEventListener('click', async () => {
+            const originalText = saveWatchlistSelectionsBtn.textContent;
+            saveWatchlistSelectionsBtn.disabled = true;
+            saveWatchlistSelectionsBtn.textContent = 'Saving...';
             if (!bigHitterWatchlistContainer) return;
             const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             try {
                 await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                alert('Big Hitter Watchlist saved!');
+                saveWatchlistSelectionsBtn.textContent = 'Saved!';
             } catch (error) {
                 console.error("Error saving big hitter watchlist:", error);
+                saveWatchlistSelectionsBtn.textContent = 'Error!';
+            } finally {
+                setTimeout(() => {
+                    saveWatchlistSelectionsBtn.disabled = false;
+                    saveWatchlistSelectionsBtn.textContent = originalText;
+                }, 2000);
             }
         });
     }
-
-    const chatDisplay = document.getElementById('chat-display-area');
-  // Locate this block in your war_page_hub.js file (around line 990 or where your .add-member-button click listener is)
-if (chatDisplay) {
-    chatDisplay.addEventListener('click', function(event) {
-        const addButton = event.target.closest('.add-member-button');
-        const removeButton = event.target.closest('.remove-friend-button');
-        
-        if (addButton) {
-            addButton.disabled = true;
-            const friendIdToAdd = addButton.dataset.memberId;
-            const currentUser = auth.currentUser;
-            if (!currentUser) { return; }
-            
-            db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToAdd).set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                addButton.innerHTML = '👤<span class="plus-sign">-</span>'; // CORRECTED
-                addButton.classList.remove('add-member-button');
-                addButton.classList.add('remove-friend-button');
-                addButton.title = "Remove Friend";
-                addButton.disabled = false;
-            }).catch(error => { /* ... */ });
-
-        } else if (removeButton) {
-            const friendIdToRemove = removeButton.dataset.memberId;
-            const friendName = removeButton.closest('.member-item').querySelector('.member-name').textContent;
-            
-            if (confirm(`Are you sure you want to remove ${friendName} from your friends list?`)) {
-                removeButton.disabled = true;
-                const currentUser = auth.currentUser;
-                if (!currentUser) { return; }
-
-                db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete()
-                .then(() => {
-                    removeButton.innerHTML = '👤<span class="plus-sign">+</span>'; // CORRECTED
-                    removeButton.classList.remove('remove-friend-button');
-                    removeButton.classList.add('add-member-button');
-                    removeButton.title = "Add Friend";
-                    removeButton.disabled = false;
-                }).catch(error => { /* ... */ });
-            }
-        }
-    });
-}
-// --- Event Listeners for Image Uoad Buttons ---
+    
+    // Image Upload Listeners
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
-    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
-
-    if (gamePlanUploadInput && gamePlanDisplayDiv) {
+    if (gamePlanUploadInput) {
         gamePlanUploadInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, 'gamePlan');
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplay, 'gamePlan');
         });
     }
 
     const announcementUploadInput = document.getElementById('announcementImageUpload');
-    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
-    
-    if (announcementUploadInput && announcementDisplayDiv) {
+    if (announcementUploadInput) {
         announcementUploadInput.addEventListener('change', () => {
-            handleImageUpload(announcementUploadInput, announcementDisplayDiv, 'announcement');
+            handleImageUpload(announcementUploadInput, factionAnnouncementsDisplay, 'announcement');
         });
     }
-	
+}
 
 if (addFriendBtn) {
     addFriendBtn.addEventListener('click', async () => {
