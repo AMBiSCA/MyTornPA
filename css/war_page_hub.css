@@ -3812,19 +3812,18 @@ min-width: 320px;
     color: #4CAF50; /* Green */
 }
 
-/* Updated: For the inner leader controls section to make them all inline */
-/* CORRECTED: Remove unwanted box from the entire leader controls row */
+/* Corrected: .summary-edit-buttons.leader-controls-row - This sets up the row layout */
 .summary-edit-buttons.leader-controls-row {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;/* Or space-between, depending on exact spacing preference */
-    gap: 10px; /* Space between the buttons */
+    flex-direction: row; /* CRITICAL: Must be row */
+    align-items: stretch; /* Stretch items to fill height, helps with uniformity */
+    justify-content: space-around; /* Distribute space (you can change to space-between or flex-start later) */
+    gap: 10px;
     width: 100%;
-    flex-wrap: wrap;
-    padding: 10px; /* Keep padding to ensure internal spacing for buttons */
+    flex-wrap: wrap; /* Keep for responsiveness */
+    padding: 10px;
     border-radius: 5px;
-	margin-left: -8px !important;
+    /* Background and border should be removed from here as per previous step */
 }
 
 #availability-admin-controls {
@@ -3908,11 +3907,14 @@ min-width: 320px;
     text-overflow: ellipsis;
 }
 
-.summary-edit-buttons.leader-controls-row > .action-btn {
-    display: flex; /* Make sure these buttons also behave as flex containers */
-    align-items: center; /* Center their text vertically */
-    justify-content: center; /* Center their text horizontally */
-    /* You might remove padding from the .action-btn rule if it's causing issues here and specify it on this new rule */
+/* Rule for equal width children */
+.summary-edit-buttons.leader-controls-row > .action-btn,
+.summary-edit-buttons.leader-controls-row > #discordWebhookUnifiedControl { /* Use #id for the webhook control */
+    flex: 1; /* Makes them grow/shrink equally */
+    min-width: 120px; /* Adjust as needed */
+    max-width: 250px; /* Adjust as needed */
+    box-sizing: border-box;
+    /* text-align: center; -- This can be removed here, handled by justify-content: center */
 }
 /* ==================================================================
    War Availability Tab Styles
