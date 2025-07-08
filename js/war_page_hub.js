@@ -2611,9 +2611,10 @@ function showFactionSummary(summaryCounts) {
                 <hr>
                 <h4>Leader Controls</h4>
                 <div class="summary-edit-buttons">
-                    <button id="reset-availability-btn" class="action-btn">Reset All</button>
-                    <button id="notify-members-btn" class="action-btn">Send Reminders</button>
-
+                    <div class="top-leader-buttons">
+                        <button id="reset-availability-btn" class="action-btn">Reset All</button>
+                        <button id="notify-members-btn" class="action-btn">Send Reminders</button>
+                    </div>
                     <div class="discord-webhook-setup">
                         <label for="discordWebhookUrlInput">Discord Reminder Webhook:</label>
                         <div class="webhook-display-area">
@@ -2637,10 +2638,8 @@ function showFactionSummary(summaryCounts) {
     formsContainer.innerHTML = summaryHtml;
     
     // IMPORTANT: Call the function to setup controls AFTER the HTML is injected
-    // This function will also load the saved URL from Firebase and display it.
-    // We'll define setupDiscordWebhookControls in the next step.
-    setTimeout(() => { // Small delay to ensure DOM is ready
-        setupDiscordWebhookControls(); 
+    setTimeout(() => { 
+        setupDiscordWebhookControls(); // This will be defined in the next step
     }, 0); 
 
 }
