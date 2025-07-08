@@ -2464,41 +2464,40 @@ async function checkAndShowAdminControls() {
     }
 }
 
-const adminControlsContainer = document.getElementById('availability-admin-controls');
-if (adminControlsContainer) {
-    adminControlsContainer.addEventListener('click', async (event) => {
-        const button = event.target;
-
-        if (button.id === 'notify-members-btn') {
-            button.textContent = "Sending...";
-            button.disabled = true;
-            await sendReminderNotifications(); // Calls the new function
-            button.textContent = "Send Reminders";
-            button.disabled = false;
-        }
-
-        if (button.id === 'reset-availability-btn') {
-            alert("Reset functionality is not yet implemented.");
-        }
-    });
-}
 const adminControls = document.getElementById('availability-admin-controls');
 if (adminControls) {
-    adminControls.addEventListener('click', (event) => {
-        const buttonId = event.target.id;
+    adminControls.addEventListener('click', async (event) => { // Make the event listener async
+        const button = event.target; // Get the button element
+        const buttonId = button.id;
 
         if (buttonId === 'notify-members-btn') {
-            generateReminderList();
+            // This is the original "Send Reminders" button
+            // Trigger the sendReminderNotifications directly
+            button.textContent = "Sending...";
+            button.disabled = true;
+            try {
+                await sendReminderNotifications();
+                alert('Reminders sent successfully!');
+            } catch (error) {
+                console.error("Error sending reminders:", error);
+                alert('Failed to send reminders: ' + error.message);
+            } finally {
+                button.textContent = "Send Reminders";
+                button.disabled = false;
+            }
         }
 
+        // The new "Send VILITY Reminders" button also exists, ensure its listener is separate
+        // This is the listener you already have in setupEventListeners, ensure it's not duplicated
+        // if (buttonId === 'sendUnvilityRemindersBtn') { ... } // Example
+        // No, actually, the screenshot shows only one "Generating" button. Let's make sure
+        // there isn't a *duplicate* `notify-members-btn` listener.
+
         if (buttonId === 'reset-availability-btn') {
-            // We will add the logic for this button later if you wish.
             alert("Reset functionality is not yet implemented.");
         }
     });
 }
-
-// ... (inside your war_page_hub.js file) ...
 
 // Locate this function in your war_page_hub.js file
 async function sendReminderNotifications() {
@@ -5498,10 +5497,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 				
-				// --- UNIFIED CLICK LISTENER FOR THE AVAILABILITY PANEL ---
-
-const availabilityPanel = document.querySelector('.user-status-panel');
-
+// --- UNIFIED CLICK LISTENER FOR THE AVAILABILITY PANEL ---
+// This listener should be the ONLY one handling clicks within the 'availability-admin-controls' div.
+const availabilityPanel = document.querySelector('.user-status-panel'); // Re-using existing variable name
+                                                                      // that targets the parent container.
 if (availabilityPanel) {
     availabilityPanel.addEventListener('click', async (event) => {
         const button = event.target;
@@ -5512,7 +5511,7 @@ if (availabilityPanel) {
             const dayNumber = parseInt(dayForm.dataset.day, 10);
             const user = auth.currentUser;
             if (!user) { return alert("You must be logged in."); }
-            
+
             const status = dayForm.querySelector('.availability-status').value;
             const reason = dayForm.querySelector('.reason-details input').value.trim();
             if (status === 'no' && reason === '') { return alert("Please provide a reason for being unavailable."); }
@@ -5557,22 +5556,35 @@ if (availabilityPanel) {
             }
         }
 
-        // --- Logic for "Send Reminders" button ---
+        // --- Logic for "Send Reminders" button (notify-members-btn) ---
+        // This is the specific block that caused the "Generating" issue due to old logic.
+        // It now correctly calls the webhook-enabled sendReminderNotifications.
         if (button.id === 'notify-members-btn') {
-            button.textContent = "Generating...";
-            button.disabled = true;
-            await generateReminderList();
-            button.textContent = "Send Reminders";
-            button.disabled = false;
+            if (confirm("Are you sure you want to send reminders to all members who haven't set their war availability via Discord webhook?")) {
+                button.textContent = "Sending...";
+                button.disabled = true;
+                try {
+                    await sendReminderNotifications(); // Calls the now-correct webhook function
+                    // No alert here, as sendReminderNotifications already handles alerts based on success/failure
+                } catch (error) {
+                    console.error("Error initiating reminder send:", error);
+                    // Alert is handled by sendReminderNotifications' catch block
+                } finally {
+                    button.textContent = "Send Reminders";
+                    button.disabled = false;
+                }
+            }
         }
 
         // --- Logic for "Reset All" button ---
         if (button.id === 'reset-availability-btn') {
             alert("Reset functionality is not yet implemented.");
         }
+
+        // --- Logic for Discord Webhook Edit/Save/Cancel buttons ---
+        // These listeners are attached within setupDiscordWebhookControls(), so no need to manage them here.
     });
 }
-
 
 // --- Listener for the Edit buttons in the summary view ---
 const formsContainerForEdit = document.getElementById('availability-forms-container');
