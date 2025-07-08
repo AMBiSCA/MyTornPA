@@ -1113,34 +1113,40 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
     if (energyTrackingContainer) energyTrackingContainer.innerHTML = '';
     else { console.error("HTML Error: Cannot find element with ID 'energyTrackingContainer'."); return; }
 
-    const sortedMemberIds = Object.keys(members).sort((a, b) => {
-        const nameA = members[a].name || '';
-        const nameB = members[b].name || '';
+    // --- NEW: Handle both Array and Object formats for the members data ---
+    const membersArray = Array.isArray(members) ? members : Object.values(members);
+
+    // Sort the array of members alphabetically by name
+    membersArray.sort((a, b) => {
+        const nameA = a.name || '';
+        const nameB = b.name || '';
         return nameA.localeCompare(nameB);
     });
 
-    sortedMemberIds.forEach(memberId => {
-        const member = members[memberId];
-        
-        // --- NEW FIX IS HERE ---
-        // If the member's position is Leader or Co-leader, skip them and do not create a checkbox.
+    membersArray.forEach(member => { // Iterate over the member objects directly
+        const memberId = member.id; // Get the REAL ID from the member object
+        if (!memberId) return; // Skip if a member object has no ID
+
         const position = member.position.toLowerCase();
         if (position === 'leader' || position === 'co-leader') {
-            return; // Skip to the next member
+            return; // Continue to skip leader/co-leader
         }
-        // --- END OF FIX ---
 
         const memberName = member.name || `Unknown (${memberId})`;
 
-        // Create and append checkbox for Designate Admins
-        const isAdminChecked = (savedAdmins && savedAdmins.includes(memberId)) ? 'checked' : '';
+        // Use the correct memberId for the value and id attributes
+        const isAdminChecked = (savedAdmins && savedAdmins.includes(String(memberId))) ? 'checked' : '';
         const adminItemHtml = `<div class="member-selection-item"><input type="checkbox" id="admin-member-${memberId}" value="${memberId}" ${isAdminChecked}><label for="admin-member-${memberId}">${memberName}</label></div>`;
-        designatedAdminsContainer.insertAdjacentHTML('beforeend', adminItemHtml);
+        if (designatedAdminsContainer) {
+            designatedAdminsContainer.insertAdjacentHTML('beforeend', adminItemHtml);
+        }
 
-        // Create and append checkbox for Energy Tracking Members
-        const isEnergyChecked = (savedEnergyMembers && savedEnergyMembers.includes(memberId)) ? 'checked' : '';
+        // Use the correct memberId for the value and id attributes
+        const isEnergyChecked = (savedEnergyMembers && savedEnergyMembers.includes(String(memberId))) ? 'checked' : '';
         const energyItemHtml = `<div class="member-selection-item"><input type="checkbox" id="energy-member-${memberId}" value="${memberId}" ${isEnergyChecked}><label for="energy-member-${memberId}">${memberName}</label></div>`;
-        energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
+        if (energyTrackingContainer) {
+            energyTrackingContainer.insertAdjacentHTML('beforeend', energyItemHtml);
+        }
     });
 }
 
