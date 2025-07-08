@@ -2743,37 +2743,39 @@ async function setupDiscordWebhookControls() {
         }
     });
 }
-// Locate this function in your war_page_hub.js
-// NEW: This function is now async to handle the admin check internally
 async function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
 
-    // --- Admin check logic is now integrated directly into this function ---
     let isAdmin = false;
-    let adminDisplayStyle = 'display: none;'; // Default to hidden
+    let adminDisplayStyle = 'display: none;';
     const user = auth.currentUser;
 
     if (user) {
         try {
-            // Fetch user's role and the list of designated admins
+            // --- THIS IS THE FIX ---
+            // 1. Fetch the user's full profile, which includes their Torn ID
             const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-            const userPosition = userProfileDoc.exists ? userProfileDoc.data().position.toLowerCase() : '';
+            const userProfile = userProfileDoc.exists ? userProfileDoc.data() : {};
+            const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
+            const userTornId = userProfile.tornProfileId || ''; // Get the user's Torn ID
+
+            // 2. Fetch the list of admin Torn IDs saved from the checklist
             const warDoc = await db.collection('factionWars').doc('currentWar').get();
             const tab4Admins = warDoc.exists ? warDoc.data().tab4Admins || [] : [];
             
-            // Check if the user is a leader, co-leader, or on the designated admin list
-            if (userPosition === 'leader' || userPosition === 'co-leader' || tab4Admins.includes(user.uid)) {
+            // 3. Compare the user's Torn ID to the list of admin Torn IDs
+            if (userPosition === 'leader' || userPosition === 'co-leader' || tab4Admins.includes(userTornId)) {
                 isAdmin = true;
-                adminDisplayStyle = 'display: block;'; // If they are an admin, set the controls to be visible
+                adminDisplayStyle = 'display: block;';
             }
+            // --- END OF FIX ---
+
         } catch (error) {
             console.error("Error checking admin status within showFactionSummary:", error);
         }
     }
-    // --- End of integrated admin check ---
 
-    // The HTML is now built with the correct style from the start
     const summaryHtml = `
         <div class="faction-summary-panel">
             <h4>Daily Readiness Summary</h4>
@@ -2834,7 +2836,6 @@ async function showFactionSummary(summaryCounts) {
 
     formsContainer.innerHTML = summaryHtml;
     
-    // Only set up the listeners for the webhook controls if the user is an admin
     if (isAdmin) {
         setTimeout(() => {
             setupDiscordWebhookControls();
@@ -2943,6 +2944,37 @@ async function displayWarRoster() {
     } catch (error) {
         console.error("Error displaying war roster:", error);
         rosterDisplay.innerHTML = '<p style="color: red;">Error loading roster.</p>';
+    }
+}
+
+async function checkIfUserIsAdmin() {
+    const user = auth.currentUser;
+    if (!user) return false; // If not logged in, they can't be an admin.
+
+    try {
+        const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
+        if (!userProfileDoc.exists) return false; // If they don't have a profile in the database.
+
+        const userProfile = userProfileDoc.data();
+        const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
+        const userTornId = userProfile.tornProfileId || '';
+
+        // First, check if their role is Leader or Co-leader.
+        if (userPosition === 'leader' || userPosition === 'co-leader') {
+            return true;
+        }
+
+        // If not, check if their Torn ID is in the designated admins list.
+        const warDoc = await db.collection('factionWars').doc('currentWar').get();
+        if (!warDoc.exists) return false;
+
+        const tab4Admins = warDoc.data().tab4Admins || [];
+        
+        return tab4Admins.includes(userTornId);
+
+    } catch (error) {
+        console.error("Error during admin check:", error);
+        return false; // On any error, deny permission for safety.
     }
 }
 function displayEnemyTargetsTable(members) {
