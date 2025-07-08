@@ -2397,6 +2397,36 @@ function generateDayFormHTML(dayNumber) {
     `;
 }
 
+function setupReminderTemplateControls() {
+    const reminderTextarea = document.getElementById('reminderMessageTemplate');
+    const saveTemplateBtn = document.getElementById('saveReminderTemplateBtn');
+    const warDocRef = db.collection('factionWars').doc('currentWar');
+
+    // Load the saved template when the page loads
+    warDocRef.get().then(doc => {
+        if (doc.exists && doc.data().reminderTemplate) {
+            if (reminderTextarea) {
+                reminderTextarea.value = doc.data().reminderTemplate;
+            }
+        }
+    }).catch(error => console.error("Error loading reminder template:", error));
+
+    // Save the template when the button is clicked
+    if (saveTemplateBtn && reminderTextarea) {
+        saveTemplateBtn.addEventListener('click', () => {
+            const templateText = reminderTextarea.value;
+            warDocRef.set({ reminderTemplate: templateText }, { merge: true })
+                .then(() => {
+                    alert('Reminder message template saved!');
+                })
+                .catch(error => {
+                    console.error("Error saving reminder template:", error);
+                    alert('Failed to save template. See console for details.');
+                });
+        });
+    }
+}
+
 async function checkAndShowAdminControls() {
     const user = auth.currentUser;
     if (!user) return; // Not logged in
