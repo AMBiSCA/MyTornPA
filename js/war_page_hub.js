@@ -127,8 +127,19 @@ const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn
 const removeDiscordWebhookBtn = document.getElementById('removeDiscordWebhookBtn'); // NEW: Remove button
 const discordWebhookEditArea = document.getElementById('discordWebhookEditArea'); // The modal's content box
 const discordWebhookModalOverlay = document.getElementById('discordWebhookModalOverlay'); // NEW: The full-screen overlay
+const DEFAULT_PROFILE_ICONS = [
+    '../../images/office-man.png',
+    '../../images/boysy.png',
+    '../../images/working.png',
+    '../../images/user.png', // Note: Make sure this image isn't just a black square if you intend it to be a generic human icon
+    '../../images/mans.png',
+    '../../images/bussiness-man.png',
+    '../../images/boy.png',
+    '../../images/boys.png',
+    '../../images/customer-service.png',
+    '../../images/man.png'
+];
 
-// ... (rest of your global variables) ...
 
 
 function countFactionMembers(membersObject) {
@@ -2867,8 +2878,8 @@ async function displayWarRoster() {
 
             // Determine profileImageUrl HERE for each member
             // If you have a specific "random figure icon" image, replace this path:
-            let profileImageUrl = '../../images/default_user_icon.svg'; 
-
+            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+            let profileImageUrl = DEFAULT_PROFILE_ICONS[randomIndex];
             try {
                 // Check cache first
                 if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
