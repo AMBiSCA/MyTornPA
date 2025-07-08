@@ -5698,9 +5698,9 @@ if (formsContainerForEdit) {
                 fetchAndDisplayChainData();
                 displayQuickFFTargets(userApiKey, playerId);
                 setupChatRealtimeListener();
-				checkAndShowAdminControls(playerId);
                 displayWarRoster();
 				showDayForm(1);
+				checkAndShowAdminControls(playerId);
                 setupFactionHitsListener(db, userData.faction_id);
                 setupWarClaimsListener(); // <--- THIS IS THE NEW LINE YOU NEEDED TO ADD
 
