@@ -2472,6 +2472,32 @@ async function checkAndShowAdminControls() {
     }
 }
 
+// --- FINAL STEP: Add Click Listeners for Admin Buttons ---
+
+// This listener is attached to the parent container of the buttons
+const adminControlsContainer = document.getElementById('availability-admin-controls');
+if (adminControlsContainer) {
+    adminControlsContainer.addEventListener('click', async (event) => {
+        const button = event.target; // The specific button that was clicked
+
+        // Logic for the "Send Reminders" button
+        if (button.id === 'notify-members-btn') {
+            button.textContent = "Generating...";
+            button.disabled = true;
+            await generateReminderList(); // This calls the function we already made
+            button.textContent = "Send Reminders";
+            button.disabled = false;
+        }
+
+        // Logic for the "Reset All" button
+        if (button.id === 'reset-availability-btn') {
+            // As we discussed, this feature is complex and would require a Cloud Function.
+            // For now, it will just show an alert.
+            alert("Reset functionality is not yet implemented.");
+        }
+    });
+}
+
 const adminControls = document.getElementById('availability-admin-controls');
 if (adminControls) {
     adminControls.addEventListener('click', (event) => {
