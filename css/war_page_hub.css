@@ -4042,8 +4042,6 @@ min-width: 320px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    /* CRITICAL ADDITION: Align all children (including Leader Controls) to the left */
-    align-items: flex-start; /* This should push all content inside this panel to the left */
 }
 
 /* Titles inside the panels */
