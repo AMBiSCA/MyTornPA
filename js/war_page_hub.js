@@ -2826,11 +2826,11 @@ async function displayWarRoster() {
 
         // (The summary logic remains the same)
         let summaryCounts = { day1: { yes: 0, partial: 0, no: 0 }, day2: { yes: 0, partial: 0, no: 0 }, day3: { yes: 0, partial: 0, no: 0 }, roles: { 'all-round-attacker': 0, 'chain-watcher': 0, 'outside-attacker': 0 }, atStart: 0 };
-for (const member of allMembers) {
+
+        for (const member of allMembers) {
             const memberId = member.id;
             const memberName = member.name;
             const memberAvailability = availabilityData[memberId];
-
             let statusClass = 'status-grey';
             let statusTextHtml = '<span class="status-text-grey">(No response yet)</span>';
 
@@ -2860,40 +2860,10 @@ for (const member of allMembers) {
                     if (hasSaidNo) statusClass = 'status-red'; else if (hasSaidPartial) statusClass = 'status-orange'; else if (hasSaidYes) statusClass = 'status-green';
                 }
             }
-
-            // --- START MODIFICATION FOR PROFILE IMAGE ---
-            let profileImageUrl = '../../images/default_user_icon.svg'; // Your desired default generic icon
-
-            try {
-                // Check if profile image is already in cache
-                if (memberProfileCache[memberId] && memberProfileCache[memberId].profile_image) {
-                    profileImageUrl = memberProfileCache[memberId].profile_image;
-                } else {
-                    // Fetch user document from 'users' collection for the profile image
-                    const userDoc = await db.collection('users').doc(String(memberId)).get();
-                    if (userDoc.exists) {
-                        const userData = userDoc.data();
-                        // Only use the profile_image if it exists AND is not an empty string
-                        if (userData.profile_image && userData.profile_image.trim() !== '') {
-                            profileImageUrl = userData.profile_image;
-                        }
-                        // Cache the result for future use if needed, even if it's the default
-                        memberProfileCache[memberId] = { profile_image: profileImageUrl, name: userData.name || memberName };
-                    } else {
-                        // Log if user document doesn't exist, will use default image
-                        console.log(`User document not found for member ${memberId}. Using default profile image.`);
-                    }
-                }
-            } catch (err) {
-                console.warn(`Error fetching profile picture from Firebase for member ${memberId}:`, err);
-                // On error, ensure default_user_icon.svg is used
-                profileImageUrl = '../../images/default_user_icon.svg';
-            }
-            // --- END MODIFICATION FOR PROFILE IMAGE ---
-
+            
             const playerHtml = `
                 <div class="roster-player ${statusClass}" data-member-id="${memberId}">
-                    <img src="${profileImageUrl}" alt="${memberName}'s profile pic" class="roster-player-pic">
+                    <img src="../../images/default_user_icon.svg" class="roster-player-pic">
                     <div class="roster-player-info">
                         <span class="player-name">${memberName}</span>
                         <span class="player-status">${statusTextHtml}</span>
@@ -2901,7 +2871,7 @@ for (const member of allMembers) {
                 </div>
             `;
             rosterDisplay.insertAdjacentHTML('beforeend', playerHtml);
-        } // This '}' now correctly closes the loop over allMembers
+        }
 
         showFactionSummary(summaryCounts);
         
