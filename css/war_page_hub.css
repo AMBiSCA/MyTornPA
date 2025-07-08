@@ -3827,6 +3827,17 @@ min-width: 320px;
 	margin-left: 0 !important;
     margin-right: auto !important;
 }
+
+#availability-admin-controls {
+    display: none; /* Keep this as it's controlled by JS */
+    /* Add these lines to make it align to the left within its parent */
+    align-self: flex-start; /* If its parent is a flex container, align to start */
+    margin-right: auto;    /* Pushes it to the left if its parent is also a flex/grid item */
+    width: 100%;           /* Ensure it spans full width so children can align within it */
+    box-sizing: border-box; /* Include padding/border in width */
+
+    /* The existing padding, hr, h4, etc. rules should remain as they are */
+}
 /* NEW RULE: This forces the children (buttons and webhook block) of the leader-controls-row to be equal width */
 .summary-edit-buttons.leader-controls-row > .action-btn,
 .summary-edit-buttons.leader-controls-row > .discord-webhook-setup-unified {
