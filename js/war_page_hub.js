@@ -119,12 +119,14 @@ const privateChatMessageInput = document.getElementById('privateChatMessageInput
 const sendPrivateMessageBtn = document.getElementById('sendPrivateMessageBtn');
 const tabContentContainer = document.querySelector('.tab-content-container');
 const mainChatScrollWrapper = document.querySelector('#warChatBox > div.chat-messages-scroll-wrapper');
-const manageDiscordWebhookBtn = document.getElementById('manageDiscordWebhookBtn');
 const editDiscordWebhookBtn = document.getElementById('editDiscordWebhookBtn');
 const discordWebhookUrlInput = document.getElementById('discordWebhookUrlInput');
 const saveDiscordWebhookBtn = document.getElementById('saveDiscordWebhookBtn');
 const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn');
 const discordWebhookEditArea = document.getElementById('discordWebhookEditArea');
+const discordWebhookUnifiedControl = document.getElementById('discordWebhookUnifiedControl'); // The new main clickable div
+const discordWebhookStatusText = document.getElementById('discordWebhookStatusText'); // The span inside it
+
 
 function countFactionMembers(membersObject) {
     if (!membersObject) return 0;
@@ -2589,46 +2591,52 @@ function showDayForm(dayNumber) {
 
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
 // Locate this function in your war_page_hub.js
+// --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+// Locate this function in your war_page_hub.js
 async function setupDiscordWebhookControls() {
     // Get references to the dynamically added elements
-    // Note: These need to be retrieved *after* the HTML is injected by showFactionSummary.
-    const manageDiscordWebhookBtn = document.getElementById('manageDiscordWebhookBtn'); // The new unified button
-    const discordWebhookUrlInputEl = document.getElementById('discordWebhookUrlInput');
-    const saveDiscordWebhookBtn = document.getElementById('saveDiscordWebhookBtn');
-    const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn');
-    const discordWebhookEditArea = document.getElementById('discordWebhookEditArea');
+    const unifiedControl = document.getElementById('discordWebhookUnifiedControl'); // The main clickable div
+    const statusText = document.getElementById('discordWebhookStatusText');     // The span for status text
+    const webhookInput = document.getElementById('discordWebhookUrlInput');    // The input field
+    const saveBtn = document.getElementById('saveDiscordWebhookBtn');          // Save button
+    const cancelBtn = document.getElementById('cancelDiscordWebhookBtn');      // Cancel button
+    const editArea = document.getElementById('discordWebhookEditArea');        // The div holding input/save/cancel
 
-    // Critical check: Ensure all elements exist before trying to attach listeners
-    if (!manageDiscordWebhookBtn || !discordWebhookUrlInputEl ||
-        !saveDiscordWebhookBtn || !cancelDiscordWebhookBtn || !discordWebhookEditArea) {
+    // Critical check: Ensure all elements exist
+    if (!unifiedControl || !statusText || !webhookInput || !saveBtn || !cancelBtn || !editArea) {
         console.warn("One or more Discord Webhook control elements not found. Skipping webhook setup.");
         return;
     }
 
     let currentSavedWebhookUrl = null; 
 
-    // Helper function to update the UI based on state (display vs. edit)
+    // Helper function to switch between display and edit modes
     function setDisplayMode(isEditMode) {
         if (isEditMode) {
-            manageDiscordWebhookBtn.style.display = 'none'; // Hide the unified button
-            discordWebhookEditArea.style.display = 'flex'; // Show the input field, Save, and Cancel buttons
-            discordWebhookUrlInputEl.value = currentSavedWebhookUrl || ''; // Populate input with current URL or empty string
-            discordWebhookUrlInputEl.focus(); // Focus on the input field
+            statusText.style.display = 'none'; // Hide status text
+            editArea.style.display = 'flex';   // Show edit area
+            webhookInput.value = currentSavedWebhookUrl || ''; // Populate input
+            webhookInput.focus();
+            unifiedControl.classList.add('editing'); // Add class for styling when active/editing
         } else {
-            manageDiscordWebhookBtn.style.display = 'inline-block'; // Show the unified button (using inline-block to align it)
-            discordWebhookEditArea.style.display = 'none'; // Hide the input field, Save, and Cancel buttons
-            
-            // Update the unified button's text based on whether a URL is actually saved
+            statusText.style.display = 'inline-block'; // Show status text
+            editArea.style.display = 'none';   // Hide edit area
+            unifiedControl.classList.remove('editing'); // Remove editing class
+
+            // Update status text and apply colors
             if (currentSavedWebhookUrl) {
-                manageDiscordWebhookBtn.textContent = "Edit Webhook";
-                manageDiscordWebhookBtn.classList.add('configured-status'); // Add configured class for styling
-                manageDiscordWebhookBtn.classList.remove('not-set-status'); // Remove not-set class
+                statusText.textContent = "Edit Webhook"; // Button text for configured state
+                unifiedControl.classList.add('configured-status');
+                unifiedControl.classList.remove('not-set-status');
             } else {
-                manageDiscordWebhookBtn.textContent = "Set Webhook";
-                manageDiscordWebhookBtn.classList.add('not-set-status'); // Add not-set class for styling
-                manageDiscordWebhookBtn.classList.remove('configured-status'); // Remove configured class
+                statusText.textContent = "Set Webhook"; // Button text for not set state
+                unifiedControl.classList.add('not-set-status');
+                unifiedControl.classList.remove('configured-status');
             }
         }
+        // Always reset input border/color when switching modes
+        webhookInput.style.borderColor = '';
+        webhookInput.style.color = '';
     }
 
     // 1. Load the saved URL from Firebase on initial setup
@@ -2648,34 +2656,36 @@ async function setupDiscordWebhookControls() {
     // Set the initial UI state
     setDisplayMode(false); 
 
-    // 2. Attach Event Listeners for the buttons
+    // 2. Attach Event Listeners
 
-    // Event listener for the unified 'Set Webhook' / 'Edit Webhook' button
-    manageDiscordWebhookBtn.addEventListener('click', () => {
-        setDisplayMode(true); // Always switch to edit mode when this button is clicked
+    // Event listener for the main unified control (when in display mode)
+    unifiedControl.addEventListener('click', (event) => {
+        // Only trigger edit mode if not clicking on save/cancel buttons which are inside editArea
+        if (!editArea.contains(event.target)) {
+            setDisplayMode(true); 
+        }
     });
 
     // Event listener for the 'Save' button
-    saveDiscordWebhookBtn.addEventListener('click', async () => {
-        const newUrl = discordWebhookUrlInputEl.value.trim();
+    saveBtn.addEventListener('click', async (event) => {
+        event.stopPropagation(); // Prevent click from bubbling up to unifiedControl
+        const newUrl = webhookInput.value.trim();
 
-        // Basic validation for the URL format
         if (newUrl === "" || !newUrl.startsWith("https://discord.com/api/webhooks/")) {
-            // Provide temporary inline feedback on the input field
-            discordWebhookUrlInputEl.style.borderColor = 'red'; 
-            discordWebhookUrlInputEl.style.color = 'red'; 
-            discordWebhookUrlInputEl.value = "Invalid URL! Re-enter or Cancel."; 
+            webhookInput.style.borderColor = 'red'; 
+            webhookInput.style.color = 'red'; 
+            webhookInput.value = "Invalid URL! Re-enter or Cancel."; 
             console.warn("Invalid Discord Webhook URL entered by user.");
             setTimeout(() => { 
-                discordWebhookUrlInputEl.style.borderColor = ''; 
-                discordWebhookUrlInputEl.style.color = '';
-                discordWebhookUrlInputEl.value = newUrl; 
+                webhookInput.style.borderColor = ''; 
+                webhookInput.style.color = '';
+                webhookInput.value = newUrl; 
             }, 3000); 
             return;
         }
 
-        saveDiscordWebhookBtn.disabled = true; 
-        saveDiscordWebhookBtn.textContent = "Saving...";
+        saveBtn.disabled = true; 
+        saveBtn.textContent = "Saving...";
 
         try {
             await db.collection('factionWars').doc('currentWar').set(
@@ -2686,23 +2696,20 @@ async function setupDiscordWebhookControls() {
             console.log("Discord Webhook URL saved successfully to Firebase.");
         } catch (error) {
             console.error("Error saving Discord Webhook URL to Firebase:", error);
-            // More subtle error feedback here if you have a dedicated message area
         } finally {
-            saveDiscordWebhookBtn.disabled = false; 
-            saveDiscordWebhookBtn.textContent = "Save"; 
+            saveBtn.disabled = false; 
+            saveBtn.textContent = "Save"; 
             setDisplayMode(false); 
         }
     });
 
     // Event listener for the 'Cancel' button
-    cancelDiscordWebhookBtn.addEventListener('click', () => {
-        // Discard changes and revert to display mode
-        // Reset the input field's visual state in case it was red/invalid
-        discordWebhookUrlInputEl.style.borderColor = ''; 
-        discordWebhookUrlInputEl.style.color = '';
+    cancelBtn.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent click from bubbling up to unifiedControl
         setDisplayMode(false); 
     });
 }
+// Locate this function in your war_page_hub.js
 // Locate this function in your war_page_hub.js
 function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
@@ -2743,8 +2750,8 @@ function showFactionSummary(summaryCounts) {
                     <button id="reset-availability-btn" class="action-btn">Reset All</button>
                     <button id="notify-members-btn" class="action-btn">Send Reminders</button>
                     
-                    <div class="discord-webhook-setup-unified">
-                        <button id="manageDiscordWebhookBtn" class="action-btn small-btn">Set Webhook</button>
+                    <div id="discordWebhookUnifiedControl" class="action-btn discord-webhook-unified-control">
+                        <span id="discordWebhookStatusText">Set Webhook</span>
                         
                         <div id="discordWebhookEditArea" class="webhook-edit-area" style="display: none;">
                             <input type="text" id="discordWebhookUrlInput" placeholder="Paste Discord Webhook URL here" class="webhook-input">
@@ -2762,7 +2769,6 @@ function showFactionSummary(summaryCounts) {
 
     formsContainer.innerHTML = summaryHtml;
     
-    // IMPORTANT: Call the function to setup controls AFTER the HTML is injected
     setTimeout(() => { 
         setupDiscordWebhookControls(); 
     }, 0); 
