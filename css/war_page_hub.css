@@ -4287,7 +4287,7 @@ margin-right: auto !important;
 }
 .webhook-edit-area .modal-body label {
     font-weight: bold;
-    color: #f0f0f0;
+    color: black;
 }
 .webhook-edit-area .webhook-input {
     width: 100%; /* Make input fill available space */
