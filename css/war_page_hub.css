@@ -3818,7 +3818,7 @@ min-width: 320px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around; /* Or space-between, depending on exact spacing preference */
+    justify-content: flex-start;/* Or space-between, depending on exact spacing preference */
     gap: 10px; /* Space between the buttons */
     width: 100%;
     flex-wrap: wrap;
