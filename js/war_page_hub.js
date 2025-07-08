@@ -2459,34 +2459,21 @@ async function checkAndShowAdminControls() {
     }
 }
 
-// --- FINAL STEP: Add Click Listeners for Admin Buttons ---
-
 const adminControlsContainer = document.getElementById('availability-admin-controls');
 if (adminControlsContainer) {
     adminControlsContainer.addEventListener('click', async (event) => {
         const button = event.target;
 
         if (button.id === 'notify-members-btn') {
-            button.textContent = "Generating...";
+            button.textContent = "Sending...";
             button.disabled = true;
-            await generateReminderList();
+            await sendReminderNotifications(); // Calls the new function
             button.textContent = "Send Reminders";
             button.disabled = false;
         }
 
         if (button.id === 'reset-availability-btn') {
             alert("Reset functionality is not yet implemented.");
-        }
-
-        // --- NEW: Logic for the Copy button ---
-        if (button.id === 'copy-reminder-btn') {
-            const textToCopy = document.getElementById('message-to-copy').innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                button.textContent = "Copied!";
-                setTimeout(() => { button.textContent = "Copy Message"; }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-            });
         }
     });
 }
@@ -2506,33 +2493,27 @@ if (adminControls) {
     });
 }
 
-async function generateReminderList() {
+async function sendReminderNotifications() {
     const reminderListContainer = document.getElementById('reminder-list-container');
     if (!reminderListContainer) return;
 
-    reminderListContainer.innerHTML = '<p>Finding members who need a reminder...</p>';
+    reminderListContainer.innerHTML = '<p>Finding members and preparing notifications...</p>';
 
     try {
-        const warDocRef = db.collection('factionWars').doc('currentWar');
-        const [warDoc, availabilitySnapshot] = await Promise.all([
-            warDocRef.get(),
-            warDocRef.collection('availability').get()
-        ]);
-        
-        const reminderTemplate = warDoc.exists && warDoc.data().reminderTemplate 
-            ? warDoc.data().reminderTemplate 
-            : "Reminder: Please set your war availability on the hub.";
-
+        // Get the list of users who have already responded
+        const availabilitySnapshot = await db.collection('factionWars').doc('currentWar').collection('availability').get();
         const respondedUserIds = new Set();
         availabilitySnapshot.forEach(doc => {
             respondedUserIds.add(doc.id);
         });
 
+        // Get the full list of all faction members
         if (!factionApiFullData || !factionApiFullData.members) {
             throw new Error("Faction member list is not available.");
         }
         const allMembers = Object.values(factionApiFullData.members);
 
+        // Find who has NOT responded
         const nonResponders = allMembers.filter(member => !respondedUserIds.has(member.id));
 
         if (nonResponders.length === 0) {
@@ -2540,27 +2521,30 @@ async function generateReminderList() {
             return;
         }
 
-        // --- THIS IS THE TEST ---
-        // We will build the full link with all parameters after the #
-        const subject = encodeURIComponent("War Availability Reminder");
-        
-        const reminderLinksHtml = nonResponders.map(member => {
-            const personalizedMessage = reminderTemplate.replace(/\[name\]/gi, member.name);
-            const body = encodeURIComponent(personalizedMessage);
-            // This link includes XID, subject, and body.
-            const mailLink = `https://www.torn.com/messages.php#/p=compose&XID=${member.id}&subject=${subject}&body=${body}`;
-            
-            return `<li><span>${member.name}</span> <a href="${mailLink}" target="_blank" class="action-btn-small">Send Reminder</a></li>`;
-        }).join('');
-        // --- END OF TEST CODE ---
+        // --- NEW LOGIC: Write to the database for each non-responder ---
+        const batch = db.batch();
+        const notificationMessage = "Your faction leadership is requesting you set your war availability.";
 
-        reminderListContainer.innerHTML = `<h4>Members to Remind:</h4><ul>${reminderLinksHtml}</ul>`;
+        nonResponders.forEach(member => {
+            const newNotificationRef = db.collection('userNotifications').doc(member.id).collection('reminders').doc();
+            batch.set(newNotificationRef, {
+                message: notificationMessage,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false,
+                source: 'war-availability'
+            });
+        });
+
+        await batch.commit();
+
+        reminderListContainer.innerHTML = `<p style="color: #4CAF50; font-weight: bold;">Reminders sent to ${nonResponders.length} members!</p>`;
 
     } catch (error) {
-        console.error("Error generating reminder list:", error);
+        console.error("Error sending reminder notifications:", error);
         reminderListContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
     }
 }
+
 function showDayForm(dayNumber) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (formsContainer) {
