@@ -4331,7 +4331,7 @@ margin-right: auto !important;
     box-sizing: border-box;
 
     background-color: #007bff !important; /* Default blue, will be overridden by status for background */
-    border: 2px solid #222 !important; /* Force dark border */
+    border: 2px solid black !important; /* Force dark border */
     color: black !important; /* Force black text */
 
     display: flex;
