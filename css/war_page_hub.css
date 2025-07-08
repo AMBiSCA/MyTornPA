@@ -4420,14 +4420,13 @@ margin-right: auto !important;
 /* Update status-based colors for #discordWebhookUnifiedControl */
 #discordWebhookUnifiedControl.configured-status {
     background-color: #4CAF50 !important; /* Green */
-    border-color: #4CAF50 !important;
+
 }
 #discordWebhookUnifiedControl.configured-status:hover {
     background-color: #5cb85c !important;
 }
 #discordWebhookUnifiedControl.not-set-status {
     background-color: #FF6347 !important; /* Red */
-    border-color: #FF6347 !important;
 }
 #discordWebhookUnifiedControl.not-set-status:hover {
     background-color: #e5533d !important;
