@@ -2397,49 +2397,6 @@ function generateDayFormHTML(dayNumber) {
     `;
 }
 
-function generateDayFormHTML(dayNumber) {
-    return `
-        <div class="availability-day-form" data-day="${dayNumber}">
-            <h5>--- Day ${dayNumber} ---</h5>
-            <div class="form-group">
-                <label for="status-day-${dayNumber}">Will you be available?</label>
-                <select id="status-day-${dayNumber}" class="availability-status">
-                    <option value="no-response" selected>-- Select --</option>
-                    <option value="yes">YES</option>
-                    <option value="partial">Partially</option>
-                    <option value="no">NO</option>
-                </select>
-            </div>
-            <div class="time-details" style="display: none;">
-                <div class="form-group">
-                    <label for="time-from-day-${dayNumber}">Time Range:</label>
-                    <input type="text" id="time-from-day-${dayNumber}" placeholder="e.g., 2pm - 7pm">
-                </div>
-            </div>
-            <div class="reason-details" style="display: none;">
-                <div class="form-group">
-                    <label for="reason-day-${dayNumber}">Reason:</label>
-                    <input type="text" id="reason-day-${dayNumber}" placeholder="e.g., Sickness, Work">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="role-day-${dayNumber}">Primary Role:</label>
-                <select id="role-day-${dayNumber}">
-                    <option value="none">-- Select Role --</option>
-                    <option value="all-round-attacker">All Round Attacker</option>
-                    <option value="chain-watcher">Chain Watcher</option>
-                    <option value="outside-attacker">Outside Attacker</option>
-                </select>
-            </div>
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="war-start-day-${dayNumber}">
-                <label for="war-start-day-${dayNumber}">Available for war start?</label>
-            </div>
-            <button class="action-btn">Update Day ${dayNumber}</button>
-        </div>
-    `;
-}
-
 async function checkAndShowAdminControls() {
     const user = auth.currentUser;
     if (!user) return; // Not logged in
@@ -5374,62 +5331,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-availabilityFormsContainer.addEventListener('click', async (event) => {
-    // Check if an "Update Day" button was clicked
-    if (event.target.matches('.action-btn') && event.target.textContent.includes('Update Day')) {
-        const button = event.target;
-        const dayForm = button.closest('.availability-day-form');
-        const dayNumber = parseInt(dayForm.dataset.day, 10);
-        const user = auth.currentUser;
-        if (!user) { alert("You must be logged in."); return; }
-
-        const status = dayForm.querySelector('.availability-status').value;
-        const reason = dayForm.querySelector('.reason-details input').value.trim();
-
-        if (status === 'no' && reason === '') {
-            alert("Please provide a reason for being unavailable.");
-            return; 
-        }
-
-        const availabilityData = {
-            status: status,
-            timeRange: dayForm.querySelector('.time-details input').value.trim(),
-            reason: reason,
-            role: dayForm.querySelector('select[id^="role-day-"]').value,
-            isAvailableForStart: dayForm.querySelector('input[type="checkbox"]').checked,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        try {
-            button.textContent = "Saving...";
-            button.disabled = true;
-
-            const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-            const tornUserId = userProfileDoc.data().tornProfileId;
-            const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-
-            await availabilityDocRef.set({
-                [`day_${dayNumber}`]: availabilityData,
-                playerName: currentTornUserName 
-            }, { merge: true });
-
-            // The alert line that was here has been removed.
-            
-            const nextDayNumber = dayNumber + 1;
-            if (nextDayNumber <= 3) {
-                showDayForm(nextDayNumber);
-            } else {
-                document.getElementById('availability-forms-container').innerHTML = '';
-            }
-            
-            displayWarRoster(); 
-
-        } catch (error) {
-            console.error("Error saving availability:", error);
-            alert("Error: " + error.message);
-        }
-    }
-});
 
 // --- Listener for the Edit buttons in the summary view ---
 const formsContainerForEdit = document.getElementById('availability-forms-container');
