@@ -3729,6 +3729,7 @@ min-width: 320px;
 .table-title-centered {
     position: relative;
     left: -25px; 
+	font-size: 3em;
 }
 #saveAdminSelectionsBtn {
     margin-top: -35.5px !important; 
