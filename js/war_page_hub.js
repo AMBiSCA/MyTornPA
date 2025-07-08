@@ -2584,6 +2584,7 @@ function showDayForm(dayNumber) {
 }
 
 // --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
+// --- NEW FUNCTION: Manages Discord Webhook Display & Edit Functionality ---
 async function setupDiscordWebhookControls() {
     // Get references to the dynamically added elements
     const discordWebhookDisplayEl = document.getElementById('discordWebhookDisplay');
@@ -2601,19 +2602,23 @@ async function setupDiscordWebhookControls() {
         return;
     }
 
-    let currentSavedWebhookUrl = "Not set"; // Stores the URL currently loaded from Firebase
+    let currentSavedWebhookUrl = null; // Changed to null to explicitly track if a URL is actually loaded
 
     // Function to update the UI based on state (display vs. edit)
     function setDisplayMode(isEditMode) {
         if (isEditMode) {
             webhookDisplayArea.style.display = 'none';
             discordWebhookEditArea.style.display = 'flex'; // Use flex for column layout
-            discordWebhookUrlInputEl.value = currentSavedWebhookUrl !== "Not set" ? currentSavedWebhookUrl : '';
+            discordWebhookUrlInputEl.value = currentSavedWebhookUrl || ''; // Populate with saved URL or empty string
             discordWebhookUrlInputEl.focus();
         } else {
             webhookDisplayArea.style.display = 'flex'; // Use flex for row layout
             discordWebhookEditArea.style.display = 'none';
-            discordWebhookDisplayEl.textContent = currentSavedWebhookUrl;
+            // Determine display text based on whether a URL is saved
+            discordWebhookDisplayEl.textContent = currentSavedWebhookUrl ? "Discord Webhook: Configured" : "Discord Webhook: Not Set";
+            // You could also add a class to discordWebhookDisplayEl here for different colors (e.g., 'configured-status' / 'not-set-status')
+            discordWebhookDisplayEl.classList.toggle('configured-status', !!currentSavedWebhookUrl); // Add class if URL exists
+            discordWebhookDisplayEl.classList.toggle('not-set-status', !currentSavedWebhookUrl); // Add class if URL doesn't exist
         }
     }
 
@@ -2622,19 +2627,19 @@ async function setupDiscordWebhookControls() {
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         if (warDoc.exists && warDoc.data().discordWebhookUrl) {
             currentSavedWebhookUrl = warDoc.data().discordWebhookUrl;
-            console.log("Loaded Discord Webhook URL from Firebase:", currentSavedWebhookUrl);
+            console.log("Loaded Discord Webhook URL from Firebase."); // Avoid logging raw URL to console
         } else {
-            console.log("No Discord Webhook URL found in Firebase. Displaying 'Not set'.");
+            console.log("No Discord Webhook URL found in Firebase. Status will show 'Not Set'.");
         }
     } catch (error) {
         console.error("Error fetching Discord Webhook URL from Firebase:", error);
-        currentSavedWebhookUrl = "Error loading";
+        currentSavedWebhookUrl = null; // Ensure it's null on error too
     }
 
     // Set initial display state
     setDisplayMode(false); // Start in display mode
 
-    // 2. Add Event Listeners
+    // 2. Add Event Listeners (These largely remain the same, just ensure they call setDisplayMode correctly)
 
     // Edit Button Click
     editDiscordWebhookBtn.addEventListener('click', () => {
@@ -2656,11 +2661,11 @@ async function setupDiscordWebhookControls() {
         try {
             await db.collection('factionWars').doc('currentWar').set(
                 { discordWebhookUrl: newUrl },
-                { merge: true } // Merge so it doesn't overwrite other data
+                { merge: true }
             );
             currentSavedWebhookUrl = newUrl; // Update local variable
             alert('Discord Webhook URL saved successfully!');
-            console.log("Discord Webhook URL saved to Firebase:", newUrl);
+            console.log("Discord Webhook URL updated in Firebase."); // Avoid logging raw URL to console
         } catch (error) {
             console.error("Error saving Discord Webhook URL to Firebase:", error);
             alert('Failed to save Discord Webhook URL. See console for details.');
@@ -2676,7 +2681,6 @@ async function setupDiscordWebhookControls() {
         setDisplayMode(false); // Switch back to display mode, discard changes
     });
 }
-
 function showFactionSummary(summaryCounts) {
     const formsContainer = document.getElementById('availability-forms-container');
     if (!formsContainer) return;
