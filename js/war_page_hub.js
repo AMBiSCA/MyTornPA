@@ -4836,7 +4836,6 @@ if (saveAdminsBtn) {
         const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
         try {
             await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-            alert('Admins saved!');
         } catch (error) {
             console.error("Error saving admins:", error);
         }
