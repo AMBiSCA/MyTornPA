@@ -53,7 +53,7 @@ const enemyTargetsContainer = document.getElementById('enemyTargetsContainer');
 const designatedAdminsContainer = document.getElementById('designatedAdminsContainer');
 const bigHitterWatchlistContainer = document.getElementById('bigHitterWatchlistContainer');
 const energyTrackingContainer = document.getElementById('energyTrackingContainer');
-const saveAdminsBtn = document.getElementById('saveAdminsBtn');
+const saveAdminsBtn = document.getElementById('saveAdminSelectionsBtn');
 const saveEnergyTrackMembersBtn = document.getElementById('saveEnergyTrackMembersBtn');
 const saveSelectionsBtnBH = document.getElementById('saveSelectionsBtnBH');
 const chainTimerDisplay = document.getElementById('chainTimerDisplay');
@@ -1121,6 +1121,15 @@ function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergy
 
     sortedMemberIds.forEach(memberId => {
         const member = members[memberId];
+        
+        // --- NEW FIX IS HERE ---
+        // If the member's position is Leader or Co-leader, skip them and do not create a checkbox.
+        const position = member.position.toLowerCase();
+        if (position === 'leader' || position === 'co-leader') {
+            return; // Skip to the next member
+        }
+        // --- END OF FIX ---
+
         const memberName = member.name || `Unknown (${memberId})`;
 
         // Create and append checkbox for Designate Admins
