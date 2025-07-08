@@ -4451,7 +4451,7 @@ if (chatDisplay) {
         }
     });
 }
-// --- Event Listeners for Image Upload Buttons ---
+// --- Event Listeners for Image Uoad Buttons ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
 
