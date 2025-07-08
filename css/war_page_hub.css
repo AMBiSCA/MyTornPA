@@ -3833,7 +3833,7 @@ min-width: 320px;
     align-self: flex-start; /* This helps if its parent is a flex container */
     width: 100%;           /* Ensure it spans full width so its children can align within it */
     box-sizing: border-box; /* Include padding/border in width */
-    margin-left: -556px !important;
+    margin-left: -0px !important;
 
     /* CRITICAL ADDITION: Force content alignment to the left within this div */
     text-align: left !important; /* THIS IS THE KEY TO FIX CENTERING PROPAGATION */
