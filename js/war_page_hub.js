@@ -5302,59 +5302,60 @@ if (userFactionId) {
             console.log("[Blocked People Tab] Friends list HTML updated with real data.");
 
             // Add event listeners for new buttons (message, trash) via delegation
-            friendsListEl.addEventListener('click', async function(event) {
-                const button = event.target.closest('.item-button');
-                if (!button) return;
+friendsListEl.addEventListener('click', async function(event) {
+    const button = event.target.closest('.item-button');
+    if (!button) return;
 
-                const friendId = button.dataset.friendId;
-                if (!friendId) return;
+    const friendId = button.dataset.friendId;
+    if (!friendId) return;
 
-                if (button.classList.contains('letter-button')) {
-                    console.log(`Message button clicked for friend ID: ${friendId}. Switching to private chat.`);
-                    
-                    // --- NEW LOGIC HERE ---
-                    // 1. Trigger a switch to the "Private Chat" tab
-                    // We simulate the same event that a tab button click would cause.
-                    const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
-                    if (privateChatTabButton) {
-                        // Use handleChatTabClick directly to manage tab active state and content injection
-                        handleChatTabClick({ currentTarget: privateChatTabButton });
-                    } else {
-                        console.warn("Private Chat tab button not found. Cannot switch tab.");
-                        window.open(`https://www.torn.com/messages.php#/p=compose&XID=${friendId}`, '_blank');
-                        return;
-                    }
-                    
-                    // 2. Call a new function to select and load this specific private chat
-                    if (typeof selectPrivateChat === 'function') { // Check if the function exists
-                        selectPrivateChat(friendId); 
-                    } else {
-                        console.warn("selectPrivateChat function not yet implemented or not in scope. Cannot open specific private chat.");
-                        const selectedChatDisplay = document.getElementById('selectedChatDisplay');
-                        if (selectedChatDisplay) {
-                            selectedChatDisplay.innerHTML = `<p class="message-placeholder">Functionality for direct private chat selection is coming soon!</p>`;
-                        }
-                    }
-                    // --- END NEW LOGIC ---
+    if (button.classList.contains('letter-button')) {
+        console.log(`Message button clicked for friend ID: ${friendId}. Switching to private chat.`);
+        
+        // 1. Trigger a switch to the "Private Chat" tab
+        const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
+        if (privateChatTabButton) {
+            handleChatTabClick({ currentTarget: privateChatTabButton });
+        } else {
+            console.warn("Private Chat tab button not found. Cannot switch tab.");
+            window.open(`https://www.torn.com/messages.php#/p=compose&XID=${friendId}`, '_blank');
+            return;
+        }
+        
+        // 2. Call a new function to select and load this specific private chat
+        if (typeof selectPrivateChat === 'function') {
+            selectPrivateChat(friendId); 
+        } else {
+            console.warn("selectPrivateChat function not yet implemented or not in scope. Cannot open specific private chat.");
+            const selectedChatDisplay = document.getElementById('selectedChatDisplay');
+            if (selectedChatDisplay) {
+                selectedChatDisplay.innerHTML = `<p class="message-placeholder">Functionality for direct private chat selection is coming soon!</p>`;
+            }
+        }
 
-                } else if (button.classList.contains('trash-button')) {
-                    if (confirm(`Are you sure you want to remove Torn ID: ${friendId} from your friends list?`)) {
-                        try {
-                            if (!currentUserId) {
-                                alert("Error: User not logged in. Cannot remove friend.");
-                                return;
-                            }
-                            await db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendId).delete();
-                            alert(`Friend (ID: ${friendId}) removed successfully.`);
-                            // Re-populate the list after removal
-                            populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl); // RECURSIVE CALL TO REFRESH
-                        } catch (error) {
-                            console.error("Error removing friend from database:", error);
-                            alert("Failed to remove friend. See console for details.");
-                        }
-                    }
+    } else if (button.classList.contains('trash-button')) {
+        // --- THIS IS THE CHANGED PART ---
+        const userConfirmed = await showCustomConfirm(`Are you sure you want to remove Torn ID: ${friendId} from your friends list?`, "Confirm Friend Removal");
+        if (userConfirmed) {
+            try {
+                if (!currentUserId) {
+                    alert("Error: User not logged in. Cannot remove friend.");
+                    return;
                 }
-            });
+                await db.collection('userProfiles').doc(currentUserId).collection('friends').doc(friendId).delete();
+                // We don't need the alert() here anymore as the custom UI provides feedback
+                
+                // Re-populate the list after removal
+                populateBlockedPeopleTab(currentUserId, friendsListEl, ignoresListEl);
+            } catch (error) {
+                console.error("Error removing friend from database:", error);
+                // You can use your custom alert for errors too if you have one
+                alert("Failed to remove friend. See console for details.");
+            }
+        }
+        // --- END OF CHANGED PART ---
+    }
+});
 
         } // End of if (friendsSnapshot.empty) else block
 
