@@ -4610,65 +4610,88 @@ function setupEventListeners(apiKey) {
         });
     }
 	
-	
+	if (clearAllWarDataBtn) {
+    // Define the button's correct original text here for reliability
+    const originalButtonText = "Clear All Data";
+    // Set the initial text when the script loads
+    clearAllWarDataBtn.textContent = originalButtonText;
 
-    // --- Added the clearAllWarDataBtn fix here as well ---
-    if (clearAllWarDataBtn) {
-        clearAllWarDataBtn.addEventListener('click', async () => {
-            const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
-            const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
+    clearAllWarDataBtn.addEventListener('click', async () => {
+        const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+        const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
 
-            if (!userConfirmed) {
-                return; // Stop if the user clicks 'No' or outside the box
+        if (!userConfirmed) {
+            return; // Stop if the user clicks 'No'
+        }
+
+        clearAllWarDataBtn.disabled = true;
+        clearAllWarDataBtn.textContent = "Clearing...";
+
+        // This object defines all the default/empty values to reset to
+        const clearedData = {
+            toggleEnlisted: false,
+            toggleTermedWar: false,
+            toggleTermedWinLoss: false,
+            toggleChaining: false,
+            toggleNoFlying: false,
+            toggleTurtleMode: false,
+            enemyFactionID: "",
+            nextChainTimeInput: "",
+            currentTeamLead: "",
+            gamePlan: "",
+            quickAnnouncement: "",
+            gamePlanImageUrl: null,
+            announcementsImageUrl: null,
+            tab4Admins: [],
+            energyTrackingMembers: []
+        };
+
+        try {
+            // Update the database with the cleared data
+            await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+
+            // Update all the input fields on the screen to reflect the cleared data
+            if (toggleEnlisted) toggleEnlisted.checked = false;
+            if (toggleTermedWar) toggleTermedWar.checked = false;
+            if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+            if (toggleChaining) toggleChaining.checked = false;
+            if (toggleNoFlying) toggleNoFlying.checked = false;
+            if (toggleTurtleMode) toggleTurtleMode.checked = false;
+            if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+            if (nextChainTimeInput) nextChainTimeInput.value = "";
+            const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+            if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+            if (gamePlanEditArea) gamePlanEditArea.value = "";
+            if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+            if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+            
+            // Update the read-only display on the announcements tab
+            populateWarStatusDisplay(clearedData);
+
+            // Also clear the populated member checkboxes and enemy targets
+            if (factionApiFullData && factionApiFullData.members) {
+                populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
             }
+            populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+            displayEnemyTargetsTable(null); // Clear the enemy targets table
 
-            const originalText = clearAllWarDataBtn.textContent;
-            clearAllWarDataBtn.disabled = true;
-            clearAllWarDataBtn.textContent = "Clearing...";
+            // Show success message
+            clearAllWarDataBtn.textContent = "Cleared! ✅";
 
-            const clearedData = {
-                toggleEnlisted: false, toggleTermedWar: false, toggleTermedWinLoss: false,
-                toggleChaining: false, toggleNoFlying: false, toggleTurtleMode: false,
-                enemyFactionID: "", nextChainTimeInput: "", currentTeamLead: "",
-                gamePlan: "", quickAnnouncement: "", gamePlanImageUrl: null,
-                announcementsImageUrl: null
-            };
-
-            try {
-                await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
-
-                // Update UI elements on screen
-                if (toggleEnlisted) toggleEnlisted.checked = false;
-                if (toggleTermedWar) toggleTermedWar.checked = false;
-                if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
-                if (toggleChaining) toggleChaining.checked = false;
-                if (toggleNoFlying) toggleNoFlying.checked = false;
-                if (toggleTurtleMode) toggleTurtleMode.checked = false;
-                if (enemyFactionIDInput) enemyFactionIDInput.value = "";
-                if (nextChainTimeInput) nextChainTimeInput.value = "";
-                const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-                if (currentTeamLeadInput) currentTeamLeadInput.value = "";
-
-                if (gamePlanEditArea) gamePlanEditArea.value = "";
-                if (quickAnnouncementInput) quickAnnouncementInput.value = "";
-                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
-
-                populateWarStatusDisplay(clearedData);
-                clearAllWarDataBtn.textContent = "Cleared! ✅"; // Visual feedback for success
-
-            } catch (error) {
-                console.error("Error clearing war data:", error);
-                clearAllWarDataBtn.textContent = "Error! ❌"; // Visual feedback for error
-                showCustomAlert("Failed to clear data. Please check the console.", "Error");
-            } finally {
-                setTimeout(() => {
-                    clearAllWarDataBtn.disabled = false;
-                    clearAllWarDataBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
+        } catch (error) {
+            console.error("Error clearing war data:", error);
+            clearAllWarDataBtn.textContent = "Error! ❌";
+            showCustomAlert("Failed to clear data. Please check the console.", "Error");
+        } finally {
+            // After 2.5 seconds, re-enable the button and set its text back to the original value
+            setTimeout(() => {
+                clearAllWarDataBtn.disabled = false;
+                clearAllWarDataBtn.textContent = originalButtonText; // Revert to the correct original text
+            }, 2500);
+        }
+    });
+}
 
     // ... All other listeners from your original file should be here ...
     // I am omitting them for brevity, but make sure they remain in your version.
