@@ -4463,6 +4463,7 @@ function setupEventListeners(apiKey) {
     // Game Plan Section
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
+            if (!gamePlanEditArea) return;
             const originalText = saveGamePlanBtn.textContent;
             saveGamePlanBtn.disabled = true;
             saveGamePlanBtn.textContent = "Saving...";
@@ -4482,45 +4483,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
-    // Quick Links & Chat Buttons
-    const muteSoundButton = document.getElementById('muteSoundButton');
-    if (muteSoundButton) {
-        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
-        muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
-        });
-    }
-
-    const aidButton = document.querySelector('.aid-button');
-    if (aidButton) aidButton.addEventListener('click', () => console.log('Aid button clicked.'));
-
-    const flightButton = document.querySelector('.flight-button');
-    if (flightButton) flightButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=travel', '_blank'));
-
-    const armoryButton = document.querySelector('.armory-button');
-    if (armoryButton) armoryButton.addEventListener('click', () => window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank'));
-
-    const refillButton = document.querySelector('.refill-button');
-    if (refillButton) refillButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=points', '_blank'));
-
-    const alarmButton = document.querySelector('.siren-btn');
-    if (alarmButton) alarmButton.addEventListener('click', () => console.log('Alarm button clicked.'));
-
-    if (chatSendBtn && chatTextInput) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
-            }
-        });
-    }
-
-    // Leadership Settings Tab Buttons
+    // Faction Announcements Section
     if (postAnnouncementBtn) {
         postAnnouncementBtn.addEventListener('click', async () => {
             if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
@@ -4544,6 +4507,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // War Status Controls Section
     if (saveWarStatusControlsBtn) {
         saveWarStatusControlsBtn.addEventListener('click', async () => {
             const originalText = saveWarStatusControlsBtn.textContent;
@@ -4577,6 +4541,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // Designated Admins Section
     if (saveAdminsBtn) {
         saveAdminsBtn.addEventListener('click', async () => {
             const originalText = saveAdminsBtn.textContent;
@@ -4599,9 +4564,10 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // Energy Tracking Section
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-             const originalText = saveEnergyTrackMembersBtn.textContent;
+            const originalText = saveEnergyTrackMembersBtn.textContent;
             saveEnergyTrackMembersBtn.disabled = true;
             saveEnergyTrackMembersBtn.textContent = 'Saving...';
             if (!energyTrackingContainer) return;
@@ -4613,7 +4579,7 @@ function setupEventListeners(apiKey) {
                 console.error("Error saving energy members:", error);
                 saveEnergyTrackMembersBtn.textContent = 'Error!';
             } finally {
-                 setTimeout(() => {
+                setTimeout(() => {
                     saveEnergyTrackMembersBtn.disabled = false;
                     saveEnergyTrackMembersBtn.textContent = originalText;
                 }, 2000);
@@ -4621,10 +4587,11 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // Big Hitter Watchlist Section
     const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
     if (saveWatchlistSelectionsBtn) {
         saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-             const originalText = saveWatchlistSelectionsBtn.textContent;
+            const originalText = saveWatchlistSelectionsBtn.textContent;
             saveWatchlistSelectionsBtn.disabled = true;
             saveWatchlistSelectionsBtn.textContent = 'Saving...';
             if (!bigHitterWatchlistContainer) return;
@@ -4644,6 +4611,7 @@ function setupEventListeners(apiKey) {
         });
     }
 
+    // Clear All Data Button
     if (clearAllWarDataBtn) {
         clearAllWarDataBtn.addEventListener('click', async () => {
             const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
@@ -4668,6 +4636,7 @@ function setupEventListeners(apiKey) {
             try {
                 await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
 
+                // Update UI elements
                 if (toggleEnlisted) toggleEnlisted.checked = false;
                 if (toggleTermedWar) toggleTermedWar.checked = false;
                 if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
@@ -4685,6 +4654,7 @@ function setupEventListeners(apiKey) {
                 
                 populateWarStatusDisplay(clearedData);
                 clearAllWarDataBtn.textContent = "Cleared!";
+
             } catch (error) {
                 console.error("Error clearing war data:", error);
                 clearAllWarDataBtn.textContent = "Error!";
@@ -4698,6 +4668,7 @@ function setupEventListeners(apiKey) {
         });
     }
     
+    // Image Upload Listeners
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
@@ -4715,6 +4686,29 @@ function setupEventListeners(apiKey) {
     if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
         announcementUploadInput.addEventListener('change', () => {
             handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
+        });
+    }
+
+    // This section includes the original listeners for minor buttons and chat that you must keep.
+    const muteSoundButton = document.getElementById('muteSoundButton');
+    if (muteSoundButton) {
+        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.addEventListener('click', () => {
+            isChatMuted = !isChatMuted;
+            localStorage.setItem('isChatMuted', isChatMuted);
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+            muteSoundButton.classList.toggle('muted', isChatMuted);
+        });
+    }
+    
+    if (chatSendBtn && chatTextInput) {
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatTextInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChatMessage();
+            }
         });
     }
 }
