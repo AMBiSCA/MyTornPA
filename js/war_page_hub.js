@@ -798,12 +798,42 @@ async function loadRecentChats() {
     }
 }
 
-// Place this function in the GLOBAL scope
+
 async function deletePrivateChat(chatDocId, friendIdTorn) {
-    console.log(`[Delete Chat] Attempting to delete chat ${chatDocId} with Torn ID ${friendIdTorn}`);
-    alert(`Delete chat with ${friendIdTorn} functionality is not yet fully implemented.`);
-    // TODO: Implement actual Firebase deletion here
-    // After deletion, you would call loadRecentChats() to refresh the list.
+    console.log(`[Delete Chat] Initializing deletion for chat: ${chatDocId}`);
+
+    try {
+        // Step 1: Get a reference to the 'messages' subcollection
+        const messagesRef = db.collection('privateChatMessages').doc(chatDocId).collection('messages');
+        const messagesSnapshot = await messagesRef.get();
+
+        // Step 2: Delete all documents within the 'messages' subcollection using a batch
+        if (!messagesSnapshot.empty) {
+            const batch = db.batch();
+            messagesSnapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+            console.log(`[Delete Chat] Successfully deleted ${messagesSnapshot.size} messages from subcollection.`);
+        } else {
+            console.log("[Delete Chat] No messages found in subcollection to delete.");
+        }
+
+
+        await db.collection('privateChatMessages').doc(chatDocId).delete();
+        console.log(`[Delete Chat] Successfully deleted parent chat document: ${chatDocId}`);
+
+        const recentChatsListEl = document.getElementById('recentChatsList');
+        if (recentChatsListEl) {
+            loadRecentChats();
+        } else {
+            console.warn("Could not find recentChatsList element to refresh UI after deletion.");
+        }
+
+    } catch (error) {
+        console.error("Error deleting private chat:", error);
+        showCustomAlert(`Failed to delete chat: ${error.message}`, "Deletion Failed");
+    }
 }
 
 function updateMemberItemDisplay(itemElement, profileImageUrl) {
@@ -811,41 +841,6 @@ function updateMemberItemDisplay(itemElement, profileImageUrl) {
     if (imgElement) {
         imgElement.src = profileImageUrl;
     }
-}
-
-function generateDummyFriends(count) {
-    const dummyFriends = [];
-    for (let i = 1; i <= count; i++) {
-        dummyFriends.push({
-            id: `friend_${i}`, // Dummy ID
-            name: `Test Friend ${i}`,
-            profile_image: `../../images/default_profile_icon.png` // Use a default icon
-        });
-    }
-    return dummyFriends;
-}
-
-
-function generateDummyIgnores(count) {
-    const dummyIgnores = [];
-    for (let i = 1; i <= count; i++) {
-        if (i % 2 === 0) { // Alternate between user and faction for variety
-            dummyIgnores.push({
-                type: 'faction',
-                id: `faction_${i}`, // Dummy ID
-                name: `Blocked Faction ${i}`,
-                icon: '🏢' // Use a building icon for factions
-            });
-        } else {
-            dummyIgnores.push({
-                type: 'user',
-                id: `user_${i}`, // Dummy ID
-                name: `Blocked User ${i}`,
-                profile_image: `../../images/default_profile_icon.png` // Use a default icon
-            });
-        }
-    }
-    return dummyIgnores;
 }
 
 async function handleImageUpload(fileInput, displayElement, labelElement, type) {
@@ -953,8 +948,6 @@ async function sendClaimChatMessage(claimerName, targetName, chainNumber, custom
     }
 }
 
-// Function: Automatically unclaims targets based on their status changing to unavailable
-// UPDATED: Automatically unclaims targets when the overall chain number surpasses their claimed hit number.
 function autoUnclaimHitTargets() {
     console.log("Running autoUnclaimHitTargets check (chain progression-based)...");
     if (!globalActiveClaims || Object.keys(globalActiveClaims).length === 0) {
