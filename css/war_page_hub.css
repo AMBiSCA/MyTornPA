@@ -1452,6 +1452,19 @@ select[multiple] {
     background-color: #00a8ff; /* ADDED: Darker blue on hover */
     border-color: black; /* ADDED: Maintain border color on hover */
 }
+
+/* --- NEW: CSS to make Leadership Settings buttons smaller --- */
+
+/* This selector targets the "Save War Status", "Save Admins", and both "Save Selections" buttons */
+#saveWarStatusControlsBtn,
+.config-section .save-config-btn {
+    width: fit-content;   /* This makes the button only as wide as its content. */
+    align-self: center;   /* This centers the button horizontally within its box. */
+    
+    /* Optional: Adjusts the spacing on the left and right of the button text */
+    padding-left: 30px;
+    padding-right: 30px;
+}
 /* Specific styling for designated admins list */
 #designatedAdminsList, #watchListDisplay {
     list-style: none;
