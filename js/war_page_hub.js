@@ -4522,7 +4522,8 @@ function setupEventListeners(apiKey) {
                 toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
                 toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
                 nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
+                enemyFactionID: enemyId,
+                currentTeamLead: document.getElementById('currentTeamLeadInput').value
             };
             try {
                 await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
@@ -4567,7 +4568,7 @@ function setupEventListeners(apiKey) {
     // Energy Tracking Section
     if (saveEnergyTrackMembersBtn) {
         saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            const originalText = saveEnergyTrackMembersBtn.textContent;
+             const originalText = saveEnergyTrackMembersBtn.textContent;
             saveEnergyTrackMembersBtn.disabled = true;
             saveEnergyTrackMembersBtn.textContent = 'Saving...';
             if (!energyTrackingContainer) return;
@@ -4579,7 +4580,7 @@ function setupEventListeners(apiKey) {
                 console.error("Error saving energy members:", error);
                 saveEnergyTrackMembersBtn.textContent = 'Error!';
             } finally {
-                setTimeout(() => {
+                 setTimeout(() => {
                     saveEnergyTrackMembersBtn.disabled = false;
                     saveEnergyTrackMembersBtn.textContent = originalText;
                 }, 2000);
@@ -4591,7 +4592,7 @@ function setupEventListeners(apiKey) {
     const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
     if (saveWatchlistSelectionsBtn) {
         saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-            const originalText = saveWatchlistSelectionsBtn.textContent;
+             const originalText = saveWatchlistSelectionsBtn.textContent;
             saveWatchlistSelectionsBtn.disabled = true;
             saveWatchlistSelectionsBtn.textContent = 'Saving...';
             if (!bigHitterWatchlistContainer) return;
@@ -4610,7 +4611,7 @@ function setupEventListeners(apiKey) {
             }
         });
     }
-
+    
     // Clear All Data Button
     if (clearAllWarDataBtn) {
         clearAllWarDataBtn.addEventListener('click', async () => {
@@ -4654,7 +4655,6 @@ function setupEventListeners(apiKey) {
                 
                 populateWarStatusDisplay(clearedData);
                 clearAllWarDataBtn.textContent = "Cleared!";
-
             } catch (error) {
                 console.error("Error clearing war data:", error);
                 clearAllWarDataBtn.textContent = "Error!";
@@ -4686,29 +4686,6 @@ function setupEventListeners(apiKey) {
     if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
         announcementUploadInput.addEventListener('change', () => {
             handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
-        });
-    }
-
-    // This section includes the original listeners for minor buttons and chat that you must keep.
-    const muteSoundButton = document.getElementById('muteSoundButton');
-    if (muteSoundButton) {
-        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
-        muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
-        });
-    }
-    
-    if (chatSendBtn && chatTextInput) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
-            }
         });
     }
 }
