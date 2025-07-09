@@ -1454,6 +1454,24 @@ select[multiple] {
     top: 1px;
 }
 
+/* This new class centers the two buttons in the 'War Status Controls' box */
+.war-status-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px; /* Adds some space above the buttons */
+}
+
+/* This makes the new 'Clear All Data' button red */
+.clear-btn {
+    background-color: #dc3545 !important; /* A strong red */
+    color: white !important;
+}
+
+.clear-btn:hover {
+    background-color: #c82333 !important; /* A darker red on hover */
+}
+
 .config-section .action-btn:hover {
     background-color: #00a8ff; /* ADDED: Darker blue on hover */
     border-color: black; /* ADDED: Maintain border color on hover */

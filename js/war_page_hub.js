@@ -127,6 +127,7 @@ const cancelDiscordWebhookBtn = document.getElementById('cancelDiscordWebhookBtn
 const removeDiscordWebhookBtn = document.getElementById('removeDiscordWebhookBtn'); // NEW: Remove button
 const discordWebhookEditArea = document.getElementById('discordWebhookEditArea'); // The modal's content box
 const discordWebhookModalOverlay = document.getElementById('discordWebhookModalOverlay'); // NEW: The full-screen overlay
+const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
 const DEFAULT_PROFILE_ICONS = [
     '../../images/account.png',
     '../../images/avatar-design.png',
@@ -2634,20 +2635,12 @@ if (adminControls) {
             }
         }
 
-        // The new "Send VILITY Reminders" button also exists, ensure its listener is separate
-        // This is the listener you already have in setupEventListeners, ensure it's not duplicated
-        // if (buttonId === 'sendUnvilityRemindersBtn') { ... } // Example
-        // No, actually, the screenshot shows only one "Generating" button. Let's make sure
-        // there isn't a *duplicate* `notify-members-btn` listener.
-
         if (buttonId === 'reset-availability-btn') {
             alert("Reset functionality is not yet implemented.");
         }
     });
 }
 
-// Locate this function in your war_page_hub.js file
-// Locate this function in your war_page_hub.js file
 async function sendReminderNotifications() {
     const reminderListContainer = document.getElementById('reminder-list-container');
     if (!reminderListContainer) return;
@@ -4391,215 +4384,216 @@ function switchChatTab(tabName) {
     chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
 }
 
-function setupEventListeners(apiKey) {
-    // Game Plan Section
-    if (saveGamePlanBtn) {
-        saveGamePlanBtn.addEventListener('click', async () => {
-            if (!gamePlanEditArea) return;
-            const originalText = saveGamePlanBtn.textContent;
-            saveGamePlanBtn.disabled = true;
-            saveGamePlanBtn.textContent = "Saving...";
+document.addEventListener('DOMContentLoaded', () => {
+    // --- START OF DOMCONTENTLOADED ---
+
+    // Basic tab navigation for main content tabs
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const mainTabPanes = document.querySelectorAll('.tab-pane');
+
+   tabButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+        const targetTabDataset = event.currentTarget.dataset.tab;
+        const targetTabId = targetTabDataset + '-tab';
+
+        if (targetTabDataset === 'leader-config') {
+            const userIsAdmin = await checkIfUserIsAdmin();
+            if (!userIsAdmin) {
+                // --- THIS IS THE CHANGE ---
+                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                showCustomAlert(permissionMessage, "Access Denied");
+                return; 
+                // --- END OF CHANGE ---
+            }
+        }
+
+        showTab(targetTabId);
+
+        if (targetTabDataset === 'friendly-status') {
+            const user = firebase.auth().currentUser;
+            if (user && userApiKey) {
+                await updateFriendlyMembersTable(userApiKey, user.uid);
+            } else {
+                console.warn("User not logged in or API Key missing.");
+                const tbody = document.getElementById('friendly-members-tbody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                }
+            }
+        }
+    });
+});
+
+    showTab('announcements-tab'); // Sets initial tab to announcements
+    let listenersInitialized = false;
+
+    // References to chat elements
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox');
+    const chatDisplayArea = document.getElementById('chat-display-area');
+    const chatInputArea = document.querySelector('.chat-input-area');
+
+    // This handles all the data loading after a user logs in
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            const userData = doc.exists ? doc.data() : {};
+
+            const apiKey = userData.tornApiKey || null;
+            const playerId = userData.tornProfileId || null;
+            currentTornUserName = userData.preferredName || 'Unknown';
+
+            let warData = {};
             try {
-                await db.collection('factionWars').doc('currentWar').set({ gamePlan: gamePlanEditArea.value }, { merge: true });
-                if (gamePlanDisplay) gamePlanDisplay.textContent = gamePlanEditArea.value;
-                saveGamePlanBtn.textContent = "Saved!";
-            } catch (error) {
-                console.error('Error saving game plan:', error);
-                saveGamePlanBtn.textContent = "Error!";
-            } finally {
-                setTimeout(() => {
-                    saveGamePlanBtn.disabled = false;
-                    saveGamePlanBtn.textContent = originalText;
-                }, 2000);
+                const warDoc = await db.collection('factionWars').doc('currentWar').get();
+                warData = warDoc.exists ? warDoc.data() : {};
+            } catch (firebaseError) {
+                console.error("Error fetching warData from Firebase:", firebaseError);
             }
-        });
-    }
+			
+			if (clearAllWarDataBtn) {
+    clearAllWarDataBtn.addEventListener('click', async () => {
+        // First, ask for confirmation because this is a destructive action
+        if (!confirm("Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.")) {
+            return; // Stop if the user clicks 'Cancel'
+        }
 
-    // Quick Links & Chat Buttons
-    const muteSoundButton = document.getElementById('muteSoundButton');
-    if (muteSoundButton) {
-        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-        muteSoundButton.classList.toggle('muted', isChatMuted);
-        muteSoundButton.addEventListener('click', () => {
-            isChatMuted = !isChatMuted;
-            localStorage.setItem('isChatMuted', isChatMuted);
-            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
-            muteSoundButton.classList.toggle('muted', isChatMuted);
-        });
-    }
+        const originalText = clearAllWarDataBtn.textContent;
+        clearAllWarDataBtn.disabled = true;
+        clearAllWarDataBtn.textContent = "Clearing...";
 
-    const aidButton = document.querySelector('.aid-button');
-    if (aidButton) aidButton.addEventListener('click', () => console.log('Aid button clicked.'));
+        // This object defines all the default/empty values
+        const clearedData = {
+            toggleEnlisted: false,
+            toggleTermedWar: false,
+            toggleTermedWinLoss: false,
+            toggleChaining: false,
+            toggleNoFlying: false,
+            toggleTurtleMode: false,
+            enemyFactionID: "",
+            nextChainTimeInput: "",
+            currentTeamLead: "",
+            gamePlan: "",
+            quickAnnouncement: "",
+            gamePlanImageUrl: null,
+            announcementsImageUrl: null
+        };
 
-    const flightButton = document.querySelector('.flight-button');
-    if (flightButton) flightButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=travel', '_blank'));
+        try {
+            // Update the database with the cleared data
+            await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
 
-    const armoryButton = document.querySelector('.armory-button');
-    if (armoryButton) armoryButton.addEventListener('click', () => window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank'));
+            // Update all the input fields on the screen
+            if (toggleEnlisted) toggleEnlisted.checked = false;
+            if (toggleTermedWar) toggleTermedWar.checked = false;
+            if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+            if (toggleChaining) toggleChaining.checked = false;
+            if (toggleNoFlying) toggleNoFlying.checked = false;
+            if (toggleTurtleMode) toggleTurtleMode.checked = false;
+            if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+            if (nextChainTimeInput) nextChainTimeInput.value = "";
+            const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+            if (currentTeamLeadInput) currentTeamLeadInput.value = "";
 
-    const refillButton = document.querySelector('.refill-button');
-    if (refillButton) refillButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=points', '_blank'));
+            // Update the display panels
+            if (gamePlanEditArea) gamePlanEditArea.value = "";
+            if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+            if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
 
-    const alarmButton = document.querySelector('.siren-btn');
-    if (alarmButton) alarmButton.addEventListener('click', () => console.log('Alarm button clicked.'));
+            // Update the read-only display on the announcements tab
+            populateWarStatusDisplay(clearedData);
 
-    if (chatSendBtn && chatTextInput) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendChatMessage();
-            }
-        });
-    }
-    
-    // Leadership Settings Tab Buttons
-    if (postAnnouncementBtn) {
-        postAnnouncementBtn.addEventListener('click', async () => {
-            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
-            const originalText = postAnnouncementBtn.textContent;
-            postAnnouncementBtn.disabled = true;
-            postAnnouncementBtn.textContent = "Posting...";
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
-                quickAnnouncementInput.value = '';
-                postAnnouncementBtn.textContent = "Posted!";
-            } catch (error) {
-                console.error('Error posting announcement:', error);
-                postAnnouncementBtn.textContent = "Error!";
-            } finally {
-                setTimeout(() => {
-                    postAnnouncementBtn.disabled = false;
-                    postAnnouncementBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
+            clearAllWarDataBtn.textContent = "Cleared!";
 
-    if (saveWarStatusControlsBtn) {
-        saveWarStatusControlsBtn.addEventListener('click', async () => {
-            const originalText = saveWarStatusControlsBtn.textContent;
-            saveWarStatusControlsBtn.disabled = true;
-            saveWarStatusControlsBtn.textContent = "Saving...";
-            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = {
-                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
-                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
-                toggleChaining: toggleChaining ? toggleChaining.checked : false,
-                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
-                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
-                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
-                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
-                enemyFactionID: enemyId
-            };
-            try {
-                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
-                populateWarStatusDisplay(statusData);
-                await fetchAndDisplayEnemyFaction(enemyId, userApiKey);
-                saveWarStatusControlsBtn.textContent = "Saved!";
-            } catch (error) {
-                console.error('Error saving war status:', error);
-                saveWarStatusControlsBtn.textContent = "Error!";
-            } finally {
-                setTimeout(() => {
-                    saveWarStatusControlsBtn.disabled = false;
-                    saveWarStatusControlsBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            const originalText = saveAdminsBtn.textContent;
-            saveAdminsBtn.disabled = true;
-            saveAdminsBtn.textContent = 'Saving...';
-            if (!designatedAdminsContainer) return;
-            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
-                saveAdminsBtn.textContent = 'Saved!';
-            } catch (error) {
-                console.error("Error saving admins:", error);
-                saveAdminsBtn.textContent = 'Error!';
-            } finally {
-                setTimeout(() => {
-                    saveAdminsBtn.disabled = false;
-                    saveAdminsBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            const originalText = saveEnergyTrackMembersBtn.textContent;
-            saveEnergyTrackMembersBtn.disabled = true;
-            saveEnergyTrackMembersBtn.textContent = 'Saving...';
-            if (!energyTrackingContainer) return;
-            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
-                saveEnergyTrackMembersBtn.textContent = 'Saved!';
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-                saveEnergyTrackMembersBtn.textContent = 'Error!';
-            } finally {
-                setTimeout(() => {
-                    saveEnergyTrackMembersBtn.disabled = false;
-                    saveEnergyTrackMembersBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
-    if (saveWatchlistSelectionsBtn) {
-        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
-            const originalText = saveWatchlistSelectionsBtn.textContent;
-            saveWatchlistSelectionsBtn.disabled = true;
-            saveWatchlistSelectionsBtn.textContent = 'Saving...';
-            if (!bigHitterWatchlistContainer) return;
-            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            try {
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
-                saveWatchlistSelectionsBtn.textContent = 'Saved!';
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-                saveWatchlistSelectionsBtn.textContent = 'Error!';
-            } finally {
-                setTimeout(() => {
-                    saveWatchlistSelectionsBtn.disabled = false;
-                    saveWatchlistSelectionsBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-    
-    // --- Event Listeners for Image Upload Buttons ---
-    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
-    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
-    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
-
-    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
-        gamePlanUploadInput.addEventListener('change', () => {
-            // Pass the label element to the handler function
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
-        });
-    }
-
-    const announcementUploadInput = document.getElementById('announcementImageUpload');
-    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
-    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
-    
-    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
-        announcementUploadInput.addEventListener('change', () => {
-            // Pass the label element to the handler function
-            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
-        });
-    }
+        } catch (error) {
+            console.error("Error clearing war data:", error);
+            clearAllWarDataBtn.textContent = "Error!";
+            showCustomAlert("Failed to clear data. Please check the console.", "Error");
+        } finally {
+            // After 2 seconds, revert the button to its original state
+            setTimeout(() => {
+                clearAllWarDataBtn.disabled = false;
+                clearAllWarDataBtn.textContent = originalText;
+            }, 2000);
+        }
+    });
 }
+
+            if (apiKey && playerId) {
+                userApiKey = apiKey;
+
+                await initializeAndLoadData(apiKey, userData.faction_id);
+
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
+                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
+                }
+
+                displayWarRoster();
+                setupFactionHitsListener(db, userData.faction_id);
+                setupWarClaimsListener();
+
+                userEnergyDisplay = document.getElementById('userEnergyDisplay');
+                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+
+                updateUserEnergyDisplay();
+                updateOnlineMemberCounts();
+                fetchAndDisplayChainData();
+                displayQuickFFTargets(userApiKey, playerId);
+                setupChatRealtimeListener();
+
+                if (!listenersInitialized) {
+                    setupEventListeners(apiKey);
+                    setupMemberClickEvents();
+
+                    chatTabs.forEach(tab => {
+                        tab.addEventListener('click', handleChatTabClick);
+                    });
+
+                    listenersInitialized = true;
+
+                    setInterval(updateAllTimers, 1000);
+                    setInterval(() => {
+                        if (userApiKey && globalEnemyFactionID) {
+                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
+                        }
+                    }, 1500);
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
+                        }
+                    }, 2000);
+                    setInterval(() => {
+                        if (userApiKey && globalYourFactionID) {
+                            initializeAndLoadData(userApiKey, globalYourFactionID);
+                        }
+                    }, 300000);
+                    setInterval(() => {
+                        if (userApiKey) {
+                            updateUserEnergyDisplay();
+                            updateOnlineMemberCounts();
+                        }
+                    }, 60000);
+                }
+            } else {
+                console.warn("API key or Player ID not found.");
+                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+            }
+        } else {
+            userApiKey = null;
+            listenersInitialized = false;
+            console.log("User not logged in.");
+            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        }
+    });
+
+});
 
 if (addFriendBtn) {
     addFriendBtn.addEventListener('click', async () => {
@@ -5597,12 +5591,10 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-document.addEventListener('DOMContentLoaded', () => {
-    // --- START OF DOMCONTENTLOADED ---
+            document.addEventListener('DOMContentLoaded', () => {
 
-    // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane');
+     const tabButtons = document.querySelectorAll('.tab-button');
+     const mainTabPanes = document.querySelectorAll('.tab-pane');
 
    tabButtons.forEach(button => {
     button.addEventListener('click', async (event) => {
@@ -5612,11 +5604,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetTabDataset === 'leader-config') {
             const userIsAdmin = await checkIfUserIsAdmin();
             if (!userIsAdmin) {
-                // --- THIS IS THE CHANGE ---
+
                 const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
                 showCustomAlert(permissionMessage, "Access Denied");
                 return; 
-                // --- END OF CHANGE ---
             }
         }
 
@@ -5640,14 +5631,14 @@ document.addEventListener('DOMContentLoaded', () => {
     showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
 
-    // References to chat elements
+
     const chatTabsContainer = document.querySelector('.chat-tabs-container');
     const chatTabs = document.querySelectorAll('.chat-tab');
     const warChatBox = document.getElementById('warChatBox');
     const chatDisplayArea = document.getElementById('chat-display-area');
     const chatInputArea = document.querySelector('.chat-input-area');
 
-    // This handles all the data loading after a user logs in
+
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -5665,6 +5656,75 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (firebaseError) {
                 console.error("Error fetching warData from Firebase:", firebaseError);
             }
+			
+			if (clearAllWarDataBtn) {
+    clearAllWarDataBtn.addEventListener('click', async () => {
+
+        if (!confirm("Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.")) {
+            return; 
+        }
+
+        const originalText = clearAllWarDataBtn.textContent;
+        clearAllWarDataBtn.disabled = true;
+        clearAllWarDataBtn.textContent = "Clearing...";
+
+        // This object defines all the default/empty values
+        const clearedData = {
+            toggleEnlisted: false,
+            toggleTermedWar: false,
+            toggleTermedWinLoss: false,
+            toggleChaining: false,
+            toggleNoFlying: false,
+            toggleTurtleMode: false,
+            enemyFactionID: "",
+            nextChainTimeInput: "",
+            currentTeamLead: "",
+            gamePlan: "",
+            quickAnnouncement: "",
+            gamePlanImageUrl: null,
+            announcementsImageUrl: null
+        };
+
+        try {
+            // Update the database with the cleared data
+            await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+
+            // Update all the input fields on the screen
+            if (toggleEnlisted) toggleEnlisted.checked = false;
+            if (toggleTermedWar) toggleTermedWar.checked = false;
+            if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+            if (toggleChaining) toggleChaining.checked = false;
+            if (toggleNoFlying) toggleNoFlying.checked = false;
+            if (toggleTurtleMode) toggleTurtleMode.checked = false;
+            if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+            if (nextChainTimeInput) nextChainTimeInput.value = "";
+            const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+            if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+
+            // Update the display panels
+            if (gamePlanEditArea) gamePlanEditArea.value = "";
+            if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+            if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+
+            // Update the read-only display on the announcements tab
+            populateWarStatusDisplay(clearedData);
+
+            clearAllWarDataBtn.textContent = "Cleared!";
+
+        } catch (error) {
+            console.error("Error clearing war data:", error);
+            clearAllWarDataBtn.textContent = "Error!";
+            showCustomAlert("Failed to clear data. Please check the console.", "Error");
+        } finally {
+            // After 2 seconds, revert the button to its original state
+            setTimeout(() => {
+                clearAllWarDataBtn.disabled = false;
+                clearAllWarDataBtn.textContent = originalText;
+            }, 2000);
+        }
+    });
+}
 
             if (apiKey && playerId) {
                 userApiKey = apiKey;
@@ -5737,5 +5797,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-// --- END OF DOMCONTENTLOADED ---
 });
