@@ -674,7 +674,6 @@ function initPrivateChatTabEventListeners() {
     loadRecentChats(); // <--- UNCOMMENT/ADD THIS LINE
 }
 
-// --- NEW FUNCTION: To load and display the list of recent private chats ---
 async function loadRecentChats() {
     console.log("[Recent Chats] Loading recent chats list.");
 
@@ -692,7 +691,8 @@ async function loadRecentChats() {
     }
     const currentUserIdFirebase = auth.currentUser.uid;
 
-    try {
+    try { // <-- FIX: ADD THIS OPENING TRY BLOCK
+
         const chatsSnapshot = await db.collection('privateChatMessages')
             .where('participants', 'array-contains', currentUserIdFirebase)
             .orderBy('lastMessageAt', 'desc')
@@ -713,13 +713,11 @@ async function loadRecentChats() {
             
             if (!otherParticipantFirebaseUid) continue;
 
-            // Start the promise chain to get all user details
             friendDetailsPromises.push(
-                // 1. First, get the main profile from 'userProfiles' to find their Torn ID
                 db.collection('userProfiles').doc(otherParticipantFirebaseUid).get().then(userProfileDoc => {
                     if (!userProfileDoc.exists) {
                         console.warn(`[Recent Chats] User profile not found for UID: ${otherParticipantFirebaseUid}. Skipping.`);
-                        return null; // This user can't be displayed
+                        return null; 
                     }
 
                     const profileData = userProfileDoc.data();
@@ -728,34 +726,28 @@ async function loadRecentChats() {
 
                     if (!friendTornId) {
                         console.warn(`[Recent Chats] User profile for ${friendName} is missing a Torn ID. Skipping.`);
-                        return null; // This user also can't be displayed
+                        return null;
                     }
 
-                    // 2. --- THIS IS THE NEW LOGIC ---
-                    // Now that we have their Torn ID, fetch their details from the 'users' collection
                     return db.collection('users').doc(String(friendTornId)).get().then(userDoc => {
                         let friendProfileImage = '../../images/default_profile_icon.png';
                         if (userDoc.exists) {
-                            // Get the profile image from the 'users' collection as requested
                             friendProfileImage = userDoc.data().profile_image || friendProfileImage;
                         } else {
                             console.warn(`[Recent Chats] No document found in 'users' collection for Torn ID: ${friendTornId}. Using default image.`);
                         }
                         
-                        // 3. Return the complete package of user info
                         return { friendFirebaseUid: otherParticipantFirebaseUid, friendName, friendProfileImage, chatDocId, friendTornId };
                     });
                 }).catch(error => {
                     console.error(`Error fetching details for chat participant ${otherParticipantFirebaseUid}:`, error);
-                    return null; // Return null on error so it can be filtered out
+                    return null;
                 })
             );
         }
 
-        // Wait for all the data fetching to complete
         const resolvedFriendDetails = await Promise.all(friendDetailsPromises);
         
-        // Filter out any null results from users who couldn't be found
         const validChatsToDisplay = resolvedFriendDetails.filter(detail => detail !== null);
 
         if (validChatsToDisplay.length === 0) {
@@ -763,7 +755,6 @@ async function loadRecentChats() {
             return;
         }
 
-        // Build the final HTML
         let chatItemsHtml = '';
         validChatsToDisplay.forEach(detail => {
             chatItemsHtml += `
@@ -778,36 +769,35 @@ async function loadRecentChats() {
         });
         
         recentChatsListEl.innerHTML = chatItemsHtml;
-// Attach event listeners to the new list items
-recentChatsListEl.addEventListener('click', async (event) => { // <-- Note the 'async' keyword here
-    const chatItem = event.target.closest('.chat-item');
-    if (!chatItem) return;
 
-    // Handle the delete button click
-    if (event.target.closest('.delete-chat-btn')) {
-        const chatDocIdToDelete = chatItem.dataset.chatDocId;
-        const friendName = chatItem.querySelector('.chat-name').textContent;
+        recentChatsListEl.addEventListener('click', async (event) => {
+            const chatItem = event.target.closest('.chat-item');
+            if (!chatItem) return;
 
-        // --- THIS IS THE CHANGED PART ---
-        const userConfirmed = await showCustomConfirm(`Are you sure you want to delete the chat with ${friendName}?`, "Confirm Chat Deletion");
-        if (userConfirmed) {
-            // Call your delete function here if it exists
-            if (typeof deletePrivateChat === 'function') {
-                deletePrivateChat(chatDocIdToDelete, chatItem.dataset.friendId);
+            if (event.target.closest('.delete-chat-btn')) {
+                const chatDocIdToDelete = chatItem.dataset.chatDocId;
+                const friendName = chatItem.querySelector('.chat-name').textContent;
+                const userConfirmed = await showCustomConfirm(`Are you sure you want to delete the chat with ${friendName}?`, "Confirm Chat Deletion");
+                if (userConfirmed) {
+                    if (typeof deletePrivateChat === 'function') {
+                        deletePrivateChat(chatDocIdToDelete, chatItem.dataset.friendId);
+                    }
+                }
+                return;
             }
-        }
-        // --- END OF CHANGED PART ---
-        return; // Stop further execution after handling the delete button
-    }
 
-    // Handle clicking on the chat item itself to open the chat
-    const selectedFriendIdTorn = chatItem.dataset.friendId;
-    if (selectedFriendIdTorn) {
-        selectPrivateChat(selectedFriendIdTorn);
-    }
-});
+            const selectedFriendIdTorn = chatItem.dataset.friendId;
+            if (selectedFriendIdTorn) {
+                selectPrivateChat(selectedFriendIdTorn);
+            }
+        });
 
-// --- DUMMY FUNCTION: Will be implemented later for deleting private chats ---
+    } catch (error) { // <-- The `try` block now correctly wraps the code above
+        console.error("[Recent Chats] Error loading recent chats:", error);
+        recentChatsListEl.innerHTML = `<li class="chat-item message-placeholder" style="color: red;">Error loading chats: ${error.message}</li>`;
+    }
+}
+
 // Place this function in the GLOBAL scope
 async function deletePrivateChat(chatDocId, friendIdTorn) {
     console.log(`[Delete Chat] Attempting to delete chat ${chatDocId} with Torn ID ${friendIdTorn}`);
