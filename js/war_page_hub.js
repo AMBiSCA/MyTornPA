@@ -1208,82 +1208,7 @@ function showCustomAlert(message, title = "Alert") {
     document.body.appendChild(overlay);
 }
 
-/**
- * Displays a custom confirmation box and returns a promise that resolves to true (Yes) or false (No).
- * @param {string} message The confirmation message to display.
- * @param {string} [title="Confirm"] Optional title for the confirmation box.
- * @returns {Promise<boolean>}
- */
-function showCustomConfirm(message, title = "Confirm") {
-    // This returns a Promise, which lets us use 'await' to wait for the user's choice
-    return new Promise((resolve) => {
-        // --- Create Elements ---
-        const overlay = document.createElement('div');
-        const alertBox = document.createElement('div');
-        const titleEl = document.createElement('h4');
-        const messageEl = document.createElement('p');
-        const buttonWrapper = document.createElement('div');
-        const yesBtn = document.createElement('button');
-        const noBtn = document.createElement('button');
 
-        // --- Apply Styles (CSS-in-JS) ---
-        Object.assign(overlay.style, {
-            position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex',
-            justifyContent: 'center', alignItems: 'center', zIndex: '2000',
-            backdropFilter: 'blur(5px)'
-        });
-        Object.assign(alertBox.style, {
-            background: '#1e2a38', padding: '25px 30px', borderRadius: '8px',
-            border: '1px solid #4a6a8a', boxShadow: '0 5px 20px rgba(0, 0, 0, 0.6)',
-            textAlign: 'center', width: '90%', maxWidth: '450px', color: '#ecf0f1'
-        });
-        Object.assign(titleEl.style, {
-            margin: '0 0 15px 0', color: '#e0a71a', fontSize: '1.4em', fontWeight: '600'
-        });
-        Object.assign(messageEl.style, {
-            margin: '0 0 25px 0', fontSize: '1.1em', lineHeight: '1.6', whiteSpace: 'pre-wrap'
-        });
-        Object.assign(buttonWrapper.style, {
-            display: 'flex', justifyContent: 'center', gap: '15px'
-        });
-        Object.assign(yesBtn.style, {
-            backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px',
-            padding: '10px 25px', fontSize: '1em', cursor: 'pointer', fontWeight: 'bold'
-        });
-        Object.assign(noBtn.style, {
-            backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px',
-            padding: '10px 25px', fontSize: '1em', cursor: 'pointer', fontWeight: 'bold'
-        });
-
-        //--- Set Content ---
-        titleEl.textContent = title;
-        messageEl.textContent = message;
-        yesBtn.textContent = 'Yes, Clear It';
-        noBtn.textContent = 'No, Cancel';
-
-        //--- Event Handlers ---
-        const closeModal = (resolution) => {
-            document.body.removeChild(overlay);
-            resolve(resolution); // Resolves the promise with true or false
-        };
-
-        yesBtn.onclick = () => closeModal(true);
-        noBtn.onclick = () => closeModal(false);
-        overlay.onclick = (event) => {
-            if (event.target === overlay) closeModal(false);
-        };
-
-        //--- Assemble and Append to DOM ---
-        buttonWrapper.appendChild(noBtn);
-        buttonWrapper.appendChild(yesBtn);
-        alertBox.appendChild(titleEl);
-        alertBox.appendChild(messageEl);
-        alertBox.appendChild(buttonWrapper);
-        overlay.appendChild(alertBox);
-        document.body.appendChild(overlay);
-    });
-}
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
     if (!members || typeof members !== 'object') return;
@@ -3738,7 +3663,106 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     }
 }
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
+function switchChatTab(tabName) {
+    console.log(`Switching to chat tab: ${tabName}`);
 
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels) {
+        console.error("Chat elements not found for tab switching or content panels.");
+        return;
+    }
+
+    // Remove 'active' class from all tab buttons
+    chatTabButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+
+    // Hide all chat content panels
+    chatContentPanels.querySelectorAll('.chat-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+
+    // Unsubscribe from any active real-time chat listener by default when switching tabs
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous chat listener (tab switch).");
+    }
+
+
+    // Add 'active' class to the clicked tab button
+    const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
+    if (selectedChatTabButton) {
+        selectedChatTabButton.classList.add('active');
+        selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
+    }
+
+    // Show the selected content panel and perform tab-specific actions
+    let targetChatPanel = null;
+    let targetDisplayArea = null; 
+
+    switch (tabName) {
+        case 'faction-chat':
+            targetChatPanel = factionChatPanel;
+            setupChatRealtimeListener(); // Start listening for messages in faction chat
+            break;
+        case 'faction-members':
+            targetChatPanel = factionMembersPanel;
+            targetDisplayArea = factionMembersDisplayArea;
+            if (factionApiFullData && factionApiFullData.members) {
+                 displayFactionMembersInChatTab(factionApiFullData.members); // Pass members to display function
+            } else if (targetDisplayArea) {
+                 targetDisplayArea.innerHTML = `<p>Loading faction member data...</p>`;
+            }
+            break;
+        case 'private-chat':
+            targetChatPanel = privateChatPanel;
+            targetDisplayArea = privateChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
+            break;
+        case 'friends':
+            targetChatPanel = friendsPanel;
+            targetDisplayArea = friendsChatDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Friends Chat! Functionality not implemented yet.</p>`;
+            break;
+        case 'recently-met':
+            targetChatPanel = recentlyMetPanel;
+            targetDisplayArea = recentlyMetDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Recently Met! Functionality not implemented yet.</p>`;
+            break;
+        case 'blocked-people':
+            targetChatPanel = blockedPeoplePanel;
+            targetDisplayArea = blockedPeopleDisplayArea;
+            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
+            break;
+       
+
+	   case 'settings':
+            // The `targetChatPanel` and `targetDisplayArea` are not needed here
+            // because populateSettingsTab() takes chatDisplayArea directly.
+            // if (settingsPanel) settingsPanel.classList.add('active'); // This is not needed in JS-only strategy
+            populateSettingsTab(chatDisplayArea); // Call the correct function passing chatDisplayArea
+            showInputArea = false; // Hide input for settings tab
+            break;
+	  
+            break;
+        default:
+            console.warn(`Unknown chat tab: ${tabName}`);
+            if (factionChatDisplayArea) { // Fallback to faction chat display if unknown tab
+                factionChatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
+            }
+            break;
+    }
+
+    if (targetChatPanel) {
+        targetChatPanel.classList.add('active'); // Show the selected panel
+    } else {
+        console.error(`No chat panel found for tab: ${tabName}`);
+    }
+	
+	 if (tabName === 'friends') {
+        fetchAndDisplayFriends();
+    }
+}
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
@@ -4326,6 +4350,40 @@ function setupMemberClickEvents() {
         currentFocus = -1; // Reset focus when lists are closed
     };
 
+    // Close lists when clicking outside the input/list
+    document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+    });
+
+function switchChatTab(tabName) {
+    console.log(`Switching to chat tab: ${tabName}`);
+
+    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
+        console.error("Chat elements not found for tab switching.");
+        return;
+    }
+
+    // Remove 'active' class from all tab buttons
+    chatTabButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+
+    // Add 'active' class to the clicked tab
+    const selectedTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
+    if (selectedTabButton) {
+        selectedTabButton.classList.add('active');
+    } else {
+        console.warn(`Chat tab button for "${tabName}" not found.`);
+    }
+
+    // --- Temporary: Update chat display area based on selected tab ---
+    // In a later step, we will load actual messages from Firebase for the selected tab.
+    chatDisplayArea.innerHTML = `<p>Welcome to the <span style="font-weight:bold; color: #00a8ff;">${tabName.replace('-', ' ')}</span> chat!</p><p>Messages will appear here...</p>`;
+
+    // Keep active tab scrolled to view
+    chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
+}
+
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -4489,279 +4547,6 @@ function setupEventListeners(apiKey) {
 }
 
 // ... (rest of your code, unchanged) ...
-
-document.addEventListener('DOMContentLoaded', () => {
-    // --- START OF DOMCONTENTLOADED ---
-
-    // Basic tab navigation for main content tabs
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane');
-
-   tabButtons.forEach(button => {
-    button.addEventListener('click', async (event) => {
-        const targetTabDataset = event.currentTarget.dataset.tab;
-        const targetTabId = targetTabDataset + '-tab';
-
-        if (targetTabDataset === 'leader-config') {
-            const userIsAdmin = await checkIfUserIsAdmin();
-            if (!userIsAdmin) {
-                // --- THIS IS THE CHANGE ---
-                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
-                showCustomAlert(permissionMessage, "Access Denied");
-                return; 
-                // --- END OF CHANGE ---
-            }
-        }
-
-        showTab(targetTabId);
-
-        if (targetTabDataset === 'friendly-status') {
-            const user = firebase.auth().currentUser;
-            if (user && userApiKey) {
-                await updateFriendlyMembersTable(userApiKey, user.uid);
-            } else {
-                console.warn("User not logged in or API Key missing.");
-                const tbody = document.getElementById('friendly-members-tbody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
-                }
-            }
-        }
-    });
-});
-
-// --- THIS IS THE MISSING CODE FOR THE WAR AVAILABILITY BUTTONS ---
-    const availabilityTab = document.getElementById('war-availability-tab');
-    if (availabilityTab) {
-        availabilityTab.addEventListener('click', async (event) => {
-            const button = event.target.closest('.action-btn');
-            if (!button) {
-                return; // Exit if the click wasn't on an action button
-            }
-
-            // Handle the "Update Day X" buttons inside the form
-            if (button.textContent.includes('Update Day')) {
-                event.preventDefault();
-                const dayForm = button.closest('.availability-day-form');
-                const dayNumber = parseInt(dayForm.dataset.day, 10);
-                const user = auth.currentUser;
-                if (!user) { return alert("You must be logged in."); }
-
-                const status = dayForm.querySelector('.availability-status').value;
-                const reason = dayForm.querySelector('input[id^="reason-day-"]').value.trim();
-                if (status === 'no' && reason === '') {
-                    return showCustomAlert("Please provide a reason for being unavailable.", "Reason Required");
-                }
-                
-                button.textContent = "Saving...";
-                button.disabled = true;
-
-                const availabilityData = {
-                    status: status,
-                    reason: reason,
-                    timeRange: dayForm.querySelector('input[id^="time-from-day-"]').value.trim(),
-                    role: dayForm.querySelector('select[id^="role-day-"]').value,
-                    isAvailableForStart: dayForm.querySelector('input[id^="war-start-day-"]').checked,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                try {
-                    const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                    const tornUserId = userProfileDoc.data().tornProfileId;
-                    const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-                    await availabilityDocRef.set({ [`day_${dayNumber}`]: availabilityData }, { merge: true });
-                    await displayWarRoster(); // Refresh the roster and summary
-                } catch (error) {
-                    console.error("Error saving availability:", error);
-                    button.textContent = `Update Day ${dayNumber}`;
-                    button.disabled = false;
-                }
-            }
-
-            // Handle the "Edit Day X" buttons in the summary view
-            if (button.classList.contains('edit-day-btn')) {
-                const dayToEdit = button.dataset.dayToEdit;
-                if (dayToEdit) {
-                    showDayForm(parseInt(dayToEdit, 10));
-                }
-            }
-
-            // Handle the "Send Reminders" button
-            if (button.id === 'notify-members-btn') {
-                const originalText = button.textContent;
-                button.disabled = true;
-                button.textContent = "Sending...";
-                await sendReminderNotifications(); // This function already shows alerts on success/failure
-                button.disabled = false;
-                button.textContent = originalText;
-            }
-
-            // Handle the "Reset All" button
-            if (button.id === 'reset-availability-btn') {
-                const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
-                if (confirmed) {
-                    // NOTE: You will need to write the function `resetAllAvailability()` that
-                    // goes through the database and deletes all documents in the subcollection.
-                    // This is a placeholder for that future function.
-                    alert("Reset functionality is not fully implemented yet.");
-                }
-            }
-        });
-    }
-
-    showTab('announcements-tab'); // Sets initial tab to announcements
-    let listenersInitialized = false;
-
-
-
-    // This handles all the data loading after a user logs in
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            const userData = doc.exists ? doc.data() : {};
-
-            const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null;
-            currentTornUserName = userData.preferredName || 'Unknown';
-
-            let warData = {};
-            try {
-                const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                warData = warDoc.exists ? warDoc.data() : {};
-            } catch (firebaseError) {
-                console.error("Error fetching warData from Firebase:", firebaseError);
-            }
-			
-			if (clearAllWarDataBtn) {
-        clearAllWarDataBtn.addEventListener('click', async () => {
-            const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
-            const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
-
-            if (!userConfirmed) {
-                return; // Stop if the user clicks 'No' or outside the box
-            }
-
-            const originalText = clearAllWarDataBtn.textContent;
-            clearAllWarDataBtn.disabled = true;
-            clearAllWarDataBtn.textContent = "Clearing...";
-
-            const clearedData = {
-                toggleEnlisted: false, toggleTermedWar: false, toggleTermedWinLoss: false,
-                toggleChaining: false, toggleNoFlying: false, toggleTurtleMode: false,
-                enemyFactionID: "", nextChainTimeInput: "", currentTeamLead: "",
-                gamePlan: "", quickAnnouncement: "", gamePlanImageUrl: null,
-                announcementsImageUrl: null
-            };
-
-            try {
-                await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
-
-                // Update UI elements on screen
-                if (toggleEnlisted) toggleEnlisted.checked = false;
-                if (toggleTermedWar) toggleTermedWar.checked = false;
-                if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
-                if (toggleChaining) toggleChaining.checked = false;
-                if (toggleNoFlying) toggleNoFlying.checked = false;
-                if (toggleTurtleMode) toggleTurtleMode.checked = false;
-                if (enemyFactionIDInput) enemyFactionIDInput.value = "";
-                if (nextChainTimeInput) nextChainTimeInput.value = "";
-                const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-                if (currentTeamLeadInput) currentTeamLeadInput.value = "";
-
-                if (gamePlanEditArea) gamePlanEditArea.value = "";
-                if (quickAnnouncementInput) quickAnnouncementInput.value = "";
-                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
-                
-                populateWarStatusDisplay(clearedData);
-                clearAllWarDataBtn.textContent = "Cleared!";
-
-            } catch (error) {
-                console.error("Error clearing war data:", error);
-                clearAllWarDataBtn.textContent = "Error!";
-                showCustomAlert("Failed to clear data. Please check the console.", "Error");
-            } finally {
-                setTimeout(() => {
-                    clearAllWarDataBtn.disabled = false;
-                    clearAllWarDataBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-            if (apiKey && playerId) {
-                userApiKey = apiKey;
-
-                await initializeAndLoadData(apiKey, userData.faction_id);
-
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
-                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
-                }
-
-                displayWarRoster();
-                setupFactionHitsListener(db, userData.faction_id);
-                setupWarClaimsListener();
-
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-
-                updateUserEnergyDisplay();
-                updateOnlineMemberCounts();
-                fetchAndDisplayChainData();
-                displayQuickFFTargets(userApiKey, playerId);
-                setupChatRealtimeListener();
-
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey);
-                    setupMemberClickEvents();
-
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
-                    });
-
-                    listenersInitialized = true;
-
-                    setInterval(updateAllTimers, 1000);
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey);
-                        }
-                    }, 1500);
-                    setInterval(() => {
-                        if (userApiKey && globalYourFactionID) {
-                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID);
-                        }
-                    }, 2000);
-                    setInterval(() => {
-                        if (userApiKey && globalYourFactionID) {
-                            initializeAndLoadData(userApiKey, globalYourFactionID);
-                        }
-                    }, 300000);
-                    setInterval(() => {
-                        if (userApiKey) {
-                            updateUserEnergyDisplay();
-                            updateOnlineMemberCounts();
-                        }
-                    }, 60000);
-                }
-            } else {
-                console.warn("API key or Player ID not found.");
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-            }
-        } else {
-            userApiKey = null;
-            listenersInitialized = false;
-            console.log("User not logged in.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-        }
-    });
-
-});
 
 if (addFriendBtn) {
     addFriendBtn.addEventListener('click', async () => {
@@ -5759,11 +5544,52 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-           
+            document.addEventListener('DOMContentLoaded', () => {
+
+     const tabButtons = document.querySelectorAll('.tab-button');
+     const mainTabPanes = document.querySelectorAll('.tab-pane');
+
+   tabButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+        const targetTabDataset = event.currentTarget.dataset.tab;
+        const targetTabId = targetTabDataset + '-tab';
+
+        if (targetTabDataset === 'leader-config') {
+            const userIsAdmin = await checkIfUserIsAdmin();
+            if (!userIsAdmin) {
+
+                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                showCustomAlert(permissionMessage, "Access Denied");
+                return; 
+            }
+        }
+
+        showTab(targetTabId);
+
+        if (targetTabDataset === 'friendly-status') {
+            const user = firebase.auth().currentUser;
+            if (user && userApiKey) {
+                await updateFriendlyMembersTable(userApiKey, user.uid);
+            } else {
+                console.warn("User not logged in or API Key missing.");
+                const tbody = document.getElementById('friendly-members-tbody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                }
+            }
+        }
+    });
+});
+
     showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
 
 
+    const chatTabsContainer = document.querySelector('.chat-tabs-container');
+    const chatTabs = document.querySelectorAll('.chat-tab');
+    const warChatBox = document.getElementById('warChatBox');
+    const chatDisplayArea = document.getElementById('chat-display-area');
+    const chatInputArea = document.querySelector('.chat-input-area');
 
 
     auth.onAuthStateChanged(async (user) => {
