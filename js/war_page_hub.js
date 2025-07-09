@@ -3738,106 +3738,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     }
 }
 // NEW: Function to handle switching chat tabs (now includes Settings tab)
-function switchChatTab(tabName) {
-    console.log(`Switching to chat tab: ${tabName}`);
 
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatContentPanels) {
-        console.error("Chat elements not found for tab switching or content panels.");
-        return;
-    }
-
-    // Remove 'active' class from all tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-
-    // Hide all chat content panels
-    chatContentPanels.querySelectorAll('.chat-panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-
-    // Unsubscribe from any active real-time chat listener by default when switching tabs
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        unsubscribeFromChat = null;
-        console.log("Unsubscribed from previous chat listener (tab switch).");
-    }
-
-
-    // Add 'active' class to the clicked tab button
-    const selectedChatTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
-    if (selectedChatTabButton) {
-        selectedChatTabButton.classList.add('active');
-        selectedChatTabButton.parentNode.scrollLeft = selectedChatTabButton.offsetLeft - (selectedChatTabButton.parentNode.offsetWidth / 2) + (selectedChatTabButton.offsetWidth / 2);
-    }
-
-    // Show the selected content panel and perform tab-specific actions
-    let targetChatPanel = null;
-    let targetDisplayArea = null; 
-
-    switch (tabName) {
-        case 'faction-chat':
-            targetChatPanel = factionChatPanel;
-            setupChatRealtimeListener(); // Start listening for messages in faction chat
-            break;
-        case 'faction-members':
-            targetChatPanel = factionMembersPanel;
-            targetDisplayArea = factionMembersDisplayArea;
-            if (factionApiFullData && factionApiFullData.members) {
-                 displayFactionMembersInChatTab(factionApiFullData.members); // Pass members to display function
-            } else if (targetDisplayArea) {
-                 targetDisplayArea.innerHTML = `<p>Loading faction member data...</p>`;
-            }
-            break;
-        case 'private-chat':
-            targetChatPanel = privateChatPanel;
-            targetDisplayArea = privateChatDisplayArea;
-            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Private Chat! Functionality not implemented yet.</p>`;
-            break;
-        case 'friends':
-            targetChatPanel = friendsPanel;
-            targetDisplayArea = friendsChatDisplayArea;
-            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Friends Chat! Functionality not implemented yet.</p>`;
-            break;
-        case 'recently-met':
-            targetChatPanel = recentlyMetPanel;
-            targetDisplayArea = recentlyMetDisplayArea;
-            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Recently Met! Functionality not implemented yet.</p>`;
-            break;
-        case 'blocked-people':
-            targetChatPanel = blockedPeoplePanel;
-            targetDisplayArea = blockedPeopleDisplayArea;
-            if (targetDisplayArea) targetDisplayArea.innerHTML = `<p>Welcome to Blocked People! Functionality not implemented yet.</p>`;
-            break;
-       
-
-	   case 'settings':
-            // The `targetChatPanel` and `targetDisplayArea` are not needed here
-            // because populateSettingsTab() takes chatDisplayArea directly.
-            // if (settingsPanel) settingsPanel.classList.add('active'); // This is not needed in JS-only strategy
-            populateSettingsTab(chatDisplayArea); // Call the correct function passing chatDisplayArea
-            showInputArea = false; // Hide input for settings tab
-            break;
-	  
-            break;
-        default:
-            console.warn(`Unknown chat tab: ${tabName}`);
-            if (factionChatDisplayArea) { // Fallback to faction chat display if unknown tab
-                factionChatDisplayArea.innerHTML = `<p style="color: red;">Error: Unknown chat tab selected.</p>`;
-            }
-            break;
-    }
-
-    if (targetChatPanel) {
-        targetChatPanel.classList.add('active'); // Show the selected panel
-    } else {
-        console.error(`No chat panel found for tab: ${tabName}`);
-    }
-	
-	 if (tabName === 'friends') {
-        fetchAndDisplayFriends();
-    }
-}
 async function fetchAndDisplayMemberDetails(memberId) {
     console.log(`[DEBUG] Initiating fetch for member ID: "${memberId}"`);
 
@@ -4425,36 +4326,6 @@ function setupMemberClickEvents() {
         currentFocus = -1; // Reset focus when lists are closed
     };
 
-
-function switchChatTab(tabName) {
-    console.log(`Switching to chat tab: ${tabName}`);
-
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
-        console.error("Chat elements not found for tab switching.");
-        return;
-    }
-
-    // Remove 'active' class from all tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-
-    // Add 'active' class to the clicked tab
-    const selectedTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
-    if (selectedTabButton) {
-        selectedTabButton.classList.add('active');
-    } else {
-        console.warn(`Chat tab button for "${tabName}" not found.`);
-    }
-
-    // --- Temporary: Update chat display area based on selected tab ---
-    // In a later step, we will load actual messages from Firebase for the selected tab.
-    chatDisplayArea.innerHTML = `<p>Welcome to the <span style="font-weight:bold; color: #00a8ff;">${tabName.replace('-', ' ')}</span> chat!</p><p>Messages will appear here...</p>`;
-
-    // Keep active tab scrolled to view
-    chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
-}
-
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
         saveGamePlanBtn.addEventListener('click', async () => {
@@ -4467,17 +4338,19 @@ function setupEventListeners(apiKey) {
                 await db.collection('factionWars').doc('currentWar').set({ gamePlan: gamePlanEditArea.value }, { merge: true });
                 console.log("3. Save Game Plan: Database save complete.");
                 if (gamePlanDisplay) gamePlanDisplay.textContent = gamePlanEditArea.value;
-                saveGamePlanBtn.textContent = "Saved!";
+                saveGamePlanBtn.textContent = "Saved! ✅"; // Visual feedback for success
             } catch (error) {
                 console.error('ERROR during Save Game Plan:', error);
-                saveGamePlanBtn.textContent = "Error!";
+                saveGamePlanBtn.textContent = "Error! ❌"; // Visual feedback for error
+                showCustomAlert("Failed to save game plan. Please check the console.", "Save Failed");
             } finally {
+                // Ensure the button is re-enabled and text reset regardless of success/failure
                 console.log("4. Save Game Plan: Entering 'finally' block to reset button.");
                 setTimeout(() => {
                     console.log("5. Save Game Plan: Timeout finished. Reverting button.");
                     saveGamePlanBtn.disabled = false;
                     saveGamePlanBtn.textContent = originalText;
-                }, 2000);
+                }, 2000); // Revert after 2 seconds
             }
         });
     }
@@ -4495,17 +4368,19 @@ function setupEventListeners(apiKey) {
                 console.log("3. Post Announcement: Database post complete.");
                 if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
                 quickAnnouncementInput.value = '';
-                postAnnouncementBtn.textContent = "Posted!";
+                postAnnouncementBtn.textContent = "Posted! ✅"; // Visual feedback for success
             } catch (error) {
                 console.error('ERROR during Post Announcement:', error);
-                postAnnouncementBtn.textContent = "Error!";
+                postAnnouncementBtn.textContent = "Error! ❌"; // Visual feedback for error
+                showCustomAlert("Failed to post announcement. Please check the console.", "Post Failed");
             } finally {
+                // Ensure the button is re-enabled and text reset regardless of success/failure
                 console.log("4. Post Announcement: Entering 'finally' block to reset button.");
                 setTimeout(() => {
                     console.log("5. Post Announcement: Timeout finished. Reverting button.");
                     postAnnouncementBtn.disabled = false;
                     postAnnouncementBtn.textContent = originalText;
-                }, 2000);
+                }, 2000); // Revert after 2 seconds
             }
         });
     }
@@ -4517,23 +4392,93 @@ function setupEventListeners(apiKey) {
             saveWarStatusControlsBtn.disabled = true;
             saveWarStatusControlsBtn.textContent = "Saving...";
             const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
-            const statusData = { /* ... your status data ... */ };
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
             try {
                 console.log("2. Save War Status: Awaiting database save.");
                 await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
                 console.log("3. Save War Status: Database save complete.");
                 populateWarStatusDisplay(statusData);
+                // Assuming 'userApiKey' is available in this scope.
                 await fetchAndDisplayEnemyFaction(enemyId, userApiKey);
-                saveWarStatusControlsBtn.textContent = "Saved!";
+                saveWarStatusControlsBtn.textContent = "Saved! ✅"; // Visual feedback for success
             } catch (error) {
                 console.error('ERROR during Save War Status:', error);
-                saveWarStatusControlsBtn.textContent = "Error!";
+                saveWarStatusControlsBtn.textContent = "Error! ❌"; // Visual feedback for error
+                showCustomAlert("Failed to save war status. Please check the console.", "Save Failed");
             } finally {
+                // Ensure the button is re-enabled and text reset regardless of success/failure
                 console.log("4. Save War Status: Entering 'finally' block to reset button.");
                 setTimeout(() => {
                     console.log("5. Save War Status: Timeout finished. Reverting button.");
                     saveWarStatusControlsBtn.disabled = false;
                     saveWarStatusControlsBtn.textContent = originalText;
+                }, 2000); // Revert after 2 seconds
+            }
+        });
+    }
+
+    // --- Added the clearAllWarDataBtn fix here as well ---
+    if (clearAllWarDataBtn) {
+        clearAllWarDataBtn.addEventListener('click', async () => {
+            const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+            const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
+
+            if (!userConfirmed) {
+                return; // Stop if the user clicks 'No' or outside the box
+            }
+
+            const originalText = clearAllWarDataBtn.textContent;
+            clearAllWarDataBtn.disabled = true;
+            clearAllWarDataBtn.textContent = "Clearing...";
+
+            const clearedData = {
+                toggleEnlisted: false, toggleTermedWar: false, toggleTermedWinLoss: false,
+                toggleChaining: false, toggleNoFlying: false, toggleTurtleMode: false,
+                enemyFactionID: "", nextChainTimeInput: "", currentTeamLead: "",
+                gamePlan: "", quickAnnouncement: "", gamePlanImageUrl: null,
+                announcementsImageUrl: null
+            };
+
+            try {
+                await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+
+                // Update UI elements on screen
+                if (toggleEnlisted) toggleEnlisted.checked = false;
+                if (toggleTermedWar) toggleTermedWar.checked = false;
+                if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+                if (toggleChaining) toggleChaining.checked = false;
+                if (toggleNoFlying) toggleNoFlying.checked = false;
+                if (toggleTurtleMode) toggleTurtleMode.checked = false;
+                if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+                if (nextChainTimeInput) nextChainTimeInput.value = "";
+                const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+                if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+
+                if (gamePlanEditArea) gamePlanEditArea.value = "";
+                if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+
+                populateWarStatusDisplay(clearedData);
+                clearAllWarDataBtn.textContent = "Cleared! ✅"; // Visual feedback for success
+
+            } catch (error) {
+                console.error("Error clearing war data:", error);
+                clearAllWarDataBtn.textContent = "Error! ❌"; // Visual feedback for error
+                showCustomAlert("Failed to clear data. Please check the console.", "Error");
+            } finally {
+                setTimeout(() => {
+                    clearAllWarDataBtn.disabled = false;
+                    clearAllWarDataBtn.textContent = originalText;
                 }, 2000);
             }
         });
@@ -4541,8 +4486,9 @@ function setupEventListeners(apiKey) {
 
     // ... All other listeners from your original file should be here ...
     // I am omitting them for brevity, but make sure they remain in your version.
-    // The key is to see the numbered console logs from one of the above buttons.
 }
+
+// ... (rest of your code, unchanged) ...
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
@@ -4666,12 +4612,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showTab('announcements-tab'); // Sets initial tab to announcements
     let listenersInitialized = false;
 
-    // References to chat elements
-    const chatTabsContainer = document.querySelector('.chat-tabs-container');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox');
-    const chatDisplayArea = document.getElementById('chat-display-area');
-    const chatInputArea = document.querySelector('.chat-input-area');
+
 
     // This handles all the data loading after a user logs in
     auth.onAuthStateChanged(async (user) => {
@@ -5823,11 +5764,6 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     let listenersInitialized = false;
 
 
-    const chatTabsContainer = document.querySelector('.chat-tabs-container');
-    const chatTabs = document.querySelectorAll('.chat-tab');
-    const warChatBox = document.getElementById('warChatBox');
-    const chatDisplayArea = document.getElementById('chat-display-area');
-    const chatInputArea = document.querySelector('.chat-input-area');
 
 
     auth.onAuthStateChanged(async (user) => {
