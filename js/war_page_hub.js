@@ -4459,6 +4459,266 @@ function switchChatTab(tabName) {
     chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
 }
 
+function setupEventListeners(apiKey) {
+    // Game Plan Section
+    if (saveGamePlanBtn) {
+        saveGamePlanBtn.addEventListener('click', async () => {
+            const originalText = saveGamePlanBtn.textContent;
+            saveGamePlanBtn.disabled = true;
+            saveGamePlanBtn.textContent = "Saving...";
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ gamePlan: gamePlanEditArea.value }, { merge: true });
+                if (gamePlanDisplay) gamePlanDisplay.textContent = gamePlanEditArea.value;
+                saveGamePlanBtn.textContent = "Saved!";
+            } catch (error) {
+                console.error('Error saving game plan:', error);
+                saveGamePlanBtn.textContent = "Error!";
+            } finally {
+                setTimeout(() => {
+                    saveGamePlanBtn.disabled = false;
+                    saveGamePlanBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    // Quick Links & Chat Buttons
+    const muteSoundButton = document.getElementById('muteSoundButton');
+    if (muteSoundButton) {
+        muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+        muteSoundButton.classList.toggle('muted', isChatMuted);
+        muteSoundButton.addEventListener('click', () => {
+            isChatMuted = !isChatMuted;
+            localStorage.setItem('isChatMuted', isChatMuted);
+            muteSoundButton.textContent = isChatMuted ? '🔇' : '🔊';
+            muteSoundButton.classList.toggle('muted', isChatMuted);
+        });
+    }
+
+    const aidButton = document.querySelector('.aid-button');
+    if (aidButton) aidButton.addEventListener('click', () => console.log('Aid button clicked.'));
+
+    const flightButton = document.querySelector('.flight-button');
+    if (flightButton) flightButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=travel', '_blank'));
+
+    const armoryButton = document.querySelector('.armory-button');
+    if (armoryButton) armoryButton.addEventListener('click', () => window.open('https://www.torn.com/factions.php?step=your&type=1#/tab=armoury&start=0&sub=medical', '_blank'));
+
+    const refillButton = document.querySelector('.refill-button');
+    if (refillButton) refillButton.addEventListener('click', () => window.open('https://www.torn.com/page.php?sid=points', '_blank'));
+
+    const alarmButton = document.querySelector('.siren-btn');
+    if (alarmButton) alarmButton.addEventListener('click', () => console.log('Alarm button clicked.'));
+
+    if (chatSendBtn && chatTextInput) {
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatTextInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        });
+    }
+
+    // Leadership Settings Tab Buttons
+    if (postAnnouncementBtn) {
+        postAnnouncementBtn.addEventListener('click', async () => {
+            if (!quickAnnouncementInput || quickAnnouncementInput.value.trim() === '') return;
+            const originalText = postAnnouncementBtn.textContent;
+            postAnnouncementBtn.disabled = true;
+            postAnnouncementBtn.textContent = "Posting...";
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ quickAnnouncement: quickAnnouncementInput.value }, { merge: true });
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = quickAnnouncementInput.value;
+                quickAnnouncementInput.value = '';
+                postAnnouncementBtn.textContent = "Posted!";
+            } catch (error) {
+                console.error('Error posting announcement:', error);
+                postAnnouncementBtn.textContent = "Error!";
+            } finally {
+                setTimeout(() => {
+                    postAnnouncementBtn.disabled = false;
+                    postAnnouncementBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    if (saveWarStatusControlsBtn) {
+        saveWarStatusControlsBtn.addEventListener('click', async () => {
+            const originalText = saveWarStatusControlsBtn.textContent;
+            saveWarStatusControlsBtn.disabled = true;
+            saveWarStatusControlsBtn.textContent = "Saving...";
+            const enemyId = enemyFactionIDInput ? enemyFactionIDInput.value.trim() : '';
+            const statusData = {
+                toggleEnlisted: toggleEnlisted ? toggleEnlisted.checked : false,
+                toggleTermedWar: toggleTermedWar ? toggleTermedWar.checked : false,
+                toggleChaining: toggleChaining ? toggleChaining.checked : false,
+                toggleNoFlying: toggleNoFlying ? toggleNoFlying.checked : false,
+                toggleTurtleMode: toggleTurtleMode ? toggleTurtleMode.checked : false,
+                toggleTermedWinLoss: toggleTermedWinLoss ? toggleTermedWinLoss.checked : false,
+                nextChainTimeInput: nextChainTimeInput ? nextChainTimeInput.value : '',
+                enemyFactionID: enemyId
+            };
+            try {
+                await db.collection('factionWars').doc('currentWar').set(statusData, { merge: true });
+                populateWarStatusDisplay(statusData);
+                await fetchAndDisplayEnemyFaction(enemyId, userApiKey);
+                saveWarStatusControlsBtn.textContent = "Saved!";
+            } catch (error) {
+                console.error('Error saving war status:', error);
+                saveWarStatusControlsBtn.textContent = "Error!";
+            } finally {
+                setTimeout(() => {
+                    saveWarStatusControlsBtn.disabled = false;
+                    saveWarStatusControlsBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    if (saveAdminsBtn) {
+        saveAdminsBtn.addEventListener('click', async () => {
+            const originalText = saveAdminsBtn.textContent;
+            saveAdminsBtn.disabled = true;
+            saveAdminsBtn.textContent = 'Saving...';
+            if (!designatedAdminsContainer) return;
+            const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+                saveAdminsBtn.textContent = 'Saved!';
+            } catch (error) {
+                console.error("Error saving admins:", error);
+                saveAdminsBtn.textContent = 'Error!';
+            } finally {
+                setTimeout(() => {
+                    saveAdminsBtn.disabled = false;
+                    saveAdminsBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    if (saveEnergyTrackMembersBtn) {
+        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
+             const originalText = saveEnergyTrackMembersBtn.textContent;
+            saveEnergyTrackMembersBtn.disabled = true;
+            saveEnergyTrackMembersBtn.textContent = 'Saving...';
+            if (!energyTrackingContainer) return;
+            const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+                saveEnergyTrackMembersBtn.textContent = 'Saved!';
+            } catch (error) {
+                console.error("Error saving energy members:", error);
+                saveEnergyTrackMembersBtn.textContent = 'Error!';
+            } finally {
+                 setTimeout(() => {
+                    saveEnergyTrackMembersBtn.disabled = false;
+                    saveEnergyTrackMembersBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    const saveWatchlistSelectionsBtn = document.getElementById('saveWatchlistSelectionsBtn');
+    if (saveWatchlistSelectionsBtn) {
+        saveWatchlistSelectionsBtn.addEventListener('click', async () => {
+             const originalText = saveWatchlistSelectionsBtn.textContent;
+            saveWatchlistSelectionsBtn.disabled = true;
+            saveWatchlistSelectionsBtn.textContent = 'Saving...';
+            if (!bigHitterWatchlistContainer) return;
+            const selectedWatchlistIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            try {
+                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedWatchlistIds }, { merge: true });
+                saveWatchlistSelectionsBtn.textContent = 'Saved!';
+            } catch (error) {
+                console.error("Error saving big hitter watchlist:", error);
+                saveWatchlistSelectionsBtn.textContent = 'Error!';
+            } finally {
+                setTimeout(() => {
+                    saveWatchlistSelectionsBtn.disabled = false;
+                    saveWatchlistSelectionsBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+
+    if (clearAllWarDataBtn) {
+        clearAllWarDataBtn.addEventListener('click', async () => {
+            const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+            const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
+
+            if (!userConfirmed) {
+                return;
+            }
+
+            const originalText = clearAllWarDataBtn.textContent;
+            clearAllWarDataBtn.disabled = true;
+            clearAllWarDataBtn.textContent = "Clearing...";
+
+            const clearedData = {
+                toggleEnlisted: false, toggleTermedWar: false, toggleTermedWinLoss: false,
+                toggleChaining: false, toggleNoFlying: false, toggleTurtleMode: false,
+                enemyFactionID: "", nextChainTimeInput: "", currentTeamLead: "",
+                gamePlan: "", quickAnnouncement: "", gamePlanImageUrl: null,
+                announcementsImageUrl: null
+            };
+
+            try {
+                await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+
+                if (toggleEnlisted) toggleEnlisted.checked = false;
+                if (toggleTermedWar) toggleTermedWar.checked = false;
+                if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+                if (toggleChaining) toggleChaining.checked = false;
+                if (toggleNoFlying) toggleNoFlying.checked = false;
+                if (toggleTurtleMode) toggleTurtleMode.checked = false;
+                if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+                if (nextChainTimeInput) nextChainTimeInput.value = "";
+                const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+                if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+                if (gamePlanEditArea) gamePlanEditArea.value = "";
+                if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+                
+                populateWarStatusDisplay(clearedData);
+                clearAllWarDataBtn.textContent = "Cleared!";
+            } catch (error) {
+                console.error("Error clearing war data:", error);
+                clearAllWarDataBtn.textContent = "Error!";
+                showCustomAlert("Failed to clear data. Please check the console.", "Error");
+            } finally {
+                setTimeout(() => {
+                    clearAllWarDataBtn.disabled = false;
+                    clearAllWarDataBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
+    
+    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
+    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
+    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
+
+    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
+        gamePlanUploadInput.addEventListener('change', () => {
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
+        });
+    }
+
+    const announcementUploadInput = document.getElementById('announcementImageUpload');
+    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
+    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
+    
+    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
+        announcementUploadInput.addEventListener('change', () => {
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
