@@ -4530,6 +4530,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			
 			if (clearAllWarDataBtn) {
         clearAllWarDataBtn.addEventListener('click', async () => {
+            const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
             const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
 
             if (!userConfirmed) {
