@@ -2428,64 +2428,6 @@ async function fetchAndDisplayChainScore(apiKey) {
       chainTimerDisplay.textContent = 'Chain Over';
   }
 
-// UPDATED: Function to handle claiming a target and changing it to an "Unclaim" button
-async function claimTarget(memberId, memberName) {
-    if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
-        alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
-        console.error("Claim failed: Missing auth, Torn username, API key, or Faction ID.");
-        return;
-    }
-
-    // Immediately disable the button to prevent double-clicks
-    const claimBtn = document.getElementById(`claim-btn-${memberId}`);
-    if (claimBtn) claimBtn.disabled = true;
-
-    let latestChainNumber = 0;
-    try {
-        // Fetch the very latest chain number directly from Torn API right before claiming
-        const chainApiUrl = `https://api.torn.com/faction/${globalYourFactionID}?selections=chain&key=${userApiKey}&comment=MyTornPA_ClaimChainCheck`;
-        console.log(`Fetching latest chain data from: ${chainApiUrl}`);
-        const response = await fetch(chainApiUrl);
-        const data = await response.json();
-
-        if (response.ok && data && data[globalYourFactionID] && data[globalYourFactionID].chain) {
-            latestChainNumber = data[globalYourFactionID].chain.current || 0;
-            console.log(`Successfully fetched latest Torn chain number: ${latestChainNumber}`);
-        } else {
-            console.warn(`Could not fetch latest chain number from Torn API, falling back. Error: ${data?.error?.error || response.statusText}`);
-            // Fallback to global variable if API call fails
-            latestChainNumber = globalChainCurrentNumber && globalChainCurrentNumber !== 'N/A' ? parseInt(globalChainCurrentNumber, 10) : 0;
-        }
-    } catch (apiError) {
-        console.error("Network or parsing error fetching latest chain data for claim:", apiError);
-        // Fallback to global variable if API call fails
-        latestChainNumber = globalChainCurrentNumber && globalChainCurrentNumber !== 'N/A' ? parseInt(globalChainCurrentNumber, 10) : 0;
-    }
-
-    const nextChainHitNumber = latestChainNumber + 1;
-
-    try {
-        // Save the claim to Firebase
-        await db.collection('warClaims').doc(memberId).set({
-            claimedByUserId: auth.currentUser.uid,
-            claimedByUserName: currentTornUserName,
-            chainHitNumber: nextChainHitNumber,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log(`Claim for ${memberName} (${memberId}) saved to Firebase. Chain hit: ${nextChainHitNumber}`);
-
-        // Send message to faction chat (now calls the updated function that also displays locally)
-        await sendClaimChatMessage(currentTornUserName, memberName, nextChainHitNumber);
-
-    } catch (error) {
-        console.error("Error saving claim to Firebase:", error);
-        alert(`Failed to claim target: ${error.message}`);
-    } finally {
-        // Re-enable the button regardless of success/failure (listener will update its state)
-        if (claimBtn) claimBtn.disabled = false;
-    }
-}
-
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
     const friendlyHitsEl = document.getElementById('friendly-chain-hits');
     const friendlyTimeEl = document.getElementById('friendly-chain-time');
