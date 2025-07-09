@@ -6181,7 +6181,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
         });
     }
-}
+
 
     // Clear Image Buttons
     const clearGamePlanImageBtn = document.getElementById('clearGamePlanImageBtn');
