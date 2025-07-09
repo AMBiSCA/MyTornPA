@@ -1120,6 +1120,12 @@ async function updateOnlineMemberCounts() {
     }
 }
 
+/**
+ * Displays a custom confirmation box and returns a promise that resolves to true (Yes) or false (No).
+ * @param {string} message The confirmation message to display.
+ * @param {string} [title="Confirm"] Optional title for the confirmation box.
+ * @returns {Promise<boolean>}
+ */
 function showCustomConfirm(message, title = "Confirm") {
     // This returns a Promise, which lets us use 'await' to wait for the user's choice
     return new Promise((resolve) => {
@@ -1191,6 +1197,7 @@ function showCustomConfirm(message, title = "Confirm") {
         document.body.appendChild(overlay);
     });
 }
+
 function showCustomAlert(message, title = "Alert") {
     //--- Create Elements ---
     const overlay = document.createElement('div');
@@ -5790,21 +5797,18 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 }
             }
 
-            // Inside the DOMContentLoaded listener, find this block:
-// Handle the "Reset All" button
-if (button.id === 'reset-availability-btn') {
-    const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
-    if (confirmed) {
-        try {
-            // Call the new resetAllAvailability function
-            await resetAllAvailability();
-        } catch (error) {
-            // Error handling is inside resetAllAvailability, but this catch could log/handle it too
-            console.error("Overall reset operation failed:", error);
-            // The showCustomAlert from resetAllAvailability should cover the user notification
-        }
+            // Handle the "Reset All" button
+            if (button.id === 'reset-availability-btn') {
+                const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
+                if (confirmed) {
+                    // NOTE: You will need to write the function `resetAllAvailability()` that
+                    // goes through the database and deletes all documents in the subcollection.
+                    // This is a placeholder for that future function.
+                    alert("Reset functionality is not fully implemented yet.");
+                }
+            }
+        });
     }
-}
     // --- END RE-ADDED AVAILABILITY LISTENERS ---
 
     showTab('announcements-tab'); // Sets initial tab to announcements
