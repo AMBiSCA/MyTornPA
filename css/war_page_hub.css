@@ -1448,6 +1448,12 @@ select[multiple] {
     align-items: center;
     justify-content: center;
 }
+
+.upload-btn {
+    position: relative;
+    top: 2px;
+}
+
 .config-section .action-btn:hover {
     background-color: #00a8ff; /* ADDED: Darker blue on hover */
     border-color: black; /* ADDED: Maintain border color on hover */
