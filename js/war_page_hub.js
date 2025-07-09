@@ -6163,23 +6163,25 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 	
 	
 
-
-    // --- File Input Listeners for Image Uploads ---
-    const gamePlanImageInput = document.getElementById('gamePlanImageInput');
-    const gamePlanUploadBtn = document.getElementById('gamePlanUploadBtn'); // Label element
-    if (gamePlanImageInput && gamePlanUploadBtn) {
-        gamePlanImageInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanImageInput, gamePlanDisplay, gamePlanUploadBtn, 'gamePlan');
+ // --- RESTORED IMAGE UPLOAD LISTENERS ---
+    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
+    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
+    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
+    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
+        gamePlanUploadInput.addEventListener('change', () => {
+            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
         });
     }
 
-    const announcementImageInput = document.getElementById('announcementImageInput');
-    const announcementUploadBtn = document.getElementById('announcementUploadBtn'); // Label element
-    if (announcementImageInput && announcementUploadBtn) {
-        announcementImageInput.addEventListener('change', () => {
-            handleImageUpload(announcementImageInput, factionAnnouncementsDisplay, announcementUploadBtn, 'announcement');
+    const announcementUploadInput = document.getElementById('announcementImageUpload');
+    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
+    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
+    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
+        announcementUploadInput.addEventListener('change', () => {
+            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
         });
     }
+}
 
     // Clear Image Buttons
     const clearGamePlanImageBtn = document.getElementById('clearGamePlanImageBtn');
