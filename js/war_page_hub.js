@@ -778,35 +778,34 @@ async function loadRecentChats() {
         });
         
         recentChatsListEl.innerHTML = chatItemsHtml;
+// Attach event listeners to the new list items
+recentChatsListEl.addEventListener('click', async (event) => { // <-- Note the 'async' keyword here
+    const chatItem = event.target.closest('.chat-item');
+    if (!chatItem) return;
 
-        // Attach event listeners to the new list items
-        recentChatsListEl.addEventListener('click', (event) => {
-            const chatItem = event.target.closest('.chat-item');
-            if (!chatItem) return;
+    // Handle the delete button click
+    if (event.target.closest('.delete-chat-btn')) {
+        const chatDocIdToDelete = chatItem.dataset.chatDocId;
+        const friendName = chatItem.querySelector('.chat-name').textContent;
 
-            if (event.target.closest('.delete-chat-btn')) {
-                const chatDocIdToDelete = chatItem.dataset.chatDocId;
-                const friendName = chatItem.querySelector('.chat-name').textContent;
-                if (confirm(`Are you sure you want to delete the chat with ${friendName}?`)) {
-                    // Call your delete function here if it exists
-                    if (typeof deletePrivateChat === 'function') {
-                        deletePrivateChat(chatDocIdToDelete, chatItem.dataset.friendId);
-                    }
-                }
-                return;
+        // --- THIS IS THE CHANGED PART ---
+        const userConfirmed = await showCustomConfirm(`Are you sure you want to delete the chat with ${friendName}?`, "Confirm Chat Deletion");
+        if (userConfirmed) {
+            // Call your delete function here if it exists
+            if (typeof deletePrivateChat === 'function') {
+                deletePrivateChat(chatDocIdToDelete, chatItem.dataset.friendId);
             }
-
-            const selectedFriendIdTorn = chatItem.dataset.friendId;
-            if (selectedFriendIdTorn) {
-                selectPrivateChat(selectedFriendIdTorn);
-            }
-        });
-
-    } catch (error) {
-        console.error("[Recent Chats] Error loading recent chats:", error);
-        recentChatsListEl.innerHTML = `<li class="chat-item message-placeholder" style="color: red;">Error loading chats: ${error.message}</li>`;
+        }
+        // --- END OF CHANGED PART ---
+        return; // Stop further execution after handling the delete button
     }
-}
+
+    // Handle clicking on the chat item itself to open the chat
+    const selectedFriendIdTorn = chatItem.dataset.friendId;
+    if (selectedFriendIdTorn) {
+        selectPrivateChat(selectedFriendIdTorn);
+    }
+});
 
 // --- DUMMY FUNCTION: Will be implemented later for deleting private chats ---
 // Place this function in the GLOBAL scope
