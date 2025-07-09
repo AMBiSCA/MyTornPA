@@ -1465,7 +1465,7 @@ select[multiple] {
 /* This makes the new 'Clear All Data' button red */
 .clear-btn {
     background-color: #dc3545 !important; /* A strong red */
-    color: white !important;
+    color: black !important;
 }
 
 .clear-btn:hover {

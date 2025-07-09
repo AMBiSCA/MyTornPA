@@ -1208,7 +1208,82 @@ function showCustomAlert(message, title = "Alert") {
     document.body.appendChild(overlay);
 }
 
+/**
+ * Displays a custom confirmation box and returns a promise that resolves to true (Yes) or false (No).
+ * @param {string} message The confirmation message to display.
+ * @param {string} [title="Confirm"] Optional title for the confirmation box.
+ * @returns {Promise<boolean>}
+ */
+function showCustomConfirm(message, title = "Confirm") {
+    // This returns a Promise, which lets us use 'await' to wait for the user's choice
+    return new Promise((resolve) => {
+        // --- Create Elements ---
+        const overlay = document.createElement('div');
+        const alertBox = document.createElement('div');
+        const titleEl = document.createElement('h4');
+        const messageEl = document.createElement('p');
+        const buttonWrapper = document.createElement('div');
+        const yesBtn = document.createElement('button');
+        const noBtn = document.createElement('button');
 
+        // --- Apply Styles (CSS-in-JS) ---
+        Object.assign(overlay.style, {
+            position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex',
+            justifyContent: 'center', alignItems: 'center', zIndex: '2000',
+            backdropFilter: 'blur(5px)'
+        });
+        Object.assign(alertBox.style, {
+            background: '#1e2a38', padding: '25px 30px', borderRadius: '8px',
+            border: '1px solid #4a6a8a', boxShadow: '0 5px 20px rgba(0, 0, 0, 0.6)',
+            textAlign: 'center', width: '90%', maxWidth: '450px', color: '#ecf0f1'
+        });
+        Object.assign(titleEl.style, {
+            margin: '0 0 15px 0', color: '#e0a71a', fontSize: '1.4em', fontWeight: '600'
+        });
+        Object.assign(messageEl.style, {
+            margin: '0 0 25px 0', fontSize: '1.1em', lineHeight: '1.6', whiteSpace: 'pre-wrap'
+        });
+        Object.assign(buttonWrapper.style, {
+            display: 'flex', justifyContent: 'center', gap: '15px'
+        });
+        Object.assign(yesBtn.style, {
+            backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px',
+            padding: '10px 25px', fontSize: '1em', cursor: 'pointer', fontWeight: 'bold'
+        });
+        Object.assign(noBtn.style, {
+            backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px',
+            padding: '10px 25px', fontSize: '1em', cursor: 'pointer', fontWeight: 'bold'
+        });
+
+        //--- Set Content ---
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        yesBtn.textContent = 'Yes, Clear It';
+        noBtn.textContent = 'No, Cancel';
+
+        //--- Event Handlers ---
+        const closeModal = (resolution) => {
+            document.body.removeChild(overlay);
+            resolve(resolution); // Resolves the promise with true or false
+        };
+
+        yesBtn.onclick = () => closeModal(true);
+        noBtn.onclick = () => closeModal(false);
+        overlay.onclick = (event) => {
+            if (event.target === overlay) closeModal(false);
+        };
+
+        //--- Assemble and Append to DOM ---
+        buttonWrapper.appendChild(noBtn);
+        buttonWrapper.appendChild(yesBtn);
+        alertBox.appendChild(titleEl);
+        alertBox.appendChild(messageEl);
+        alertBox.appendChild(buttonWrapper);
+        overlay.appendChild(alertBox);
+        document.body.appendChild(overlay);
+    });
+}
 // NEW/MODIFIED: Function to populate friendly faction member checkboxes (Admins, Energy Track)
 function populateFriendlyMemberCheckboxes(members, savedAdmins = [], savedEnergyMembers = []) {
     if (!members || typeof members !== 'object') return;
@@ -4454,73 +4529,61 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 			
 			if (clearAllWarDataBtn) {
-    clearAllWarDataBtn.addEventListener('click', async () => {
-        // First, ask for confirmation because this is a destructive action
-        if (!confirm("Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.")) {
-            return; // Stop if the user clicks 'Cancel'
-        }
+        clearAllWarDataBtn.addEventListener('click', async () => {
+            const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+            const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
 
-        const originalText = clearAllWarDataBtn.textContent;
-        clearAllWarDataBtn.disabled = true;
-        clearAllWarDataBtn.textContent = "Clearing...";
+            if (!userConfirmed) {
+                return; // Stop if the user clicks 'No' or outside the box
+            }
 
-        // This object defines all the default/empty values
-        const clearedData = {
-            toggleEnlisted: false,
-            toggleTermedWar: false,
-            toggleTermedWinLoss: false,
-            toggleChaining: false,
-            toggleNoFlying: false,
-            toggleTurtleMode: false,
-            enemyFactionID: "",
-            nextChainTimeInput: "",
-            currentTeamLead: "",
-            gamePlan: "",
-            quickAnnouncement: "",
-            gamePlanImageUrl: null,
-            announcementsImageUrl: null
-        };
+            const originalText = clearAllWarDataBtn.textContent;
+            clearAllWarDataBtn.disabled = true;
+            clearAllWarDataBtn.textContent = "Clearing...";
 
-        try {
-            // Update the database with the cleared data
-            await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+            const clearedData = {
+                toggleEnlisted: false, toggleTermedWar: false, toggleTermedWinLoss: false,
+                toggleChaining: false, toggleNoFlying: false, toggleTurtleMode: false,
+                enemyFactionID: "", nextChainTimeInput: "", currentTeamLead: "",
+                gamePlan: "", quickAnnouncement: "", gamePlanImageUrl: null,
+                announcementsImageUrl: null
+            };
 
-            // Update all the input fields on the screen
-            if (toggleEnlisted) toggleEnlisted.checked = false;
-            if (toggleTermedWar) toggleTermedWar.checked = false;
-            if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
-            if (toggleChaining) toggleChaining.checked = false;
-            if (toggleNoFlying) toggleNoFlying.checked = false;
-            if (toggleTurtleMode) toggleTurtleMode.checked = false;
-            if (enemyFactionIDInput) enemyFactionIDInput.value = "";
-            if (nextChainTimeInput) nextChainTimeInput.value = "";
-            const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-            if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+            try {
+                await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
 
-            // Update the display panels
-            if (gamePlanEditArea) gamePlanEditArea.value = "";
-            if (quickAnnouncementInput) quickAnnouncementInput.value = "";
-            if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+                // Update UI elements on screen
+                if (toggleEnlisted) toggleEnlisted.checked = false;
+                if (toggleTermedWar) toggleTermedWar.checked = false;
+                if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+                if (toggleChaining) toggleChaining.checked = false;
+                if (toggleNoFlying) toggleNoFlying.checked = false;
+                if (toggleTurtleMode) toggleTurtleMode.checked = false;
+                if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+                if (nextChainTimeInput) nextChainTimeInput.value = "";
+                const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+                if (currentTeamLeadInput) currentTeamLeadInput.value = "";
 
-            // Update the read-only display on the announcements tab
-            populateWarStatusDisplay(clearedData);
+                if (gamePlanEditArea) gamePlanEditArea.value = "";
+                if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+                
+                populateWarStatusDisplay(clearedData);
+                clearAllWarDataBtn.textContent = "Cleared!";
 
-            clearAllWarDataBtn.textContent = "Cleared!";
-
-        } catch (error) {
-            console.error("Error clearing war data:", error);
-            clearAllWarDataBtn.textContent = "Error!";
-            showCustomAlert("Failed to clear data. Please check the console.", "Error");
-        } finally {
-            // After 2 seconds, revert the button to its original state
-            setTimeout(() => {
-                clearAllWarDataBtn.disabled = false;
-                clearAllWarDataBtn.textContent = originalText;
-            }, 2000);
-        }
-    });
-}
+            } catch (error) {
+                console.error("Error clearing war data:", error);
+                clearAllWarDataBtn.textContent = "Error!";
+                showCustomAlert("Failed to clear data. Please check the console.", "Error");
+            } finally {
+                setTimeout(() => {
+                    clearAllWarDataBtn.disabled = false;
+                    clearAllWarDataBtn.textContent = originalText;
+                }, 2000);
+            }
+        });
+    }
 
             if (apiKey && playerId) {
                 userApiKey = apiKey;
