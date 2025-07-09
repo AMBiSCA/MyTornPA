@@ -4422,34 +4422,7 @@ function setupMemberClickEvents() {
         closeAllLists(e.target);
     });
 
-function switchChatTab(tabName) {
-    console.log(`Switching to chat tab: ${tabName}`);
 
-    if (!chatTabsContainer || chatTabButtons.length === 0 || !chatDisplayArea) {
-        console.error("Chat elements not found for tab switching.");
-        return;
-    }
-
-    // Remove 'active' class from all tab buttons
-    chatTabButtons.forEach(button => {
-        button.classList.remove('active');
-    });
-
-    // Add 'active' class to the clicked tab
-    const selectedTabButton = document.querySelector(`.chat-tab[data-chat-tab="${tabName}"]`);
-    if (selectedTabButton) {
-        selectedTabButton.classList.add('active');
-    } else {
-        console.warn(`Chat tab button for "${tabName}" not found.`);
-    }
-
-    // --- Temporary: Update chat display area based on selected tab ---
-    // In a later step, we will load actual messages from Firebase for the selected tab.
-    chatDisplayArea.innerHTML = `<p>Welcome to the <span style="font-weight:bold; color: #00a8ff;">${tabName.replace('-', ' ')}</span> chat!</p><p>Messages will appear here...</p>`;
-
-    // Keep active tab scrolled to view
-    chatTabsContainer.scrollLeft = selectedTabButton.offsetLeft - (chatTabsContainer.offsetWidth / 2) + (selectedTabButton.offsetWidth / 2);
-}
 
 function setupEventListeners(apiKey) {
     if (saveGamePlanBtn) {
