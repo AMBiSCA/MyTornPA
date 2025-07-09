@@ -4484,6 +4484,47 @@ function setupEventListeners(apiKey) {
         });
     }
 
+async function resetAllAvailability() {
+    if (!globalYourFactionID) {
+        console.error("Cannot reset availability: Global faction ID is not set.");
+        showCustomAlert("Cannot reset availability: Your faction ID is unknown. Please ensure you are logged in and your faction data is loaded.", "Reset Failed");
+        throw new Error("Faction ID missing.");
+    }
+
+    const availabilityCollectionRef = db.collection('factionWars').doc('currentWar').collection('availability');
+
+    try {
+        // Get all documents in the 'availability' subcollection
+        const snapshot = await availabilityCollectionRef.get();
+
+        if (snapshot.empty) {
+            console.log("No availability records found to reset.");
+            showCustomAlert("No availability records found to reset.", "Reset Complete");
+            return;
+        }
+
+        const deletePromises = [];
+        snapshot.forEach(doc => {
+            // Add each document deletion promise to the array
+            deletePromises.push(availabilityCollectionRef.doc(doc.id).delete());
+        });
+
+        // Wait for all deletion operations to complete
+        await Promise.all(deletePromises);
+
+        console.log(`Successfully reset ${snapshot.size} availability records.`);
+        showCustomAlert("All availability data has been successfully reset!", "Reset Complete");
+
+        // After resetting, re-display the roster to show it's cleared
+        await displayWarRoster();
+
+    } catch (error) {
+        console.error("Error resetting all availability data:", error);
+        showCustomAlert(`Failed to reset all availability data: ${error.message}`, "Reset Failed");
+        throw error; // Re-throw to be caught by the calling event listener's try/catch
+    }
+}
+
     // --- Added the clearAllWarDataBtn fix here as well ---
     if (clearAllWarDataBtn) {
         clearAllWarDataBtn.addEventListener('click', async () => {
@@ -6030,6 +6071,20 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             }
         });
     }
+	
+	if (button.id === 'reset-availability-btn') {
+    const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
+    if (confirmed) {
+        try {
+            // Call the new resetAllAvailability function
+            await resetAllAvailability();
+        } catch (error) {
+            // Error handling is inside resetAllAvailability, but this catch could log/handle it too
+            console.error("Overall reset operation failed:", error);
+            // The showCustomAlert from resetAllAvailability should cover the user notification
+        }
+    }
+}
 
 
     // --- File Input Listeners for Image Uploads ---
