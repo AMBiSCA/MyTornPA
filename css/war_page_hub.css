@@ -1451,7 +1451,7 @@ select[multiple] {
 
 .upload-btn {
     position: relative;
-    top: 2px;
+    top: 1px;
 }
 
 .config-section .action-btn:hover {
