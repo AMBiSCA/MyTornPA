@@ -1439,7 +1439,7 @@ select[multiple] {
     font-size: 0.9em;
     font-weight: bold;
     background-color: #007bff;
-    color: white; /* Corrected color for readability on blue */
+    color: black; /* Corrected color for readability on blue */
     border: 2px solid black;
     border-radius: 5px;
     transition: background-color 0.3s ease, border-color 0.3s ease;
@@ -4392,6 +4392,3 @@ margin-right: auto !important;
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
 
-button, .action-btn {
-    color: black;
-}
