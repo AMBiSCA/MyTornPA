@@ -5584,19 +5584,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         });
     });
 	
-	if (button.id === 'reset-availability-btn') {
-    const confirmed = await showCustomConfirm("Are you sure you want to reset ALL availability data for everyone?", "Confirm Reset");
-    if (confirmed) {
-        try {
-            // Call the new resetAllAvailability function
-            await resetAllAvailability();
-        } catch (error) {
-            // Error handling is inside resetAllAvailability, but this catch could log/handle it too
-            console.error("Overall reset operation failed:", error);
-            // The showCustomAlert from resetAllAvailability should cover the user notification
-        }
-    }
-}
+	
 
     // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
     const availabilityTab = document.getElementById('war-availability-tab');
