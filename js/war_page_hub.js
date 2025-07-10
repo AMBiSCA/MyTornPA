@@ -4792,60 +4792,115 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
     
 }
 
-// NEW FUNCTION: Populates the content of the Recently Met tab with a grid layout
 async function populateRecentlyMetTab(targetDisplayElement) {
-    console.log("[Recently Met Tab] Populating tab with new grid layout...");
-
     if (!targetDisplayElement) {
-        console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
+        console.error("HTML Error: Target display element not provided for Recently Met tab.");
         return;
     }
 
-    // Create the grid container
-    targetDisplayElement.innerHTML = `<div class="members-list-container"></div>`;
-    const membersListContainer = targetDisplayElement.querySelector('.members-list-container');
-
-    if (!membersListContainer) {
-        console.error("Failed to create members-list-container.");
-        return;
-    }
+    // Set the initial loading state with the correct title
+    targetDisplayElement.innerHTML = `
+        <div class="recently-met-layout">
+            <div class="header-box">Recently Met Opponents</div>
+            <div class="scrollable-table-container">
+                <p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>
+            </div>
+        </div>`;
     
-    membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">Loading recently met players...</p>`;
+    const contentContainer = targetDisplayElement.querySelector('.scrollable-table-container');
 
-    // Using dummy data as before
-    const recentlyMetPlayers = generateDummyRecentlyMet(50);
+    try {
+        // Fetch the last 5 wars to get their IDs
+        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
+        const historyResponse = await fetch(historyUrl);
+        const historyData = await historyResponse.json();
 
-    if (!recentlyMetPlayers || recentlyMetPlayers.length === 0) {
-        membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">No recently met players found.</p>`;
-        return;
+        if (historyData.error) throw new Error(historyData.error.error);
+
+        const wars = historyData.rankedwars || [];
+        if (wars.length === 0) {
+            contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
+            return;
+        }
+
+        // Fetch detailed reports for those wars
+        contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
+        const reportPromises = wars.map(war => 
+            fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
+        );
+        const warReports = await Promise.all(reportPromises);
+
+        // Aggregate and deduplicate all opponents from the reports
+        const opponentsMap = new Map();
+        warReports.forEach(reportData => {
+            const report = reportData.rankedwarreport;
+            if (!report || !report.factions) return;
+
+            const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
+            if (opponentFaction && opponentFaction.members) {
+                opponentFaction.members.forEach(member => {
+                    if (!opponentsMap.has(member.id)) {
+                        opponentsMap.set(member.id, { id: member.id, name: member.name });
+                    }
+                });
+            }
+        });
+        
+        const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
+        if (uniqueOpponentIds.length === 0) {
+            contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
+            return;
+        }
+
+        // Check which opponents are registered users of MyTornPA
+        const registeredUsersSnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', uniqueOpponentIds).get();
+        const registeredUserIds = new Set();
+        registeredUsersSnapshot.forEach(doc => {
+            registeredUserIds.add(doc.data().tornProfileId);
+        });
+
+        // Build the final HTML for the grid
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
+
+        let cardsHtml = '';
+        for (const opponent of opponentsMap.values()) {
+            const isRegistered = registeredUserIds.has(String(opponent.id));
+            const profilePic = '../../images/default_profile_icon.png'; // Using a default pic for now
+
+            let messageButton;
+            if (isRegistered) {
+                // If registered, the button will open the on-site PM system
+                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
+            } else {
+                // If not registered, it links to their Torn message page
+                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
+                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
+            }
+
+            cardsHtml += `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="add-member-button item-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                        ${messageButton}
+                    </div>
+                </div>
+            `;
+        }
+
+        membersListContainer.innerHTML = cardsHtml;
+        contentContainer.innerHTML = ''; // Clear the "loading..." message
+        contentContainer.appendChild(membersListContainer);
+
+    } catch (error) {
+        console.error("Error populating Recently Met tab:", error);
+        contentContainer.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
     }
-
-    // Clear loading message
-    membersListContainer.innerHTML = '';
-
-    // Loop through players and create the new "member-item" divs
-    for (const player of recentlyMetPlayers) {
-        const memberItemDiv = document.createElement('div');
-        memberItemDiv.classList.add('member-item');
-
-        // --- THIS IS THE MODIFIED PART (Faction Tag is now removed) ---
-        memberItemDiv.innerHTML = `
-            <div class="member-identity">
-                <img src="${player.profile_image}" alt="Profile Pic" class="member-profile-pic">
-                <span class="member-name">${player.name}</span>
-            </div>
-            <div class="member-actions">
-                <button class="item-button letter-button" title="Send Message">✉️</button>
-                <button class="item-button trash-button" title="Remove">🗑️</button>
-            </div>
-        `;
-        // --- END MODIFIED PART ---
-
-        membersListContainer.appendChild(memberItemDiv);
-    }
-    // TODO: Add event listeners for the new buttons if needed
 }
-
 
 
 async function fetchAndDisplayFriends() {
