@@ -3170,11 +3170,6 @@ min-width: 320px;
     margin-top: 70px; 
 }
 
-/* --- Align Total Hits Box to Match Timers --- */
-#faction-hits-display {
-    align-self: flex-end;
-    margin-bottom: 2px; /* A small nudge to perfectly align the bottom borders */
-}
 /* The actual moving bar inside the container */
 .chain-progress-bar {
     height: 100%;
@@ -3319,10 +3314,11 @@ min-width: 320px;
     border-radius: 6px;
     padding: 5px 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-
-    /* These lines make it fit correctly in the grid */
+    margin-top: 25px; 
     display: flex;
     flex-direction: column;
+    height: 100%; /* Makes the box fill the height of its grid cell */
+    justify-content: center; /* Centers the content vertically */
     gap: 4px; /* Space between the rows */
 }
 
