@@ -1827,16 +1827,15 @@ autocomplete-items {
     box-sizing: border-box;
 }
 
-/* Left Panel: Holds the ops controls grid and enemy targets table */
 .active-ops-targets-panel {
-    display: flex;
-    flex-direction: column;
-    width: 855px;
-    height: 100%; /* CRITICAL: Fill the height of its parent (.active-ops-layout-row) */
-    overflow: hidden; /* CRUCIAL: Contains its own scrollable content (e.g., table) */
-    box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* This makes the panel flexible */
+  min-width: 0; /* Add this to prevent potential overflow issues */
+  height: 100%; 
+  overflow: hidden; 
+  box-sizing: border-box;
 }
-
 
 /* Responsive adjustments for Active Ops tab layout */
 @media (max-width: 992px) {
