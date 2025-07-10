@@ -3732,7 +3732,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
         const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
-        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"]; // Corrected typo here from previous response
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
         if (orderA !== orderB) { return orderA - orderB; }
         return a.name.localeCompare(b.name);
     });
@@ -3769,15 +3769,16 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             memberItemDiv.classList.add('leader-member');
         }
 
-        // --- START OF CRITICAL CHANGE FOR IMAGE HANDLING ---
-        // 1. Create the img element separately
+        // Pick a random default image from your predefined array for immediate display.
+        const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+        const initialProfileImageUrl = DEFAULT_PROFILE_ICONS[randomIndex];
+
+        // Create the <img> element directly and set its 'src' immediately to the random default.
         const profileImgElement = document.createElement('img');
         profileImgElement.classList.add('member-profile-pic');
         profileImgElement.alt = `${memberName}'s profile picture`;
-        // 2. IMMEDIATELY set its src to the default. This ensures it's never a broken image.
-        profileImgElement.src = '../../images/default_profile_icon.png';
+        profileImgElement.src = initialProfileImageUrl; // This ensures a valid image is always present
 
-        // Set the innerHTML of the div without the <img> tag
         memberItemDiv.innerHTML = `
             <span class="member-rank">${memberRank}</span>
             <div class="member-identity">
@@ -3789,44 +3790,44 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             </div>
         `;
 
-        // Find the identity div and prepend the image element
         const memberIdentityDiv = memberItemDiv.querySelector('.member-identity');
         if (memberIdentityDiv) {
             memberIdentityDiv.prepend(profileImgElement);
         }
-        // --- END OF CRITICAL CHANGE FOR IMAGE HANDLING ---
 
-        membersListContainer.appendChild(memberItemDiv);
-
-        // This async IIFE will now update the 'profileImgElement' that was just created.
+        // The asynchronous part remains to fetch the *specific* user's profile image if available
         (async (imgEl, currentTornPlayerId, currentMemberName) => {
             try {
-                // Check cache first to avoid unnecessary fetches
+                // Check cache first for efficiency
                 if (memberProfileCache[currentTornPlayerId] && memberProfileCache[currentTornPlayerId].profile_image) {
                     imgEl.src = memberProfileCache[currentTornPlayerId].profile_image;
-                    return; // No need to fetch if in cache
+                    return; // No need to fetch from Firebase if in cache
                 }
 
                 const docRef = db.collection('users').doc(String(currentTornPlayerId));
                 const docSnap = await docRef.get();
                 if (docSnap.exists) {
                     const firebaseMemberData = docSnap.data();
-                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    // If user is registered, try to get their specific image, or fall back to generic default
+                    const specificProfileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
                     
-                    // Update the cache
-                    memberProfileCache[currentTornPlayerId] = { profile_image: profileImageUrl, name: firebaseMemberData.name || currentMemberName };
+                    memberProfileCache[currentTornPlayerId] = { profile_image: specificProfileImageUrl, name: firebaseMemberData.name || currentMemberName };
 
-                    imgEl.src = profileImageUrl;
+                    imgEl.src = specificProfileImageUrl; // Update to the specific image
                 } else {
-                    // If user document doesn't exist, the default is already set, no action needed here.
-                    // But explicitly log for debugging.
-                    console.log(`[Firestore] No user document found for Torn ID: ${currentTornPlayerId}. Default image is already in place.`);
+                    // --- THIS IS THE NEW / MODIFIED PART ---
+                    // If user is NOT registered (document doesn't exist in 'users' collection),
+                    // set a specific, recognizable default icon to indicate they are not signed up.
+                    imgEl.src = '../../images/default_user_icon.svg'; // Using a common default for unregistered
+                    console.log(`[Firestore] User ${currentTornPlayerId} not registered on site. Displaying specific default for unregistered.`);
                 }
             } catch (error) {
-                console.error(`[Firestore Error] Failed to fetch profile pic for ${currentTornPlayerId}:`, error);
-                // On error, the default image remains, which is the desired fallback.
+                console.error(`[Firestore Error] Failed to fetch profile pic from 'users' collection for ${currentTornPlayerId}:`, error);
+                // On error, revert to the generic default if the specific one failed to load.
+                // It's already set to a default (random or the specific unregistered one), so this acts as a final safeguard.
+                imgEl.src = '../../images/default_profile_icon.png'; // Fallback in case of fetch error even for registered users
             }
-        })(profileImgElement, tornPlayerId, memberName); // Pass the actual img element and member data
+        })(profileImgElement, tornPlayerId, memberName);
     }
 }
 
