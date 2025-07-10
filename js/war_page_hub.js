@@ -3131,8 +3131,14 @@ function displayWarHistory(warsObject) {
         return;
     }
 
-    // Sort wars by end time to show the most recent first
-    warsArray.sort((a, b) => b.war.end - a.war.end);
+    // --- THIS IS THE CORRECTED PART ---
+    // Sort wars by end time, safely handling entries that might be missing data.
+    warsArray.sort((a, b) => {
+        const timeA = a.war ? a.war.end : 0;
+        const timeB = b.war ? b.war.end : 0;
+        return timeB - timeA;
+    });
+    // --- END OF CORRECTION ---
 
     // Build the HTML list of the last 10 wars
     let historyHtml = warsArray.slice(0, 10).map(war => {
