@@ -3037,7 +3037,7 @@ min-width: 320px;
     display: flex;
     height: 10px;
     width: 90%;
-    margin: 12px auto 0 auto; /* Adds space above the bar and centers it */
+    margin: 12px auto 0 auto; /* Adds above the bar and centers it */
     border-radius: 5px;
     overflow: hidden;
     background-color: #1e1e1e;
