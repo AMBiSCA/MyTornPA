@@ -456,13 +456,12 @@ transition: background-color 0.2s ease;
 
 /* Styles for the actual chat messages display area, *inside* the scroll wrapper */
 /* This div should NOT control its own height or overflow; its parent wrapper does. */
-#chat-display-area {
-    display: flex;          /* Makes it a flex container for its content */
-    flex-direction: column; /* Stacks the content (like your private chat layout) vertically */
-    flex-grow: 1;           /* Allows the area itself to grow */
-    height: 100%;           /* Ensures it fills the parent wrapper completely */
+.chat-display-area {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     box-sizing: border-box;
+   
 }
 
 /* Chat Input Area (bottom section with buttons and text input) */
@@ -1648,15 +1647,17 @@ autocomplete-items {
     color: #ff4d4d; /* Red for errors */
 }
 
+/* You might also need to ensure your .chat-messages-scroll-wrapper has a defined height
+   and overflow-y: auto for scrolling within the chat box. Example: */
 .chat-messages-scroll-wrapper {
-flex-grow: 1; /* This tells it to take up all available vertical space */
- overflow-y: auto; /* Shows a scrollbar only when needed */
-padding: 2px 10px 10px;
-background-color: #222;
- border-radius: 8px;
-margin-bottom: 0;
- box-sizing: border-box;
-    /* The fixed height: 270px; line has been removed */
+    flex-grow: 1;
+    height: 270px; /* MODIFIED: Fixed height in pixels */
+    overflow-y: scroll; /* Keep this to allow internal scrolling if messages exceed 270px */
+    padding: 2px 10px 10px;
+    background-color: #222;
+    border-radius: 8px;
+    margin-bottom: 0;
+    box-sizing: border-box;
 }
 /* Optional: Styles for chat tabs to make them clickable and active */
 .chat-tabs-container {
