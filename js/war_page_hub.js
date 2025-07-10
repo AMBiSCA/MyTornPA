@@ -4792,110 +4792,60 @@ async function populateSettingsTab(targetDisplayElement) { // <--- CHANGE IS HER
     
 }
 
+// NEW FUNCTION: Populates the content of the Recently Met tab with a grid layout
 async function populateRecentlyMetTab(targetDisplayElement) {
+    console.log("[Recently Met Tab] Populating tab with new grid layout...");
+
     if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for Recently Met tab.");
+        console.error("HTML Error: targetDisplayElement not provided to populateRecentlyMetTab function.");
         return;
     }
 
-    // Set a simple loading message without the extra title
-    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
+    // Create the grid container
+    targetDisplayElement.innerHTML = `<div class="members-list-container"></div>`;
+    const membersListContainer = targetDisplayElement.querySelector('.members-list-container');
 
-    try {
-        // Step 1: Fetch the last 5 wars to get their IDs
-        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
-        const historyResponse = await fetch(historyUrl);
-        const historyData = await historyResponse.json();
-
-        if (historyData.error) throw new Error(historyData.error.error);
-
-        const wars = historyData.rankedwars || [];
-        if (wars.length === 0) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
-            return;
-        }
-
-        // Step 2: Fetch detailed reports for those wars
-        targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
-        const reportPromises = wars.map(war => 
-            fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
-        );
-        const warReports = await Promise.all(reportPromises);
-
-        // Step 3: Aggregate and deduplicate all opponents
-        const opponentsMap = new Map();
-        warReports.forEach(reportData => {
-            const report = reportData.rankedwarreport;
-            if (!report || !report.factions) return;
-
-            const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
-            if (opponentFaction && opponentFaction.members) {
-                opponentFaction.members.forEach(member => {
-                    if (!opponentsMap.has(member.id)) {
-                        opponentsMap.set(member.id, { id: member.id, name: member.name });
-                    }
-                });
-            }
-        });
-        
-        const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
-        if (uniqueOpponentIds.length === 0) {
-            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
-            return;
-        }
-
-        // Step 4: Check registration status in chunks
-        const registeredUserIds = new Set();
-        const chunkSize = 30;
-        for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
-            const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
-            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
-            querySnapshot.forEach(doc => {
-                registeredUserIds.add(doc.data().tornProfileId);
-            });
-        }
-
-        // Step 5: Build the final HTML grid
-        const membersListContainer = document.createElement('div');
-        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
-
-        let cardsHtml = '';
-        for (const opponent of opponentsMap.values()) {
-            const isRegistered = registeredUserIds.has(String(opponent.id));
-            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
-            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
-
-            let messageButton;
-            if (isRegistered) {
-                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
-            } else {
-                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
-                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
-            }
-
-            cardsHtml += `
-                <div class="member-item">
-                    <div class="member-identity">
-                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
-                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
-                    </div>
-                    <div class="member-actions">
-                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
-                        ${messageButton}
-                    </div>
-                </div>
-            `;
-        }
-
-        membersListContainer.innerHTML = cardsHtml;
-        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
-        targetDisplayElement.appendChild(membersListContainer);
-
-    } catch (error) {
-        console.error("Error populating Recently Met tab:", error);
-        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
+    if (!membersListContainer) {
+        console.error("Failed to create members-list-container.");
+        return;
     }
+    
+    membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">Loading recently met players...</p>`;
+
+    // Using dummy data as before
+    const recentlyMetPlayers = generateDummyRecentlyMet(50);
+
+    if (!recentlyMetPlayers || recentlyMetPlayers.length === 0) {
+        membersListContainer.innerHTML = `<p style="text-align:center; padding: 10px;">No recently met players found.</p>`;
+        return;
+    }
+
+    // Clear loading message
+    membersListContainer.innerHTML = '';
+
+    // Loop through players and create the new "member-item" divs
+    for (const player of recentlyMetPlayers) {
+        const memberItemDiv = document.createElement('div');
+        memberItemDiv.classList.add('member-item');
+
+        // --- THIS IS THE MODIFIED PART (Faction Tag is now removed) ---
+        memberItemDiv.innerHTML = `
+            <div class="member-identity">
+                <img src="${player.profile_image}" alt="Profile Pic" class="member-profile-pic">
+                <span class="member-name">${player.name}</span>
+            </div>
+            <div class="member-actions">
+                <button class="item-button letter-button" title="Send Message">✉️</button>
+                <button class="item-button trash-button" title="Remove">🗑️</button>
+            </div>
+        `;
+        // --- END MODIFIED PART ---
+
+        membersListContainer.appendChild(memberItemDiv);
+    }
+    // TODO: Add event listeners for the new buttons if needed
 }
+
 
 
 async function fetchAndDisplayFriends() {
