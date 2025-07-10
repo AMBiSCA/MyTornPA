@@ -3126,7 +3126,7 @@ async function displayWarHistory(apiKey) {
         const url = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistory`;
         const response = await fetch(url);
         const data = await response.json();
-
+          console.log("War History API Response:", data);
         if (!response.ok || data.error) {
             throw new Error(data.error?.error || 'Failed to fetch war history.');
         }
