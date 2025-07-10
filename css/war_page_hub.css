@@ -2727,6 +2727,137 @@ min-width: 320px;
     background-color: #007bff; /* Darker blue on hover */
     color: white;
 }
+/* --- Styles for the Recently Met Tab (Dynamically Injected Content) --- */
+
+/* The main container for the Recently Met table, injected into chatDisplayArea */
+.recently-met-layout {
+    display: flex;          /* Make it a flex container to stack header and table */
+    flex-direction: column; /* Stack vertically */
+    flex-grow: 1;           /* Allows it to fill available vertical space in its parent (chatDisplayArea) */
+    box-sizing: border-box; /* Include padding/border */
+    padding: 10px;          /* Overall padding for the content */
+    background-color: #2a2a2a; /* Main background for this tab's content */
+    border-radius: 8px;     /* Rounded corners */
+    gap: 10px;              /* Space between header and table */
+}
+
+/* Header for the Recently Met section (reusing .header-box style) */
+.recently-met-layout .header-box {
+    background-color: #00a8ff; /* Theme blue for section header */
+    color: #1e1e1e;          /* Dark text on blue */
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    flex-shrink: 0;          /* Prevents header from shrinking */
+    border-bottom: 1px solid black; /* Separator below header */
+    border-radius: 4px; /* Slightly rounded corners for header box */
+}
+
+/* Container for the scrollable table within Recently Met tab */
+.scrollable-table-container {
+    flex-grow: 1;           /* Allows the table container to take up remaining vertical space */
+    overflow-y: auto;       /* Enables vertical scrolling for the table content */
+    box-sizing: border-box;
+    border: 1px solid #3a3a40; /* Subtle border around the table */
+    border-radius: 8px;
+    background-color: #222; /* Background for the table area */
+}
+
+/* Table styles for Recently Met */
+.recently-met-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #f0f0f0;         /* Light text for table content */
+    table-layout: fixed;    /* Ensures column widths are respected */
+}
+
+/* Table header cells */
+.recently-met-table thead th {
+    background-color: #00a8ff; /* Blue header background */
+    color: #1e1e1e;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 5px;       /* Reduced padding for compact headers */
+    border-bottom: 2px solid #1e1e1e;
+    font-size: 0.85em;      /* Smaller font for headers */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Table body cells */
+.recently-met-table tbody td {
+    padding: 5px 5px;       /* Reduced padding for table cells */
+    border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
+    vertical-align: middle;
+    font-size: 0.8em;       /* Smaller font for cell content */
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.recently-met-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.recently-met-table tbody tr:hover {
+    background-color: #38383e; /* Hover effect */
+}
+
+/* Column widths for Recently Met table */
+.recently-met-table .col-name { width: 30%; } /* Name + ID + Pic */
+.recently-met-table .col-level { width: 10%; }
+.recently-met-table .col-faction { width: 15%; }
+.recently-met-table .col-last-action { width: 20%; }
+.recently-met-table .col-status { width: 15%; }
+.recently-met-table .col-actions { width: 10%; } /* Space for buttons */
+
+/* Profile pic in table rows */
+.recently-met-table .profile-pic-small {
+    width: 24px; /* Smaller profile pic */
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 5px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #555;
+}
+
+/* Action buttons in table cells (reusing item-button styles) */
+.recently-met-table .item-button {
+    background-color: #007bff; /* Default button color */
+    color: white;
+    border: none;
+    padding: 3px 6px;       /* Compact padding */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em;       /* Smaller font size */
+    margin: 0 2px;          /* Minimal margin between buttons */
+    white-space: nowrap;
+}
+
+.recently-met-table .item-button.trash-button {
+    background-color: #dc3545; /* Red for trash button */
+}
+.recently-met-table .item-button.letter-button {
+    background-color: #e0a71a; /* Gold for message button */
+    color: #1e1e1e;
+}
+
+.recently-met-table .item-button:hover {
+    filter: brightness(1.2); /* Slightly brighten on hover */
+}
+
+/* Custom Status colors for table cells */
+.recently-met-table .status-online { color: #28a745; } /* Green */
+.recently-met-table .status-offline { color: #6c757d; } /* Grey */
+.recently-met-table .status-hospital { color: #dc3545; } /* Red */
+.recently-met-table .status-traveling { color: #17a2b8; } /* Cyan */
+.recently-met-table .status-jail { color: #ffc107; } /* Yellow/Orange */
 
 /* Style for the new message button on Faction Members tab */
 .member-item .message-button {
@@ -4537,111 +4668,5 @@ margin-right: auto !important;
     height: 100%;         /* Make the image span the full height of the container */
     object-fit: contain;  /* This is the magic part: it scales the image to fit inside */
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
-}
-
-/* ==================================================================
-   Recently Met Tab (Final Styles)
-   ================================================================== */
-
-/* This makes the main tab content area fill the available space and scroll */
-#recentlyMetDisplayArea {
-    height: 100%;
-    overflow-y: auto;
-    box-sizing: border-box;
-    padding: 10px; /* Add some padding around the whole grid */
-}
-
-/* This creates the 3-column grid for the player cards */
-#recentlyMetDisplayArea .recently-met-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
-    gap: 10px; /* The space between the cards */
-}
-
-/* This styles each individual player card */
-#recentlyMetDisplayArea .rm-player-card {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 6px;
-    transition: background-color 0.2s ease;
-}
-
-#recentlyMetDisplayArea .rm-player-card:hover {
-    background-color: #3a3a3a;
-}
-
-/* Styles the profile picture */
-#recentlyMetDisplayArea .rm-profile-pic {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 10px;
-    flex-shrink: 0;
-}
-
-/* Container for the player name, allows it to take up space */
-#recentlyMetDisplayArea .rm-player-info {
-    flex-grow: 1;
-    min-width: 0; 
-}
-
-/* Styles the player name and REMOVES the underline */
-#recentlyMetDisplayArea .rm-player-name {
-    text-decoration: none;
-    color: #f0f0f0;
-    font-weight: bold;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-#recentlyMetDisplayArea .rm-player-name:hover {
-    text-decoration: underline; /* Adds underline back on hover only */
-}
-
-/* Container for the action buttons on the right */
-#recentlyMetDisplayArea .rm-player-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: 10px;
-}
-
-/* GENERAL style for the newular buttons */
-#recentlyMetDisplayArea .rm-action-button {
-    border: 1px solid #444;
-    border-radius: 50%; /* This makes  circular */
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.1em;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    text-decoration: none; /* Important for the <a> tag version */
-    transition: background-color 0.2s ease;
-}
-#recentlyMetDisplayArea .rm-action-button:hover {
-    background-color: #6a6a6a;
-}
-
-/* Specific color for the 'Add Friend' button */
-#recentlyMetDisplayArea .rm-add-friend {
-    background-color: #555;
-    color: #f0f0f0;
-}
-
-/* Specific color for the 'Message' button */
-#recentlyMetDisplayArea .rm-message-btn {
-    background-color: #3d84b8; /* Blue */
-    color: white;
-}
-#recentlyMetDisplayArea .rm-message-btn:hover {
-    background-color: #4a9dcf;
 }
 
