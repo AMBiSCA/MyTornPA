@@ -4798,7 +4798,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         return;
     }
 
-    // Set the initial loading state with the correct title
+    // Set the initial loading state
     targetDisplayElement.innerHTML = `
         <div class="recently-met-layout">
             <div class="header-box">Recently Met Opponents</div>
@@ -4810,7 +4810,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     const contentContainer = targetDisplayElement.querySelector('.scrollable-table-container');
 
     try {
-        // Fetch the last 5 wars to get their IDs
+        // Step 1: Fetch the last 5 wars to get their IDs
         const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
         const historyResponse = await fetch(historyUrl);
         const historyData = await historyResponse.json();
@@ -4823,14 +4823,14 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             return;
         }
 
-        // Fetch detailed reports for those wars
+        // Step 2: Fetch detailed reports for those wars
         contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
         const reportPromises = wars.map(war => 
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
 
-        // Aggregate and deduplicate all opponents from the reports
+        // Step 3: Aggregate and deduplicate all opponents
         const opponentsMap = new Map();
         warReports.forEach(reportData => {
             const report = reportData.rankedwarreport;
@@ -4852,28 +4852,32 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             return;
         }
 
-        // Check which opponents are registered users of MyTornPA
-        const registeredUsersSnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', uniqueOpponentIds).get();
+        // --- THIS IS THE CORRECTED PART ---
+        // Step 4: Check registration status in chunks to avoid Firestore limits
         const registeredUserIds = new Set();
-        registeredUsersSnapshot.forEach(doc => {
-            registeredUserIds.add(doc.data().tornProfileId);
-        });
+        const chunkSize = 30;
+        for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
+            const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
+            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
+            querySnapshot.forEach(doc => {
+                registeredUserIds.add(doc.data().tornProfileId);
+            });
+        }
+        // --- END OF CORRECTION ---
 
-        // Build the final HTML for the grid
+        // Step 5: Build the final HTML grid
         const membersListContainer = document.createElement('div');
-        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
+        membersListContainer.className = 'members-list-container';
 
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
             const isRegistered = registeredUserIds.has(String(opponent.id));
-            const profilePic = '../../images/default_profile_icon.png'; // Using a default pic for now
+            const profilePic = '../../images/default_profile_icon.png'; // Default pic
 
             let messageButton;
             if (isRegistered) {
-                // If registered, the button will open the on-site PM system
                 messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
             } else {
-                // If not registered, it links to their Torn message page
                 const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
                 messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
