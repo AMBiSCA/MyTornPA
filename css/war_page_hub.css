@@ -3323,8 +3323,6 @@ min-width: 320px;
     /* These lines make it fit correctly in the grid */
     display: flex;
     flex-direction: column;
-    height: 100%; /* Makes the box fill the height of its grid cell */
-    justify-content: center; /* Centers the content vertically */
     gap: 4px; /* Space between the rows */
 }
 
