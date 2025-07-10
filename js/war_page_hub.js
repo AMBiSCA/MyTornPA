@@ -4798,7 +4798,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         return;
     }
 
-    // Set a simple loading message. The redundant title has been removed.
+    // Set a simple loading message without the extra title
     targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
 
     try {
@@ -4817,12 +4817,12 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 
         // Step 2: Fetch detailed reports for those wars
         targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
-        const reportPromises = wars.map(war =>
+        const reportPromises = wars.map(war => 
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
 
-        // Step 3: Aggregate and de-duplicate all opponents
+        // Step 3: Aggregate and deduplicate all opponents
         const opponentsMap = new Map();
         warReports.forEach(reportData => {
             const report = reportData.rankedwarreport;
@@ -4837,14 +4837,14 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 });
             }
         });
-
+        
         const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
         if (uniqueOpponentIds.length === 0) {
             targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
             return;
         }
 
-        // Step 4: Check registration status in chunks to avoid Firestore limits
+        // Step 4: Check registration status in chunks
         const registeredUserIds = new Set();
         const chunkSize = 30;
         for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
@@ -4855,43 +4855,41 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             });
         }
 
-        // Step 5: Build the final HTML grid with new, unique class names
-        const gridContainer = document.createElement('div');
-        gridContainer.className = 'recently-met-grid'; // New unique class for the grid
+        // Step 5: Build the final HTML grid
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
 
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
             const isRegistered = registeredUserIds.has(String(opponent.id));
-            
-            // Use a random dummy photo for each player
             const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
             const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
 
             let messageButton;
             if (isRegistered) {
-                messageButton = `<button class="rm-action-button rm-message-btn" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
+                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
             } else {
                 const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
-                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="rm-action-button rm-message-btn" title="Send Message on Torn">✉️</a>`;
+                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
 
             cardsHtml += `
-                <div class="rm-player-card">
-                    <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="rm-profile-pic">
-                    <div class="rm-player-info">
-                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="rm-player-name">${opponent.name} [${opponent.id}]</a>
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
                     </div>
-                    <div class="rm-player-actions">
-                        <button class="rm-action-button rm-add-friend" data-member-id="${opponent.id}" title="Add Friend">👤</button>
+                    <div class="member-actions">
+                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
                         ${messageButton}
                     </div>
                 </div>
             `;
         }
 
-        gridContainer.innerHTML = cardsHtml;
-        targetDisplayElement.innerHTML = '';
-        targetDisplayElement.appendChild(gridContainer);
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
+        targetDisplayElement.appendChild(membersListContainer);
 
     } catch (error) {
         console.error("Error populating Recently Met tab:", error);
