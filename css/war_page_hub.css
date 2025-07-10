@@ -3171,7 +3171,7 @@ min-width: 320px;
 }
 
 .faction-hits-display {
-    margin-top: 25px;
+    margin-top: -50px;
 }
 
 /* The actual moving bar inside the container */
