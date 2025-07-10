@@ -3037,7 +3037,7 @@ min-width: 320px;
     display: flex;
     height: 10px;
     width: 90%;
-    margin: 12px auto 0 auto; /* Adds above the bar and centers it */
+    margin: 12px auto 0 auto; /* Adds space above the bar and centers it */
     border-radius: 5px;
     overflow: hidden;
     background-color: #1e1e1e;
@@ -3058,88 +3058,96 @@ min-width: 320px;
     padding-left: 5px; /* Adds a little padding to the left, adjust as needed to align with buttons */
 }
 
-/* --- New Chain Timers Display - SPECIFIC TO ACTIVE OPS TAB --- */
+/* =======================================================
+   CHAIN TIMER STYLES V2.1 (New Look, Original Layout)
+   ======================================================= */
 
-/* This is the main container that holds the two boxes.
-   It uses flexbox to place them side-by-side. */
-#active-ops-tab .ops-chain-timers-container {
+/* Container rule - keeping it general */
+.ops-chain-timers-container {
     display: flex;
-    gap: 5px; /* This creates space between the two boxes */
-    justify-content: flex-start; /* Aligns the boxes to the start (left) */
-    align-items: flex-start; /* Aligns the tops of the boxes if they have different heights */
-    flex-wrap: wrap; /* Allows wrapping on smaller screens if needed */
+    gap: 5px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
-/* This is the styling for each individual box (Your Chain and Enemy Chain) */
-#active-ops-tab .chain-timer-box {
-    background-color: #2a2a2a;
-    border: 1px solid #444;
-    border-radius: 6px;
-    padding: 2px 5px; /* Significantly reduced padding */
-    text-align: center;
+/* Combining original layout with new visual flair */
+.chain-timer-box {
+    /* Layout/Size from original (DO NOT CHANGE) */
+    padding: 2px 5px;
+    min-width: 50px;
+    width: fit-content;
     flex-shrink: 0;
-    min-width: 50px; /* Reduced min-width to allow more shrinking, but not too small */
-    width: fit-content; /* Allow box to shrink to fit its content if smaller than min-width */
-    box-sizing: border-box; /* Ensures padding is included in the total width */
+    box-sizing: border-box;
+    text-align: center;
+    /* Visuals from new style */
+    background-color: #2a2a2a;
+    border: 2px solid #444; /* Thicker border */
+    border-radius: 6px;
+    /* Flex properties from original */
+    display: flex;
+    flex-direction: column;
 }
 
-/* The label at the top of each box (e.g., "Your Chain") */
-#active-ops-tab .chain-timer-header {
-    font-size: 0.6em; /* Reduced font size for header */
-    font-weight: bold;
-    color: #e0a71a; /* Gold color */
-    margin-bottom: 2px; /* Reduced margin */
+/* New border colors based on ID */
+#friendly-chain-timer {
+    border-color: #4CAF50;
+}
+#enemy-chain-timer {
+    border-color: #e53935;
+}
+
+/* Header styling */
+.chain-timer-header {
+    /* Layout/Structure from original (DO NOT CHANGE) */
+    margin-bottom: 2px;
     text-transform: uppercase;
     border-bottom: 1px solid #444;
-    padding-bottom: 2px; /* Reduced padding */
-    white-space: nowrap; /* Prevent header text from wrapping */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis if hidden */
+    padding-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Visuals from new style */
+    font-size: 0.7em; /* Slightly larger */
+    font-weight: bold;
+    color: #e0a71a;
 }
 
-/* The container for the data (hits and time) */
-#active-ops-tab .chain-timer-data {
+/* Data container - Unchanged from original */
+.chain-timer-data {
     display: flex;
-    flex-direction: column; /* Stack hits and time vertically */
+    flex-direction: column;
     justify-content: center;
-    align-items: center; /* Center horizontally after stacking */
-    gap: 0px; /* Reduced gap between hits and time */
-    margin-top: 2px; /* Reduced margin */
+    align-items: center;
+    gap: 0px;
+    margin-top: 2px;
 }
 
-/* The number of chain hits */
-#active-ops-tab .chain-timer-hits {
-    font-size: 1.2em; /* Reduced font size for hits */
+/* Generic hits/time styling */
+.chain-timer-hits, .chain-timer-time {
     font-weight: bold;
-    color: #f0f0f0;
-    line-height: 1; /* Reduce line height for tighter spacing */
+    line-height: 1;
 }
 
-/* The countdown timer text */
-#active-ops-tab .chain-timer-time {
+.chain-timer-hits {
+    font-size: 1.5em; /* Slightly larger */
+}
+.chain-timer-time {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.8em; /* Reduced font size for time */
-    font-weight: bold;
-    color: #aaa;
-    line-height: 1; /* Reduce line height for tighter spacing */
-    white-space: nowrap; /* Prevent time from wrapping */
-}
-/* This is the main container that holds the two boxes. 
-   It uses flexbox to place them side-by-side. */
-.ops-chain-timers-container {
-    display: flex;
-    gap: 10px; /* This creates space between the two boxes */
-    justify-content: flex-start; /* Aligns the boxes to the start (left) */
+    font-size: 0.9em; /* Slightly larger */
+    white-space: nowrap;
 }
 
-.
-/* Ensure the container holding them still works as expected for side-by-side */
-.ops-chain-timers-container {
-    display: flex;
-    gap: 5px; /* Reduced gap between the two boxes */
-    justify-content: flex-start;
-    align-items: flex-start; /* Align the tops of the boxes if they have different heights */
+/* New specific colors for friendly timer */
+#friendly-chain-timer .chain-timer-hits,
+#friendly-chain-timer .chain-timer-time {
+    color: #66bb6a;
 }
+
+/* New specific colors for enemy timer */
+#enemy-chain-timer .chain-timer-hits,
+#enemy-chain-timer .chain-timer-time {
+    color: #ef5350;
 }
 .chain-score-header-names {
     display: flex; /* Make the names display side-by-side */
