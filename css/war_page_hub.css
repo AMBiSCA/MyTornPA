@@ -279,7 +279,7 @@ background-color: #222;
 border: 1px solid black;
 border-radius: 8px;
 display: flex;
-flex-direction: column; /* Stack tabs, display, input vertically */
+flex-direction: column; /* Stack tabs, display, inpvertically */
 height: 100%; /* MODIFIED: Fill the parent panel's new height */
 overflow: hidden; /* Ensures content stays within rounded borders */
 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
