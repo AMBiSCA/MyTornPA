@@ -386,6 +386,55 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
     text-align: right; /* Align time to the right */
 }
 
+/* ==================================================================
+   War History Header & W/L Ratio Box Styles
+   ================================================================== */
+
+/* This new container holds the title and the ratio box */
+.war-history-header {
+    display: flex;
+    justify-content: space-between; /* Pushes title left and ratio box right */
+    align-items: center;
+    /* The bottom border is inherited from the h4 style, which is fine */
+}
+
+/* We need to remove the border from the h4 itself so it doesn't double up */
+.war-history-header h4 {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+/* This is the "nice little box" for the ratio */
+.win-loss-ratio-box {
+    display: flex;
+    flex-direction: column; /* Stacks the label and numbers vertically */
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 4px 12px;
+    flex-shrink: 0; /* Prevents the box from shrinking */
+}
+
+/* The "W/L (Last X)" label */
+.win-loss-ratio-box span:first-child {
+    font-size: 0.7em;
+    font-weight: bold;
+    color: #e0a71a; /* Gold theme color */
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* The "10 / 5" numbers */
+.win-loss-ratio-box .ratio-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    color: #f0f0f0;
+    line-height: 1.1;
+}
+
 .chat-tab {
 padding: 8px 10px; /* MODIFIED PADDING */
 background-color: #333;

@@ -3116,7 +3116,9 @@ async function displayWarHistory(apiKey) {
 
     enemyTargetsContainer.innerHTML = `
         <div class="war-history-container">
-            <h4>Recent War History</h4>
+            <div class="war-history-header">
+                <h4>Recent War History</h4>
+            </div>
             <p style="text-align: center; padding: 20px;">Loading history...</p>
         </div>
     `;
@@ -3130,60 +3132,76 @@ async function displayWarHistory(apiKey) {
             throw new Error(data.error?.error || 'Failed to fetch war history.');
         }
 
-        // The data is an array directly inside the 'rankedwars' key.
-        const warsArray = data.rankedwars || [];
+        const warsArray = Object.values(data.rankedwars || {});
 
         if (warsArray.length === 0) {
             enemyTargetsContainer.innerHTML = `
                 <div class="war-history-container">
-                    <h4>Recent War History</h4>
+                    <div class="war-history-header">
+                        <h4>Recent War History</h4>
+                    </div>
                     <p style="text-align: center; padding: 20px;">No ranked war history found.</p>
                 </div>
             `;
             return;
         }
 
-        // No sorting needed, as the API call `sort=DESC` already returns them in the correct order.
+        // --- NEW: Calculate Wins and Losses ---
+        let wins = 0;
+        let losses = 0;
+        warsArray.forEach(war => {
+            if (war.result === 'win') {
+                wins++;
+            } else if (war.result === 'loss') {
+                losses++;
+            }
+        });
+        // --- END OF CALCULATION ---
 
         let historyHtml = warsArray.slice(0, 10).map(war => {
-            // Safety check for the new structure
-            if (!war || !war.factions || !war.factions.length) {
+            if (!war || !war.factions || !war.war || !war.result) {
                 return ''; 
             }
-
-            // --- NEW LOGIC USING ARRAY METHODS ---
             const yourFactionDetails = war.factions.find(f => f.id == globalYourFactionID);
             const opponentFactionDetails = war.factions.find(f => f.id != globalYourFactionID);
-
             if (!yourFactionDetails || !opponentFactionDetails) return '';
-            
-            const didYouWin = war.winner === globalYourFactionID;
-            const result = didYouWin ? 'Win' : 'Loss';
-            const resultClass = didYouWin ? 'war-result-win' : 'war-result-loss';
-            const timeAgo = formatRelativeTime(war.end);
+
+            const result = war.result;
+            const resultClass = `war-result-${result.toLowerCase()}`;
+            const timeAgo = formatRelativeTime(war.war.end);
 
             return `
                 <li class="war-history-item">
                     <span class="opponent-name">Vs. ${opponentFactionDetails.name}</span>
-                    <span class="war-result ${resultClass}">${result}</span>
+                    <span class="war-result ${resultClass}">${result.charAt(0).toUpperCase() + result.slice(1)}</span>
                     <span class="war-score">${yourFactionDetails.score.toLocaleString()} to ${opponentFactionDetails.score.toLocaleString()}</span>
                     <span class="war-time">${timeAgo}</span>
                 </li>
             `;
         }).join('');
 
+        // --- NEW: Updated HTML with Win/Loss Box ---
         enemyTargetsContainer.innerHTML = `
             <div class="war-history-container">
-                <h4>Recent War History</h4>
+                <div class="war-history-header">
+                    <h4>Recent War History</h4>
+                    <div class="win-loss-ratio-box">
+                        <span>W/L (Last ${warsArray.length})</span>
+                        <span class="ratio-value">${wins} / ${losses}</span>
+                    </div>
+                </div>
                 <ul class="war-history-list">${historyHtml || "<p>No valid war history to display.</p>"}</ul>
             </div>
         `;
+        // --- END OF UPDATED HTML ---
 
     } catch (error) {
         console.error("Error displaying war history:", error);
         enemyTargetsContainer.innerHTML = `
             <div class="war-history-container">
-                <h4>Recent War History</h4>
+                <div class="war-history-header">
+                     <h4>Recent War History</h4>
+                </div>
                 <p style="color: red; text-align: center; padding: 20px;">Error: ${error.message}</p>
             </div>
         `;
