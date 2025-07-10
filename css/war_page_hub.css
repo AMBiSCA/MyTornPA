@@ -3160,6 +3160,7 @@ min-width: 320px;
     border-radius: 4px;
     height: 8px; /* Height of the bar */
     border: 1px solid #111;
+    margin-top: -10px; /* Space above the bar */
     width: 100%;
     overflow: hidden; /* Ensures inner bar respects the border-radius */
 }
