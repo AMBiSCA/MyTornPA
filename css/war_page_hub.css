@@ -3162,7 +3162,7 @@ min-width: 320px;
     border: 1px solid #111;
     margin-top: 5px; /* Space above the bar */
     width: 100%;
-    overflow: hidden; /* Ensures inner bar respects the border-radius */
+    overflow: hidden; /* Ensures  border-radius */
 }
 
 /* --- Force Timer Boxes Down --- */
