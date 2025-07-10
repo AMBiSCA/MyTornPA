@@ -3170,6 +3170,10 @@ min-width: 320px;
     margin-top: 45px; 
 }
 
+#faction-hits-display {
+    margin-top: 25px;
+}
+
 /* The actual moving bar inside the container */
 .chain-progress-bar {
     height: 100%;
