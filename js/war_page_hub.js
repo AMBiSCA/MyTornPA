@@ -3113,96 +3113,107 @@ function displayEnemyTargetsTable(members) {
         return;
     }
 
-    // Clear the container first
-    enemyTargetsContainer.innerHTML = '';
+    // Always build the table shell first to maintain the layout structure
+    let tableHtml = `
+        <table class="enemy-targets-table">
+            <thead>
+                <tr>
+                    <th class="col-name">Name (ID)</th>
+                    <th class="col-level">Level</th>
+                    <th class="col-last-action">Last Action</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-claim">Claim</th>
+                    <th class="col-attack">Attack</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
 
+    // Check if there are any members to display
     if (!members || Object.keys(members).length === 0) {
-        enemyTargetsContainer.innerHTML = '<div class="no-targets-message">No enemy members to display. Set an enemy faction in Leader Config.</div>';
-        return;
+        // If NO members, add a single row with the placeholder message
+        tableHtml += `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; font-style: italic;">
+                        No enemy members to display. Set an enemy faction in Leader Config.
+                    </td>
+                </tr>
+        `;
+    } else {
+        // If there ARE members, build all the rows with target data
+        const membersArray = Object.values(members);
+        const nowInSeconds = Math.floor(Date.now() / 1000);
+        const currentAuthUid = auth.currentUser ? auth.currentUser.uid : null;
+
+        for (const member of membersArray) {
+            const memberId = member.id;
+            const memberName = member.name;
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+            const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
+
+            let statusText = member.status.description;
+            let statusClass = 'status-okay'; // Default to okay
+            let dataUntil = '';
+            let statusState = member.status.state;
+
+            if (member.status.state === 'Hospital') {
+                statusClass = 'status-hospital';
+                dataUntil = member.status.until;
+                const timeLeft = member.status.until - nowInSeconds;
+                statusText = timeLeft > 0 ? `In Hospital (${formatTime(timeLeft)})` : 'Okay';
+                if (timeLeft <= 0) statusClass = 'status-okay';
+            } else if (member.status.state === 'Traveling') {
+                statusClass = 'status-traveling';
+                dataUntil = member.status.until;
+                const timeLeft = member.status.until - nowInSeconds;
+                if (timeLeft <= 0) {
+                    statusText = `Arrived`;
+                    statusClass = 'status-okay';
+                } else {
+                    statusText = `${member.status.description} (${formatTime(timeLeft)})`;
+                }
+            } else if (member.status.state !== 'Okay') {
+                statusClass = 'status-other';
+            }
+
+            const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
+            const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+            let claimButtonHtml;
+            let rowClass = '';
+            const activeClaim = globalActiveClaims[memberId];
+
+            if (activeClaim) {
+                rowClass = 'claimed-row';
+                if (activeClaim.claimedByUserId === currentAuthUid) {
+                    claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed-by-me" onclick="unclaimTarget('${memberId}')">Unclaim</button>`;
+                } else {
+                    claimButtonHtml = `<span class="claimed-by-other">${activeClaim.claimedByUserName}</span><br><button id="claim-btn-${memberId}" class="claim-btn claimed-by-other-btn" disabled>Claimed</button>`;
+                }
+            } else {
+                claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}', '${memberName}')">Claim</button>`;
+            }
+
+            tableHtml += `
+                <tr id="target-row-${memberId}" class="${rowClass}" data-member-name="${memberName}">
+                    <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                    <td class="col-level">${member.level}</td>
+                    <td class="col-last-action">${lastActionText}</td>
+                    <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                    <td class="col-claim">${claimButtonHtml}</td>
+                    <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+                </tr>
+            `;
+        }
     }
 
-    // Build the entire table HTML string
-    let tableHtml = `<table class="enemy-targets-table">
-                         <thead>
-                             <tr>
-                                 <th class="col-name">Name (ID)</th>
-                                 <th class="col-level">Level</th>
-                                 <th class="col-last-action">Last Action</th>
-                                 <th class="col-status">Status</th>
-                                 <th class="col-claim">Claim</th>
-                                 <th class="col-attack">Attack</th>
-                             </tr>
-                         </thead>
-                         <tbody>`;
+    // Close the table body and the table itself
+    tableHtml += `
+            </tbody>
+        </table>
+    `;
 
-    const membersArray = Object.values(members);
-    const nowInSeconds = Math.floor(Date.now() / 1000); // Get current time once for efficiency
-
-    const currentAuthUid = auth.currentUser ? auth.currentUser.uid : null;
-
-    for (const member of membersArray) {
-        const memberId = member.id;
-        const memberName = member.name;
-        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
-        const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
-
-        let statusText = member.status.description;
-        let statusClass = '';
-        let dataUntil = '';
-        let statusState = member.status.state;
-
-        if (member.status.state === 'Hospital') {
-            statusClass = 'status-hospital';
-            dataUntil = member.status.until;
-            const timeLeft = member.status.until - nowInSeconds;
-            statusText = `In Hospital (${formatTime(timeLeft)})`;
-        } else if (member.status.state === 'Traveling') {
-            statusClass = 'status-traveling';
-            dataUntil = member.status.until;
-            const timeLeft = member.status.until - nowInSeconds;
-            if (timeLeft <= 0) {
-                statusText = `Arrived${member.status.description.replace('Traveling to ', '') ? ` (${member.status.description.replace('Traveling to ', '')})` : ''}`;
-            } else {
-                statusText = `${member.status.description} (${formatTime(timeLeft)})`;
-            }
-        } else if (member.status.state !== 'Okay') {
-            statusClass = 'status-other';
-        }
-
-        const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
-        const lastActionText = formatRelativeTime(lastActionTimestamp);
-
-        // --- UPDATED CLAIM BUTTON LOGIC ---
-        let claimButtonHtml;
-        let rowClass = '';
-        const activeClaim = globalActiveClaims[memberId]; // Check the global claims map
-
-        if (activeClaim) {
-            rowClass = 'claimed-row'; // Style the row if claimed by anyone
-            if (activeClaim.claimedByUserId === currentAuthUid) {
-                // Claimed by *this* user
-                claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed-by-me" onclick="unclaimTarget('${memberId}')">Unclaim</button>`;
-            } else {
-                // Claimed by *another* user
-                claimButtonHtml = `<span class="claimed-by-other">${activeClaim.claimedByUserName}</span><br><button id="claim-btn-${memberId}" class="claim-btn claimed-by-other-btn" disabled>Claimed</button>`;
-            }
-        } else {
-            // Not claimed by anyone
-            claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}', '${memberName}')">Claim</button>`;
-        }
-        // --- END UPDATED CLAIM BUTTON LOGIC ---
-
-        tableHtml += `<tr id="target-row-${memberId}" class="${rowClass}" data-member-name="${memberName}">
-                               <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
-                               <td class="col-level">${member.level}</td>
-                               <td class="col-last-action">${lastActionText}</td>
-                               <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
-                               <td class="col-claim">${claimButtonHtml}</td>
-                               <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
-                           </tr>`;
-    }
-    tableHtml += `</tbody></table>`;
-
+    // Finally, update the container with the full table HTML
     enemyTargetsContainer.innerHTML = tableHtml;
 }
 
