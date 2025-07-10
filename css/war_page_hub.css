@@ -3737,6 +3737,12 @@ min-width: 320px;
     flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
+.ops-controls-grid {
+  display: flex;
+  justify-content: space-between; /* This spaces the 3 main items out */
+  align-items: center;
+  gap: 15px; /* Adjusts the space between items */
+}
 
 .ops-left-group {
   margin-top: -65px;
