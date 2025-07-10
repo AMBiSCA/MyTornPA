@@ -556,23 +556,20 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
 }
 
 .chat-tab {
-padding: 8px 10px; /* MODIFIED PADDING */
-background-color: #333;
-color: #f0f0f0;
+ padding: 8px 10px; /* MODIFIED PADDING */
+ background-color: #333;
+ color: #f0f0f0;
  font-weight: bold;
-font-size: 0.9em; /* ADDED FONT-SIZE TO MATCH TABLE HEADER */
-text-align: center;
-cursor: pointer;
-flex-grow: 1;
-white-space: nowrap;
-    
-    /* Replicating the main tab border style */
+ font-size: 0.9em; /* ADDED FONT-SIZE TO MATCH TABLE HEADER */
+ text-align: center;
+ cursor: pointer;
+ flex-grow: 1;
+ white-space: nowrap;
  border: 2px solid black;
-border-bottom: none; /* Remove bottom border to blend with container */
+ border-bottom: none; /* Remove bottom border to blend with container */
  border-right-width: 0; /* Temporarily remove right border */
-border-radius: 5px 5px 0 0;
-    
-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+ border-radius: 5px 5px 0 0;
+ transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Top row of smaller buttons (siren, blank) */
@@ -4673,3 +4670,52 @@ margin-right: auto !important;
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
 
+/* ==================================================================
+   Recently Met Tab Styles
+   ================================================================== */
+
+/* This makes the tab content area scrollable */
+#recentlyMetDisplayArea {
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* This creates the 3-column grid for the player cards */
+#recentlyMetDisplayArea .members-list-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+    gap: 15px;
+}
+
+/* This removes the underline from the name links */
+#recentlyMetDisplayArea .member-name {
+    text-decoration: none;
+    color: #f0f0f0; /* Ensures consistent text color */
+}
+
+#recentlyMetDisplayArea .member-name:hover {
+    text-decoration: underline; /* Optional: Adds the underline back only on hover */
+}
+
+/* This styles the message button to be a circle */
+#recentlyMetDisplayArea .message-button {
+    background-color: #3d84b8; /* A nice blue color */
+    color: #ffffff;
+    border: 1px solid #333;
+    border-radius: 50%; /* This makes it circular */
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1em;
+    padding: 0;
+    text-decoration: none; /* Removes underline if it's a link */
+    transition: background-color 0.2s ease;
+}
+
+#recentlyMetDisplayArea .message-button:hover {
+    background-color: #4a9dcf;
+}
