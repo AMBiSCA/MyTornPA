@@ -3108,17 +3108,13 @@ async function checkIfUserIsAdmin() {
     }
 }
 
-/**
- * Fetches and displays the recent ranked war history.
- * @param {string} apiKey The user's Torn API key.
- */
 async function displayWarHistory(apiKey) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find 'enemyTargetsContainer' to display war history.");
         return;
     }
 
-    // Display a loading message while we fetch the data
+    // Display a loading message
     enemyTargetsContainer.innerHTML = `
         <div class="war-history-container">
             <h4>Recent War History</h4>
@@ -3127,11 +3123,10 @@ async function displayWarHistory(apiKey) {
     `;
 
     try {
-        // This is the correct URL that you found, which we must use.
         const url = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistory`;
         const response = await fetch(url);
         const data = await response.json();
-
+          console.log("War History API Response:", data);
         if (!response.ok || data.error) {
             throw new Error(data.error?.error || 'Failed to fetch war history.');
         }
@@ -3161,9 +3156,8 @@ async function displayWarHistory(apiKey) {
                 return ''; // Skip this entry if it's missing crucial data
             }
 
-            // Use String() to safely look up faction data
-            const yourFactionDetails = war.factions[String(globalYourFactionID)];
-            const opponentFactionID = Object.keys(war.factions).find(id => id != String(globalYourFactionID));
+            const yourFactionDetails = war.factions[globalYourFactionID];
+            const opponentFactionID = Object.keys(war.factions).find(id => id != globalYourFactionID);
             const opponentFactionDetails = war.factions[opponentFactionID];
 
             if (!yourFactionDetails || !opponentFactionDetails) return '';
@@ -3182,7 +3176,6 @@ async function displayWarHistory(apiKey) {
             `;
         }).join('');
 
-        // Set the final HTML
         enemyTargetsContainer.innerHTML = `
             <div class="war-history-container">
                 <h4>Recent War History</h4>
