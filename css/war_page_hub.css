@@ -3167,9 +3167,12 @@ min-width: 320px;
 
 /* --- Force Timer Boxes Down --- */
 .chain-timer-box {
-    margin-top: 60px; 
+    margin-top: 80px; 
 }
 
+.faction-hits-display {
+    margin-top: 25px;
+}
 
 /* The actual moving bar inside the container */
 .chain-progress-bar {
