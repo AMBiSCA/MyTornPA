@@ -3222,7 +3222,7 @@ async function displayWarHistory(apiKey) {
             <div class="war-history-container">
                 <div class="war-history-header">
                     <div class="respect-box">
-                        <span>Respect Gained</span>
+                        <span>Bonus Respect Gained</span>
                         <div class="respect-line">Last War: <strong>${lastWarRespect.toLocaleString()}</strong></div>
                         <div class="respect-line">Total (Last 3): <strong>${totalRespect.toLocaleString()}</strong></div>
                     </div>
