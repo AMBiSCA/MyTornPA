@@ -435,6 +435,120 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
     line-height: 1.1;
 }
 
+/* ==================================================================
+   War History Panel Additions (Respect & Top Hitters)
+   ================================================================== */
+
+/* --- Respect Gained Box --- */
+.respect-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 4px 12px;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.respect-box span:first-child {
+    font-size: 0.7em;
+    font-weight: bold;
+    color: #e0a71a; /* Gold theme color */
+    text-transform: uppercase;
+}
+
+.respect-box .respect-line {
+    font-size: 0.85em;
+    font-family: 'Courier New', Courier, monospace;
+    color: #f0f0f0;
+    white-space: nowrap;
+}
+
+.respect-box .respect-line strong {
+    color: #8ab4f8; /* Light blue for the numbers */
+}
+
+/* --- Top Hitters Podium --- */
+.top-hitters-container {
+    padding: 15px 0;
+    margin-top: 15px;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+}
+
+.top-hitters-container h5 {
+    color: #e0a71a;
+    text-align: center;
+    margin: 0 0 15px 0;
+    font-size: 1.3em;
+}
+
+.top-hitters-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    align-items: flex-end; /* This makes the podium steps have different heights */
+    flex-wrap: wrap; /* Allows wrapping on small screens */
+}
+
+.top-hitter-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #333, #222);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    flex-basis: 200px; /* Give a base width to each item */
+    flex-grow: 1;
+    max-width: 250px;
+}
+
+/* Podium Rank Colors & Sizing */
+.top-hitter-item.rank-1 {
+    border-color: #ffd700; /* Gold */
+    padding-top: 25px; 
+    padding-bottom: 25px;
+    order: 2; /* Middle item */
+}
+.top-hitter-item.rank-2 {
+    border-color: #c0c0c0; /* Silver */
+    order: 1; /* Left item */
+}
+.top-hitter-item.rank-3 {
+    border-color: #cd7f32; /* Bronze */
+    order: 3; /* Right item */
+}
+
+/* Content inside each podium box */
+.top-hitter-item .hitter-rank {
+    font-size: 1.8em;
+    font-weight: bold;
+    line-height: 1;
+}
+.top-hitter-item.rank-1 .hitter-rank { color: #ffd700; }
+.top-hitter-item.rank-2 .hitter-rank { color: #c0c0c0; }
+.top-hitter-item.rank-3 .hitter-rank { color: #cd7f32; }
+
+.top-hitter-item .hitter-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #f0f0f0;
+    margin: 5px 0;
+}
+
+.top-hitter-item .hitter-score {
+    font-size: 1em;
+    color: #ccc;
+}
+
 .chat-tab {
 padding: 8px 10px; /* MODIFIED PADDING */
 background-color: #333;
