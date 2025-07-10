@@ -274,15 +274,14 @@ min-width: 300px; /* Minimum width for the chatbox side */
 }
 
 .chat-container {
- 
-background-color: #222;
-border: 1px solid black;
-border-radius: 8px;
-display: flex;
-flex-direction: column; /* Stack tabs, display, input vertically */
-height: 100%; /* MODIFIED: Fill the parent panel's new height */
-overflow: hidden; /* Ensures content stays within rounded borders */
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
+  background-color: #222;
+  border: 1px solid black;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column; 
+  height: 475px; /* Set a specific, consistent height for the whole box */
+  overflow: hidden; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); 
 }
 
 /* Outer wrapper for the fixed header table setup */
@@ -1647,12 +1646,9 @@ autocomplete-items {
     color: #ff4d4d; /* Red for errors */
 }
 
-/* You might also need to ensure your .chat-messages-scroll-wrapper has a defined height
-   and overflow-y: auto for scrolling within the chat box. Example: */
 .chat-messages-scroll-wrapper {
-    flex-grow: 1;
-    height: 270px; /* MODIFIED: Fixed height in pixels */
-    overflow-y: scroll; /* Keep this to allow internal scrolling if messages exceed 270px */
+    flex-grow: 1; /* This is correct - it tells the area to stretch */
+    overflow-y: auto; /* 'auto' is better than 'scroll' */
     padding: 2px 10px 10px;
     background-color: #222;
     border-radius: 8px;
