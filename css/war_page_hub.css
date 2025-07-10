@@ -296,6 +296,96 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
   flex-direction: column; /* Stack content vertically */
 }
 
+/* ==================================================================
+   War History Log Styles
+   ================================================================== */
+
+.war-history-container {
+    padding: 10px 15px;
+    box-sizing: border-box;
+    height: 100%; /* Make container fill the panel height */
+    display: flex;
+    flex-direction: column;
+}
+
+.war-history-container h4 {
+    color: #e0a71a;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+    flex-shrink: 0; /* Prevent title from shrinking */
+}
+
+.war-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between each war entry */
+    overflow-y: auto; /* Add scrollbar if content overflows */
+    padding-right: 5px; /* Space for the scrollbar */
+}
+
+.war-history-item {
+    display: grid;
+    /* 4 columns: Opponent, Result, Score, Time */
+    grid-template-columns: 2.5fr 0.5fr 1.5fr 1fr; 
+    align-items: center;
+    gap: 15px; /* Space between columns */
+    padding: 12px 15px;
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a40;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.war-history-item:hover {
+    background-color: #38383e;
+    border-color: #555;
+}
+
+.war-history-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.war-history-item .opponent-name {
+    font-weight: bold;
+    color: #f0f0f0;
+    text-align: left; /* Align opponent name to the left for readability */
+}
+
+.war-history-item .war-result {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: center;
+}
+
+.war-history-item .war-result-win {
+    color: #4CAF50; /* Green for Win */
+}
+
+.war-history-item .war-result-loss {
+    color: #d9534f; /* Red for Loss */
+}
+
+.war-history-item .war-score {
+    font-family: 'Courier New', Courier, monospace;
+    color: #ccc;
+    text-align: center;
+}
+
+.war-history-item .war-time {
+    font-size: 0.9em;
+    color: #999;
+    text-align: right; /* Align time to the right */
+}
+
 .chat-tab {
 padding: 8px 10px; /* MODIFIED PADDING */
 background-color: #333;
