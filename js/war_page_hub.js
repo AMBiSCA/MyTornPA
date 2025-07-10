@@ -4798,18 +4798,11 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         return;
     }
 
-    // Set the initial layout and loading message (title has been removed as requested)
-    targetDisplayElement.innerHTML = `
-        <div class="recently-met-layout">
-            <div class="scrollable-table-container">
-                <p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>
-            </div>
-        </div>`;
-    
-    const contentContainer = targetDisplayElement.querySelector('.scrollable-table-container');
+    // Set a simple loading message without the extra title
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
 
     try {
-        // Fetch the last 5 wars to get their IDs
+        // Step 1: Fetch the last 5 wars to get their IDs
         const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
         const historyResponse = await fetch(historyUrl);
         const historyData = await historyResponse.json();
@@ -4818,18 +4811,18 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 
         const wars = historyData.rankedwars || [];
         if (wars.length === 0) {
-            contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
             return;
         }
 
-        // Fetch detailed reports for those wars
-        contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
+        // Step 2: Fetch detailed reports for those wars
+        targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
         const reportPromises = wars.map(war => 
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
 
-        // Aggregate and deduplicate all opponents
+        // Step 3: Aggregate and deduplicate all opponents
         const opponentsMap = new Map();
         warReports.forEach(reportData => {
             const report = reportData.rankedwarreport;
@@ -4847,11 +4840,11 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         
         const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
         if (uniqueOpponentIds.length === 0) {
-            contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
             return;
         }
 
-        // Check registration status in chunks
+        // Step 4: Check registration status in chunks
         const registeredUserIds = new Set();
         const chunkSize = 30;
         for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
@@ -4862,15 +4855,13 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             });
         }
 
-        // Build the final HTML grid
+        // Step 5: Build the final HTML grid
         const membersListContainer = document.createElement('div');
-        membersListContainer.className = 'members-list-container';
+        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
 
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
             const isRegistered = registeredUserIds.has(String(opponent.id));
-            
-            // --- CHANGE 1: Use the random dummy photos ---
             const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
             const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
 
@@ -4889,7 +4880,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                         <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
                     </div>
                     <div class="member-actions">
-                        {/* --- CHANGE 2: Removed the 'item-button' class from the Add Friend button --- */}
                         <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
                         ${messageButton}
                     </div>
@@ -4898,12 +4888,12 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         }
 
         membersListContainer.innerHTML = cardsHtml;
-        contentContainer.innerHTML = ''; 
-        contentContainer.appendChild(membersListContainer);
+        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
+        targetDisplayElement.appendChild(membersListContainer);
 
     } catch (error) {
         console.error("Error populating Recently Met tab:", error);
-        contentContainer.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
     }
 }
 
