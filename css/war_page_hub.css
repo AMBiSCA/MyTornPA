@@ -3167,10 +3167,10 @@ min-width: 320px;
 
 /* --- Force Timer Boxes Down --- */
 .chain-timer-box {
-    margin-top: 45px; 
+    margin-top: 60px; 
 }
 
-#faction-hits-display {
+.faction-hits-display {
     margin-top: 25px;
 }
 
