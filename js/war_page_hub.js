@@ -3108,73 +3108,6 @@ async function checkIfUserIsAdmin() {
     }
 }
 
-/**
- * Builds and displays the recent ranked war history from existing data.
- * @param {object} warsObject The 'wars' object from the faction API data.
- */
-function displayWarHistory(warsObject) {
-    if (!enemyTargetsContainer) {
-        console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer' to display war history.");
-        return;
-    }
-
-    const warsArray = Object.values(warsObject || {});
-
-    if (warsArray.length === 0) {
-        enemyTargetsContainer.innerHTML = `
-            <div class="war-history-container">
-                <h4>Recent War History</h4>
-                <p style="text-align: center; padding: 20px;">No ranked war history found.</p>
-            </div>
-        `;
-        return;
-    }
-
-    // Sort wars by end time, safely handling entries that might be missing data.
-    warsArray.sort((a, b) => {
-        const timeA = a.war ? a.war.end : 0;
-        const timeB = b.war ? b.war.end : 0;
-        return timeB - timeA;
-    });
-
-    // Build the HTML list of the last 10 wars
-    let historyHtml = warsArray.slice(0, 10).map(war => {
-        // --- THIS IS THE NEW SAFETY CHECK ---
-        // If a war entry is missing crucial data, skip it entirely.
-        if (!war.factions || !war.war || !war.result) {
-            return ''; // Return an empty string to ignore this entry
-        }
-        // --- END OF NEW SAFETY CHECK ---
-
-        const yourFactionDetails = war.factions[globalYourFactionID];
-        const opponentFactionID = Object.keys(war.factions).find(id => id != globalYourFactionID);
-        const opponentFactionDetails = war.factions[opponentFactionID];
-
-        if (!yourFactionDetails || !opponentFactionDetails) return '';
-
-        const result = war.result;
-        const resultClass = `war-result-${result.toLowerCase()}`;
-        const timeAgo = formatRelativeTime(war.war.end);
-
-        return `
-            <li class="war-history-item">
-                <span class="opponent-name">Vs. ${opponentFactionDetails.name}</span>
-                <span class="war-result ${resultClass}">${result.charAt(0).toUpperCase() + result.slice(1)}</span>
-                <span class="war-score">${yourFactionDetails.score.toLocaleString()} to ${opponentFactionDetails.score.toLocaleString()}</span>
-                <span class="war-time">${timeAgo}</span>
-            </li>
-        `;
-    }).join('');
-
-    // Set the final HTML
-    enemyTargetsContainer.innerHTML = `
-        <div class="war-history-container">
-            <h4>Recent War History</h4>
-            <ul class="war-history-list">${historyHtml}</ul>
-        </div>
-    `;
-}
-
 async function displayWarHistory(apiKey) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find 'enemyTargetsContainer' to display war history.");
@@ -3260,6 +3193,110 @@ async function displayWarHistory(apiKey) {
         `;
     }
 }
+function displayEnemyTargetsTable(members) {
+    if (!enemyTargetsContainer) {
+        console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer'.");
+        return;
+    }
+
+    // --- THIS IS THE MODIFIED LOGIC ---
+    // Check if there are any members to display.
+    if (!members || Object.keys(members).length === 0) {
+        // If NO members, call the new function to show war history and stop.
+        // The global 'userApiKey' is used here.
+        displayWarHistory(userApiKey);
+        return; 
+    }
+    // --- END OF MODIFIED LOGIC ---
+
+
+    // If there ARE members, the rest of the function builds the table as before.
+    let tableHtml = `
+        <table class="enemy-targets-table">
+            <thead>
+                <tr>
+                    <th class="col-name">Name (ID)</th>
+                    <th class="col-level">Level</th>
+                    <th class="col-last-action">Last Action</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-claim">Claim</th>
+                    <th class="col-attack">Attack</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const membersArray = Object.values(members);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const currentAuthUid = auth.currentUser ? auth.currentUser.uid : null;
+
+    for (const member of membersArray) {
+        const memberId = member.id;
+        const memberName = member.name;
+        const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
+        const attackUrl = `https://www.torn.com/loader.php?sid=attack&user2ID=${memberId}`;
+
+        let statusText = member.status.description;
+        let statusClass = 'status-okay';
+        let dataUntil = '';
+        let statusState = member.status.state;
+
+        if (member.status.state === 'Hospital') {
+            statusClass = 'status-hospital';
+            dataUntil = member.status.until;
+            const timeLeft = member.status.until - nowInSeconds;
+            statusText = timeLeft > 0 ? `In Hospital (${formatTime(timeLeft)})` : 'Okay';
+            if (timeLeft <= 0) statusClass = 'status-okay';
+
+        } else if (member.status.state === 'Traveling') {
+            statusClass = 'status-traveling';
+            dataUntil = member.status.until;
+            const timeLeft = member.status.until - nowInSeconds;
+            if (timeLeft <= 0) {
+                statusText = `Arrived`;
+                statusClass = 'status-okay';
+            } else {
+                statusText = `${member.status.description} (${formatTime(timeLeft)})`;
+            }
+        } else if (member.status.state !== 'Okay') {
+            statusClass = 'status-other';
+        }
+
+        const lastActionTimestamp = member.last_action ? member.last_action.timestamp : null;
+        const lastActionText = formatRelativeTime(lastActionTimestamp);
+
+        let claimButtonHtml;
+        let rowClass = '';
+        const activeClaim = globalActiveClaims[memberId];
+
+        if (activeClaim) {
+            rowClass = 'claimed-row';
+            if (activeClaim.claimedByUserId === currentAuthUid) {
+                claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn claimed-by-me" onclick="unclaimTarget('${memberId}')">Unclaim</button>`;
+            } else {
+                claimButtonHtml = `<span class="claimed-by-other">${activeClaim.claimedByUserName}</span><br><button id="claim-btn-${memberId}" class="claim-btn claimed-by-other-btn" disabled>Claimed</button>`;
+            }
+        } else {
+            claimButtonHtml = `<button id="claim-btn-${memberId}" class="claim-btn" onclick="claimTarget('${memberId}', '${memberName}')">Claim</button>`;
+        }
+
+        tableHtml += `
+            <tr id="target-row-${memberId}" class="${rowClass}" data-member-name="${memberName}">
+                <td class="col-name"><a href="${profileUrl}" target="_blank">${member.name} (${memberId})</a></td>
+                <td class="col-level">${member.level}</td>
+                <td class="col-last-action">${lastActionText}</td>
+                <td class="col-status ${statusClass}" ${dataUntil ? `data-until="${dataUntil}" data-status-state="${statusState}"` : ''}>${statusText}</td>
+                <td class="col-claim">${claimButtonHtml}</td>
+                <td class="col-attack"><a id="attack-link-${memberId}" href="${attackUrl}" class="attack-link" target="_blank">Attack</a></td>
+            </tr>
+        `;
+    }
+
+    tableHtml += `</tbody></table>`;
+
+    enemyTargetsContainer.innerHTML = tableHtml;
+}
+
 function setupWarClaimsListener() {
     console.log("Setting up real-time listener for war claims...");
     db.collection('warClaims').onSnapshot(snapshot => {
