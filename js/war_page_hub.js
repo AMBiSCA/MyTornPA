@@ -128,6 +128,8 @@ const removeDiscordWebhookBtn = document.getElementById('removeDiscordWebhookBtn
 const discordWebhookEditArea = document.getElementById('discordWebhookEditArea'); // The modal's content box
 const discordWebhookModalOverlay = document.getElementById('discordWebhookModalOverlay'); // NEW: The full-screen overlay
 const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
+const CHAIN_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+const DEFAULT_CHAIN_TIMEOUT_SECONDS = 300; // Standard 5-minute chain timeout for status color logic
 const DEFAULT_PROFILE_ICONS = [
     '../../images/account.png',
     '../../images/avatar-design.png',
@@ -1457,6 +1459,56 @@ async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
 
    
     chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+}
+
+function getChainMilestoneProgress(currentHits) {
+    if (currentHits === 0) {
+        return { percentage: 0, previous: 0, next: CHAIN_MILESTONES[0], display: '0% to 10' };
+    }
+
+    let previousMilestone = 0;
+    let nextMilestone = null;
+
+    for (let i = 0; i < CHAIN_MILESTONES.length; i++) {
+        if (currentHits < CHAIN_MILESTONES[i]) {
+            nextMilestone = CHAIN_MILESTONES[i];
+            previousMilestone = i > 0 ? CHAIN_MILESTONES[i - 1] : 0;
+            break;
+        } else if (currentHits === CHAIN_MILESTONES[i]) {
+            // Exactly at a milestone, progress is 100% to this milestone, and next is the subsequent.
+            previousMilestone = CHAIN_MILESTONES[i];
+            nextMilestone = CHAIN_MILESTONES[i + 1] || null; // If last milestone, next is null
+            break;
+        }
+    }
+
+    if (nextMilestone === null) { // Beyond last milestone or at the very last one
+        return {
+            percentage: 100,
+            previous: previousMilestone, // This will be the last milestone
+            next: null,
+            display: 'MAX CHAIN!'
+        };
+    }
+
+    const hitsIntoSegment = currentHits - previousMilestone;
+    const segmentSize = nextMilestone - previousMilestone;
+    let percentage = 0;
+
+    if (segmentSize > 0) {
+        percentage = (hitsIntoSegment / segmentSize) * 100;
+    } else { // Should only happen if at a milestone and next is immediately next (e.g., 10 to 25)
+        percentage = 100;
+    }
+
+    percentage = Math.min(100, Math.max(0, Math.floor(percentage))); // Clamp and floor
+
+    return {
+        percentage: percentage,
+        previous: previousMilestone,
+        next: nextMilestone,
+        display: `${percentage}% to ${nextMilestone}`
+    };
 }
 
 function formatTime(seconds) {
