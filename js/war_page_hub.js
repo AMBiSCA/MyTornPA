@@ -3763,7 +3763,10 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 </button>
             `;
         }
-        
+
+        // Initialize with a default image URL. This will be shown immediately.
+        let profileImageUrlForDisplay = '../../images/default_profile_icon.png';
+
         const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
         if (memberRank === "Leader" || memberRank === "Co-leader") {
@@ -3773,7 +3776,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         memberItemDiv.innerHTML = `
             <span class="member-rank">${memberRank}</span>
             <div class="member-identity">
-                <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                <img src="${profileImageUrlForDisplay}" alt="${memberName}'s profile picture" class="member-profile-pic">
                 <span class="member-name">${memberName}</span>
             </div>
             <div class="member-actions">
@@ -3781,9 +3784,11 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
             </div>
         `;
-        
+
         membersListContainer.appendChild(memberItemDiv);
 
+        // This existing async IIFE will run after the element is added to the DOM.
+        // It fetches the actual profile picture from Firebase and updates the <img> src.
         (async () => {
             try {
                 const docRef = db.collection('users').doc(String(tornPlayerId));
