@@ -3485,7 +3485,7 @@ function formatRelativeTime(timestampInSeconds) {
 
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
-	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
+    console.log("setupFactionHitsListener called with factionId:", factionId);
     // These are the HTML elements we created earlier
     const tcHitsElement = document.getElementById('tc-hits-value');
     const abroadHitsElement = document.getElementById('abroad-hits-value');
@@ -3526,9 +3526,11 @@ function setupFactionHitsListener(db, factionId) {
         const tcHits = Math.floor(totalTCEnergy / 25);
         const abroadHits = Math.floor(totalAbroadEnergy / 25);
 
-        // Update the numbers on your webpage
-        tcHitsElement.textContent = tcHits.toLocaleString(); // .toLocaleString() adds commas for thousands
-        abroadHitsElement.textContent = abroadHits.toLocaleString();
+        // --- UPDATED LINES BELOW ---
+        // Update the numbers on your webpage with the new text format
+        tcHitsElement.textContent = `${tcHits.toLocaleString()} Total Hits Available`;
+        abroadHitsElement.textContent = `${abroadHits.toLocaleString()} Total Abroad Hits Available`;
+        // --- END UPDATED LINES ---
 
     }, error => {
         // This will log any errors if the listener fails.
@@ -3748,6 +3750,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         const memberRank = member.position;
         const isFriend = friendsSet.has(tornPlayerId);
 
+        // --- CORRECTED: This now generates the button with the person icon and a +/- sign ---
         let actionButtonHtml = '';
         if (isFriend) {
             actionButtonHtml = `
@@ -3762,26 +3765,17 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 </button>
             `;
         }
-
+        
         const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
 
-        // Pick a random default image from your predefined array for immediate display.
-        const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
-        const initialProfileImageUrl = DEFAULT_PROFILE_ICONS[randomIndex];
-
-        // Create the <img> element directly and set its 'src' immediately to the random default.
-        const profileImgElement = document.createElement('img');
-        profileImgElement.classList.add('member-profile-pic');
-        profileImgElement.alt = `${memberName}'s profile picture`;
-        profileImgElement.src = initialProfileImageUrl; // This ensures a valid image is always present
-
         memberItemDiv.innerHTML = `
             <span class="member-rank">${memberRank}</span>
             <div class="member-identity">
+                <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
                 <span class="member-name">${memberName}</span>
             </div>
             <div class="member-actions">
@@ -3789,45 +3783,23 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
             </div>
         `;
+        
+        membersListContainer.appendChild(memberItemDiv);
 
-        const memberIdentityDiv = memberItemDiv.querySelector('.member-identity');
-        if (memberIdentityDiv) {
-            memberIdentityDiv.prepend(profileImgElement);
-        }
-
-        // The asynchronous part remains to fetch the *specific* user's profile image if available
-        (async (imgEl, currentTornPlayerId, currentMemberName) => {
+        (async () => {
             try {
-                // Check cache first for efficiency
-                if (memberProfileCache[currentTornPlayerId] && memberProfileCache[currentTornPlayerId].profile_image) {
-                    imgEl.src = memberProfileCache[currentTornPlayerId].profile_image;
-                    return; // No need to fetch from Firebase if in cache
-                }
-
-                const docRef = db.collection('users').doc(String(currentTornPlayerId));
+                const docRef = db.collection('users').doc(String(tornPlayerId));
                 const docSnap = await docRef.get();
                 if (docSnap.exists) {
                     const firebaseMemberData = docSnap.data();
-                    // If user is registered, try to get their specific image, or fall back to generic default
-                    const specificProfileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                    
-                    memberProfileCache[currentTornPlayerId] = { profile_image: specificProfileImageUrl, name: firebaseMemberData.name || currentMemberName };
-
-                    imgEl.src = specificProfileImageUrl; // Update to the specific image
-                } else {
-                    // --- THIS IS THE NEW / MODIFIED PART ---
-                    // If user is NOT registered (document doesn't exist in 'users' collection),
-                    // set a specific, recognizable default icon to indicate they are not signed up.
-                    imgEl.src = '../../images/default_user_icon.svg'; // Using a common default for unregistered
-                    console.log(`[Firestore] User ${currentTornPlayerId} not registered on site. Displaying specific default for unregistered.`);
+                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                    if (imgElement) imgElement.src = profileImageUrl;
                 }
             } catch (error) {
-                console.error(`[Firestore Error] Failed to fetch profile pic from 'users' collection for ${currentTornPlayerId}:`, error);
-                // On error, revert to the generic default if the specific one failed to load.
-                // It's already set to a default (random or the specific unregistered one), so this acts as a final safeguard.
-                imgEl.src = '../../images/default_profile_icon.png'; // Fallback in case of fetch error even for registered users
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
             }
-        })(profileImgElement, tornPlayerId, memberName);
+        })();
     }
 }
 
