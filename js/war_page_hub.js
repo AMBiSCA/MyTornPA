@@ -3109,87 +3109,60 @@ async function checkIfUserIsAdmin() {
 }
 
 /**
- * Fetches and displays the recent ranked war history.
- * @param {string} apiKey The user's Torn API key.
+ * Builds and displays the recent ranked war history from existing data.
+ * @param {object} warsObject The 'wars' object from the faction API data.
  */
-async function displayWarHistory(apiKey) {
-    // Ensure the container element exists
+function displayWarHistory(warsObject) {
     if (!enemyTargetsContainer) {
         console.error("HTML Error: Cannot find element with ID 'enemyTargetsContainer' to display war history.");
         return;
     }
 
-    // Show a loading message while we fetch the data
+    const warsArray = Object.values(warsObject || {});
+
+    // If there are no wars in the history
+    if (warsArray.length === 0) {
+        enemyTargetsContainer.innerHTML = `
+            <div class="war-history-container">
+                <h4>Recent War History</h4>
+                <p style="text-align: center; padding: 20px;">No ranked war history found.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Sort wars by end time to show the most recent first
+    warsArray.sort((a, b) => b.war.end - a.war.end);
+
+    // Build the HTML list of the last 10 wars
+    let historyHtml = warsArray.slice(0, 10).map(war => {
+        const yourFactionDetails = war.factions[globalYourFactionID];
+        const opponentFactionID = Object.keys(war.factions).find(id => id != globalYourFactionID);
+        const opponentFactionDetails = war.factions[opponentFactionID];
+
+        if (!yourFactionDetails || !opponentFactionDetails) return '';
+
+        const result = war.result;
+        const resultClass = `war-result-${result.toLowerCase()}`;
+        const timeAgo = formatRelativeTime(war.war.end);
+
+        return `
+            <li class="war-history-item">
+                <span class="opponent-name">Vs. ${opponentFactionDetails.name}</span>
+                <span class="war-result ${resultClass}">${result.charAt(0).toUpperCase() + result.slice(1)}</span>
+                <span class="war-score">${yourFactionDetails.score.toLocaleString()} to ${opponentFactionDetails.score.toLocaleString()}</span>
+                <span class="war-time">${timeAgo}</span>
+            </li>
+        `;
+    }).join('');
+
+    // Set the final HTML
     enemyTargetsContainer.innerHTML = `
         <div class="war-history-container">
             <h4>Recent War History</h4>
-            <p style="text-align: center; padding: 20px;">Loading history...</p>
+            <ul class="war-history-list">${historyHtml}</ul>
         </div>
     `;
-
-    try {
-        const url = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistory`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (!response.ok || data.error) {
-            throw new Error(data.error?.error || 'Failed to fetch war history.');
-        }
-
-        const rankedWars = data.rankedwars;
-        const warsArray = Object.values(rankedWars || {}); // Use empty object as fallback
-        
-        // If there are no wars in the history
-        if (warsArray.length === 0) {
-            enemyTargetsContainer.innerHTML = `
-                <div class="war-history-container">
-                    <h4>Recent War History</h4>
-                    <p style="text-align: center; padding: 20px;">No ranked war history found.</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Build the HTML list of the last 10 wars
-        let historyHtml = warsArray.slice(0, 10).map(war => {
-            // Find your faction and the opponent's faction in the war data
-            const yourFactionDetails = war.factions[globalYourFactionID];
-            const opponentFactionID = Object.keys(war.factions).find(id => id != globalYourFactionID);
-            const opponentFactionDetails = war.factions[opponentFactionID];
-
-            if (!yourFactionDetails || !opponentFactionDetails) return ''; // Skip if data is malformed
-
-            const result = war.result; // 'win', 'loss', 'draw', etc.
-            const resultClass = `war-result-${result.toLowerCase()}`;
-            const timeAgo = formatRelativeTime(war.war.end); // Use the existing time formatting function
-
-            return `
-                <li class="war-history-item">
-                    <span class="opponent-name">Vs. ${opponentFactionDetails.name}</span>
-                    <span class="war-result ${resultClass}">${result.charAt(0).toUpperCase() + result.slice(1)}</span>
-                    <span class="war-score">${yourFactionDetails.score.toLocaleString()} to ${opponentFactionDetails.score.toLocaleString()}</span>
-                    <span class="war-time">${timeAgo}</span>
-                </li>
-            `;
-        }).join('');
-
-        // Set the final HTML with the title and the list of wars
-        enemyTargetsContainer.innerHTML = `
-            <div class="war-history-container">
-                <h4>Recent War History</h4>
-                <ul class="war-history-list">${historyHtml}</ul>
-            </div>
-        `;
-
-    } catch (error) {
-        console.error("Error displaying war history:", error);
-        enemyTargetsContainer.innerHTML = `
-            <div class="war-history-container">
-                <h4>Recent War History</h4>
-                <p style="color: red; text-align: center; padding: 20px;">Error loading war history: ${error.message}</p>
-            </div>
-        `;
-    }
 }
 
 function displayEnemyTargetsTable(members) {
