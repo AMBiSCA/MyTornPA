@@ -3108,95 +3108,143 @@ async function checkIfUserIsAdmin() {
     }
 }
 
+/**
+ * Fetches and displays war history, top hitters, and respect stats.
+ * @param {string} apiKey The user's Torn API key.
+ */
 async function displayWarHistory(apiKey) {
     if (!enemyTargetsContainer) {
-        console.error("HTML Error: Cannot find 'enemyTargetsContainer' to display war history.");
+        console.error("HTML Error: Cannot find 'enemyTargetsContainer' to display content.");
         return;
     }
 
+    // Initial loading message
     enemyTargetsContainer.innerHTML = `
         <div class="war-history-container">
-            <div class="war-history-header">
-                <h4>Recent War History</h4>
-            </div>
-            <p style="text-align: center; padding: 20px;">Loading history...</p>
-        </div>
-    `;
+            <h4>Loading War Data...</h4>
+        </div>`;
 
     try {
-        const url = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistory`;
-        const response = await fetch(url);
-        const data = await response.json();
+        // Step 1: Get the list of recent wars to find their IDs
+        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistoryList`;
+        const historyResponse = await fetch(historyUrl);
+        const historyData = await historyResponse.json();
 
-        // CORRECT: 'rankedwars' is an array in the response.
-        const warsArray = data.rankedwars || [];
+        if (!historyResponse.ok || historyData.error) {
+            throw new Error(historyData.error?.error || 'Failed to fetch war history list.');
+        }
 
-        // Calculate Wins and Losses
+        const warsArray = historyData.rankedwars || [];
+        if (warsArray.length === 0) {
+            enemyTargetsContainer.innerHTML = `<div class="war-history-container"><h4>Recent War History</h4><p style="text-align:center; padding: 20px;">No ranked war history found.</p></div>`;
+            return;
+        }
+
+        // Step 2: Get the last 3 war IDs and fetch their detailed reports
+        const lastThreeWarIds = warsArray.slice(0, 3).map(war => war.id);
+        const reportPromises = lastThreeWarIds.map(id => {
+            const reportUrl = `https://api.torn.com/v2/faction/${id}/rankedwarreport?key=${apiKey}&comment=MyTornPA_WarReport`;
+            return fetch(reportUrl).then(res => res.json());
+        });
+        const warReports = await Promise.all(reportPromises);
+
+        // Step 3: Process data from the reports
+        let totalRespect = 0;
+        let lastWarRespect = 0;
+        const hitters = {};
+
+        warReports.forEach((reportData, index) => {
+            const report = reportData.rankedwarreport;
+            if (!report) return;
+
+            const yourFactionDetails = report.factions.find(f => f.id == globalYourFactionID);
+            if (!yourFactionDetails || !yourFactionDetails.rewards) return;
+
+            const respectGained = yourFactionDetails.rewards.respect || 0;
+            totalRespect += respectGained;
+
+            if (index === 0) { // The first report is the most recent
+                lastWarRespect = respectGained;
+            }
+
+            // Aggregate hits for each member
+            (yourFactionDetails.members || []).forEach(member => {
+                if (!hitters[member.id]) {
+                    hitters[member.id] = { name: member.name, attacks: 0 };
+                }
+                hitters[member.id].attacks += member.attacks;
+            });
+        });
+        
+        // Calculate overall W/L Ratio from the full history
         let wins = 0;
         let losses = 0;
         warsArray.forEach(war => {
-            if (war.winner === globalYourFactionID) {
-                wins++;
-            } else {
-                losses++;
-            }
+            if (war.winner === globalYourFactionID) { wins++; } else { losses++; }
         });
 
-        let historyHtml = "";
-        if (warsArray.length > 0) {
-            // Build the HTML list of the last 10 wars
-            historyHtml = warsArray.slice(0, 10).map(war => {
-                // Safety check for the correct array structure
-                if (!war || !war.factions || war.factions.length < 2) {
-                    return ''; 
-                }
-
-                // CORRECT: Use array.find() to get faction details
-                const yourFactionDetails = war.factions.find(f => f.id == globalYourFactionID);
-                const opponentFactionDetails = war.factions.find(f => f.id != globalYourFactionID);
-
-                if (!yourFactionDetails || !opponentFactionDetails) return '';
-                
-                const didYouWin = war.winner === globalYourFactionID;
-                const result = didYouWin ? 'Win' : 'Loss';
-                const resultClass = didYouWin ? 'war-result-win' : 'war-result-loss';
-                const timeAgo = formatRelativeTime(war.end);
-
-                return `
-                    <li class="war-history-item">
-                        <span class="opponent-name">Vs. ${opponentFactionDetails.name}</span>
-                        <span class="war-result ${resultClass}">${result}</span>
-                        <span class="war-score">${yourFactionDetails.score.toLocaleString()} to ${opponentFactionDetails.score.toLocaleString()}</span>
-                        <span class="war-time">${timeAgo}</span>
-                    </li>
-                `;
-            }).join('');
-        }
+        // Sort hitters and get the top 3
+        const sortedHitters = Object.values(hitters).sort((a, b) => b.attacks - a.attacks);
+        const topThreeHitters = sortedHitters.slice(0, 3);
         
-        // Final HTML with the Win/Loss Box
+        // Step 4: Build the HTML for all sections
+        const topHittersHtml = topThreeHitters.map((hitter, index) => {
+            const rank = index + 1;
+            const medals = ['🥇', '🥈', '🥉'];
+            return `
+                <li class="top-hitter-item rank-${rank}">
+                    <span class="hitter-rank">${medals[index]}</span>
+                    <span class="hitter-name">${hitter.name}</span>
+                    <span class="hitter-score">${hitter.attacks.toLocaleString()} hits</span>
+                </li>`;
+        }).join('');
+
+        const warHistoryHtml = warsArray.slice(0, 10).map(war => {
+            const yourFaction = war.factions.find(f => f.id == globalYourFactionID);
+            const opponent = war.factions.find(f => f.id != globalYourFactionID);
+            if (!yourFaction || !opponent) return '';
+
+            const result = war.winner === globalYourFactionID ? 'Win' : 'Loss';
+            const resultClass = `war-result-${result.toLowerCase()}`;
+            const timeAgo = formatRelativeTime(war.end);
+
+            return `
+                <li class="war-history-item">
+                    <span class="opponent-name">Vs. ${opponent.name}</span>
+                    <span class="war-result ${resultClass}">${result}</span>
+                    <span class="war-score">${yourFaction.score.toLocaleString()} to ${opponent.score.toLocaleString()}</span>
+                    <span class="war-time">${timeAgo}</span>
+                </li>
+            `;
+        }).join('');
+
         enemyTargetsContainer.innerHTML = `
             <div class="war-history-container">
                 <div class="war-history-header">
+                    <div class="respect-box">
+                        <span>Respect Gained</span>
+                        <div class="respect-line">Last War: <strong>${lastWarRespect.toLocaleString()}</strong></div>
+                        <div class="respect-line">Total (Last 3): <strong>${totalRespect.toLocaleString()}</strong></div>
+                    </div>
                     <h4>Recent War History</h4>
                     <div class="win-loss-ratio-box">
                         <span>W/L (All Time)</span>
                         <span class="ratio-value">${wins} / ${losses}</span>
                     </div>
                 </div>
-                <ul class="war-history-list">
-                    ${historyHtml || '<li style="text-align: center; padding: 20px;">No ranked war history found.</li>'}
-                </ul>
+                <div class="top-hitters-container">
+                    <h5>Top Hitters Based on Last Three Wars</h5>
+                    <ol class="top-hitters-list">${topHittersHtml}</ol>
+                </div>
+                <ul class="war-history-list">${warHistoryHtml}</ul>
             </div>
         `;
-
     } catch (error) {
         console.error("Error displaying war history:", error);
         enemyTargetsContainer.innerHTML = `
             <div class="war-history-container">
-                <div class="war-history-header">
-                     <h4>Recent War History</h4>
-                </div>
-                <p style="color: red; text-align: center; padding: 20px;">Error: ${error.message}</p>
+                <h4>Error</h4>
+                <p style="color: red; text-align: center; padding: 20px;">${error.message}</p>
             </div>
         `;
     }
