@@ -131,6 +131,18 @@ const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
 const CHAIN_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
 const DEFAULT_CHAIN_TIMEOUT_SECONDS = 300; // Standard 5-minute chain timeout for status color logic
 const DEFAULT_PROFILE_ICONS = [
+// Add these to your existing DOM Element Getters section
+const yourChainProgressBar = document.getElementById('yourChainProgressBar');
+const yourChainCurrentHitsDisplay = document.getElementById('yourChainCurrentHitsDisplay');
+const yourChainMilestoneTarget = document.getElementById('yourChainMilestoneTarget');
+const yourChainProgressPercent = document.getElementById('yourChainProgressPercent');
+const yourChainStatusText = document.getElementById('yourChainStatusText');
+
+const opponentChainProgressBar = document.getElementById('opponentChainProgressBar');
+const opponentChainCurrentHitsDisplay = document.getElementById('opponentChainCurrentHitsDisplay');
+const opponentChainMilestoneTarget = document.getElementById('opponentChainMilestoneTarget');
+const opponentChainProgressPercent = document.getElementById('opponentChainProgressPercent');
+const opponentChainStatusText = document.getElementById('opponentChainStatusText');
     '../../images/account.png',
     '../../images/avatar-design.png',
     '../../images/boy.png',
@@ -1760,10 +1772,12 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
 
     console.log("Successfully parsed and displayed ranked war data for both scoreboards.");
 }
- function updateAllTimers() {
+function updateAllTimers() {
     const nowInSeconds = Math.floor(Date.now() / 1000);
 
     // Part 1: Updates the "Next Planned Chain Time" from the Leader Config tab
+    // (This part of your code remains unchanged)
+    // You should have elements like warNextChainTimeStatus and nextChainTimeInput defined globally
     if (warNextChainTimeStatus && nextChainTimeInput) {
         const nextChainTimeValue = nextChainTimeInput.value.trim();
         const targetChainTime = parseInt(nextChainTimeValue, 10);
@@ -1781,6 +1795,8 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
     }
 
     // Part 2: Updates the timers in the enemy targets table (e.g. hospital/travel)
+    // (This part of your code remains unchanged)
+    // You should have enemyTargetsContainer defined globally
     if (enemyTargetsContainer) {
         const statusCells = enemyTargetsContainer.querySelectorAll('td[data-until]');
         statusCells.forEach(cell => {
@@ -1788,7 +1804,7 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
             if (!isNaN(targetTime) && targetTime > 0) {
                 const timeLeft = targetTime - nowInSeconds;
                 const originalDescription = cell.textContent.split('(')[0].trim();
-                
+
                 if (timeLeft > 0) {
                     cell.textContent = `${originalDescription} (${formatTime(timeLeft)})`;
                 } else {
@@ -1801,19 +1817,43 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
         });
     }
 
-    // Part 3: Updates "Your Chain" timer smoothly
-    const friendlyTimeEl = document.getElementById('friendly-chain-time');
-    if (friendlyTimeEl) {
+    // Part 3: Updates "Your Chain" timer smoothly in the new fancy display element
+    // This targets the specific new span for your chain's main countdown
+    const friendlyTimeBigEl = document.getElementById('friendly-chain-time');
+
+    if (friendlyTimeBigEl) {
         if (currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
             const elapsedTime = (Date.now() - lastChainApiFetchTime) / 1000;
             const timeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTime));
-            friendlyTimeEl.textContent = formatTime(timeLeft);
+            friendlyTimeBigEl.textContent = formatTime(timeLeft);
         } else {
-            friendlyTimeEl.textContent = 'Over';
+            friendlyTimeBigEl.textContent = 'Over';
         }
     }
 
+    // --- RE-INTEGRATED LOGIC FOR chainTimerDisplay AND chainStartedDisplay ---
+    // This addresses the specific elements you pointed out that were previously missed.
+    // Ensure 'chainTimerDisplay' and 'chainStartedDisplay' are defined in your global DOM Getters.
+
+    if (chainTimerDisplay && currentLiveChainSeconds > 0 && lastChainApiFetchTime > 0) {
+        const elapsedTimeSinceLastFetch = (Date.now() - lastChainApiFetchTime) / 1000;
+        const dynamicTimeLeft = Math.max(0, currentLiveChainSeconds - Math.floor(elapsedTimeSinceLastFetch));
+        chainTimerDisplay.textContent = formatTime(dynamicTimeLeft);
+    } else if (chainTimerDisplay) {
+        chainTimerDisplay.textContent = 'Chain Over';
+    }
+
+    if (chainStartedDisplay && globalChainStartedTimestamp > 0) {
+        chainStartedDisplay.textContent = `Started: ${formatTornTime(globalChainStartedTimestamp)}`;
+    } else if (chainStartedDisplay) {
+        chainStartedDisplay.textContent = 'Started: N/A';
+    }
+    // --- END RE-INTEGRATED LOGIC ---
+
+
     // Part 4: Updates the Ranked War elapsed timer
+    // (This part of your code remains unchanged)
+    // You should have rankedWarTimerEl defined globally
     const rankedWarTimerEl = document.getElementById('rw-war-timer');
     if (rankedWarTimerEl) {
         if (globalWarStartedActualTime > 0) {
@@ -2405,14 +2445,59 @@ async function fetchAndDisplayChainScore(apiKey) {
   }
 
 async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
-    const friendlyHitsEl = document.getElementById('friendly-chain-hits');
-    const friendlyTimeEl = document.getElementById('friendly-chain-time');
-    const enemyHitsEl = document.getElementById('enemy-chain-hits');
-    const enemyTimeEl = document.getElementById('enemy-chain-time');
+    // OLD ELEMENTS (These still exist in HTML but their role might be repurposed for 'big-chain-number')
+    const friendlyHitsEl = document.getElementById('friendly-chain-hits'); // Now the big hits number
+    const friendlyTimeEl = document.getElementById('friendly-chain-time'); // Now the big timer
 
-    if (!friendlyHitsEl || !friendlyTimeEl || !enemyHitsEl || !enemyTimeEl) {
+    const enemyHitsEl = document.getElementById('enemy-chain-hits'); // Now the big hits number
+    const enemyTimeEl = document.getElementById('enemy-chain-time'); // Now the big timer
+
+    // NEW ELEMENTS (for progress bar, status text etc.) - These are now properly scoped here
+    // No need to redeclare if they are already global const in Step 3, but this ensures function scope
+    // is aware of them. If you follow step 3, these specific lines can be removed here.
+    // However, including them ensures the function works even if you move them.
+    const yourChainProgressBar = document.getElementById('yourChainProgressBar');
+    const yourChainCurrentHitsDisplay = document.getElementById('yourChainCurrentHitsDisplay');
+    const yourChainMilestoneTarget = document.getElementById('yourChainMilestoneTarget');
+    const yourChainProgressPercent = document.getElementById('yourChainProgressPercent');
+    const yourChainStatusText = document.getElementById('yourChainStatusText');
+
+    const opponentChainProgressBar = document.getElementById('opponentChainProgressBar');
+    const opponentChainCurrentHitsDisplay = document.getElementById('opponentChainCurrentHitsDisplay');
+    const opponentChainMilestoneTarget = document.getElementById('opponentChainMilestoneTarget');
+    const opponentChainProgressPercent = document.getElementById('opponentChainProgressPercent');
+    const opponentChainStatusText = document.getElementById('opponentChainStatusText');
+
+    // Initial check for all elements
+    if (!friendlyHitsEl || !friendlyTimeEl || !enemyHitsEl || !enemyTimeEl ||
+        !yourChainProgressBar || !yourChainCurrentHitsDisplay || !yourChainMilestoneTarget || !yourChainProgressPercent || !yourChainStatusText ||
+        !opponentChainProgressBar || !opponentChainCurrentHitsDisplay || !opponentChainMilestoneTarget || !opponentChainProgressPercent || !opponentChainStatusText) {
+        console.warn("One or more chain display elements not found. Cannot update dual chain timers.");
         return;
     }
+
+    // Set initial loading/N/A states for visual feedback
+    friendlyHitsEl.textContent = '...';
+    friendlyTimeEl.textContent = '...';
+    enemyHitsEl.textContent = '...';
+    enemyTimeEl.textContent = '...';
+    yourChainCurrentHitsDisplay.textContent = '...';
+    yourChainMilestoneTarget.textContent = '...';
+    yourChainProgressPercent.textContent = '...';
+    yourChainStatusText.textContent = 'Loading...';
+    opponentChainCurrentHitsDisplay.textContent = '...';
+    opponentChainMilestoneTarget.textContent = '...';
+    opponentChainProgressPercent.textContent = '...';
+    opponentChainStatusText.textContent = 'Loading...';
+
+    // Clear previous status classes from bars/text
+    const elementsToClearClasses = [
+        yourChainProgressBar, yourChainStatusText, friendlyTimeEl,
+        opponentChainProgressBar, opponentChainStatusText, enemyTimeEl
+    ];
+    elementsToClearClasses.forEach(el => {
+        if (el) el.classList.remove('status-green', 'status-yellow', 'status-red', 'status-grey', 'status-purple');
+    });
 
     if (!apiKey || !yourFactionId) {
         console.warn("API key or your Faction ID is missing. Cannot fetch chain data for dual timers.");
@@ -2420,6 +2505,14 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         friendlyTimeEl.textContent = 'N/A';
         enemyHitsEl.textContent = 'N/A';
         enemyTimeEl.textContent = 'N/A';
+        yourChainCurrentHitsDisplay.textContent = 'N/A';
+        yourChainMilestoneTarget.textContent = 'N/A';
+        yourChainProgressPercent.textContent = 'N/A';
+        yourChainStatusText.textContent = 'N/A';
+        opponentChainCurrentHitsDisplay.textContent = 'N/A';
+        opponentChainMilestoneTarget.textContent = 'N/A';
+        opponentChainProgressPercent.textContent = 'N/A';
+        opponentChainStatusText.textContent = 'N/A';
         return;
     }
 
@@ -2433,9 +2526,6 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         const response = await fetch(combinedChainUrl);
         const data = await response.json();
 
-        console.log("updateDualChainTimers: Full API response data (after fetch):", data);
-        console.log(`updateDualChainTimers: Your Faction ID used: ${yourFactionId}`);
-
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : response.statusText;
             throw new Error(`Torn API Error fetching combined chain data: ${errorMessage}`);
@@ -2444,66 +2534,173 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         let yourChainData = null;
         let enemyChainData = null;
 
-        // --- CRITICAL FIX: MORE ROBUST EXTRACTION OF CHAIN DATA ---
-        // Determine if the API response is for a single faction directly (data.chain)
-        // or multiple factions (data[factionId].chain)
         if (data.chain && (factionIdsToFetch.length === 1 && String(factionIdsToFetch[0]) === String(yourFactionId))) {
-            // Case: Only your faction was fetched, and 'chain' is at the root.
             yourChainData = data.chain;
         } else if (data[yourFactionId]?.chain) {
-            // Case: Your faction data is nested under its ID (typically when multiple factions are fetched).
             yourChainData = data[yourFactionId].chain;
         }
 
-        if (enemyFactionId) { // Only try to extract enemy data if an enemy ID was provided
-             if (data[enemyFactionId]?.chain) {
-                // Enemy faction data is nested under its ID (typical for multi-faction fetch).
+        if (enemyFactionId) {
+            if (data[enemyFactionId]?.chain) {
                 enemyChainData = data[enemyFactionId].chain;
             } else if (factionIdsToFetch.length === 1 && String(factionIdsToFetch[0]) === String(enemyFactionId) && data.chain) {
-                // Edge case: Only enemy faction was requested and 'chain' is at the root.
                 enemyChainData = data.chain;
             }
         }
-        // --- END CRITICAL FIX ---
-        
-        console.log("updateDualChainTimers: Extracted yourChainData (after fix):", yourChainData);
 
+        // --- Process Your Faction Chain Data ---
         if (yourChainData) {
-            friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
-            friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
+            const currentHits = yourChainData.current || 0;
+            const timeLeft = yourChainData.timeout || 0;
 
-            currentLiveChainSeconds = yourChainData.timeout || 0;
+            friendlyHitsEl.textContent = currentHits.toLocaleString(); // Big number hits
+            friendlyTimeEl.textContent = formatTime(timeLeft); // Big timer
+
+            const milestoneProgress = getChainMilestoneProgress(currentHits);
+
+            yourChainCurrentHitsDisplay.textContent = `${currentHits.toLocaleString()} HITS`;
+            yourChainMilestoneTarget.textContent = milestoneProgress.next !== null ? milestoneProgress.next.toLocaleString() : 'MAX';
+            yourChainProgressPercent.textContent = `${milestoneProgress.percentage}%`;
+            yourChainProgressBar.style.width = `${milestoneProgress.percentage}%`;
+
+            // Dynamic Status Text & Color Logic (combining time and hits)
+            let statusText = 'N/A';
+            let statusClass = '';
+
+            if (currentHits === 0) {
+                statusText = 'BUILDING';
+                statusClass = 'status-grey';
+            } else if (milestoneProgress.next === null) { // At or beyond max milestone
+                statusText = 'MAX MILESTONE!';
+                statusClass = 'status-purple'; // Custom class for max milestone
+            } else if (timeLeft <= 0) { // Chain broke or expired
+                statusText = 'BROKEN!';
+                statusClass = 'status-red';
+            } else if (timeLeft > 0 && currentHits > 0) { // Active chain, time remaining, hits > 0
+                 if (timeLeft > 120) { // > 2 minutes
+                    statusText = 'ACTIVE';
+                    statusClass = 'status-green';
+                } else if (timeLeft > 30) { // 30s to 2 min
+                    statusText = 'LOW TIME!';
+                    statusClass = 'status-yellow';
+                } else { // <= 30s
+                    statusText = 'CRITICAL!';
+                    statusClass = 'status-red';
+                }
+            } else {
+                statusText = 'IDLE'; // Fallback if none of the above conditions met
+                statusClass = 'status-grey';
+            }
+            
+            yourChainStatusText.textContent = statusText;
+            yourChainStatusText.classList.add(statusClass);
+            yourChainProgressBar.classList.add(statusClass);
+            friendlyTimeEl.classList.add(statusClass); // Apply status color to timer text
+
+            currentLiveChainSeconds = timeLeft; // Update global for general timers
             lastChainApiFetchTime = Date.now();
         } else {
-            console.warn("updateDualChainTimers: yourChainData is still not available after extraction. Resetting chain timers to 0.");
+            console.warn("updateDualChainTimers: yourChainData is still not available after extraction. Resetting chain timers to default.");
             friendlyHitsEl.textContent = '0';
             friendlyTimeEl.textContent = 'Over';
+            yourChainCurrentHitsDisplay.textContent = '0 HITS';
+            yourChainMilestoneTarget.textContent = 'N/A';
+            yourChainProgressPercent.textContent = '0%';
+            yourChainProgressBar.style.width = '0%';
+            yourChainStatusText.textContent = 'NO DATA';
+            yourChainStatusText.classList.add('status-grey');
+            yourChainProgressBar.classList.add('status-grey');
+            friendlyTimeEl.classList.add('status-grey');
             currentLiveChainSeconds = 0;
             lastChainApiFetchTime = 0;
         }
 
-        // Process enemy faction's chain data
+        // --- Process Opponent Faction Chain Data ---
         if (enemyFactionId) {
-            if (enemyChainData) { // Use enemyChainData already extracted above
-                 enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
-                 enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
-            } else {
+            if (enemyChainData) {
+                const currentHits = enemyChainData.current || 0;
+                const timeLeft = enemyChainData.timeout || 0;
+
+                enemyHitsEl.textContent = currentHits.toLocaleString(); // Big number hits
+                enemyTimeEl.textContent = formatTime(timeLeft); // Big timer
+
+                const milestoneProgress = getChainMilestoneProgress(currentHits);
+
+                opponentChainCurrentHitsDisplay.textContent = `${currentHits.toLocaleString()} HITS`;
+                opponentChainMilestoneTarget.textContent = milestoneProgress.next !== null ? milestoneProgress.next.toLocaleString() : 'MAX';
+                opponentChainProgressPercent.textContent = `${milestoneProgress.percentage}%`;
+                opponentChainProgressBar.style.width = `${milestoneProgress.percentage}%`;
+
+                // Dynamic Status Text & Color Logic (combining time and hits) for opponent
+                let statusText = 'N/A';
+                let statusClass = '';
+
+                if (currentHits === 0) {
+                    statusText = 'BUILDING';
+                    statusClass = 'status-grey';
+                } else if (milestoneProgress.next === null) { // At or beyond max milestone
+                    statusText = 'MAX MILESTONE!';
+                    statusClass = 'status-purple';
+                } else if (timeLeft <= 0) { // Chain broke or expired
+                    statusText = 'BROKEN!';
+                    statusClass = 'status-red';
+                } else if (timeLeft > 0 && currentHits > 0) { // Active chain, time remaining, hits > 0
+                     if (timeLeft > 120) {
+                        statusText = 'ACTIVE';
+                        statusClass = 'status-green';
+                    } else if (timeLeft > 30) {
+                        statusText = 'LOW TIME!';
+                        statusClass = 'status-yellow';
+                    } else {
+                        statusText = 'CRITICAL!';
+                        statusClass = 'status-red';
+                    }
+                } else {
+                    statusText = 'IDLE';
+                    statusClass = 'status-grey';
+                }
+                
+                opponentChainStatusText.textContent = statusText;
+                opponentChainStatusText.classList.add(statusClass);
+                opponentChainProgressBar.classList.add(statusClass);
+                enemyTimeEl.classList.add(statusClass); // Apply status color to timer text
+            } else { // No enemy chain data
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
+                opponentChainCurrentHitsDisplay.textContent = '0 HITS';
+                opponentChainMilestoneTarget.textContent = 'N/A';
+                opponentChainProgressPercent.textContent = '0%';
+                opponentChainProgressBar.style.width = '0%';
+                opponentChainStatusText.textContent = 'NO DATA';
+                opponentChainStatusText.classList.add('status-grey');
+                opponentChainProgressBar.classList.add('status-grey');
+                enemyTimeEl.classList.add('status-grey');
             }
-        } else {
+        } else { // No enemy faction ID set in Leader Config
             enemyHitsEl.textContent = 'N/A';
             enemyTimeEl.textContent = 'No Enemy Set';
+            opponentChainCurrentHitsDisplay.textContent = 'N/A';
+            opponentChainMilestoneTarget.textContent = 'N/A';
+            opponentChainProgressPercent.textContent = 'N/A';
+            opponentChainProgressBar.style.width = '0%';
+            opponentChainStatusText.textContent = 'NO ENEMY';
+            opponentChainStatusText.classList.add('status-grey'); // Default grey for 'no enemy'
+            // No class for enemyTimeEl if no enemy set, it might retain old state or have none.
         }
 
     } catch (error) {
         console.error("Error in updateDualChainTimers:", error);
-        friendlyHitsEl.textContent = 'Error';
-        friendlyTimeEl.textContent = 'Error';
-        enemyHitsEl.textContent = 'Error';
-        enemyTimeEl.textContent = 'Error';
-        currentLiveChainSeconds = 0;
-        lastChainApiFetchTime = 0;
+        // Set all elements to error state on critical failure
+        [
+            friendlyHitsEl, friendlyTimeEl, yourChainCurrentHitsDisplay, yourChainMilestoneTarget,
+            yourChainProgressPercent, yourChainStatusText, enemyHitsEl, enemyTimeEl,
+            opponentChainCurrentHitsDisplay, opponentChainMilestoneTarget, opponentChainProgressPercent,
+            opponentChainStatusText
+        ].forEach(el => { if (el) el.textContent = 'Error'; });
+        if (yourChainProgressBar) yourChainProgressBar.style.width = '0%';
+        if (opponentChainProgressBar) opponentChainProgressBar.style.width = '0%';
+        if (yourChainProgressBar) yourChainProgressBar.classList.add('status-red');
+        if (opponentChainProgressBar) opponentChainProgressBar.classList.add('status-red');
     }
 }
 async function claimTarget(memberId, memberName) {
