@@ -4798,10 +4798,9 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         return;
     }
 
-    // Set the initial loading state
+    // Set the initial layout and loading message (title has been removed as requested)
     targetDisplayElement.innerHTML = `
         <div class="recently-met-layout">
-            <div class="header-box">Recently Met Opponents</div>
             <div class="scrollable-table-container">
                 <p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>
             </div>
@@ -4810,7 +4809,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
     const contentContainer = targetDisplayElement.querySelector('.scrollable-table-container');
 
     try {
-        // Step 1: Fetch the last 5 wars to get their IDs
+        // Fetch the last 5 wars to get their IDs
         const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
         const historyResponse = await fetch(historyUrl);
         const historyData = await historyResponse.json();
@@ -4823,14 +4822,14 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             return;
         }
 
-        // Step 2: Fetch detailed reports for those wars
+        // Fetch detailed reports for those wars
         contentContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
         const reportPromises = wars.map(war => 
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
 
-        // Step 3: Aggregate and deduplicate all opponents
+        // Aggregate and deduplicate all opponents
         const opponentsMap = new Map();
         warReports.forEach(reportData => {
             const report = reportData.rankedwarreport;
@@ -4852,8 +4851,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             return;
         }
 
-        // --- THIS IS THE CORRECTED PART ---
-        // Step 4: Check registration status in chunks to avoid Firestore limits
+        // Check registration status in chunks
         const registeredUserIds = new Set();
         const chunkSize = 30;
         for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
@@ -4863,16 +4861,18 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 registeredUserIds.add(doc.data().tornProfileId);
             });
         }
-        // --- END OF CORRECTION ---
 
-        // Step 5: Build the final HTML grid
+        // Build the final HTML grid
         const membersListContainer = document.createElement('div');
         membersListContainer.className = 'members-list-container';
 
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
             const isRegistered = registeredUserIds.has(String(opponent.id));
-            const profilePic = '../../images/default_profile_icon.png'; // Default pic
+            
+            // --- CHANGE 1: Use the random dummy photos ---
+            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
 
             let messageButton;
             if (isRegistered) {
@@ -4889,7 +4889,8 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                         <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
                     </div>
                     <div class="member-actions">
-                        <button class="add-member-button item-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                        {/* --- CHANGE 2: Removed the 'item-button' class from the Add Friend button --- */}
+                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
                         ${messageButton}
                     </div>
                 </div>
@@ -4897,7 +4898,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         }
 
         membersListContainer.innerHTML = cardsHtml;
-        contentContainer.innerHTML = ''; // Clear the "loading..." message
+        contentContainer.innerHTML = ''; 
         contentContainer.appendChild(membersListContainer);
 
     } catch (error) {
