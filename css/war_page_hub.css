@@ -3170,10 +3170,11 @@ min-width: 320px;
     margin-top: 70px; 
 }
 
-.faction-hits-display {
-    margin-top: -50px;
+/* --- Align Total Hits Box to Match Timers --- */
+#faction-hits-display {
+    align-self: flex-end;
+    margin-bottom: 2px; /* A small nudge to perfectly align the bottom borders */
 }
-
 /* The actual moving bar inside the container */
 .chain-progress-bar {
     height: 100%;
