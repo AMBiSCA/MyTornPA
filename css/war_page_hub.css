@@ -6,7 +6,7 @@
     grid-area: title; /* Assign title to its grid area */
 }
 
-/* Overall Container r the War Hub */
+/* Overall Container for the War Page Hub */
 #warPageHubContainer {
     background-color: #1e1e1e;
     color: #f0f0f0;
@@ -3060,187 +3060,87 @@ min-width: 320px;
 
 /* --- New Chain Timers Display - SPECIFIC TO ACTIVE OPS TAB --- */
 
-/* --- General Container for the Chain Display Boxes --- */
-/* This targets the inner box holding the chain data */
-.ops-control-item .chain-timer-box {
+/* This is the main container that holds the two boxes.
+   It uses flexbox to place them side-by-side. */
+#active-ops-tab .ops-chain-timers-container {
     display: flex;
-    flex-direction: column;
-    align-items: center; /* Center content horizontally */
-    justify-content: space-between; /* Distribute space vertically */
-    padding: 10px;
-    height: 180px; /* Adjust height as needed to fit content nicely */
-    box-sizing: border-box; /* Include padding in height */
-    background: linear-gradient(145deg, #1a232f, #111a24); /* Subtle dark gradient background */
-    border: 1px solid #3c526d;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Soft shadow for depth */
-    overflow: hidden; /* Important for progress bar text that might extend beyond the bar */
-    position: relative; /* Essential for absolute positioning of elements like progress bar text */
-    transition: all 0.3s ease-in-out; /* Smooth transitions for status color changes */
+    gap: 5px; /* This creates space between the two boxes */
+    justify-content: flex-start; /* Aligns the boxes to the start (left) */
+    align-items: flex-start; /* Aligns the tops of the boxes if they have different heights */
+    flex-wrap: wrap; /* Allows wrapping on smaller screens if needed */
 }
 
-/* --- Header Styling (e.g., "Your Faction Chain" / "Opponent Faction Chain") --- */
-.chain-timer-box .chain-timer-header {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #e0a71a; /* Orange/gold color for headers */
-    margin-bottom: 5px;
+/* This is the styling for each individual box (Your Chain and Enemy Chain) */
+#active-ops-tab .chain-timer-box {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 2px 5px; /* Significantly reduced padding */
+    text-align: center;
+    flex-shrink: 0;
+    min-width: 50px; /* Reduced min-width to allow more shrinking, but not too small */
+    width: fit-content; /* Allow box to shrink to fit its content if smaller than min-width */
+    box-sizing: border-box; /* Ensures padding is included in the total width */
+}
+
+/* The label at the top of each box (e.g., "Your Chain") */
+#active-ops-tab .chain-timer-header {
+    font-size: 0.6em; /* Reduced font size for header */
+    font-weight: bold;
+    color: #e0a71a; /* Gold color */
+    margin-bottom: 2px; /* Reduced margin */
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 2px; /* Reduced padding */
+    white-space: nowrap; /* Prevent header text from wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis if hidden */
 }
 
-/* --- Hits Value Row (Contains the big number + "HITS" text) --- */
-.chain-timer-box .chain-card-value-row {
+/* The container for the data (hits and time) */
+#active-ops-tab .chain-timer-data {
     display: flex;
-    align-items: baseline; /* Aligns the bottom of the number and text */
-    gap: 8px; /* Space between the number and 'HITS' */
-    margin: 5px 0;
+    flex-direction: column; /* Stack hits and time vertically */
+    justify-content: center;
+    align-items: center; /* Center horizontally after stacking */
+    gap: 0px; /* Reduced gap between hits and time */
+    margin-top: 2px; /* Reduced margin */
 }
 
-/* --- The BIG Chain Number --- */
-.chain-timer-box .big-chain-number {
-    font-size: 2.8em; /* Very large font size for prominence */
-    font-weight: 900; /* Extra bold */
-    color: #3498db; /* Bright blue for the numbers */
-    text-shadow: 0 0 10px rgba(52, 152, 219, 0.5); /* Subtle glow effect */
-    line-height: 1; /* Prevents extra spacing above/below the number */
-}
-
-/* --- "HITS" Units Text --- */
-.chain-timer-box .chain-units {
-    font-size: 0.9em;
-    color: #b0c4de; /* Lighter grey for units */
-    font-weight: 500;
-}
-
-/* --- Timer Row (e.g., "00m 00s") --- */
-.chain-timer-box .chain-card-timer-row {
-    margin: 5px 0 10px;
-}
-
-/* --- The Countdown Timer Display --- */
-.chain-timer-box .chain-timer-display {
-    font-family: 'Consolas', monospace; /* Monospace font for clear time readability */
-    font-size: 1.5em;
+/* The number of chain hits */
+#active-ops-tab .chain-timer-hits {
+    font-size: 1.2em; /* Reduced font size for hits */
     font-weight: bold;
-    color: #ecf0f1; /* Default white, will be overridden by JS status classes */
-    letter-spacing: 0.5px;
+    color: #f0f0f0;
+    line-height: 1; /* Reduce line height for tighter spacing */
 }
 
-/* --- Progress Bar Outer Container --- */
-.chain-timer-box .chain-progress-bar-outer {
-    width: 90%; /* Bar width relative to its parent container */
-    height: 25px; /* Fixed height of the progress bar */
-    background-color: #2b3a4a; /* Dark background for the empty/unfilled part */
-    border-radius: 12px; /* Rounded corners for the bar */
-    overflow: hidden; /* Important: Hides any content of inner bar that overflows */
-    position: relative; /* CRUCIAL: Establishes a positioning context for absolute children */
-    margin: 10px 0;
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3); /* Inner shadow for depth */
-}
-
-/* --- Progress Bar Inner Fill --- */
-.chain-timer-box .chain-progress-bar-inner {
-    height: 100%;
-    width: 0%; /* Start at 0%, JS will dynamically update this */
-    background-color: #3498db; /* Default blue fill color, will change dynamically */
-    border-radius: 12px; /* Rounded corners */
-    transition: width 0.5s ease-out, background-color 0.3s ease-in; /* Smooth animation for fill and color changes */
-    position: absolute; /* Positions it within its .chain-progress-bar-outer parent */
-    top: 0;
-    left: 0;
-    z-index: 1; /* Ensures the bar is behind the text overlays */
-}
-
-/* --- Styles common to ALL text elements *overlaying* the progress bar --- */
-.chain-progress-bar-outer span {
-    position: absolute; /* Position relative to .chain-progress-bar-outer */
-    top: 50%; /* Vertically center */
-    transform: translateY(-50%); /* Adjust for exact vertical centering */
-    color: #fff; /* Default white text color for readability */
+/* The countdown timer text */
+#active-ops-tab .chain-timer-time {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8em; /* Reduced font size for time */
     font-weight: bold;
-    font-size: 0.9em;
-    z-index: 2; /* Ensures text is always on top of the progress bar fill */
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Adds a shadow for better readability on varying backgrounds */
-    white-space: nowrap; /* Prevent text from wrapping */
+    color: #aaa;
+    line-height: 1; /* Reduce line height for tighter spacing */
+    white-space: nowrap; /* Prevent time from wrapping */
+}
+/* This is the main container that holds the two boxes. 
+   It uses flexbox to place them side-by-side. */
+.ops-chain-timers-container {
+    display: flex;
+    gap: 10px; /* This creates space between the two boxes */
+    justify-content: flex-start; /* Aligns the boxes to the start (left) */
 }
 
-/* --- Specific positioning for the current hits text inside the bar --- */
-.chain-progress-bar-outer .progress-bar-current-hits {
-    left: 10px; /* Position from the left edge of the bar */
+.
+/* Ensure the container holding them still works as expected for side-by-side */
+.ops-chain-timers-container {
+    display: flex;
+    gap: 5px; /* Reduced gap between the two boxes */
+    justify-content: flex-start;
+    align-items: flex-start; /* Align the tops of the boxes if they have different heights */
 }
-
-/* --- Specific positioning for the milestone target text at the right end --- */
-.chain-progress-bar-outer .progress-bar-milestone-target {
-    right: 10px; /* Position from the right edge of the bar */
 }
-
-/* --- Specific positioning for the percentage text (centered) --- */
-.chain-progress-bar-outer .chain-progress-percent {
-    left: 50%; /* Start from the middle */
-    transform: translate(-50%, -50%); /* Adjust for exact horizontal and vertical centering */
-    font-size: 1em;
-    letter-spacing: 0.5px;
-}
-
-/* --- Chain Status Text (e.g., "ACTIVE", "CRITICAL!", "BROKEN") --- */
-.chain-timer-box .chain-status-text {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-top: 5px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: color 0.3s ease-in-out; /* Smooth color changes */
-}
-
-/* --- Dynamic Status Colors (Added by JavaScript to elements like progress bar, timer, status text) --- */
-/* Using !important to ensure these override default styles */
-.status-green {
-    color: #2ecc71 !important; /* Text color */
-    background-color: #27ae60 !important; /* Background for bars */
-}
-
-.status-yellow {
-    color: #f1c40f !important;
-    background-color: #f39c12 !important;
-}
-
-.status-red {
-    color: #e74c3c !important;
-    background-color: #c0392b !important;
-}
-
-.status-grey {
-    color: #bdc3c7 !important;
-    background-color: #7f8c8d !important;
-}
-
-.status-purple { /* For MAX MILESTONE status */
-    color: #9b59b6 !important;
-    background-color: #8e44ad !important;
-}
-
-/* --- Optional: Animation for Critical State --- */
-/* Add the 'critical-pulse' class to .chain-timer-box element via JavaScript when critical */
-.chain-timer-box.critical-pulse {
-    animation: criticalPulse 1.5s infinite alternate; /* Applies a pulsating animation */
-}
-
-@keyframes criticalPulse {
-    from { border-color: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.8); } /* Start with brighter glow */
-    to { border-color: #c0392b; box-shadow: 0 0 5px rgba(231, 76, 60, 0.3); } /* End with softer glow */
-}
-
-/* --- Basic layout for .ops-controls-grid if not already defined --- */
-/* This is assumed to be the container that arranges your three ops-control-item blocks */
-.ops-controls-grid {
-    display: grid;
-    /* This creates responsive columns: min of 280px, max of 1 fraction of available space */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 15px; /* Space between the grid items (your ops-control-items) */
-    padding: 15px; /* Padding inside the grid container */
-}
-
 .chain-score-header-names {
     display: flex; /* Make the names display side-by-side */
     justify-content: center; /* Center the names horizontally within their wrapper */
