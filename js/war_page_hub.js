@@ -3114,7 +3114,6 @@ async function displayWarHistory(apiKey) {
         return;
     }
 
-    // Display a loading message
     enemyTargetsContainer.innerHTML = `
         <div class="war-history-container">
             <h4>Recent War History</h4>
@@ -3126,12 +3125,13 @@ async function displayWarHistory(apiKey) {
         const url = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&key=${apiKey}&comment=MyTornPA_WarHistory`;
         const response = await fetch(url);
         const data = await response.json();
-          console.log("War History API Response:", data);
+
         if (!response.ok || data.error) {
             throw new Error(data.error?.error || 'Failed to fetch war history.');
         }
 
-        const warsArray = Object.values(data.rankedwars || {});
+        // The data is an array directly inside the 'rankedwars' key.
+        const warsArray = data.rankedwars || [];
 
         if (warsArray.length === 0) {
             enemyTargetsContainer.innerHTML = `
@@ -3143,33 +3143,29 @@ async function displayWarHistory(apiKey) {
             return;
         }
 
-        // Safely sort the array, handling any malformed entries
-        warsArray.sort((a, b) => {
-            const timeA = a && a.war ? a.war.end : 0;
-            const timeB = b && b.war ? b.war.end : 0;
-            return timeB - timeA;
-        });
+        // No sorting needed, as the API call `sort=DESC` already returns them in the correct order.
 
-        // Build the HTML list, safely skipping any malformed entries
         let historyHtml = warsArray.slice(0, 10).map(war => {
-            if (!war || !war.factions || !war.war || !war.result) {
-                return ''; // Skip this entry if it's missing crucial data
+            // Safety check for the new structure
+            if (!war || !war.factions || !war.factions.length) {
+                return ''; 
             }
 
-            const yourFactionDetails = war.factions[globalYourFactionID];
-            const opponentFactionID = Object.keys(war.factions).find(id => id != globalYourFactionID);
-            const opponentFactionDetails = war.factions[opponentFactionID];
+            // --- NEW LOGIC USING ARRAY METHODS ---
+            const yourFactionDetails = war.factions.find(f => f.id == globalYourFactionID);
+            const opponentFactionDetails = war.factions.find(f => f.id != globalYourFactionID);
 
             if (!yourFactionDetails || !opponentFactionDetails) return '';
-
-            const result = war.result;
-            const resultClass = `war-result-${result.toLowerCase()}`;
-            const timeAgo = formatRelativeTime(war.war.end);
+            
+            const didYouWin = war.winner === globalYourFactionID;
+            const result = didYouWin ? 'Win' : 'Loss';
+            const resultClass = didYouWin ? 'war-result-win' : 'war-result-loss';
+            const timeAgo = formatRelativeTime(war.end);
 
             return `
                 <li class="war-history-item">
                     <span class="opponent-name">Vs. ${opponentFactionDetails.name}</span>
-                    <span class="war-result ${resultClass}">${result.charAt(0).toUpperCase() + result.slice(1)}</span>
+                    <span class="war-result ${resultClass}">${result}</span>
                     <span class="war-score">${yourFactionDetails.score.toLocaleString()} to ${opponentFactionDetails.score.toLocaleString()}</span>
                     <span class="war-time">${timeAgo}</span>
                 </li>
