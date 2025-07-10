@@ -3120,7 +3120,6 @@ function displayWarHistory(warsObject) {
 
     const warsArray = Object.values(warsObject || {});
 
-    // If there are no wars in the history
     if (warsArray.length === 0) {
         enemyTargetsContainer.innerHTML = `
             <div class="war-history-container">
@@ -3131,17 +3130,22 @@ function displayWarHistory(warsObject) {
         return;
     }
 
-    // --- THIS IS THE CORRECTED PART ---
     // Sort wars by end time, safely handling entries that might be missing data.
     warsArray.sort((a, b) => {
         const timeA = a.war ? a.war.end : 0;
         const timeB = b.war ? b.war.end : 0;
         return timeB - timeA;
     });
-    // --- END OF CORRECTION ---
 
     // Build the HTML list of the last 10 wars
     let historyHtml = warsArray.slice(0, 10).map(war => {
+        // --- THIS IS THE NEW SAFETY CHECK ---
+        // If a war entry is missing crucial data, skip it entirely.
+        if (!war.factions || !war.war || !war.result) {
+            return ''; // Return an empty string to ignore this entry
+        }
+        // --- END OF NEW SAFETY CHECK ---
+
         const yourFactionDetails = war.factions[globalYourFactionID];
         const opponentFactionID = Object.keys(war.factions).find(id => id != globalYourFactionID);
         const opponentFactionDetails = war.factions[opponentFactionID];
