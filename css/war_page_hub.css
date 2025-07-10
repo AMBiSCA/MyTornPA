@@ -393,16 +393,23 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
 /* This new container holds the title and the ratio box */
 .war-history-header {
     display: flex;
-    justify-content: space-between; /* Pushes title left and ratio box right */
+    justify-content: space-between; 
     align-items: center;
-    /* The bottom border is inherited from the h4 style, which is fine */
+    position: relative; /* This is needed for centering to work */
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444; /* Adds the separator line */
+    padding-bottom: 10px;
 }
 
 /* We need to remove the border from the h4 itself so it doesn't double up */
 .war-history-header h4 {
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-bottom: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    /* --- These lines do the centering --- */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* This is the "nice little box" for the ratio */
