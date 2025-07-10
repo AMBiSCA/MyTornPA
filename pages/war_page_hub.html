@@ -204,16 +204,18 @@
                 <div id="active-ops-tab" class="tab-pane">
                     <div class="ops-controls-grid">
                         
-                        <div class="ops-left-group">
-                            <div class="ops-control-item">
-                                <div class="chain-timer-box" id="friendly-chain-timer">
-                                    <div class="chain-timer-header">Your Current Chain</div>
-                                    <div class="chain-timer-data">
-                                        <span class="chain-timer-hits" id="friendly-chain-hits">0</span>
-                                        <span class="chain-timer-time" id="friendly-chain-time">Over</span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="chain-timer-header">Your Faction Chain</div>
+        <div class="chain-card-value-row">
+            <span id="friendly-chain-hits" class="big-chain-number">0</span>
+            <span class="chain-units">HITS</span>
+        </div>
+        <div class="chain-card-timer-row">
+            <span id="friendly-chain-time" class="chain-timer-display">00m 00s</span>
+        </div>
+        <div class="chain-progress-bar-outer">
+            <div class="chain-progress-bar-inner" id="yourChainProgressBar" style="width: 100%;"></div>
+        </div>
+        <div class="chain-status-text" id="yourChainStatusText">Loading...</div>
 
                             <div class="ops-control-item">
     <div id="faction-hits-display">
@@ -224,16 +226,18 @@
     </div>
 </div>
 
-                            <div class="ops-control-item">
-                                <div class="chain-timer-box" id="enemy-chain-timer">
-                                    <div class="chain-timer-header">Enemies Current Chain</div>
-                                    <div class="chain-timer-data">
-                                        <span class="chain-timer-hits" id="enemy-chain-hits">0</span>
-                                        <span class="chain-timer-time" id="enemy-chain-time">Over</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                           <div class="chain-timer-header">Opponent Faction Chain</div>
+        <div class="chain-card-value-row">
+            <span id="enemy-chain-hits" class="big-chain-number">0</span>
+            <span class="chain-units">HITS</span>
+        </div>
+        <div class="chain-card-timer-row">
+            <span id="enemy-chain-time" class="chain-timer-display">00m 00s</span>
+        </div>
+        <div class="chain-progress-bar-outer">
+            <div class="chain-progress-bar-inner" id="opponentChainProgressBar" style="width: 100%;"></div>
+        </div>
+        <div class="chain-status-text" id="opponentChainStatusText">Loading...</div>
                         
                         <div class="ops-control-item">
                             <div class="ranked-war-container">
