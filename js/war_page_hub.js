@@ -3732,7 +3732,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Member": 99, "Applicant": 100 };
     membersArray.sort((a, b) => {
         const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
-        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"]; // Corrected typo here from previous response
         if (orderA !== orderB) { return orderA - orderB; }
         return a.name.localeCompare(b.name);
     });
@@ -3748,7 +3748,6 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         const memberRank = member.position;
         const isFriend = friendsSet.has(tornPlayerId);
 
-        // --- CORRECTED: This now generates the button with the person icon and a +/- sign ---
         let actionButtonHtml = '';
         if (isFriend) {
             actionButtonHtml = `
@@ -3764,19 +3763,24 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             `;
         }
 
-        // Initialize with a default image URL. This will be shown immediately.
-        let profileImageUrlForDisplay = '../../images/default_profile_icon.png';
-
         const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
 
+        // --- START OF CRITICAL CHANGE FOR IMAGE HANDLING ---
+        // 1. Create the img element separately
+        const profileImgElement = document.createElement('img');
+        profileImgElement.classList.add('member-profile-pic');
+        profileImgElement.alt = `${memberName}'s profile picture`;
+        // 2. IMMEDIATELY set its src to the default. This ensures it's never a broken image.
+        profileImgElement.src = '../../images/default_profile_icon.png';
+
+        // Set the innerHTML of the div without the <img> tag
         memberItemDiv.innerHTML = `
             <span class="member-rank">${memberRank}</span>
             <div class="member-identity">
-                <img src="${profileImageUrlForDisplay}" alt="${memberName}'s profile picture" class="member-profile-pic">
                 <span class="member-name">${memberName}</span>
             </div>
             <div class="member-actions">
@@ -3785,24 +3789,44 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             </div>
         `;
 
+        // Find the identity div and prepend the image element
+        const memberIdentityDiv = memberItemDiv.querySelector('.member-identity');
+        if (memberIdentityDiv) {
+            memberIdentityDiv.prepend(profileImgElement);
+        }
+        // --- END OF CRITICAL CHANGE FOR IMAGE HANDLING ---
+
         membersListContainer.appendChild(memberItemDiv);
 
-        // This existing async IIFE will run after the element is added to the DOM.
-        // It fetches the actual profile picture from Firebase and updates the <img> src.
-        (async () => {
+        // This async IIFE will now update the 'profileImgElement' that was just created.
+        (async (imgEl, currentTornPlayerId, currentMemberName) => {
             try {
-                const docRef = db.collection('users').doc(String(tornPlayerId));
+                // Check cache first to avoid unnecessary fetches
+                if (memberProfileCache[currentTornPlayerId] && memberProfileCache[currentTornPlayerId].profile_image) {
+                    imgEl.src = memberProfileCache[currentTornPlayerId].profile_image;
+                    return; // No need to fetch if in cache
+                }
+
+                const docRef = db.collection('users').doc(String(currentTornPlayerId));
                 const docSnap = await docRef.get();
                 if (docSnap.exists) {
                     const firebaseMemberData = docSnap.data();
                     const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
-                    if (imgElement) imgElement.src = profileImageUrl;
+                    
+                    // Update the cache
+                    memberProfileCache[currentTornPlayerId] = { profile_image: profileImageUrl, name: firebaseMemberData.name || currentMemberName };
+
+                    imgEl.src = profileImageUrl;
+                } else {
+                    // If user document doesn't exist, the default is already set, no action needed here.
+                    // But explicitly log for debugging.
+                    console.log(`[Firestore] No user document found for Torn ID: ${currentTornPlayerId}. Default image is already in place.`);
                 }
             } catch (error) {
-                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${currentTornPlayerId}:`, error);
+                // On error, the default image remains, which is the desired fallback.
             }
-        })();
+        })(profileImgElement, tornPlayerId, memberName); // Pass the actual img element and member data
     }
 }
 
