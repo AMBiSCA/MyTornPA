@@ -396,7 +396,6 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
     justify-content: space-between; 
     align-items: center;
     position: relative; /* This is needed for centering to work */
-    margin-bottom: 15px;
     padding-bottom: 10px;
 }
 
