@@ -269,7 +269,8 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     if (data.length === 0) {
         tableHtml += `<tr><td colspan="${columns.length}" style="text-align: center; padding: 20px;">No data available for this period.</td></tr>`;
     } else {
-        data.forEach(row => {
+        const itemsToDisplay = data.slice(0, 9); // Limit to 9 items for display
+        itemsToDisplay.forEach(row => { // Loop over the sliced data
             tableHtml += `<tr>`;
             columns.forEach(col => {
                 let displayValue = row[col.key] !== undefined ? row[col.key] : 'N/A';
