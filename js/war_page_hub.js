@@ -5632,14 +5632,15 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     globalYourFactionID = finalFactionId; // Set the global variable
 
-    // Dynamically set the faction chatMessagesCollection based on the user's faction ID
+    // --- NEW: Dynamically set the chatMessagesCollection based on the user's faction ID ---
     if (globalYourFactionID) {
         chatMessagesCollection = db.collection('factionChats').doc(String(globalYourFactionID)).collection('messages');
-        console.log(`Faction chat messages collection set to: factionChats/${globalYourFactionID}/messages`);
+        console.log(`Chat messages collection set to: factionChats/${globalYourFactionID}/messages`);
     } else {
         chatMessagesCollection = null; // Reset if no faction ID
         console.warn("Could not determine user's faction ID. Faction chat will not be available.");
     }
+    // --- END NEW ---
 
     const activeOpsScoreBox = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
     const announcementScoreboardContainer = document.getElementById('announcementScoreboardContainer');
@@ -5674,25 +5675,7 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (factionApiFullData.error) {
             throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
         }
-
-        // --- NEW: Extract and store globalRankedWarData and globalEnemyFactionID here ---
-        globalRankedWarData = factionApiFullData.wars?.ranked || null;
-        if (globalRankedWarData) {
-            const yourFactionInfo = globalRankedWarData.factions.find(f => String(f.id) === String(finalFactionId));
-            const opponentFactionInfo = globalRankedWarData.factions.find(f => String(f.id) !== String(finalFactionId));
-            if (opponentFactionInfo) {
-                globalEnemyFactionID = opponentFactionInfo.id;
-                console.log(`Detected active ranked war with opponent ID: ${globalEnemyFactionID}`);
-            } else {
-                globalEnemyFactionID = null; // No opponent found in active war
-                console.log("No opponent found in active ranked war data.");
-            }
-        } else {
-            globalEnemyFactionID = null; // No active ranked war
-            console.log("No active ranked war data found.");
-        }
-        // --- END NEW ---
-
+        
         if (factionApiFullData.chain && typeof factionApiFullData.chain.current === 'number') {
             localCurrentClaimHitCounter = factionApiFullData.chain.current;
             console.log(`Initialized localCurrentClaimHitCounter to: ${localCurrentClaimHitCounter}`);
@@ -5700,15 +5683,15 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
             localCurrentClaimHitCounter = 0; // Default to 0 if no chain data
             console.log("Faction chain data not found, localCurrentClaimHitCounter initialized to 0.");
         }
-
-        updateRankedWarDisplay(globalRankedWarData, finalFactionId); // Use globalRankedWarData
+            
+        updateRankedWarDisplay(factionApiFullData.wars?.ranked, finalFactionId);
         console.log("initializeAndLoadData: updateRankedWarDisplay called successfully.");
 
         console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
 
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey);
+        populateUiComponents(warData, apiKey); 
 
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
@@ -5720,13 +5703,8 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
-
-        // Ensure global war data is reset on error
-        globalRankedWarData = null;
-        globalEnemyFactionID = null;
     }
 }
-
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
     if (!quickFFTargetsDisplay) {
