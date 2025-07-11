@@ -2958,7 +2958,7 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         } else {
             console.warn("updateDualChainTimers: yourChainData is still not available after extraction. Resetting chain timers to 0.");
             friendlyHitsEl.textContent = '0';
-            friendlyTimeEl.textContent = 'Over';
+            friendlyTimeEl.textContent = 'No Current Chain';
             currentLiveChainSeconds = 0;
             lastChainApiFetchTime = 0;
         }
@@ -2977,8 +2977,8 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
                 enemyTimeEl.textContent = 'Over';
             }
         } else {
-            enemyHitsEl.textContent = 'N/A';
-            enemyTimeEl.textContent = 'No Enemy Set';
+            enemyHitsEl.textContent = '0';
+            enemyTimeEl.textContent = 'No Current Chain';
         }
 
     } catch (error) {
