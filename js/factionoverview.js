@@ -245,18 +245,12 @@ async function switchFactionOverviewSubTab(tabId) {
     applyCurrentFiltersAndSort();
 }
 
-/**
- * Generates and injects an HTML table for displaying generic log data.
- * @param {HTMLElement} targetElement The DOM element to inject the table into.
- * @param {Array<Object>} data An array of objects to display.
- * @param {Array<Object>} columns An array of column definitions.
- * @param {string} title The title for the table/view.
- */
 function renderDynamicDataTable(targetElement, data, columns, title) {
     let tableHtml = `
-        <table class="fo-data-table">
-            <thead>
-                <tr>
+        <h3 class="fo-view-title">✨ ${title}</h3>
+        <div class="fo-table-container"> <table class="fo-data-table">
+                <thead>
+                    <tr>
     `;
 
     // Add table headers
@@ -264,26 +258,34 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
         tableHtml += `<th ${col.sortable ? `data-sort-key="${col.key}" class="fo-sortable-header"` : ''}>${col.header} ${col.sortable ? '(▲▼)' : ''}</th>`;
     });
     tableHtml += `
-                </tr>
-            </thead>
-            <tbody>
-    `;
+                    </tr>
+                </thead>
+                <tbody class="fo-scrollable-tbody"> `;
 
     // Add table rows (initially, all data before filtering/sorting)
     if (data.length === 0) {
         tableHtml += `<tr><td colspan="${columns.length}" style="text-align: center; padding: 20px;">No data available for this period.</td></tr>`;
     } else {
-        data.forEach(row => {
+        // Limit initial display to 10 items for now, full pagination will come later
+        const itemsToDisplay = data.slice(0, 10); // Display only first 10 for initial scroll test
+        itemsToDisplay.forEach(row => {
             tableHtml += `<tr>`;
             columns.forEach(col => {
                 let displayValue = row[col.key] !== undefined ? row[col.key] : 'N/A';
+                // Handle specific formatting for known keys
                 if (col.key === 'timestamp' && displayValue !== 'N/A') {
-                    // Format timestamp as a readable date/time (e.g., DD/MM/YYYY HH:MM)
                     displayValue = formatTimestampToLocale(displayValue);
                 } else if (col.key === 'amount' && typeof displayValue === 'number') {
-                    // Format amounts as currency
                     displayValue = `$${displayValue.toLocaleString()}`;
+                } else if (col.key === 'quantity' && typeof displayValue === 'number') {
+                    displayValue = displayValue.toLocaleString();
                 }
+
+                // If displayValue is N/A or empty-like, display as empty string
+                if (displayValue === 'N/A' || displayValue === 'o' || displayValue === 0 || displayValue === null || displayValue === '') {
+                    displayValue = ''; // Display as empty string in table for N/A or default 0
+                }
+                
                 tableHtml += `<td>${displayValue}</td>`;
             });
             tableHtml += `</tr>`;
@@ -291,19 +293,21 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     }
 
     tableHtml += `
-            </tbody>
-        </table>
-    `;
+                </tbody>
+            </table>
+        </div> `;
 
     targetElement.innerHTML = tableHtml;
 
     // Get reference to the newly created table
     factionOverviewCurrentDataTable = targetElement.querySelector('.fo-data-table');
 
-    // Attach sorting event listeners to headers
-    setupTableSorting(factionOverviewCurrentDataTable, data);
-}
+    // Attach sorting event listeners to headers (pass data.slice(0, 10) for sorting current view)
+    setupTableSorting(factionOverviewCurrentDataTable, data.slice(0, 10)); // Pass only displayed data for sorting
 
+    // After rendering, apply current filters if any
+    applyCurrentFiltersAndSort();
+}
 /**
  * Renders the content specifically for the Logistics sub-tab.
  * @param {HTMLElement} targetElement The DOM element to inject content into.
