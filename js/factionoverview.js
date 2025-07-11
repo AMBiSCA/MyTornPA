@@ -146,6 +146,7 @@ async function switchFactionOverviewSubTab(tabId) {
     }
 
     // Update active state of sub-tab buttons
+    // This part should be BEFORE the switch statement as it's common to all tabs.
     if (factionOverviewSubTabsContainer) {
         factionOverviewSubTabsContainer.querySelectorAll('.fo-sub-tab-button').forEach(button => {
             button.classList.remove('active');
@@ -157,12 +158,13 @@ async function switchFactionOverviewSubTab(tabId) {
         }
     }
 
+    // Always show a loading message initially
     displayArea.innerHTML = `<p style="text-align: center; padding-top: 20px; color: #ccc;">Loading ${tabId.replace('-', ' ')} data...</p>`;
 
     // --- Content rendering logic based on tabId ---
     let dataToDisplay = [];
     let columns = [];
-    let viewTitle = ``; // Will be set dynamically
+    let viewTitle = ``;
 
     // Decide which data and columns to use based on the selected tab
     switch (tabId) {
@@ -217,19 +219,19 @@ async function switchFactionOverviewSubTab(tabId) {
 
         case 'logistics':
             renderLogisticsTabContent(displayArea);
-            return; // Exit after rendering specific content
+            // Controls bar is managed internally by renderLogisticsTabContent if needed
+            return;
 
         case 'oversight':
             renderOversightTabContent(displayArea);
-            return; // Exit after rendering specific content
+            // Controls bar is managed internally by renderOversightTabContent if needed
+            return;
 
-        case 'faction-balances': // NEW CASE FOR FACTION BALANCES
-            displayArea.innerHTML = `<p style="text-align: center; padding-top: 20px; color: #aaa;">This tab is currently under development and does not display data.</p>`;
-            // Optionally, hide the controls bar for this tab if it's not relevant
-            const controlsBar = document.getElementById('factionOverviewControlsBar');
-            if (controlsBar) {
-                controlsBar.style.display = 'none'; // Hide search/date controls
-            }
+        // CORRECT AND ONLY 'faction-balances' CASE:
+        case 'faction-balances':
+            renderFactionBalancesTabContent(displayArea); // CALL THE NEW FUNCTION HERE
+            // The controls bar (search/date) is handled *inside* renderFactionBalancesTabContent
+            // (it hides it by default for this specific tab)
             return; // IMPORTANT: Return here so it doesn't try to render a generic table
 
         default:
@@ -237,7 +239,24 @@ async function switchFactionOverviewSubTab(tabId) {
             return;
     }
 
-    // Ensure controls bar is visible for tabs that use it
+    // Ensure controls bar is visible for tabs that use it (i.e., the table-based tabs)
+    // This will make it visible again if you navigate away from 'logistics', 'oversight',
+    // or 'faction-balances' back to the table-based tabs.
+    const controlsBar = document.getElementById('factionOverviewControlsBar');
+    if (controlsBar) {
+        controlsBar.style.display = 'flex'; // Or 'block' depending on your CSS
+    }
+
+    // Render generic table for transaction logs (Armory/Funds/Crime)
+    renderDynamicDataTable(displayArea, dataToDisplay, columns, viewTitle);
+
+    // After rendering, apply current filters if any
+    applyCurrentFiltersAndSort();
+}
+
+    // Ensure controls bar is visible for tabs that use it (i.e., the table-based tabs)
+    // This will make it visible again if you navigate away from 'logistics', 'oversight',
+    // or 'faction-balances' back to the table-based tabs.
     const controlsBar = document.getElementById('factionOverviewControlsBar');
     if (controlsBar) {
         controlsBar.style.display = 'flex'; // Or 'block' depending on your CSS
