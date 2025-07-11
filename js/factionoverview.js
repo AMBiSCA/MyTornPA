@@ -594,6 +594,9 @@ async function fetchAllRawFactionNewsData() {
 // In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
 
 /**
+// In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
+
+/**
  * Processes raw Torn API faction news data (which is an array of news items)
  * into a standardized format for tables, parsing details from the 'text' field.
  * @param {Array<Object>} newsArray The 'news' array from the Torn API response.
@@ -653,51 +656,42 @@ function processFactionNewsForTable(newsArray, category) {
 
         // --- Category-Specific Parsing ---
         if (category === 'armoryAction' || category === 'armoryDeposit') {
-            let match;
-            item = 'N/A'; // Reset to N/A for this specific category
-            quantity = 'N/A'; // Reset to N/A
+            // New comprehensive regex to extract Item and Quantity from various armory news texts.
+            // It covers "used", "loaned", "gave", "deposited", "filled", "retrieved" actions.
+            // Group 1: Optional quantity (e.g., "1", "30") when explicitly stated (e.g., "1x", "30 x").
+            // Group 2: The actual item name.
 
-            // Pattern 1: "<a...>User</a> used one of the faction's [Item Name] items" or "item"
-            // Example: "AMBiSCA used one of the faction's First Aid Kit items"
-            match = sourceText.match(/(?:used|filled)\s+one of the faction's\s+(.+?)\s+items?/);
+            const armoryExtractRegex = /(?:used|loaned|gave|deposited|filled|retrieved)(?:\s+one of the faction's)?\s*(?:(\d+)\s*x\s*)?(.+?)(?:\s+items?|\s+to themselves|\s+from the faction armory|\s+to|\s+from)?(?:\s+armory)?$/;
+            
+            match = sourceText.match(armoryExtractRegex);
+
             if (match) {
-                quantity = 1; // "one of the" implies quantity 1
-                item = match[1].trim(); // Capture the item name
-                console.log(`[DEBUG] Armory Pattern 1 (Used/Filled 'one of the'): Item=${item}, Quantity=${quantity}`);
-            }
-
-            // Pattern 2: "<a...>User</a> withdrew [Qty]x [Item Name] from armory"
-            // Example: "KetchuPP gave 30x Flash Grenade to themselves from the faction armory"
-            // Example: "KetchuPP loaned 1x Magnum to themselves from the faction armory"
-            // Example: "whysellco deposited 1 x Bulletproof Vest"
-            // Example: "whysellco deposited 20 x Morphine"
-            // This is for explicit quantity (e.g., "30x" or "1 x")
-            if (item === 'N/A') { // Only try this if Pattern 1 didn't match
-                const armoryExtractRegex = /(?:used|loaned|gave|deposited|filled|retrieved)(?:\s+one of the faction's)?\s*(?:(\d+)\s*x\s*)?(.+?)(?:\s+items?|\s+to themselves|\s+from the faction armory|\s+to|\s+from)?(?:\s+armory)?$/;
-                if (match) {
-                    quantity = match[1] ? parseInt(match[1], 10) : 1; // Explicit quantity, or default to 1
-                    item = match[2].trim(); // Capture the item name
-                    // Clean up specific suffixes that might be captured
-                    item = item.replace(/(?: items?)$/, '').replace(/(?: from the faction armory)$/, '').trim();
-                    console.log(`[DEBUG] Armory Pattern 2 (Withdraw/Deposit 'x' or direct): Item=${item}, Quantity=${quantity}`);
+                // Determine quantity: If group 1 (explicit number before 'x') exists, parse it.
+                // Otherwise, if "one of the" was implied, quantity is 1.
+                // Otherwise, default to 1 (for simple "deposited Item Name" or other cases).
+                if (match[1]) { 
+                    quantity = parseInt(match[1], 10);
+                } else if (sourceText.includes("one of the faction's")) {
+                    quantity = 1;
                 } else {
-                    console.log(`[DEBUG] Armory Pattern 2: NO MATCH for "${sourceText}"`);
+                    quantity = 1; 
                 }
-            }
+                
+                item = match[2].trim(); // Capture the item name from Group 2
 
-            // Pattern 3: Catch-all for simple deposits like "deposited [Item Name]" (no quantity specified, implies 1)
-            // If the item still hasn't been parsed, try a simpler 'deposited' match
-            if (item === 'N/A') {
-                match = sourceText.match(/deposited\s+(.+?)(?:\s+to armory)?$/);
-                if (match) {
-                    quantity = 1; // Assume 1 if no quantity is part of text
-                    item = match[1].trim();
-                    console.log(`[DEBUG] Armory Pattern 3 (Simple Deposited): Item=${item}, Quantity=${quantity}`);
-                } else {
-                    console.log(`[DEBUG] Armory Pattern 3: NO MATCH for "${sourceText}"`);
-                }
-            }
+                // Clean up common suffixes from the captured item name
+                item = item.replace(/\s+items?$/, '')
+                           .replace(/\s+from the faction armory$/, '')
+                           .replace(/\s+to themselves$/, '')
+                           .replace(/\s+from armory$/, '') // Added this to clean up "Item from armory"
+                           .trim();
 
+                console.log(`[DEBUG] Armory Match Found: Item=${item}, Quantity=${quantity}`);
+            } else {
+                console.log(`[DEBUG] Armory Regex NO MATCH for "${sourceText}"`);
+                item = 'N/A'; // Ensure N/A if no match
+                quantity = 'N/A';
+            }
             console.log(`[DEBUG] Final Armory Item: ${item}, Quantity: ${quantity}`);
 
         } else if (category === 'depositFunds') {
