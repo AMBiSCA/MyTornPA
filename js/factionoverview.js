@@ -13,7 +13,6 @@
 
 let factionOverviewUserApiKey = null; // Stores the logged-in user's Torn API key for this page
 let factionOverviewGlobalYourFactionID = null; // Stores the user's faction ID
-let primaryFactionApiKey = null; // Stores the central API key for faction-wide data
 
 let factionOverviewPageContentContainer = null; // Main container for all dynamic content on this page
 let factionApiFullData = null; 
@@ -1058,7 +1057,17 @@ function applyCurrentFiltersAndSort() {
 }
 
 
-async function populateLogisticsData() { // Made async
+// =====================================================================================================================
+// LOGISTICS & OVERSIGHT DATA PROCESSING FUNCTIONS
+// These functions perform aggregation and calculations for the summary tabs.
+// =====================================================================================================================
+
+// In factionoverview.js, find the existing populateLogisticsData function and replace it entirely with this:
+
+/**
+ * Populates data for the Logistics tab using real historical data from Firebase.
+ */
+function populateLogisticsData() {
     const stockBody = document.getElementById('foLogisticsStockBody');
     const largeMovesBody = document.getElementById('foLogisticsLargeMovesBody');
 
@@ -1077,88 +1086,63 @@ async function populateLogisticsData() { // Made async
         return;
     }
 
-    let liveArmoryData = {};
-    try {
-        if (!factionOverviewGlobalYourFactionID || !primaryFactionApiKey) { // Use primaryFactionApiKey here
-            throw new Error("Faction ID or PRIMARY API key missing for live armory data.");
-        }
-        const armoryApiUrl = `https://api.torn.com/v2/faction/${String(factionOverviewGlobalYourFactionID)}?selections=armory&key=${primaryFactionApiKey}&comment=MyTornPA_LiveArmoryStock`;
-        const response = await fetch(armoryApiUrl);
-        const data = await response.json();
-
-        if (!response.ok || data.error) {
-            throw new Error(data.error ? data.error.error : response.statusText);
-        }
-        liveArmoryData = data.armory || {};
-        console.log("[DEBUG] Live Armory Data fetched:", liveArmoryData);
-
-    } catch (error) {
-        console.error("Error fetching live armory data:", error);
-        stockBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px; color: red;">Error loading live stock: ${error.message}</td></tr>`;
-        return;
-    }
-
-
-    const itemNetQuantities = {};
-    const itemUsagePerDay = {};
-    const sevenDaysAgo = new Date().getTime() - (7 * 24 * 60 * 60 * 1000);
+    // --- Part 1: Calculate Current Faction Armory Stock Levels (Estimated) ---
+    // This requires processing all historical armory actions to get net quantities.
+    const itemNetQuantities = {}; // itemName -> net quantity (deposits - withdrawals)
+    const itemUsagePerDay = {};   // itemName -> { dayTimestamp -> total used }
+    const sevenDaysAgo = new Date().getTime() - (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
     const now = new Date().getTime();
 
+    // Iterate through all historical armory logs to calculate net quantities and daily usage.
+    // Make a copy and sort by timestamp ascending for correct net quantity calculation.
     const sortedArmoryLogs = [...historicalArmoryLogs].sort((a, b) => a.timestamp - b.timestamp);
 
     sortedArmoryLogs.forEach(entry => {
-        // IMPORTANT: Remove prefixes for calculation here, as 'entry.item' comes from processFactionNewsForTable
-        const rawItemName = entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim();
+        const rawItemName = entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim(); // Remove prefix for stock calculation
         const quantity = entry.quantity || 0;
 
         if (rawItemName === 'N/A' || quantity === 'N/A' || !rawItemName) return;
 
+        // Initialize item if not seen before
         if (!itemNetQuantities[rawItemName]) {
             itemNetQuantities[rawItemName] = 0;
             itemUsagePerDay[rawItemName] = {};
         }
 
+        // Update Net Quantities (for 'On Hand Qty')
         if (entry.category === 'armoryDeposit') {
             itemNetQuantities[rawItemName] += quantity;
-        } else if (entry.category === 'armoryAction') {
-            if (entry.rawNews.includes("retrieved") || entry.rawNews.includes("withdrew") || 
-                entry.rawNews.includes("used") || entry.rawNews.includes("loaned") || 
-                entry.rawNews.includes("gave")) {
-                itemNetQuantities[rawItemName] -= quantity;
-            }
+        } else if (entry.category === 'armoryAction') { // Covers Withdrawals, Used, Loaned, Gave, Retrieved
+            itemNetQuantities[rawItemName] -= quantity;
         }
 
+        // Update Usage for Avg. Daily Use and Weekly Change, only for actions that decrease stock and are recent
         if (entry.category === 'armoryAction' && entry.timestamp >= sevenDaysAgo && entry.timestamp <= now) {
+            // Check specific actions that are 'usage'
             if (entry.rawNews.includes("used") || entry.rawNews.includes("loaned") || entry.rawNews.includes("gave") || entry.rawNews.includes("retrieved") || entry.rawNews.includes("withdrew")) {
-                const dayTimestamp = new Date(entry.timestamp).setUTCHours(0, 0, 0, 0);
-                if (!itemUsagePerDay[rawItemName]) {
-                    itemUsagePerDay[rawItemName] = {};
-                }
+                const dayTimestamp = new Date(entry.timestamp).setUTCHours(0, 0, 0, 0); // Normalize to start of UTC day
                 itemUsagePerDay[rawItemName][dayTimestamp] = (itemUsagePerDay[rawItemName][dayTimestamp] || 0) + quantity;
             }
         }
     });
 
     const currentStockData = [];
-    for (const itemId in liveArmoryData) {
-        if (liveArmoryData.hasOwnProperty(itemId)) {
-            const liveItem = liveArmoryData[itemId];
-            const itemName = liveItem.name; // This itemName comes directly from live API, should be clean
-            const onHandQty = liveItem.quantity;
-
+    for (const rawItemName in itemNetQuantities) {
+        if (itemNetQuantities.hasOwnProperty(rawItemName)) {
+            const onHandQty = itemNetQuantities[rawItemName];
             let totalUsedLast7Days = 0;
-            let daysWithUsageCount = 0;
+            let daysWithUsageCount = 0; // Count of distinct days with usage for this item
 
-            if (itemUsagePerDay[itemName]) { // Check if this item has historical usage data
-                totalUsedLast7Days = Object.values(itemUsagePerDay[itemName]).reduce((sum, qty) => sum + qty, 0);
-                daysWithUsageCount = Object.keys(itemUsagePerDay[itemName]).length;
+            if (itemUsagePerDay[rawItemName]) {
+                totalUsedLast7Days = Object.values(itemUsagePerDay[rawItemName]).reduce((sum, qty) => sum + qty, 0);
+                daysWithUsageCount = Object.keys(itemUsagePerDay[rawItemName]).length;
             }
 
             const avgDailyUse = daysWithUsageCount > 0 ? (totalUsedLast7Days / daysWithUsageCount).toFixed(1) : 0;
-            const weeklyChange = -totalUsedLast7Days;
+            const weeklyChange = -totalUsedLast7Days; // Represents net usage (negative if used)
 
             currentStockData.push({
-                itemName: itemName, // Use the clean name from liveArmoryData
+                itemName: rawItemName, // Use the raw item name without prefix
                 onHandQty: onHandQty,
                 avgDailyUse: parseFloat(avgDailyUse),
                 weeklyChange: weeklyChange
@@ -1166,6 +1150,7 @@ async function populateLogisticsData() { // Made async
         }
     }
 
+    // Sort by Item Name alphabetically for consistency
     currentStockData.sort((a, b) => a.itemName.localeCompare(b.itemName));
 
     let stockHtml = '';
@@ -1185,26 +1170,26 @@ async function populateLogisticsData() { // Made async
     }
     stockBody.innerHTML = stockHtml;
 
-    const largeMovesThreshold = 50;
-    const highValueItems = ['Armored Vest', 'Magnum', 'HEG', 'Xanax', 'Flash Grenade', 'Blood Bag : A+']; // EXPAND THIS LIST with important items
+    // --- Part 2: Populate Recent Large Item Movements (>50 Qty or High Value) ---
+    // Filter and display actual large movements from historicalArmoryLogs
+    const largeMovesThreshold = 50; // Define what constitutes a "large" quantity movement
+    const highValueItems = ['Armored Vest', 'Magnum', 'HEG', 'Xanax', 'Flash Grenade']; // Example high-value items - EXPAND THIS LIST
 
     const recentLargeMoves = historicalArmoryLogs.filter(entry => {
-        const isRecent = entry.timestamp >= sevenDaysAgo;
+        const isRecent = entry.timestamp >= sevenDaysAgo; // Only consider recent moves
         if (!isRecent) return false;
 
-        const rawItemName = entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim();
-        const quantity = entry.quantity || 0;
-
-        const isLargeQuantity = quantity >= largeMovesThreshold;
-        const isHighValueItem = highValueItems.includes(rawItemName);
+        const isLargeQuantity = (entry.quantity || 0) >= largeMovesThreshold;
+        const isHighValueItem = highValueItems.includes(entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim()); // Check original item name
 
         return isLargeQuantity || isHighValueItem;
-    }).sort((a, b) => b.timestamp - a.timestamp);
+    }).sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
 
     let largeMovesHtml = '';
     if (recentLargeMoves.length > 0) {
         recentLargeMoves.forEach(move => {
             let type = '';
+            // Determine type based on rawNews text
             if (move.rawNews.includes('withdrew') || move.rawNews.includes('used') || move.rawNews.includes('loaned') || move.rawNews.includes('gave') || move.rawNews.includes('retrieved')) {
                 type = 'Withdrawal';
             } else if (move.rawNews.includes('deposited')) {
@@ -1217,9 +1202,7 @@ async function populateLogisticsData() { // Made async
                 <tr>
                     <td>${formatTimestampToLocale(move.timestamp)}</td>
                     <td>${move.user}</td>
-                    <td>${move.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim()}</td>
-                    <td>${(move.quantity || move.amount || '').toLocaleString()}</td>
-                    <td>${type}</td>
+                    <td>${move.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim()}</td> <td>${(move.quantity || move.amount || '').toLocaleString()}</td> <td>${type}</td>
                 </tr>
             `;
         });
@@ -1227,7 +1210,12 @@ async function populateLogisticsData() { // Made async
         largeMovesHtml = `<tr><td colspan="5" style="text-align: center; padding: 15px;">No large armory movements found in the last 7 days.</td></tr>`;
     }
     largeMovesBody.innerHTML = largeMovesHtml;
+
+
+    // TODO: Implement real data for populateOversightData based on historicalFundLogs/ArmoryLogs
 }
+// In factionoverview.js, find the existing populateOversightData function and replace it entirely with this:
+
 /**
  * Populates data for the Oversight tab using real historical data from Firebase.
  */
@@ -1443,14 +1431,6 @@ function generateAlertsFromData(armoryData, fundData) {
  * This function will be called on page load.
  * @returns {Promise<boolean>} True if user has access, false otherwise.
  */
-// In factionoverview.js, find the existing checkIfUserHasFactionOverviewAccess function and replace it entirely with this:
-
-/**
- * Checks if the current logged-in user has permission to view the Faction Overview page.
- * Permissions: Leader, Co-leader, or designated Banker.
- * This function will be called on page load.
- * @returns {Promise<boolean>} True if user has access, false otherwise.
- */
 async function checkIfUserHasFactionOverviewAccess() {
     const user = auth.currentUser;
     if (!user) {
@@ -1468,22 +1448,23 @@ async function checkIfUserHasFactionOverviewAccess() {
         const userProfileData = userProfileDoc.data();
         const userTornId = userProfileData.tornProfileId;
         const userPosition = userProfileData.position ? userProfileData.position.toLowerCase() : '';
-		
-		// --- NEW DEBUG LOGS ---
-        console.log(`[DEBUG] Access Check: User UID: ${user.uid}`);
-        console.log(`[DEBUG] Access Check: User Torn ID from profile: '${userTornId}' (Type: ${typeof userTornId})`);
-        console.log(`[DEBUG] Access Check: User Position from profile: '${userPosition}'`);
-        console.log(`[DEBUG] Access Check: Global designatedBankers list:`, designatedBankers);
-        // --- END NEW DEBUG LOGS ---
 
-        // Check if user is Leader or Co-leader (highest access)
+        // Check if user is Leader or Co-leader
         if (userPosition === 'leader' || userPosition === 'co-leader') {
             console.log("Access Check: User is Leader/Co-leader. Access granted.");
             return true;
         }
 
-        // If not Leader/Co-leader, check if they are a designated Banker
-        // The 'designatedBankers' global array should have been populated earlier in DOMContentLoaded.
+        // Fetch designated bankers list from Firebase
+        const warDocRef = db.collection('factionWars').doc('currentWar'); // Using 'currentWar' as the central doc
+        const warDoc = await warDocRef.get();
+        if (warDoc.exists) {
+            designatedBankers = warDoc.data().designatedBankers || []; // Load into global variable
+        } else {
+            designatedBankers = []; // No bankers set yet
+        }
+
+        // Check if user's Torn ID is in the designated bankers list
         const hasAccess = designatedBankers.includes(String(userTornId));
         if (hasAccess) {
             console.log("Access Check: User is a designated Banker. Access granted.");
@@ -1497,6 +1478,7 @@ async function checkIfUserHasFactionOverviewAccess() {
         return false;
     }
 }
+
 /**
  * Displays the modal for managing designated bankers.
  * Only accessible to Leaders/Co-leaders.
