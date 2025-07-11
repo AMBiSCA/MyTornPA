@@ -353,13 +353,15 @@ function renderLogisticsTabContent(targetElement) {
     populateLogisticsData();
 }
 
+// In factionoverview.js, find the existing renderOversightTabContent function and replace it entirely with this:
+
 /**
  * Renders the content specifically for the Oversight sub-tab.
+ * This will create separate, scrollable boxes for Top Active Users and Alerts & Flags.
  * @param {HTMLElement} targetElement The DOM element to inject content into.
  */
 function renderOversightTabContent(targetElement) {
     targetElement.innerHTML = `
-
 
         <div class="fo-kpi-grid">
             <div class="fo-kpi-box">
@@ -380,35 +382,47 @@ function renderOversightTabContent(targetElement) {
             </div>
         </div>
 
-        <div class="fo-section-panel">
-            <h4>👥 Top Active Users (Armory & Funds, Last 30 Days)</h4>
-            <ul id="oversightTopUsersList" class="fo-list">
-                <li>Loading top users...</li>
-            </ul>
-        </div>
+        <div class="fo-oversight-panels-container"> <div class="fo-oversight-panel">
+                <h4 class="fo-panel-title">👥 Top Active Users (Armory & Funds, Last 30 Days)</h4>
+                <div class="fo-scrollable-panel-content" id="oversightTopUsersListContainer">
+                    <ul id="oversightTopUsersList" class="fo-list">
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                        <li>Loading top users...</li>
+                    </ul>
+                </div>
+            </div>
 
-        <div class="fo-section-panel">
-            <h4>🚨 Alerts & Flags (Needs Attention!)</h4>
-            <ul id="oversightAlertsList" class="fo-list fo-alerts-list">
-                <li>No active alerts.</li>
-            </ul>
+            <div class="fo-oversight-panel">
+                <h4 class="fo-panel-title">🚨 Alerts & Flags (Needs Once Over)</h4> <div class="fo-scrollable-panel-content" id="oversightAlertsListContainer">
+                    <ul id="oversightAlertsList" class="fo-list fo-alerts-list">
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                        <li>Checking for alerts...</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     `;
-    // Fetch and populate data for Oversight (conceptual, actual implementation to follow later)
-    // This will involve querying 'historicalFundLogs' and 'historicalArmoryLogs' from Firebase and processing them.
+
+    // Fetch and populate data for Oversight (this function will be called after rendering this layout)
     populateOversightData();
 }
-
-
-// =====================================================================================================================
-// EVENT LISTENERS SETUP
-// Attaches event handlers to dynamically created elements.
-// =====================================================================================================================
-
-/**
- * Sets up all event listeners for the Faction Overview page's dynamic elements.
- * This is called once after the main layout is rendered.
- */
 function setupFactionOverviewEventListeners() {
     // Event listener for sub-tab buttons
     if (factionOverviewSubTabsContainer) {
