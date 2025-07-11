@@ -850,34 +850,81 @@ function processFactionNewsForTable(newsArray, category) {
     // Sort by timestamp descending by default (most recent first)
     return processed.sort((a, b) => b.timestamp - a.timestamp);
 }
+
 /**
- * Placeholder: Fetches historical data from Firebase and processes it for Logistics and Oversight.
- * This function will be expanded during the implementation phase for long-term storage.
+ * Processes newly fetched raw news data and stores it persistently in Firebase Firestore.
+ * This builds up the long-term historical record for analytics.
  */
 async function processAndStoreHistoricalData() {
-    // Concept:
-    // 1. Fetch ALL available raw API data (potentially iterate through older data if API allows, or rely on already stored data).
-    // 2. Combine with data already stored in Firebase (historicalArmoryLogs, historicalFundLogs).
-    // 3. Write new data to Firebase to build up the long-term history.
-    // 4. Update 'historicalArmoryLogs' and 'historicalFundLogs' global arrays with comprehensive data from Firebase.
+    if (!factionOverviewGlobalYourFactionID || !db) {
+        console.warn("Historical Data Storage: Faction ID or Firebase DB not available. Skipping storage.");
+        return;
+    }
 
-    console.log("Placeholder: Processing and storing historical data (requires Firebase integration).");
-    // Example:
-    // const armoryHistoryRef = db.collection('factionHistoricalData').doc(factionOverviewGlobalYourFactionID).collection('armoryLogs');
-    // const fundHistoryRef = db.collection('factionHistoricalData').doc(factionOverviewGlobalYourFactionID).collection('fundLogs');
+    const factionHistoricalDataRef = db.collection('factionHistoricalData').doc(String(factionOverviewGlobalYourFactionID));
+    const batch = db.batch(); // Use a Firestore batch for efficient writes
 
-    // Here you would implement logic to:
-    // - Read existing historical data from Firebase
-    // - Add new fetched raw data to it (deduplicating by Torn news ID/timestamp)
-    // - Write the updated historical data back to Firebase
-    // - Update global 'historicalArmoryLogs' and 'historicalFundLogs' for client-side processing
+    console.log("[DEBUG] Historical Data: Starting processing and storage to Firebase.");
+
+    // Define which data arrays to process and store
+    const dataCategoriesToStore = [
+        { name: 'armoryWithdrawals', data: armoryWithdrawalsData, type: 'armoryAction' },
+        { name: 'armoryDeposits', data: armoryDepositsData, type: 'armoryDeposit' },
+        { name: 'fundDeposits', data: fundDepositsData, type: 'depositFunds' },
+        { name: 'fundWithdrawals', data: fundWithdrawalsData, type: 'giveFunds' },
+        { name: 'crime', data: crimeData, type: 'crime' }
+    ];
+
+    let itemsSavedCount = 0;
+
+    for (const categoryInfo of dataCategoriesToStore) {
+        const collectionName = categoryInfo.name; // e.g., 'armoryWithdrawals'
+        const dataType = categoryInfo.type; // e.g., 'armoryAction'
+        const currentRawData = categoryInfo.data;
+
+        if (!currentRawData || currentRawData.length === 0) {
+            console.log(`[DEBUG] Historical Data: No new data for category '${collectionName}'.`);
+            continue;
+        }
+
+        const categoryCollectionRef = factionHistoricalDataRef.collection(collectionName);
+
+        for (const entry of currentRawData) {
+            // Use the entry's 'id' (from Torn API) as the Firestore document ID to prevent duplicates
+            const docRef = categoryCollectionRef.doc(String(entry.id));
+
+            // Prepare the data to save. Add a 'dataType' field for easier querying later.
+            // Also add a 'savedAt' timestamp for auditing.
+            const dataToSave = {
+                ...entry,
+                dataType: dataType, // e.g., 'armoryAction'
+                savedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Use set with merge: true to avoid overwriting the entire document if other fields are added later
+            // For unique news entries, it essentially acts as an 'add if not exists'.
+            batch.set(docRef, dataToSave, { merge: true });
+            itemsSavedCount++;
+        }
+    }
+
+    if (itemsSavedCount > 0) {
+        try {
+            await batch.commit();
+            console.log(`[DEBUG] Historical Data: Successfully saved ${itemsSavedCount} new/updated entries to Firebase.`);
+        } catch (error) {
+            console.error("Historical Data: Error committing batch to Firebase:", error);
+            showCustomAlert("Error saving historical data to Firebase. Check console.", "Data Save Error");
+        }
+    } else {
+        console.log("[DEBUG] Historical Data: No new entries to commit to Firebase batch.");
+    }
+
+    // TODO: After saving, fetch the *entire* relevant history back from Firebase
+    // into historicalArmoryLogs and historicalFundLogs for client-side processing.
+    // This part will be implemented later to ensure Logistics/Oversight have full data.
+    console.log("[DEBUG] Historical Data: Next step will be to fetch full historical data back from Firebase.");
 }
-
-
-// =====================================================================================================================
-// DATA PROCESSING & FILTERING LOGIC
-// Functions for manipulating and displaying data.
-// =====================================================================================================================
 
 /**
  * Applies current search, date, and sort filters to the displayed data.
