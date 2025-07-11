@@ -3315,6 +3315,25 @@ min-width: 320px;
     white-space: nowrap;
 }
 
+
+
+#faction-hits-display {
+    /* Basic box styling to match your theme */
+    background-color: #222;
+    border: 2px solid black;
+    border-radius: 6px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-top: 80px; 
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Makes the box fill the height of its grid cell */
+    justify-content: center; /* Centers the content vertically */
+    gap: 4px; /* Space between the rows */
+}
+
+
+
 #faction-hits-display .hits-value {
     color: #00a8ff;
     font-family: 'Courier New', Courier, monospace;
@@ -4562,19 +4581,3 @@ margin-right: auto !important;
     object-fit: contain;  /* This is the magic part: it scales the image to fit inside */
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
-
-#faction-hits-display {
-    /* Basic box styling to match your theme */
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 6px;
-    padding: 5px 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin-top: 80px; 
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Makes the box fill the height of its grid cell */
-    justify-content: center; /* Centers the content vertically */
-    gap: 4px; /* Space between the rows */
-}
-
