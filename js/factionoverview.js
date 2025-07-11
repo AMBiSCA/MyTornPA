@@ -708,7 +708,7 @@ function processFactionNewsForTable(newsArray, category) {
             userId = senderId;
             
             console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
-
+        }
         } else if (category === 'crime') {
             const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
             const resultMatch = sourceText.match(/\((success|failure)\)/i);
