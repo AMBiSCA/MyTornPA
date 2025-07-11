@@ -36,15 +36,15 @@
     margin: 0;
     font-size: 1.8rem;
     font-weight: 600;
-	 text-align: left;
-	 margin-left: 550px; /* <--- ADD THIS LINE with your desired pixel value */
+	text-align: left;
+	margin-left: 550px; /* <--- ADD THIS LINE with your desired pixel value */
 }
 
 /* Cog Button for Banker Settings */
 .fo-cog-button {
     background: none;
     border: none;
-    font-size: 2.2rem; /* Large enough to be noticeable */
+    font-size: 2.5rem; /* Large enough to be noticeable */
     color: #00a8ff;
     cursor: pointer;
     transition: transform 0.2s ease, color 0.2s ease;
