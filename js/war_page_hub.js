@@ -32,6 +32,8 @@ let onlineEnemyMembersDisplay = null;
 let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
+let hasAgreedToWarChatTerms = false;
+let currentWarChatCollection = null;
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -202,8 +204,7 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
-// Replace your entire handleChatTabClick function with this updated code
-// Replace your entire handleChatTabClick function with this updated code
+
 function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
@@ -237,7 +238,7 @@ function handleChatTabClick(event) {
     // --- NEW CRITICAL FIX: Control the main chat module's scrollbar ---
     if (mainChatScrollWrapper) {
         // Default to 'auto' for most tabs, then override for 'private-chat'
-        mainChatScrollWrapper.style.overflowY = 'auto'; 
+        mainChatScrollWrapper.style.overflowY = 'auto';
         mainChatScrollWrapper.style.overflowX = 'hidden'; // Keep horizontal hidden if generally unwanted
     }
     // --- END NEW CRITICAL FIX ---
@@ -250,14 +251,38 @@ function handleChatTabClick(event) {
             break;
 
         case 'war-chat':
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to War Chat!</p>
-                <p>Functionality not implemented yet.</p>
-            `;
+            if (globalRankedWarData && globalRankedWarData.warID && globalYourFactionID && globalEnemyFactionID) {
+                // Check if the user has already agreed to the terms for this specific war session
+                if (hasAgreedToWarChatTerms) {
+                    console.log("[War Chat] User has already agreed. Proceeding to show war chat.");
+                    chatDisplayArea.innerHTML = `
+                        <p style="text-align: center; margin-top: 20px; font-size: 1.1em; color: #007bff;">
+                            Welcome to the War Chat between ${globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction'} and ${globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'}!
+                        </p>
+                        <p style="text-align: center; font-size: 0.9em; color: #aaa;">Establishing secure war channel...</p>
+                    `;
+                    // --- CALL THE NEW WAR CHAT LISTENER HERE ---
+                    setupWarChatListener(globalRankedWarData.warID);
+                    // --- END CALL ---
+                } else {
+                    console.log("[War Chat] Active war detected. Showing agreement modal.");
+                    showInputArea = false; // Hide the general chat input for the agreement screen
+                    showWarChatAgreementModal(
+                        globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction',
+                        globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'
+                    );
+                }
+            } else {
+                console.log("[War Chat] No active ranked war. Displaying placeholder.");
+                chatDisplayArea.innerHTML = `
+                    <p style="text-align: center; margin-top: 50px; font-size: 1.1em;">
+                        There is no active ranked war linked. <br>War Chat will become available when your faction is in a ranked war.
+                    </p>
+                `;
+            }
             break;
 
         case 'private-chat':
-            // --- HTML FOR NEW PRIVATE CHAT TAB LAYOUT ---
             chatDisplayArea.innerHTML = `
                 <div id="privateChatFullLayout" class="private-chat-tab-content">
                     <div class="private-chat-layout-panels">
@@ -284,15 +309,13 @@ function handleChatTabClick(event) {
                     </div>
                 </div>
             `;
-            showInputArea = false; // Hide the global input area for this tab
-            // --- NEW: Hide main chat module scrollbar for this tab ---
+            showInputArea = false;
             if (mainChatScrollWrapper) {
-                mainChatScrollWrapper.style.overflowY = 'hidden'; 
+                mainChatScrollWrapper.style.overflowY = 'hidden';
             }
-            // --- END NEW ---
             setTimeout(() => {
-                initPrivateChatTabEventListeners(); 
-            }, 0); 
+                initPrivateChatTabEventListeners();
+            }, 0);
             break;
 
         case 'faction-members':
@@ -366,11 +389,509 @@ function handleChatTabClick(event) {
     // Control visibility of the global chat input area at the bottom
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
+        // When showing input area, ensure we attach the correct send function based on active chat
+        if (chatTextInput && chatSendBtn) {
+            chatSendBtn.removeEventListener('click', sendChatMessage); // Remove faction chat listener
+            chatTextInput.removeEventListener('keydown', handleFactionChatInputKeydown); // Remove faction chat keydown listener
+
+            if (targetTab === 'war-chat') {
+                chatTextInput.placeholder = "Type your war message...";
+                chatSendBtn.addEventListener('click', sendWarChatMessage);
+                chatTextInput.addEventListener('keydown', handleWarChatInputKeydown);
+            } else if (targetTab === 'faction-chat') {
+                chatTextInput.placeholder = "Type your faction message...";
+                chatSendBtn.addEventListener('click', sendChatMessage); // Re-add faction chat listener
+                chatTextInput.addEventListener('keydown', handleFactionChatInputKeydown);
+            }
+        }
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
     }
 }
 
+
+// --- NEW FUNCTION: setupWarChatListener ---
+function setupWarChatListener(warId) {
+    if (!warId) {
+        console.error("Cannot setup War Chat listener: No warId provided.");
+        if (chatDisplayArea) {
+            chatDisplayArea.innerHTML = `<p style="color: red;">Error: War ID missing for chat.</p>`;
+        }
+        return;
+    }
+
+    // Define the Firestore collection for this specific war
+    currentWarChatCollection = db.collection('warChats').doc(String(warId)).collection('messages');
+    console.log(`Setting up War Chat listener for war ID: ${warId}. Collection path: warChats/${warId}/messages`);
+
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = `<p>Loading War Chat messages for war ID: ${warId}...</p>`;
+    }
+
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        console.log("Unsubscribed from previous chat listener before setting up War Chat.");
+    }
+
+    unsubscribeFromChat = currentWarChatCollection
+        .orderBy('timestamp', 'asc')
+        .limit(100) // Limit to last 100 messages for performance
+        .onSnapshot(snapshot => {
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = ''; // Clear previous messages
+            }
+
+            if (snapshot.empty) {
+                if (chatDisplayArea) {
+                    chatDisplayArea.innerHTML = `<p style="text-align: center; margin-top: 50px; color: #aaa;">No messages in this war yet. Be the first to start the banter!</p>`;
+                }
+                toggleScrollIndicatorVisibility();
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                displayWarChatMessage(doc.data()); // Use the new display function for war chat
+            });
+
+            console.log("War Chat messages updated in real-time.");
+
+            // Auto-scroll to bottom and update scroll indicator
+            setTimeout(() => {
+                const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+                if (!scrollWrapper) return;
+
+                if (scrollWrapper.scrollHeight > 0) {
+                    scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+                    toggleScrollIndicatorVisibility();
+                } else {
+                    let attempts = 0;
+                    const scrollCheckInterval = setInterval(() => {
+                        attempts++;
+                        if (scrollWrapper.scrollHeight > 0 || attempts > 20) {
+                            scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+                            toggleScrollIndicatorVisibility();
+                            clearInterval(scrollCheckInterval);
+                        }
+                    }, 100);
+                }
+            }, 0);
+        }, error => {
+            console.error("Error listening to War Chat messages:", error);
+            if (chatDisplayArea) {
+                chatDisplayArea.innerHTML = `<p style="color: red;">Error loading War Chat: ${error.message}</p>`;
+            }
+        });
+    console.log("War Chat real-time listener set up.");
+
+    const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
+    if (scrollWrapper) {
+        scrollWrapper.removeEventListener('scroll', handleChatScroll);
+        scrollWrapper.addEventListener('scroll', handleChatScroll);
+    }
+}
+
+
+// --- NEW FUNCTION: sendWarChatMessage ---
+async function sendWarChatMessage() {
+    if (!chatTextInput || !auth.currentUser || !userApiKey || !currentWarChatCollection) {
+        console.warn("Cannot send war message: Chat input, logged-in user, API key, or war chat collection not available.");
+        return;
+    }
+
+    const messageText = chatTextInput.value.trim();
+    if (messageText === '') {
+        return; // Don't send empty messages
+    }
+
+    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
+
+    const messageObj = {
+        senderId: auth.currentUser.uid,
+        sender: currentTornUserName, // Your Torn username
+        text: filteredMessage,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        // Optional: Add faction ID to differentiate messages from different factions in the same chat collection
+        factionId: globalYourFactionID,
+        factionName: factionApiFullData?.basic?.name || 'Unknown Faction'
+    };
+
+    try {
+        await currentWarChatCollection.add(messageObj);
+        console.log("War message sent to Firebase:", messageObj);
+        chatTextInput.value = ''; // Clear the input field
+        chatTextInput.focus(); // Keep focus
+    } catch (error) {
+        console.error("Error sending war message to Firebase:", error);
+        alert("Failed to send war message. See console for details.");
+    }
+}
+
+
+// --- NEW FUNCTION: displayWarChatMessage ---
+function displayWarChatMessage(messageObj) {
+    if (!chatDisplayArea) {
+        console.error("War Chat display area not found in displayWarChatMessage function.");
+        return;
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message');
+
+    // Add classes to differentiate between your faction's messages and opponent's messages
+    // This assumes the 'factionId' is included in messageObj and you have globalYourFactionID
+    if (messageObj.factionId && String(messageObj.factionId) === String(globalYourFactionID)) {
+        messageElement.classList.add('your-faction-message');
+    } else {
+        messageElement.classList.add('opponent-faction-message'); // Or a generic 'other-message'
+    }
+
+    if (messageObj.timestamp && typeof messageObj.timestamp.toMillis === 'function') {
+        messageElement.id = `war-msg-${messageObj.timestamp.toMillis()}`;
+    }
+
+    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function'
+        ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let senderDisplay = messageObj.sender || 'Unknown';
+    if (messageObj.factionName && String(messageObj.factionId) !== String(globalYourFactionID)) {
+        // Prepend opponent faction name for clarity
+        senderDisplay = `[${messageObj.factionName}] ${senderDisplay}`;
+    } else if (messageObj.factionName) {
+        senderDisplay = `[${messageObj.factionName}] ${senderDisplay}`;
+    }
+    // You might want to color code sender names here based on factionId too via CSS classes
+
+    const messageText = messageObj.text || '';
+
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[${timestamp}]</span>
+        <span class="chat-sender">${senderDisplay}:</span>
+        <span class="chat-text">${messageText}</span>
+    `;
+
+    chatDisplayArea.appendChild(messageElement);
+}
+
+// --- Helper functions for input keydown events (to differentiate send behavior) ---
+function handleFactionChatInputKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        sendChatMessage(); // Calls the function for faction chat
+    }
+}
+
+function handleWarChatInputKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        sendWarChatMessage(); // Calls the function for war chat
+    }
+}
+
+// --- NEW FUNCTION: Creates and displays the War Chat Agreement Modal ---
+function createWarChatAgreementModal(yourFactionName, opponentFactionName) {
+    // 1. Create the modal overlay (full screen, semi-transparent background)
+    const modalOverlay = document.createElement('div');
+    modalOverlay.id = 'warChatAgreementModalOverlay';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85); /* Darker semi-transparent background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000; /* Ensure it's on top of everything */
+        backdrop-filter: blur(5px); /* Adds a blur effect */
+    `;
+
+    // 2. Create the modal content box
+    const modalContent = document.createElement('div');
+    modalContent.id = 'warChatAgreementContent';
+    modalContent.style.cssText = `
+        background-color: #1a1a1a; /* Dark background matching your screenshot */
+        border: 2px solid #007bff; /* Blue border */
+        border-radius: 8px;
+        padding: 30px;
+        color: #f0f0f0; /* Light text color */
+        max-width: 650px;
+        width: 90%;
+        box-shadow: 0 0 25px rgba(0, 123, 255, 0.7); /* Stronger glow */
+        font-family: 'Arial', sans-serif;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+    `;
+    // Add keyframes for animation
+    const styleSheet = document.styleSheets[0];
+    const fadeInKeyframes = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    const fadeOutKeyframes = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+    `;
+    styleSheet.insertRule(fadeInKeyframes, styleSheet.cssRules.length);
+    styleSheet.insertRule(fadeOutKeyframes, styleSheet.cssRules.length);
+
+
+    // 3. Add Faction Names (Header)
+    const factionNamesDiv = document.createElement('div');
+    factionNamesDiv.style.cssText = `
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #e0a71a; /* Yellow/Gold color for emphasis */
+        padding: 5px 0;
+        border-bottom: 1px dashed #333;
+    `;
+    factionNamesDiv.innerHTML = `
+        <span>${yourFactionName}</span>
+        <span style="color: #fff; font-size: 0.8em; margin: 0 15px;">VS</span>
+        <span>${opponentFactionName}</span>
+    `;
+    modalContent.appendChild(factionNamesDiv);
+
+    // 4. Add Title
+    const title = document.createElement('h2');
+    title.textContent = 'WAR CHAT - CODE OF CONDUCT';
+    title.style.cssText = `
+        color: #007bff;
+        margin: 0;
+        font-size: 2em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    `;
+    modalContent.appendChild(title);
+
+    // 5. Add Introduction
+    const introText = document.createElement('p');
+    introText.textContent = `
+        Welcome, warriors! This War Chat is for coordinated communication during the ranked war.
+        To ensure a fair, strategic, and respectful environment, please adhere to these guidelines:
+    `;
+    introText.style.cssText = `
+        margin-bottom: 20px;
+        line-height: 1.6;
+        font-size: 1.1em;
+        color: #d0d0d0;
+    `;
+    modalContent.appendChild(introText);
+
+    // 6. Add Terms and Conditions (Scrollable area)
+    const termsContainer = document.createElement('div');
+    termsContainer.style.cssText = `
+        background-color: #0f0f0f;
+        border: 1px solid #333;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 25px;
+        max-height: 250px; /* Increased height */
+        overflow-y: auto;
+        text-align: left;
+        line-height: 1.7;
+        font-size: 1em;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+    `;
+    termsContainer.innerHTML = `
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li style="margin-bottom: 10px;"><strong style="color: #ff4d4d;">1. Zero Tolerance for Harassment:</strong> Absolutely no offensive language, hate speech, personal attacks, threats, or harassment towards *any* player, regardless of faction. This includes racism, sexism, homophobia, etc.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ff4d4d;">2. No Real-Life Information:</strong> Do not share any personal real-life information about yourself or others.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #66cc66;">3. Stay On-Topic:</strong> Keep discussions focused on the current war, strategies, target calls, and general encouragement. Avoid excessive off-topic chatter.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #66cc66;">4. No Spamming or Flooding:</strong> Do not send repetitive messages, excessive emojis, or flood the chat.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ffcc00;">5. Respectful Conduct:</strong> Even in heated moments, maintain a level of sportsmanship. Taunting or excessive bragging should be avoided.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ffcc00;">6. No Impersonation:</strong> Do not impersonate other players or staff.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ff4d4d;">7. Consequences:</strong> Violation of these terms may result in immediate chat suspension, temporary or permanent removal from the app, and/or reporting to Torn staff. Screenshots of violations may be shared with faction leaders for internal action.</li>
+        </ul>
+        <p style="text-align: center; margin-top: 20px; font-style: italic; color: #aaa;">
+            Your participation in this chat signifies your agreement to abide by these rules.
+        </p>
+    `;
+    modalContent.appendChild(termsContainer);
+
+    // 7. Add Checkbox for Agreement
+    const checkboxDiv = document.createElement('div');
+    checkboxDiv.style.cssText = `
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1em;
+        color: #d0d0d0;
+    `;
+    const agreeCheckbox = document.createElement('input');
+    agreeCheckbox.type = 'checkbox';
+    agreeCheckbox.id = 'agreeWarChatTerms';
+    agreeCheckbox.style.cssText = `
+        margin-right: 12px;
+        width: 20px; /* Larger checkbox */
+        height: 20px;
+        accent-color: #007bff; /* Colors the checkbox itself */
+        cursor: pointer;
+    `;
+    const checkboxLabel = document.createElement('label');
+    checkboxLabel.htmlFor = 'agreeWarChatTerms';
+    checkboxLabel.textContent = 'I have read and agree to the War Chat Code of Conduct.';
+    checkboxDiv.appendChild(agreeCheckbox);
+    checkboxDiv.appendChild(checkboxLabel);
+    modalContent.appendChild(checkboxDiv);
+
+    // 8. Add Action Buttons
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+    `;
+
+    const agreeButton = document.createElement('button');
+    agreeButton.id = 'agreeAndEnterWarChatBtn';
+    agreeButton.textContent = 'Agree & Enter Chat';
+    agreeButton.disabled = true; // Initially disabled
+    agreeButton.style.cssText = `
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-size: 1.1em;
+        cursor: not-allowed; /* Indicates disabled state */
+        transition: background-color 0.3s ease, cursor 0.3s ease, opacity 0.3s ease;
+        opacity: 0.6;
+        font-weight: bold;
+    `;
+    // Add hover effects for the agree button when enabled
+    agreeButton.onmouseover = function() { if (!this.disabled) this.style.backgroundColor = '#0056b3'; };
+    agreeButton.onmouseout = function() { if (!this.disabled) this.style.backgroundColor = '#007bff'; };
+
+
+    const declineButton = document.createElement('button');
+    declineButton.id = 'declineWarChatBtn';
+    declineButton.textContent = 'Decline';
+    declineButton.style.cssText = `
+        background-color: #dc3545; /* Red for decline */
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-weight: bold;
+    `;
+    declineButton.onmouseover = function() { this.style.backgroundColor = '#c82333'; };
+    declineButton.onmouseout = function() { this.style.backgroundColor = '#dc3545'; };
+
+
+    buttonsDiv.appendChild(declineButton);
+    buttonsDiv.appendChild(agreeButton);
+    modalContent.appendChild(buttonsDiv);
+
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay); // Add the entire modal to the body
+
+    // Return the created elements for attaching event listeners outside if needed,
+    // though we'll handle basic listeners in showWarChatAgreementModal.
+    return { modalOverlay, agreeCheckbox, agreeButton };
+}
+
+// --- NEW FUNCTION: Shows the War Chat Agreement Modal ---
+function showWarChatAgreementModal(yourFactionName, opponentFactionName) {
+    // Remove any existing modal to prevent duplicates if called multiple times
+    const existingModal = document.getElementById('warChatAgreementModalOverlay');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const { modalOverlay, agreeCheckbox, agreeButton } = createWarChatAgreementModal(yourFactionName, opponentFactionName);
+
+    // Event listener for the checkbox
+    agreeCheckbox.addEventListener('change', () => {
+        agreeButton.disabled = !agreeCheckbox.checked;
+        if (agreeCheckbox.checked) {
+            agreeButton.style.opacity = '1';
+            agreeButton.style.cursor = 'pointer';
+        } else {
+            agreeButton.style.opacity = '0.6';
+            agreeButton.style.cursor = 'not-allowed';
+        }
+    });
+
+    // Event listener for the "Agree & Enter Chat" button
+    agreeButton.addEventListener('click', () => {
+        if (!agreeButton.disabled) {
+            hasAgreedToWarChatTerms = true; // Mark that user has agreed for this session
+            hideWarChatAgreementModal();
+            // Call the function to actually set up and show the war chat (will be implemented next)
+            console.log("User agreed to terms. Now enabling War Chat...");
+            // Simulate switching to war chat. In the next step, you'd replace this with the actual war chat setup.
+            document.getElementById('chat-display-area').innerHTML = `
+                <p>Welcome to the War Chat between ${yourFactionName} and ${opponentFactionName}!</p>
+                <p>Establishing secure war channel...</p>
+            `;
+            // Call the actual war chat setup function here (to be created in next step)
+            // setupWarChatListener(globalRankedWarData.warId); // Example, assuming warId is passed
+            // For now, just re-trigger the tab click to render the actual war chat content
+            const warChatTabButton = document.querySelector('.chat-tab[data-chat-tab="war-chat"]');
+            if (warChatTabButton) {
+                warChatTabButton.click(); // Programmatically click the war chat tab to refresh its content
+            }
+        }
+    });
+
+    // Event listener for the "Decline" button
+    document.getElementById('declineWarChatBtn').addEventListener('click', () => {
+        hasAgreedToWarChatTerms = false; // Ensure this is false if declined
+        hideWarChatAgreementModal();
+        // Optionally, switch back to the faction chat or a default "no war linked" view
+        const factionChatTabButton = document.querySelector('.chat-tab[data-chat-tab="faction-chat"]');
+        if (factionChatTabButton) {
+            factionChatTabButton.click(); // Go back to faction chat
+        } else {
+            document.getElementById('chat-display-area').innerHTML = `<p style="text-align: center; margin-top: 50px; color: yellow;">You declined to enter the War Chat.</p>`;
+        }
+        console.log("User declined war chat terms.");
+    });
+}
+
+// --- NEW FUNCTION: Hides and removes the War Chat Agreement Modal ---
+function hideWarChatAgreementModal() {
+    const modal = document.getElementById('warChatAgreementModalOverlay');
+    if (modal) {
+        // Add fade-out animation before removal
+        const modalContent = document.getElementById('warChatAgreementContent');
+        if (modalContent) {
+            modalContent.style.animation = 'fadeOut 0.3s ease-out forwards';
+            modalContent.addEventListener('animationend', () => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }, { once: true }); // Ensure listener is removed after one execution
+        } else {
+            // Fallback for immediate removal if content is not found or animation fails
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }
+    }
+    // Re-enable the main chat input area if it was hidden by the modal
+    if (chatInputArea) {
+        chatInputArea.style.display = 'flex';
+    }
+}
 async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
     if (!chatMessagesCollection || !auth.currentUser) {
         console.warn("Cannot send claim message: Firebase collection or user not available.");
@@ -2419,6 +2940,10 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         if (yourChainData) {
             friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
             friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
+			
+			 const friendlyProgressBar = document.getElementById('friendly-chain-progress');
+            updateChainProgress(yourChainData.current || 0, friendlyProgressBar);
+   
 
             currentLiveChainSeconds = yourChainData.timeout || 0;
             lastChainApiFetchTime = Date.now();
@@ -2435,6 +2960,10 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
             if (enemyChainData) { // Use enemyChainData already extracted above
                  enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
                  enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
+				 
+				 const enemyProgressBar = document.getElementById('enemy-chain-progress');
+                 updateChainProgress(enemyChainData.current || 0, enemyProgressBar);
+				 
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
@@ -2454,6 +2983,40 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         lastChainApiFetchTime = 0;
     }
 }
+
+// --- NEW FUNCTION: Creates and styles the progress bar text elements ---
+function setupProgressText() {
+    const friendlyContainer = document.getElementById('friendly-chain-progress')?.parentElement;
+    const enemyContainer = document.getElementById('enemy-chain-progress')?.parentElement;
+
+    // A helper function to avoid repeating code
+    const createTextElement = (container, id) => {
+        if (!container || document.getElementById(id)) return; // Don't run if container doesn't exist or text is already there
+
+        // This is needed to position the text inside the container
+        container.style.position = 'relative';
+
+        const textEl = document.createElement('span');
+        textEl.id = id;
+
+        // --- All styling is applied here via JavaScript ---
+        textEl.style.position = 'absolute';
+        textEl.style.top = '50%';
+        textEl.style.left = '50%';
+        textEl.style.transform = 'translate(-50%, -50%)';
+        textEl.style.color = '#FFFFFF';
+        textEl.style.fontWeight = 'bold';
+        textEl.style.fontSize = '10px';
+        textEl.style.textShadow = '0 0 2px rgba(0,0,0,0.8)'; // Makes text more readable
+        textEl.style.pointerEvents = 'none'; // Makes text unclickable
+
+        container.appendChild(textEl);
+    };
+
+    createTextElement(friendlyContainer, 'friendly-chain-text');
+    createTextElement(enemyContainer, 'enemy-chain-text');
+}
+
 async function claimTarget(memberId, memberName) {
     if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
         alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
@@ -3483,6 +4046,53 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
+/**
+ * Calculates and updates the width and text of a chain progress bar.
+ * @param {number} currentHits - The current number of hits in the chain.
+ * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
+ * @param {string} textElementId - The ID of the text element to update.
+ */
+function updateChainProgress(currentHits, progressBarElement, textElementId) {
+    if (!progressBarElement) return;
+
+    const textElement = document.getElementById(textElementId);
+    const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+    const hits = Number(currentHits);
+
+    if (isNaN(hits)) {
+        progressBarElement.style.width = '0%';
+        if (textElement) textElement.textContent = '';
+        return;
+    }
+
+    let nextMilestone = milestones.find(m => m > hits);
+    
+    if (nextMilestone === undefined) {
+        progressBarElement.style.width = '100%';
+        if (textElement) textElement.textContent = 'MAX';
+        return;
+    }
+
+    let previousMilestone = 0;
+    for (let i = milestones.length - 1; i >= 0; i--) {
+        if (milestones[i] <= hits) {
+            previousMilestone = milestones[i];
+            break;
+        }
+    }
+
+    const totalForMilestone = nextMilestone - previousMilestone;
+    const progressInMilestone = hits - previousMilestone;
+    let percentage = 0;
+    if (totalForMilestone > 0) {
+        percentage = (progressInMilestone / totalForMilestone) * 100;
+    }
+
+    progressBarElement.style.width = percentage + '%';
+    if (textElement) {
+        textElement.textContent = Math.floor(percentage) + '%';
+    }
+}
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
 	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
@@ -3537,6 +4147,8 @@ function setupFactionHitsListener(db, factionId) {
         abroadHitsElement.textContent = "Error";
     });
 }
+
+
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
@@ -3799,6 +4411,66 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             }
         })();
     }
+}
+
+/**
+ * Sets up mock global data to simulate an active ranked war for local testing.
+ * Call this function (e.g., in your browser console) to activate the dummy war.
+ * @param {string} yourFactionId - Your actual Torn Faction ID.
+ * @param {string} yourTornUsername - Your Torn username.
+ * @param {string} yourFirebaseUid - Your Firebase Auth UID.
+ */
+function setupDummyRankedWarForTesting(yourFactionId, yourTornUsername, yourFirebaseUid) {
+    console.log("Setting up DUMMY Ranked War for testing purposes...");
+
+    // Ensure these global variables are set correctly for your logged-in user
+    // You might need to manually set these in your console or ensure your auth.onAuthStateChanged
+    // has already run and populated them.
+    globalYourFactionID = yourFactionId; // Example: '12345'
+    currentTornUserName = yourTornUsername; // Example: 'YourUserName [123456]'
+    auth.currentUser = { uid: yourFirebaseUid }; // Mock current user for testing if needed, though real auth is better
+
+    // Mock the globalRankedWarData structure as if fetched from Torn API
+    globalRankedWarData = {
+        "warID": "JS_TEST_DUMMY_WAR_123", // Unique ID for this mock war
+        "factions": [
+            {
+                "id": String(yourFactionId), // IMPORTANT: Must match globalYourFactionID and your actual faction ID
+                "name": "Your Elite Faction",
+                "score": 1500
+            },
+            {
+                "id": "98765", // Dummy Opponent Faction ID
+                "name": "The Mock Marauders",
+                "score": 750
+            }
+        ],
+        "start": Math.floor(Date.now() / 1000) - 3600, // War started 1 hour ago
+        "target": 10000 // Target score for the war
+    };
+
+    globalEnemyFactionID = globalRankedWarData.factions.find(
+        f => String(f.id) !== String(globalYourFactionID)
+    )?.id || null;
+
+    if (globalEnemyFactionID) {
+        console.log(`Dummy War Active: Your Faction (${globalYourFactionID}) vs Opponent (${globalEnemyFactionID})`);
+        console.log("Mock globalRankedWarData:", globalRankedWarData);
+        // Simulate that the user has NOT yet agreed to the terms for this "new" war
+        hasAgreedToWarChatTerms = false;
+    } else {
+        console.error("Failed to set up dummy opponent faction ID.");
+        globalRankedWarData = null; // Reset if invalid setup
+    }
+
+    // Simulate a call to update the UI components based on this new data
+    // This is important because your page might not auto-refresh all elements immediately.
+    // You can uncomment and adapt these lines as needed for your UI refresh logic.
+    // For example, if you have a function that updates the main scoreboard.
+    // updateRankedWarDisplay(globalRankedWarData, globalYourFactionID);
+    // populateUiComponents(yourCurrentWarFirebaseDataIfAny, userApiKey); // Pass your actual saved war data
+    // fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // This would require a mocked API fetch or further data setup
+    // fetchAndDisplayChainData(); // If you want to mock chain data too
 }
 
 async function fetchAndDisplayMemberDetails(memberId) {
@@ -5211,15 +5883,14 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
 
     globalYourFactionID = finalFactionId; // Set the global variable
 
-    // --- NEW: Dynamically set the chatMessagesCollection based on the user's faction ID ---
+    // Dynamically set the faction chatMessagesCollection based on the user's faction ID
     if (globalYourFactionID) {
         chatMessagesCollection = db.collection('factionChats').doc(String(globalYourFactionID)).collection('messages');
-        console.log(`Chat messages collection set to: factionChats/${globalYourFactionID}/messages`);
+        console.log(`Faction chat messages collection set to: factionChats/${globalYourFactionID}/messages`);
     } else {
         chatMessagesCollection = null; // Reset if no faction ID
         console.warn("Could not determine user's faction ID. Faction chat will not be available.");
     }
-    // --- END NEW ---
 
     const activeOpsScoreBox = document.querySelector('#active-ops-tab .ops-control-item .ranked-war-container');
     const announcementScoreboardContainer = document.getElementById('announcementScoreboardContainer');
@@ -5254,7 +5925,25 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (factionApiFullData.error) {
             throw new Error(`Torn API Error: ${factionApiFullData.error.error}`);
         }
-        
+
+        // --- NEW: Extract and store globalRankedWarData and globalEnemyFactionID here ---
+        globalRankedWarData = factionApiFullData.wars?.ranked || null;
+        if (globalRankedWarData) {
+            const yourFactionInfo = globalRankedWarData.factions.find(f => String(f.id) === String(finalFactionId));
+            const opponentFactionInfo = globalRankedWarData.factions.find(f => String(f.id) !== String(finalFactionId));
+            if (opponentFactionInfo) {
+                globalEnemyFactionID = opponentFactionInfo.id;
+                console.log(`Detected active ranked war with opponent ID: ${globalEnemyFactionID}`);
+            } else {
+                globalEnemyFactionID = null; // No opponent found in active war
+                console.log("No opponent found in active ranked war data.");
+            }
+        } else {
+            globalEnemyFactionID = null; // No active ranked war
+            console.log("No active ranked war data found.");
+        }
+        // --- END NEW ---
+
         if (factionApiFullData.chain && typeof factionApiFullData.chain.current === 'number') {
             localCurrentClaimHitCounter = factionApiFullData.chain.current;
             console.log(`Initialized localCurrentClaimHitCounter to: ${localCurrentClaimHitCounter}`);
@@ -5262,15 +5951,15 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
             localCurrentClaimHitCounter = 0; // Default to 0 if no chain data
             console.log("Faction chain data not found, localCurrentClaimHitCounter initialized to 0.");
         }
-            
-        updateRankedWarDisplay(factionApiFullData.wars?.ranked, finalFactionId);
+
+        updateRankedWarDisplay(globalRankedWarData, finalFactionId); // Use globalRankedWarData
         console.log("initializeAndLoadData: updateRankedWarDisplay called successfully.");
 
         console.log(">>> initializeAndLoadData FUNCTION COMPLETED SUCCESSFULLY <<<");
 
         const warDoc = await db.collection('factionWars').doc('currentWar').get();
         const warData = warDoc.exists ? warDoc.data() : {};
-        populateUiComponents(warData, apiKey); 
+        populateUiComponents(warData, apiKey);
 
     } catch (error) {
         console.error(">>> ERROR CAUGHT IN initializeAndLoadData CATCH BLOCK:", error);
@@ -5282,8 +5971,13 @@ async function initializeAndLoadData(apiKey, factionIdToUseOverride = null) {
         if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'Error';
         if (chainStartedDisplay) chainStartedDisplay.textContent = 'Error';
         if (chainTimerDisplay) chainTimerDisplay.textContent = 'Error';
+
+        // Ensure global war data is reset on error
+        globalRankedWarData = null;
+        globalEnemyFactionID = null;
     }
 }
+
 async function displayQuickFFTargets(userApiKey, playerId) {
     const quickFFTargetsDisplay = document.getElementById('quickFFTargetsDisplay');
     if (!quickFFTargetsDisplay) {
@@ -5654,6 +6348,8 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
 
+                setupProgressText();  
+
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
                     factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
@@ -5955,18 +6651,30 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 
 
-    // Event listener for sending faction chat messages
-    if (chatSendBtn) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
+    // Initial setup for the faction chat's send button and input.
+// These listeners are only added once. Subsequent tab clicks will manage them via handleChatTabClick.
+if (chatSendBtn && chatTextInput) {
+    // We start assuming faction chat is the default active.
+    // The handleChatTabClick will then manage re-attaching/re-assigning these.
+    // For initial load, make sure faction chat listeners are ready.
+    chatSendBtn.addEventListener('click', sendChatMessage);
+    chatTextInput.addEventListener('keydown', handleFactionChatInputKeydown);
+}
+
+// Trigger initial setup for the default faction chat tab
+// This ensures that all necessary setup for the faction-chat tab is run on page load,
+// including setting its placeholder, and confirming its listeners are correctly assigned.
+const factionChatTabButton = document.querySelector('.chat-tab[data-chat-tab="faction-chat"]');
+if (factionChatTabButton) {
+    factionChatTabButton.click(); // Programmatically click it to initialize
+} else {
+    console.error("Faction chat tab button not found. Initial chat setup may be incomplete.");
+    // Fallback: Manually call setupChatRealtimeListener if the button isn't found
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = '<p>Attempting to load Faction Chat messages...</p>';
     }
-    if (chatTextInput) {
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent new line in input
-                sendChatMessage();
-            }
-        });
-    }
+    setupChatRealtimeListener();
+}
 
 
 }); // --- END OF DOMCONTENTLOADED ---
