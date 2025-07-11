@@ -15,7 +15,7 @@
     border: 2px solid black; /* Consistent border */
     display: flex;
     flex-direction: column;
-	margin-top: 5px;
+	margin-top: 10px;
     gap: 20px; /* Spacing between main sections */
     box-sizing: border-box;
     min-height: calc(100vh - 140px - 40px)
