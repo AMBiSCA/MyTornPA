@@ -261,7 +261,7 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
 
     // Add table headers
     columns.forEach(col => {
-        tableHtml += `<th ${col.sortable ? `data-sort-key="${col.key}" class="fo-sortable-header"` : ''}>${col.header} ${col.sortable ? '(▲▼)' : ''}</th>`;
+        tableHtml += `<th>${col.header}</th>`;
     });
     tableHtml += `
                 </tr>
@@ -301,7 +301,7 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     factionOverviewCurrentDataTable = targetElement.querySelector('.fo-data-table');
 
     // Attach sorting event listeners to headers
-    setupTableSorting(factionOverviewCurrentDataTable, data);
+
 }
 
 /**
