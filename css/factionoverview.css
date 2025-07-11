@@ -789,3 +789,10 @@
         max-height: 200px; /* Adjust height for smaller screens */
     }
 }
+
+/* In mysite/css/factionoverview.css */
+
+/* Hides the main page scrollbar for this specific page */
+html, body {
+    overflow-y: hidden !important; /* Forces the main vertical scrollbar to be hidden */
+}
