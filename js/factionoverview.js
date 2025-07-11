@@ -597,8 +597,6 @@ async function fetchAllRawFactionNewsData() {
 
 // In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
 
-// In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
-
 /**
  * Processes raw Torn API faction news data (which is an array of news items)
  * into a standardized format for tables, parsing details from the 'text' field.
@@ -761,7 +759,7 @@ function processFactionNewsForTable(newsArray, category) {
             // Pattern 2: "...successfully completed <span class="bold">Crime Name</span>..."
             // (This also implies Success)
             if (crimeType === 'N/A') { // Only try if Pattern 1 didn't match
-                match = sourceText.match(/successfully completed <span class="bold">(.+?)<\/span>/);
+                match = sourceText.match(/successfully completed <span class="bold">(.+?)<\/span>(?: receiving <span class="bold">(.+?)<\/span>)?/);
                 if (match) {
                     crimeType = match[1].trim();
                     result = 'Success';
@@ -812,14 +810,14 @@ function processFactionNewsForTable(newsArray, category) {
                 }
             }
 
-            // Pattern 5: "actioned a money balance payout splitting X of the $AMOUNT between Y participants for ... <span class="bold">Scenario Name</span> scenario"
+            // Pattern 5: "actioned a money balance payout splitting X% of the $AMOUNT between Y participants for ... <a href="...">FactionName</a>'s <span class="bold">Scenario Name</span> scenario"
             if (crimeType === 'N/A') { // Try this last for payout scenarios
-                match = sourceText.match(/actioned a money balance payout splitting(?:.+?)for\s+<a href="[^"]+">.+?<\/a>'s\s+(.+?)\s+scenario/);
+                match = sourceText.match(/actioned a money balance payout splitting(?:.+?)for.+?'s\s*(.+?)\s+scenario/);
                 if (match) {
-                    crimeType = match[1].trim(); // Capture the scenario name
+                    crimeType = match[1].trim(); // Scenario name
                     result = 'Payout'; // Custom result for payouts
-                    // Optionally parse amount here if needed for crime payout column (already present logic)
-                    const payoutAmountMatch = sourceText.match(/splitting(?:.+?)\$([\d,]+)/);
+                    // Optionally parse amount here if needed for crime payout column
+                    const payoutAmountMatch = sourceText.match(/splitting\s+\d+% of the\s+\$([\d,]+)/);
                     if (payoutAmountMatch) {
                         amount = parseInt(payoutAmountMatch[1].replace(/,/g, ''), 10);
                     }
