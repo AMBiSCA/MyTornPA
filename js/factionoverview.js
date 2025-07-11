@@ -310,15 +310,10 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
  * Renders the content specifically for the Logistics sub-tab.
  * @param {HTMLElement} targetElement The DOM element to inject content into.
  */
-// In factionoverview.js, find the existing renderLogisticsTabContent function and replace it entirely with this:
-
-/**
- * Renders the content specifically for the Logistics sub-tab.
- * This will query `historicalArmoryLogs` and display summaries.
- * @param {HTMLElement} targetElement The DOM element to inject content into.
- */
 function renderLogisticsTabContent(targetElement) {
     targetElement.innerHTML = `
+        <h3 class="fo-view-title">✨ Logistics: Current Stock & Usage Trends</h3>
+
         <div class="fo-section-panel">
             <h4>📊 Current Faction Armory Stock Levels (Estimated)</h4>
             <table class="fo-data-table fo-summary-table">
@@ -337,7 +332,8 @@ function renderLogisticsTabContent(targetElement) {
         </div>
 
         <div class="fo-section-panel fo-section-panel-full-width">
-            <h4>📦 Recent Large Item Movements</h4> <table class="fo-data-table fo-summary-table">
+            <h4>📦 Recent Large Item Movements (>50 Qty or High Value)</h4>
+            <table class="fo-data-table fo-summary-table">
                 <thead>
                     <tr>
                         <th class="fo-sortable-header" data-sort-key="timestamp">Date/Time (▲▼)</th>
@@ -357,6 +353,7 @@ function renderLogisticsTabContent(targetElement) {
     // This will involve querying 'historicalArmoryLogs' from Firebase and processing it.
     populateLogisticsData();
 }
+
 /**
  * Renders the content specifically for the Oversight sub-tab.
  * @param {HTMLElement} targetElement The DOM element to inject content into.
