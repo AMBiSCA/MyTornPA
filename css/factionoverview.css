@@ -480,8 +480,71 @@
     margin-bottom: 0;
 }
 
+/* In mysite/css/factionoverview.css */
 
+/* Container for the table, allowing fixed header and scrollable body */
+.fo-table-container {
+    overflow-x: auto; /* Allows horizontal scrolling if table is too wide */
+    overflow-y: hidden; /* Hide vertical overflow of this container, letting tbody handle it */
+    width: 100%;
+    position: relative;
+    /* Add max-height to the container to prevent it from growing indefinitely */
+    max-height: 500px; /* <--- NEW: Set a max height for the entire table display, adjust as needed */
+    display: flex; /* <--- NEW: Make it a flex container */
+    flex-direction: column; /* <--- NEW: Stack its children vertically */
+}
 
+/* Generic Table Styles (used for Armory, Funds, Crime logs) */
+.fo-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px; /* Adjust if needed to distance from search/filter bar */
+    table-layout: fixed; /* Ensures columns respect widths, important for scrolling */
+    flex-shrink: 0; /* <--- NEW: Prevent table from shrinking within flex container */
+}
+
+.fo-data-table thead {
+    position: sticky; /* Makes header sticky within its scrollable parent */
+    top: 0;
+    z-index: 10; /* Ensure header stays above scrolling content */
+    background-color: #004d80; /* Match your header background */
+}
+
+/* The scrollable table body */
+.fo-scrollable-tbody {
+    display: block; /* Important: Make tbody a block-level element to give it a fixed height */
+    max-height: 400px; /* <--- ADJUST THIS VALUE: This controls the visible height of your scrollbar */
+    overflow-y: auto; /* <--- ADDED: Enables vertical scrolling */
+    overflow-x: hidden; /* Hides horizontal scrollbar if not needed for tbody */
+    width: 100%;
+    /* Flex properties for scrolling content */
+    flex-grow: 1; /* <--- NEW: Allow tbody to grow and fill available height in fo-table-container */
+    min-height: 0; /* <--- NEW: Crucial for flex items with overflow */
+}
+
+/* Ensure tbody cells don't collapse when tbody is display:block */
+.fo-data-table tbody tr {
+    width: 100%;
+    display: table; /* Make rows behave like table rows inside the block tbody */
+    table-layout: fixed;
+}
+
+/* Custom Scrollbar Styles for the table body (consistent with global.css) */
+.fo-scrollable-tbody::-webkit-scrollbar {
+    width: 10px; height: 10px;
+}
+.fo-scrollable-tbody::-webkit-scrollbar-track {
+    background: #2b2b2b; border-radius: 5px;
+}
+.fo-scrollable-tbody::-webkit-scrollbar-thumb {
+    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+}
+.fo-scrollable-tbody::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+.fo-scrollable-tbody::-webkit-scrollbar-corner {
+    background: #222;
+}
 
 /* ====================================================================== */
 /* Responsive Adjustments (Specific to Faction Overview)                 */
