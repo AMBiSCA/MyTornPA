@@ -6591,18 +6591,30 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 
 
-    // Event listener for sending faction chat messages
-    if (chatSendBtn) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
+    // Initial setup for the faction chat's send button and input.
+// These listeners are only added once. Subsequent tab clicks will manage them via handleChatTabClick.
+if (chatSendBtn && chatTextInput) {
+    // We start assuming faction chat is the default active.
+    // The handleChatTabClick will then manage re-attaching/re-assigning these.
+    // For initial load, make sure faction chat listeners are ready.
+    chatSendBtn.addEventListener('click', sendChatMessage);
+    chatTextInput.addEventListener('keydown', handleFactionChatInputKeydown);
+}
+
+// Trigger initial setup for the default faction chat tab
+// This ensures that all necessary setup for the faction-chat tab is run on page load,
+// including setting its placeholder, and confirming its listeners are correctly assigned.
+const factionChatTabButton = document.querySelector('.chat-tab[data-chat-tab="faction-chat"]');
+if (factionChatTabButton) {
+    factionChatTabButton.click(); // Programmatically click it to initialize
+} else {
+    console.error("Faction chat tab button not found. Initial chat setup may be incomplete.");
+    // Fallback: Manually call setupChatRealtimeListener if the button isn't found
+    if (chatDisplayArea) {
+        chatDisplayArea.innerHTML = '<p>Attempting to load Faction Chat messages...</p>';
     }
-    if (chatTextInput) {
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent new line in input
-                sendChatMessage();
-            }
-        });
-    }
+    setupChatRealtimeListener();
+}
 
 
 }); // --- END OF DOMCONTENTLOADED ---
