@@ -16,7 +16,7 @@ let factionOverviewGlobalYourFactionID = null; // Stores the user's faction ID
 
 let factionOverviewPageContentContainer = null; // Main container for all dynamic content on this page
 let factionApiFullData = null; 
-
+let factionBalancesData = null;
 let currentActiveSubTab = 'armory-withdrawals'; // Tracks which sub-tab is currently active (default to Armory Withdrawals)
 
 // Data storage for raw API responses (recent 100 items for each category)
@@ -588,8 +588,13 @@ async function fetchAllRawFactionNewsData() {
         fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || {}, 'depositFunds');
         fundWithdrawalsData = processFactionNewsForTable(fundWithdrawalsResp?.news || {}, 'giveFunds');
         crimeData = processFactionNewsForTable(crimeResp?.news || {}, 'crime');
-
         console.log("All raw faction news data fetched and processed.");
+
+        // --- NEW CODE BLOCK TO FETCH FACTION BALANCES ---
+        const balanceResp = await fetchTornApiData(`https://api.torn.com/v2/faction/balance`, 'MyTornPA_FactionBalances');
+        factionBalancesData = balanceResp?.balance || null;
+        console.log("Faction Balances data fetched successfully.");
+        // --- END NEW CODE BLOCK ---
 
         // If the current tab is one of these, refresh its display
         if (['armory-withdrawals', 'armory-deposits', 'fund-deposits', 'fund-withdrawals', 'crime'].includes(currentActiveSubTab)) {
@@ -599,7 +604,6 @@ async function fetchAllRawFactionNewsData() {
 
         // Trigger historical data processing after fetching raw data
         processAndStoreHistoricalData();
-
 
     } catch (error) {
         console.error("Failed to fetch all raw faction news data:", error);
