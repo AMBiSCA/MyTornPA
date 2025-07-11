@@ -33,6 +33,7 @@ let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
 
+
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
@@ -1460,7 +1461,7 @@ async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
 }
 
 function formatTime(seconds) {
-    if (seconds <= 0) return '0s';
+    if (seconds <= 0) return 'Over';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
@@ -1519,49 +1520,50 @@ async function resetAllAvailability() {
 
 
 function updateUserEnergyDisplay() {
-    if (!userApiKey) {
-        console.warn("User API key not available for energy display.");
-        // Get references to both elements to set an error message
+    if (!userApiKey) {
+        console.warn("User API key not available for energy display.");
         const activeOpsEnergyEl = document.getElementById('rw-user-energy');
         const announcementEnergyEl = document.getElementById('rw-user-energy_announcement');
-        if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Key Missing';
-        if (announcementEnergyEl) announcementEnergyEl.textContent = 'Key Missing';
-        return;
-    }
+        if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Key Missing';
+        if (announcementEnergyEl) announcementEnergyEl.textContent = 'Key Missing';
+        return;
+    }
 
-    const API_KEY = userApiKey; 
-
-    // Get references to BOTH energy display elements
+    const API_KEY = userApiKey;
     const activeOpsEnergyEl = document.getElementById('rw-user-energy');
     const announcementEnergyEl = document.getElementById('rw-user-energy_announcement');
 
-    // Set loading state for both if they exist
-    if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Loading E...';
-    if (announcementEnergyEl) announcementEnergyEl.textContent = 'Loading E...'; 
+    // --- THIS IS THE FIX ---
+    // Only show "Loading" if a value isn't already displayed
+    if (activeOpsEnergyEl && !activeOpsEnergyEl.textContent.includes('/')) {
+        activeOpsEnergyEl.textContent = 'Loading E...';
+    }
+    if (announcementEnergyEl && !announcementEnergyEl.textContent.includes('/')) {
+        announcementEnergyEl.textContent = 'Loading E...';
+    }
+    // --- END OF FIX ---
 
-    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                console.error("Torn API Error:", data.error.code, data.error.error);
-                // Update both elements with error message
-                if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'API Error';
-                if (announcementEnergyEl) announcementEnergyEl.textContent = 'API Error';
-                return;
-            }
+    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}&comment=MyTornPA_Energy`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error("Torn API Error:", data.error.code, data.error.error);
+                if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'API Error';
+                if (announcementEnergyEl) announcementEnergyEl.textContent = 'API Error';
+                return;
+            }
 
-            const energy = data.energy.current;
-            const maxEnergy = data.energy.maximum;
-            const energyFullTime = data.energy.fulltime;
+            const energy = data.energy.current;
+            const maxEnergy = data.energy.maximum;
+            const energyFullTime = data.energy.fulltime;
             const energyString = `${energy}/${maxEnergy}`;
             const tooltipString = `Full E at: ${new Date(energyFullTime * 1000).toLocaleTimeString()} ${new Date(energyFullTime * 1000).toLocaleDateString()}`;
 
-            // Update both elements with the correct energy value and tooltip
             if (activeOpsEnergyEl) {
                 activeOpsEnergyEl.textContent = energyString;
                 activeOpsEnergyEl.title = tooltipString;
@@ -1570,13 +1572,12 @@ function updateUserEnergyDisplay() {
                 announcementEnergyEl.textContent = energyString;
                 announcementEnergyEl.title = tooltipString;
             }
-        })
-        .catch(error => {
-            console.error("Error fetching user energy data:", error);
-            // Update both elements with fetch error message
-            if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Fetch Error';
-            if (announcementEnergyEl) announcementEnergyEl.textContent = 'Fetch Error';
-        });
+        })
+        .catch(error => {
+            console.error("Error fetching user energy data:", error);
+            if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Fetch Error';
+            if (announcementEnergyEl) announcementEnergyEl.textContent = 'Fetch Error';
+        });
 }
 
 async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
@@ -2419,6 +2420,10 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         if (yourChainData) {
             friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
             friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
+			
+			 const friendlyProgressBar = document.getElementById('friendly-chain-progress');
+            updateChainProgress(yourChainData.current || 0, friendlyProgressBar);
+   
 
             currentLiveChainSeconds = yourChainData.timeout || 0;
             lastChainApiFetchTime = Date.now();
@@ -2435,13 +2440,17 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
             if (enemyChainData) { // Use enemyChainData already extracted above
                  enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
                  enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
+				 
+				 const enemyProgressBar = document.getElementById('enemy-chain-progress');
+                 updateChainProgress(enemyChainData.current || 0, enemyProgressBar);
+				 
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
             }
         } else {
-            enemyHitsEl.textContent = 'N/A';
-            enemyTimeEl.textContent = 'No Enemy Set';
+            enemyHitsEl.textContent = '0';
+            enemyTimeEl.textContent = 'No Current War';
         }
 
     } catch (error) {
@@ -2454,6 +2463,40 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         lastChainApiFetchTime = 0;
     }
 }
+
+// --- NEW FUNCTION: Creates and styles the progress bar text elements ---
+function setupProgressText() {
+    const friendlyContainer = document.getElementById('friendly-chain-progress')?.parentElement;
+    const enemyContainer = document.getElementById('enemy-chain-progress')?.parentElement;
+
+    // A helper function to avoid repeating code
+    const createTextElement = (container, id) => {
+        if (!container || document.getElementById(id)) return; // Don't run if container doesn't exist or text is already there
+
+        // This is needed to position the text inside the container
+        container.style.position = 'relative';
+
+        const textEl = document.createElement('span');
+        textEl.id = id;
+
+        // --- All styling is applied here via JavaScript ---
+        textEl.style.position = 'absolute';
+        textEl.style.top = '50%';
+        textEl.style.left = '50%';
+        textEl.style.transform = 'translate(-50%, -50%)';
+        textEl.style.color = '#FFFFFF';
+        textEl.style.fontWeight = 'bold';
+        textEl.style.fontSize = '10px';
+        textEl.style.textShadow = '0 0 2px rgba(0,0,0,0.8)'; // Makes text more readable
+        textEl.style.pointerEvents = 'none'; // Makes text unclickable
+
+        container.appendChild(textEl);
+    };
+
+    createTextElement(friendlyContainer, 'friendly-chain-text');
+    createTextElement(enemyContainer, 'enemy-chain-text');
+}
+
 async function claimTarget(memberId, memberName) {
     if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
         alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
@@ -3483,6 +3526,53 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
+/**
+ * Calculates and updates the width and text of a chain progress bar.
+ * @param {number} currentHits - The current number of hits in the chain.
+ * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
+ * @param {string} textElementId - The ID of the text element to update.
+ */
+function updateChainProgress(currentHits, progressBarElement, textElementId) {
+    if (!progressBarElement) return;
+
+    const textElement = document.getElementById(textElementId);
+    const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+    const hits = Number(currentHits);
+
+    if (isNaN(hits)) {
+        progressBarElement.style.width = '0%';
+        if (textElement) textElement.textContent = '';
+        return;
+    }
+
+    let nextMilestone = milestones.find(m => m > hits);
+    
+    if (nextMilestone === undefined) {
+        progressBarElement.style.width = '100%';
+        if (textElement) textElement.textContent = 'MAX';
+        return;
+    }
+
+    let previousMilestone = 0;
+    for (let i = milestones.length - 1; i >= 0; i--) {
+        if (milestones[i] <= hits) {
+            previousMilestone = milestones[i];
+            break;
+        }
+    }
+
+    const totalForMilestone = nextMilestone - previousMilestone;
+    const progressInMilestone = hits - previousMilestone;
+    let percentage = 0;
+    if (totalForMilestone > 0) {
+        percentage = (progressInMilestone / totalForMilestone) * 100;
+    }
+
+    progressBarElement.style.width = percentage + '%';
+    if (textElement) {
+        textElement.textContent = Math.floor(percentage) + '%';
+    }
+}
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
 	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
@@ -3537,6 +3627,8 @@ function setupFactionHitsListener(db, factionId) {
         abroadHitsElement.textContent = "Error";
     });
 }
+
+
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
@@ -5653,6 +5745,8 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 userApiKey = apiKey; // Set global API key
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
+
+                setupProgressText();  
 
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
