@@ -1296,8 +1296,39 @@ function populateOversightData() {
     totalItemsWithdrawnEl.textContent = totalItemsWith.toLocaleString();
 
     // --- Part 2: Calculate & Display Top Active Users (Last 30 Days) ---
-    // This section will be populated in a subsequent step.
-    topUsersList.innerHTML = '<li>Analyzing top users... (coming soon!)</li>';
+    const userActivityCounts = {}; // userId -> { name: userName, count: activitiesCount }
+
+    // Combine all relevant logs (armory and fund actions/deposits)
+    const allRelevantHistoricalLogs = [...historicalArmoryLogs, ...historicalFundLogs];
+
+    allRelevantHistoricalLogs.forEach(log => {
+        if (log.timestamp >= thirtyDaysAgo && log.timestamp <= now) {
+            const userId = log.userId; // Use userId for consistency
+            const userName = log.user; // Use user name for display
+
+            if (userId && userName && userId !== 'N/A') {
+                if (!userActivityCounts[userId]) {
+                    userActivityCounts[userId] = { name: userName, count: 0 };
+                }
+                userActivityCounts[userId].count++;
+            }
+        }
+    });
+
+    // Convert to array and sort by activity count (descending)
+    const sortedUsers = Object.values(userActivityCounts)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5); // Get top 5 users
+
+    let topUsersHtml = '';
+    if (sortedUsers.length > 0) {
+        sortedUsers.forEach((user, index) => {
+            topUsersHtml += `<li>${index + 1}. ${user.name} (${user.count} actions)</li>`;
+        });
+    } else {
+        topUsersHtml = '<li>No significant activity in the last 30 days.</li>';
+    }
+    topUsersList.innerHTML = topUsersHtml;
 
     // --- Part 3: Generate & Display Alerts (from historical data) ---
     // This section will be populated in a subsequent step.
