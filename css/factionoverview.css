@@ -12,7 +12,7 @@
     background-color: rgba(34, 34, 34, 0.85); /* Consistent with your main content areas */
     border-radius: 12px;
     box-shadow: black; /* Consistent blue glow */
-    border: 1px solid black; /* Consistent border */
+    border: 2px solid black; /* Consistent border */
     display: flex;
     flex-direction: column;
     gap: 20px; /* Spacing between main sections */
