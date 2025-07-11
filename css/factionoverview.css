@@ -790,3 +790,87 @@
     }
 }
 
+/* In mysite/css/factionoverview.css */
+
+/* Hides the main page scrollbar for this specific page */
+html, body {
+    overflow-y: hidden !important; /* Forces the main vertical scrollbar to be hidden */
+}
+
+/* In mysite/css/factionoverview.css */
+
+/* ====================================================================== */
+/* Logistics Tab Layout & Panel Specific Styles                           */
+/* (Similar to Oversight, but specific to Logistics content)             */
+/* ====================================================================== */
+
+/* Container for the two main Logistics panels (Stock Levels and Large Movements) */
+.fo-logistics-panels-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
+    gap: 20px; /* Space between the panels */
+    justify-content: center; /* Center panels if they don't fill full width */
+    flex-grow: 1; /* Allow this container to take up available vertical space */
+    min-height: 0; /* Crucial for flex item with overflow */
+}
+
+/* Individual Logistics Panel (e.g., Stock Levels Box, Large Movements Box) */
+.fo-logistics-panel {
+    flex: 1; /* Allow panels to grow and shrink, taking equal space */
+    min-width: 300px; /* Minimum width for each panel before wrapping */
+    max-width: 48%; /* Max width to ensure two columns on wider screens */
+    display: flex;
+    flex-direction: column; /* Stack title and content vertically */
+    
+    background-color: rgba(0, 0, 0, 0.2); /* Consistent with other section panels */
+    border: 1px solid rgba(0, 168, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+    padding: 15px; /* Internal padding */
+}
+
+/* Ensure the Large Movements panel takes full width on small screens if needed */
+.fo-logistics-panel-full-width {
+    /* If it always takes 100%, adjust here */
+    /* On mobile, both panels will naturally stack and take full width due to flex-wrap */
+}
+
+/* Titles within the Logistics Panels (reusing fo-panel-title from Oversight) */
+/* .fo-panel-title CSS is already defined in the Oversight section, so it will apply here */
+/* .fo-panel-title {
+    color: #00a8ff;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 168, 255, 0.2);
+    flex-shrink: 0;
+} */
+
+
+/* Content area within Logistics Panels that will scroll */
+.fo-scrollable-panel-content {
+    flex-grow: 1; /* Allow content area to fill remaining vertical space */
+    max-height: 250px; /* <--- ADJUST THIS VALUE: Sets the visible height before scrolling occurs */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Hides horizontal scrollbar */
+    padding-right: 5px; /* Add slight padding for scrollbar */
+
+    /* Inherit custom scrollbar styles from .fo-data-table::-webkit-scrollbar or ensure they are global */
+    /* If not, copy the custom scrollbar styles here from your .fo-data-table::-webkit-scrollbar section */
+    /* It's better to keep scrollbar styles global on ::-webkit-scrollbar if possible for consistency */
+}
+
+/* Mobile adjustments for Logistics panels (similar to Oversight panels) */
+@media (max-width: 768px) {
+    .fo-logistics-panels-container {
+        flex-direction: column; /* Stack panels vertically on small screens */
+    }
+    .fo-logistics-panel {
+        max-width: 100%; /* Take full width when stacked */
+    }
+    .fo-scrollable-panel-content {
+        max-height: 200px; /* Adjust height for smaller screens */
+    }
+}
