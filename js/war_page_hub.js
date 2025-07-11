@@ -1461,7 +1461,7 @@ async function switchChatTab(tabName) { // <--- THIS FUNCTION MUST BE 'async'
 }
 
 function formatTime(seconds) {
-    if (seconds <= 0) return '0s';
+    if (seconds <= 0) return 'Over';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
