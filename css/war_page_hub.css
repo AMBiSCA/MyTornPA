@@ -3886,7 +3886,7 @@ min-width: 320px;
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
     flex-grow: 0 !important;
 	margin-left: 175px;
-	width: 1500px
+	width: 150px
 }
 #friendly-status-tab .friendly-members-panel {
     width: 1500px !important;     /* Set a fixed width */
