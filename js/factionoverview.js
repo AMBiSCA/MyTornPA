@@ -611,7 +611,6 @@ async function fetchAllRawFactionNewsData() {
 function processFactionNewsForTable(newsArray, category) {
     const processed = [];
     // Ensure newsArray is an actual array before trying to iterate.
-    // If newsArray is null/undefined, this defaults it to an empty array.
     const safeNewsArray = Array.isArray(newsArray) ? newsArray : [];
 
     console.log(`[DEBUG] processFactionNewsForTable: Processing category: ${category}. Received ${safeNewsArray.length} entries.`);
@@ -664,30 +663,52 @@ function processFactionNewsForTable(newsArray, category) {
 
         // --- Category-Specific Parsing ---
         if (category === 'armoryAction' || category === 'armoryDeposit') {
-            // Example: "<a href...>User</a> used one of the faction's First Aid Kit items"
-            // Example: "<a href...>User</a> withdrew 5x Medical Kit from armory"
-            // Example: "<a href...>User</a> deposited Faction Armor to armory"
-            // Example: "<a href...>KetchuPP</a> gave 30x Flash Grenade to themselves from the faction armory" (this is also an armoryAction)
-            // Example: "<a href...>whysellco</a> deposited 1 x Thompson"
+            let match;
+            item = 'N/A'; // Reset to N/A for this specific category
+            quantity = 'N/A'; // Reset to N/A
 
-            // This regex tries to capture quantity and item name in various formats.
-            // Group 1: optional quantity like "30x"
-            // Group 2: The item name (e.g., "First Aid Kit", "Flash Grenade", "Thompson", "Blood Bag : A+")
-            const itemAndQtyMatch = sourceText.match(/(?:used|loaned|gave|filled)\s+(?:(\d+x)?\s*(.+?))(?:\s+to themselves|\s+from the faction armory|\s+items|\s+item|\s+to|\s+from)?\s*(?:armory)?/);
-            
-            // For deposit actions, try a different pattern:
-            if (!itemAndQtyMatch) {
-                const depositMatch = sourceText.match(/(?:deposited)\s+(?:(\d+)\s+x\s+)?(.+?)(?:\s+items)?(?:\s+to|\s+from)?/);
-                if (depositMatch) {
-                    quantity = depositMatch[1] ? parseInt(depositMatch[1], 10) : 1; // If "1 x Item" or just "Item"
-                    item = depositMatch[2].trim();
-                }
-            } else { // If itemAndQtyMatch found
-                quantity = itemAndQtyMatch[1] ? parseInt(itemAndQtyMatch[1].replace('x', ''), 10) : 1; // Default to 1 if "one of the" or no quantity
-                item = itemAndQtyMatch[2].trim();
+            // Pattern 1: "<a...>User</a> used one of the faction's [Item Name] items" or "item"
+            // Example: "AMBiSCA used one of the faction's First Aid Kit items"
+            match = sourceText.match(/(?:used|filled)\s+one of the faction's\s+(.+?)\s+items?/);
+            if (match) {
+                quantity = 1; // "one of the" implies quantity 1
+                item = match[1].trim(); // Capture the item name
+                console.log(`[DEBUG] Armory Pattern 1 (Used/Filled 'one of the'): Item=${item}, Quantity=${quantity}`);
             }
 
-            console.log(`[DEBUG] Armory Item: ${item}, Quantity: ${quantity}`);
+            // Pattern 2: "<a...>User</a> withdrew [Qty]x [Item Name] from armory"
+            // Example: "KetchuPP gave 30x Flash Grenade to themselves from the faction armory"
+            // Example: "KetchuPP loaned 1x Magnum to themselves from the faction armory"
+            // Example: "whysellco deposited 1 x Bulletproof Vest"
+            // Example: "whysellco deposited 20 x Morphine"
+            // This is for explicit quantity (e.g., "30x" or "1 x")
+            if (item === 'N/A') { // Only try this if Pattern 1 didn't match
+                match = sourceText.match(/(?:withdrew|loaned|gave|deposited)\s+(?:(\d+)\s*x\s+)?(.+?)(?:\s+from|\s+to|\s+items?|\s+to themselves|\s+from the faction armory)?(?:\s+armory)?$/);
+                if (match) {
+                    quantity = match[1] ? parseInt(match[1], 10) : 1; // Explicit quantity, or default to 1
+                    item = match[2].trim(); // Capture the item name
+                    // Clean up specific suffixes that might be captured
+                    item = item.replace(/(?: items?)$/, '').replace(/(?: from the faction armory)$/, '').trim();
+                    console.log(`[DEBUG] Armory Pattern 2 (Withdraw/Deposit 'x' or direct): Item=${item}, Quantity=${quantity}`);
+                } else {
+                    console.log(`[DEBUG] Armory Pattern 2: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            // Pattern 3: Catch-all for simple deposits like "deposited [Item Name]" (no quantity specified, implies 1)
+            // If the item still hasn't been parsed, try a simpler 'deposited' match
+            if (item === 'N/A') {
+                match = sourceText.match(/deposited\s+(.+?)(?:\s+to armory)?$/);
+                if (match) {
+                    quantity = 1; // Assume 1 if no quantity is part of text
+                    item = match[1].trim();
+                    console.log(`[DEBUG] Armory Pattern 3 (Simple Deposited): Item=${item}, Quantity=${quantity}`);
+                } else {
+                    console.log(`[DEBUG] Armory Pattern 3: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            console.log(`[DEBUG] Final Armory Item: ${item}, Quantity: ${quantity}`);
 
         } else if (category === 'depositFunds') {
             // Example: "<a href...>User</a> deposited $1,000,000"
@@ -707,6 +728,8 @@ function processFactionNewsForTable(newsArray, category) {
             if (recipientDataMatch) {
                 recipientId = recipientDataMatch[1];
                 recipient = recipientDataMatch[2];
+            } else {
+                console.log(`[DEBUG] GiveFunds Recipient: NO MATCH for "${sourceText}"`);
             }
 
             // Extract Sender Info directly from the last part of the string
@@ -714,6 +737,8 @@ function processFactionNewsForTable(newsArray, category) {
             if (senderDataMatch) {
                 senderId = senderDataMatch[1];
                 sender = senderDataMatch[2];
+            } else {
+                console.log(`[DEBUG] GiveFunds Sender: NO MATCH for "${sourceText}"`);
             }
 
             // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER (the one who initiated the transfer)
@@ -745,25 +770,28 @@ function processFactionNewsForTable(newsArray, category) {
                 result = 'Success'; // Implied success from "successfully completed"
                 // If there's a second bold span (e.g., "$AMOUNT" or "QTYx ITEM"), this would be the reward
                 // We're not currently parsing rewards into amount/item/quantity for crime, but this is where it would be done.
+                console.log(`[DEBUG] Crime Completion: Type=${crimeType}, Result=${result}`);
+            } else {
+                console.log(`[DEBUG] Crime Regex NO MATCH for "${sourceText}"`);
             }
             console.log(`[DEBUG] Crime: Type=${crimeType}, Result=${result}`);
         }
 
         processed.push({
             id: id,
-            timestamp: timestamp.getTime(), // Stored as milliseconds
-            user: user,       // Primary actor (e.g., withdrawer, depositor, committer, sender for giveFunds)
-            userId: userId,   // ID of the primary actor
+            timestamp: timestamp.getTime(),
+            user: user,
+            userId: userId,
             item: item,
             quantity: quantity,
             amount: amount,
-            sender: sender,         // Specific to 'giveFunds'
+            sender: sender,
             senderId: senderId,
-            recipient: recipient,   // Specific to 'giveFunds'
+            recipient: recipient,
             recipientId: recipientId,
             crimeType: crimeType,
             result: result,
-            rawNews: sourceText     // Keep original text for reference
+            rawNews: sourceText
         });
     });
 
