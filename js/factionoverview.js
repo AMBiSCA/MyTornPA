@@ -1840,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // --- NEW/UPDATED: Robustly Fetch factionWars document and central API key/bankers list ---
                     // This fetches the central configuration document for the faction.
-                    const bankerSettingsDocRef = db.collection('factionBankerSettings').doc(String(factionOverviewGlobalYourFactionID));.doc('currentWar');
+                    const warDocRef = db.collection('factionBankerSettings').doc(String(factionOverviewGlobalYourFactionID));
                     const warDoc = await warDocRef.get(); // Fetch the document
                     
                     console.log(`[DEBUG] FactionWars/currentWar document exists for current user: ${warDoc.exists}`);
