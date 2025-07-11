@@ -697,3 +697,95 @@
     text-decoration: underline; /* Add underline back only on hover for subtle feedback */
     color: #00e0ff; /* Optional: A slight highlight color on hover */
 }
+
+/* In mysite/css/factionoverview.css */
+
+/* ====================================================================== */
+/* Oversight Tab Layout & Panel Specific Styles                           */
+/* ====================================================================== */
+
+/* Container for the two main Oversight panels (Top Users and Alerts) */
+.fo-oversight-panels-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
+    gap: 20px; /* Space between the panels */
+    justify-content: center; /* Center panels if they don't fill full width */
+    flex-grow: 1; /* Allow this container to take up available vertical space */
+    min-height: 0; /* Crucial for flex item with overflow */
+}
+
+/* Individual Oversight Panel (e.g., Top Users Box, Alerts Box) */
+.fo-oversight-panel {
+    flex: 1; /* Allow panels to grow and shrink, taking equal space */
+    min-width: 300px; /* Minimum width for each panel before wrapping */
+    max-width: 48%; /* Max width to ensure two columns on wider screens */
+    display: flex;
+    flex-direction: column; /* Stack title and content vertically */
+    
+    background-color: rgba(0, 0, 0, 0.2); /* Consistent with other section panels */
+    border: 1px solid rgba(0, 168, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+    padding: 15px; /* Internal padding */
+}
+
+/* Titles within the Oversight Panels */
+.fo-panel-title {
+    color: #00a8ff; /* Consistent accent color for titles */
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 15px; /* Space below title */
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 168, 255, 0.2); /* Separator below title */
+    flex-shrink: 0; /* Prevent title from shrinking */
+}
+
+/* Content area within Oversight Panels that will scroll */
+.fo-scrollable-panel-content {
+    flex-grow: 1; /* Allow content area to fill remaining vertical space */
+    max-height: 250px; /* <--- ADJUST THIS VALUE: Sets the visible height before scrolling occurs */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Hides horizontal scrollbar */
+    padding-right: 5px; /* Add slight padding for scrollbar */
+
+    /* Inherit custom scrollbar styles (from .fo-data-table::-webkit-scrollbar if defined globally) */
+    /* If not, you can copy the custom scrollbar styles here from your .fo-data-table::-webkit-scrollbar section */
+    &::-webkit-scrollbar {
+        width: 8px; /* Slightly thinner scrollbar for panels */
+    }
+    &::-webkit-scrollbar-track {
+        background: #2b2b2b;
+        border-radius: 5px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: #007acc;
+        border-radius: 5px;
+        border: 1px solid #2b2b2b;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: #00a8ff;
+    }
+    &::-webkit-scrollbar-corner {
+        background: #222;
+    }
+}
+
+/* Styles for lists within the scrollable panels (Top Users, Alerts) */
+.fo-oversight-panel .fo-list li {
+    padding: 8px 0;
+    font-size: 0.95rem;
+}
+
+/* Mobile adjustments for Oversight panels */
+@media (max-width: 768px) {
+    .fo-oversight-panels-container {
+        flex-direction: column; /* Stack panels vertically on small screens */
+    }
+    .fo-oversight-panel {
+        max-width: 100%; /* Take full width when stacked */
+    }
+    .fo-scrollable-panel-content {
+        max-height: 200px; /* Adjust height for smaller screens */
+    }
+}
