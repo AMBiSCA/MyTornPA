@@ -1064,58 +1064,181 @@ function applyCurrentFiltersAndSort() {
  * Populates data for the Logistics tab.
  * This will query `historicalArmoryLogs` and display summaries.
  */
+// In factionoverview.js, find the existing populateLogisticsData function and replace it entirely with this:
+
+/**
+ * Populates data for the Logistics tab using real historical data from Firebase.
+ */
 function populateLogisticsData() {
     const stockBody = document.getElementById('foLogisticsStockBody');
     const largeMovesBody = document.getElementById('foLogisticsLargeMovesBody');
 
-    if (!stockBody || !largeMovesBody) return;
+    if (!stockBody || !largeMovesBody) {
+        console.error("HTML Error: Logistics tab body elements not found.");
+        return;
+    }
 
-    // Placeholder for actual data processing from historicalArmoryLogs
-    stockBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px;">Processing historical stock data...</td></tr>`;
-    largeMovesBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px;">Analyzing large movements...</td></tr>`;
+    stockBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px;">Calculating real stock data...</td></tr>`;
+    largeMovesBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px;">Analyzing real large movements...</td></tr>`;
 
-    // Example conceptual data (replace with actual calculations from historicalArmoryLogs)
-    const currentStockExample = [
-        { itemName: 'Medical Kit', onHandQty: 250, avgDailyUse: 15, weeklyChange: -105 },
-        { itemName: 'Small Arms Ammo', onHandQty: 15000, avgDailyUse: 500, weeklyChange: -3500 },
-        { itemName: 'Flash Grenade', onHandQty: 80, avgDailyUse: 5, weeklyChange: -35 },
-    ];
-    const largeMovesExample = [
-        { timestamp: new Date().getTime() - 86400000, user: 'Player Alpha', item: 'Heavy Artillery', quantity: 1, type: 'Withdrawal' },
-        { timestamp: new Date().getTime() - (2 * 86400000), user: 'Player Beta', item: 'Cash', quantity: 1000000, type: 'Deposit' },
-    ];
+    // Ensure historical data is loaded; if not, show a message and prompt to refresh
+    if (historicalArmoryLogs.length === 0) {
+        stockBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px;">No historical armory data available. Ensure your API key is set and data is being saved to Firebase.</td></tr>`;
+        largeMovesBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px;">No historical armory data for movements.</td></tr>`;
+        return;
+    }
+
+    // --- Part 1: Calculate Current Faction Armory Stock Levels (Estimated) ---
+    // This requires processing all historical armory actions to get net quantities.
+    const itemNetQuantities = {}; // itemName -> net quantity (deposits - withdrawals)
+    const itemUsagePerDay = {};   // itemName -> { dayTimestamp -> total used }
+
+    // Sort historicalArmoryLogs by timestamp ascending to process chronologically for net quantities
+    // Make a copy to avoid modifying the global array sort order
+    const sortedArmoryLogs = [...historicalArmoryLogs].sort((a, b) => a.timestamp - b.timestamp);
+
+    const sevenDaysAgo = new Date().getTime() - (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
+    const now = new Date().getTime();
+
+    sortedArmoryLogs.forEach(entry => {
+        const itemName = entry.item;
+        const quantity = entry.quantity || 0; // Ensure quantity is a number, default to 0 if N/A
+
+        if (itemName === 'N/A' || quantity === 'N/A' || !itemName) {
+            // console.warn(`Skipping invalid armory log entry: ${JSON.stringify(entry)}`);
+            return; // Skip invalid entries
+        }
+
+        // Update Net Quantities (for 'On Hand Qty')
+        if (!itemNetQuantities[itemName]) {
+            itemNetQuantities[itemName] = 0;
+        }
+        if (entry.category === 'armoryDeposit') { // Item deposited to armory
+            itemNetQuantities[itemName] += quantity;
+        } else if (entry.category === 'armoryAction' && entry.rawNews.includes("retrieved")) { // Item retrieved from armory (marked as armoryAction)
+            itemNetQuantities[itemName] -= quantity;
+        } else if (entry.category === 'armoryAction' && entry.rawNews.includes("withdrew")) { // Item withdrawn from armory (marked as armoryAction)
+            itemNetQuantities[itemName] -= quantity;
+        } else if (entry.category === 'armoryAction' && entry.rawNews.includes("used")) { // Item used (e.g. medical items)
+            itemNetQuantities[itemName] -= quantity;
+        } else if (entry.category === 'armoryAction' && entry.rawNews.includes("loaned")) { // Item loaned
+            itemNetQuantities[itemName] -= quantity;
+        } else if (entry.category === 'armoryAction' && entry.rawNews.includes("gave")) { // Item given from armory
+            itemNetQuantities[itemName] -= quantity;
+        } else if (entry.category === 'armoryAction' && entry.rawNews.includes("filled")) { // Item filled (e.g., empty blood bags filled with blood)
+            // This is a special case: 'filled' typically means an empty item becomes a full item.
+            // If tracking actual stock of 'full' items, then 'Empty Blood Bag' decreases and 'Blood Bag' increases.
+            // For simplicity, we'll assume 'filled' is a net neutral or positive impact on usable stock unless specified.
+            // For example, if 'Empty Blood Bag' becomes 'Blood Bag', it might be best to log the *resulting* item quantity.
+            // For now, we'll treat it as a type of deposit if it contributes to usable stock.
+            // If "filled" is a deposit, we'd add it: itemNetQuantities[itemName] += quantity;
+            // Otherwise, it might be a net-zero if Empty becomes Full, or even a decrease if it consumes something.
+            // We'll leave it as net-neutral for now for stock estimation purposes unless it clearly means an *increase* to usable inventory.
+        }
+    });
+
+    const currentStockData = [];
+    for (const itemName in itemNetQuantities) {
+        if (itemNetQuantities.hasOwnProperty(itemName)) {
+            const onHandQty = itemNetQuantities[itemName];
+            let totalUsedLast7Days = 0;
+            let daysWithUsage = new Set(); // Use a Set to count unique days with usage
+
+            // Calculate usage for Avg. Daily Use and Weekly Change from historicalArmoryLogs
+            // only considering entries within the last 7 days.
+            historicalArmoryLogs.forEach(entry => {
+                // Ensure it's an action that decreases stock and within the last 7 days
+                if ((entry.category === 'armoryAction') && entry.timestamp >= sevenDaysAgo && entry.timestamp <= now) {
+                    const dayStartTimestamp = new Date(entry.timestamp).setUTCHours(0, 0, 0, 0); // Normalize to start of UTC day for consistent day counting
+                    daysWithUsage.add(dayStartTimestamp);
+                    // Add quantity if it's a withdrawal type action
+                    if (entry.rawNews.includes("retrieved") || entry.rawNews.includes("withdrew") || entry.rawNews.includes("used") || entry.rawNews.includes("loaned") || entry.rawNews.includes("gave")) {
+                         totalUsedLast7Days += (entry.quantity || 0);
+                    }
+                }
+            });
+            
+            // Avoid division by zero
+            const avgDailyUse = daysWithUsage.size > 0 ? (totalUsedLast7Days / daysWithUsage.size).toFixed(1) : 0;
+            // Weekly Change: Simple sum of all withdrawals/uses in last 7 days.
+            // A more complex "weekly change" would compare current stock to stock 7 days ago.
+            // For now, this represents the net usage over 7 days.
+            const weeklyChange = -totalUsedLast7Days; // Negative if used, positive if gained (conceptual sum over 7 days)
+
+            currentStockData.push({
+                itemName: itemName,
+                onHandQty: onHandQty,
+                avgDailyUse: parseFloat(avgDailyUse),
+                weeklyChange: weeklyChange
+            });
+        }
+    }
+
+    // Sort by Item Name alphabetically for consistency
+    currentStockData.sort((a, b) => a.itemName.localeCompare(b.itemName));
 
     let stockHtml = '';
-    currentStockExample.forEach(item => {
-        stockHtml += `
-            <tr>
-                <td>${item.itemName}</td>
-                <td>${item.onHandQty}</td>
-                <td>${item.avgDailyUse}</td>
-                <td style="color: ${item.weeklyChange < 0 ? '#dc3545' : '#28a745'};">${item.weeklyChange}</td>
-            </tr>
-        `;
-    });
+    if (currentStockData.length > 0) {
+        currentStockData.forEach(item => {
+            stockHtml += `
+                <tr>
+                    <td>${item.itemName}</td>
+                    <td>${item.onHandQty.toLocaleString()}</td>
+                    <td>${item.avgDailyUse}</td>
+                    <td style="color: ${item.weeklyChange < 0 ? '#dc3545' : '#28a745'};">${item.weeklyChange.toLocaleString()}</td>
+                </tr>
+            `;
+        });
+    } else {
+        stockHtml = `<tr><td colspan="4" style="text-align: center; padding: 15px;">No armory stock data available.</td></tr>`;
+    }
     stockBody.innerHTML = stockHtml;
 
+    // --- Part 2: Populate Recent Large Item Movements (>50 Qty or High Value) ---
+    // Filter and display actual large movements from historicalArmoryLogs
+    const largeMovesThreshold = 50; // Define what constitutes a "large" quantity movement
+    const highValueItems = ['Armored Vest', 'Magnum', 'HEG', 'Xanax']; // Example high-value items
+
+    const recentLargeMoves = historicalArmoryLogs.filter(entry => {
+        const isRecent = entry.timestamp >= sevenDaysAgo; // Only consider recent moves
+        if (!isRecent) return false;
+
+        const isLargeQuantity = (entry.quantity || 0) >= largeMovesThreshold;
+        const isHighValueItem = highValueItems.includes(entry.item);
+
+        return isLargeQuantity || isHighValueItem;
+    }).sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
+
     let largeMovesHtml = '';
-    largeMovesExample.forEach(move => {
-        largeMovesHtml += `
-            <tr>
-                <td>${formatTimestampToLocale(move.timestamp)}</td>
-                <td>${move.user}</td>
-                <td>${move.item}</td>
-                <td>${move.quantity.toLocaleString()}</td>
-                <td>${move.type}</td>
-            </tr>
-        `;
-    });
+    if (recentLargeMoves.length > 0) {
+        recentLargeMoves.forEach(move => {
+            let type = '';
+            if (move.rawNews.includes('withdrew') || move.rawNews.includes('used') || move.rawNews.includes('loaned') || move.rawNews.includes('gave') || move.rawNews.includes('retrieved')) {
+                type = 'Withdrawal';
+            } else if (move.rawNews.includes('deposited')) {
+                type = 'Deposit';
+            } else if (move.rawNews.includes('filled')) {
+                type = 'Fill';
+            }
+
+            largeMovesHtml += `
+                <tr>
+                    <td>${formatTimestampToLocale(move.timestamp)}</td>
+                    <td>${move.user}</td>
+                    <td>${move.item}</td>
+                    <td>${(move.quantity || move.amount).toLocaleString()}</td>
+                    <td>${type}</td>
+                </tr>
+            `;
+        });
+    } else {
+        largeMovesHtml = `<tr><td colspan="5" style="text-align: center; padding: 15px;">No large armory movements found in the last 7 days.</td></tr>`;
+    }
     largeMovesBody.innerHTML = largeMovesHtml;
 
-    // TODO: Implement actual calculation logic using `historicalArmoryLogs` from Firebase
-    // Example: Loop through historicalArmoryLogs, group by item, calculate sums/averages.
-}
 
+    // TODO: Implement real data for populateOversightData based on historicalFundLogs/ArmoryLogs
+}
 /**
  * Populates data for the Oversight tab.
  * This will query `historicalFundLogs` and `historicalArmoryLogs` and display KPIs and alerts.
