@@ -304,13 +304,10 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     setupTableSorting(factionOverviewCurrentDataTable, data);
 }
 
-// In factionoverview.js, find the existing renderLogisticsTabContent function and replace it entirely with this:
+function renderBankBalanceTabContent(targetElement) {
+    targetElement.innerHTML = `<p style="text-align: center; padding: 20px;">Bank Balance content will be displayed here once we fetch the data.</p>`;
+}
 
-/**
- * Renders the content specifically for the Logistics sub-tab.
- * This will create separate, scrollable boxes for Stock Levels and Large Movements.
- * @param {HTMLElement} targetElement The DOM element to inject content into.
- */
 function renderLogisticsTabContent(targetElement) {
     targetElement.innerHTML = `
 
@@ -431,49 +428,69 @@ function renderOversightTabContent(targetElement) {
     // Fetch and populate data for Oversight (this function will be called after rendering this layout)
     populateOversightData();
 }
-function setupFactionOverviewEventListeners() {
-    // Event listener for sub-tab buttons
+async function switchFactionOverviewSubTab(tabId) {
+    const displayArea = document.getElementById('factionOverviewDisplayArea');
+    const controlsBar = document.getElementById('factionOverviewControlsBar'); // Get the controls bar
+
+    if (!displayArea || !controlsBar) {
+        console.error("HTML Error: displayArea or controlsBar not found for sub-tab content.");
+        return;
+    }
+
+    // --- KEY CHANGE 1: Show or hide the search/date controls bar ---
+    if (tabId === 'bank-balance') {
+        controlsBar.style.display = 'none'; // Hide it for the new tab
+    } else {
+        controlsBar.style.display = 'flex'; // Show it for all other tabs
+    }
+
+    // Update active state of sub-tab buttons
     if (factionOverviewSubTabsContainer) {
-        factionOverviewSubTabsContainer.addEventListener('click', (event) => {
-            const clickedButton = event.target.closest('.fo-sub-tab-button');
-            if (clickedButton) {
-                const tabId = clickedButton.dataset.tabId;
-                switchFactionOverviewSubTab(tabId);
-            }
+        factionOverviewSubTabsContainer.querySelectorAll('.fo-sub-tab-button').forEach(button => {
+            button.classList.remove('active');
         });
+        const clickedButton = factionOverviewSubTabsContainer.querySelector(`.fo-sub-tab-button[data-tab-id="${tabId}"]`);
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+            currentActiveSubTab = tabId; // Update global state
+        }
     }
 
-    // Event listeners for search and filter controls
-    if (factionOverviewSearchButton) {
-        factionOverviewSearchButton.addEventListener('click', applyCurrentFiltersAndSort);
-    }
-    if (factionOverviewClearSearchButton) {
-        factionOverviewClearSearchButton.addEventListener('click', () => {
-            if (factionOverviewSearchInput) factionOverviewSearchInput.value = '';
-            if (factionOverviewDateFromInput) factionOverviewDateFromInput.value = '';
-            if (factionOverviewDateToInput) factionOverviewDateToInput.value = '';
-            applyCurrentFiltersAndSort(); // Re-apply filters to clear them
-        });
-    }
-    if (factionOverviewSearchInput) {
-        factionOverviewSearchInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                applyCurrentFiltersAndSort();
-            }
-        });
-    }
-    if (factionOverviewDateFromInput) {
-        factionOverviewDateFromInput.addEventListener('change', applyCurrentFiltersAndSort);
-    }
-    if (factionOverviewDateToInput) {
-        factionOverviewDateToInput.addEventListener('change', applyCurrentFiltersAndSort);
-    }
+    displayArea.innerHTML = `<p style="text-align: center; padding-top: 20px; color: #ccc;">Loading ${tabId.replace('-', ' ')} data...</p>`;
 
+    let dataToDisplay = [];
+    let columns = [];
+    let viewTitle = ``;
 
-    // Event listener for Cog / Banker Settings button
-    if (factionOverviewCogSettingsButton) {
-        factionOverviewCogSettingsButton.addEventListener('click', showBankerSettingsModal);
+    // Decide which data and columns to use based on the selected tab
+    switch (tabId) {
+        case 'armory-withdrawals':
+            // ... (your existing code for this case is fine)
+            break;
+
+        // ... (all your other existing cases for armory, funds, crime, etc.) ...
+
+        case 'logistics':
+            renderLogisticsTabContent(displayArea);
+            return; 
+
+        case 'oversight':
+            renderOversightTabContent(displayArea);
+            return;
+
+        // --- KEY CHANGE 2: Add the case for our new tab ---
+        case 'bank-balance':
+            renderBankBalanceTabContent(displayArea); // Call our new function
+            return; // Exit after rendering specific content
+
+        default:
+            displayArea.innerHTML = `<p style="text-align: center; color: red;">Error: Unknown sub-tab selected.</p>`;
+            return;
     }
+    
+    // This part below is for your old tabs, it remains the same
+    renderDynamicDataTable(displayArea, dataToDisplay, columns, viewTitle);
+    applyCurrentFiltersAndSort();
 }
 
 /**
