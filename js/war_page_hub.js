@@ -203,12 +203,7 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
-// --- NEW GLOBAL VARIABLE (Add this near your other global variables at the top) ---
-let hasAgreedToWarChatTerms = false; // Tracks if the user has agreed to terms for the current war
-// --- END NEW GLOBAL VARIABLE ---
 
-
-// Replace your entire handleChatTabClick function with this updated code
 function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
     const targetTab = clickedTab.dataset.chatTab;
