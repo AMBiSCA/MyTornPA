@@ -306,63 +306,73 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     setupTableSorting(factionOverviewCurrentDataTable, data);
 }
 
+// In factionoverview.js, find the existing renderLogisticsTabContent function and replace it entirely with this:
+
 /**
  * Renders the content specifically for the Logistics sub-tab.
+ * This will create separate, scrollable boxes for Stock Levels and Large Movements.
  * @param {HTMLElement} targetElement The DOM element to inject content into.
  */
 function renderLogisticsTabContent(targetElement) {
     targetElement.innerHTML = `
 
-        <div class="fo-section-panel">
-            <h4>📊 Current Faction Armory Stock Levels (Estimated) 📊  </h4>
-            <table class="fo-data-table fo-summary-table">
-                <thead>
-                    <tr>
-                        <th class="fo-sortable-header" data-sort-key="itemName">Item Name (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="onHandQty">On Hand (Qty) (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="avgDailyUse">Avg. Daily Use (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="weeklyChange">Weekly Change (▲▼)</th>
-                    </tr>
-                </thead>
-                <tbody id="foLogisticsStockBody">
-                    <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                </tbody>
-            </table>
-        </div>
 
-        <div class="fo-section-panel fo-section-panel-full-width">
-            <h4>📦 Recent Large Item Movements (>50 Qty or High Value) 📦  </h4>
-            <table class="fo-data-table fo-summary-table">
-                <thead>
-                    <tr>
-                        <th class="fo-sortable-header" data-sort-key="timestamp">Date/Time (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="user">User (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="item">Item (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="quantity">Quantity (▲▼)</th>
-                        <th class="fo-sortable-header" data-sort-key="type">Type (▲▼)</th>
-                    </tr>
-                </thead>
-                <tbody id="foLogisticsLargeMovesBody">
-                    <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                </tbody>
-            </table>
+        <div class="fo-logistics-panels-container"> <div class="fo-logistics-panel">
+                <h4 class="fo-panel-title">📊 Current Faction Armory Stock Levels (Estimated)</h4>
+                <div class="fo-scrollable-panel-content" id="foLogisticsStockBodyContainer">
+                    <table class="fo-data-table fo-summary-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>On Hand (Qty)</th>
+                                <th>Avg. Daily Use</th>
+                                <th>Weekly Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="foLogisticsStockBody">
+                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="fo-logistics-panel fo-logistics-panel-full-width">
+                <h4 class="fo-panel-title">📦 Recent Large Item Movements (>50 Qty or High Value)</h4>
+                <div class="fo-scrollable-panel-content" id="foLogisticsLargeMovesBodyContainer">
+                    <table class="fo-data-table fo-summary-table">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>User</th>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="foLogisticsLargeMovesBody">
+                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     `;
-    // Fetch and populate data for Logistics (conceptual, actual implementation to follow later)
-    // This will involve querying 'historicalArmoryLogs' from Firebase and processing it.
+
+    // Fetch and populate data for Logistics (this function will be called after rendering this layout)
     populateLogisticsData();
 }
-
-// In factionoverview.js, find the existing renderOversightTabContent function and replace it entirely with this:
-
-/**
- * Renders the content specifically for the Oversight sub-tab.
- * This will create separate, scrollable boxes for Top Active Users and Alerts & Flags.
- * @param {HTMLElement} targetElement The DOM element to inject content into.
- */
 function renderOversightTabContent(targetElement) {
     targetElement.innerHTML = `
-
 
         <div class="fo-kpi-grid">
             <div class="fo-kpi-box">
