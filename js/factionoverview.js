@@ -284,7 +284,7 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
                     // Format amounts as currency
                     displayValue = `$${displayValue.toLocaleString()}`;
                 }
-                tableHtml += `<td>${displayValue}</td>`;
+                tableHtml += `<td title="${displayValue}">${displayValue}</td>`;;
             });
             tableHtml += `</tr>`;
         });
