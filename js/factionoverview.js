@@ -619,7 +619,59 @@ async function fetchAllRawFactionNewsData() {
 }
 
 function renderBankBalanceTabContent(targetElement) {
-    targetElement.innerHTML = `<p style="text-align: center; padding: 20px;">Bank Balance content will be displayed here once we fetch the data.</p>`;
+    // First, check if we have the data from our API call
+    if (!factionBankBalanceData || !factionBankBalanceData.members) {
+        targetElement.innerHTML = `<p style="text-align: center; padding: 20px;">Bank balance data is not available or failed to load.</p>`;
+        return;
+    }
+
+    // Extract the main faction balance and the members array
+    const factionTotalMoney = factionBankBalanceData.faction?.money || 0;
+    const membersArray = factionBankBalanceData.members;
+
+    // Sort the members alphabetically by username for a clean list
+    membersArray.sort((a, b) => a.username.localeCompare(b.username));
+
+    // Start building the HTML for the tab
+    let contentHtml = `
+        <div class="fo-section-panel" style="text-align: center;">
+            <h3 class="fo-page-title">Total Faction Bank</h3>
+            <h2 style="color: #28a745; margin-top: 5px;">$${factionTotalMoney.toLocaleString()}</h2>
+        </div>
+
+        <div class="fo-section-panel">
+            <table class="fo-data-table">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th style="text-align: right;">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // Loop through each member and add a row to the table
+    membersArray.forEach(member => {
+        // Use a red color for negative balances to make them stand out
+        const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
+
+        contentHtml += `
+            <tr>
+                <td>${member.username} [${member.id}]</td>
+                <td style="color: ${balanceColor}; text-align: right;">$${member.money.toLocaleString()}</td>
+            </tr>
+        `;
+    });
+
+    // Close the table and body tags
+    contentHtml += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // Inject the final HTML into the display area
+    targetElement.innerHTML = contentHtml;
 }
 
 function processFactionNewsForTable(newsArray, category) {
