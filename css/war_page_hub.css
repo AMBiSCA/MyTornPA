@@ -3315,8 +3315,6 @@ min-width: 320px;
     white-space: nowrap;
 }
 
-
-
 #faction-hits-display {
     /* Basic box styling to match your theme */
     background-color: #222;
@@ -3324,7 +3322,7 @@ min-width: 320px;
     border-radius: 6px;
     padding: 5px 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin-top: 80px; 
+    margin-top: 75px; 
     display: flex;
     flex-direction: column;
     height: 100%; /* Makes the box fill the height of its grid cell */
