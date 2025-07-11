@@ -690,28 +690,33 @@ function processFactionNewsForTable(newsArray, category) {
             const amountMatch = sourceText.match(/\$([\d,]+)/);
             amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
 
-            // Extract Recipient Info (first player link in the string)
-            const recipientLinkMatch = sourceText.match(/^(<a[^>]*>.+?<\/a>)\s+was given/);
-            if (recipientLinkMatch) {
-                const recipientInfo = extractPlayerInfoFromHtml(recipientLinkMatch[1]);
+            // Extract Recipient Info (the player link before "was given")
+            // This regex captures the full <a>...</a> tag before " was given"
+            const recipientHtmlMatch = sourceText.match(/^(<a href="[^"]+XID=\d+">[^<]+<\/a>)\s+was given/);
+            if (recipientHtmlMatch) {
+                const recipientInfo = extractPlayerInfoFromHtml(recipientHtmlMatch[1]);
                 recipient = recipientInfo.name;
                 recipientId = recipientInfo.id;
             }
 
-            // Extract Sender Info (player link after "by ")
-            const senderLinkMatch = sourceText.match(/by\s+(<a[^>]*>.+?<\/a>)$/);
-            if (senderLinkMatch) {
-                const senderInfo = extractPlayerInfoFromHtml(senderLinkMatch[1]);
+            // Extract Sender Info (the player link after "by ")
+            // This regex captures the full <a>...</a> tag after "by "
+            const senderHtmlMatch = sourceText.match(/by\s+(<a href="[^"]+XID=(\d+)">([^<]+)<\/a>)$/);
+            if (senderHtmlMatch) {
+                const senderInfo = extractPlayerInfoFromHtml(senderHtmlMatch[1]);
                 sender = senderInfo.name;
                 senderId = senderInfo.id;
             }
 
-            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER
+            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER (the one who gave funds)
             user = sender;
             userId = senderId;
+            
             console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
 
-        } else if (category === 'crime') {
+        }
+
+         else if (category === 'crime') {
             const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
             const resultMatch = sourceText.match(/\((success|failure)\)/i);
             crimeType = crimeTypeMatch ? crimeTypeMatch[1].trim() : 'N/A';
