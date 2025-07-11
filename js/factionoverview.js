@@ -1374,20 +1374,18 @@ function generateAlertsFromData(armoryData, fundData) {
         }
     }
 
-    // --- ALERT RULE 2: Large single fund withdrawal (any time) ---
+    // --- ALERT RULE 2: Large single fund withdrawal (over $50,000,000) ---
     const largeFundWithdrawals = fundData.filter(log => // Check all historical data, not just recent, as large withdrawals are always noteworthy
         log.category === 'giveFunds' &&
         typeof log.amount === 'number' &&
-        log.amount >= 5000000 // Alert if >= $5,000,000 withdrawn
+        log.amount >= 50000000 // <--- CHANGED: Alert if >= $50,000,000 withdrawn
     );
     largeFundWithdrawals.forEach(log => {
         alerts.push(`${log.sender} withdrew $${log.amount.toLocaleString()} to ${log.recipient || 'Unknown Recipient'} (Large Withdrawal: $${log.amount.toLocaleString()})`);
     });
 
-    // --- ALERT RULE 3: Unusual Item Deposits (e.g., specific high-value item deposited by non-leader/co-leader) ---
-    // This would require fetching user roles for the depositor.
-    // For now, a simpler version: Alert on any deposit of a very high-value item by anyone.
-    const veryHighValueItems = ['HEG', 'Xanax', 'Armored Vest']; // Example, expand this list
+    // --- ALERT RULE 3: Unusual Item Deposits (e.g., specific high-value item deposited by anyone) ---
+    const veryHighValueItems = ['HEG', 'Xanax', 'Armored Vest', 'Flash Grenade', 'Blood Bag']; // Example, expand this list
     const highValueDeposits = recentArmoryLogs.filter(log =>
         log.category === 'armoryDeposit' &&
         veryHighValueItems.some(item => log.item.includes(item)) // Check if item is in high-value list
@@ -1397,10 +1395,21 @@ function generateAlertsFromData(armoryData, fundData) {
     });
 
 
-    // --- ALERT RULE 4: Crime Failure Rate (e.g., if a user has many recent failures) ---
-    // Requires processing crimeData more deeply.
-    // This is conceptual for now, as crime data might need more advanced analysis.
-    // alerts.push("Conceptual Alert: High crime failure rate for Player X.");
+    // --- ALERT RULE 4: Quick Sudden Big Withdrawals (conceptual: needs more data/logic) ---
+    // This is more complex as it requires tracking changes over short periods for a single user.
+    // For example: if (user withdraws X items / $Y in Z minutes / hours)
+    // We'll leave this as a conceptual placeholder for now.
+    // alerts.push("Conceptual Alert: Player X made quick, sudden big withdrawals.");
+
+
+    // --- ALERT RULE 5: Large Xanax Withdrawals/Deposits (e.g., over 25) ---
+    const largeXanaxMovements = recentArmoryLogs.filter(log =>
+        log.item.includes('Xanax') && typeof log.quantity === 'number' && log.quantity >= 25
+    );
+    largeXanaxMovements.forEach(log => {
+        let actionType = log.rawNews.includes('deposited') ? 'deposited' : 'withdrew';
+        alerts.push(`${log.user} ${actionType} ${log.quantity}x Xanax (Large Xanax Movement!)`);
+    });
 
 
     console.log(`[DEBUG] Alerts Generated: ${alerts.length} alerts found.`);
