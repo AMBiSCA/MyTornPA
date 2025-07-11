@@ -2462,6 +2462,40 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         lastChainApiFetchTime = 0;
     }
 }
+
+// --- NEW FUNCTION: Creates and styles the progress bar text elements ---
+function setupProgressText() {
+    const friendlyContainer = document.getElementById('friendly-chain-progress')?.parentElement;
+    const enemyContainer = document.getElementById('enemy-chain-progress')?.parentElement;
+
+    // A helper function to avoid repeating code
+    const createTextElement = (container, id) => {
+        if (!container || document.getElementById(id)) return; // Don't run if container doesn't exist or text is already there
+
+        // This is needed to position the text inside the container
+        container.style.position = 'relative';
+
+        const textEl = document.createElement('span');
+        textEl.id = id;
+
+        // --- All styling is applied here via JavaScript ---
+        textEl.style.position = 'absolute';
+        textEl.style.top = '50%';
+        textEl.style.left = '50%';
+        textEl.style.transform = 'translate(-50%, -50%)';
+        textEl.style.color = '#FFFFFF';
+        textEl.style.fontWeight = 'bold';
+        textEl.style.fontSize = '10px';
+        textEl.style.textShadow = '0 0 2px rgba(0,0,0,0.8)'; // Makes text more readable
+        textEl.style.pointerEvents = 'none'; // Makes text unclickable
+
+        container.appendChild(textEl);
+    };
+
+    createTextElement(friendlyContainer, 'friendly-chain-text');
+    createTextElement(enemyContainer, 'enemy-chain-text');
+}
+
 async function claimTarget(memberId, memberName) {
     if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
         alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
