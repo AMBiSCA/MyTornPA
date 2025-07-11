@@ -1520,49 +1520,50 @@ async function resetAllAvailability() {
 
 
 function updateUserEnergyDisplay() {
-    if (!userApiKey) {
-        console.warn("User API key not available for energy display.");
-        // Get references to both elements to set an error message
+    if (!userApiKey) {
+        console.warn("User API key not available for energy display.");
         const activeOpsEnergyEl = document.getElementById('rw-user-energy');
         const announcementEnergyEl = document.getElementById('rw-user-energy_announcement');
-        if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Key Missing';
-        if (announcementEnergyEl) announcementEnergyEl.textContent = 'Key Missing';
-        return;
-    }
+        if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Key Missing';
+        if (announcementEnergyEl) announcementEnergyEl.textContent = 'Key Missing';
+        return;
+    }
 
-    const API_KEY = userApiKey; 
-
-    // Get references to BOTH energy display elements
+    const API_KEY = userApiKey;
     const activeOpsEnergyEl = document.getElementById('rw-user-energy');
     const announcementEnergyEl = document.getElementById('rw-user-energy_announcement');
 
-    // Set loading state for both if they exist
-    if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Loading E...';
-    if (announcementEnergyEl) announcementEnergyEl.textContent = 'Loading E...'; 
+    // --- THIS IS THE FIX ---
+    // Only show "Loading" if a value isn't already displayed
+    if (activeOpsEnergyEl && !activeOpsEnergyEl.textContent.includes('/')) {
+        activeOpsEnergyEl.textContent = 'Loading E...';
+    }
+    if (announcementEnergyEl && !announcementEnergyEl.textContent.includes('/')) {
+        announcementEnergyEl.textContent = 'Loading E...';
+    }
+    // --- END OF FIX ---
 
-    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                console.error("Torn API Error:", data.error.code, data.error.error);
-                // Update both elements with error message
-                if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'API Error';
-                if (announcementEnergyEl) announcementEnergyEl.textContent = 'API Error';
-                return;
-            }
+    fetch(`https://api.torn.com/user/?selections=bars&key=${API_KEY}&comment=MyTornPA_Energy`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error("Torn API Error:", data.error.code, data.error.error);
+                if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'API Error';
+                if (announcementEnergyEl) announcementEnergyEl.textContent = 'API Error';
+                return;
+            }
 
-            const energy = data.energy.current;
-            const maxEnergy = data.energy.maximum;
-            const energyFullTime = data.energy.fulltime;
+            const energy = data.energy.current;
+            const maxEnergy = data.energy.maximum;
+            const energyFullTime = data.energy.fulltime;
             const energyString = `${energy}/${maxEnergy}`;
             const tooltipString = `Full E at: ${new Date(energyFullTime * 1000).toLocaleTimeString()} ${new Date(energyFullTime * 1000).toLocaleDateString()}`;
 
-            // Update both elements with the correct energy value and tooltip
             if (activeOpsEnergyEl) {
                 activeOpsEnergyEl.textContent = energyString;
                 activeOpsEnergyEl.title = tooltipString;
@@ -1571,13 +1572,12 @@ function updateUserEnergyDisplay() {
                 announcementEnergyEl.textContent = energyString;
                 announcementEnergyEl.title = tooltipString;
             }
-        })
-        .catch(error => {
-            console.error("Error fetching user energy data:", error);
-            // Update both elements with fetch error message
-            if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Fetch Error';
-            if (announcementEnergyEl) announcementEnergyEl.textContent = 'Fetch Error';
-        });
+        })
+        .catch(error => {
+            console.error("Error fetching user energy data:", error);
+            if (activeOpsEnergyEl) activeOpsEnergyEl.textContent = 'Fetch Error';
+            if (announcementEnergyEl) announcementEnergyEl.textContent = 'Fetch Error';
+        });
 }
 
 async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
