@@ -67,11 +67,6 @@ let factionOverviewCogSettingsButton = null; // The gear icon for banker setting
 
 
 
-// =====================================================================================================================
-// CORE UI RENDERING FUNCTIONS
-// Functions responsible for dynamically generating and injecting the main HTML structure.
-// =====================================================================================================================
-
 /**
  * Renders the main layout of the Faction Overview page, including sub-tabs and controls.
  * This function is called when the 'Faction Financials' tab (page) is loaded.
@@ -88,7 +83,6 @@ function renderFactionOverviewPageLayout() {
     factionOverviewPageContentContainer.innerHTML = '';
 
     // Construct the HTML for the entire Faction Overview page dynamically
-    // This includes the sub-tab navigation, the cog icon, and the main data display area.
     const pageHtml = `
         <div class="fo-header-area">
             <h2 class="fo-page-title">Faction Financials Overview</h2>
@@ -103,9 +97,12 @@ function renderFactionOverviewPageLayout() {
             <button class="fo-sub-tab-button" data-tab-id="crime">Crime</button>
             <button class="fo-sub-tab-button" data-tab-id="logistics">Logistics</button>
             <button class="fo-sub-tab-button" data-tab-id="oversight">Oversight</button>
+            
+            <button class="fo-sub-tab-button" data-tab-id="faction-balances">Faction Balances</button>
+
         </div>
 
-        <div class="fo-controls-bar">
+        <div class="fo-controls-bar" id="factionOverviewControlsBar">
             <input type="text" id="factionOverviewSearchInput" class="fo-search-input" placeholder="Search Player/Item/Type...">
             <button id="factionOverviewSearchButton" class="fo-button">Search</button>
             <button id="factionOverviewClearSearchButton" class="fo-button">Clear</button>
@@ -131,6 +128,9 @@ function renderFactionOverviewPageLayout() {
     factionOverviewDateFromInput = document.getElementById('factionOverviewDateFromInput');
     factionOverviewDateToInput = document.getElementById('factionOverviewDateToInput');
     factionOverviewCogSettingsButton = document.getElementById('factionOverviewCogSettingsButton');
+    
+    // I've also added an ID to the controls bar so we can hide it later
+    document.getElementById('factionOverviewControlsBar').id = 'factionOverviewControlsBar';
 
     // Attach event listeners to the dynamically created elements
     setupFactionOverviewEventListeners();
@@ -138,12 +138,6 @@ function renderFactionOverviewPageLayout() {
     // Automatically load the default tab
     switchFactionOverviewSubTab(currentActiveSubTab);
 }
-
-/**
- * Populates the main display area with content for the specified sub-tab.
- * This is the core logic for switching between the different financial views.
- * @param {string} tabId The ID of the sub-tab to display (e.g., 'armory-withdrawals').
- */
 async function switchFactionOverviewSubTab(tabId) {
     const displayArea = document.getElementById('factionOverviewDisplayArea');
     if (!displayArea) {
