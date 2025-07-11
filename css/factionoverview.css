@@ -184,23 +184,12 @@
     text-shadow: 0 0 5px rgba(224, 167, 26, 0.5);
 }
 
-/* In mysite/css/factionoverview.css */
-
 /* Generic Table Styles (used for Armory, Funds, Crime logs) */
 .fo-data-table {
-    width: 100%; /* Ensures the table tries to take full width of its container */
+    width: 100%;
     border-collapse: collapse;
-    margin-top: 15px; /* Adjust if needed to distance from search/filter bar */
-    table-layout: fixed; /* Crucial for fixed column widths and alignment */
-
-    /* --- Make the table itself scrollable vertically and limit its height --- */
-    max-height: 450px; /* <--- ADJUST THIS VALUE: Controls the overall height of the scrollable table area */
-    overflow-y: auto; /* Enables vertical scrolling for the whole table */
-    overflow-x: auto; /* <--- CHANGE THIS: Allow horizontal scrolling for table content if it's wider than its container */
-    display: block; /* IMPORTANT: Allows max-height and overflow to work on the table element */
-    border: 1px solid #00a8ff; /* Consistent border around the entire table */
-    border-radius: 8px; /* Consistent rounded corners for the table */
-    box-sizing: border-box; /* <--- ADD THIS: Ensures padding and border are included *within* the 100% width */
+    margin-top: 15px;
+    table-layout: auto; /* Allow columns to size based on content initially */
 }
 
 .fo-data-table th,
@@ -569,40 +558,42 @@
 
 /* Generic Table Styles (used for Armory, Funds, Crime logs) */
 .fo-data-table {
-    width: 100%;
+    width: 100%; /* Ensures the table tries to take full width of its container */
     border-collapse: collapse;
     margin-top: 15px; /* Adjust if needed to distance from search/filter bar */
     table-layout: fixed; /* Crucial for fixed column widths and alignment */
 
-    /* --- NEW: Make the table itself scrollable vertically and limit its height --- */
     max-height: 450px; /* <--- ADJUST THIS VALUE: Controls the overall height of the scrollable table area */
-    overflow-y: auto; /* <--- Enables vertical scrolling for the whole table */
-    overflow-x: hidden; /* Hides horizontal scrollbar if table content doesn't overflow horizontally */
-    display: block; /* <--- IMPORTANT: Allows max-height and overflow to work on the table element */
+    overflow-y: auto; /* Enables vertical scrolling for the whole table */
+    overflow-x: auto; /* Allow horizontal scrolling for table content if it's wider than its container */
+    display: block; /* IMPORTANT: Allows max-height and overflow to work on the table element */
     border: 1px solid #00a8ff; /* Consistent border around the entire table */
     border-radius: 8px; /* Consistent rounded corners for the table */
+    box-sizing: border-box; /* Ensures padding and border are included *within* the 100% width */
+
+    min-width: 0; /* <--- CRITICAL: Prevents default flex item min-width from causing overflow */
 }
 
 .fo-data-table thead {
-    /* Ensure thead behaves like a table header within the display:block table */
-    display: table-header-group;
-    position: sticky; /* <--- Enables sticky positioning */
-    top: 0;           /* <--- Sticks to the top of its scrollable parent (the .fo-data-table) */
+    display: table; /* <--- NEW: Forces thead to behave like a table directly */
+    width: 100%; /* <--- NEW: Forces thead to fill its parent's width */
+    position: sticky; /* Enables sticky positioning */
+    top: 0;           /* Sticks to the top of its scrollable parent (the .fo-data-table) */
     z-index: 10;      /* Ensures header stays above scrolling tbody content */
     background-color: #004d80; /* Match your header background */
 }
 
 .fo-data-table tbody {
-    /* Ensure tbody behaves like a table body within the display:block table */
-    display: table-row-group;
+    display: table; /* <--- NEW: Forces tbody to behave like a table directly */
+    width: 100%; /* <--- NEW: Forces tbody to fill its parent's width */
     /* No direct overflow on tbody itself, the parent table handles it */
 }
 
-/* Ensure table rows behave correctly within the display:block table/thead/tbody */
+/* Ensure table rows behave correctly within the display:table thead/tbody */
 .fo-data-table thead tr,
 .fo-data-table tbody tr {
-    display: table-row; /* <--- Crucial for ensuring cells align correctly */
-    
+    display: table-row; /* Crucial for ensuring cells align correctly */
+    width: 100%; /* <--- NEW: Ensures rows also stretch to 100% of their table-like parents */
 }
 
 /* Styles for table headers and cells */
@@ -621,6 +612,7 @@
     border-bottom: 1px solid #007acc; /* Keep internal row separators */
     border-left: 1px solid #007acc; /* Left border for cells */
     border-right: 1px solid #007acc; /* Right border for cells */
+    min-width: 60px; /* <--- ADDED: Prevents columns from becoming too squished on horizontal scroll */
 }
 
 /* Remove internal borders from first/last cell to match outer table border */
