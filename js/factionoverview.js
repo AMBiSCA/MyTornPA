@@ -523,7 +523,7 @@ function setupTableSorting(tableElement, originalData) {
  */
 async function fetchTornApiData(url, comment) {
     // **KEY CHANGE IS HERE**
-    // Decide which API key to use. Prioritize the central primary key.
+    // Decide which API key to use. Prioritize the central key.
     // The 'primaryFactionApiKey' variable is loaded when the page starts.
     const apiKeyToUse = primaryFactionApiKey || factionOverviewUserApiKey;
 
