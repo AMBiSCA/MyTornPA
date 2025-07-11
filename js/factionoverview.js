@@ -315,7 +315,6 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
  */
 function renderLogisticsTabContent(targetElement) {
     targetElement.innerHTML = `
-        <h3 class="fo-view-title">✨ Logistics: Current Stock & Usage Trends</h3>
 
         <div class="fo-logistics-panels-container"> <div class="fo-logistics-panel">
                 <h4 class="fo-panel-title">📊 Current Faction Armory Stock Levels (Estimated)</h4>
