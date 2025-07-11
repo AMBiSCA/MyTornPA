@@ -1837,33 +1837,31 @@ document.addEventListener('DOMContentLoaded', function() {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             try {
-                const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-                if (userProfileDoc.exists && userProfileDoc.data().tornApiKey) {
-                    factionOverviewUserApiKey = userProfileDoc.data().tornApiKey;
-                    factionOverviewGlobalYourFactionID = userProfileDoc.data().faction_id; // Get user's faction ID
-                 console.log(`[DEBUG] JS Faction ID: ${factionOverviewGlobalYourFactionID}, Type: ${typeof factionOverviewGlobalYourFactionID}`);
-                    // Check user access before rendering the full page
-                    const hasAccess = await checkIfUserHasFactionOverviewAccess();
-                    if (hasAccess) {
-                        renderFactionOverviewPageLayout(); // Render full UI only if user has access
-                        // Initial data fetch and continuous refresh setup
-                        await fetchAllRawFactionNewsData(); // Fetch initial recent data
-                        // Set up periodic refresh (e.g., every 5 minutes)
-                        factionOverviewRefreshInterval = setInterval(fetchAllRawFactionNewsData, 5 * 60 * 1000); // 5 minutes
-                        console.log("Faction Overview: Automatic data refresh set to 5 minutes.");
-                    } else {
-                        // Display access denied message
-                        if (factionOverviewPageContentContainer) {
-                            factionOverviewPageContentContainer.innerHTML = `
-                                <div class="fo-access-denied">
-                                    <h3>Access Denied</h3>
-                                    <p>You do not have permission to view the Faction Overview page.</p>
-                                    <p>Only Leaders, Co-leaders, and designated Bankers can access this feature.</p>
-                                    <p>Please contact your faction's leadership if you believe this is an error.</p>
-                                </div>
-                            `;
-                        }
-                    }
+                // --- MERGED: Fetch factionWars document ONCE and use it for both bankers and primary API key ---
+const warDoc = await db.collection('factionWars').doc('currentWar').get(); // Fetch warDoc ONLY ONCE
+console.log(`[DEBUG] FactionWars/currentWar document exists for current user: ${warDoc.exists}`); // Debug line
+
+if (warDoc.exists) {
+    const warData = warDoc.data(); // Get all data from the document
+
+    // Load designated bankers list
+    designatedBankers = warData.designatedBankers || []; 
+    console.log(`[DEBUG] Loaded designatedBankers from Firebase:`, designatedBankers);
+
+    // Load central primaryFactionApiKey
+    primaryFactionApiKey = warData.primaryFactionApiKey || null;
+    if (primaryFactionApiKey) {
+         console.log("[DEBUG] Loaded central primaryFactionApiKey.");
+    } else {
+         console.log("[DEBUG] No central primaryFactionApiKey found in factionWars/currentWar. This is okay if you haven't set it yet.");
+    }
+} else {
+    // If factionWars/currentWar document doesn't exist, initialize with empty values
+    designatedBankers = [];
+    primaryFactionApiKey = null;
+    console.log("[DEBUG] factionWars/currentWar document not found. Initializing bankers/primary API key to empty.");
+}
+// --- END MERGED BLOCK ---
 
                 } else {
                     // User logged in but no API key or faction ID
