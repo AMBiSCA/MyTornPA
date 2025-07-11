@@ -62,7 +62,7 @@
     flex-wrap: wrap; /* Allow tabs to wrap onto next line on small screens if needed */
     justify-content: center;
     gap: 10px; /* Space between tab buttons */
-    margin-bottom: 0px;
+    margin-bottom: -10px;
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(0, 168, 255, 0.2);
 }
@@ -104,7 +104,7 @@
     align-items: center;
     justify-content: center; /* Center controls */
     gap: 15px; /* Space between elements */
-    margin-bottom: -5px;
+    margin-bottom: 5px;
     padding: 15px;
     background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for the bar */
     border-radius: 8px;
