@@ -11,14 +11,13 @@
     padding: 20px;
     background-color: rgba(34, 34, 34, 0.85); /* Consistent with your main content areas */
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 122, 204, 0.3); /* Consistent blue glow */
-    border: 1px solid #00a8ff; /* Consistent border */
+    box-shadow: black; /* Consistent blue glow */
+    border: 1px solid black; /* Consistent border */
     display: flex;
     flex-direction: column;
     gap: 20px; /* Spacing between main sections */
     box-sizing: border-box;
-    min-height: calc(100vh - 140px); /* Adjust based on header/footer height */
-	overflow: hidden;
+    min-height: calc(100vh - 140px - 40px)
 }
 
 /* Page Header / Title within the content panel */
