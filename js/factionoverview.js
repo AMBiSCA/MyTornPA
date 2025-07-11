@@ -748,33 +748,59 @@ function processFactionNewsForTable(newsArray, category) {
             console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
 
         } else if (category === 'crime') {
-            // Example: "<a href...>User</a> committed Crime Type (Success/Failure)"
-            // Example: "...successfully completed <span class="bold">Crime Name</span> receiving <span class="bold">$AMOUNT</span>..."
-            // Example: "...successfully completed <span class="bold">Crime Name</span> receiving <span class="bold">QTYx ITEM</span>..."
+            // Reset crimeType and result for current entry
+            crimeType = 'N/A';
+            result = 'N/A';
 
-            // Try to match specific crime types and results
-            const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
-            const resultMatch = sourceText.match(/\((success|failure)\)/i);
-            
-            if (crimeTypeMatch) {
-                crimeType = crimeTypeMatch[1].trim();
-            }
-            if (resultMatch) {
-                result = resultMatch[1];
+            let match;
+
+            // Pattern 1: "<a...>User</a> committed Crime Type (Success/Failure)"
+            match = sourceText.match(/committed\s+(.+?)\s+\((success|failure)\)/i);
+            if (match) {
+                crimeType = match[1].trim();
+                result = match[2];
+                console.log(`[DEBUG] Crime Pattern 1 (Committed): Type=${crimeType}, Result=${result}`);
             }
 
-            // Also check for successful completions from complex crime news
-            const completionMatch = sourceText.match(/successfully completed <span class="bold">(.+?)<\/span>(?: receiving <span class="bold">(.+?)<\/span>)?/);
-            if (completionMatch) {
-                crimeType = completionMatch[1].trim();
-                result = 'Success'; // Implied success from "successfully completed"
-                // If there's a second bold span (e.g., "$AMOUNT" or "QTYx ITEM"), this would be the reward
-                // We're not currently parsing rewards into amount/item/quantity for crime, but this is where it would be done.
-                console.log(`[DEBUG] Crime Completion: Type=${crimeType}, Result=${result}`);
-            } else {
-                console.log(`[DEBUG] Crime Regex NO MATCH for "${sourceText}"`);
+            // Pattern 2: "...successfully completed <span class="bold">Crime Name</span>..."
+            // (This also implies Success)
+            if (crimeType === 'N/A') { // Only try if Pattern 1 didn't match
+                match = sourceText.match(/successfully completed <span class="bold">(.+?)<\/span>/);
+                if (match) {
+                    crimeType = match[1].trim();
+                    result = 'Success';
+                    console.log(`[DEBUG] Crime Pattern 2 (Successfully Completed): Type=${crimeType}, Result=${result}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 2: NO MATCH for "${sourceText}"`);
+                }
             }
-            console.log(`[DEBUG] Crime: Type=${crimeType}, Result=${result}`);
+
+            // Pattern 3: "...failed to complete <span class="bold">Crime Name</span>..."
+            if (crimeType === 'N/A') { // Only try if Pattern 1 or 2 didn't match
+                match = sourceText.match(/failed to complete <span class="bold">(.+?)<\/span>/);
+                if (match) {
+                    crimeType = match[1].trim();
+                    result = 'Failure';
+                    console.log(`[DEBUG] Crime Pattern 3 (Failed to Complete): Type=${crimeType}, Result=${result}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 3: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            // Pattern 4: "...used X scope spawning the [introductory/simple] scenario <span class="bold">Scenario Name</span>..."
+            if (crimeType === 'N/A') { // Only try if previous patterns didn't match
+                match = sourceText.match(/used\s+\d+\s+scope spawning the\s+(?:introductory|simple)?\s*scenario\s+<span class="bold">(.+?)<\/span>/);
+                if (match) {
+                    crimeType = match[1].trim();
+                    result = 'Spawned'; // Custom result for spawning events
+                    console.log(`[DEBUG] Crime Pattern 4 (Scenario Spawned): Type=${crimeType}, Result=${result}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 4: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            // If still N/A, it means it's an "actioned money payout" or another unhandled type.
+            console.log(`[DEBUG] Final Crime: Type=${crimeType}, Result=${result}`);
         }
 
         processed.push({
