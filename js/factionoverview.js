@@ -178,7 +178,6 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Item', key: 'item', sortable: true },
                 { header: 'Quantity', key: 'quantity', sortable: true }
             ];
-            viewTitle = 'Armory Withdrawals Log';
             break;
 
         case 'armory-deposits':
