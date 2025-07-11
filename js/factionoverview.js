@@ -301,7 +301,7 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     factionOverviewCurrentDataTable = targetElement.querySelector('.fo-data-table');
 
     // Attach sorting event listeners to headers
-
+    setupTableSorting(factionOverviewCurrentDataTable, data);
 }
 
 /**
@@ -474,9 +474,6 @@ function setupTableSorting(tableElement, originalData) {
                 currentSortDirection = 'asc'; // Default to ascending for new column
             }
 
-            // Remove (▲▼) from all headers and add to current
-            headers.forEach(h => h.textContent = h.textContent.replace(' (▲▼)', ''));
-            header.textContent = `${header.textContent.replace(' (▲▼)', '')} (${currentSortDirection === 'asc' ? '▲' : '▼'})`;
 
             // Sort the data
             const sortedData = [...originalData].sort((a, b) => {
@@ -676,7 +673,7 @@ function processFactionNewsForTable(newsArray, category) {
             // Example: "whysellco deposited 20 x Morphine"
             // This is for explicit quantity (e.g., "30x" or "1 x")
             if (item === 'N/A') { // Only try this if Pattern 1 didn't match
-                match = sourceText.match(/(?:withdrew|loaned|gave|deposited)\s+(?:(\d+)\s*x\s+)?(.+?)(?:\s+from|\s+to|\s+items?|\s+to themselves|\s+from the faction armory)?(?:\s+armory)?$/);
+                const armoryExtractRegex = /(?:used|loaned|gave|deposited|filled|retrieved)(?:\s+one of the faction's)?\s*(?:(\d+)\s*x\s*)?(.+?)(?:\s+items?|\s+to themselves|\s+from the faction armory|\s+to|\s+from)?(?:\s+armory)?$/;
                 if (match) {
                     quantity = match[1] ? parseInt(match[1], 10) : 1; // Explicit quantity, or default to 1
                     item = match[2].trim(); // Capture the item name
