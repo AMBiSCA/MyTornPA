@@ -1660,8 +1660,7 @@ async function saveDesignatedBankers(container, modalOverlay) {
 
     try {
         // Get reference to the Firebase document where banker settings are stored
-        // Change collection name to factionBankerSettings
-         const bankerSettingsDocRef = db.collection('factionBankerSettings').doc(String(factionOverviewGlobalYourFactionID));.doc('currentWar');
+        const warDocRef = db.collection('factionWars').doc('currentWar');
         // Set the 'designatedBankers' field with the updated list
         await warDocRef.set({ designatedBankers: selectedBankerIds }, { merge: true });
 
