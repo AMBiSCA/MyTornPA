@@ -405,93 +405,56 @@ function populateRecentFundNews() {
     });
 }
 
-
-
-
-/**
- * Sets up the search bar and logic for a specific member's fund activity.
- * @param {string} searchInputStyles CSS string for search input.
- * @param {string} buttonStyles CSS string for buttons.
- * @param {string} searchButtonStyles CSS string for search button.
- * @param {string} clearButtonStyles CSS string for clear button.
- * @param {string} searchResultBoxStyles CSS string for search result box.
- */
-function setupMemberFundSearch(searchInputStyles, buttonStyles, searchButtonStyles, clearButtonStyles, searchResultBoxStyles) {
+function setupMemberFundSearch() {
     const searchInput = document.getElementById('memberFundSearchInput');
     const searchButton = document.getElementById('memberFundSearchButton');
     const clearButton = document.getElementById('memberFundClearButton');
-    const searchResultDiv = document.getElementById('memberFundSearchResult');
+    const resultsBox = document.getElementById('memberFundSearchResult');
 
-    if (!searchInput || !searchButton || !clearButton || !searchResultDiv) {
-        console.error("Member fund search elements not found.");
-        return;
-    }
-
-    // Apply styles
-    Object.assign(searchInput.style, searchInputStyles);
-    Object.assign(searchButton.style, `${buttonStyles} ${searchButtonStyles}`);
-    Object.assign(clearButton.style, `${buttonStyles} ${clearButtonStyles}`);
-    Object.assign(searchResultDiv.style, searchResultBoxStyles);
-
-    const performSearch = () => {
-        const searchTerm = searchInput.value.toLowerCase().trim();
+    if (!searchButton || !resultsBox || !searchInput || !clearButton) return;
+    
+    const searchHandler = () => {
+        const searchTerm = searchInput.value.trim().toLowerCase();
         if (!searchTerm) {
-            searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>`;
+            resultsBox.innerHTML = `<p style="text-align: center; color: #aaa;">Please enter a player name or ID.</p>`;
             return;
         }
 
-        let totalDeposited = 0;
-        let totalWithdrawn = 0;
-        let foundUser = false;
-
-        // Combine all fund logs for searching
-        historicalFundLogs.forEach(log => {
-            const isTargetUserDeposit = log.category === 'depositFunds' &&
-                                        (log.user.toLowerCase().includes(searchTerm) || (log.userId && String(log.userId) === searchTerm));
-            const isTargetUserWithdrawalSender = log.category === 'giveFunds' &&
-                                                  (log.sender.toLowerCase().includes(searchTerm) || (log.senderId && String(log.senderId) === searchTerm));
-            const isTargetUserWithdrawalRecipient = log.category === 'giveFunds' &&
-                                                    (log.recipient.toLowerCase().includes(searchTerm) || (log.recipientId && String(log.recipientId) === searchTerm));
-
-            // Funds deposited *by* this user
-            if (isTargetUserDeposit && typeof log.amount === 'number') {
-                totalDeposited += log.amount;
-                foundUser = true;
-            }
-            // Funds withdrawn *by* this user (meaning they are the sender of a 'giveFunds' transaction, often out of the faction bank)
-            if (isTargetUserWithdrawalSender && typeof log.amount === 'number') {
-                totalWithdrawn += log.amount;
-                foundUser = true;
-            }
-            // Note: If 'isTargetUserWithdrawalRecipient' is for funds *given to* the user by someone else (e.g., faction payouts),
-            // you'll need more complex logic to differentiate funds *from* the faction vs. from another player if you want to
-            // include that in a "money taken" calculation. For this implementation, we focus on what they 'deposited'
-            // and what they 'withdrew' as a sender.
+        const allFundActivity = [...fundDepositsData, ...fundWithdrawalsData];
+        const memberHistory = allFundActivity.filter(item => {
+            const user = (item.user || '').toLowerCase();
+            const sender = (item.sender || '').toLowerCase();
+            const recipient = (item.recipient || '').toLowerCase();
+            return user.includes(searchTerm) || sender.includes(searchTerm) || recipient.includes(searchTerm);
         });
 
-        if (foundUser) {
-            const netBalance = totalDeposited - totalWithdrawn;
-            searchResultDiv.innerHTML = `
-                <p style="margin: 0 0 5px 0;"><strong>${searchInput.value.trim()}</strong></p>
-                <p style="margin: 2px 0;">Total Deposited: <span style="color: #66bb6a;">$${totalDeposited.toLocaleString()}</span></p>
-                <p style="margin: 2px 0;">Total Withdrawn: <span style="color: #e74c3c;">$${totalWithdrawn.toLocaleString()}</span></p>
-                <p style="margin: 5px 0 0 0;">Net Activity: <span style="color: ${netBalance >= 0 ? '#66bb6a' : '#e74c3c'}; font-weight: bold;">$${netBalance.toLocaleString()}</span></p>
-                <p style="font-size: 0.8em; color: #aaa; margin-top: 10px;">(Net positive means more deposited than withdrawn by this member for monitored categories.)</p>
-            `;
-        } else {
-            searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: orange;">No fund activity found for "${searchInput.value.trim()}" in historical logs.</p>`;
+        if (memberHistory.length === 0) {
+            resultsBox.innerHTML = `<p>No fund history found for "${searchInput.value}".</p>`;
+            return;
         }
+
+        let resultsHtml = '<ul>';
+        memberHistory.sort((a, b) => b.timestamp - a.timestamp).forEach(item => {
+             let text = '';
+             if (item.recipient) {
+                text = `${item.sender} sent <strong>$${item.amount.toLocaleString()}</strong> to ${item.recipient}`;
+             } else {
+                text = `${item.user} deposited <strong>$${item.amount.toLocaleString()}</strong>`;
+             }
+             resultsHtml += `<li style="margin-bottom: 5px;">${formatTimestampToLocale(item.timestamp)}: ${text}</li>`;
+        });
+        resultsHtml += '</ul>';
+        resultsBox.innerHTML = resultsHtml;
     };
 
-    searchButton.addEventListener('click', performSearch);
+    searchButton.addEventListener('click', searchHandler);
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') searchHandler();
+    });
+
     clearButton.addEventListener('click', () => {
         searchInput.value = '';
-        searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>`;
-    });
-    searchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            performSearch();
-        }
+        resultsBox.innerHTML = `<p style="text-align: center; color: #aaa;">Search for a member's fund history.</p>`;
     });
 }
 function renderDynamicDataTable(targetElement, data, columns, title) {
