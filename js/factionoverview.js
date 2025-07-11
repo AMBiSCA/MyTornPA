@@ -67,11 +67,6 @@ let factionOverviewCogSettingsButton = null; // The gear icon for banker setting
 
 
 
-// =====================================================================================================================
-// CORE UI RENDERING FUNCTIONS
-// Functions responsible for dynamically generating and injecting the main HTML structure.
-// =====================================================================================================================
-
 /**
  * Renders the main layout of the Faction Overview page, including sub-tabs and controls.
  * This function is called when the 'Faction Financials' tab (page) is loaded.
@@ -88,7 +83,6 @@ function renderFactionOverviewPageLayout() {
     factionOverviewPageContentContainer.innerHTML = '';
 
     // Construct the HTML for the entire Faction Overview page dynamically
-    // This includes the sub-tab navigation, the cog icon, and the main data display area.
     const pageHtml = `
         <div class="fo-header-area">
             <h2 class="fo-page-title">Faction Financials Overview</h2>
@@ -103,9 +97,12 @@ function renderFactionOverviewPageLayout() {
             <button class="fo-sub-tab-button" data-tab-id="crime">Crime</button>
             <button class="fo-sub-tab-button" data-tab-id="logistics">Logistics</button>
             <button class="fo-sub-tab-button" data-tab-id="oversight">Oversight</button>
+            
+            <button class="fo-sub-tab-button" data-tab-id="bank-balance">Bank Balance</button>
+            
         </div>
 
-        <div class="fo-controls-bar">
+        <div class="fo-controls-bar" id="factionOverviewControlsBar">
             <input type="text" id="factionOverviewSearchInput" class="fo-search-input" placeholder="Search Player/Item/Type...">
             <button id="factionOverviewSearchButton" class="fo-button">Search</button>
             <button id="factionOverviewClearSearchButton" class="fo-button">Clear</button>
@@ -275,7 +272,8 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     if (data.length === 0) {
         tableHtml += `<tr><td colspan="${columns.length}" style="text-align: center; padding: 20px;">No data available for this period.</td></tr>`;
     } else {
-        data.forEach(row => {
+        const itemsToDisplay = data.slice(0, 9);
+        itemsToDisplay.forEach(row => { // Loop over the sliced data
             tableHtml += `<tr>`;
             columns.forEach(col => {
                 let displayValue = row[col.key] !== undefined ? row[col.key] : 'N/A';
