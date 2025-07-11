@@ -188,7 +188,7 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Item', key: 'item', sortable: true },
                 { header: 'Quantity', key: 'quantity', sortable: true }
             ];
-            viewTitle = 'Armory Deposits Log';
+
             break;
 
         case 'fund-deposits':
@@ -198,7 +198,7 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'User', key: 'user', sortable: true },
                 { header: 'Amount', key: 'amount', sortable: true }
             ];
-            viewTitle = 'Fund Deposits Log';
+			
             break;
 
         case 'fund-withdrawals':
@@ -209,7 +209,7 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Recipient', key: 'recipient', sortable: true },
                 { header: 'Amount', key: 'amount', sortable: true }
             ];
-            viewTitle = 'Fund Withdrawals Log';
+			
             break;
 
         case 'crime':
@@ -220,7 +220,7 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Crime Type', key: 'crimeType', sortable: true },
                 { header: 'Result', key: 'result', sortable: true }
             ];
-            viewTitle = 'Crime Log';
+
             break;
 
         case 'logistics':
@@ -814,12 +814,12 @@ function processFactionNewsForTable(newsArray, category) {
 
             // Pattern 5: "actioned a money balance payout splitting X of the $AMOUNT between Y participants for ... <span class="bold">Scenario Name</span> scenario"
             if (crimeType === 'N/A') { // Try this last for payout scenarios
-                match = sourceText.match(/actioned a money balance payout splitting(?:.+?)for.+?<span class="bold">(.+?)<\/span>\s+scenario/);
+                match = sourceText.match(/actioned a money balance payout splitting(?:.+?)for\s+<a href="[^"]+">.+?<\/a>'s\s+(.+?)\s+scenario/);
                 if (match) {
-                    crimeType = match[1].trim(); // Scenario name
+                    crimeType = match[1].trim(); // Capture the scenario name
                     result = 'Payout'; // Custom result for payouts
-                    // Optionally parse amount here if needed for crime payout column
-                    const payoutAmountMatch = sourceText.match(/splitting\s+\d+% of the\s+\$([\d,]+)/);
+                    // Optionally parse amount here if needed for crime payout column (already present logic)
+                    const payoutAmountMatch = sourceText.match(/splitting(?:.+?)\$([\d,]+)/);
                     if (payoutAmountMatch) {
                         amount = parseInt(payoutAmountMatch[1].replace(/,/g, ''), 10);
                     }
