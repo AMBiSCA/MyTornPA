@@ -1468,6 +1468,13 @@ async function checkIfUserHasFactionOverviewAccess() {
         const userProfileData = userProfileDoc.data();
         const userTornId = userProfileData.tornProfileId;
         const userPosition = userProfileData.position ? userProfileData.position.toLowerCase() : '';
+		
+		// --- NEW DEBUG LOGS ---
+        console.log(`[DEBUG] Access Check: User UID: ${user.uid}`);
+        console.log(`[DEBUG] Access Check: User Torn ID from profile: '${userTornId}' (Type: ${typeof userTornId})`);
+        console.log(`[DEBUG] Access Check: User Position from profile: '${userPosition}'`);
+        console.log(`[DEBUG] Access Check: Global designatedBankers list:`, designatedBankers);
+        // --- END NEW DEBUG LOGS ---
 
         // Check if user is Leader or Co-leader (highest access)
         if (userPosition === 'leader' || userPosition === 'co-leader') {
