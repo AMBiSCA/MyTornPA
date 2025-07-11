@@ -1638,8 +1638,8 @@ async function saveDesignatedBankers(container, modalOverlay) {
         designatedBankers = selectedBankerIds; // Update global state
         modalOverlay.remove(); // Close the modal
         showCustomAlert("Banker access settings saved successfully!", "Success");
-        console.log("Designated bankers saved:", designatedBankers); designatedBankerIds);
-        catch (error) {
+        console.log("Designated bankers saved:", designatedBankers);
+       } catch (error) {
         console.error("Error saving designated bankers:", error);
         showCustomAlert(`Failed to save banker settings: ${error.message}`, "Save Error");
     }
