@@ -15,9 +15,11 @@
     border: 2px solid black; /* Consistent border */
     display: flex;
     flex-direction: column;
+	margin-top: -15px;
     gap: 20px; /* Spacing between main sections */
     box-sizing: border-box;
     min-height: calc(100vh - 140px - 40px)
+	
 }
 
 /* Page Header / Title within the content panel */
@@ -48,7 +50,7 @@
     padding: 5px;
 }
 .fo-cog-button:hover {
-    transform: rotate(90deg); /* Slight rotation on hover */
+    transform: rotate(45deg); /* Slight rotation on hover */
     color: #00e0ff; /* Lighter blue on hover */
 }
 
