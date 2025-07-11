@@ -619,7 +619,6 @@ function processFactionNewsForTable(newsArray, category) {
     }
 
     // Helper function to extract name and ID from Torn's <a> HTML string
-    // This regex looks for an <a> tag and captures the XID and the text content (player name).
     const extractPlayerInfoFromHtml = (htmlString) => {
         const match = htmlString.match(/<a href="[^"]+XID=(\d+)">([^<]+)<\/a>/);
         return {
@@ -650,7 +649,6 @@ function processFactionNewsForTable(newsArray, category) {
         let result = 'N/A';
 
         // --- Common Parsing: Extract the primary actor (usually the first player link in the text) ---
-        // This regex looks for the first <a> tag at the beginning of the string.
         const firstPlayerLinkMatch = sourceText.match(/^<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>/);
         if (firstPlayerLinkMatch) {
             userId = firstPlayerLinkMatch[1];
@@ -769,7 +767,24 @@ function processFactionNewsForTable(newsArray, category) {
                 if (match) {
                     crimeType = match[1].trim();
                     result = 'Success';
-                    console.log(`[DEBUG] Crime Pattern 2 (Successfully Completed): Type=${crimeType}, Result=${result}`);
+                    // Check if there's an amount/item received too (e.g., "$1,541,000" or "1x Echo R8")
+                    const rewardMatch = sourceText.match(/receiving\s+<span class="bold">(.+?)<\/span>/);
+                    if(rewardMatch) {
+                        const rewardText = rewardMatch[1];
+                        if (rewardText.startsWith('$')) {
+                            amount = parseInt(rewardText.replace(/\$|,/g, ''), 10);
+                        } else if (rewardText.includes('x')) {
+                            const rewardQtyItemMatch = rewardText.match(/(\d+)x\s*(.+)/i);
+                            if(rewardQtyItemMatch) {
+                                quantity = parseInt(rewardQtyItemMatch[1], 10);
+                                item = rewardQtyItemMatch[2].trim();
+                            }
+                        } else { // No quantity, just item
+                            item = rewardText.trim();
+                            quantity = 1;
+                        }
+                    }
+                    console.log(`[DEBUG] Crime Pattern 2 (Successfully Completed): Type=${crimeType}, Result=${result}, Reward=${amount || (quantity + 'x ' + item)}`);
                 } else {
                     console.log(`[DEBUG] Crime Pattern 2: NO MATCH for "${sourceText}"`);
                 }
@@ -799,7 +814,25 @@ function processFactionNewsForTable(newsArray, category) {
                 }
             }
 
-            // If still N/A, it means it's an "actioned money payout" or another unhandled type.
+            // Pattern 5: "actioned a money balance payout splitting X of the $AMOUNT between Y participants for ... <span class="bold">Scenario Name</span> scenario"
+            if (crimeType === 'N/A') { // Try this last for payout scenarios
+                match = sourceText.match(/actioned a money balance payout splitting(?:.+?)for.+?<span class="bold">(.+?)<\/span>\s+scenario/);
+                if (match) {
+                    crimeType = match[1].trim(); // Scenario name
+                    result = 'Payout'; // Custom result for payouts
+                    // Optionally parse amount here if needed for crime payout column
+                    const payoutAmountMatch = sourceText.match(/splitting\s+\d+% of the\s+\$([\d,]+)/);
+                    if (payoutAmountMatch) {
+                        amount = parseInt(payoutAmountMatch[1].replace(/,/g, ''), 10);
+                    }
+                    console.log(`[DEBUG] Crime Pattern 5 (Money Payout): Type=${crimeType}, Result=${result}, Amount=${amount}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 5: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+
+            // If still N/A, it means it's an unhandled type.
             console.log(`[DEBUG] Final Crime: Type=${crimeType}, Result=${result}`);
         }
 
