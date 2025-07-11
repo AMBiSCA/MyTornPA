@@ -35,7 +35,7 @@
     margin: 0;
     font-size: 1.8rem;
     font-weight: 600;
-    text-align: left; /* Align to the left to make space for cog */
+    text-align: center; /* Align to the left to make space for cog */
 }
 
 /* Cog Button for Banker Settings */
@@ -49,7 +49,7 @@
     padding: 5px;
 }
 .fo-cog-button:hover {
-    transform: rotate(30deg); /* Slight rotation on hover */
+    transform: rotate(90deg); /* Slight rotation on hover */
     color: #00e0ff; /* Lighter blue on hover */
 }
 
