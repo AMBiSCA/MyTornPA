@@ -532,14 +532,17 @@
 /* Ensure cell widths are consistent */
 .fo-data-table th,
 .fo-data-table td {
-    border: 1px solid #007acc; /* Consistent table borders */
-    padding: 10px 15px;
-    text-align: left;
-    color: #eee;
-    font-size: 0.95rem;
-    white-space: nowrap; /* Prevent content wrap for now, unless specific cells are wide */
-    overflow: hidden; /* Hide overflowing text */
-    text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+    border: 1px solid #007acc; /* Existing style */
+    padding: 10px 15px; /* Existing style */
+    text-align: left; /* Existing style */
+    color: #eee; /* Existing style */
+    font-size: 0.95rem; /* Existing style */
+    
+    /* --- THESE ARE THE LINES THAT ALLOW TEXT WRAPPING --- */
+    white-space: normal; /* Allow text to wrap to the next line */
+    overflow: visible;   /* Allow content to expand vertically (prevents hidden overflow) */
+    text-overflow: clip; /* Ensure no ellipsis, clip any remaining overflow */
+    word-wrap: break-word; /* Ensures long words break and wrap */
 }
 
 /* Specific column widths for better layout */
