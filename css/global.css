@@ -6,7 +6,6 @@ html, body {
     margin: 0;
     padding: 0;
     overflow-x: hidden; /* Prevent horizontal scrollbar from overflow */
-	overflow-y: hidden;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #eee; /* Default text color for the whole site */
 }

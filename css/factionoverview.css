@@ -18,6 +18,7 @@
     gap: 20px; /* Spacing between main sections */
     box-sizing: border-box;
     min-height: calc(100vh - 140px); /* Adjust based on header/footer height */
+	overflow: hidden;
 }
 
 /* Page Header / Title within the content panel */
