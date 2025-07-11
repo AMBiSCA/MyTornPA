@@ -1212,10 +1212,6 @@ function populateLogisticsData() {
 
     // TODO: Implement real data for populateOversightData based on historicalFundLogs/ArmoryLogs
 }
-/**
- * Populates data for the Oversight tab.
- * This will query `historicalFundLogs` and `historicalArmoryLogs` and display KPIs and alerts.
- */
 // In factionoverview.js, find the existing populateOversightData function and replace it entirely with this:
 
 /**
@@ -1331,20 +1327,41 @@ function populateOversightData() {
     topUsersList.innerHTML = topUsersHtml;
 
     // --- Part 3: Generate & Display Alerts (from historical data) ---
-    // This section will be populated in a subsequent step.
-    alertsList.innerHTML = '<li>Checking for alerts... (coming soon!)</li>';
+    const activeAlerts = generateAlertsFromData(historicalArmoryLogs, historicalFundLogs);
+    let alertsHtml = '';
+    if (activeAlerts.length > 0) {
+        activeAlerts.forEach(alert => {
+            alertsHtml += `<li>🚨 ${alert}</li>`;
+        });
+    } else {
+        alertsHtml = '<li>No active alerts found.</li>';
+    }
+    alertsList.innerHTML = alertsHtml;
 }
 
 
+// In factionoverview.js, find the existing generateAlertsFromData function and replace it entirely with this:
+
+/**
+ * Generates alerts based on predefined/configurable rules from historical data.
+ * @param {Array<Object>} armoryData Filtered historical armory logs.
+ * @param {Array<Object>} fundData Filtered historical fund logs.
+ * @returns {Array<string>} An array of alert messages.
+ */
 function generateAlertsFromData(armoryData, fundData) {
     const alerts = [];
     const oneDayMs = 24 * 60 * 60 * 1000;
     const now = new Date().getTime();
 
-    // Example Rule 1: High frequency Medical Kit withdrawals
-    const medKitWithdrawalsLast24Hrs = armoryData.filter(log =>
+    // Filter relevant data for alerts (e.g., last 7 days for recent activity alerts)
+    const recentArmoryLogs = armoryData.filter(log => log.timestamp >= (now - (7 * oneDayMs)) && log.timestamp <= now);
+    const recentFundLogs = fundData.filter(log => log.timestamp >= (now - (7 * oneDayMs)) && log.timestamp <= now);
+
+
+    // --- ALERT RULE 1: High frequency Medical Kit withdrawals (last 24 hours) ---
+    const medKitWithdrawalsLast24Hrs = recentArmoryLogs.filter(log =>
         log.category === 'armoryAction' &&
-        log.item === 'Medical Kit' &&
+        log.item.includes('Medical Kit') && // Check cleaned item name
         log.timestamp >= (now - oneDayMs)
     );
     const userMedKitCounts = {};
@@ -1357,20 +1374,39 @@ function generateAlertsFromData(armoryData, fundData) {
         }
     }
 
-    // Example Rule 2: Large single fund withdrawal
-    const largeFundWithdrawals = fundData.filter(log =>
+    // --- ALERT RULE 2: Large single fund withdrawal (any time) ---
+    const largeFundWithdrawals = fundData.filter(log => // Check all historical data, not just recent, as large withdrawals are always noteworthy
         log.category === 'giveFunds' &&
+        typeof log.amount === 'number' &&
         log.amount >= 5000000 // Alert if >= $5,000,000 withdrawn
     );
     largeFundWithdrawals.forEach(log => {
-        alerts.push(`${log.sender} withdrew $${log.amount.toLocaleString()} to ${log.recipient} (Large Withdrawal!)`);
+        alerts.push(`${log.sender} withdrew $${log.amount.toLocaleString()} to ${log.recipient || 'Unknown Recipient'} (Large Withdrawal: $${log.amount.toLocaleString()})`);
     });
 
-    // TODO: Implement more alert rules based on your faction's specific needs.
-    // These rules can be made configurable via the 'Cog' settings.
+    // --- ALERT RULE 3: Unusual Item Deposits (e.g., specific high-value item deposited by non-leader/co-leader) ---
+    // This would require fetching user roles for the depositor.
+    // For now, a simpler version: Alert on any deposit of a very high-value item by anyone.
+    const veryHighValueItems = ['HEG', 'Xanax', 'Armored Vest']; // Example, expand this list
+    const highValueDeposits = recentArmoryLogs.filter(log =>
+        log.category === 'armoryDeposit' &&
+        veryHighValueItems.some(item => log.item.includes(item)) // Check if item is in high-value list
+    );
+    highValueDeposits.forEach(log => {
+        alerts.push(`${log.user} deposited ${log.quantity || '1'}x ${log.item} (High-Value Item Deposit!)`);
+    });
 
+
+    // --- ALERT RULE 4: Crime Failure Rate (e.g., if a user has many recent failures) ---
+    // Requires processing crimeData more deeply.
+    // This is conceptual for now, as crime data might need more advanced analysis.
+    // alerts.push("Conceptual Alert: High crime failure rate for Player X.");
+
+
+    console.log(`[DEBUG] Alerts Generated: ${alerts.length} alerts found.`);
     return alerts;
 }
+
 
 
 // =====================================================================================================================
