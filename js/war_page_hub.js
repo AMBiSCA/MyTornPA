@@ -33,7 +33,6 @@ let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
 
-
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
 const gamePlanDisplay = document.getElementById('gamePlanDisplay');
@@ -2420,10 +2419,6 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         if (yourChainData) {
             friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
             friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
-			
-			 const friendlyProgressBar = document.getElementById('friendly-chain-progress');
-            updateChainProgress(yourChainData.current || 0, friendlyProgressBar);
-   
 
             currentLiveChainSeconds = yourChainData.timeout || 0;
             lastChainApiFetchTime = Date.now();
@@ -2440,10 +2435,6 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
             if (enemyChainData) { // Use enemyChainData already extracted above
                  enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
                  enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
-				 
-				 const enemyProgressBar = document.getElementById('enemy-chain-progress');
-                 updateChainProgress(enemyChainData.current || 0, enemyProgressBar);
-				 
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
@@ -2463,40 +2454,6 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         lastChainApiFetchTime = 0;
     }
 }
-
-// --- NEW FUNCTION: Creates and styles the progress bar text elements ---
-function setupProgressText() {
-    const friendlyContainer = document.getElementById('friendly-chain-progress')?.parentElement;
-    const enemyContainer = document.getElementById('enemy-chain-progress')?.parentElement;
-
-    // A helper function to avoid repeating code
-    const createTextElement = (container, id) => {
-        if (!container || document.getElementById(id)) return; // Don't run if container doesn't exist or text is already there
-
-        // This is needed to position the text inside the container
-        container.style.position = 'relative';
-
-        const textEl = document.createElement('span');
-        textEl.id = id;
-
-        // --- All styling is applied here via JavaScript ---
-        textEl.style.position = 'absolute';
-        textEl.style.top = '50%';
-        textEl.style.left = '50%';
-        textEl.style.transform = 'translate(-50%, -50%)';
-        textEl.style.color = '#FFFFFF';
-        textEl.style.fontWeight = 'bold';
-        textEl.style.fontSize = '10px';
-        textEl.style.textShadow = '0 0 2px rgba(0,0,0,0.8)'; // Makes text more readable
-        textEl.style.pointerEvents = 'none'; // Makes text unclickable
-
-        container.appendChild(textEl);
-    };
-
-    createTextElement(friendlyContainer, 'friendly-chain-text');
-    createTextElement(enemyContainer, 'enemy-chain-text');
-}
-
 async function claimTarget(memberId, memberName) {
     if (!auth.currentUser || !currentTornUserName || !userApiKey || !globalYourFactionID) {
         alert("You must be logged in with your Torn username, API key, and faction ID loaded to claim targets.");
@@ -3526,53 +3483,6 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
-/**
- * Calculates and updates the width and text of a chain progress bar.
- * @param {number} currentHits - The current number of hits in the chain.
- * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
- * @param {string} textElementId - The ID of the text element to update.
- */
-function updateChainProgress(currentHits, progressBarElement, textElementId) {
-    if (!progressBarElement) return;
-
-    const textElement = document.getElementById(textElementId);
-    const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
-    const hits = Number(currentHits);
-
-    if (isNaN(hits)) {
-        progressBarElement.style.width = '0%';
-        if (textElement) textElement.textContent = '';
-        return;
-    }
-
-    let nextMilestone = milestones.find(m => m > hits);
-    
-    if (nextMilestone === undefined) {
-        progressBarElement.style.width = '100%';
-        if (textElement) textElement.textContent = 'MAX';
-        return;
-    }
-
-    let previousMilestone = 0;
-    for (let i = milestones.length - 1; i >= 0; i--) {
-        if (milestones[i] <= hits) {
-            previousMilestone = milestones[i];
-            break;
-        }
-    }
-
-    const totalForMilestone = nextMilestone - previousMilestone;
-    const progressInMilestone = hits - previousMilestone;
-    let percentage = 0;
-    if (totalForMilestone > 0) {
-        percentage = (progressInMilestone / totalForMilestone) * 100;
-    }
-
-    progressBarElement.style.width = percentage + '%';
-    if (textElement) {
-        textElement.textContent = Math.floor(percentage) + '%';
-    }
-}
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
 	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
@@ -3627,8 +3537,6 @@ function setupFactionHitsListener(db, factionId) {
         abroadHitsElement.textContent = "Error";
     });
 }
-
-
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
@@ -5745,8 +5653,6 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 userApiKey = apiKey; // Set global API key
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
-
-                setupProgressText();  
 
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
