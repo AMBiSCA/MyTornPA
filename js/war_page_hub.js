@@ -6684,9 +6684,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // This block will run automatically once the DOM is fully loaded.
 
     // === IMPORTANT: REPLACE THESE PLACEHOLDERS WITH YOUR ACTUAL DETAILS ===
-    const YOUR_ACTUAL_FACTION_ID = 'YOUR_FACTION_ID_HERE'; // e.g., '12345'
-    const YOUR_TORN_USERNAME = 'YourUsername [123456]';   // e.g., 'PlayerX [2000000]'
-    const YOUR_FIREBASE_UID = 'YOUR_FIREBASE_AUTH_UID_HERE'; // This is your Firebase user ID
+    const YOUR_ACTUAL_FACTION_ID = '49028'; // e.g., '12345'
+    const YOUR_TORN_USERNAME = 'Username [2662550]';   // e.g., 'PlayerX [2000000]'
+    const YOUR_FIREBASE_UID = 'OxwatQjtUCPtLSBUrBqVseBpqeT2'; // This is your Firebase user ID
 
     // === ONLY RUN THIS TEST IF YOU ARE LOGGED IN AS THE SPECIFIED USER ===
     // This check helps prevent the dummy war from activating for other users or if you're logged out.
