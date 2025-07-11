@@ -553,3 +553,127 @@
         padding: 20px;
     }
 }
+
+/* In mysite/css/factionoverview.css */
+
+/* Generic Table Styles (used for Armory, Funds, Crime logs) */
+.fo-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px; /* Adjust if needed to distance from search/filter bar */
+    table-layout: fixed; /* Crucial for fixed column widths and alignment */
+
+    /* --- NEW: Make the table itself scrollable vertically and limit its height --- */
+    max-height: 450px; /* <--- ADJUST THIS VALUE: Controls the overall height of the scrollable table area */
+    overflow-y: auto; /* <--- Enables vertical scrolling for the whole table */
+    overflow-x: hidden; /* Hides horizontal scrollbar if table content doesn't overflow horizontally */
+    display: block; /* <--- IMPORTANT: Allows max-height and overflow to work on the table element */
+    border: 1px solid #00a8ff; /* Consistent border around the entire table */
+    border-radius: 8px; /* Consistent rounded corners for the table */
+}
+
+.fo-data-table thead {
+    /* Ensure thead behaves like a table header within the display:block table */
+    display: table-header-group;
+    position: sticky; /* <--- Enables sticky positioning */
+    top: 0;           /* <--- Sticks to the top of its scrollable parent (the .fo-data-table) */
+    z-index: 10;      /* Ensures header stays above scrolling tbody content */
+    background-color: #004d80; /* Match your header background */
+}
+
+.fo-data-table tbody {
+    /* Ensure tbody behaves like a table body within the display:block table */
+    display: table-row-group;
+    /* No direct overflow on tbody itself, the parent table handles it */
+}
+
+/* Ensure table rows behave correctly within the display:block table/thead/tbody */
+.fo-data-table thead tr,
+.fo-data-table tbody tr {
+    display: table-row; /* <--- Crucial for ensuring cells align correctly */
+    width: 100%; /* Ensures rows span the full width within the fixed layout */
+}
+
+/* Styles for table headers and cells */
+.fo-data-table th,
+.fo-data-table td {
+    /* Keep existing styles */
+    padding: 10px 15px;
+    text-align: left;
+    color: #eee;
+    font-size: 0.95rem;
+    white-space: nowrap;     /* Reverted: Prevent text from wrapping (truncates) */
+    overflow: hidden;        /* Reverted: Hide overflowing content */
+    text-overflow: ellipsis; /* Reverted: Show ellipsis for truncated text */
+    /* Borders: Need to re-apply borders because display:block/table changes rendering */
+    border-top: none; /* No top border for cells (border on table itself) */
+    border-bottom: 1px solid #007acc; /* Keep internal row separators */
+    border-left: 1px solid #007acc; /* Left border for cells */
+    border-right: 1px solid #007acc; /* Right border for cells */
+}
+
+/* Remove internal borders from first/last cell to match outer table border */
+.fo-data-table th:first-child,
+.fo-data-table td:first-child {
+    border-left: none;
+}
+
+.fo-data-table th:last-child,
+.fo-data-table td:last-child {
+    border-right: none;
+}
+
+/* And ensure the bottom border of the header is visible */
+.fo-data-table thead th {
+    border-bottom: 1px solid #007acc; /* Explicit bottom border for header cells */
+}
+
+
+/* Adjust column widths - These will be honored by table-layout: fixed */
+.fo-data-table th:nth-child(1), .fo-data-table td:nth-child(1) { width: 18%; } /* Date/Time */
+.fo-data-table th:nth-child(2), .fo-data-table td:nth-child(2) { width: 18%; } /* User/Sender */
+.fo-data-table th:nth-child(3), .fo-data-table td:nth-child(3) { width: 34%; } /* Item/Recipient/Crime Type */
+.fo-data-table th:nth-child(4), .fo-data-table td:nth-child(4) { width: 15%; } /* Quantity/Amount/Result */
+.fo-data-table th:nth-child(5), .fo-data-table td:nth-child(5) { width: 15%; } /* For Crime Type / Result */
+
+/* Custom Scrollbar Styles (re-ensure these are present for the .fo-data-table) */
+.fo-data-table::-webkit-scrollbar {
+    width: 10px; height: 10px;
+}
+.fo-data-table::-webkit-scrollbar-track {
+    background: #2b2b2b; border-radius: 5px;
+}
+.fo-data-table::-webkit-scrollbar-thumb {
+    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+}
+.fo-data-table::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+.fo-data-table::-webkit-scrollbar-corner {
+    background: #222;
+}
+
+/* Mobile adjustments (ensure tables respond well here too) */
+@media (max-width: 900px) {
+    /* Allow horizontal scrolling on the main content panel for small tables if needed */
+    .faction-overview-content-panel {
+        overflow-x: auto;
+    }
+    .fo-data-table {
+        min-width: 650px; /* Ensure table has a minimum width before horizontal scroll kicks in */
+        max-height: 350px; /* Adjust height for smaller screens */
+    }
+    .fo-data-table th,
+    .fo-data-table td {
+        white-space: normal; /* Allow wrapping on smaller screens */
+        overflow: visible; /* Prevent hidden overflow on smaller screens */
+        text-overflow: clip; /* No ellipsis on smaller screens when wrapping */
+        word-wrap: break-word;
+        word-break: break-word; /* Ensure long words break */
+    }
+    /* Reset borders for th/td if white-space: normal introduces issues */
+    .fo-data-table th,
+    .fo-data-table td {
+        border: 1px solid #007acc; /* Re-add borders, assuming it got simplified somewhere */
+    }
+}
