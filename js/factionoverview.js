@@ -310,10 +310,9 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
  */
 function renderLogisticsTabContent(targetElement) {
     targetElement.innerHTML = `
-        <h3 class="fo-view-title">✨ Logistics: Current Stock & Usage Trends</h3>
 
         <div class="fo-section-panel">
-            <h4>📊 Current Faction Armory Stock Levels (Estimated)</h4>
+            <h4>📊 Current Faction Armory Stock Levels (Estimated) 📊  </h4>
             <table class="fo-data-table fo-summary-table">
                 <thead>
                     <tr>
@@ -330,7 +329,7 @@ function renderLogisticsTabContent(targetElement) {
         </div>
 
         <div class="fo-section-panel fo-section-panel-full-width">
-            <h4>📦 Recent Large Item Movements (>50 Qty or High Value)</h4>
+            <h4>📦 Recent Large Item Movements (>50 Qty or High Value) 📦  </h4>
             <table class="fo-data-table fo-summary-table">
                 <thead>
                     <tr>
@@ -358,7 +357,7 @@ function renderLogisticsTabContent(targetElement) {
  */
 function renderOversightTabContent(targetElement) {
     targetElement.innerHTML = `
-        <h3 class="fo-view-title">✨ Oversight: Key Metrics & Alerts</h3>
+
 
         <div class="fo-kpi-grid">
             <div class="fo-kpi-box">
