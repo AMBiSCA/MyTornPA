@@ -3884,8 +3884,9 @@ min-width: 320px;
 
 /* 4. Reset the scoreboard container just in case */
 #active-ops-tab .ops-control-item:has(.ranked-war-container) {
-    flex-grow: 0 !important;
-	margin-left: 248px;
+    flex-grow: 1; /* This allows the container to take up the available middle space */
+    display: flex; /* This is needed to enable centering */
+    justify-content: center; /* This centers the scoreboard within the container */
 }
 #friendly-status-tab .friendly-members-panel {
     width: 1500px !important;     /* Set a fixed width */
