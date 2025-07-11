@@ -184,7 +184,6 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Item', key: 'item', sortable: true },
                 { header: 'Quantity', key: 'quantity', sortable: true }
             ];
-
             break;
 
         case 'fund-deposits':
@@ -194,7 +193,6 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'User', key: 'user', sortable: true },
                 { header: 'Amount', key: 'amount', sortable: true }
             ];
-			
             break;
 
         case 'fund-withdrawals':
@@ -205,7 +203,6 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Recipient', key: 'recipient', sortable: true },
                 { header: 'Amount', key: 'amount', sortable: true }
             ];
-			
             break;
 
         case 'crime':
@@ -216,22 +213,34 @@ async function switchFactionOverviewSubTab(tabId) {
                 { header: 'Crime Type', key: 'crimeType', sortable: true },
                 { header: 'Result', key: 'result', sortable: true }
             ];
-
             break;
 
         case 'logistics':
-            // Logistics tab will have a different layout (summaries, not raw tables)
             renderLogisticsTabContent(displayArea);
             return; // Exit after rendering specific content
 
         case 'oversight':
-            // Oversight tab will also have a different layout (KPIs, alerts)
             renderOversightTabContent(displayArea);
             return; // Exit after rendering specific content
+
+        case 'faction-balances': // NEW CASE FOR FACTION BALANCES
+            displayArea.innerHTML = `<p style="text-align: center; padding-top: 20px; color: #aaa;">This tab is currently under development and does not display data.</p>`;
+            // Optionally, hide the controls bar for this tab if it's not relevant
+            const controlsBar = document.getElementById('factionOverviewControlsBar');
+            if (controlsBar) {
+                controlsBar.style.display = 'none'; // Hide search/date controls
+            }
+            return; // IMPORTANT: Return here so it doesn't try to render a generic table
 
         default:
             displayArea.innerHTML = `<p style="text-align: center; color: red;">Error: Unknown sub-tab selected.</p>`;
             return;
+    }
+
+    // Ensure controls bar is visible for tabs that use it
+    const controlsBar = document.getElementById('factionOverviewControlsBar');
+    if (controlsBar) {
+        controlsBar.style.display = 'flex'; // Or 'block' depending on your CSS
     }
 
     // Render generic table for transaction logs (Armory/Funds/Crime)
@@ -240,7 +249,6 @@ async function switchFactionOverviewSubTab(tabId) {
     // After rendering, apply current filters if any
     applyCurrentFiltersAndSort();
 }
-
 /**
  * Generates and injects an HTML table for displaying generic log data.
  * @param {HTMLElement} targetElement The DOM element to inject the table into.
