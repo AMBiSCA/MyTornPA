@@ -1216,6 +1216,11 @@ function populateLogisticsData() {
  * Populates data for the Oversight tab.
  * This will query `historicalFundLogs` and `historicalArmoryLogs` and display KPIs and alerts.
  */
+// In factionoverview.js, find the existing populateOversightData function and replace it entirely with this:
+
+/**
+ * Populates data for the Oversight tab using real historical data from Firebase.
+ */
 function populateOversightData() {
     const totalFundsDepositedEl = document.getElementById('oversightTotalFundsDeposited');
     const totalItemsDepositedEl = document.getElementById('oversightTotalItemsDeposited');
@@ -1224,9 +1229,12 @@ function populateOversightData() {
     const topUsersList = document.getElementById('oversightTopUsersList');
     const alertsList = document.getElementById('oversightAlertsList');
 
-    if (!totalFundsDepositedEl || !topUsersList || !alertsList) return;
+    if (!totalFundsDepositedEl || !topUsersList || !alertsList) {
+        console.error("HTML Error: Oversight tab display elements not found.");
+        return;
+    }
 
-    // Placeholder for actual data processing from historical logs
+    // Set initial loading states
     totalFundsDepositedEl.textContent = 'Calculating...';
     totalItemsDepositedEl.textContent = 'Calculating...';
     totalFundsWithdrawnEl.textContent = 'Calculating...';
@@ -1234,75 +1242,69 @@ function populateOversightData() {
     topUsersList.innerHTML = '<li>Loading top users...</li>';
     alertsList.innerHTML = '<li>Checking for alerts...</li>';
 
-    // Example conceptual data (replace with actual calculations from historicalFundLogs/ArmoryLogs)
+    // Ensure historical data is loaded; if not, show a message
+    if (historicalArmoryLogs.length === 0 && historicalFundLogs.length === 0) {
+        totalFundsDepositedEl.textContent = '$N/A';
+        totalItemsDepositedEl.textContent = 'N/A';
+        totalFundsWithdrawnEl.textContent = '$N/A';
+        totalItemsWithdrawnEl.textContent = 'N/A';
+        topUsersList.innerHTML = '<li>No historical data available.</li>';
+        alertsList.innerHTML = '<li>No historical data for alerts.</li>';
+        return;
+    }
+
     const sevenDaysAgo = new Date().getTime() - (7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date().getTime() - (30 * 24 * 60 * 60 * 1000);
+    const now = new Date().getTime();
 
-    // Filter historical data for the last 7 days for KPIs
-    const recentFundLogs = historicalFundLogs.filter(log => log.timestamp >= sevenDaysAgo);
-    const recentArmoryLogs = historicalArmoryLogs.filter(log => log.timestamp >= sevenDaysAgo);
+    // --- Part 1: Calculate & Display KPIs (Last 7 Days) ---
+    let totalFundsDep = 0;
+    let totalFundsWith = 0;
+    let totalItemsDep = 0;
+    let totalItemsWith = 0;
 
-    let totalFundsDep = recentFundLogs.filter(log => log.category === 'depositFunds').reduce((sum, log) => sum + (log.amount || 0), 0);
-    let totalFundsWith = recentFundLogs.filter(log => log.category === 'giveFunds').reduce((sum, log) => sum + (log.amount || 0), 0);
-    let totalItemsDep = recentArmoryLogs.filter(log => log.category === 'armoryDeposit').reduce((sum, log) => sum + (log.quantity || 0), 0);
-    let totalItemsWith = recentArmoryLogs.filter(log => log.category === 'armoryAction').reduce((sum, log) => sum + (log.quantity || 0), 0);
+    // Process fund logs for KPIs
+    historicalFundLogs.forEach(log => {
+        if (log.timestamp >= sevenDaysAgo && log.timestamp <= now) {
+            if (log.category === 'depositFunds' && typeof log.amount === 'number') {
+                totalFundsDep += log.amount;
+            } else if (log.category === 'giveFunds' && typeof log.amount === 'number') {
+                totalFundsWith += log.amount;
+            }
+        }
+    });
+
+    // Process armory logs for KPIs
+    historicalArmoryLogs.forEach(log => {
+        if (log.timestamp >= sevenDaysAgo && log.timestamp <= now) {
+            if (log.category === 'armoryDeposit' && typeof log.quantity === 'number') {
+                totalItemsDep += log.quantity;
+            } else if (log.category === 'armoryAction' && typeof log.quantity === 'number') {
+                // Sum actual withdrawals/uses/retrievals for "Items Withdrawn"
+                if (log.rawNews.includes("retrieved") || log.rawNews.includes("withdrew") || 
+                    log.rawNews.includes("used") || log.rawNews.includes("loaned") || 
+                    log.rawNews.includes("gave")) {
+                    totalItemsWith += log.quantity;
+                }
+            }
+        }
+    });
 
     totalFundsDepositedEl.textContent = `$${totalFundsDep.toLocaleString()}`;
     totalItemsDepositedEl.textContent = totalItemsDep.toLocaleString();
     totalFundsWithdrawnEl.textContent = `$${totalFundsWith.toLocaleString()}`;
     totalItemsWithdrawnEl.textContent = totalItemsWith.toLocaleString();
 
-    // Calculate top active users (conceptual, from both armory and fund activities)
-    const userActivity = {}; // user ID -> count of activities
-    [...historicalArmoryLogs, ...historicalFundLogs]
-        .filter(log => log.timestamp >= thirtyDaysAgo) // Filter for last 30 days
-        .forEach(log => {
-            const userId = log.user; // Assuming 'user' field exists
-            if (userId) {
-                userActivity[userId] = (userActivity[userId] || 0) + 1;
-            }
-        });
+    // --- Part 2: Calculate & Display Top Active Users (Last 30 Days) ---
+    // This section will be populated in a subsequent step.
+    topUsersList.innerHTML = '<li>Analyzing top users... (coming soon!)</li>';
 
-    const sortedUsers = Object.entries(userActivity)
-        .sort(([, countA], [, countB]) => countB - countA)
-        .slice(0, 3); // Top 3
-
-    let topUsersHtml = '';
-    if (sortedUsers.length > 0) {
-        sortedUsers.forEach(([userId, count]) => {
-            // You might need to map userId to playerName here (from a faction members list)
-            const playerName = userId; // Placeholder
-            topUsersHtml += `<li>${playerName} (${count} actions)</li>`;
-        });
-    } else {
-        topUsersHtml = '<li>No significant activity in the last 30 days.</li>';
-    }
-    topUsersList.innerHTML = topUsersHtml;
-
-
-    // Generate alerts (conceptual, based on pre-defined or configurable rules)
-    let alertsHtml = '';
-    const activeAlerts = generateAlertsFromData(historicalArmoryLogs, historicalFundLogs); // Function to check rules
-    if (activeAlerts.length > 0) {
-        activeAlerts.forEach(alert => {
-            alertsHtml += `<li>🚨 ${alert}</li>`;
-        });
-    } else {
-        alertsHtml = '<li>No active alerts found.</li>';
-    }
-    alertsList.innerHTML = alertsHtml;
-
-    // TODO: Implement actual calculation logic for KPIs, Top Users, and Alerts
-    // - Use `historicalArmoryLogs` and `historicalFundLogs`
-    // - Define specific alert rules (e.g., thresholds for withdrawals, frequent activity)
+    // --- Part 3: Generate & Display Alerts (from historical data) ---
+    // This section will be populated in a subsequent step.
+    alertsList.innerHTML = '<li>Checking for alerts... (coming soon!)</li>';
 }
 
-/**
- * Placeholder: Function to generate alerts based on predefined/configurable rules.
- * @param {Array<Object>} armoryData Filtered historical armory logs.
- * @param {Array<Object>} fundData Filtered historical fund logs.
- * @returns {Array<string>} An array of alert messages.
- */
+
 function generateAlertsFromData(armoryData, fundData) {
     const alerts = [];
     const oneDayMs = 24 * 60 * 60 * 1000;
