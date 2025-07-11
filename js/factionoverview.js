@@ -597,58 +597,125 @@ async function fetchAllRawFactionNewsData() {
     }
 }
 
-// In factionoverview.js
-function processFactionNewsForTable(newsData, category) {
+// In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
+
+/**
+ * Processes raw Torn API faction news data (which is an array of news items)
+ * into a standardized format for tables, parsing details from the 'text' field.
+ * @param {Array<Object>} newsArray The 'news' array from the Torn API response.
+ * @param {string} category The category string (e.g., 'armoryAction', 'giveFunds').
+ * @returns {Array<Object>} An array of standardized data objects.
+ */
+function processFactionNewsForTable(newsArray, category) {
     const processed = [];
-    // FIX: Ensure newsData is an object to prevent 'forEach' on undefined/null
-    // If newsData is null/undefined, treat it as an empty object.
-    const safeNewsData = newsData || {}; 
+    // Ensure newsArray is an actual array before trying to iterate.
+    const safeNewsArray = Array.isArray(newsArray) ? newsArray : [];
 
-    for (const id in safeNewsData) { // <--- Loop over safeNewsData
-        if (safeNewsData.hasOwnProperty(id)) { // <--- Use safeNewsData here too
-            const entry = safeNewsData[id];
-            const timestamp = new Date(entry.timestamp * 1000); 
-
-            let user = entry.user || 'N/A';
-            let item = 'N/A';
-            let quantity = 'N/A';
-            let amount = 'N/A';
-            let recipient = 'N/A';
-            let crimeType = 'N/A';
-            let result = 'N/A';
-            let sourceText = entry.news; 
-
-            if (category === 'armoryAction' || category === 'armoryDeposit') {
-                item = entry.item || (sourceText.match(/(?:(?:withdrew|deposited) )(.+)(?: from| to)/)?.[1] || 'N/A');
-                quantity = entry.quantity || (sourceText.match(/(\d+?)x/)?.[1] || 'N/A');
-                quantity = typeof quantity === 'string' ? parseInt(quantity.replace(/,/g, ''), 10) : quantity;
-            } else if (category === 'depositFunds') {
-                amount = entry.amount || (sourceText.match(/\$([\d,]+)/)?.[1] || 'N/A');
-                amount = typeof amount === 'string' ? parseInt(amount.replace(/,/g, ''), 10) : amount;
-            } else if (category === 'giveFunds') {
-                amount = entry.amount || (sourceText.match(/\$([\d,]+)/)?.[1] || 'N/A');
-                amount = typeof amount === 'string' ? parseInt(amount.replace(/,/g, ''), 10) : amount;
-                recipient = entry.recipient_name || (sourceText.match(/to (\w+)/)?.[1] || 'N/A');
-            } else if (category === 'crime') {
-                crimeType = entry.crime || (sourceText.match(/committed (.+?) \((?:success|failure)\)/)?.[1] || 'N/A');
-                result = entry.result || (sourceText.match(/\((success|failure)\)/i)?.[1] || 'N/A');
-            }
-            user = entry.name || user;
-
-            processed.push({
-                id: id,
-                timestamp: timestamp.getTime(),
-                user: user,
-                item: item,
-                quantity: quantity,
-                amount: amount,
-                recipient: recipient,
-                crimeType: crimeType,
-                result: result,
-                rawNews: sourceText
-            });
-        }
+    console.log(`[DEBUG] processFactionNewsForTable: Processing category: ${category}. Received ${safeNewsArray.length} entries.`);
+    if (safeNewsArray.length === 0) {
+        console.log(`[DEBUG] processFactionNewsForTable: No entries to process for ${category}.`);
     }
+
+    // Helper function to extract name and ID from Torn's <a> HTML string
+    const extractPlayerInfoFromHtml = (htmlString) => {
+        const match = htmlString.match(/<a href="[^"]+XID=(\d+)">([^<]+)<\/a>/);
+        return {
+            id: match ? match[1] : 'N/A',
+            name: match ? match[2] : 'Unknown'
+        };
+    };
+
+    safeNewsArray.forEach(entry => {
+        const id = entry.id;
+        const timestamp = new Date(entry.timestamp * 1000); // Convert Torn timestamp (seconds) to milliseconds
+        const sourceText = entry.text; // The raw HTML text string of the news entry
+
+        console.log(`[DEBUG] Processing Entry ID: ${id}, Category: ${category}, Raw Text: "${sourceText}"`);
+
+        // Default values for processed fields
+        let user = 'N/A';
+        let userId = 'N/A';
+        let item = 'N/A';
+        let quantity = 'N/A';
+        let amount = 'N/A';
+        let sender = 'N/A';
+        let senderId = 'N/A';
+        let recipient = 'N/A';
+        let recipientId = 'N/A';
+        let crimeType = 'N/A';
+        let result = 'N/A';
+
+        // --- Common Parsing: Extract the primary actor (usually the first player link in the text) ---
+        const firstPlayerLinkMatch = sourceText.match(/^<a href="[^"]+XID=(\d+)">([^<]+)<\/a>/);
+        if (firstPlayerLinkMatch) {
+            userId = firstPlayerLinkMatch[1];
+            user = firstPlayerLinkMatch[2];
+            console.log(`[DEBUG] Common User: ${user} (ID: ${userId})`);
+        }
+
+        // --- Category-Specific Parsing ---
+        if (category === 'armoryAction' || category === 'armoryDeposit') {
+            const itemMatch = sourceText.match(/(?:(?:withdrew|deposited)\s+)(?:(\d+x)?\s*(.+?))(?:\s+from|\s+to)\s+armory/);
+            if (itemMatch) {
+                if (itemMatch[1] && itemMatch[1].endsWith('x')) { // If quantity (e.g., "5x") is present
+                    quantity = parseInt(itemMatch[1].replace('x', ''), 10);
+                    item = itemMatch[2].trim();
+                } else { // No explicit quantity, just item name
+                    quantity = 1; // Assume 1 if no quantity specified (e.g., "deposited Item Name")
+                    item = (itemMatch[1] || itemMatch[2]).trim(); // Item could be in group 1 or 2 depending on if quantity was there
+                }
+            }
+            console.log(`[DEBUG] Armory Item: ${item}, Quantity: ${quantity}`);
+        } else if (category === 'depositFunds') {
+            const amountMatch = sourceText.match(/\$([\d,]+)/);
+            amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
+            console.log(`[DEBUG] Funds Deposited: ${amount}`);
+        } else if (category === 'giveFunds') {
+            const amountMatch = sourceText.match(/\$([\d,]+)/);
+            amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
+
+            const recipientLinkMatch = sourceText.match(/^<a href="[^"]+XID=(\d+)">([^<]+)<\/a>\s+was given/);
+            if (recipientLinkMatch) {
+                recipientId = recipientLinkMatch[1];
+                recipient = recipientLinkMatch[2];
+            }
+
+            const senderLinkMatch = sourceText.match(/by\s+<a href="[^"]+XID=(\d+)">([^<]+)<\/a>$/);
+            if (senderLinkMatch) {
+                senderId = senderLinkMatch[1];
+                sender = senderLinkMatch[2];
+            }
+            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER
+            user = sender;
+            userId = senderId;
+            console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
+
+        } else if (category === 'crime') {
+            const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
+            const resultMatch = sourceText.match(/\((success|failure)\)/i);
+            crimeType = crimeTypeMatch ? crimeTypeMatch[1].trim() : 'N/A';
+            result = resultMatch ? resultMatch[1] : 'N/A';
+            console.log(`[DEBUG] Crime: Type=${crimeType}, Result=${result}`);
+        }
+
+        processed.push({
+            id: id,
+            timestamp: timestamp.getTime(),
+            user: user,
+            userId: userId,
+            item: item,
+            quantity: quantity,
+            amount: amount,
+            sender: sender,
+            senderId: senderId,
+            recipient: recipient,
+            recipientId: recipientId,
+            crimeType: crimeType,
+            result: result,
+            rawNews: sourceText
+        });
+    });
+
     // Sort by timestamp descending by default (most recent first)
     return processed.sort((a, b) => b.timestamp - a.timestamp);
 }
