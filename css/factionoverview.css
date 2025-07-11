@@ -680,3 +680,17 @@
         border: 1px solid #007acc; /* Re-add borders, assuming it got simplified somewhere */
     }
 }
+
+/* In mysite/css/factionoverview.css */
+
+/* Style for links within table cells (User, Sender, Recipient columns) */
+.fo-data-table td a {
+    color: inherit; /* Makes the link color the same as the parent text (which is #eee) */
+    text-decoration: none; /* Removes the default underline from links */
+    cursor: pointer; /* Ensures it's clear it's clickable */
+}
+
+.fo-data-table td a:hover {
+    text-decoration: underline; /* Add underline back only on hover for subtle feedback */
+    color: #00e0ff; /* Optional: A slight highlight color on hover */
+}
