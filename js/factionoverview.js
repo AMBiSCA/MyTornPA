@@ -593,7 +593,6 @@ async function fetchAllRawFactionNewsData() {
 
 // In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
 
-/**
 // In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
 
 /**
@@ -656,18 +655,22 @@ function processFactionNewsForTable(newsArray, category) {
 
         // --- Category-Specific Parsing ---
         if (category === 'armoryAction' || category === 'armoryDeposit') {
-            // New comprehensive regex to extract Item and Quantity from various armory news texts.
+            let match;
+            item = 'N/A'; // Reset to N/A for this specific category
+            quantity = 'N/A'; // Reset to N/A
+
+            // NEW Comprehensive regex:
+            // This single regex aims to cover most armory actions/deposits.
             // It covers "used", "loaned", "gave", "deposited", "filled", "retrieved" actions.
             // Group 1: Optional quantity (e.g., "1", "30") when explicitly stated (e.g., "1x", "30 x").
             // Group 2: The actual item name.
-
             const armoryExtractRegex = /(?:used|loaned|gave|deposited|filled|retrieved)(?:\s+one of the faction's)?\s*(?:(\d+)\s*x\s*)?(.+?)(?:\s+items?|\s+to themselves|\s+from the faction armory|\s+to|\s+from)?(?:\s+armory)?$/;
             
             match = sourceText.match(armoryExtractRegex);
 
             if (match) {
                 // Determine quantity: If group 1 (explicit number before 'x') exists, parse it.
-                // Otherwise, if "one of the" was implied, quantity is 1.
+                // Otherwise, if "one of the faction's" phrase was in the text, quantity is 1.
                 // Otherwise, default to 1 (for simple "deposited Item Name" or other cases).
                 if (match[1]) { 
                     quantity = parseInt(match[1], 10);
@@ -685,10 +688,12 @@ function processFactionNewsForTable(newsArray, category) {
                            .replace(/\s+to themselves$/, '')
                            .replace(/\s+from armory$/, '') // Added this to clean up "Item from armory"
                            .trim();
-						   
-						    if (sourceText.includes("retrieved")) { // Check if the original text contained "retrieved"
+
+                // --- NEW: Prepend "Retrieved - " if the action was 'retrieved' ---
+                if (sourceText.includes("retrieved")) { 
                     item = `Retrieved - ${item}`;
                 }
+                // --- END NEW ---
 
                 console.log(`[DEBUG] Armory Match Found: Item=${item}, Quantity=${quantity}`);
             } else {
@@ -846,7 +851,7 @@ function processFactionNewsForTable(newsArray, category) {
 
     // Sort by timestamp descending by default (most recent first)
     return processed.sort((a, b) => b.timestamp - a.timestamp);
-
+}
 /**
  * Placeholder: Fetches historical data from Firebase and processes it for Logistics and Oversight.
  * This function will be expanded during the implementation phase for long-term storage.
