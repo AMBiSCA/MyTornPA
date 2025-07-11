@@ -1481,13 +1481,14 @@ async function showBankerSettingsModal() {
     }
 
     // Check if the current user is a Leader or Co-leader
+    let userPosition = '';
     try {
         const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
-        const userPosition = userProfileDoc.exists ? userProfileDoc.data().position.toLowerCase() : '';
+        userPosition = userProfileDoc.exists ? userProfileDoc.data().position.toLowerCase() : '';
 
         if (userPosition !== 'leader' && userPosition !== 'co-leader') {
-            showCustomAlert("Only Leaders and Co-leaders can manage banker access.", "Permission Denied");
-            return;
+            // Note: The input field and save button will be disabled for non-leaders via JS below.
+            // A more restrictive approach might fully hide the input if not Leader.
         }
 
         // Dynamically create the modal HTML
@@ -1498,9 +1499,15 @@ async function showBankerSettingsModal() {
                     <h3 class="fo-modal-title">Manage Faction Overview Access</h3>
                     <p class="fo-modal-description">Designate up to 3 faction members as 'Bankers' who can view the Faction Overview page.</p>
 
+                    <div class="fo-setting-group">
+                        <label for="primaryFactionApiKeyInput" class="fo-label">Primary Faction API Key:</label>
+                        <input type="text" id="primaryFactionApiKeyInput" class="fo-input" placeholder="Paste Full Access API Key here">
+                        <p class="fo-note">⚠️ This key is used by ALL users for faction-wide data. Must be a Full Access API Key from a Leader/Co-leader of Faction ID ${factionOverviewGlobalYourFactionID}. Only Leaders/Co-leaders can input/change this.</p>
+                    </div>
+
                     <div id="bankerSelectionContainer" class="fo-banker-selection-grid">
                         <p style="text-align: center; padding: 20px;">Loading faction members...</p>
-                        </div>
+                    </div>
 
                     <div class="fo-modal-actions">
                         <button id="saveBankerSettingsButton" class="fo-button fo-button-primary">Save Bankers</button>
@@ -1520,14 +1527,30 @@ async function showBankerSettingsModal() {
         const saveButton = document.getElementById('saveBankerSettingsButton');
         const cancelButton = document.getElementById('cancelBankerSettingsButton');
         const bankerSelectionContainer = document.getElementById('bankerSelectionContainer');
+        const primaryFactionApiKeyInput = document.getElementById('primaryFactionApiKeyInput'); // Get reference to the API key input
 
         // Show the modal
         if (modalOverlay) {
             modalOverlay.classList.add('visible');
         }
 
+        // Populate primary API key input field with current value
+        if (primaryFactionApiKeyInput) {
+            primaryFactionApiKeyInput.value = primaryFactionApiKey || ''; // primaryFactionApiKey is global, loaded in DOMContentLoaded
+            // Disable input and save button if user is not a Leader/Co-leader
+            if (userPosition !== 'leader' && userPosition !== 'co-leader') {
+                primaryFactionApiKeyInput.disabled = true;
+                primaryFactionApiKeyInput.placeholder = "Only Leaders/Co-leaders can set this key.";
+                saveButton.disabled = true;
+                saveButton.textContent = "Access Denied";
+                saveButton.style.backgroundColor = '#6c757d';
+                saveButton.style.borderColor = '#6c757d';
+                saveButton.style.cursor = 'not-allowed';
+            }
+        }
+
         // Load and display faction members for selection
-        await populateBankerCheckboxes(bankerSelectionContainer);
+        await populateBankerCheckboxes(bankerSelectionContainer); // This function uses fetchTornApiData which will now use the primaryFactionApiKey
 
         // Event listeners for the modal
         closeButton.addEventListener('click', () => modalOverlay.remove());
@@ -1536,8 +1559,11 @@ async function showBankerSettingsModal() {
             if (event.target === modalOverlay) modalOverlay.remove(); // Close if click outside content
         });
 
+        // Event listener for Save button
         saveButton.addEventListener('click', async () => {
-            await saveDesignatedBankers(bankerSelectionContainer, modalOverlay);
+            // Get the value from the API key input field when saving
+            const newPrimaryApiKey = primaryFactionApiKeyInput ? primaryFactionApiKeyInput.value.trim() : null;
+            await saveDesignatedBankers(bankerSelectionContainer, modalOverlay, newPrimaryApiKey); // Pass the new key to save function
         });
 
     } catch (error) {
@@ -1545,11 +1571,6 @@ async function showBankerSettingsModal() {
         showCustomAlert(`Failed to load banker settings: ${error.message}`, "Error");
     }
 }
-
-/**
- * Populates checkboxes for all faction members, indicating current designated bankers.
- * @param {HTMLElement} container The container to inject checkboxes into.
- */
 async function populateBankerCheckboxes(container) {
     if (!factionOverviewGlobalYourFactionID || !factionOverviewUserApiKey) {
         container.innerHTML = `<p style="color: red;">Cannot load members: Faction ID or API Key missing.</p>`;
