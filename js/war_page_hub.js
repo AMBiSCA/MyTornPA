@@ -6678,3 +6678,82 @@ if (factionChatTabButton) {
 
 
 }); // --- END OF DOMCONTENTLOADED ---
+
+// --- Start of JavaScript-Only War Chat Test Block ---
+document.addEventListener('DOMContentLoaded', () => {
+    // This block will run automatically once the DOM is fully loaded.
+
+    // === IMPORTANT: REPLACE THESE PLACEHOLDERS WITH YOUR ACTUAL DETAILS ===
+    const YOUR_ACTUAL_FACTION_ID = 'YOUR_FACTION_ID_HERE'; // e.g., '12345'
+    const YOUR_TORN_USERNAME = 'YourUsername [123456]';   // e.g., 'PlayerX [2000000]'
+    const YOUR_FIREBASE_UID = 'YOUR_FIREBASE_AUTH_UID_HERE'; // This is your Firebase user ID
+
+    // === ONLY RUN THIS TEST IF YOU ARE LOGGED IN AS THE SPECIFIED USER ===
+    // This check helps prevent the dummy war from activating for other users or if you're logged out.
+    auth.onAuthStateChanged(user => {
+        if (user && user.uid === YOUR_FIREBASE_UID) {
+            console.log("Activating JavaScript-only dummy war for testing...");
+
+            // Step 1: Mock global variables for the dummy war
+            globalYourFactionID = YOUR_ACTUAL_FACTION_ID;
+            currentTornUserName = YOUR_TORN_USERNAME;
+            // No need to mock auth.currentUser as it's already set by onAuthStateChanged
+
+            globalRankedWarData = {
+                "warID": "JS_AUTOMATED_TEST_WAR_456", // A unique ID for this automated test
+                "factions": [
+                    {
+                        "id": String(YOUR_ACTUAL_FACTION_ID),
+                        "name": "Your Automated Faction",
+                        "score": 1500
+                    },
+                    {
+                        "id": "987654", // Dummy Opponent Faction ID
+                        "name": "Automated Opponents Inc.",
+                        "score": 750
+                    }
+                ],
+                "start": Math.floor(Date.now() / 1000) - 7200, // War started 2 hours ago
+                "target": 12000
+            };
+
+            globalEnemyFactionID = globalRankedWarData.factions.find(
+                f => String(f.id) !== String(globalYourFactionID)
+            )?.id || null;
+
+            hasAgreedToWarChatTerms = false; // Ensure agreement is reset for each test run
+
+            // Step 2: Simulate clicking the War Chat tab to trigger the agreement modal
+            // We use a small delay to ensure all other DOMContentLoaded listeners have fired.
+            setTimeout(() => {
+                const warChatTabButton = document.querySelector('.chat-tab[data-chat-tab="war-chat"]');
+                if (warChatTabButton) {
+                    warChatTabButton.click();
+                    console.log("War Chat tab clicked automatically. Agreement modal should appear.");
+
+                    // Optional: Automatically agree after a delay for fully automated flow
+                    // You might want to comment this out if you want to manually click "Agree"
+                    setTimeout(() => {
+                        const agreeButton = document.getElementById('agreeAndEnterWarChatBtn');
+                        const agreeCheckbox = document.getElementById('agreeWarChatTerms');
+                        if (agreeButton && agreeCheckbox && !agreeButton.disabled) {
+                            agreeCheckbox.checked = true; // Programmatically check
+                            agreeCheckbox.dispatchEvent(new Event('change')); // Trigger change event
+                            agreeButton.click();
+                            console.log("Automatically clicked 'Agree & Enter Chat'. War Chat should now be active.");
+                        } else if (agreeButton) {
+                             console.warn("Auto-agree button or checkbox not found, or button is disabled. Proceed manually if needed.");
+                        }
+                    }, 1500); // 1.5 seconds after tab click
+                } else {
+                    console.error("War Chat tab button not found for automated test.");
+                }
+            }, 500); // 0.5 seconds after DOMContentLoaded to ensure other setup is done
+        } else if (!user) {
+            console.log("Automated test for War Chat skipped: User not logged in.");
+        } else {
+            console.log("Automated test for War Chat skipped: Logged in user does not match specified test UID.");
+        }
+    });
+});
+// --- End of JavaScript-Only War Chat Test Block ---
