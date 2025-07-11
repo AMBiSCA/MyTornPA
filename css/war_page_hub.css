@@ -4422,7 +4422,7 @@ min-width: 320px;
    ================================================================== */
 #active-ops-scoreboard {
 width: 60%;           
- max-width: 700px;         /* Prevents it from getting too big on very wide screens. */
+max-width: 700px;         /* Prevents it from getting too big on very wide screens. */
 margin-left: auto !important;   /* These two lines automatically center it. */
 margin-right: auto !important;
 }
