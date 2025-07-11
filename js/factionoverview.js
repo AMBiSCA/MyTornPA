@@ -137,10 +137,53 @@ function renderFactionOverviewPageLayout() {
 }
 
 /**
- * Populates the main display area with content for the specified sub-tab.
- * This is the core logic for switching between the different financial views.
- * @param {string} tabId The ID of the sub-tab to display (e.g., 'armory-withdrawals').
+ * Sets up all event listeners for the Faction Overview page's dynamic elements.
+ * This is called once after the main layout is rendered.
  */
+function setupFactionOverviewEventListeners() {
+    // Event listener for sub-tab buttons
+    if (factionOverviewSubTabsContainer) {
+        factionOverviewSubTabsContainer.addEventListener('click', (event) => {
+            const clickedButton = event.target.closest('.fo-sub-tab-button');
+            if (clickedButton) {
+                const tabId = clickedButton.dataset.tabId;
+                switchFactionOverviewSubTab(tabId);
+            }
+        });
+    }
+
+    // Event listeners for search and filter controls
+    if (factionOverviewSearchButton) {
+        factionOverviewSearchButton.addEventListener('click', applyCurrentFiltersAndSort);
+    }
+    if (factionOverviewClearSearchButton) {
+        factionOverviewClearSearchButton.addEventListener('click', () => {
+            if (factionOverviewSearchInput) factionOverviewSearchInput.value = '';
+            if (factionOverviewDateFromInput) factionOverviewDateFromInput.value = '';
+            if (factionOverviewDateToInput) factionOverviewDateToInput.value = '';
+            applyCurrentFiltersAndSort(); // Re-apply filters to clear them
+        });
+    }
+    if (factionOverviewSearchInput) {
+        factionOverviewSearchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                applyCurrentFiltersAndSort();
+            }
+        });
+    }
+    if (factionOverviewDateFromInput) {
+        factionOverviewDateFromInput.addEventListener('change', applyCurrentFiltersAndSort);
+    }
+    if (factionOverviewDateToInput) {
+        factionOverviewDateToInput.addEventListener('change', applyCurrentFiltersAndSort);
+    }
+
+    // Event listener for Cog / Banker Settings button
+    if (factionOverviewCogSettingsButton) {
+        factionOverviewCogSettingsButton.addEventListener('click', showBankerSettingsModal);
+    }
+}
+
 async function switchFactionOverviewSubTab(tabId) {
     const displayArea = document.getElementById('factionOverviewDisplayArea');
     if (!displayArea) {
