@@ -469,9 +469,9 @@ function setupWarChatListener(warId) {
         .orderBy('timestamp', 'asc')
         .limit(100) // Limit to last 100 messages for performance
         .onSnapshot(snapshot => {
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = ''; // Clear previous messages
-            }
+             if (warChatMessagesScrollWrapper) {
+        warChatMessagesScrollWrapper.innerHTML = ''; // Clear previous messages in the specific wrapper
+    }
 
             if (snapshot.empty) {
                 if (chatDisplayArea) {
@@ -488,25 +488,25 @@ function setupWarChatListener(warId) {
             console.log("War Chat messages updated in real-time.");
 
             // Auto-scroll to bottom and update scroll indicator
-            setTimeout(() => {
-                const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-                if (!scrollWrapper) return;
+    setTimeout(() => {
+        const scrollWrapper = document.getElementById('warChatMessagesScrollWrapper'); // Now targets the correct element
+        if (!scrollWrapper) return;
 
-                if (scrollWrapper.scrollHeight > 0) {
+        if (scrollWrapper.scrollHeight > 0) {
+            scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+            toggleScrollIndicatorVisibility();
+        } else {
+            let attempts = 0;
+            const scrollCheckInterval = setInterval(() => {
+                attempts++;
+                if (scrollWrapper.scrollHeight > 0 || attempts > 20) {
                     scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
                     toggleScrollIndicatorVisibility();
-                } else {
-                    let attempts = 0;
-                    const scrollCheckInterval = setInterval(() => {
-                        attempts++;
-                        if (scrollWrapper.scrollHeight > 0 || attempts > 20) {
-                            scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
-                            toggleScrollIndicatorVisibility();
-                            clearInterval(scrollCheckInterval);
-                        }
-                    }, 100);
+                    clearInterval(scrollCheckInterval);
                 }
-            }, 0);
+            }, 100);
+        }
+    }, 0);
         }, error => {
             console.error("Error listening to War Chat messages:", error);
             if (chatDisplayArea) {
@@ -515,10 +515,10 @@ function setupWarChatListener(warId) {
         });
     console.log("War Chat real-time listener set up.");
 
-    const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-    if (scrollWrapper) {
-        scrollWrapper.removeEventListener('scroll', handleChatScroll);
-        scrollWrapper.addEventListener('scroll', handleChatScroll);
+    const warChatMessagesScrollWrapperForListener = document.getElementById('warChatMessagesScrollWrapper');
+    if (warChatMessagesScrollWrapperForListener) {
+        warChatMessagesScrollWrapperForListener.removeEventListener('scroll', handleChatScroll);
+        warChatMessagesScrollWrapperForListener.addEventListener('scroll', handleChatScroll);
     }
 }
 
@@ -602,7 +602,13 @@ function displayWarChatMessage(messageObj) {
         <span class="chat-text">${messageText}</span>
     `;
 
-    chatDisplayArea.appendChild(messageElement);
+    const warChatMessagesScrollWrapper = document.getElementById('warChatMessagesScrollWrapper');
+    if (warChatMessagesScrollWrapper) {
+        warChatMessagesScrollWrapper.appendChild(messageElement);
+    } else {
+        console.error("War chat messages scroll wrapper not found!");
+        chatDisplayArea.appendChild(messageElement); // Fallback to main if inner not found
+    }
 }
 
 // --- Helper functions for input keydown events (to differentiate send behavior) ---
@@ -2376,36 +2382,6 @@ async function fetchAndDisplayRankedWarScores(warsData, yourFactionId) {
   } else if (warStartedTime) {
       warStartedTime.textContent = 'N/A';
   }
-
-
-function displayChatMessage(messageObj) {
-    if (!chatDisplayArea) {
-        console.error("Chat display area not found in displayChatMessage function.");
-        return;
-    }
-
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message');
-
-    // Add a unique ID to each message element using its timestamp
-    if (messageObj.timestamp && typeof messageObj.timestamp.toMillis === 'function') {
-        messageElement.id = `msg-${messageObj.timestamp.toMillis()}`;
-    }
-
-    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function' 
-        ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const senderName = messageObj.sender || 'Unknown';
-    const messageText = messageObj.text || '';
-
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[${timestamp}]</span>
-        <span class="chat-sender">${senderName}:</span>
-        <span class="chat-text">${messageText}</span>
-    `;
-    
-    chatDisplayArea.appendChild(messageElement);
-}
 
 function manageChatMessages() {
     if (!chatMessagesDisplay) {
