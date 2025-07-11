@@ -254,7 +254,6 @@ async function switchFactionOverviewSubTab(tabId) {
  */
 function renderDynamicDataTable(targetElement, data, columns, title) {
     let tableHtml = `
-        <h3 class="fo-view-title">✨ ${title}</h3>
         <table class="fo-data-table">
             <thead>
                 <tr>
