@@ -565,7 +565,6 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
  cursor: pointer;
  flex-grow: 1;
  white-space: nowrap;
- border: 2px solid black;
  border-bottom: none; /* Remove bottom border to blend with container */
  border-right-width: 0; /* Temporarily remove right border */
  border-radius: 5px 5px 0 0;
