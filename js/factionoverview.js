@@ -681,34 +681,36 @@ function processFactionNewsForTable(newsArray, category) {
             console.log(`[DEBUG] Armory Item: ${item}, Quantity: ${quantity}`);
         }
 		
-		} else if (category === 'giveFunds') {
-            // Example: "<a href = "http://www.torn.com/profiles.php?XID=2662550">AMBiSCA</a> was given $15,000,000 by <a href = "http://www.torn.com/profiles.php?XID=2662550">AMBiSCA</a>"
-            
+		else if (category === 'depositFunds') {
+            const amountMatch = sourceText.match(/\$([\d,]+)/);
+            amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
+            console.log(`[DEBUG] Funds Deposited: ${amount}`);
+        } else if (category === 'giveFunds') {
+            // Example: "<a href...>Recipient</a> was given $X,XXX,XXX by <a href...>Sender</a>"
             const amountMatch = sourceText.match(/\$([\d,]+)/);
             amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
 
-            // Extract Recipient Info directly from the first part of the string
-            // Matches: <a href = "...XID=ID">NAME</a> was given
-            const recipientDataMatch = sourceText.match(/^<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>\s+was given/);
-            if (recipientDataMatch) {
-                recipientId = recipientDataMatch[1];
-                recipient = recipientDataMatch[2];
+            // Extract Recipient Info (first player link in the string)
+            const recipientLinkMatch = sourceText.match(/^(<a[^>]*>.+?<\/a>)\s+was given/);
+            if (recipientLinkMatch) {
+                const recipientInfo = extractPlayerInfoFromHtml(recipientLinkMatch[1]);
+                recipient = recipientInfo.name;
+                recipientId = recipientInfo.id;
             }
 
-            // Extract Sender Info directly from the last part of the string
-            // Matches: by <a href = "...XID=ID">NAME</a> (at the very end of the string)
-            const senderDataMatch = sourceText.match(/by\s+<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>$/);
-            if (senderDataMatch) {
-                senderId = senderDataMatch[1];
-                sender = senderDataMatch[2];
+            // Extract Sender Info (player link after "by ")
+            const senderLinkMatch = sourceText.match(/by\s+(<a[^>]*>.+?<\/a>)$/);
+            if (senderLinkMatch) {
+                const senderInfo = extractPlayerInfoFromHtml(senderLinkMatch[1]);
+                sender = senderInfo.name;
+                senderId = senderInfo.id;
             }
 
-            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER (the one who initiated the transfer)
+            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER
             user = sender;
             userId = senderId;
-            
             console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
-        }
+
         } else if (category === 'crime') {
             const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
             const resultMatch = sourceText.match(/\((success|failure)\)/i);
