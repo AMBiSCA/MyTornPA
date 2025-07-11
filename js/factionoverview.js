@@ -1607,16 +1607,20 @@ async function populateBankerCheckboxes(container) {
     }
 }
 
+// In factionoverview.js, find the existing saveDesignatedBankers function and replace it entirely with this:
+
 /**
  * Saves the selected designated bankers to Firebase.
+ * Only accessible to Leaders/Co-leaders.
  * @param {HTMLElement} container The container holding the checkboxes.
  * @param {HTMLElement} modalOverlay The modal overlay element to close.
  */
 async function saveDesignatedBankers(container, modalOverlay) {
+    // Get currently selected (checked) banker IDs from the checkboxes, excluding disabled ones (Leaders/Co-leaders)
     const selectedBankerIds = Array.from(container.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)')).map(cb => cb.value);
 
     // Add back Leaders/Co-leaders to the list, as they always implicitly have access
-    // This requires fetching their IDs from factionApiFullData or similar
+    // This ensures the saved list in Firebase always includes them, even if not explicitly selected.
     if (factionApiFullData && factionApiFullData.members) {
         Object.values(factionApiFullData.members).forEach(member => {
             if (member.position.toLowerCase() === 'leader' || member.position.toLowerCase() === 'co-leader') {
@@ -1627,24 +1631,42 @@ async function saveDesignatedBankers(container, modalOverlay) {
         });
     }
 
-    if (selectedBankerIds.length > 3) {
-        showCustomAlert("You can designate a maximum of 3 additional bankers (excluding Leaders/Co-leaders). Please unselect some members.", "Limit Exceeded");
-        return;
+    // Enforce the limit of 3 *additional* bankers (beyond Leaders/Co-leaders)
+    // We already added Leaders/Co-leaders to selectedBankerIds, so this check is now on the final list size.
+    // The previous check of `selectedBankerIds.length > 3` was potentially flawed if there were >3 Leaders/Co-leaders.
+    // Let's count non-Leaders/Co-leaders for the limit.
+    let nonLeaderCoLeaderBankersCount = 0;
+    if (factionApiFullData && factionApiFullData.members) {
+        selectedBankerIds.forEach(selectedId => {
+            const member = Object.values(factionApiFullData.members).find(m => String(m.id) === selectedId);
+            if (member && member.position.toLowerCase() !== 'leader' && member.position.toLowerCase() !== 'co-leader') {
+                nonLeaderCoLeaderBankersCount++;
+            }
+        });
+    }
+
+    if (nonLeaderCoLeaderBankersCount > 3) {
+        showCustomAlert("You can designate a maximum of 3 *additional* bankers (excluding Leaders/Co-leaders). Please unselect some members.", "Limit Exceeded");
+        return; // Stop the function if limit is exceeded
     }
 
     try {
+        // Get reference to the Firebase document where banker settings are stored
         const warDocRef = db.collection('factionWars').doc('currentWar');
+        // Set the 'designatedBankers' field with the updated list
         await warDocRef.set({ designatedBankers: selectedBankerIds }, { merge: true });
-        designatedBankers = selectedBankerIds; // Update global state
-        modalOverlay.remove(); // Close the modal
+
+        // Update the global designatedBankers array in the script's memory
+        designatedBankers = selectedBankerIds; 
+
+        modalOverlay.remove(); // Close the modal after successful save
         showCustomAlert("Banker access settings saved successfully!", "Success");
-        console.log("Designated bankers saved:", designatedBankers);
+        console.log("Designated bankers saved:", designatedBankers); // Corrected typo
+    } catch (error) {
         console.error("Error saving designated bankers:", error);
         showCustomAlert(`Failed to save banker settings: ${error.message}`, "Save Error");
     }
 }
-
-
 // =====================================================================================================================
 // UTILITY FUNCTIONS
 // General helper functions (copied/adapted from your existing JS for consistency).
