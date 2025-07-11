@@ -32,6 +32,7 @@ let onlineEnemyMembersDisplay = null;
 let globalActiveClaims = {};
 let localCurrentClaimHitCounter = 0; // This will track the sequential hit number within the app
 let chatMessagesCollection = null; // We will set this dynamically based on the user's faction
+let hasAgreedToWarChatTerms = false;
 
 // --- DOM Element Getters (keep existing, add new if needed for other parts) ---
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -202,7 +203,11 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
-// Replace your entire handleChatTabClick function with this updated code
+// --- NEW GLOBAL VARIABLE (Add this near your other global variables at the top) ---
+let hasAgreedToWarChatTerms = false; // Tracks if the user has agreed to terms for the current war
+// --- END NEW GLOBAL VARIABLE ---
+
+
 // Replace your entire handleChatTabClick function with this updated code
 function handleChatTabClick(event) {
     const clickedTab = event.currentTarget;
@@ -237,7 +242,7 @@ function handleChatTabClick(event) {
     // --- NEW CRITICAL FIX: Control the main chat module's scrollbar ---
     if (mainChatScrollWrapper) {
         // Default to 'auto' for most tabs, then override for 'private-chat'
-        mainChatScrollWrapper.style.overflowY = 'auto'; 
+        mainChatScrollWrapper.style.overflowY = 'auto';
         mainChatScrollWrapper.style.overflowX = 'hidden'; // Keep horizontal hidden if generally unwanted
     }
     // --- END NEW CRITICAL FIX ---
@@ -250,10 +255,35 @@ function handleChatTabClick(event) {
             break;
 
         case 'war-chat':
-            chatDisplayArea.innerHTML = `
-                <p>Welcome to War Chat!</p>
-                <p>Functionality not implemented yet.</p>
-            `;
+            // --- NEW WAR CHAT LOGIC ---
+            if (globalRankedWarData && globalYourFactionID && globalEnemyFactionID) {
+                // Check if the user has already agreed to the terms for this specific war session
+                if (hasAgreedToWarChatTerms) {
+                    console.log("[War Chat] User has already agreed. Proceeding to show war chat.");
+                    // The actual setup for war chat listener and display will go here in the next step.
+                    // For now, it will just show the temporary message.
+                    chatDisplayArea.innerHTML = `
+                        <p>Welcome to the War Chat between ${globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction'} and ${globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'}!</p>
+                        <p>Loading War Chat messages...</p>
+                    `;
+                    // In the next step, we'll call setupWarChatListener(); here
+                } else {
+                    console.log("[War Chat] Active war detected. Showing agreement modal.");
+                    showInputArea = false; // Hide the general chat input for the agreement screen
+                    showWarChatAgreementModal(
+                        globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction',
+                        globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'
+                    );
+                }
+            } else {
+                console.log("[War Chat] No active ranked war. Displaying placeholder.");
+                chatDisplayArea.innerHTML = `
+                    <p style="text-align: center; margin-top: 50px; font-size: 1.1em;">
+                        There is no active ranked war linked. <br>War Chat will become available when your faction is in a ranked war.
+                    </p>
+                `;
+            }
+            // --- END NEW WAR CHAT LOGIC ---
             break;
 
         case 'private-chat':
@@ -287,12 +317,12 @@ function handleChatTabClick(event) {
             showInputArea = false; // Hide the global input area for this tab
             // --- NEW: Hide main chat module scrollbar for this tab ---
             if (mainChatScrollWrapper) {
-                mainChatScrollWrapper.style.overflowY = 'hidden'; 
+                mainChatScrollWrapper.style.overflowY = 'hidden';
             }
             // --- END NEW ---
             setTimeout(() => {
-                initPrivateChatTabEventListeners(); 
-            }, 0); 
+                initPrivateChatTabEventListeners();
+            }, 0);
             break;
 
         case 'faction-members':
@@ -371,6 +401,310 @@ function handleChatTabClick(event) {
     }
 }
 
+// --- NEW FUNCTION: Creates and displays the War Chat Agreement Modal ---
+function createWarChatAgreementModal(yourFactionName, opponentFactionName) {
+    // 1. Create the modal overlay (full screen, semi-transparent background)
+    const modalOverlay = document.createElement('div');
+    modalOverlay.id = 'warChatAgreementModalOverlay';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85); /* Darker semi-transparent background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000; /* Ensure it's on top of everything */
+        backdrop-filter: blur(5px); /* Adds a blur effect */
+    `;
+
+    // 2. Create the modal content box
+    const modalContent = document.createElement('div');
+    modalContent.id = 'warChatAgreementContent';
+    modalContent.style.cssText = `
+        background-color: #1a1a1a; /* Dark background matching your screenshot */
+        border: 2px solid #007bff; /* Blue border */
+        border-radius: 8px;
+        padding: 30px;
+        color: #f0f0f0; /* Light text color */
+        max-width: 650px;
+        width: 90%;
+        box-shadow: 0 0 25px rgba(0, 123, 255, 0.7); /* Stronger glow */
+        font-family: 'Arial', sans-serif;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+    `;
+    // Add keyframes for animation
+    const styleSheet = document.styleSheets[0];
+    const fadeInKeyframes = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    const fadeOutKeyframes = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+    `;
+    styleSheet.insertRule(fadeInKeyframes, styleSheet.cssRules.length);
+    styleSheet.insertRule(fadeOutKeyframes, styleSheet.cssRules.length);
+
+
+    // 3. Add Faction Names (Header)
+    const factionNamesDiv = document.createElement('div');
+    factionNamesDiv.style.cssText = `
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #e0a71a; /* Yellow/Gold color for emphasis */
+        padding: 5px 0;
+        border-bottom: 1px dashed #333;
+    `;
+    factionNamesDiv.innerHTML = `
+        <span>${yourFactionName}</span>
+        <span style="color: #fff; font-size: 0.8em; margin: 0 15px;">VS</span>
+        <span>${opponentFactionName}</span>
+    `;
+    modalContent.appendChild(factionNamesDiv);
+
+    // 4. Add Title
+    const title = document.createElement('h2');
+    title.textContent = 'WAR CHAT - CODE OF CONDUCT';
+    title.style.cssText = `
+        color: #007bff;
+        margin: 0;
+        font-size: 2em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    `;
+    modalContent.appendChild(title);
+
+    // 5. Add Introduction
+    const introText = document.createElement('p');
+    introText.textContent = `
+        Welcome, warriors! This War Chat is for coordinated communication during the ranked war.
+        To ensure a fair, strategic, and respectful environment, please adhere to these guidelines:
+    `;
+    introText.style.cssText = `
+        margin-bottom: 20px;
+        line-height: 1.6;
+        font-size: 1.1em;
+        color: #d0d0d0;
+    `;
+    modalContent.appendChild(introText);
+
+    // 6. Add Terms and Conditions (Scrollable area)
+    const termsContainer = document.createElement('div');
+    termsContainer.style.cssText = `
+        background-color: #0f0f0f;
+        border: 1px solid #333;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 25px;
+        max-height: 250px; /* Increased height */
+        overflow-y: auto;
+        text-align: left;
+        line-height: 1.7;
+        font-size: 1em;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+    `;
+    termsContainer.innerHTML = `
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li style="margin-bottom: 10px;"><strong style="color: #ff4d4d;">1. Zero Tolerance for Harassment:</strong> Absolutely no offensive language, hate speech, personal attacks, threats, or harassment towards *any* player, regardless of faction. This includes racism, sexism, homophobia, etc.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ff4d4d;">2. No Real-Life Information:</strong> Do not share any personal real-life information about yourself or others.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #66cc66;">3. Stay On-Topic:</strong> Keep discussions focused on the current war, strategies, target calls, and general encouragement. Avoid excessive off-topic chatter.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #66cc66;">4. No Spamming or Flooding:</strong> Do not send repetitive messages, excessive emojis, or flood the chat.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ffcc00;">5. Respectful Conduct:</strong> Even in heated moments, maintain a level of sportsmanship. Taunting or excessive bragging should be avoided.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ffcc00;">6. No Impersonation:</strong> Do not impersonate other players or staff.</li>
+            <li style="margin-bottom: 10px;"><strong style="color: #ff4d4d;">7. Consequences:</strong> Violation of these terms may result in immediate chat suspension, temporary or permanent removal from the app, and/or reporting to Torn staff. Screenshots of violations may be shared with faction leaders for internal action.</li>
+        </ul>
+        <p style="text-align: center; margin-top: 20px; font-style: italic; color: #aaa;">
+            Your participation in this chat signifies your agreement to abide by these rules.
+        </p>
+    `;
+    modalContent.appendChild(termsContainer);
+
+    // 7. Add Checkbox for Agreement
+    const checkboxDiv = document.createElement('div');
+    checkboxDiv.style.cssText = `
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1em;
+        color: #d0d0d0;
+    `;
+    const agreeCheckbox = document.createElement('input');
+    agreeCheckbox.type = 'checkbox';
+    agreeCheckbox.id = 'agreeWarChatTerms';
+    agreeCheckbox.style.cssText = `
+        margin-right: 12px;
+        width: 20px; /* Larger checkbox */
+        height: 20px;
+        accent-color: #007bff; /* Colors the checkbox itself */
+        cursor: pointer;
+    `;
+    const checkboxLabel = document.createElement('label');
+    checkboxLabel.htmlFor = 'agreeWarChatTerms';
+    checkboxLabel.textContent = 'I have read and agree to the War Chat Code of Conduct.';
+    checkboxDiv.appendChild(agreeCheckbox);
+    checkboxDiv.appendChild(checkboxLabel);
+    modalContent.appendChild(checkboxDiv);
+
+    // 8. Add Action Buttons
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+    `;
+
+    const agreeButton = document.createElement('button');
+    agreeButton.id = 'agreeAndEnterWarChatBtn';
+    agreeButton.textContent = 'Agree & Enter Chat';
+    agreeButton.disabled = true; // Initially disabled
+    agreeButton.style.cssText = `
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-size: 1.1em;
+        cursor: not-allowed; /* Indicates disabled state */
+        transition: background-color 0.3s ease, cursor 0.3s ease, opacity 0.3s ease;
+        opacity: 0.6;
+        font-weight: bold;
+    `;
+    // Add hover effects for the agree button when enabled
+    agreeButton.onmouseover = function() { if (!this.disabled) this.style.backgroundColor = '#0056b3'; };
+    agreeButton.onmouseout = function() { if (!this.disabled) this.style.backgroundColor = '#007bff'; };
+
+
+    const declineButton = document.createElement('button');
+    declineButton.id = 'declineWarChatBtn';
+    declineButton.textContent = 'Decline';
+    declineButton.style.cssText = `
+        background-color: #dc3545; /* Red for decline */
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-weight: bold;
+    `;
+    declineButton.onmouseover = function() { this.style.backgroundColor = '#c82333'; };
+    declineButton.onmouseout = function() { this.style.backgroundColor = '#dc3545'; };
+
+
+    buttonsDiv.appendChild(declineButton);
+    buttonsDiv.appendChild(agreeButton);
+    modalContent.appendChild(buttonsDiv);
+
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay); // Add the entire modal to the body
+
+    // Return the created elements for attaching event listeners outside if needed,
+    // though we'll handle basic listeners in showWarChatAgreementModal.
+    return { modalOverlay, agreeCheckbox, agreeButton };
+}
+
+// --- NEW FUNCTION: Shows the War Chat Agreement Modal ---
+function showWarChatAgreementModal(yourFactionName, opponentFactionName) {
+    // Remove any existing modal to prevent duplicates if called multiple times
+    const existingModal = document.getElementById('warChatAgreementModalOverlay');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const { modalOverlay, agreeCheckbox, agreeButton } = createWarChatAgreementModal(yourFactionName, opponentFactionName);
+
+    // Event listener for the checkbox
+    agreeCheckbox.addEventListener('change', () => {
+        agreeButton.disabled = !agreeCheckbox.checked;
+        if (agreeCheckbox.checked) {
+            agreeButton.style.opacity = '1';
+            agreeButton.style.cursor = 'pointer';
+        } else {
+            agreeButton.style.opacity = '0.6';
+            agreeButton.style.cursor = 'not-allowed';
+        }
+    });
+
+    // Event listener for the "Agree & Enter Chat" button
+    agreeButton.addEventListener('click', () => {
+        if (!agreeButton.disabled) {
+            hasAgreedToWarChatTerms = true; // Mark that user has agreed for this session
+            hideWarChatAgreementModal();
+            // Call the function to actually set up and show the war chat (will be implemented next)
+            console.log("User agreed to terms. Now enabling War Chat...");
+            // Simulate switching to war chat. In the next step, you'd replace this with the actual war chat setup.
+            document.getElementById('chat-display-area').innerHTML = `
+                <p>Welcome to the War Chat between ${yourFactionName} and ${opponentFactionName}!</p>
+                <p>Establishing secure war channel...</p>
+            `;
+            // Call the actual war chat setup function here (to be created in next step)
+            // setupWarChatListener(globalRankedWarData.warId); // Example, assuming warId is passed
+            // For now, just re-trigger the tab click to render the actual war chat content
+            const warChatTabButton = document.querySelector('.chat-tab[data-chat-tab="war-chat"]');
+            if (warChatTabButton) {
+                warChatTabButton.click(); // Programmatically click the war chat tab to refresh its content
+            }
+        }
+    });
+
+    // Event listener for the "Decline" button
+    document.getElementById('declineWarChatBtn').addEventListener('click', () => {
+        hasAgreedToWarChatTerms = false; // Ensure this is false if declined
+        hideWarChatAgreementModal();
+        // Optionally, switch back to the faction chat or a default "no war linked" view
+        const factionChatTabButton = document.querySelector('.chat-tab[data-chat-tab="faction-chat"]');
+        if (factionChatTabButton) {
+            factionChatTabButton.click(); // Go back to faction chat
+        } else {
+            document.getElementById('chat-display-area').innerHTML = `<p style="text-align: center; margin-top: 50px; color: yellow;">You declined to enter the War Chat.</p>`;
+        }
+        console.log("User declined war chat terms.");
+    });
+}
+
+// --- NEW FUNCTION: Hides and removes the War Chat Agreement Modal ---
+function hideWarChatAgreementModal() {
+    const modal = document.getElementById('warChatAgreementModalOverlay');
+    if (modal) {
+        // Add fade-out animation before removal
+        const modalContent = document.getElementById('warChatAgreementContent');
+        if (modalContent) {
+            modalContent.style.animation = 'fadeOut 0.3s ease-out forwards';
+            modalContent.addEventListener('animationend', () => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }, { once: true }); // Ensure listener is removed after one execution
+        } else {
+            // Fallback for immediate removal if content is not found or animation fails
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }
+    }
+    // Re-enable the main chat input area if it was hidden by the modal
+    if (chatInputArea) {
+        chatInputArea.style.display = 'flex';
+    }
+}
 async function sendClaimChatMessage(claimerName, targetName, chainNumber) {
     if (!chatMessagesCollection || !auth.currentUser) {
         console.warn("Cannot send claim message: Firebase collection or user not available.");
