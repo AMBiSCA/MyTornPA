@@ -15,6 +15,7 @@ let factionOverviewUserApiKey = null; // Stores the logged-in user's Torn API ke
 let factionOverviewGlobalYourFactionID = null; // Stores the user's faction ID
 
 let factionOverviewPageContentContainer = null; // Main container for all dynamic content on this page
+let factionApiFullData = null; 
 
 let currentActiveSubTab = 'armory-withdrawals'; // Tracks which sub-tab is currently active (default to Armory Withdrawals)
 
@@ -63,6 +64,7 @@ let factionOverviewDateFromInput = null;
 let factionOverviewDateToInput = null;
 let factionOverviewCurrentDataTable = null; // Reference to the active table being displayed
 let factionOverviewCogSettingsButton = null; // The gear icon for banker settings
+
 
 
 // =====================================================================================================================
