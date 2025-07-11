@@ -253,18 +253,50 @@ function handleChatTabClick(event) {
         case 'war-chat':
             if (globalRankedWarData && globalRankedWarData.warID && globalYourFactionID && globalEnemyFactionID) {
                 // Check if the user has already agreed to the terms for this specific war session
+                // Check if the user has already agreed to the terms for this specific war session
                 if (hasAgreedToWarChatTerms) {
                     console.log("[War Chat] User has already agreed. Proceeding to show war chat.");
+
+                    // Clear and set up the chat display structure specifically for War Chat
                     chatDisplayArea.innerHTML = `
-                        <p style="text-align: center; margin-top: 20px; font-size: 1.1em; color: #007bff;">
-                            Welcome to the War Chat between ${globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction'} and ${globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'}!
-                        </p>
-                        <p style="text-align: center; font-size: 0.9em; color: #aaa;">Establishing secure war channel...</p>
+                        <div class="chat-messages-scroll-wrapper" id="warChatMessagesScrollWrapper">
+                            </div>
+                        <div class="chat-messages-info" id="warChatInfoDisplay">
+                            <p style="text-align: center; margin-top: 5px; font-size: 0.9em; color: #888;">
+                                Currently chatting with: 
+                                ${globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction'} 
+                                vs 
+                                ${globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'}
+                            </p>
+                        </div>
                     `;
-                    // --- CALL THE NEW WAR CHAT LISTENER HERE ---
+
+                    // Ensure the main chat wrapper is set to auto-scroll for war chat
+                    if (mainChatScrollWrapper) {
+                        mainChatScrollWrapper.style.overflowY = 'auto';
+                        mainChatScrollWrapper.style.overflowX = 'hidden';
+                    }
+                    
                     setupWarChatListener(globalRankedWarData.warID);
-                    // --- END CALL ---
-                } else {
+
+                    // Manually set the placeholder and attach listeners for the input area
+                    // (This is also handled at the end of handleChatTabClick, but doing it here ensures it's immediate)
+                    if (chatTextInput && chatSendBtn) {
+                        chatTextInput.placeholder = "Type your war message...";
+                        // Ensure previous listeners are removed before adding new ones
+                        chatSendBtn.removeEventListener('click', sendChatMessage);
+                        chatTextInput.removeEventListener('keydown', handleFactionChatInputKeydown);
+                        chatSendBtn.removeEventListener('click', sendWarChatMessage); // Remove previous war chat listener too if any
+                        chatTextInput.removeEventListener('keydown', handleWarChatInputKeydown); // Remove previous war chat keydown listener
+
+                        chatSendBtn.addEventListener('click', sendWarChatMessage);
+                        chatTextInput.addEventListener('keydown', handleWarChatInputKeydown);
+                        chatTextInput.focus();
+                    }
+
+
+                }
+                   else {
                     console.log("[War Chat] Active war detected. Showing agreement modal.");
                     showInputArea = false; // Hide the general chat input for the agreement screen
                     showWarChatAgreementModal(
