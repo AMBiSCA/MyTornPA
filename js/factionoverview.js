@@ -1443,6 +1443,14 @@ function generateAlertsFromData(armoryData, fundData) {
  * This function will be called on page load.
  * @returns {Promise<boolean>} True if user has access, false otherwise.
  */
+// In factionoverview.js, find the existing checkIfUserHasFactionOverviewAccess function and replace it entirely with this:
+
+/**
+ * Checks if the current logged-in user has permission to view the Faction Overview page.
+ * Permissions: Leader, Co-leader, or designated Banker.
+ * This function will be called on page load.
+ * @returns {Promise<boolean>} True if user has access, false otherwise.
+ */
 async function checkIfUserHasFactionOverviewAccess() {
     const user = auth.currentUser;
     if (!user) {
@@ -1461,38 +1469,14 @@ async function checkIfUserHasFactionOverviewAccess() {
         const userTornId = userProfileData.tornProfileId;
         const userPosition = userProfileData.position ? userProfileData.position.toLowerCase() : '';
 
-        // Check if user is Leader or Co-leader
+        // Check if user is Leader or Co-leader (highest access)
         if (userPosition === 'leader' || userPosition === 'co-leader') {
             console.log("Access Check: User is Leader/Co-leader. Access granted.");
             return true;
         }
 
-        // Fetch designated bankers list from Firebase
-        const warDocRef = db.collection('factionWars').doc('currentWar'); // Using 'currentWar' as the central doc
-        const warDoc = await warDocRef.get();
-        if (warDoc.exists) {
-            designatedBankers = warDoc.data().designatedBankers || []; // Load into global variable
-        } else {
-            designatedBankers = []; // No bankers set yet
-        }
-
-        // --- NEW: Fetch central primaryFactionApiKey from factionWars document ---
-                    const warDoc = await db.collection('factionWars').doc('currentWar').get();
-                    if (warDoc.exists && warDoc.data().primaryFactionApiKey) {
-                        primaryFactionApiKey = warDoc.data().primaryFactionApiKey;
-                        console.log("[DEBUG] Loaded central primaryFactionApiKey.");
-                    } else {
-                        console.log("[DEBUG] No central primaryFactionApiKey found in factionWars/currentWar. This is okay if you haven't set it yet.");
-                    }
-                    // --- END NEW ---
-
-                    // Check user access before rendering the full page (existing code)
-                    const hasAccess = await checkIfUserHasFactionOverviewAccess();
-                    if (hasAccess) {
-                        // ... rest of the successful login block ...
-                    }
-
-        // Check if user's Torn ID is in the designated bankers list
+        // If not Leader/Co-leader, check if they are a designated Banker
+        // The 'designatedBankers' global array should have been populated earlier in DOMContentLoaded.
         const hasAccess = designatedBankers.includes(String(userTornId));
         if (hasAccess) {
             console.log("Access Check: User is a designated Banker. Access granted.");
@@ -1506,7 +1490,6 @@ async function checkIfUserHasFactionOverviewAccess() {
         return false;
     }
 }
-
 /**
  * Displays the modal for managing designated bankers.
  * Only accessible to Leaders/Co-leaders.
