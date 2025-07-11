@@ -251,19 +251,18 @@ function handleChatTabClick(event) {
             break;
 
         case 'war-chat':
-            if (globalRankedWarData && globalRankedWarData.warID && globalYourFactionID && globalEnemyFactionID) {
+            // --- NEW WAR CHAT LOGIC ---
+            if (globalRankedWarData && globalYourFactionID && globalEnemyFactionID) {
                 // Check if the user has already agreed to the terms for this specific war session
                 if (hasAgreedToWarChatTerms) {
                     console.log("[War Chat] User has already agreed. Proceeding to show war chat.");
+                    // The actual setup for war chat listener and display will go here in the next step.
+                    // For now, it will just show the temporary message.
                     chatDisplayArea.innerHTML = `
-                        <p style="text-align: center; margin-top: 20px; font-size: 1.1em; color: #007bff;">
-                            Welcome to the War Chat between ${globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction'} and ${globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'}!
-                        </p>
-                        <p style="text-align: center; font-size: 0.9em; color: #aaa;">Establishing secure war channel...</p>
+                        <p>Welcome to the War Chat between ${globalRankedWarData.factions.find(f => String(f.id) === String(globalYourFactionID))?.name || 'Your Faction'} and ${globalRankedWarData.factions.find(f => String(f.id) === String(globalEnemyFactionID))?.name || 'Opponent Faction'}!</p>
+                        <p>Loading War Chat messages...</p>
                     `;
-                    // --- CALL THE NEW WAR CHAT LISTENER HERE ---
-                    setupWarChatListener(globalRankedWarData.warID);
-                    // --- END CALL ---
+                    // In the next step, we'll call setupWarChatListener(); here
                 } else {
                     console.log("[War Chat] Active war detected. Showing agreement modal.");
                     showInputArea = false; // Hide the general chat input for the agreement screen
@@ -280,9 +279,11 @@ function handleChatTabClick(event) {
                     </p>
                 `;
             }
+            // --- END NEW WAR CHAT LOGIC ---
             break;
 
         case 'private-chat':
+            // --- HTML FOR NEW PRIVATE CHAT TAB LAYOUT ---
             chatDisplayArea.innerHTML = `
                 <div id="privateChatFullLayout" class="private-chat-tab-content">
                     <div class="private-chat-layout-panels">
@@ -309,10 +310,12 @@ function handleChatTabClick(event) {
                     </div>
                 </div>
             `;
-            showInputArea = false;
+            showInputArea = false; // Hide the global input area for this tab
+            // --- NEW: Hide main chat module scrollbar for this tab ---
             if (mainChatScrollWrapper) {
                 mainChatScrollWrapper.style.overflowY = 'hidden';
             }
+            // --- END NEW ---
             setTimeout(() => {
                 initPrivateChatTabEventListeners();
             }, 0);
@@ -389,202 +392,8 @@ function handleChatTabClick(event) {
     // Control visibility of the global chat input area at the bottom
     if (showInputArea) {
         if (chatInputArea) chatInputArea.style.display = 'flex';
-        // When showing input area, ensure we attach the correct send function based on active chat
-        if (chatTextInput && chatSendBtn) {
-            chatSendBtn.removeEventListener('click', sendChatMessage); // Remove faction chat listener
-            chatTextInput.removeEventListener('keydown', handleFactionChatInputKeydown); // Remove faction chat keydown listener
-
-            if (targetTab === 'war-chat') {
-                chatTextInput.placeholder = "Type your war message...";
-                chatSendBtn.addEventListener('click', sendWarChatMessage);
-                chatTextInput.addEventListener('keydown', handleWarChatInputKeydown);
-            } else if (targetTab === 'faction-chat') {
-                chatTextInput.placeholder = "Type your faction message...";
-                chatSendBtn.addEventListener('click', sendChatMessage); // Re-add faction chat listener
-                chatTextInput.addEventListener('keydown', handleFactionChatInputKeydown);
-            }
-        }
     } else {
         if (chatInputArea) chatInputArea.style.display = 'none';
-    }
-}
-
-
-// --- NEW FUNCTION: setupWarChatListener ---
-function setupWarChatListener(warId) {
-    if (!warId) {
-        console.error("Cannot setup War Chat listener: No warId provided.");
-        if (chatDisplayArea) {
-            chatDisplayArea.innerHTML = `<p style="color: red;">Error: War ID missing for chat.</p>`;
-        }
-        return;
-    }
-
-    // Define the Firestore collection for this specific war
-    currentWarChatCollection = db.collection('warChats').doc(String(warId)).collection('messages');
-    console.log(`Setting up War Chat listener for war ID: ${warId}. Collection path: warChats/${warId}/messages`);
-
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = `<p>Loading War Chat messages for war ID: ${warId}...</p>`;
-    }
-
-    if (unsubscribeFromChat) {
-        unsubscribeFromChat();
-        console.log("Unsubscribed from previous chat listener before setting up War Chat.");
-    }
-
-    unsubscribeFromChat = currentWarChatCollection
-        .orderBy('timestamp', 'asc')
-        .limit(100) // Limit to last 100 messages for performance
-        .onSnapshot(snapshot => {
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = ''; // Clear previous messages
-            }
-
-            if (snapshot.empty) {
-                if (chatDisplayArea) {
-                    chatDisplayArea.innerHTML = `<p style="text-align: center; margin-top: 50px; color: #aaa;">No messages in this war yet. Be the first to start the banter!</p>`;
-                }
-                toggleScrollIndicatorVisibility();
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                displayWarChatMessage(doc.data()); // Use the new display function for war chat
-            });
-
-            console.log("War Chat messages updated in real-time.");
-
-            // Auto-scroll to bottom and update scroll indicator
-            setTimeout(() => {
-                const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-                if (!scrollWrapper) return;
-
-                if (scrollWrapper.scrollHeight > 0) {
-                    scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
-                    toggleScrollIndicatorVisibility();
-                } else {
-                    let attempts = 0;
-                    const scrollCheckInterval = setInterval(() => {
-                        attempts++;
-                        if (scrollWrapper.scrollHeight > 0 || attempts > 20) {
-                            scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
-                            toggleScrollIndicatorVisibility();
-                            clearInterval(scrollCheckInterval);
-                        }
-                    }, 100);
-                }
-            }, 0);
-        }, error => {
-            console.error("Error listening to War Chat messages:", error);
-            if (chatDisplayArea) {
-                chatDisplayArea.innerHTML = `<p style="color: red;">Error loading War Chat: ${error.message}</p>`;
-            }
-        });
-    console.log("War Chat real-time listener set up.");
-
-    const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-    if (scrollWrapper) {
-        scrollWrapper.removeEventListener('scroll', handleChatScroll);
-        scrollWrapper.addEventListener('scroll', handleChatScroll);
-    }
-}
-
-
-// --- NEW FUNCTION: sendWarChatMessage ---
-async function sendWarChatMessage() {
-    if (!chatTextInput || !auth.currentUser || !userApiKey || !currentWarChatCollection) {
-        console.warn("Cannot send war message: Chat input, logged-in user, API key, or war chat collection not available.");
-        return;
-    }
-
-    const messageText = chatTextInput.value.trim();
-    if (messageText === '') {
-        return; // Don't send empty messages
-    }
-
-    const filteredMessage = typeof filterProfanity === 'function' ? filterProfanity(messageText) : messageText;
-
-    const messageObj = {
-        senderId: auth.currentUser.uid,
-        sender: currentTornUserName, // Your Torn username
-        text: filteredMessage,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        // Optional: Add faction ID to differentiate messages from different factions in the same chat collection
-        factionId: globalYourFactionID,
-        factionName: factionApiFullData?.basic?.name || 'Unknown Faction'
-    };
-
-    try {
-        await currentWarChatCollection.add(messageObj);
-        console.log("War message sent to Firebase:", messageObj);
-        chatTextInput.value = ''; // Clear the input field
-        chatTextInput.focus(); // Keep focus
-    } catch (error) {
-        console.error("Error sending war message to Firebase:", error);
-        alert("Failed to send war message. See console for details.");
-    }
-}
-
-
-// --- NEW FUNCTION: displayWarChatMessage ---
-function displayWarChatMessage(messageObj) {
-    if (!chatDisplayArea) {
-        console.error("War Chat display area not found in displayWarChatMessage function.");
-        return;
-    }
-
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message');
-
-    // Add classes to differentiate between your faction's messages and opponent's messages
-    // This assumes the 'factionId' is included in messageObj and you have globalYourFactionID
-    if (messageObj.factionId && String(messageObj.factionId) === String(globalYourFactionID)) {
-        messageElement.classList.add('your-faction-message');
-    } else {
-        messageElement.classList.add('opponent-faction-message'); // Or a generic 'other-message'
-    }
-
-    if (messageObj.timestamp && typeof messageObj.timestamp.toMillis === 'function') {
-        messageElement.id = `war-msg-${messageObj.timestamp.toMillis()}`;
-    }
-
-    const timestamp = messageObj.timestamp && typeof messageObj.timestamp.toDate === 'function'
-        ? messageObj.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    let senderDisplay = messageObj.sender || 'Unknown';
-    if (messageObj.factionName && String(messageObj.factionId) !== String(globalYourFactionID)) {
-        // Prepend opponent faction name for clarity
-        senderDisplay = `[${messageObj.factionName}] ${senderDisplay}`;
-    } else if (messageObj.factionName) {
-        senderDisplay = `[${messageObj.factionName}] ${senderDisplay}`;
-    }
-    // You might want to color code sender names here based on factionId too via CSS classes
-
-    const messageText = messageObj.text || '';
-
-    messageElement.innerHTML = `
-        <span class="chat-timestamp">[${timestamp}]</span>
-        <span class="chat-sender">${senderDisplay}:</span>
-        <span class="chat-text">${messageText}</span>
-    `;
-
-    chatDisplayArea.appendChild(messageElement);
-}
-
-// --- Helper functions for input keydown events (to differentiate send behavior) ---
-function handleFactionChatInputKeydown(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        sendChatMessage(); // Calls the function for faction chat
-    }
-}
-
-function handleWarChatInputKeydown(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        sendWarChatMessage(); // Calls the function for war chat
     }
 }
 
@@ -6591,30 +6400,18 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 
 
-    // Initial setup for the faction chat's send button and input.
-// These listeners are only added once. Subsequent tab clicks will manage them via handleChatTabClick.
-if (chatSendBtn && chatTextInput) {
-    // We start assuming faction chat is the default active.
-    // The handleChatTabClick will then manage re-attaching/re-assigning these.
-    // For initial load, make sure faction chat listeners are ready.
-    chatSendBtn.addEventListener('click', sendChatMessage);
-    chatTextInput.addEventListener('keydown', handleFactionChatInputKeydown);
-}
-
-// Trigger initial setup for the default faction chat tab
-// This ensures that all necessary setup for the faction-chat tab is run on page load,
-// including setting its placeholder, and confirming its listeners are correctly assigned.
-const factionChatTabButton = document.querySelector('.chat-tab[data-chat-tab="faction-chat"]');
-if (factionChatTabButton) {
-    factionChatTabButton.click(); // Programmatically click it to initialize
-} else {
-    console.error("Faction chat tab button not found. Initial chat setup may be incomplete.");
-    // Fallback: Manually call setupChatRealtimeListener if the button isn't found
-    if (chatDisplayArea) {
-        chatDisplayArea.innerHTML = '<p>Attempting to load Faction Chat messages...</p>';
+    // Event listener for sending faction chat messages
+    if (chatSendBtn) {
+        chatSendBtn.addEventListener('click', sendChatMessage);
     }
-    setupChatRealtimeListener();
-}
+    if (chatTextInput) {
+        chatTextInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent new line in input
+                sendChatMessage();
+            }
+        });
+    }
 
 
 }); // --- END OF DOMCONTENTLOADED ---
