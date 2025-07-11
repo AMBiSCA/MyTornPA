@@ -3307,21 +3307,6 @@ min-width: 320px;
 }
 
 
-#faction-hits-display {
-    /* Basic box styling to match your theme */
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 6px;
-    padding: 5px 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin-top: 75px; 
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Makes the box fill the height of its grid cell */
-    justify-content: center; /* Centers the content vertically */
-    gap: 4px; /* Space between the rows */
-}
-
 .hits-row {
     display: flex;
     justify-content: space-between;
@@ -4584,4 +4569,18 @@ margin-right: auto !important;
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
 
+#faction-hits-display {
+    /* Basic box styling to match your theme */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 6px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-top: 80px; 
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Makes the box fill the height of its grid cell */
+    justify-content: center; /* Centers the content vertically */
+    gap: 4px; /* Space between the rows */
+}
 
