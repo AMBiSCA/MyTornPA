@@ -146,6 +146,7 @@ async function switchFactionOverviewSubTab(tabId) {
     }
 
     // Update active state of sub-tab buttons
+    // This part should be BEFORE the switch statement as it's common to all tabs.
     if (factionOverviewSubTabsContainer) {
         factionOverviewSubTabsContainer.querySelectorAll('.fo-sub-tab-button').forEach(button => {
             button.classList.remove('active');
@@ -157,12 +158,13 @@ async function switchFactionOverviewSubTab(tabId) {
         }
     }
 
+    // Always show a loading message initially
     displayArea.innerHTML = `<p style="text-align: center; padding-top: 20px; color: #ccc;">Loading ${tabId.replace('-', ' ')} data...</p>`;
 
     // --- Content rendering logic based on tabId ---
     let dataToDisplay = [];
     let columns = [];
-    let viewTitle = ``; // Will be set dynamically
+    let viewTitle = ``;
 
     // Decide which data and columns to use based on the selected tab
     switch (tabId) {
@@ -217,19 +219,19 @@ async function switchFactionOverviewSubTab(tabId) {
 
         case 'logistics':
             renderLogisticsTabContent(displayArea);
-            return; // Exit after rendering specific content
+            // Controls bar is managed internally by renderLogisticsTabContent if needed
+            return;
 
         case 'oversight':
             renderOversightTabContent(displayArea);
-            return; // Exit after rendering specific content
+            // Controls bar is managed internally by renderOversightTabContent if needed
+            return;
 
-        case 'faction-balances': // NEW CASE FOR FACTION BALANCES
-            displayArea.innerHTML = `<p style="text-align: center; padding-top: 20px; color: #aaa;">This tab is currently under development and does not display data.</p>`;
-            // Optionally, hide the controls bar for this tab if it's not relevant
-            const controlsBar = document.getElementById('factionOverviewControlsBar');
-            if (controlsBar) {
-                controlsBar.style.display = 'none'; // Hide search/date controls
-            }
+        // CORRECT AND ONLY 'faction-balances' CASE:
+        case 'faction-balances':
+            renderFactionBalancesTabContent(displayArea); // CALL THE NEW FUNCTION HERE
+            // The controls bar (search/date) is handled *inside* renderFactionBalancesTabContent
+            // (it hides it by default for this specific tab)
             return; // IMPORTANT: Return here so it doesn't try to render a generic table
 
         default:
@@ -237,7 +239,9 @@ async function switchFactionOverviewSubTab(tabId) {
             return;
     }
 
-    // Ensure controls bar is visible for tabs that use it
+    // Ensure controls bar is visible for tabs that use it (i.e., the table-based tabs)
+    // This will make it visible again if you navigate away from 'logistics', 'oversight',
+    // or 'faction-balances' back to the table-based tabs.
     const controlsBar = document.getElementById('factionOverviewControlsBar');
     if (controlsBar) {
         controlsBar.style.display = 'flex'; // Or 'block' depending on your CSS
@@ -249,13 +253,465 @@ async function switchFactionOverviewSubTab(tabId) {
     // After rendering, apply current filters if any
     applyCurrentFiltersAndSort();
 }
+// =====================================================================================================================
+// FACTION BALANCES TAB - NEW FUNCTIONS
+// These functions render and populate the content for the Faction Balances tab.
+// =====================================================================================================================
+
 /**
- * Generates and injects an HTML table for displaying generic log data.
- * @param {HTMLElement} targetElement The DOM element to inject the table into.
- * @param {Array<Object>} data An array of objects to display.
- * @param {Array<Object>} columns An array of column definitions.
- * @param {string} title The title for the table/view.
+ * Renders the content specifically for the Faction Balances sub-tab.
+ * This function creates the two-column layout, including overall faction balances,
+ * member balances with profile pictures, and a fund news/search section.
+ * @param {HTMLElement} targetElement The DOM element to inject content into (factionOverviewDisplayArea).
  */
+async function renderFactionBalancesTabContent(targetElement) {
+    // Clear previous content
+    targetElement.innerHTML = `
+        <div class="fo-balances-layout">
+            <div class="fo-balances-left-panel">
+                <h4 class="fo-panel-title">💰 Current Faction Balances</h4>
+                <div id="foOverallFactionBalances" class="fo-balances-summary">
+                    <p style="text-align: center; padding: 10px; color: #ccc;">Loading faction balances...</p>
+                </div>
+
+                <h4 class="fo-panel-title">👤 Member Balances</h4>
+                <div class="fo-scrollable-container fo-member-balances-scroll" id="foMemberBalancesScroll">
+                    <div class="fo-member-grid" id="foMemberBalancesGrid">
+                        <p style="text-align: center; padding: 15px; color: #ccc;">Loading member balances...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fo-balances-right-panel">
+                <h4 class="fo-panel-title">🔎 Member Fund Activity</h4>
+                <div class="fo-member-fund-search-area">
+                    <input type="text" id="memberFundSearchInput" class="fo-search-input" placeholder="Search Player Name or ID...">
+                    <button id="memberFundSearchButton" class="fo-button">Search</button>
+                    <button id="memberFundClearButton" class="fo-button">Clear</button>
+                    <div id="memberFundSearchResult" class="fo-search-result-box">
+                        <p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>
+                    </div>
+                </div>
+
+                <h4 class="fo-panel-title">📰 Recent Fund News</h4>
+                <div class="fo-scrollable-container fo-fund-news-scroll" id="foRecentFundNewsScroll">
+                    <ul id="foRecentFundNewsList" class="fo-list">
+                        <li>Loading recent fund news...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Apply basic inline styles for the layout structure.
+    // Consider moving these to global.css for better maintainability.
+    const layoutContainer = targetElement.querySelector('.fo-balances-layout');
+    Object.assign(layoutContainer.style, {
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '20px',
+        gap: '30px' // Space between columns
+    });
+
+    const leftPanel = targetElement.querySelector('.fo-balances-left-panel');
+    Object.assign(leftPanel.style, {
+        flex: '2', // Takes up more space, approx 60-65%
+        backgroundColor: '#2a3d52',
+        padding: '15px',
+        borderRadius: '8px',
+        border: '1px solid #3c5a7a',
+        display: 'flex', // Use flex for vertical stacking of its contents
+        flexDirection: 'column'
+    });
+
+    const rightPanel = targetElement.querySelector('.fo-balances-right-panel');
+    Object.assign(rightPanel.style, {
+        flex: '1', // Takes up less space, approx 35-40%
+        backgroundColor: '#2a3d52',
+        padding: '15px',
+        borderRadius: '8px',
+        border: '1px solid #3c5a7a',
+        display: 'flex', // Use flex for vertical stacking of its contents
+        flexDirection: 'column'
+    });
+
+    // Styles for common elements within panels
+    const panelTitles = targetElement.querySelectorAll('.fo-panel-title');
+    panelTitles.forEach(title => {
+        Object.assign(title.style, {
+            textAlign: 'center',
+            color: '#fff',
+            marginBottom: '15px',
+            fontSize: '1.2em',
+            fontWeight: '600'
+        });
+    });
+
+    const overallBalancesSummary = targetElement.querySelector('#foOverallFactionBalances');
+    Object.assign(overallBalancesSummary.style, {
+        backgroundColor: '#1e2a38',
+        padding: '15px',
+        borderRadius: '5px',
+        marginBottom: '20px',
+        textAlign: 'center',
+        color: '#ecf0f1',
+        lineHeight: '1.5',
+        flexShrink: '0' // Prevent shrinking
+    });
+
+    const memberGrid = targetElement.querySelector('#foMemberBalancesGrid');
+    Object.assign(memberGrid.style, {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)', // 3 members across
+        gap: '10px',
+        padding: '5px' // Inner padding for the grid itself
+    });
+
+    const memberBoxStyles = `
+        background-color: #1e2a38;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #34495e;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100px; /* Ensure boxes are tall enough */
+    `;
+
+    const profilePicStyles = `
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #3498db;
+        margin-bottom: 5px;
+    `;
+
+    const memberNameStyles = `
+        margin: 0;
+        font-weight: bold;
+        color: #8fd0ff;
+        font-size: 0.9em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    `;
+
+    const memberBalanceTextStyles = `
+        margin: 2px 0 0;
+        font-size: 0.8em;
+        color: #b0c4d8;
+    `;
+
+    const fundSearchAreaStyles = `
+        background-color: #1e2a38;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flexShrink: '0' // Prevent shrinking
+    `;
+    
+    const searchInputStyles = `
+        padding: 8px 12px;
+        border-radius: 5px;
+        border: 1px solid #3c5a7a;
+        background-color: #0f1924;
+        color: #ecf0f1;
+        width: 100%;
+        box-sizing: border-box;
+    `;
+
+    const buttonStyles = `
+        padding: 8px 15px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+    `;
+
+    const searchButtonStyles = `
+        background-color: #3498db;
+        color: white;
+    `;
+    const clearButtonStyles = `
+        background-color: #dc3545;
+        color: white;
+    `;
+
+    const searchResultBoxStyles = `
+        background-color: #0f1924;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #3c5a7a;
+        color: #ecf0f1;
+        font-size: 0.9em;
+        line-height: 1.4;
+    `;
+
+    const recentNewsListItemStyles = `
+        background-color: #1e2a38;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        border: 1px solid #34495e;
+        color: #e0e6eb;
+        font-size: 0.95em;
+    `;
+
+    // Apply scrollable container styles - common for both member and news sections
+    const scrollableContainers = targetElement.querySelectorAll('.fo-scrollable-container');
+    scrollableContainers.forEach(container => {
+        Object.assign(container.style, {
+            overflowY: 'auto',
+            paddingRight: '10px', // For scrollbar
+            flexGrow: '1', // Allow container to grow and take remaining space
+            marginBottom: '0' // No bottom margin for scrollable content
+        });
+    });
+
+    // Specific heights to make them start at a similar visual point, adjust as needed
+    // Calculate space dynamically if possible, or set a max-height
+    // For now, setting a fixed max-height for both to ensure consistent scroll start
+    const memberScrollContainer = targetElement.querySelector('#foMemberBalancesScroll');
+    const fundNewsScrollContainer = targetElement.querySelector('#foRecentFundNewsScroll');
+
+    if (memberScrollContainer && fundNewsScrollContainer) {
+        // Adjust these values based on actual content heights for best alignment
+        Object.assign(memberScrollContainer.style, { maxHeight: 'calc(100vh - 450px)' }); // Example: remaining viewport height minus header, balances, etc.
+        Object.assign(fundNewsScrollContainer.style, { maxHeight: 'calc(100vh - 450px)' }); // Match the member scroll height for alignment
+    }
+
+    // Hide the main controls bar (search/date for other tabs)
+    const mainControlsBar = document.getElementById('factionOverviewControlsBar');
+    if (mainControlsBar) {
+        mainControlsBar.style.display = 'none';
+    }
+
+    // Populate data
+    populateFactionBalances();
+    populateMemberBalances(memberBoxStyles, profilePicStyles, memberNameStyles, memberBalanceTextStyles);
+    populateRecentFundNews(recentNewsListItemStyles);
+    setupMemberFundSearch(searchInputStyles, buttonStyles, searchButtonStyles, clearButtonStyles, searchResultBoxStyles);
+}
+
+/**
+ * Populates the overall faction bank and points balances.
+ */
+async function populateFactionBalances() {
+    const overallBalancesEl = document.getElementById('foOverallFactionBalances');
+    if (!overallBalancesEl) return;
+
+    if (factionBalancesData) {
+        overallBalancesEl.innerHTML = `
+            <p>Faction Bank: <strong style="color: #66bb6a;">$${factionBalancesData.bank.toLocaleString()}</strong></p>
+            <p>Faction Points: <strong style="color: #ffeb3b;">${factionBalancesData.points.toLocaleString()}</strong></p>
+        `;
+    } else {
+        overallBalancesEl.innerHTML = `<p style="text-align: center; color: orange;">Faction balances not available. Ensure API key is valid and fetched.</p>`;
+    }
+}
+
+/**
+ * Populates individual member money and points balances with profile pictures.
+ * @param {string} memberBoxStyles CSS string for member boxes.
+ * @param {string} profilePicStyles CSS string for profile pictures.
+ * @param {string} memberNameStyles CSS string for member names.
+ * @param {string} memberBalanceTextStyles CSS string for balance text.
+ */
+async function populateMemberBalances(memberBoxStyles, profilePicStyles, memberNameStyles, memberBalanceTextStyles) {
+    const memberGridEl = document.getElementById('foMemberBalancesGrid');
+    if (!memberGridEl) return;
+
+    memberGridEl.innerHTML = `<p style="text-align: center; padding: 15px; color: #ccc;">Fetching member data...</p>`;
+
+    try {
+        const factionId = factionOverviewGlobalYourFactionID;
+        const apiKey = primaryFactionApiKey || factionOverviewUserApiKey;
+
+        if (!factionId || !apiKey) {
+            memberGridEl.innerHTML = `<p style="text-align: center; color: red;">Cannot load members: Faction ID or API Key missing.</p>`;
+            return;
+        }
+
+        // Fetch faction members with basic details (money, points)
+        const factionMembersResp = await fetchTornApiData(
+            `https://api.torn.com/v2/faction/${factionId}?selections=members`,
+            'MyTornPA_FactionMemberBalances'
+        );
+
+        if (!factionMembersResp || !factionMembersResp.members) {
+            memberGridEl.innerHTML = `<p style="text-align: center; color: orange;">No faction member data found or API error.</p>`;
+            return;
+        }
+
+        const membersArray = Object.values(factionMembersResp.members);
+        membersArray.sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
+
+        let membersHtml = '';
+        if (membersArray.length > 0) {
+            membersArray.forEach(member => {
+                const tornId = member.id;
+                const memberName = member.name || `Unknown (${tornId})`;
+                const memberMoney = member.money !== undefined ? `$${member.money.toLocaleString()}` : 'N/A';
+                const memberPoints = member.points !== undefined ? member.points.toLocaleString() : 'N/A';
+                // Construct profile image URL. Torn profile images often follow this pattern.
+                // Using 'medium' size for better fit in smaller boxes.
+                const profileImgUrl = `https://www.torn.com/images/profile_image/${tornId}/profile_medium.jpg`;
+
+                membersHtml += `
+                    <div style="${memberBoxStyles}">
+                        <img src="${profileImgUrl}" alt="${memberName}" style="${profilePicStyles}" onerror="this.onerror=null;this.src='https://www.torn.com/images/v2/default_profile_image.svg';" loading="lazy">
+                        <p style="${memberNameStyles}" title="${memberName}">${memberName}</p>
+                        <p style="${memberBalanceTextStyles}">Money: ${memberMoney}</p>
+                        <p style="${memberBalanceTextStyles}">Points: ${memberPoints}</p>
+                    </div>
+                `;
+            });
+        } else {
+            membersHtml = `<p style="text-align: center; padding: 15px; color: #ccc;">No faction members found.</p>`;
+        }
+        memberGridEl.innerHTML = membersHtml;
+
+    } catch (error) {
+        console.error("Error populating member balances:", error);
+        memberGridEl.innerHTML = `<p style="text-align: center; color: red;">Error loading member balances: ${error.message}</p>`;
+    }
+}
+
+/**
+ * Populates the recent fund news list.
+ * @param {string} recentNewsListItemStyles CSS string for list items.
+ */
+async function populateRecentFundNews(recentNewsListItemStyles) {
+    const fundNewsListEl = document.getElementById('foRecentFundNewsList');
+    if (!fundNewsListEl) return;
+
+    if (historicalFundLogs.length === 0) {
+        fundNewsListEl.innerHTML = `<li style="color: #ccc;">No recent fund news available in historical data.</li>`;
+        return;
+    }
+
+    // Filter for recent fund news (e.g., last 30 days) and take a reasonable number (e.g., top 50)
+    const thirtyDaysAgo = new Date().getTime() - (30 * 24 * 60 * 60 * 1000);
+    const recentNews = historicalFundLogs
+        .filter(log => log.timestamp >= thirtyDaysAgo)
+        .slice(0, 50); // Limit to most recent 50 for display
+
+    let newsHtml = '';
+    if (recentNews.length > 0) {
+        recentNews.forEach(newsItem => {
+            let displayMessage = newsItem.rawNews; // Default to raw news
+            if (newsItem.category === 'depositFunds' && newsItem.user && newsItem.amount !== 'N/A') {
+                displayMessage = `<strong style="color: #8fd0ff;">${newsItem.user}</strong> deposited <span style="color: #66bb6a;">$${newsItem.amount.toLocaleString()}</span>.`;
+            } else if (newsItem.category === 'giveFunds' && newsItem.sender && newsItem.recipient && newsItem.amount !== 'N/A') {
+                displayMessage = `<strong style="color: #8fd0ff;">${newsItem.sender}</strong> gave <span style="color: #e74c3c;">$${newsItem.amount.toLocaleString()}</span> to <strong style="color: #8fd0ff;">${newsItem.recipient}</strong>.`;
+            }
+
+            newsHtml += `
+                <li style="${recentNewsListItemStyles}">
+                    <span class="fo-news-timestamp" style="color: #ffeb3b; font-weight: bold;">${formatTimestampToLocale(newsItem.timestamp)}:</span> ${displayMessage}
+                </li>
+            `;
+        });
+    } else {
+        newsHtml = `<li style="color: #ccc;">No recent fund news found in the last 30 days.</li>`;
+    }
+    fundNewsListEl.innerHTML = newsHtml;
+}
+
+/**
+ * Sets up the search bar and logic for a specific member's fund activity.
+ * @param {string} searchInputStyles CSS string for search input.
+ * @param {string} buttonStyles CSS string for buttons.
+ * @param {string} searchButtonStyles CSS string for search button.
+ * @param {string} clearButtonStyles CSS string for clear button.
+ * @param {string} searchResultBoxStyles CSS string for search result box.
+ */
+function setupMemberFundSearch(searchInputStyles, buttonStyles, searchButtonStyles, clearButtonStyles, searchResultBoxStyles) {
+    const searchInput = document.getElementById('memberFundSearchInput');
+    const searchButton = document.getElementById('memberFundSearchButton');
+    const clearButton = document.getElementById('memberFundClearButton');
+    const searchResultDiv = document.getElementById('memberFundSearchResult');
+
+    if (!searchInput || !searchButton || !clearButton || !searchResultDiv) {
+        console.error("Member fund search elements not found.");
+        return;
+    }
+
+    // Apply styles
+    Object.assign(searchInput.style, searchInputStyles);
+    Object.assign(searchButton.style, `${buttonStyles} ${searchButtonStyles}`);
+    Object.assign(clearButton.style, `${buttonStyles} ${clearButtonStyles}`);
+    Object.assign(searchResultDiv.style, searchResultBoxStyles);
+
+    const performSearch = () => {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        if (!searchTerm) {
+            searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>`;
+            return;
+        }
+
+        let totalDeposited = 0;
+        let totalWithdrawn = 0;
+        let foundUser = false;
+
+        // Combine all fund logs for searching
+        historicalFundLogs.forEach(log => {
+            const isTargetUserDeposit = log.category === 'depositFunds' &&
+                                        (log.user.toLowerCase().includes(searchTerm) || (log.userId && String(log.userId) === searchTerm));
+            const isTargetUserWithdrawalSender = log.category === 'giveFunds' &&
+                                                  (log.sender.toLowerCase().includes(searchTerm) || (log.senderId && String(log.senderId) === searchTerm));
+            const isTargetUserWithdrawalRecipient = log.category === 'giveFunds' &&
+                                                    (log.recipient.toLowerCase().includes(searchTerm) || (log.recipientId && String(log.recipientId) === searchTerm));
+
+            // Funds deposited *by* this user
+            if (isTargetUserDeposit && typeof log.amount === 'number') {
+                totalDeposited += log.amount;
+                foundUser = true;
+            }
+            // Funds withdrawn *by* this user (meaning they are the sender of a 'giveFunds' transaction, often out of the faction bank)
+            if (isTargetUserWithdrawalSender && typeof log.amount === 'number') {
+                totalWithdrawn += log.amount;
+                foundUser = true;
+            }
+            // Note: If 'isTargetUserWithdrawalRecipient' is for funds *given to* the user by someone else (e.g., faction payouts),
+            // you'll need more complex logic to differentiate funds *from* the faction vs. from another player if you want to
+            // include that in a "money taken" calculation. For this implementation, we focus on what they 'deposited'
+            // and what they 'withdrew' as a sender.
+        });
+
+        if (foundUser) {
+            const netBalance = totalDeposited - totalWithdrawn;
+            searchResultDiv.innerHTML = `
+                <p style="margin: 0 0 5px 0;"><strong>${searchInput.value.trim()}</strong></p>
+                <p style="margin: 2px 0;">Total Deposited: <span style="color: #66bb6a;">$${totalDeposited.toLocaleString()}</span></p>
+                <p style="margin: 2px 0;">Total Withdrawn: <span style="color: #e74c3c;">$${totalWithdrawn.toLocaleString()}</span></p>
+                <p style="margin: 5px 0 0 0;">Net Activity: <span style="color: ${netBalance >= 0 ? '#66bb6a' : '#e74c3c'}; font-weight: bold;">$${netBalance.toLocaleString()}</span></p>
+                <p style="font-size: 0.8em; color: #aaa; margin-top: 10px;">(Net positive means more deposited than withdrawn by this member for monitored categories.)</p>
+            `;
+        } else {
+            searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: orange;">No fund activity found for "${searchInput.value.trim()}" in historical logs.</p>`;
+        }
+    };
+
+    searchButton.addEventListener('click', performSearch);
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>`;
+    });
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            performSearch();
+        }
+    });
+}
 function renderDynamicDataTable(targetElement, data, columns, title) {
     let tableHtml = `
         <table class="fo-data-table">
