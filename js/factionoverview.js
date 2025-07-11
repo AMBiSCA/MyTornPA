@@ -1660,7 +1660,8 @@ async function saveDesignatedBankers(container, modalOverlay) {
 
     try {
         // Get reference to the Firebase document where banker settings are stored
-        const warDocRef = db.collection('factionWars').doc('currentWar');
+        // Change collection name to factionBankerSettings
+         const bankerSettingsDocRef = db.collection('factionBankerSettings').doc(String(factionOverviewGlobalYourFactionID));.doc('currentWar');
         // Set the 'designatedBankers' field with the updated list
         await warDocRef.set({ designatedBankers: selectedBankerIds }, { merge: true });
 
@@ -1840,7 +1841,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // --- NEW/UPDATED: Robustly Fetch factionWars document and central API key/bankers list ---
                     // This fetches the central configuration document for the faction.
-                    const warDocRef = db.collection('factionWars').doc('currentWar');
+                    const bankerSettingsDocRef = db.collection('factionBankerSettings').doc(String(factionOverviewGlobalYourFactionID));.doc('currentWar');
                     const warDoc = await warDocRef.get(); // Fetch the document
                     
                     console.log(`[DEBUG] FactionWars/currentWar document exists for current user: ${warDoc.exists}`);
