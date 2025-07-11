@@ -3080,11 +3080,10 @@ min-width: 320px;
     flex-shrink: 0;
     box-sizing: border-box;
     text-align: center;
-    /* Visuals from new style */
     background-color: #2a2a2a;
-    border: 2px solid #444; /* Thicker border */
+    border: 2px solid #444; 
     border-radius: 6px;
-    /* Flex properties from original */
+    margin-top: 70px;
     display: flex;
     flex-direction: column;
 }
@@ -3163,11 +3162,6 @@ min-width: 320px;
     margin-top: 5px; /* Space above the bar */
     width: 100%;
     overflow: hidden; /* Ensures  radius */
-}
-
-/* --- Force Timer Boxes Down --- */
-.chain-timer-box {
-    margin-top: 70px; 
 }
 
 /* The actual moving bar inside the container */
