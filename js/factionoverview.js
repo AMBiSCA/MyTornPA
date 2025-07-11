@@ -646,7 +646,7 @@ function processFactionNewsForTable(newsArray, category) {
         let result = 'N/A';
 
         // --- Common Parsing: Extract the primary actor (usually the first player link in the text) ---
-        const firstPlayerLinkMatch = sourceText.match(/^<a href="[^"]+XID=(\d+)">([^<]+)<\/a>/);
+       const firstPlayerLinkMatch = sourceText.match(/^<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>/);
         if (firstPlayerLinkMatch) {
             userId = firstPlayerLinkMatch[1];
             user = firstPlayerLinkMatch[2];
