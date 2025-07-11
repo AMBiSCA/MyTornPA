@@ -515,22 +515,25 @@ function setupTableSorting(tableElement, originalData) {
 }
 
 
-// =====================================================================================================================
-// DATA FETCHING FUNCTIONS
-// Handles API calls to Torn and Firebase.
-// =====================================================================================================================
-
 /**
- * Fetches data from a Torn API endpoint.
+ * Fetches data from a Torn API endpoint, using the primary key if available.
  * @param {string} url The full URL for the Torn API request.
  * @param {string} comment A comment for the API request for Torn's logs.
  * @returns {Promise<Object>} The JSON response data.
  */
 async function fetchTornApiData(url, comment) {
-    if (!factionOverviewUserApiKey) {
+    // **KEY CHANGE IS HERE**
+    // Decide which API key to use. Prioritize the central primary key.
+    // The 'primaryFactionApiKey' variable is loaded when the page starts.
+    const apiKeyToUse = primaryFactionApiKey || factionOverviewUserApiKey;
+
+    if (!apiKeyToUse) {
         throw new Error("Torn API Key is not available. Please ensure you are logged in and your API key is set in your profile.");
     }
-    const fullUrl = `${url}&key=${factionOverviewUserApiKey}&comment=${comment}`;
+    
+    // The rest of the function remains the same, but uses the selected apiKeyToUse
+    const fullUrl = `${url}&key=${apiKeyToUse}&comment=${comment}`;
+    
     try {
         const response = await fetch(fullUrl);
         if (!response.ok) {
@@ -540,6 +543,7 @@ async function fetchTornApiData(url, comment) {
         }
         const data = await response.json();
         if (data.error) {
+            // This is where you'll see the 'Incorrect ID-entity' error if the key is wrong
             throw new Error(`Torn API Data Error: ${data.error.error} (Code: ${data.error.code})`);
         }
         return data;
@@ -548,11 +552,6 @@ async function fetchTornApiData(url, comment) {
         throw error; // Re-throw to be caught by calling function
     }
 }
-
-/**
- * Fetches the latest raw faction news data for all relevant categories.
- * This will typically fetch the most recent 100 entries.
- */
 async function fetchAllRawFactionNewsData() {
     // Use Promise.all to fetch all categories concurrently for efficiency
     try {
