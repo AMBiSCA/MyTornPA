@@ -62,7 +62,7 @@
     flex-wrap: wrap; /* Allow tabs to wrap onto next line on small screens if needed */
     justify-content: center;
     gap: 10px; /* Space between tab buttons */
-    margin-bottom: -15px;
+    margin-bottom: -10px;
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(0, 168, 255, 0.2);
 }
