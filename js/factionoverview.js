@@ -13,7 +13,7 @@
 
 let factionOverviewUserApiKey = null; // Stores the logged-in user's Torn API key for this page
 let factionOverviewGlobalYourFactionID = null; // Stores the user's faction ID
-let factionBankBalanceData = null;
+
 let factionOverviewPageContentContainer = null; // Main container for all dynamic content on this page
 let factionApiFullData = null; 
 
@@ -67,6 +67,11 @@ let factionOverviewCogSettingsButton = null; // The gear icon for banker setting
 
 
 
+// =====================================================================================================================
+// CORE UI RENDERING FUNCTIONS
+// Functions responsible for dynamically generating and injecting the main HTML structure.
+// =====================================================================================================================
+
 /**
  * Renders the main layout of the Faction Overview page, including sub-tabs and controls.
  * This function is called when the 'Faction Financials' tab (page) is loaded.
@@ -83,6 +88,7 @@ function renderFactionOverviewPageLayout() {
     factionOverviewPageContentContainer.innerHTML = '';
 
     // Construct the HTML for the entire Faction Overview page dynamically
+    // This includes the sub-tab navigation, the cog icon, and the main data display area.
     const pageHtml = `
         <div class="fo-header-area">
             <h2 class="fo-page-title">Faction Financials Overview</h2>
@@ -97,12 +103,9 @@ function renderFactionOverviewPageLayout() {
             <button class="fo-sub-tab-button" data-tab-id="crime">Crime</button>
             <button class="fo-sub-tab-button" data-tab-id="logistics">Logistics</button>
             <button class="fo-sub-tab-button" data-tab-id="oversight">Oversight</button>
-            
-            <button class="fo-sub-tab-button" data-tab-id="bank-balance">Bank Balance</button>
-            
         </div>
 
-        <div class="fo-controls-bar" id="factionOverviewControlsBar">
+        <div class="fo-controls-bar">
             <input type="text" id="factionOverviewSearchInput" class="fo-search-input" placeholder="Search Player/Item/Type...">
             <button id="factionOverviewSearchButton" class="fo-button">Search</button>
             <button id="factionOverviewClearSearchButton" class="fo-button">Clear</button>
@@ -272,8 +275,7 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     if (data.length === 0) {
         tableHtml += `<tr><td colspan="${columns.length}" style="text-align: center; padding: 20px;">No data available for this period.</td></tr>`;
     } else {
-        const itemsToDisplay = data.slice(0, 9);
-        itemsToDisplay.forEach(row => { // Loop over the sliced data
+        data.forEach(row => {
             tableHtml += `<tr>`;
             columns.forEach(col => {
                 let displayValue = row[col.key] !== undefined ? row[col.key] : 'N/A';
@@ -304,72 +306,63 @@ function renderDynamicDataTable(targetElement, data, columns, title) {
     setupTableSorting(factionOverviewCurrentDataTable, data);
 }
 
-// In factionoverview.js, find the existing renderLogisticsTabContent function and replace it entirely with this:
-
 /**
  * Renders the content specifically for the Logistics sub-tab.
- * This will create separate, scrollable boxes for Stock Levels and Large Movements.
  * @param {HTMLElement} targetElement The DOM element to inject content into.
  */
 function renderLogisticsTabContent(targetElement) {
     targetElement.innerHTML = `
 
-        <div class="fo-logistics-panels-container"> <div class="fo-logistics-panel">
-                <h4 class="fo-panel-title">📊 Current Faction Armory Stock Levels (Estimated)</h4>
-                <div class="fo-scrollable-panel-content" id="foLogisticsStockBodyContainer">
-                    <table class="fo-data-table fo-summary-table">
-                        <thead>
-                            <tr>
-                                <th>Item Name</th>
-                                <th>On Hand (Qty)</th>
-                                <th>Avg. Daily Use</th>
-                                <th>Weekly Change</th>
-                            </tr>
-                        </thead>
-                        <tbody id="foLogisticsStockBody">
-                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                            <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="fo-section-panel">
+            <h4>📊 Current Faction Armory Stock Levels (Estimated) 📊  </h4>
+            <table class="fo-data-table fo-summary-table">
+                <thead>
+                    <tr>
+                        <th class="fo-sortable-header" data-sort-key="itemName">Item Name (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="onHandQty">On Hand (Qty) (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="avgDailyUse">Avg. Daily Use (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="weeklyChange">Weekly Change (▲▼)</th>
+                    </tr>
+                </thead>
+                <tbody id="foLogisticsStockBody">
+                    <tr><td colspan="4" style="text-align: center; padding: 15px;">Loading stock data...</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-            <div class="fo-logistics-panel fo-logistics-panel-full-width">
-                <h4 class="fo-panel-title">📦 Recent Large Item Movements (>50 Qty or High Value)</h4>
-                <div class="fo-scrollable-panel-content" id="foLogisticsLargeMovesBodyContainer">
-                    <table class="fo-data-table fo-summary-table">
-                        <thead>
-                            <tr>
-                                <th>Date/Time</th>
-                                <th>User</th>
-                                <th>Item</th>
-                                <th>Quantity</th>
-                                <th>Type</th>
-                            </tr>
-                        </thead>
-                        <tbody id="foLogisticsLargeMovesBody">
-                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                            <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="fo-section-panel fo-section-panel-full-width">
+            <h4>📦 Recent Large Item Movements (>50 Qty or High Value) 📦  </h4>
+            <table class="fo-data-table fo-summary-table">
+                <thead>
+                    <tr>
+                        <th class="fo-sortable-header" data-sort-key="timestamp">Date/Time (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="user">User (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="item">Item (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="quantity">Quantity (▲▼)</th>
+                        <th class="fo-sortable-header" data-sort-key="type">Type (▲▼)</th>
+                    </tr>
+                </thead>
+                <tbody id="foLogisticsLargeMovesBody">
+                    <tr><td colspan="5" style="text-align: center; padding: 15px;">Loading large movements...</td></tr>
+                </tbody>
+            </table>
         </div>
     `;
-
-    // Fetch and populate data for Logistics (this function will be called after rendering this layout)
+    // Fetch and populate data for Logistics (conceptual, actual implementation to follow later)
+    // This will involve querying 'historicalArmoryLogs' from Firebase and processing it.
     populateLogisticsData();
 }
+
+// In factionoverview.js, find the existing renderOversightTabContent function and replace it entirely with this:
+
+/**
+ * Renders the content specifically for the Oversight sub-tab.
+ * This will create separate, scrollable boxes for Top Active Users and Alerts & Flags.
+ * @param {HTMLElement} targetElement The DOM element to inject content into.
+ */
 function renderOversightTabContent(targetElement) {
     targetElement.innerHTML = `
+
 
         <div class="fo-kpi-grid">
             <div class="fo-kpi-box">
@@ -575,6 +568,7 @@ async function fetchTornApiData(url, comment) {
     }
 }
 async function fetchAllRawFactionNewsData() {
+    // Use Promise.all to fetch all categories concurrently for efficiency
     try {
         const [armoryWithdrawalsResp, armoryDepositsResp, fundDepositsResp, fundWithdrawalsResp, crimeResp] = await Promise.all([
             fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=armoryAction&limit=100`, 'MyTornPA_ArmoryWithdrawals'),
@@ -584,93 +578,34 @@ async function fetchAllRawFactionNewsData() {
             fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=crime&limit=100`, 'MyTornPA_CrimeLog')
         ]);
 
-        armoryWithdrawalsData = processFactionNewsForTable(armoryWithdrawalsResp?.news || [], 'armoryAction');
-        armoryDepositsData = processFactionNewsForTable(armoryDepositsResp?.news || [], 'armoryDeposit');
-        fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || [], 'depositFunds');
-        fundWithdrawalsData = processFactionNewsForTable(fundWithdrawalsResp?.news || [], 'giveFunds');
-        crimeData = processFactionNewsForTable(crimeResp?.news || [], 'crime');
+        // Process and store the fetched data into global variables
+        armoryWithdrawalsData = processFactionNewsForTable(armoryWithdrawalsResp?.news || {}, 'armoryAction');
+        armoryDepositsData = processFactionNewsForTable(armoryDepositsResp?.news || {}, 'armoryDeposit');
+        fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || {}, 'depositFunds');
+        fundWithdrawalsData = processFactionNewsForTable(fundWithdrawalsResp?.news || {}, 'giveFunds');
+        crimeData = processFactionNewsForTable(crimeResp?.news || {}, 'crime');
+
         console.log("All raw faction news data fetched and processed.");
 
-        const balanceResp = await fetchTornApiData(`https://api.torn.com/v2/faction/balance`, 'MyTornPA_BankBalance');
-        factionBankBalanceData = balanceResp?.balance || null;
-        console.log("Faction bank balance data fetched successfully.");
-
-        // --- THIS IS THE FIX ---
-        // We add 'bank-balance' to the list of tabs that should be refreshed when data arrives.
-        const tabsToRefresh = [
-            'armory-withdrawals', 'armory-deposits', 'fund-deposits', 
-            'fund-withdrawals', 'crime', 'bank-balance'
-        ];
-        if (tabsToRefresh.includes(currentActiveSubTab)) {
+        // If the current tab is one of these, refresh its display
+        if (['armory-withdrawals', 'armory-deposits', 'fund-deposits', 'fund-withdrawals', 'crime'].includes(currentActiveSubTab)) {
+            // Re-render the current tab to show updated data
             switchFactionOverviewSubTab(currentActiveSubTab);
         }
 
+        // Trigger historical data processing after fetching raw data
         processAndStoreHistoricalData();
 
+
     } catch (error) {
-        console.error("Failed to fetch all faction data:", error);
+        console.error("Failed to fetch all raw faction news data:", error);
+        // Display an error message in the main content area if needed
         const displayArea = document.getElementById('factionOverviewDisplayArea');
         if (displayArea) {
             displayArea.innerHTML = `<p style="text-align: center; color: red; padding-top: 50px;">Error loading data: ${error.message}</p>`;
         }
     }
 }
-function renderBankBalanceTabContent(targetElement) {
-    // First, check if we have the data from our API call
-    if (!factionBankBalanceData || !factionBankBalanceData.members) {
-        targetElement.innerHTML = `<p style="text-align: center; padding: 20px;">Bank balance data is not available or failed to load.</p>`;
-        return;
-    }
-
-    // Extract the main faction balance and the members array
-    const factionTotalMoney = factionBankBalanceData.faction?.money || 0;
-    const membersArray = factionBankBalanceData.members;
-
-    // Sort the members alphabetically by username for a clean list
-    membersArray.sort((a, b) => a.username.localeCompare(b.username));
-
-    // Start building the HTML for the tab
-    let contentHtml = `
-        <div class="fo-section-panel" style="text-align: center;">
-            <h3 class="fo-page-title">Total Faction Bank</h3>
-            <h2 style="color: #28a745; margin-top: 5px;">$${factionTotalMoney.toLocaleString()}</h2>
-        </div>
-
-        <div class="fo-section-panel">
-            <table class="fo-data-table">
-                <thead>
-                    <tr>
-                        <th>Member</th>
-                        <th style="text-align: right;">Balance</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    // Loop through each member and add a row to the table
-    membersArray.forEach(member => {
-        // Use a red color for negative balances to make them stand out
-        const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
-
-        contentHtml += `
-            <tr>
-                <td>${member.username} [${member.id}]</td>
-                <td style="color: ${balanceColor}; text-align: right;">$${member.money.toLocaleString()}</td>
-            </tr>
-        `;
-    });
-
-    // Close the table and body tags
-    contentHtml += `
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    // Inject the final HTML into the display area
-    targetElement.innerHTML = contentHtml;
-}
-
 function processFactionNewsForTable(newsArray, category) {
     const processed = [];
     // Ensure newsArray is an actual array before trying to iterate.
