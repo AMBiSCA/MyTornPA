@@ -1055,17 +1055,12 @@ function applyCurrentFiltersAndSort() {
 }
 
 
-// =====================================================================================================================
-// LOGISTICS & OVERSIGHT DATA PROCESSING FUNCTIONS
-// These functions perform aggregation and calculations for the summary tabs.
-// =====================================================================================================================
-
 // In factionoverview.js, find the existing populateLogisticsData function and replace it entirely with this:
 
 /**
- * Populates data for the Logistics tab using real historical data from Firebase.
+ * Populates data for the Logistics tab using real historical data from Firebase and live API.
  */
-function populateLogisticsData() {
+async function populateLogisticsData() { // <--- Made async to allow await for API call
     const stockBody = document.getElementById('foLogisticsStockBody');
     const largeMovesBody = document.getElementById('foLogisticsLargeMovesBody');
 
@@ -1084,63 +1079,77 @@ function populateLogisticsData() {
         return;
     }
 
+    // --- NEW: Fetch Live Armory Stock Data ---
+    let liveArmoryData = {};
+    try {
+        if (!factionOverviewGlobalYourFactionID || !factionOverviewUserApiKey) {
+            throw new Error("Faction ID or API key missing for live armory data.");
+        }
+        const armoryApiUrl = `https://api.torn.com/v2/faction/${factionOverviewGlobalYourFactionID}?selections=armory&key=${factionOverviewUserApiKey}&comment=MyTornPA_LiveArmoryStock`;
+        const response = await fetch(armoryApiUrl);
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            throw new Error(data.error ? data.error.error : response.statusText);
+        }
+        // Torn API 'armory' selection gives an object where keys are item IDs, values are objects with name and quantity
+        // Example: {"52": {"name": "Xanax", "quantity": 10}, "43": {"name": "First Aid Kit", "quantity": 150}}
+        liveArmoryData = data.armory || {};
+        console.log("[DEBUG] Live Armory Data fetched:", liveArmoryData);
+
+    } catch (error) {
+        console.error("Error fetching live armory data:", error);
+        stockBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px; color: red;">Error loading live stock: ${error.message}</td></tr>`;
+        return; // Stop if live data cannot be fetched
+    }
+    // --- END NEW ---
+
+
     // --- Part 1: Calculate Current Faction Armory Stock Levels (Estimated) ---
-    // This requires processing all historical armory actions to get net quantities.
-    const itemNetQuantities = {}; // itemName -> net quantity (deposits - withdrawals)
     const itemUsagePerDay = {};   // itemName -> { dayTimestamp -> total used }
     const sevenDaysAgo = new Date().getTime() - (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
     const now = new Date().getTime();
 
-    // Iterate through all historical armory logs to calculate net quantities and daily usage.
-    // Make a copy and sort by timestamp ascending for correct net quantity calculation.
-    const sortedArmoryLogs = [...historicalArmoryLogs].sort((a, b) => a.timestamp - b.timestamp);
-
-    sortedArmoryLogs.forEach(entry => {
-        const rawItemName = entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim(); // Remove prefix for stock calculation
+    // Iterate through historical armory logs to calculate daily usage for Avg. Daily Use and Weekly Change.
+    historicalArmoryLogs.forEach(entry => {
+        const rawItemName = entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim();
         const quantity = entry.quantity || 0;
 
         if (rawItemName === 'N/A' || quantity === 'N/A' || !rawItemName) return;
 
-        // Initialize item if not seen before
-        if (!itemNetQuantities[rawItemName]) {
-            itemNetQuantities[rawItemName] = 0;
-            itemUsagePerDay[rawItemName] = {};
-        }
-
-        // Update Net Quantities (for 'On Hand Qty')
-        if (entry.category === 'armoryDeposit') {
-            itemNetQuantities[rawItemName] += quantity;
-        } else if (entry.category === 'armoryAction') { // Covers Withdrawals, Used, Loaned, Gave, Retrieved
-            itemNetQuantities[rawItemName] -= quantity;
-        }
-
         // Update Usage for Avg. Daily Use and Weekly Change, only for actions that decrease stock and are recent
         if (entry.category === 'armoryAction' && entry.timestamp >= sevenDaysAgo && entry.timestamp <= now) {
-            // Check specific actions that are 'usage'
             if (entry.rawNews.includes("used") || entry.rawNews.includes("loaned") || entry.rawNews.includes("gave") || entry.rawNews.includes("retrieved") || entry.rawNews.includes("withdrew")) {
                 const dayTimestamp = new Date(entry.timestamp).setUTCHours(0, 0, 0, 0); // Normalize to start of UTC day
+                if (!itemUsagePerDay[rawItemName]) {
+                    itemUsagePerDay[rawItemName] = {};
+                }
                 itemUsagePerDay[rawItemName][dayTimestamp] = (itemUsagePerDay[rawItemName][dayTimestamp] || 0) + quantity;
             }
         }
     });
 
     const currentStockData = [];
-    for (const rawItemName in itemNetQuantities) {
-        if (itemNetQuantities.hasOwnProperty(rawItemName)) {
-            const onHandQty = itemNetQuantities[rawItemName];
-            let totalUsedLast7Days = 0;
-            let daysWithUsageCount = 0; // Count of distinct days with usage for this item
+    // Iterate through liveArmoryData for current stock, and combine with historical usage stats
+    for (const itemId in liveArmoryData) {
+        if (liveArmoryData.hasOwnProperty(itemId)) {
+            const liveItem = liveArmoryData[itemId];
+            const itemName = liveItem.name; // Use the name from live data, which is clean
+            const onHandQty = liveItem.quantity; // Use the live quantity
 
-            if (itemUsagePerDay[rawItemName]) {
-                totalUsedLast7Days = Object.values(itemUsagePerDay[rawItemName]).reduce((sum, qty) => sum + qty, 0);
-                daysWithUsageCount = Object.keys(itemUsagePerDay[rawItemName]).length;
+            let totalUsedLast7Days = 0;
+            let daysWithUsageCount = 0;
+
+            if (itemUsagePerDay[itemName]) { // Check if this item has historical usage data
+                totalUsedLast7Days = Object.values(itemUsagePerDay[itemName]).reduce((sum, qty) => sum + qty, 0);
+                daysWithUsageCount = Object.keys(itemUsagePerDay[itemName]).length;
             }
 
             const avgDailyUse = daysWithUsageCount > 0 ? (totalUsedLast7Days / daysWithUsageCount).toFixed(1) : 0;
             const weeklyChange = -totalUsedLast7Days; // Represents net usage (negative if used)
 
             currentStockData.push({
-                itemName: rawItemName, // Use the raw item name without prefix
+                itemName: itemName, // Use the clean name from liveArmoryData
                 onHandQty: onHandQty,
                 avgDailyUse: parseFloat(avgDailyUse),
                 weeklyChange: weeklyChange
@@ -1171,14 +1180,17 @@ function populateLogisticsData() {
     // --- Part 2: Populate Recent Large Item Movements (>50 Qty or High Value) ---
     // Filter and display actual large movements from historicalArmoryLogs
     const largeMovesThreshold = 50; // Define what constitutes a "large" quantity movement
-    const highValueItems = ['Armored Vest', 'Magnum', 'HEG', 'Xanax', 'Flash Grenade']; // Example high-value items - EXPAND THIS LIST
+    const highValueItems = ['Armored Vest', 'Magnum', 'HEG', 'Xanax', 'Flash Grenade', 'Blood Bag : A+']; // EXPAND THIS LIST with important items
 
     const recentLargeMoves = historicalArmoryLogs.filter(entry => {
         const isRecent = entry.timestamp >= sevenDaysAgo; // Only consider recent moves
         if (!isRecent) return false;
 
-        const isLargeQuantity = (entry.quantity || 0) >= largeMovesThreshold;
-        const isHighValueItem = highValueItems.includes(entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim()); // Check original item name
+        const rawItemName = entry.item.replace(/(?:Deposited - |Retrieved - |Loaned - |Given - |Used - |Filled - )/, '').trim(); // Clean name for check
+        const quantity = entry.quantity || 0; // Ensure quantity is a number
+
+        const isLargeQuantity = quantity >= largeMovesThreshold;
+        const isHighValueItem = highValueItems.includes(rawItemName);
 
         return isLargeQuantity || isHighValueItem;
     }).sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
