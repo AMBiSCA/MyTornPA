@@ -597,19 +597,17 @@ async function fetchAllRawFactionNewsData() {
     }
 }
 
-/**
- * Processes raw Torn API faction news data into a standardized format for tables.
- * This is a crucial function for standardizing the varied API responses.
- * @param {Object} newsData The 'news' object from the Torn API response.
- * @param {string} category The category string (e.g., 'armoryAction', 'depositFunds').
- * @returns {Array<Object>} An array of standardized data objects.
- */
+// In factionoverview.js
 function processFactionNewsForTable(newsData, category) {
     const processed = [];
-    for (const id in newsData) {
-        if (newsData.hasOwnProperty(id)) {
-            const entry = newsData[id];
-            const timestamp = new Date(entry.timestamp * 1000); // Convert Torn timestamp (seconds) to milliseconds
+    // FIX: Ensure newsData is an object to prevent 'forEach' on undefined/null
+    // If newsData is null/undefined, treat it as an empty object.
+    const safeNewsData = newsData || {}; 
+
+    for (const id in safeNewsData) { // <--- Loop over safeNewsData
+        if (safeNewsData.hasOwnProperty(id)) { // <--- Use safeNewsData here too
+            const entry = safeNewsData[id];
+            const timestamp = new Date(entry.timestamp * 1000); 
 
             let user = entry.user || 'N/A';
             let item = 'N/A';
@@ -618,42 +616,28 @@ function processFactionNewsForTable(newsData, category) {
             let recipient = 'N/A';
             let crimeType = 'N/A';
             let result = 'N/A';
-            let sourceText = entry.news; // The raw news text from Torn
+            let sourceText = entry.news; 
 
-            // Extract data based on category from the news string if needed,
-            // or use specific fields if available in the API response (more reliable).
-            // Torn API 'news' selection often provides parsed data directly (user, item, quantity, etc.)
-            // but for older or simpler API calls, parsing the 'news' string might be necessary.
-
-            // Example parsing from 'news' string (adjust based on actual API response format)
             if (category === 'armoryAction' || category === 'armoryDeposit') {
-                // Example: "x withdrew item y from armory" or "x deposited item y to armory"
-                // Assuming entry.item and entry.quantity are available directly in API
                 item = entry.item || (sourceText.match(/(?:(?:withdrew|deposited) )(.+)(?: from| to)/)?.[1] || 'N/A');
                 quantity = entry.quantity || (sourceText.match(/(\d+?)x/)?.[1] || 'N/A');
-                // Ensure quantity is a number
                 quantity = typeof quantity === 'string' ? parseInt(quantity.replace(/,/g, ''), 10) : quantity;
             } else if (category === 'depositFunds') {
-                // Example: "x deposited $Y to faction"
                 amount = entry.amount || (sourceText.match(/\$([\d,]+)/)?.[1] || 'N/A');
                 amount = typeof amount === 'string' ? parseInt(amount.replace(/,/g, ''), 10) : amount;
             } else if (category === 'giveFunds') {
-                // Example: "x gave $Y to z"
                 amount = entry.amount || (sourceText.match(/\$([\d,]+)/)?.[1] || 'N/A');
                 amount = typeof amount === 'string' ? parseInt(amount.replace(/,/g, ''), 10) : amount;
                 recipient = entry.recipient_name || (sourceText.match(/to (\w+)/)?.[1] || 'N/A');
             } else if (category === 'crime') {
-                // Example: "x committed Grand Theft Auto (success)"
                 crimeType = entry.crime || (sourceText.match(/committed (.+?) \((?:success|failure)\)/)?.[1] || 'N/A');
                 result = entry.result || (sourceText.match(/\((success|failure)\)/i)?.[1] || 'N/A');
             }
-
-            // Fallback for user name if not directly provided as 'user'
             user = entry.name || user;
 
             processed.push({
-                id: id, // The unique ID of the news entry
-                timestamp: timestamp.getTime(), // Store as milliseconds for easier sorting/filtering
+                id: id,
+                timestamp: timestamp.getTime(),
                 user: user,
                 item: item,
                 quantity: quantity,
@@ -661,14 +645,13 @@ function processFactionNewsForTable(newsData, category) {
                 recipient: recipient,
                 crimeType: crimeType,
                 result: result,
-                rawNews: sourceText // Keep the raw string for debugging/completeness
+                rawNews: sourceText
             });
         }
     }
     // Sort by timestamp descending by default (most recent first)
     return processed.sort((a, b) => b.timestamp - a.timestamp);
 }
-
 /**
  * Placeholder: Fetches historical data from Firebase and processes it for Logistics and Oversight.
  * This function will be expanded during the implementation phase for long-term storage.
