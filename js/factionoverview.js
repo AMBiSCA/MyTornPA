@@ -253,19 +253,7 @@ async function switchFactionOverviewSubTab(tabId) {
     // After rendering, apply current filters if any
     applyCurrentFiltersAndSort();
 }
-// =====================================================================================================================
-// FACTION BALANCES TAB - NEW FUNCTIONS
-// These functions render and populate the content for the Faction Balances tab.
-// =====================================================================================================================
 
-/**
- * Renders the content specifically for the Faction Balances sub-tab.
- * This function creates the two-column layout, including overall faction balances,
- * member balances with profile pictures, and a fund news/search section.
- * @param {HTMLElement} targetElement The DOM element to inject content into (factionOverviewDisplayArea).
- */
- * Renders the two-panel layout for the Faction Balances tab.
- */
 function renderFactionBalancesTabContent(targetElement) {
     // This HTML creates the structure for the left and right panels.
     const twoPanelHtml = `
