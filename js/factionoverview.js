@@ -575,7 +575,7 @@ async function fetchTornApiData(url, comment) {
     }
 }
 async function fetchAllRawFactionNewsData() {
-    // Use Promise.all to fetch all categories concurrently for efficiency
+    // Use Promise.all to fetch all news categories concurrently for efficiency
     try {
         const [armoryWithdrawalsResp, armoryDepositsResp, fundDepositsResp, fundWithdrawalsResp, crimeResp] = await Promise.all([
             fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=armoryAction&limit=100`, 'MyTornPA_ArmoryWithdrawals'),
@@ -585,18 +585,23 @@ async function fetchAllRawFactionNewsData() {
             fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=crime&limit=100`, 'MyTornPA_CrimeLog')
         ]);
 
-        // Process and store the fetched data into global variables
-        armoryWithdrawalsData = processFactionNewsForTable(armoryWithdrawalsResp?.news || {}, 'armoryAction');
-        armoryDepositsData = processFactionNewsForTable(armoryDepositsResp?.news || {}, 'armoryDeposit');
-        fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || {}, 'depositFunds');
-        fundWithdrawalsData = processFactionNewsForTable(fundWithdrawalsResp?.news || {}, 'giveFunds');
-        crimeData = processFactionNewsForTable(crimeResp?.news || {}, 'crime');
-
+        // Process and store the fetched news data into global variables
+        armoryWithdrawalsData = processFactionNewsForTable(armoryWithdrawalsResp?.news || [], 'armoryAction');
+        armoryDepositsData = processFactionNewsForTable(armoryDepositsResp?.news || [], 'armoryDeposit');
+        fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || [], 'depositFunds');
+        fundWithdrawalsData = processFactionNewsForTable(fundWithdrawalsResp?.news || [], 'giveFunds');
+        crimeData = processFactionNewsForTable(crimeResp?.news || [], 'crime');
         console.log("All raw faction news data fetched and processed.");
 
-        // If the current tab is one of these, refresh its display
+        // --- NEW CODE BLOCK TO FETCH BANK BALANCE ---
+        const balanceResp = await fetchTornApiData(`https://api.torn.com/v2/faction/balance`, 'MyTornPA_BankBalance');
+        factionBankBalanceData = balanceResp?.balance || null; // Store the result
+        console.log("Faction bank balance data fetched successfully.");
+        // --- END NEW CODE BLOCK ---
+
+
+        // If the current tab is one of the main ones, refresh its display
         if (['armory-withdrawals', 'armory-deposits', 'fund-deposits', 'fund-withdrawals', 'crime'].includes(currentActiveSubTab)) {
-            // Re-render the current tab to show updated data
             switchFactionOverviewSubTab(currentActiveSubTab);
         }
 
@@ -605,14 +610,18 @@ async function fetchAllRawFactionNewsData() {
 
 
     } catch (error) {
-        console.error("Failed to fetch all raw faction news data:", error);
-        // Display an error message in the main content area if needed
+        console.error("Failed to fetch all faction data:", error);
         const displayArea = document.getElementById('factionOverviewDisplayArea');
         if (displayArea) {
             displayArea.innerHTML = `<p style="text-align: center; color: red; padding-top: 50px;">Error loading data: ${error.message}</p>`;
         }
     }
 }
+
+function renderBankBalanceTabContent(targetElement) {
+    targetElement.innerHTML = `<p style="text-align: center; padding: 20px;">Bank Balance content will be displayed here once we fetch the data.</p>`;
+}
+
 function processFactionNewsForTable(newsArray, category) {
     const processed = [];
     // Ensure newsArray is an actual array before trying to iterate.
