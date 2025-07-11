@@ -3526,38 +3526,33 @@ function formatRelativeTime(timestampInSeconds) {
 }
 
 /**
- * Calculates and updates the width of a chain progress bar based on Torn's milestones.
+ * Calculates and updates the width and text of a chain progress bar.
  * @param {number} currentHits - The current number of hits in the chain.
  * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
+ * @param {string} textElementId - The ID of the text element to update.
  */
-function updateChainProgress(currentHits, progressBarElement) {
-    // If the element doesn't exist, stop.
-    if (!progressBarElement) {
-        return;
-    }
+function updateChainProgress(currentHits, progressBarElement, textElementId) {
+    if (!progressBarElement) return;
 
-    // Define the Torn City chain respect milestones
+    const textElement = document.getElementById(textElementId);
     const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
-
-    // Convert hits to a number
     const hits = Number(currentHits);
+
     if (isNaN(hits)) {
         progressBarElement.style.width = '0%';
+        if (textElement) textElement.textContent = '';
         return;
     }
 
-    // Find the next milestone we are aiming for
     let nextMilestone = milestones.find(m => m > hits);
-
-    // If there is no next milestone, the chain is maxed out. Fill the bar.
+    
     if (nextMilestone === undefined) {
         progressBarElement.style.width = '100%';
+        if (textElement) textElement.textContent = 'MAX';
         return;
     }
 
-    // Find the previous milestone we passed
     let previousMilestone = 0;
-    // This loop finds the largest milestone that is less than or equal to the current hits
     for (let i = milestones.length - 1; i >= 0; i--) {
         if (milestones[i] <= hits) {
             previousMilestone = milestones[i];
@@ -3565,21 +3560,18 @@ function updateChainProgress(currentHits, progressBarElement) {
         }
     }
 
-    // Calculate the number of hits needed to get from the previous milestone to the next one
     const totalForMilestone = nextMilestone - previousMilestone;
-    // Calculate how many hits we've made within that range
     const progressInMilestone = hits - previousMilestone;
-    
-    // Calculate the percentage, ensuring we don't divide by zero
     let percentage = 0;
     if (totalForMilestone > 0) {
         percentage = (progressInMilestone / totalForMilestone) * 100;
     }
 
-    // Update the progress bar's width in the HTML
     progressBarElement.style.width = percentage + '%';
+    if (textElement) {
+        textElement.textContent = Math.floor(percentage) + '%';
+    }
 }
-
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
 	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
@@ -5752,6 +5744,8 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 userApiKey = apiKey; // Set global API key
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
+
+                setupProgressText();  
 
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
