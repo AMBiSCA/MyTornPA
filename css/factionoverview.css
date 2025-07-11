@@ -184,12 +184,23 @@
     text-shadow: 0 0 5px rgba(224, 167, 26, 0.5);
 }
 
+/* In mysite/css/factionoverview.css */
+
 /* Generic Table Styles (used for Armory, Funds, Crime logs) */
 .fo-data-table {
-    width: 100%;
+    width: 100%; /* Ensures the table tries to take full width of its container */
     border-collapse: collapse;
-    margin-top: 15px;
-    table-layout: auto; /* Allow columns to size based on content initially */
+    margin-top: 15px; /* Adjust if needed to distance from search/filter bar */
+    table-layout: fixed; /* Crucial for fixed column widths and alignment */
+
+    /* --- Make the table itself scrollable vertically and limit its height --- */
+    max-height: 450px; /* <--- ADJUST THIS VALUE: Controls the overall height of the scrollable table area */
+    overflow-y: auto; /* Enables vertical scrolling for the whole table */
+    overflow-x: auto; /* <--- CHANGE THIS: Allow horizontal scrolling for table content if it's wider than its container */
+    display: block; /* IMPORTANT: Allows max-height and overflow to work on the table element */
+    border: 1px solid #00a8ff; /* Consistent border around the entire table */
+    border-radius: 8px; /* Consistent rounded corners for the table */
+    box-sizing: border-box; /* <--- ADD THIS: Ensures padding and border are included *within* the 100% width */
 }
 
 .fo-data-table th,
@@ -591,7 +602,7 @@
 .fo-data-table thead tr,
 .fo-data-table tbody tr {
     display: table-row; /* <--- Crucial for ensuring cells align correctly */
-    width: 100%; /* Ensures rows span the full width within the fixed layout */
+    
 }
 
 /* Styles for table headers and cells */
