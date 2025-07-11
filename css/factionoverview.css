@@ -36,7 +36,7 @@
     margin: 0;
     font-size: 1.8rem;
     font-weight: 600;
-    text-align: center; /* Align to the left to make space for cog */
+	text-align: right;
 }
 
 /* Cog Button for Banker Settings */
