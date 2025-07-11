@@ -533,26 +533,21 @@ function setupTableSorting(tableElement, originalData) {
     });
 }
 
-
-/**
- * Fetches data from a Torn API endpoint, using the primary key if available.
- * @param {string} url The full URL for the Torn API request.
- * @param {string} comment A comment for the API request for Torn's logs.
- * @returns {Promise<Object>} The JSON response data.
- */
 async function fetchTornApiData(url, comment) {
-    // **KEY CHANGE IS HERE**
-    // Decide which API key to use. Prioritize the central key.
-    // The 'primaryFactionApiKey' variable is loaded when the page starts.
     const apiKeyToUse = primaryFactionApiKey || factionOverviewUserApiKey;
+
+    // The debug line we added earlier. You can keep or remove this.
+    console.log("Attempting to use API Key:", `'${apiKeyToUse}'`);
 
     if (!apiKeyToUse) {
         throw new Error("Torn API Key is not available. Please ensure you are logged in and your API key is set in your profile.");
     }
-    
-    // The rest of the function remains the same, but uses the selected apiKeyToUse
-    const fullUrl = `${url}&key=${apiKeyToUse}&comment=${comment}`;
-    
+
+    // --- THIS IS THE FIX ---
+    // Intelligently decide whether to use '?' or '&' to add the key.
+    const separator = url.includes('?') ? '&' : '?';
+    const fullUrl = `${url}${separator}key=${apiKeyToUse}&comment=${comment}`;
+
     try {
         const response = await fetch(fullUrl);
         if (!response.ok) {
@@ -562,15 +557,16 @@ async function fetchTornApiData(url, comment) {
         }
         const data = await response.json();
         if (data.error) {
-            // This is where you'll see the 'Incorrect ID-entity' error if the key is wrong
             throw new Error(`Torn API Data Error: ${data.error.error} (Code: ${data.error.code})`);
         }
         return data;
     } catch (error) {
         console.error("Error fetching Torn API data:", error);
-        throw error; // Re-throw to be caught by calling function
+        throw error;
     }
 }
+
+
 async function fetchAllRawFactionNewsData() {
     // Use Promise.all to fetch all categories concurrently for efficiency
     try {
