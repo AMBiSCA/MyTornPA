@@ -3149,26 +3149,26 @@ min-width: 320px;
     color: #ef5350;
 }
 
-/* =================================
-   CHAIN PROGRESS BAR STYLES (NEW)
-   ================================= */
+/* ====================================================
+   CHAIN PROGRESS BAR STYLES (Slightly Bigger)
+   ==================================================== */
 
 /* Container for the progress bar */
 .chain-progress-container {
     background-color: #1e1e1e;
-    border-radius: 4px;
-    height: 8px; /* Height of the bar */
+    border-radius: 6px; /* Increased */
+    height: 12px;       /* Increased from 8px to make it thicker */
     border: 1px solid #111;
-    margin-top: 5px; /* Space above the bar */
+    margin-top: 8px;    /* Increased for better spacing */
     width: 100%;
-    overflow: hidden; /* Ensures  radius */
+    overflow: hidden;   /* Ensures inner bar has rounded corners */
 }
 
 /* The actual moving bar inside the container */
 .chain-progress-bar {
     height: 100%;
     width: 0%; /* JavaScript will update this width */
-    border-radius: 3px;
+    border-radius: 5px; /* Increased */
     transition: width 0.5s ease-in-out; /* Smooth animation when width changes */
 }
 
