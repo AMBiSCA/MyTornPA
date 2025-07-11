@@ -108,9 +108,9 @@
     gap: 15px; /* Space between elements */
     margin-bottom: -5px;
     padding: 15px;
-    background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for the bar */
+    background-color: #444; /* Slightly darker background for the bar */
     border-radius: 8px;
-    border: 1px solid rgba(0, 168, 255, 0.1);
+    border: 1px solid black;
 }
 
 .fo-search-input,
