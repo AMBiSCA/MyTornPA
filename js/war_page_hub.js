@@ -2419,6 +2419,10 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
         if (yourChainData) {
             friendlyHitsEl.textContent = yourChainData.current !== undefined ? yourChainData.current.toLocaleString() : '0';
             friendlyTimeEl.textContent = formatTime(yourChainData.timeout || 0);
+			
+			 const friendlyProgressBar = document.getElementById('friendly-chain-progress');
+            updateChainProgress(yourChainData.current || 0, friendlyProgressBar);
+   
 
             currentLiveChainSeconds = yourChainData.timeout || 0;
             lastChainApiFetchTime = Date.now();
@@ -2435,6 +2439,10 @@ async function updateDualChainTimers(apiKey, yourFactionId, enemyFactionId) {
             if (enemyChainData) { // Use enemyChainData already extracted above
                  enemyHitsEl.textContent = enemyChainData.current !== undefined ? enemyChainData.current.toLocaleString() : '0';
                  enemyTimeEl.textContent = formatTime(enemyChainData.timeout || 0);
+				 
+				 const enemyProgressBar = document.getElementById('enemy-chain-progress');
+                 updateChainProgress(enemyChainData.current || 0, enemyProgressBar);
+				 
             } else {
                 enemyHitsEl.textContent = '0';
                 enemyTimeEl.textContent = 'Over';
@@ -3483,6 +3491,61 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
+/**
+ * Calculates and updates the width of a chain progress bar based on Torn's milestones.
+ * @param {number} currentHits - The current number of hits in the chain.
+ * @param {HTMLElement} progressBarElement - The DOM element of the progress bar to update.
+ */
+function updateChainProgress(currentHits, progressBarElement) {
+    // If the element doesn't exist, stop.
+    if (!progressBarElement) {
+        return;
+    }
+
+    // Define the Torn City chain respect milestones
+    const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
+
+    // Convert hits to a number
+    const hits = Number(currentHits);
+    if (isNaN(hits)) {
+        progressBarElement.style.width = '0%';
+        return;
+    }
+
+    // Find the next milestone we are aiming for
+    let nextMilestone = milestones.find(m => m > hits);
+
+    // If there is no next milestone, the chain is maxed out. Fill the bar.
+    if (nextMilestone === undefined) {
+        progressBarElement.style.width = '100%';
+        return;
+    }
+
+    // Find the previous milestone we passed
+    let previousMilestone = 0;
+    // This loop finds the largest milestone that is less than or equal to the current hits
+    for (let i = milestones.length - 1; i >= 0; i--) {
+        if (milestones[i] <= hits) {
+            previousMilestone = milestones[i];
+            break;
+        }
+    }
+
+    // Calculate the number of hits needed to get from the previous milestone to the next one
+    const totalForMilestone = nextMilestone - previousMilestone;
+    // Calculate how many hits we've made within that range
+    const progressInMilestone = hits - previousMilestone;
+    
+    // Calculate the percentage, ensuring we don't divide by zero
+    let percentage = 0;
+    if (totalForMilestone > 0) {
+        percentage = (progressInMilestone / totalForMilestone) * 100;
+    }
+
+    // Update the progress bar's width in the HTML
+    progressBarElement.style.width = percentage + '%';
+}
+
 // --- NEW FUNCTION: LISTENS FOR FACTION ENERGY/HITS UPDATES ---
 function setupFactionHitsListener(db, factionId) {
 	console.log("setupFactionHitsListener called with factionId:", factionId); // ADD THIS LINE
@@ -3537,6 +3600,8 @@ function setupFactionHitsListener(db, factionId) {
         abroadHitsElement.textContent = "Error";
     });
 }
+
+
 // NEW/MODIFIED: Function to populate enemy member checkboxes (Big Hitter Watchlist)
 function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = []) {
     if (!bigHitterWatchlistContainer) {
