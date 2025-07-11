@@ -599,6 +599,8 @@ async function fetchAllRawFactionNewsData() {
 
 // In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
 
+// In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
+
 /**
  * Processes raw Torn API faction news data (which is an array of news items)
  * into a standardized format for tables, parsing details from the 'text' field.
@@ -625,6 +627,7 @@ function processFactionNewsForTable(newsArray, category) {
         };
     };
 
+    // --- Corrected loop: Iterate over array elements directly ---
     safeNewsArray.forEach(entry => {
         const id = entry.id;
         const timestamp = new Date(entry.timestamp * 1000); // Convert Torn timestamp (seconds) to milliseconds
@@ -646,77 +649,191 @@ function processFactionNewsForTable(newsArray, category) {
         let result = 'N/A';
 
         // --- Common Parsing: Extract the primary actor (usually the first player link in the text) ---
-       const firstPlayerLinkMatch = sourceText.match(/^<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>/);
+        const firstPlayerLinkMatch = sourceText.match(/^<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>/);
         if (firstPlayerLinkMatch) {
             userId = firstPlayerLinkMatch[1];
             user = firstPlayerLinkMatch[2];
             console.log(`[DEBUG] Common User: ${user} (ID: ${userId})`);
+        } else {
+            console.log(`[DEBUG] Common User: NO MATCH for first player link in "${sourceText}"`);
         }
 
+
+        // --- Category-Specific Parsing ---
         if (category === 'armoryAction' || category === 'armoryDeposit') {
-            // Pattern 1: "...used one of the faction's [Item Name] items" (e.g., First Aid Kit, Lollipop)
-            // Pattern 2: "...loaned 1x [Item Name] to themselves from the faction armory" (e.g., Magnum, HEG)
-            // Pattern 3: "...gave 30x [Item Name] to themselves from the faction armory" (e.g., Flash Grenade, Xanax)
-            // Pattern 4: "...filled one of the faction's [Item Name] items" (e.g., Empty Blood Bag)
-            // Pattern 5: "...deposited [QTY] x [Item Name]" (e.g., 1 x Thompson, 20 x Morphine)
-            // Pattern 6: "...deposited [QTY] x [Item Name] items"
-            // Pattern 7: "...deposited [QTY] x [Item Name]"
-
             let match;
+            item = 'N/A'; // Reset to N/A for this specific category
+            quantity = 'N/A'; // Reset to N/A
 
-            // Try to match usage/withdrawal (Pattern 1, 2, 3)
-            match = sourceText.match(/(?:used|loaned|gave)\s+(?:(\d+x)\s+)?(?:one of the faction's\s+)?(.+?)\s+(?:item|items|to themselves|from the faction armory|from)/);
+            // Pattern 1: "<a...>User</a> used one of the faction's [Item Name] items" or "item"
+            // Example: "AMBiSCA used one of the faction's First Aid Kit items"
+            match = sourceText.match(/(?:used|filled)\s+one of the faction's\s+(.+?)\s+items?/);
             if (match) {
-                quantity = match[1] ? parseInt(match[1].replace('x', ''), 10) : 1; // Default to 1 if "one of the" or no quantity
-                item = match[2].trim().replace(/\s+items$/, ''); // Remove " items" if present
-            } else {
-                // Try to match deposits/fills (Pattern 4, 5, 6, 7)
-                match = sourceText.match(/(?:deposited|filled)\s+(?:(\d+)\s+x\s+)?(.+?)(?:\s+items)?(?:\s+to|\s+from)?/); // Capture quantity and item
+                quantity = 1; // "one of the" implies quantity 1
+                item = match[1].trim(); // Capture the item name
+                console.log(`[DEBUG] Armory Pattern 1 (Used/Filled 'one of the'): Item=${item}, Quantity=${quantity}`);
+            }
+
+            // Pattern 2: "<a...>User</a> withdrew [Qty]x [Item Name] from armory"
+            // Example: "KetchuPP gave 30x Flash Grenade to themselves from the faction armory"
+            // Example: "KetchuPP loaned 1x Magnum to themselves from the faction armory"
+            // Example: "whysellco deposited 1 x Bulletproof Vest"
+            // Example: "whysellco deposited 20 x Morphine"
+            // This is for explicit quantity (e.g., "30x" or "1 x")
+            if (item === 'N/A') { // Only try this if Pattern 1 didn't match
+                match = sourceText.match(/(?:withdrew|loaned|gave|deposited)\s+(?:(\d+)\s*x\s+)?(.+?)(?:\s+from|\s+to|\s+items?|\s+to themselves|\s+from the faction armory)?(?:\s+armory)?$/);
                 if (match) {
-                    quantity = match[1] ? parseInt(match[1], 10) : 1; // If "1 x Item" or just "Item"
-                    item = match[2].trim();
+                    quantity = match[1] ? parseInt(match[1], 10) : 1; // Explicit quantity, or default to 1
+                    item = match[2].trim(); // Capture the item name
+                    // Clean up specific suffixes that might be captured
+                    item = item.replace(/(?: items?)$/, '').replace(/(?: from the faction armory)$/, '').trim();
+                    console.log(`[DEBUG] Armory Pattern 2 (Withdraw/Deposit 'x' or direct): Item=${item}, Quantity=${quantity}`);
+                } else {
+                    console.log(`[DEBUG] Armory Pattern 2: NO MATCH for "${sourceText}"`);
                 }
             }
 
-            console.log(`[DEBUG] Armory Item: ${item}, Quantity: ${quantity}`);
-        }
-		
-		else if (category === 'depositFunds') {
+            // Pattern 3: Catch-all for simple deposits like "deposited [Item Name]" (no quantity specified, implies 1)
+            // If the item still hasn't been parsed, try a simpler 'deposited' match
+            if (item === 'N/A') {
+                match = sourceText.match(/deposited\s+(.+?)(?:\s+to armory)?$/);
+                if (match) {
+                    quantity = 1; // Assume 1 if no quantity is part of text
+                    item = match[1].trim();
+                    console.log(`[DEBUG] Armory Pattern 3 (Simple Deposited): Item=${item}, Quantity=${quantity}`);
+                } else {
+                    console.log(`[DEBUG] Armory Pattern 3: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            console.log(`[DEBUG] Final Armory Item: ${item}, Quantity: ${quantity}`);
+
+        } else if (category === 'depositFunds') {
+            // Example: "<a href...>User</a> deposited $1,000,000"
+            // Example: "<a href...>User</a> increased <a href...>Other</a>'s money balance by $267,644 from $X to $Y as their 25% cut..."
             const amountMatch = sourceText.match(/\$([\d,]+)/);
             amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
             console.log(`[DEBUG] Funds Deposited: ${amount}`);
+
         } else if (category === 'giveFunds') {
             // Example: "<a href...>Recipient</a> was given $X,XXX,XXX by <a href...>Sender</a>"
+            
             const amountMatch = sourceText.match(/\$([\d,]+)/);
             amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
 
-            // Extract Recipient Info (first player link in the string)
-            const recipientLinkMatch = sourceText.match(/^(<a[^>]*>.+?<\/a>)\s+was given/);
-            if (recipientLinkMatch) {
-                const recipientInfo = extractPlayerInfoFromHtml(recipientLinkMatch[1]);
-                recipient = recipientInfo.name;
-                recipientId = recipientInfo.id;
+            // Extract Recipient Info directly from the first part of the string
+            const recipientDataMatch = sourceText.match(/^<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>\s+was given/);
+            if (recipientDataMatch) {
+                recipientId = recipientDataMatch[1];
+                recipient = recipientDataMatch[2];
+            } else {
+                console.log(`[DEBUG] GiveFunds Recipient: NO MATCH for "${sourceText}"`);
             }
 
-            // Extract Sender Info (player link after "by ")
-            const senderLinkMatch = sourceText.match(/by\s+(<a[^>]*>.+?<\/a>)$/);
-            if (senderLinkMatch) {
-                const senderInfo = extractPlayerInfoFromHtml(senderLinkMatch[1]);
-                sender = senderInfo.name;
-                senderId = senderInfo.id;
+            // Extract Sender Info directly from the last part of the string
+            const senderDataMatch = sourceText.match(/by\s+<a\s+href\s*=\s*"[^"]+XID=(\d+)">([^<]+)<\/a>$/);
+            if (senderDataMatch) {
+                senderId = senderDataMatch[1];
+                sender = senderDataMatch[2];
+            } else {
+                console.log(`[DEBUG] GiveFunds Sender: NO MATCH for "${sourceText}"`);
             }
 
-            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER
+            // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER (the one who initiated the transfer)
             user = sender;
             userId = senderId;
+            
             console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
 
         } else if (category === 'crime') {
-            const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
-            const resultMatch = sourceText.match(/\((success|failure)\)/i);
-            crimeType = crimeTypeMatch ? crimeTypeMatch[1].trim() : 'N/A';
-            result = resultMatch ? resultMatch[1] : 'N/A';
-            console.log(`[DEBUG] Crime: Type=${crimeType}, Result=${result}`);
+            // Reset crimeType and result for current entry
+            crimeType = 'N/A';
+            result = 'N/A';
+
+            let match;
+
+            // Pattern 1: "<a...>User</a> committed Crime Type (Success/Failure)"
+            match = sourceText.match(/committed\s+(.+?)\s+\((success|failure)\)/i);
+            if (match) {
+                crimeType = match[1].trim();
+                result = match[2];
+                console.log(`[DEBUG] Crime Pattern 1 (Committed): Type=${crimeType}, Result=${result}`);
+            }
+
+            // Pattern 2: "...successfully completed <span class="bold">Crime Name</span>..."
+            // (This also implies Success)
+            if (crimeType === 'N/A') { // Only try if Pattern 1 didn't match
+                match = sourceText.match(/successfully completed <span class="bold">(.+?)<\/span>/);
+                if (match) {
+                    crimeType = match[1].trim();
+                    result = 'Success';
+                    // Check if there's an amount/item received too (e.g., "$1,541,000" or "1x Echo R8")
+                    const rewardMatch = sourceText.match(/receiving\s+<span class="bold">(.+?)<\/span>/);
+                    if(rewardMatch) {
+                        const rewardText = rewardMatch[1];
+                        if (rewardText.startsWith('$')) {
+                            amount = parseInt(rewardText.replace(/\$|,/g, ''), 10);
+                        } else if (rewardText.includes('x')) {
+                            const rewardQtyItemMatch = rewardText.match(/(\d+)x\s*(.+)/i);
+                            if(rewardQtyItemMatch) {
+                                quantity = parseInt(rewardQtyItemMatch[1], 10);
+                                item = rewardQtyItemMatch[2].trim();
+                            }
+                        } else { // No quantity, just item
+                            item = rewardText.trim();
+                            quantity = 1;
+                        }
+                    }
+                    console.log(`[DEBUG] Crime Pattern 2 (Successfully Completed): Type=${crimeType}, Result=${result}, Reward=${amount || (quantity + 'x ' + item)}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 2: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            // Pattern 3: "...failed to complete <span class="bold">Crime Name</span>..."
+            if (crimeType === 'N/A') { // Only try if Pattern 1 or 2 didn't match
+                match = sourceText.match(/failed to complete <span class="bold">(.+?)<\/span>/);
+                if (match) {
+                    crimeType = match[1].trim();
+                    result = 'Failure';
+                    console.log(`[DEBUG] Crime Pattern 3 (Failed to Complete): Type=${crimeType}, Result=${result}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 3: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            // Pattern 4: "...used X scope spawning the [introductory/simple] scenario <span class="bold">Scenario Name</span>..."
+            if (crimeType === 'N/A') { // Only try if previous patterns didn't match
+                match = sourceText.match(/used\s+\d+\s+scope spawning the\s+(?:introductory|simple)?\s*scenario\s+<span class="bold">(.+?)<\/span>/);
+                if (match) {
+                    crimeType = match[1].trim();
+                    result = 'Spawned'; // Custom result for spawning events
+                    console.log(`[DEBUG] Crime Pattern 4 (Scenario Spawned): Type=${crimeType}, Result=${result}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 4: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+            // Pattern 5: "actioned a money balance payout splitting X of the $AMOUNT between Y participants for ... <span class="bold">Scenario Name</span> scenario"
+            if (crimeType === 'N/A') { // Try this last for payout scenarios
+                match = sourceText.match(/actioned a money balance payout splitting(?:.+?)for.+?<span class="bold">(.+?)<\/span>\s+scenario/);
+                if (match) {
+                    crimeType = match[1].trim(); // Scenario name
+                    result = 'Payout'; // Custom result for payouts
+                    // Optionally parse amount here if needed for crime payout column
+                    const payoutAmountMatch = sourceText.match(/splitting\s+\d+% of the\s+\$([\d,]+)/);
+                    if (payoutAmountMatch) {
+                        amount = parseInt(payoutAmountMatch[1].replace(/,/g, ''), 10);
+                    }
+                    console.log(`[DEBUG] Crime Pattern 5 (Money Payout): Type=${crimeType}, Result=${result}, Amount=${amount}`);
+                } else {
+                    console.log(`[DEBUG] Crime Pattern 5: NO MATCH for "${sourceText}"`);
+                }
+            }
+
+
+            // If still N/A, it means it's an unhandled type.
+            console.log(`[DEBUG] Final Crime: Type=${crimeType}, Result=${result}`);
         }
 
         processed.push({
