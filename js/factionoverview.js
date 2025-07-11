@@ -1644,7 +1644,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (userProfileDoc.exists && userProfileDoc.data().tornApiKey) {
                     factionOverviewUserApiKey = userProfileDoc.data().tornApiKey;
                     factionOverviewGlobalYourFactionID = userProfileDoc.data().faction_id; // Get user's faction ID
-
+                 console.log(`[DEBUG] JS Faction ID: ${factionOverviewGlobalYourFactionID}, Type: ${typeof factionOverviewGlobalYourFactionID}`);
                     // Check user access before rendering the full page
                     const hasAccess = await checkIfUserHasFactionOverviewAccess();
                     if (hasAccess) {
