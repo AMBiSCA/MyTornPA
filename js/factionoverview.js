@@ -653,42 +653,65 @@ function processFactionNewsForTable(newsArray, category) {
             console.log(`[DEBUG] Common User: ${user} (ID: ${userId})`);
         }
 
-        // --- Category-Specific Parsing ---
         if (category === 'armoryAction' || category === 'armoryDeposit') {
-            const itemMatch = sourceText.match(/(?:(?:withdrew|deposited)\s+)(?:(\d+x)?\s*(.+?))(?:\s+from|\s+to)\s+armory/);
-            if (itemMatch) {
-                if (itemMatch[1] && itemMatch[1].endsWith('x')) { // If quantity (e.g., "5x") is present
-                    quantity = parseInt(itemMatch[1].replace('x', ''), 10);
-                    item = itemMatch[2].trim();
-                } else { // No explicit quantity, just item name
-                    quantity = 1; // Assume 1 if no quantity specified (e.g., "deposited Item Name")
-                    item = (itemMatch[1] || itemMatch[2]).trim(); // Item could be in group 1 or 2 depending on if quantity was there
+            // Pattern 1: "...used one of the faction's [Item Name] items" (e.g., First Aid Kit, Lollipop)
+            // Pattern 2: "...loaned 1x [Item Name] to themselves from the faction armory" (e.g., Magnum, HEG)
+            // Pattern 3: "...gave 30x [Item Name] to themselves from the faction armory" (e.g., Flash Grenade, Xanax)
+            // Pattern 4: "...filled one of the faction's [Item Name] items" (e.g., Empty Blood Bag)
+            // Pattern 5: "...deposited [QTY] x [Item Name]" (e.g., 1 x Thompson, 20 x Morphine)
+            // Pattern 6: "...deposited [QTY] x [Item Name] items"
+            // Pattern 7: "...deposited [QTY] x [Item Name]"
+
+            let match;
+
+            // Try to match usage/withdrawal (Pattern 1, 2, 3)
+            match = sourceText.match(/(?:used|loaned|gave)\s+(?:(\d+x)\s+)?(?:one of the faction's\s+)?(.+?)\s+(?:item|items|to themselves|from the faction armory|from)/);
+            if (match) {
+                quantity = match[1] ? parseInt(match[1].replace('x', ''), 10) : 1; // Default to 1 if "one of the" or no quantity
+                item = match[2].trim().replace(/\s+items$/, ''); // Remove " items" if present
+            } else {
+                // Try to match deposits/fills (Pattern 4, 5, 6, 7)
+                match = sourceText.match(/(?:deposited|filled)\s+(?:(\d+)\s+x\s+)?(.+?)(?:\s+items)?(?:\s+to|\s+from)?/); // Capture quantity and item
+                if (match) {
+                    quantity = match[1] ? parseInt(match[1], 10) : 1; // If "1 x Item" or just "Item"
+                    item = match[2].trim();
                 }
             }
+
             console.log(`[DEBUG] Armory Item: ${item}, Quantity: ${quantity}`);
-        } else if (category === 'depositFunds') {
+        }
+		
+		else if (category === 'depositFunds') {
             const amountMatch = sourceText.match(/\$([\d,]+)/);
             amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
             console.log(`[DEBUG] Funds Deposited: ${amount}`);
         } else if (category === 'giveFunds') {
+            // Example: "<a href...>Recipient</a> was given $X,XXX,XXX by <a href...>Sender</a>"
             const amountMatch = sourceText.match(/\$([\d,]+)/);
             amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, ''), 10) : 'N/A';
 
-            const recipientLinkMatch = sourceText.match(/^<a href="[^"]+XID=(\d+)">([^<]+)<\/a>\s+was given/);
+            // Extract Recipient Info (first player link in the string)
+            const recipientLinkMatch = sourceText.match(/^(<a[^>]*>.+?<\/a>)\s+was given/);
             if (recipientLinkMatch) {
-                recipientId = recipientLinkMatch[1];
-                recipient = recipientLinkMatch[2];
+                const recipientInfo = extractPlayerInfoFromHtml(recipientLinkMatch[1]);
+                recipient = recipientInfo.name;
+                recipientId = recipientInfo.id;
             }
 
-            const senderLinkMatch = sourceText.match(/by\s+<a href="[^"]+XID=(\d+)">([^<]+)<\/a>$/);
+            // Extract Sender Info (player link after "by ")
+            const senderLinkMatch = sourceText.match(/by\s+(<a[^>]*>.+?<\/a>)$/);
             if (senderLinkMatch) {
-                senderId = senderLinkMatch[1];
-                sender = senderLinkMatch[2];
+                const senderInfo = extractPlayerInfoFromHtml(senderLinkMatch[1]);
+                sender = senderInfo.name;
+                senderId = senderInfo.id;
             }
+
             // For 'giveFunds', the primary 'user' for the main table column should logically be the SENDER
             user = sender;
             userId = senderId;
             console.log(`[DEBUG] Funds Given: Sender=${sender} (ID:${senderId}), Recipient=${recipient} (ID:${recipientId}), Amount=${amount}`);
+
+        }
 
         } else if (category === 'crime') {
             const crimeTypeMatch = sourceText.match(/committed\s+(.+?)\s+\((?:success|failure)\)/);
