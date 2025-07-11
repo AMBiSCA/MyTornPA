@@ -1821,12 +1821,6 @@ function showCustomConfirm(message, title = "Confirm") {
     });
 }
 
-
-// =====================================================================================================================
-// INITIALIZATION ON PAGE LOAD
-// This section handles the initial setup when the Faction Overview page loads.
-// =====================================================================================================================
-
 // In factionoverview.js, replace the entire document.addEventListener('DOMContentLoaded', function() { ... }); block with this:
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1834,7 +1828,6 @@ document.addEventListener('DOMContentLoaded', function() {
     factionOverviewPageContentContainer = document.getElementById('factionOverviewPageContentContainer');
 
     // Authenticate user and fetch API key
-    // This runs whenever the user's Firebase authentication state changes (e.g., login, logout, page load)
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             try {
@@ -1845,23 +1838,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     console.log(`[DEBUG] JS Faction ID: ${factionOverviewGlobalYourFactionID}, Type: ${typeof factionOverviewGlobalYourFactionID}`);
 
-                    // --- MERGED: Fetch factionWars document ONCE and use it for both bankers and primary API key ---
-                    const warDoc = await db.collection('factionWars').doc('currentWar').get(); // Fetch warDoc ONLY ONCE
-                    console.log(`[DEBUG] FactionWars/currentWar document exists for current user: ${warDoc.exists}`); // Debug line
+                    // --- NEW/UPDATED: Robustly Fetch factionWars document and central API key/bankers list ---
+                    // This fetches the central configuration document for the faction.
+                    const warDocRef = db.collection('factionWars').doc('currentWar');
+                    const warDoc = await warDocRef.get(); // Fetch the document
+                    
+                    console.log(`[DEBUG] FactionWars/currentWar document exists for current user: ${warDoc.exists}`);
 
                     if (warDoc.exists) {
                         const warData = warDoc.data(); 
-
-                        // Load designated bankers list
+                        
+                        // Load designated bankers list (default to empty array if field doesn't exist)
                         designatedBankers = warData.designatedBankers || []; 
                         console.log(`[DEBUG] Loaded designatedBankers from Firebase:`, designatedBankers);
 
-                        // Load central primaryFactionApiKey
+                        // Load central primaryFactionApiKey (default to null if field doesn't exist)
                         primaryFactionApiKey = warData.primaryFactionApiKey || null;
                         if (primaryFactionApiKey) {
                              console.log("[DEBUG] Loaded central primaryFactionApiKey.");
                         } else {
-                             console.log("[DEBUG] No central primaryFactionApiKey found in factionWars/currentWar.");
+                             console.log("[DEBUG] No central primaryFactionApiKey found in factionWars/currentWar. This is okay if you haven't set it yet.");
                         }
                     } else {
                         // If factionWars/currentWar document doesn't exist, initialize with empty values
@@ -1869,10 +1865,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         primaryFactionApiKey = null;
                         console.log("[DEBUG] factionWars/currentWar document not found. Initializing bankers/primary API key to empty.");
                     }
-                    // --- END MERGED BLOCK ---
+                    // --- END ROBUST LOADING ---
 
                     // Check user access before rendering the full page (this function uses 'designatedBankers')
-                    const hasAccess = await checkIfUserHasFactionOverviewAccess();
+                    // TEMPORARY DEBUGGING FUNCTION: ALWAYS RETURNS TRUE IF AUTHENTICATED
+                    // This bypasses all access checks to allow the the Faction Overview page to load for debugging purposes.
+                    // You MUST revert this function to its proper state after debugging is complete.
+                    const hasAccess = await checkIfUserHasFactionOverviewAccess(); // This will return true due to temporary override
+                    
                     if (hasAccess) {
                         renderFactionOverviewPageLayout(); // Render full UI only if user has access
                         await fetchAllRawFactionNewsData(); // Fetch initial recent data
