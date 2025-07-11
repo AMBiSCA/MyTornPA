@@ -575,7 +575,6 @@ async function fetchTornApiData(url, comment) {
     }
 }
 async function fetchAllRawFactionNewsData() {
-    // Use Promise.all to fetch all news categories concurrently for efficiency
     try {
         const [armoryWithdrawalsResp, armoryDepositsResp, fundDepositsResp, fundWithdrawalsResp, crimeResp] = await Promise.all([
             fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=armoryAction&limit=100`, 'MyTornPA_ArmoryWithdrawals'),
@@ -585,7 +584,6 @@ async function fetchAllRawFactionNewsData() {
             fetchTornApiData(`https://api.torn.com/v2/faction/news?cat=crime&limit=100`, 'MyTornPA_CrimeLog')
         ]);
 
-        // Process and store the fetched news data into global variables
         armoryWithdrawalsData = processFactionNewsForTable(armoryWithdrawalsResp?.news || [], 'armoryAction');
         armoryDepositsData = processFactionNewsForTable(armoryDepositsResp?.news || [], 'armoryDeposit');
         fundDepositsData = processFactionNewsForTable(fundDepositsResp?.news || [], 'depositFunds');
@@ -593,21 +591,21 @@ async function fetchAllRawFactionNewsData() {
         crimeData = processFactionNewsForTable(crimeResp?.news || [], 'crime');
         console.log("All raw faction news data fetched and processed.");
 
-        // --- NEW CODE BLOCK TO FETCH BANK BALANCE ---
         const balanceResp = await fetchTornApiData(`https://api.torn.com/v2/faction/balance`, 'MyTornPA_BankBalance');
-        factionBankBalanceData = balanceResp?.balance || null; // Store the result
+        factionBankBalanceData = balanceResp?.balance || null;
         console.log("Faction bank balance data fetched successfully.");
-        // --- END NEW CODE BLOCK ---
 
-
-        // If the current tab is one of the main ones, refresh its display
-        if (['armory-withdrawals', 'armory-deposits', 'fund-deposits', 'fund-withdrawals', 'crime'].includes(currentActiveSubTab)) {
+        // --- THIS IS THE FIX ---
+        // We add 'bank-balance' to the list of tabs that should be refreshed when data arrives.
+        const tabsToRefresh = [
+            'armory-withdrawals', 'armory-deposits', 'fund-deposits', 
+            'fund-withdrawals', 'crime', 'bank-balance'
+        ];
+        if (tabsToRefresh.includes(currentActiveSubTab)) {
             switchFactionOverviewSubTab(currentActiveSubTab);
         }
 
-        // Trigger historical data processing after fetching raw data
         processAndStoreHistoricalData();
-
 
     } catch (error) {
         console.error("Failed to fetch all faction data:", error);
@@ -617,7 +615,6 @@ async function fetchAllRawFactionNewsData() {
         }
     }
 }
-
 function renderBankBalanceTabContent(targetElement) {
     // First, check if we have the data from our API call
     if (!factionBankBalanceData || !factionBankBalanceData.members) {
