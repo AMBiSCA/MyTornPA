@@ -3877,7 +3877,7 @@ min-width: 320px;
     align-items: center !important;
 }
 
-/* 3. Force the Quick Targets on the right to push itself ALL the way to the right */
+/* 3. Force the Quick Targets on the right to push itself the way to the right */
 #active-ops-tab .ops-control-item.ops-quick-targets {
     margin-left: auto !important;
 }
