@@ -685,6 +685,10 @@ function processFactionNewsForTable(newsArray, category) {
                            .replace(/\s+to themselves$/, '')
                            .replace(/\s+from armory$/, '') // Added this to clean up "Item from armory"
                            .trim();
+						   
+						    if (sourceText.includes("retrieved")) { // Check if the original text contained "retrieved"
+                    item = `Retrieved - ${item}`;
+                }
 
                 console.log(`[DEBUG] Armory Match Found: Item=${item}, Quantity=${quantity}`);
             } else {
@@ -842,7 +846,7 @@ function processFactionNewsForTable(newsArray, category) {
 
     // Sort by timestamp descending by default (most recent first)
     return processed.sort((a, b) => b.timestamp - a.timestamp);
-}
+
 /**
  * Placeholder: Fetches historical data from Firebase and processes it for Logistics and Oversight.
  * This function will be expanded during the implementation phase for long-term storage.
