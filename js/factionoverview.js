@@ -590,18 +590,6 @@ async function fetchAllRawFactionNewsData() {
         }
     }
 }
-
-// In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
-
-// In factionoverview.js, find the existing processFactionNewsForTable function and replace it entirely with this:
-
-/**
- * Processes raw Torn API faction news data (which is an array of news items)
- * into a standardized format for tables, parsing details from the 'text' field.
- * @param {Array<Object>} newsArray The 'news' array from the Torn API response.
- * @param {string} category The category string (e.g., 'armoryAction', 'giveFunds').
- * @returns {Array<Object>} An array of standardized data objects.
- */
 function processFactionNewsForTable(newsArray, category) {
     const processed = [];
     // Ensure newsArray is an actual array before trying to iterate.
@@ -670,7 +658,7 @@ function processFactionNewsForTable(newsArray, category) {
 
             if (match) {
                 // Determine quantity: If group 1 (explicit number before 'x') exists, parse it.
-                // Otherwise, if "one of the faction's" phrase was in the text, quantity is 1.
+                // Otherwise, if "one of the" was implied, quantity is 1.
                 // Otherwise, default to 1 (for simple "deposited Item Name" or other cases).
                 if (match[1]) { 
                     quantity = parseInt(match[1], 10);
@@ -689,11 +677,21 @@ function processFactionNewsForTable(newsArray, category) {
                            .replace(/\s+from armory$/, '') // Added this to clean up "Item from armory"
                            .trim();
 
-                // --- NEW: Prepend "Retrieved - " if the action was 'retrieved' ---
+                // --- NEW/UPDATED: Prepend action verb to item name based on the sourceText ---
                 if (sourceText.includes("retrieved")) { 
                     item = `Retrieved - ${item}`;
+                } else if (sourceText.includes("loaned")) {
+                    item = `Loaned - ${item}`;
+                } else if (sourceText.includes("gave")) {
+                    item = `Given - ${item}`;
+                } else if (sourceText.includes("used")) { // For generic "used" actions
+                    item = `Used - ${item}`;
+                } else if (sourceText.includes("deposited")) { // For deposits
+                    item = `Deposited - ${item}`;
+                } else if (sourceText.includes("filled")) { // For fills like blood bags
+                    item = `Filled - ${item}`;
                 }
-                // --- END NEW ---
+                // --- END NEW/UPDATED ---
 
                 console.log(`[DEBUG] Armory Match Found: Item=${item}, Quantity=${quantity}`);
             } else {
