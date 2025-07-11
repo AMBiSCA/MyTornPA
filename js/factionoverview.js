@@ -1422,13 +1422,11 @@ function generateAlertsFromData(armoryData, fundData) {
 
 // =====================================================================================================================
 // ACCESS CONTROL & SETTINGS
-// Functions for managing banker permissions and displaying the settings modal.
-// =====================================================================================================================
+// In factionoverview.js, find the existing checkIfUserHasFactionOverviewAccess function and replace it entirely with this:
 
 /**
  * Checks if the current logged-in user has permission to view the Faction Overview page.
  * Permissions: Leader, Co-leader, or designated Banker.
- * This function will be called on page load.
  * @returns {Promise<boolean>} True if user has access, false otherwise.
  */
 async function checkIfUserHasFactionOverviewAccess() {
@@ -1439,50 +1437,42 @@ async function checkIfUserHasFactionOverviewAccess() {
     }
 
     try {
-        // Fetch user's profile to get their Torn ID and position
         const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
         if (!userProfileDoc.exists) {
             console.warn("Access Check: User profile not found in Firebase.");
             return false; // Profile missing, no access
         }
         const userProfileData = userProfileDoc.data();
-        const userTornId = userProfileData.tornProfileId;
-        const userPosition = userProfileData.position ? userProfileData.position.toLowerCase() : '';
+        const userTornId = userProfileData.tornProfileId; // Torn ID from user's Firebase profile
+        const userPosition = userProfileData.position ? userProfileData.position.toLowerCase() : ''; // Position from user's Firebase profile
 
-        // Check if user is Leader or Co-leader
+        // --- Debug Logs for Access Check ---
+        console.log(`[DEBUG] Access Check: Current User UID: ${user.uid}`);
+        console.log(`[DEBUG] Access Check: User Torn ID from profile: '${userTornId}' (Type: ${typeof userTornId})`);
+        console.log(`[DEBUG] Access Check: User Position from profile: '${userPosition}'`);
+        console.log(`[DEBUG] Access Check: Global designatedBankers list:`, designatedBankers); // Should be populated earlier
+        // --- End Debug Logs ---
+
+        // 1. Check if user is Leader or Co-leader (highest access)
         if (userPosition === 'leader' || userPosition === 'co-leader') {
             console.log("Access Check: User is Leader/Co-leader. Access granted.");
             return true;
         }
 
-        // Fetch designated bankers list from Firebase
-        const warDocRef = db.collection('factionWars').doc('currentWar'); // Using 'currentWar' as the central doc
-        const warDoc = await warDocRef.get();
-        if (warDoc.exists) {
-            designatedBankers = warDoc.data().designatedBankers || []; // Load into global variable
-        } else {
-            designatedBankers = []; // No bankers set yet
-        }
-
-        // Check if user's Torn ID is in the designated bankers list
-        const hasAccess = designatedBankers.includes(String(userTornId));
-        if (hasAccess) {
+        // 2. If not Leader/Co-leader, check if they are a designated Banker
+        // This relies on 'designatedBankers' being loaded correctly earlier in DOMContentLoaded.
+        const isDesignatedBanker = designatedBankers.includes(String(userTornId)); // Ensure userTornId is string for comparison
+        if (isDesignatedBanker) {
             console.log("Access Check: User is a designated Banker. Access granted.");
         } else {
             console.warn("Access Check: User is neither Leader/Co-leader nor a designated Banker. Access denied.");
         }
-        return hasAccess;
-
+        return isDesignatedBanker; // Return the final access decision
     } catch (error) {
         console.error("Error during Faction Overview access check:", error);
         return false;
     }
 }
-
-/**
- * Displays the modal for managing designated bankers.
- * Only accessible to Leaders/Co-leaders.
- */
 async function showBankerSettingsModal() {
     const user = auth.currentUser;
     if (!user) {
@@ -1816,11 +1806,14 @@ function showCustomConfirm(message, title = "Confirm") {
 // This section handles the initial setup when the Faction Overview page loads.
 // =====================================================================================================================
 
+// In factionoverview.js, replace the entire document.addEventListener('DOMContentLoaded', function() { ... }); block with this:
+
 document.addEventListener('DOMContentLoaded', function() {
     // Get reference to the main content container here as it's now in the HTML
     factionOverviewPageContentContainer = document.getElementById('factionOverviewPageContentContainer');
 
     // Authenticate user and fetch API key
+    // This runs whenever the user's Firebase authentication state changes (e.g., login, logout, page load)
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             try {
@@ -1828,14 +1821,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (userProfileDoc.exists && userProfileDoc.data().tornApiKey) {
                     factionOverviewUserApiKey = userProfileDoc.data().tornApiKey;
                     factionOverviewGlobalYourFactionID = userProfileDoc.data().faction_id; // Get user's faction ID
-                 console.log(`[DEBUG] JS Faction ID: ${factionOverviewGlobalYourFactionID}, Type: ${typeof factionOverviewGlobalYourFactionID}`);
-                    // Check user access before rendering the full page
+
+                    console.log(`[DEBUG] JS Faction ID: ${factionOverviewGlobalYourFactionID}, Type: ${typeof factionOverviewGlobalYourFactionID}`);
+
+                    // --- MERGED: Fetch factionWars document ONCE and use it for both bankers and primary API key ---
+                    const warDoc = await db.collection('factionWars').doc('currentWar').get(); // Fetch warDoc ONLY ONCE
+                    console.log(`[DEBUG] FactionWars/currentWar document exists for current user: ${warDoc.exists}`); // Debug line
+
+                    if (warDoc.exists) {
+                        const warData = warDoc.data(); 
+
+                        // Load designated bankers list
+                        designatedBankers = warData.designatedBankers || []; 
+                        console.log(`[DEBUG] Loaded designatedBankers from Firebase:`, designatedBankers);
+
+                        // Load central primaryFactionApiKey
+                        primaryFactionApiKey = warData.primaryFactionApiKey || null;
+                        if (primaryFactionApiKey) {
+                             console.log("[DEBUG] Loaded central primaryFactionApiKey.");
+                        } else {
+                             console.log("[DEBUG] No central primaryFactionApiKey found in factionWars/currentWar.");
+                        }
+                    } else {
+                        // If factionWars/currentWar document doesn't exist, initialize with empty values
+                        designatedBankers = [];
+                        primaryFactionApiKey = null;
+                        console.log("[DEBUG] factionWars/currentWar document not found. Initializing bankers/primary API key to empty.");
+                    }
+                    // --- END MERGED BLOCK ---
+
+                    // Check user access before rendering the full page (this function uses 'designatedBankers')
                     const hasAccess = await checkIfUserHasFactionOverviewAccess();
                     if (hasAccess) {
                         renderFactionOverviewPageLayout(); // Render full UI only if user has access
-                        // Initial data fetch and continuous refresh setup
                         await fetchAllRawFactionNewsData(); // Fetch initial recent data
+
                         // Set up periodic refresh (e.g., every 5 minutes)
+                        if (factionOverviewRefreshInterval) clearInterval(factionOverviewRefreshInterval); // Clear existing interval if re-authenticating
                         factionOverviewRefreshInterval = setInterval(fetchAllRawFactionNewsData, 5 * 60 * 1000); // 5 minutes
                         console.log("Faction Overview: Automatic data refresh set to 5 minutes.");
                     } else {
