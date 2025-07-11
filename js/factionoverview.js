@@ -851,10 +851,6 @@ function processFactionNewsForTable(newsArray, category) {
     return processed.sort((a, b) => b.timestamp - a.timestamp);
 }
 
-/**
- * Processes newly fetched raw news data and stores it persistently in Firebase Firestore.
- * This builds up the long-term historical record for analytics.
- */
 async function processAndStoreHistoricalData() {
     if (!factionOverviewGlobalYourFactionID || !db) {
         console.warn("Historical Data Storage: Faction ID or Firebase DB not available. Skipping storage.");
@@ -920,10 +916,80 @@ async function processAndStoreHistoricalData() {
         console.log("[DEBUG] Historical Data: No new entries to commit to Firebase batch.");
     }
 
-    // TODO: After saving, fetch the *entire* relevant history back from Firebase
-    // into historicalArmoryLogs and historicalFundLogs for client-side processing.
-    // This part will be implemented later to ensure Logistics/Oversight have full data.
-    console.log("[DEBUG] Historical Data: Next step will be to fetch full historical data back from Firebase.");
+    // --- NEW: After saving (or if nothing new to save), fetch all historical data back from Firebase ---
+    await fetchAllHistoricalDataFromFirebase();
+}
+
+/**
+ * Fetches all historical data from Firestore into global arrays (historicalArmoryLogs, historicalFundLogs).
+ * This data is used by the Logistics and Oversight tabs for their summaries and calculations.
+ */
+async function fetchAllHistoricalDataFromFirebase() {
+    if (!factionOverviewGlobalYourFactionID || !db) {
+        console.warn("Fetch Historical Data: Faction ID or Firebase DB not available. Skipping fetch.");
+        return;
+    }
+
+    const factionHistoricalDataRef = db.collection('factionHistoricalData').doc(String(factionOverviewGlobalYourFactionID));
+
+    // Clear existing global historical data before refilling
+    historicalArmoryLogs = [];
+    historicalFundLogs = [];
+    // historicalCrimeLogs can be added here if needed for historical analysis, not just recent.
+    
+    try {
+        console.log("[DEBUG] Historical Data: Fetching all historical data from Firebase collections.");
+
+        // Fetch Armory Withdrawals (armoryAction type)
+        const armoryWithdrawalsSnapshot = await factionHistoricalDataRef.collection('armoryWithdrawals').orderBy('timestamp', 'desc').get();
+        armoryWithdrawalsSnapshot.forEach(doc => {
+            historicalArmoryLogs.push({ ...doc.data(), id: doc.id, category: 'armoryAction' }); // Add category for filtering
+        });
+
+        // Fetch Armory Deposits (armoryDeposit type)
+        const armoryDepositsSnapshot = await factionHistoricalDataRef.collection('armoryDeposits').orderBy('timestamp', 'desc').get();
+        armoryDepositsSnapshot.forEach(doc => {
+            historicalArmoryLogs.push({ ...doc.data(), id: doc.id, category: 'armoryDeposit' });
+        });
+
+        // Fetch Fund Deposits (depositFunds type)
+        const fundDepositsSnapshot = await factionHistoricalDataRef.collection('fundDeposits').orderBy('timestamp', 'desc').get();
+        fundDepositsSnapshot.forEach(doc => {
+            historicalFundLogs.push({ ...doc.data(), id: doc.id, category: 'depositFunds' });
+        });
+
+        // Fetch Fund Withdrawals (giveFunds type)
+        const fundWithdrawalsSnapshot = await factionHistoricalDataRef.collection('fundWithdrawals').orderBy('timestamp', 'desc').get();
+        fundWithdrawalsSnapshot.forEach(doc => {
+            historicalFundLogs.push({ ...doc.data(), id: doc.id, category: 'giveFunds' });
+        });
+
+        // (Optional) Fetch Crime data if needed for historical analysis (not just recent)
+        // You would add `historicalCrimeLogs = [];` to global variables
+        // and then fetch:
+        // const crimeHistorySnapshot = await factionHistoricalDataRef.collection('crime').orderBy('timestamp', 'desc').get();
+        // crimeHistorySnapshot.forEach(doc => { historicalCrimeLogs.push({ ...doc.data(), id: doc.id, category: 'crime' }); });
+
+
+        // Sort combined historical logs by timestamp (most recent first)
+        historicalArmoryLogs.sort((a, b) => b.timestamp - a.timestamp);
+        historicalFundLogs.sort((a, b) => b.timestamp - a.timestamp);
+
+        console.log(`[DEBUG] Historical Data: Loaded ${historicalArmoryLogs.length} armory entries and ${historicalFundLogs.length} fund entries from Firebase.`);
+        
+        // After loading historical data, populate the Logistics and Oversight tabs
+        // Check if they are currently active to update immediately, or they will update on next tab switch
+        if (currentActiveSubTab === 'logistics') {
+            populateLogisticsData();
+        }
+        if (currentActiveSubTab === 'oversight') {
+            populateOversightData();
+        }
+
+    } catch (error) {
+        console.error("Historical Data: Error fetching historical data from Firebase:", error);
+        showCustomAlert("Error loading historical data. Check console.", "Data Load Error");
+    }
 }
 
 /**
