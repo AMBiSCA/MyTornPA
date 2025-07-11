@@ -95,7 +95,9 @@ header {
     flex-shrink: 1; height: 100%; display: flex; justify-content: center; align-items: center;
 }
 #headerMainLogo {
-    max-height: 70px;  
+    max-height: 70px; 
+	width: 100%; /* <--- CHANGE THIS: Make image always take 100% width of its parent */
+    max-width: 100%; 
 	margin: 0;        /* <--- IMPORTANT: Ensure no negative margins pushing it out */
     padding: 0; 
 	display: block; 
