@@ -104,7 +104,7 @@
     align-items: center;
     justify-content: center; /* Center controls */
     gap: 15px; /* Space between elements */
-    margin-bottom: 0px;
+    margin-bottom: -10px;
     padding: 15px;
     background-color: rgba(0, 0, 0, 0.3); /* Slightly darker background for the bar */
     border-radius: 8px;
