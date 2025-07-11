@@ -1611,7 +1611,7 @@ async function populateBankerCheckboxes(container) {
     }
 }
 
-/async function saveDesignatedBankers(container, modalOverlay, newPrimaryApiKey) {
+async function saveDesignatedBankers(container, modalOverlay, newPrimaryApiKey) {
     // Get currently selected (checked) banker IDs from the checkboxes
     const selectedBankerIds = Array.from(container.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)'))
                                  .map(cb => cb.value);
