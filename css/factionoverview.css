@@ -852,7 +852,7 @@ html, body {
 /* Content area within Logistics Panels that will scroll */
 .fo-scrollable-panel-content {
     flex-grow: 1; /* Allow content area to fill remaining vertical space */
-    max-height: 250px; /* <--- ADJUST THIE: Sets the visible height before scrolling occurs */
+    max-height: 250px; /* <--- ADJUST THIE: Sts the visible height before scrolling occurs */
     overflow-y: auto; /* Enables vertical scrolling */
     overflow-x: hidden; /* Hides horizontal scrollbar */
     padding-right: 5px; /* Add slight padding for scrollbar */

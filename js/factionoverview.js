@@ -254,35 +254,57 @@ async function switchFactionOverviewSubTab(tabId) {
     applyCurrentFiltersAndSort();
 }
 
+/**
+ * Renders the final two-panel layout for the Faction Balances tab.
+ */
 function renderFactionBalancesTabContent(targetElement) {
-    // This HTML creates the main structure for the single panel and its sections.
-    const finalLayoutHtml = `
-        <div class="fo-section-panel" style="border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px; display: flex; flex-direction: column; height: calc(100vh - 250px);">
+    // This HTML creates the main structure for the two panels.
+    const twoPanelHtml = `
+        <div class="fo-balances-layout" style="display: flex; gap: 20px; padding: 15px; align-items: stretch;">
             
-            <div id="factionTotalsContainer" style="flex-shrink: 0; text-align: center; margin-bottom: 15px;">
-                <p>Loading totals...</p>
-            </div>
+            <div class="fo-balances-left-panel" style="flex: 3; display: flex; flex-direction: column; border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px;">
+                <h4 class="fo-panel-title" style="text-align: center; margin: 0 0 15px 0; font-size: 1.2em; color: white;">Faction Bank</h4>
+                
+                <div id="foOverallFactionBalances" style="margin-bottom: 15px; text-align: center; flex-shrink: 0;">
+                    <p>Loading totals...</p>
+                </div>
 
-            <div id="factionBalanceSearchContainer" style="flex-shrink: 0; margin-bottom: 15px; padding-bottom: 15px; border-top: 1px solid #3c5a7a; border-bottom: 1px solid #3c5a7a;">
-                <label for="memberBalanceSearchInput" style="display: block; text-align: center; margin-bottom: 10px; font-weight: bold;">Search Members' Finances:</label>
-                <div style="display: flex; justify-content: center; gap: 10px;">
-                    <input type="text" id="memberBalanceSearchInput" class="fo-search-input" style="width: 50%;">
-                    <button id="memberBalanceClearButton" class="fo-button">Clear</button>
+                <div id="foMemberBalancesScroll" style="overflow-y: auto; flex-grow: 1;">
+                    <p>Loading members...</p>
                 </div>
             </div>
 
-            <div id="factionBalanceListContainer" style="flex-grow: 1; overflow-y: auto;">
-                <p style="text-align: center; color: #aaa;">Loading members...</p>
+            <div class="fo-balances-right-panel" style="flex: 2; display: flex; flex-direction: column; border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px;">
+                <h4 class="fo-panel-title" style="text-align: center; margin: 0 0 15px 0; font-size: 1.2em; color: white;">Member & Fund Activity</h4>
+                
+                <div class="fo-member-fund-search-area" style="margin-bottom: 15px; flex-shrink: 0;">
+                    <input type="text" id="memberFundSearchInput" class="fo-search-input" placeholder="Search Player Name or ID...">
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="memberFundSearchButton" class="fo-button">Search</button>
+                        <button id="memberFundClearButton" class="fo-button">Clear</button>
+                    </div>
+                </div>
+
+                <div id="foFundActivityScroll" style="overflow-y: auto; flex-grow: 1; background: #1e2a38; padding: 10px; border-radius: 5px;">
+                    <p style="text-align: center; color: #aaa;">Search for a member's fund history or see recent news.</p>
+                </div>
             </div>
 
         </div>
     `;
-    targetElement.innerHTML = finalLayoutHtml;
+    targetElement.innerHTML = twoPanelHtml;
 
-    // Call the helper functions to fill the new layout with data.
+    // Hide the main controls bar since this tab has its own search.
+    const mainControlsBar = document.getElementById('factionOverviewControlsBar');
+    if (mainControlsBar) {
+        mainControlsBar.style.display = 'none';
+    }
+
+    // Call the new helper functions to fill the layout with data.
     populateFactionTotals();
-    populateMemberBalancesTwoColumn();
-    setupMemberBalanceSearch();
+    populateMemberBalancesList();
+    populateRecentFundNewsList();
+    setupMemberFundActivitySearch();
 }
 
 function populateRecentFundNewsList() {
