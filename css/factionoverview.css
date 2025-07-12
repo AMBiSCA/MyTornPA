@@ -875,7 +875,7 @@ html, body {
     }
 }
 
-/* Targets the container for the search elements */
+/* Targets the container for thearch elements */
 .fo-member-fund-search-area {
     display: flex;
     flex-direction: column;
