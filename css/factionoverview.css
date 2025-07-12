@@ -874,3 +874,25 @@ html, body {
         max-height: 200px; /* Adjust height for smaller screens */
     }
 }
+
+/* Targets the container for the search elements */
+.fo-member-fund-search-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This centers the items horizontally */
+    gap: 10px;
+}
+
+/* Gives the input field a defined width after centering */
+#memberFundSearchInput {
+    width: 80%;
+    max-width: 300px; /* Prevents it from getting too wide */
+}
+
+/* Targets the list items inside the scrollable container */
+#foFundActivityScroll li {
+    white-space: normal; /* Ensures text can wrap */
+    word-wrap: break-word; /* Forces long words/text to break */
+    overflow-wrap: break-word; /* Modern property for the same behavior */
+    line-height: 1.4; /* Adds a little space between wrapped lines */
+}
