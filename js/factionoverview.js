@@ -254,59 +254,148 @@ async function switchFactionOverviewSubTab(tabId) {
     applyCurrentFiltersAndSort();
 }
 
-/**
- * Renders the final two-panel layout for the Faction Balances tab.
- */
 function renderFactionBalancesTabContent(targetElement) {
-    // This HTML creates the main structure for the two panels.
-    const twoPanelHtml = `
-        <div class="fo-balances-layout" style="display: flex; gap: 20px; padding: 15px; align-items: stretch;">
+    // This HTML creates the main structure for the single panel and its sections.
+    const finalLayoutHtml = `
+        <div class="fo-section-panel" style="border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px; display: flex; flex-direction: column; height: calc(100vh - 250px);">
             
-            <div class="fo-balances-left-panel" style="flex: 3; display: flex; flex-direction: column; border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px;">
-                <h4 class="fo-panel-title" style="text-align: center; margin: 0 0 15px 0; font-size: 1.2em; color: white;">Faction Bank</h4>
-                
-                <div id="foOverallFactionBalances" style="margin-bottom: 15px; text-align: center; flex-shrink: 0;">
-                    <p>Loading totals...</p>
-                </div>
+            <div id="factionTotalsContainer" style="flex-shrink: 0; text-align: center; margin-bottom: 15px;">
+                <p>Loading totals...</p>
+            </div>
 
-                <div id="foMemberBalancesScroll" style="overflow-y: auto; flex-grow: 1;">
-                    <p>Loading members...</p>
+            <div id="factionBalanceSearchContainer" style="flex-shrink: 0; margin-bottom: 15px; padding-bottom: 15px; border-top: 1px solid #3c5a7a; border-bottom: 1px solid #3c5a7a;">
+                <label for="memberBalanceSearchInput" style="display: block; text-align: center; margin-bottom: 10px; font-weight: bold;">Search Members' Finances:</label>
+                <div style="display: flex; justify-content: center; gap: 10px;">
+                    <input type="text" id="memberBalanceSearchInput" class="fo-search-input" style="width: 50%;">
+                    <button id="memberBalanceClearButton" class="fo-button">Clear</button>
                 </div>
             </div>
 
-            <div class="fo-balances-right-panel" style="flex: 2; display: flex; flex-direction: column; border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px;">
-                <h4 class="fo-panel-title" style="text-align: center; margin: 0 0 15px 0; font-size: 1.2em; color: white;">Member & Fund Activity</h4>
-                
-                <div class="fo-member-fund-search-area" style="margin-bottom: 15px; flex-shrink: 0;">
-                    <input type="text" id="memberFundSearchInput" class="fo-search-input" placeholder="Search Player Name or ID...">
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button id="memberFundSearchButton" class="fo-button">Search</button>
-                        <button id="memberFundClearButton" class="fo-button">Clear</button>
-                    </div>
-                </div>
-
-                <div id="foFundActivityScroll" style="overflow-y: auto; flex-grow: 1; background: #1e2a38; padding: 10px; border-radius: 5px;">
-                    <p style="text-align: center; color: #aaa;">Search for a member's fund history or see recent news.</p>
-                </div>
+            <div id="factionBalanceListContainer" style="flex-grow: 1; overflow-y: auto;">
+                <p style="text-align: center; color: #aaa;">Loading members...</p>
             </div>
 
         </div>
     `;
-    targetElement.innerHTML = twoPanelHtml;
+    targetElement.innerHTML = finalLayoutHtml;
 
-    // Hide the main controls bar since this tab has its own search.
-    const mainControlsBar = document.getElementById('factionOverviewControlsBar');
-    if (mainControlsBar) {
-        mainControlsBar.style.display = 'none';
-    }
-
-    // Call the new helper functions to fill the layout with data.
+    // Call the helper functions to fill the new layout with data.
     populateFactionTotals();
-    populateMemberBalancesList();
-    populateRecentFundNewsList();
-    setupMemberFundActivitySearch();
+    populateMemberBalancesTwoColumn();
+    setupMemberBalanceSearch();
 }
 
+/**
+ * Populates the total money and points section.
+ */
+function populateFactionTotals() {
+    const container = document.getElementById('factionTotalsContainer');
+    if (!container) return;
+
+    if (!factionBalancesData) {
+        container.innerHTML = `<p style="color: #ffc107;">Faction balance data not available.</p>`;
+        return;
+    }
+
+    const money = factionBalancesData.faction?.money || 0;
+    const points = factionBalancesData.faction?.points || 0;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-around; background: #1e2a38; padding: 10px; border-radius: 5px;">
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Money</h4>
+                <h2 style="color: #28a745; margin: 0;">$${money.toLocaleString()}</h2>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Points</h4>
+                <h2 style="color: #28a745; margin: 0;">${points.toLocaleString()}</h2>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Populates the two-column member list.
+ * @param {Array} [membersToDisplay=factionBalancesData.members] - The array of members to display.
+ */
+function populateMemberBalancesTwoColumn(membersToDisplay) {
+    const container = document.getElementById('factionBalanceListContainer');
+    if (!container) return;
+    
+    // If no specific list is provided, use the full list from the global data.
+    if (!membersToDisplay) {
+        if (!factionBalancesData || !factionBalancesData.members) {
+            container.innerHTML = `<p>Member balance data not available.</p>`;
+            return;
+        }
+        membersToDisplay = factionBalancesData.members;
+    }
+    
+    membersToDisplay.sort((a, b) => a.username.localeCompare(b.username));
+    
+    const midpoint = Math.ceil(membersToDisplay.length / 2);
+    const leftColumnMembers = membersToDisplay.slice(0, midpoint);
+    const rightColumnMembers = membersToDisplay.slice(midpoint);
+
+    const createColumnHtml = (members) => {
+        let colHtml = '<table class="fo-data-table" style="width: 100%;"><tbody>';
+        members.forEach(member => {
+            const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
+            colHtml += `
+                <tr>
+                    <td>${member.username}</td>
+                    <td style="color: ${balanceColor}; text-align: right;">$${member.money.toLocaleString()}</td>
+                    <td style="text-align: right;">${member.points.toLocaleString()} pts</td>
+                </tr>
+            `;
+        });
+        colHtml += '</tbody></table>';
+        return colHtml;
+    };
+
+    const finalHtml = `
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">${createColumnHtml(leftColumnMembers)}</div>
+            <div style="flex: 1;">${createColumnHtml(rightColumnMembers)}</div>
+        </div>
+    `;
+
+    container.innerHTML = finalHtml;
+}
+
+/**
+ * Sets up the search functionality for the member balances list.
+ */
+function setupMemberBalanceSearch() {
+    const searchInput = document.getElementById('memberBalanceSearchInput');
+    const clearButton = document.getElementById('memberBalanceClearButton');
+
+    if (!searchInput || !clearButton) return;
+
+    const handleSearch = () => {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        
+        if (!factionBalancesData || !factionBalancesData.members) return;
+
+        if (!searchTerm) {
+            // If search is empty, show all members
+            populateMemberBalancesTwoColumn(factionBalancesData.members);
+            return;
+        }
+
+        const filteredMembers = factionBalancesData.members.filter(member => 
+            member.username.toLowerCase().includes(searchTerm)
+        );
+        
+        populateMemberBalancesTwoColumn(filteredMembers);
+    };
+    
+    searchInput.addEventListener('keyup', handleSearch);
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        handleSearch(); // Trigger search to reset the list
+    });
+}
 function populateRecentFundNewsList() {
     const container = document.getElementById('foFundActivityScroll');
     if (!container) return;
@@ -390,70 +479,8 @@ function setupMemberFundActivitySearch() {
     });
 }
 
-function populateFactionTotals() {
-    const container = document.getElementById('foOverallFactionBalances');
-    if (!container) return;
 
-    if (!factionBalancesData) {
-        container.innerHTML = `<p style="color: #ffc107;">Faction balance data not available.</p>`;
-        return;
-    }
 
-    const money = factionBalancesData.faction?.money || 0;
-    const points = factionBalancesData.faction?.points || 0;
-
-    container.innerHTML = `
-        <div style="display: flex; justify-content: space-around; background: #1e2a38; padding: 10px; border-radius: 5px;">
-            <div>
-                <h4 style="margin: 0 0 5px 0;">Total Money</h4>
-                <h2 style="color: #28a745; margin: 0;">$${money.toLocaleString()}</h2>
-            </div>
-            <div>
-                <h4 style="margin: 0 0 5px 0;">Total Points</h4>
-                <h2 style="color: #28a745; margin: 0;">${points.toLocaleString()}</h2>
-            </div>
-        </div>
-    `;
-}
-
-function populateMemberBalancesList() {
-    const container = document.getElementById('foMemberBalancesScroll');
-    if (!container) return;
-
-    if (!factionBalancesData || !factionBalancesData.members) {
-        container.innerHTML = `<p>Member balance data not available.</p>`;
-        return;
-    }
-    
-    const membersArray = factionBalancesData.members;
-    membersArray.sort((a, b) => a.username.localeCompare(b.username));
-    
-    let tableHtml = `
-        <table class="fo-data-table">
-            <thead>
-                <tr>
-                    <th>Member</th>
-                    <th style="text-align: right;">Money Balance</th>
-                    <th style="text-align: right;">Points Balance</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    membersArray.forEach(member => {
-        const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
-        tableHtml += `
-            <tr>
-                <td>${member.username} [${member.id}]</td>
-                <td style="color: ${balanceColor}; text-align: right;">$${member.money.toLocaleString()}</td>
-                <td style="text-align: right;">${member.points.toLocaleString()}</td>
-            </tr>
-        `;
-    });
-
-    tableHtml += `</tbody></table>`;
-    container.innerHTML = tableHtml;
-}
 function populateFactionBalances() {
     const container = document.getElementById('foOverallFactionBalances');
     if (!container) return;
