@@ -369,7 +369,44 @@ function setupMemberFundActivitySearch() {
 }
 
 
+function populateMemberBalancesList() {
+    const container = document.getElementById('foMemberBalancesScroll');
+    if (!container) return;
 
+    if (!factionBalancesData || !factionBalancesData.members) {
+        container.innerHTML = `<p>Member balance data not available.</p>`;
+        return;
+    }
+    
+    const membersArray = factionBalancesData.members;
+    membersArray.sort((a, b) => a.username.localeCompare(b.username));
+    
+    let tableHtml = `
+        <table class="fo-data-table">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th style="text-align: right;">Money Balance</th>
+                    <th style="text-align: right;">Points Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    membersArray.forEach(member => {
+        const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
+        tableHtml += `
+            <tr>
+                <td>${member.username} [${member.id}]</td>
+                <td style="color: ${balanceColor}; text-align: right;">$${member.money.toLocaleString()}</td>
+                <td style="text-align: right;">${member.points.toLocaleString()}</td>
+            </tr>
+        `;
+    });
+
+    tableHtml += `</tbody></table>`;
+    container.innerHTML = tableHtml;
+}
 function populateFactionBalances() {
     const container = document.getElementById('foOverallFactionBalances');
     if (!container) return;
