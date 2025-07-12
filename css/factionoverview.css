@@ -497,26 +497,26 @@
     min-height: 0; /* Crucial for flex item with overflow */
 }
 
-/* Individual Logistics Panel (e.g., Stock Levels Box, Large Movements Box) */
 .fo-logistics-panel {
-    flex: 1; /* Reset flex to prevent side-by-side forcing */
-    display: flex;
-    flex-direction: column; /* Stack title and content vertically */
-    
-    background-color: rgba(0, 0, 0, 0.2); /* Consistent with other section panels */
-    border: 1px solid rgba(0, 168, 255, 0.1);
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
-    padding: 15px; /* Internal padding */
-    box-sizing: border-box; /* Include padding in width */
+   flex: 1;
+   min-width: 0; /* Add this line */
+   display: flex;
+   flex-direction: column; /* Stack title and content vertically */ 
+   background-color: rgba(0, 0, 0, 0.2);
+   border: 1px solid rgba(0, 168, 255, 0.1);
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+   padding: 15px;
+   box-sizing: border-box;
 }
-
 /* The Logistics "full-width" panel (e.g. for charts if added later) */
 .fo-logistics-panel-full-width {
     width: 100%; /* Ensure it takes full width */
     max-width: none; /* Ensure it doesn't get capped */
     flex: none; /* Prevent flex from trying to put it side-by-side */
 }
+
+
 
 /* Titles within the Logistics/Oversight Panels - Defined once for reusability */
 .fo-panel-title {
