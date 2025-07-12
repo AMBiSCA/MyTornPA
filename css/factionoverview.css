@@ -267,21 +267,38 @@
 .fo-data-table th:nth-child(4), .fo-data-table td:nth-child(4) { width: 15%; } /* Quantity/Amount/Result */
 .fo-data-table th:nth-child(5), .fo-data-table td:nth-child(5) { width: 15%; } /* For Crime Type / Result */
 
-/* Custom Scrollbar Styles for .fo-data-table */
-.fo-data-table::-webkit-scrollbar {
-    width: 10px; height: 10px;
+/* Custom Scrollbar Styles for .fo-data-table and other scrollable panels */
+/* Defining them generally for webkit browsers */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
 }
-.fo-data-table::-webkit-scrollbar-track {
-    background: #2b2b2b; border-radius: 5px;
+::-webkit-scrollbar-track {
+    background: #2b2b2b;
+    border-radius: 5px;
 }
-.fo-data-table::-webkit-scrollbar-thumb {
-    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+::-webkit-scrollbar-thumb {
+    background-color: #007acc;
+    border-radius: 5px;
+    border: 2px solid #2b2b2b;
 }
-.fo-data-table::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
     background-color: #00a8ff;
 }
-.fo-data-table::-webkit-scrollbar-corner {
+::-webkit-scrollbar-corner {
     background: #222;
+}
+
+/* Style for links within table cells (User, Sender, Recipient columns) */
+.fo-data-table td a {
+    color: inherit; /* Makes the link color the same as the parent text (which is #eee) */
+    text-decoration: none; /* Removes the default underline from links */
+    cursor: pointer; /* Ensures it's clear it's clickable */
+}
+
+.fo-data-table td a:hover {
+    text-decoration: underline; /* Add underline back only on hover for subtle feedback */
+    color: #00e0ff; /* Optional: A slight highlight color on hover */
 }
 
 /* ====================================================================== */
@@ -352,7 +369,6 @@
     border: 1px solid #34495e;
 }
 
-
 /* Scrollable area for Member Balances List */
 #foMemberBalancesScroll {
     overflow-y: auto; /* Enable vertical scrolling */
@@ -408,7 +424,6 @@
 #foMemberBalancesScroll .fo-data-table tbody tr:last-child td {
     border-bottom: none; /* Remove last row's bottom border */
 }
-
 
 /* Search area for Member & Fund Activity */
 .fo-member-fund-search-area {
@@ -473,18 +488,16 @@
 /* Container for the two main Logistics panels (Stock Levels and Large Movements) */
 .fo-logistics-panels-container {
     display: flex;
-    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
+    flex-direction: column; /* Changed to column to stack panels */
     gap: 20px; /* Space between the panels */
-    justify-content: center; /* Center panels if they don't fill full width */
     flex-grow: 1; /* Allow this container to take up available vertical space */
     min-height: 0; /* Crucial for flex item with overflow */
 }
 
 /* Individual Logistics Panel (e.g., Stock Levels Box, Large Movements Box) */
 .fo-logistics-panel {
-    flex: 1; /* Allow panels to grow and shrink, taking equal space */
-    min-width: 300px; /* Minimum width for each panel before wrapping */
-    max-width: 48%; /* Max width to ensure two columns on wider screens */
+    width: 100%; /* Make panels take full width */
+    max-width: none; /* Remove max-width constraint */
     display: flex;
     flex-direction: column; /* Stack title and content vertically */
     
@@ -493,15 +506,11 @@
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
     padding: 15px; /* Internal padding */
+    box-sizing: border-box; /* Include padding in width */
 }
 
-/* Ensure the Large Movements panel takes full width on small screens if needed */
-.fo-logistics-panel-full-width {
-    /* On mobile, both panels will naturally stack and take full width due to flex-wrap */
-}
-
-/* Titles within the Logistics Panels (reusing fo-panel-title from Oversight) */
-.fo-panel-title { /* Kept here for context, but is defined once above for reusability */
+/* Titles within the Logistics/Oversight Panels - Defined once for reusability */
+.fo-panel-title {
     color: #00a8ff;
     font-size: 1.2rem;
     margin-top: 0;
@@ -512,10 +521,8 @@
     flex-shrink: 0;
 }
 
-
 /* Content area within Logistics Panels that will scroll */
-/* This class is shared with Oversight for scrollable areas */
-.fo-scrollable-panel-content {
+.fo-logistics-panel .fo-scrollable-panel-content { /* More specific selector */
     flex-grow: 1; /* Allow content area to fill remaining vertical space */
     max-height: 250px; /* Sets the visible height before scrolling occurs */
     overflow-y: auto; /* Enables vertical scrolling */
@@ -528,7 +535,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 0; /* Remove default table margin */
-    /* Use the generic fo-data-table::-webkit-scrollbar for scrollbar styles */
+    /* Use the generic ::-webkit-scrollbar for scrollbar styles */
 }
 .fo-logistics-panel .fo-summary-table th,
 .fo-logistics-panel .fo-summary-table td {
@@ -571,6 +578,41 @@
     font-size: 1.8rem;
     font-weight: bold;
     margin: 0;
+}
+
+/* Container for the two main Oversight panels (Top Users and Alerts) */
+.fo-oversight-panels-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
+    gap: 20px; /* Space between the panels */
+    justify-content: center; /* Center panels if they don't fill full width */
+    flex-grow: 1; /* Allow this container to take up available vertical space */
+    min-height: 0; /* Crucial for flex item with overflow */
+}
+
+/* Individual Oversight Panel (e.g., Top Users Box, Alerts Box) */
+.fo-oversight-panel {
+    flex: 1 1 48%; /* Allows two side-by-side with wrapping on smaller screens */
+    min-width: 300px; /* Minimum width for each panel */
+    max-width: 48%; /* Max width to ensure two columns on wider screens */
+    display: flex;
+    flex-direction: column; /* Stack title and content vertically */
+    
+    background-color: rgba(0, 0, 0, 0.2); /* Consistent with other section panels */
+    border: 1px solid rgba(0, 168, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+    padding: 15px; /* Internal padding */
+    box-sizing: border-box; /* Include padding in width */
+}
+
+/* Content area within Oversight Panels that will scroll */
+.fo-oversight-panel .fo-scrollable-panel-content { /* More specific selector */
+    flex-grow: 1; /* Allow content area to fill remaining vertical space */
+    max-height: 250px; /* Sets the visible height before scrolling occurs */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Hides horizontal scrollbar */
+    padding-right: 5px; /* Add slight padding for scrollbar */
 }
 
 .fo-list {
