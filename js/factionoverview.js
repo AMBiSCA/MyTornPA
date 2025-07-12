@@ -264,243 +264,67 @@ async function switchFactionOverviewSubTab(tabId) {
  * member balances with profile pictures, and a fund news/search section.
  * @param {HTMLElement} targetElement The DOM element to inject content into (factionOverviewDisplayArea).
  */
-async function renderFactionBalancesTabContent(targetElement) {
-    // Clear previous content
-    targetElement.innerHTML = `
-        <div class="fo-balances-layout">
-            <div class="fo-balances-left-panel">
-                <h4 class="fo-panel-title">💰 Current Faction Balances</h4>
-                <div id="foOverallFactionBalances" class="fo-balances-summary">
-                    <p style="text-align: center; padding: 10px; color: #ccc;">Loading faction balances...</p>
+ * Renders the two-panel layout for the Faction Balances tab.
+ */
+function renderFactionBalancesTabContent(targetElement) {
+    // This HTML creates the structure for the left and right panels.
+    const twoPanelHtml = `
+        <div class="fo-balances-layout" style="display: flex; gap: 20px; padding: 15px;">
+            
+            <div class="fo-balances-left-panel" style="flex: 3; display: flex; flex-direction: column; gap: 15px;">
+                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px;">
+                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">💰 Faction Totals</h4>
+                    <div id="foOverallFactionBalances" style="text-align: center;">
+                        <p>Loading...</p>
+                    </div>
                 </div>
-
-                <h4 class="fo-panel-title">👤 Member Balances</h4>
-                <div class="fo-scrollable-container fo-member-balances-scroll" id="foMemberBalancesScroll">
-                    <div class="fo-member-grid" id="foMemberBalancesGrid">
-                        <p style="text-align: center; padding: 15px; color: #ccc;">Loading member balances...</p>
+                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px; flex-grow: 1; display: flex; flex-direction: column;">
+                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">👤 Member Balances</h4>
+                    <div id="foMemberBalancesScroll" style="overflow-y: auto; flex-grow: 1;">
+                        <div id="foMemberBalancesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
+                            <p>Loading...</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="fo-balances-right-panel">
-                <h4 class="fo-panel-title">🔎 Member Fund Activity</h4>
-                <div class="fo-member-fund-search-area">
-                    <input type="text" id="memberFundSearchInput" class="fo-search-input" placeholder="Search Player Name or ID...">
-                    <button id="memberFundSearchButton" class="fo-button">Search</button>
-                    <button id="memberFundClearButton" class="fo-button">Clear</button>
-                    <div id="memberFundSearchResult" class="fo-search-result-box">
-                        <p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>
+            <div class="fo-balances-right-panel" style="flex: 2; display: flex; flex-direction: column; gap: 15px;">
+                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px;">
+                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">🔎 Member Fund Activity</h4>
+                    <div class="fo-member-fund-search-area" style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="text" id="memberFundSearchInput" class="fo-search-input" placeholder="Search Player Name or ID...">
+                        <div style="display: flex; gap: 10px;"><button id="memberFundSearchButton" class="fo-button">Search</button><button id="memberFundClearButton" class="fo-button">Clear</button></div>
+                        <div id="memberFundSearchResult" style="background: #1e2a38; padding: 10px; border-radius: 5px; min-height: 50px; margin-top: 5px;">
+                            <p style="text-align: center; color: #aaa;">Search for a member's fund history.</p>
+                        </div>
                     </div>
                 </div>
-
-                <h4 class="fo-panel-title">📰 Recent Fund News</h4>
-                <div class="fo-scrollable-container fo-fund-news-scroll" id="foRecentFundNewsScroll">
-                    <ul id="foRecentFundNewsList" class="fo-list">
-                        <li>Loading recent fund news...</li>
-                    </ul>
+                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px; flex-grow: 1; display: flex; flex-direction: column;">
+                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">📰 Recent Fund News</h4>
+                    <div id="foRecentFundNewsScroll" style="overflow-y: auto; flex-grow: 1;">
+                        <ul id="foRecentFundNewsList" class="fo-list" style="padding: 0; margin: 0; list-style: none;">
+                            <li>Loading...</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+
         </div>
     `;
+    targetElement.innerHTML = twoPanelHtml;
 
-    // Apply basic inline styles for the layout structure.
-    // Consider moving these to global.css for better maintainability.
-    const layoutContainer = targetElement.querySelector('.fo-balances-layout');
-    Object.assign(layoutContainer.style, {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '20px',
-        gap: '30px' // Space between columns
-    });
-
-    const leftPanel = targetElement.querySelector('.fo-balances-left-panel');
-    Object.assign(leftPanel.style, {
-        flex: '2', // Takes up more space, approx 60-65%
-        backgroundColor: '#2a3d52',
-        padding: '15px',
-        borderRadius: '8px',
-        border: '1px solid #3c5a7a',
-        display: 'flex', // Use flex for vertical stacking of its contents
-        flexDirection: 'column'
-    });
-
-    const rightPanel = targetElement.querySelector('.fo-balances-right-panel');
-    Object.assign(rightPanel.style, {
-        flex: '1', // Takes up less space, approx 35-40%
-        backgroundColor: '#2a3d52',
-        padding: '15px',
-        borderRadius: '8px',
-        border: '1px solid #3c5a7a',
-        display: 'flex', // Use flex for vertical stacking of its contents
-        flexDirection: 'column'
-    });
-
-    // Styles for common elements within panels
-    const panelTitles = targetElement.querySelectorAll('.fo-panel-title');
-    panelTitles.forEach(title => {
-        Object.assign(title.style, {
-            textAlign: 'center',
-            color: '#fff',
-            marginBottom: '15px',
-            fontSize: '1.2em',
-            fontWeight: '600'
-        });
-    });
-
-    const overallBalancesSummary = targetElement.querySelector('#foOverallFactionBalances');
-    Object.assign(overallBalancesSummary.style, {
-        backgroundColor: '#1e2a38',
-        padding: '15px',
-        borderRadius: '5px',
-        marginBottom: '20px',
-        textAlign: 'center',
-        color: '#ecf0f1',
-        lineHeight: '1.5',
-        flexShrink: '0' // Prevent shrinking
-    });
-
-    const memberGrid = targetElement.querySelector('#foMemberBalancesGrid');
-    Object.assign(memberGrid.style, {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)', // 3 members across
-        gap: '10px',
-        padding: '5px' // Inner padding for the grid itself
-    });
-
-    const memberBoxStyles = `
-        background-color: #1e2a38;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #34495e;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100px; /* Ensure boxes are tall enough */
-    `;
-
-    const profilePicStyles = `
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #3498db;
-        margin-bottom: 5px;
-    `;
-
-    const memberNameStyles = `
-        margin: 0;
-        font-weight: bold;
-        color: #8fd0ff;
-        font-size: 0.9em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    `;
-
-    const memberBalanceTextStyles = `
-        margin: 2px 0 0;
-        font-size: 0.8em;
-        color: #b0c4d8;
-    `;
-
-    const fundSearchAreaStyles = `
-        background-color: #1e2a38;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flexShrink: '0' // Prevent shrinking
-    `;
-    
-    const searchInputStyles = `
-        padding: 8px 12px;
-        border-radius: 5px;
-        border: 1px solid #3c5a7a;
-        background-color: #0f1924;
-        color: #ecf0f1;
-        width: 100%;
-        box-sizing: border-box;
-    `;
-
-    const buttonStyles = `
-        padding: 8px 15px;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.2s ease;
-    `;
-
-    const searchButtonStyles = `
-        background-color: #3498db;
-        color: white;
-    `;
-    const clearButtonStyles = `
-        background-color: #dc3545;
-        color: white;
-    `;
-
-    const searchResultBoxStyles = `
-        background-color: #0f1924;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #3c5a7a;
-        color: #ecf0f1;
-        font-size: 0.9em;
-        line-height: 1.4;
-    `;
-
-    const recentNewsListItemStyles = `
-        background-color: #1e2a38;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 8px;
-        border: 1px solid #34495e;
-        color: #e0e6eb;
-        font-size: 0.95em;
-    `;
-
-    // Apply scrollable container styles - common for both member and news sections
-    const scrollableContainers = targetElement.querySelectorAll('.fo-scrollable-container');
-    scrollableContainers.forEach(container => {
-        Object.assign(container.style, {
-            overflowY: 'auto',
-            paddingRight: '10px', // For scrollbar
-            flexGrow: '1', // Allow container to grow and take remaining space
-            marginBottom: '0' // No bottom margin for scrollable content
-        });
-    });
-
-    // Specific heights to make them start at a similar visual point, adjust as needed
-    // Calculate space dynamically if possible, or set a max-height
-    // For now, setting a fixed max-height for both to ensure consistent scroll start
-    const memberScrollContainer = targetElement.querySelector('#foMemberBalancesScroll');
-    const fundNewsScrollContainer = targetElement.querySelector('#foRecentFundNewsScroll');
-
-    if (memberScrollContainer && fundNewsScrollContainer) {
-        // Adjust these values based on actual content heights for best alignment
-        Object.assign(memberScrollContainer.style, { maxHeight: 'calc(100vh - 450px)' }); // Example: remaining viewport height minus header, balances, etc.
-        Object.assign(fundNewsScrollContainer.style, { maxHeight: 'calc(100vh - 450px)' }); // Match the member scroll height for alignment
-    }
-
-    // Hide the main controls bar (search/date for other tabs)
+    // Hide the main controls bar since this tab has its own search
     const mainControlsBar = document.getElementById('factionOverviewControlsBar');
     if (mainControlsBar) {
         mainControlsBar.style.display = 'none';
     }
 
-    // Populate data
+    // Now, call the functions to populate the new layout with data
     populateFactionBalances();
-    populateMemberBalances(memberBoxStyles, profilePicStyles, memberNameStyles, memberBalanceTextStyles);
-    populateRecentFundNews(recentNewsListItemStyles);
-    setupMemberFundSearch(searchInputStyles, buttonStyles, searchButtonStyles, clearButtonStyles, searchResultBoxStyles);
+    populateMemberBalances();
+    populateRecentFundNews();
+    setupMemberFundSearch();
 }
-
 /**
  * Populates the overall faction bank and points balances.
  */
