@@ -285,7 +285,6 @@ function renderFactionBalancesTabContent(targetElement) {
     setupMemberBalanceSearch();
 }
 
-
 function populateRecentFundNewsList() {
     const container = document.getElementById('foFundActivityScroll');
     if (!container) return;
