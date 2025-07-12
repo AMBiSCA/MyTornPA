@@ -368,6 +368,31 @@ function setupMemberFundActivitySearch() {
     });
 }
 
+function populateFactionTotals() {
+    const container = document.getElementById('foOverallFactionBalances');
+    if (!container) return;
+
+    if (!factionBalancesData) {
+        container.innerHTML = `<p style="color: #ffc107;">Faction balance data not available.</p>`;
+        return;
+    }
+
+    const money = factionBalancesData.faction?.money || 0;
+    const points = factionBalancesData.faction?.points || 0;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-around; background: #1e2a38; padding: 10px; border-radius: 5px;">
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Money</h4>
+                <h2 style="color: #28a745; margin: 0;">$${money.toLocaleString()}</h2>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Points</h4>
+                <h2 style="color: #28a745; margin: 0;">${points.toLocaleString()}</h2>
+            </div>
+        </div>
+    `;
+}
 
 function populateMemberBalancesList() {
     const container = document.getElementById('foMemberBalancesScroll');
