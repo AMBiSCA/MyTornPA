@@ -56,6 +56,7 @@
     color: #00e0ff; /* Lighter blue on hover */
 }
 
+
 /* ====================================================================== */
 /* Sub-Tab Navigation (all on one line)                                 */
 /* ====================================================================== */
@@ -95,6 +96,7 @@
     color: #fff;
     box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Glow for active tab */
 }
+
 
 /* ====================================================================== */
 /* Search, Filter & Date Controls                                       */
@@ -166,6 +168,7 @@
     font-weight: bold;
     white-space: nowrap;
 }
+
 
 /* ====================================================================== */
 /* Data Display Area (Main Content for Tables/Summaries)                */
@@ -300,6 +303,7 @@
     text-decoration: underline; /* Add underline back only on hover for subtle feedback */
     color: #00e0ff; /* Optional: A slight highlight color on hover */
 }
+
 
 /* ====================================================================== */
 /* Faction Balances Tab Specific Styles                                 */
@@ -488,16 +492,18 @@
 /* Container for the two main Logistics panels (Stock Levels and Large Movements) */
 .fo-logistics-panels-container {
     display: flex;
-    flex-direction: column; /* Changed to column to stack panels as per screenshot */
+    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
     gap: 20px; /* Space between the panels */
+    justify-content: center; /* Center panels if they don't fill full width */
     flex-grow: 1; /* Allow this container to take up available vertical space */
     min-height: 0; /* Crucial for flex item with overflow */
 }
 
 /* Individual Logistics Panel (e.g., Stock Levels Box, Large Movements Box) */
 .fo-logistics-panel {
-    width: 100%; /* Make panels take full width as per screenshot */
-    max-width: none; /* Remove max-width constraint if any */
+    flex: 1 1 48%; /* Allows two side-by-side with wrapping on smaller screens */
+    min-width: 300px; /* Minimum width for each panel */
+    max-width: 48%; /* Max width to ensure two columns on wider screens */
     display: flex;
     flex-direction: column; /* Stack title and content vertically */
     
@@ -507,16 +513,13 @@
     box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
     padding: 15px; /* Internal padding */
     box-sizing: border-box; /* Include padding in width */
-    flex: 1 1 auto; /* Allow to grow/shrink, but default to auto width */
 }
 
 /* The Logistics "full-width" panel (e.g. for charts if added later) */
 .fo-logistics-panel-full-width {
-    width: 100%; /* Ensure it takes full width */
-    max-width: none; /* Override any potential max-width from .fo-logistics-panel */
-    flex: 1 1 100%; /* Explicitly make it take full width and grow/shrink */
+    flex: 1 1 100%; /* Make it take full width */
+    max-width: 100%; /* Ensure it doesn't get capped at 48% */
 }
-
 
 /* Titles within the Logistics/Oversight Panels - Defined once for reusability */
 .fo-panel-title {
@@ -933,13 +936,21 @@
     .fo-scrollable-panel-content {
         max-height: 200px; /* Adjust height for smaller screens for all scrollable panels */
     }
-    /* Logistics specific mobile override */
+    /* Logistics specific mobile override: ensure panels stack vertically on small screens */
     .fo-logistics-panels-container {
-        flex-direction: column; /* Ensure it stays stacked on small screens too */
+        flex-direction: column;
     }
     .fo-logistics-panel {
-        width: 100%; /* Ensure full width on mobile */
-        max-width: none;
+        max-width: 100%; /* Ensure full width on mobile */
+        flex: 1 1 auto; /* Reset flex for full width on mobile */
+    }
+    /* Oversight specific mobile override: ensure panels stack vertically on small screens */
+    .fo-oversight-panels-container {
+        flex-direction: column;
+    }
+    .fo-oversight-panel {
+        max-width: 100%; /* Ensure full width on mobile */
+        flex: 1 1 auto; /* Reset flex for full width on mobile */
     }
 }
 
