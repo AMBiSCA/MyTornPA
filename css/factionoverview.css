@@ -896,3 +896,146 @@ html, body {
     overflow-wrap: break-word; /* Modern property for the same behavior */
     line-height: 1.4; /* Adds a little space between wrapped lines */
 }
+
+/* factionoverview.css */
+
+/* General container to ensure no overflow on the main content area */
+#factionOverviewPageContentContainer {
+    overflow-x: hidden; /* Prevent horizontal scroll for the entire page content */
+}
+
+/* Flex container for the two balance panels */
+.fo-balances-layout {
+    display: flex;
+    gap: 20px;
+    padding: 15px;
+    align-items: stretch;
+    /* Ensure the layout itself doesn't cause overflow and allows wrapping if necessary */
+    flex-wrap: nowrap; /* Keep panels on one line, use min-width if they must shrink too much */
+    justify-content: center; /* Center content if there's extra space */
+    width: 100%; /* Ensure it takes full available width */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* Individual panel styling */
+.fo-balances-left-panel,
+.fo-balances-right-panel {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid black;
+    padding: 15px;
+    background-color: #2a3d52;
+    border-radius: 8px;
+    box-sizing: border-box; /* Crucial: Include padding in the width calculation */
+    min-width: 300px; /* Give them a minimum width so they don't become too squished */
+    /* Remove explicit flex: 3 and flex: 2 to let flex-grow handle distribution based on content,
+       or manage with flex-basis: 0 and flex-grow values if you want proportional sizing */
+    flex-grow: 1; /* Allow panels to grow and shrink */
+    flex-shrink: 1;
+}
+
+.fo-balances-left-panel {
+    flex-basis: 60%; /* Or adjust to your desired base width proportion */
+    max-width: 65%; /* Max width to prevent it from getting too wide on large screens */
+}
+
+.fo-balances-right-panel {
+    flex-basis: 40%; /* Or adjust to your desired base width proportion */
+    max-width: 35%; /* Max width to prevent it from getting too wide on large screens */
+}
+
+
+/* Scrollable areas within panels */
+#foMemberBalancesScroll,
+#foFundActivityScroll {
+    overflow-y: auto; /* Enable vertical scrolling */
+    flex-grow: 1; /* Allow them to take available vertical space */
+    background: #1e2a38;
+    padding: 10px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    /* Important for scrollable content: ensure content doesn't push beyond the width */
+    width: 100%;
+    /* Use max-width or specific width if content inside can expand excessively */
+}
+
+/* Table specific styles for internal scroll if needed */
+.fo-data-table {
+    width: 100%; /* Ensure tables inside scrollable divs fit */
+    border-collapse: collapse;
+}
+
+.fo-data-table th,
+.fo-data-table td {
+    padding: 8px;
+    border: 1px solid #34495e;
+    text-align: left;
+    white-space: nowrap; /* Prevent text wrapping in table cells */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for hidden content */
+}
+
+/* Specific styling for the Member & Fund Activity search area */
+.fo-member-fund-search-area {
+    display: flex;
+    flex-direction: column; /* Stack input and buttons vertically */
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-shrink: 0; /* Don't allow it to shrink */
+    width: 100%; /* Ensure it takes full width of its parent */
+    box-sizing: border-box;
+}
+
+.fo-member-fund-search-area input.fo-search-input {
+    width: 100%; /* Make input take full width */
+    box-sizing: border-box;
+}
+
+.fo-member-fund-search-area div {
+    display: flex;
+    gap: 10px;
+    justify-content: space-around; /* Distribute buttons */
+    width: 100%; /* Ensure button container takes full width */
+    box-sizing: border-box;
+}
+
+.fo-member-fund-search-area button.fo-button {
+    flex-grow: 1; /* Allow buttons to grow to fill space */
+    max-width: 50%; /* Cap button width */
+    box-sizing: border-box;
+}
+
+/* General button and input styles to ensure they don't break layout */
+.fo-button, .fo-input {
+    box-sizing: border-box;
+}
+
+/* Ensure list items inside scrollable containers also handle overflow */
+#foFundActivityScroll ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#foFundActivityScroll li {
+    word-wrap: break-word; /* Allow long words to break and wrap */
+    white-space: normal; /* Allow text to wrap naturally */
+    padding: 8px;
+    border-bottom: 1px solid #34495e;
+    font-size: 0.9em;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 900px) {
+    .fo-balances-layout {
+        flex-direction: column; /* Stack panels vertically on smaller screens */
+        align-items: center; /* Center stacked panels */
+    }
+
+    .fo-balances-left-panel,
+    .fo-balances-right-panel {
+        width: 95%; /* Take almost full width */
+        max-width: none; /* Remove max-width constraint */
+        flex-basis: auto; /* Revert flex-basis */
+    }
+}
