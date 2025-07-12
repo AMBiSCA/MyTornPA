@@ -942,7 +942,7 @@
     }
     .fo-logistics-panel {
         max-width: 100%; /* Ensure full width on mobile */
-        flex: 1 1 auto; /* Reset flex for full width on mobile */
+        flex: 1 1 auto; /* Reset flex for full width n mobile */
     }
     /* Oversight specific mobile override: ensure panels stack vertically on small screens */
     .fo-oversight-panels-container {
