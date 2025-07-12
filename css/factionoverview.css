@@ -488,16 +488,18 @@
 /* Container for the two main Logistics panels (Stock Levels and Large Movements) */
 .fo-logistics-panels-container {
     display: flex;
-    flex-direction: column; /* Changed to column to stack panels */
+    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
     gap: 20px; /* Space between the panels */
+    justify-content: center; /* Center panels if they don't fill full width */
     flex-grow: 1; /* Allow this container to take up available vertical space */
     min-height: 0; /* Crucial for flex item with overflow */
 }
 
 /* Individual Logistics Panel (e.g., Stock Levels Box, Large Movements Box) */
 .fo-logistics-panel {
-    width: 100%; /* Make panels take full width */
-    max-width: none; /* Remove max-width constraint */
+    flex: 1 1 48%; /* Allows two side-by-side with wrapping on smaller screens */
+    min-width: 300px; /* Minimum width for each panel */
+    max-width: 48%; /* Max width to ensure two columns on wider screens */
     display: flex;
     flex-direction: column; /* Stack title and content vertically */
     
@@ -507,6 +509,12 @@
     box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
     padding: 15px; /* Internal padding */
     box-sizing: border-box; /* Include padding in width */
+}
+
+/* The Logistics "full-width" panel as originally intended (e.g. for charts if added later) */
+.fo-logistics-panel-full-width {
+    flex: 1 1 100%; /* Make it take full width */
+    max-width: 100%; /* Ensure it doesn't get capped at 48% */
 }
 
 /* Titles within the Logistics/Oversight Panels - Defined once for reusability */
