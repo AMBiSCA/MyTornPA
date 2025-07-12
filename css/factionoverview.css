@@ -498,16 +498,17 @@
 }
 
 .fo-logistics-panel {
-   flex: 1;
-   min-width: 0; /* Add this line */
-   display: flex;
-   flex-direction: column; /* Stack title and content vertically */ 
-   background-color: rgba(0, 0, 0, 0.2);
-   border: 1px solid rgba(0, 168, 255, 0.1);
-   border-radius: 8px;
-   box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
-   padding: 15px;
-   box-sizing: border-box;
+    flex: 1 1 48%;
+    max-width: 48%;
+    display: flex;
+    flex-direction: column; /* Stack title and content vertically */
+    
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 168, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+    padding: 15px;
+    box-sizing: border-box;
 }
 /* The Logistics "full-width" panel (e.g. for charts if added later) */
 .fo-logistics-panel-full-width {
