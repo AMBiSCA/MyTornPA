@@ -350,12 +350,7 @@ function populateFactionBalances() {
         </div>
     `;
 }
- * Populates individual member money and points balances with profile pictures.
- * @param {string} memberBoxStyles CSS string for member boxes.
- * @param {string} profilePicStyles CSS string for profile pictures.
- * @param {string} memberNameStyles CSS string for member names.
- * @param {string} memberBalanceTextStyles CSS string for balance text.
- */
+
 async function populateMemberBalances(memberBoxStyles, profilePicStyles, memberNameStyles, memberBalanceTextStyles) {
     const memberGridEl = document.getElementById('foMemberBalancesGrid');
     if (!memberGridEl) return;
