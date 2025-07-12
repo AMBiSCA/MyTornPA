@@ -351,6 +351,33 @@ function populateFactionBalances() {
     `;
 }
 
+function populateMemberBalances() {
+    const gridContainer = document.getElementById('foMemberBalancesGrid');
+    if (!gridContainer) return;
+
+    if (!factionBalancesData || !factionBalancesData.members) {
+        gridContainer.innerHTML = `<p>Member balance data not available.</p>`;
+        return;
+    }
+    
+    const membersArray = factionBalancesData.members;
+    membersArray.sort((a, b) => a.username.localeCompare(b.username));
+    
+    gridContainer.innerHTML = ''; // Clear loading message
+
+    membersArray.forEach(member => {
+        const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
+        const memberBox = `
+            <div style="background-color: #1e2a38; padding: 10px; border-radius: 5px; text-align: center;">
+                <p style="font-weight: bold; color: #8fd0ff; margin: 0;">${member.username}</p>
+                <p style="margin: 2px 0 0; font-size: 0.9em; color: ${balanceColor};">$${member.money.toLocaleString()}</p>
+                <p style="margin: 2px 0 0; font-size: 0.9em; color: #b0c4d8;">${member.points.toLocaleString()} points</p>
+            </div>
+        `;
+        gridContainer.innerHTML += memberBox;
+    });
+}
+
 async function populateMemberBalances(memberBoxStyles, profilePicStyles, memberNameStyles, memberBalanceTextStyles) {
     const memberGridEl = document.getElementById('foMemberBalancesGrid');
     if (!memberGridEl) return;
