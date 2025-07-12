@@ -253,78 +253,374 @@ async function switchFactionOverviewSubTab(tabId) {
     // After rendering, apply current filters if any
     applyCurrentFiltersAndSort();
 }
-// =====================================================================================================================
-// FACTION BALANCES TAB - NEW FUNCTIONS
-// These functions render and populate the content for the Faction Balances tab.
-// =====================================================================================================================
 
-/**
- * Renders the content specifically for the Faction Balances sub-tab.
- * This function creates the two-column layout, including overall faction balances,
- * member balances with profile pictures, and a fund news/search section.
- * @param {HTMLElement} targetElement The DOM element to inject content into (factionOverviewDisplayArea).
- */
- * Renders the two-panel layout for the Faction Balances tab.
- */
 function renderFactionBalancesTabContent(targetElement) {
-    // This HTML creates the structure for the left and right panels.
-    const twoPanelHtml = `
-        <div class="fo-balances-layout" style="display: flex; gap: 20px; padding: 15px;">
+    // This HTML creates the main structure for the two panels.
+    const finalLayoutHtml = `
+        <div class="fo-balances-layout" style="display: flex; gap: 20px; padding: 15px; height: calc(100vh - 220px);">
             
-            <div class="fo-balances-left-panel" style="flex: 3; display: flex; flex-direction: column; gap: 15px;">
-                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px;">
-                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">💰 Faction Totals</h4>
-                    <div id="foOverallFactionBalances" style="text-align: center;">
-                        <p>Loading...</p>
+            <div class="fo-balances-left-panel" style="flex: 3; display: flex; flex-direction: column; border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px;">
+                <div id="factionTotalsContainer" style="flex-shrink: 0; text-align: center; margin-bottom: 15px;">
+                    <p>Loading totals...</p>
+                </div>
+
+                <div id="factionBalanceSearchContainer" style="flex-shrink: 0; margin-bottom: 15px; padding-bottom: 15px; border-top: 1px solid #3c5a7a; border-bottom: 1px solid #3c5a7a;">
+                    <label for="memberBalanceSearchInput" style="display: block; text-align: center; margin-bottom: 10px; font-weight: bold;">Search Members' Finances:</label>
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        <input type="text" id="memberBalanceSearchInput" class="fo-search-input" style="width: 50%;">
+                        <button id="memberBalanceClearButton" class="fo-button">Clear</button>
                     </div>
                 </div>
-                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px; flex-grow: 1; display: flex; flex-direction: column;">
-                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">👤 Member Balances</h4>
-                    <div id="foMemberBalancesScroll" style="overflow-y: auto; flex-grow: 1;">
-                        <div id="foMemberBalancesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
-                            <p>Loading...</p>
-                        </div>
-                    </div>
+
+                <div id="factionBalanceListContainer" style="flex-grow: 1; overflow-y: auto;">
+                    <p style="text-align: center; color: #aaa;">Loading members...</p>
                 </div>
             </div>
 
-            <div class="fo-balances-right-panel" style="flex: 2; display: flex; flex-direction: column; gap: 15px;">
-                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px;">
-                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">🔎 Member Fund Activity</h4>
-                    <div class="fo-member-fund-search-area" style="display: flex; flex-direction: column; gap: 10px;">
-                        <input type="text" id="memberFundSearchInput" class="fo-search-input" placeholder="Search Player Name or ID...">
-                        <div style="display: flex; gap: 10px;"><button id="memberFundSearchButton" class="fo-button">Search</button><button id="memberFundClearButton" class="fo-button">Clear</button></div>
-                        <div id="memberFundSearchResult" style="background: #1e2a38; padding: 10px; border-radius: 5px; min-height: 50px; margin-top: 5px;">
-                            <p style="text-align: center; color: #aaa;">Search for a member's fund history.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="fo-section-panel" style="border: 2px solid black; padding: 15px; flex-grow: 1; display: flex; flex-direction: column;">
-                    <h4 class="fo-panel-title" style="text-align: center; margin-bottom: 10px;">📰 Recent Fund News</h4>
-                    <div id="foRecentFundNewsScroll" style="overflow-y: auto; flex-grow: 1;">
-                        <ul id="foRecentFundNewsList" class="fo-list" style="padding: 0; margin: 0; list-style: none;">
-                            <li>Loading...</li>
-                        </ul>
-                    </div>
+            <div class="fo-balances-right-panel" style="flex: 2; display: flex; flex-direction: column; border: 2px solid black; padding: 15px; background-color: #2a3d52; border-radius: 8px;">
+                <h4 class="fo-panel-title" style="text-align: center; margin: 0 0 15px 0; font-size: 1.2em; color: white;">Player Transaction History</h4>
+                <div id="playerHistoryContainer" style="flex-grow: 1; overflow-y: auto; background: #1e2a38; padding: 10px; border-radius: 5px;">
+                    <p style="text-align: center; color: #aaa;">Search for a player on the left to see their history.</p>
                 </div>
             </div>
 
         </div>
     `;
-    targetElement.innerHTML = twoPanelHtml;
+    targetElement.innerHTML = finalLayoutHtml;
 
-    // Hide the main controls bar since this tab has its own search
-    const mainControlsBar = document.getElementById('factionOverviewControlsBar');
-    if (mainControlsBar) {
-        mainControlsBar.style.display = 'none';
+    // Call the helper functions to fill the new layout with data.
+    populateFactionTotalsForFinalLayout();
+    populateMemberBalancesForFinalLayout();
+    setupFinalMemberSearch();
+}
+/**
+ * Populates the total money and points section in the new layout.
+ */
+function populateFactionTotalsForFinalLayout() {
+    const container = document.getElementById('factionTotalsContainer');
+    if (!container || !factionBalancesData) return;
+
+    const money = factionBalancesData.faction?.money || 0;
+    const points = factionBalancesData.faction?.points || 0;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-around; background: #1e2a38; padding: 10px; border-radius: 5px;">
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Money</h4>
+                <h2 style="color: #28a745; margin: 0;">$${money.toLocaleString()}</h2>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Points</h4>
+                <h2 style="color: #28a745; margin: 0;">${points.toLocaleString()}</h2>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Populates the two-column member list in the new layout.
+ * @param {Array} [membersToDisplay] - The array of members to display. If empty, uses all members.
+ */
+function populateMemberBalancesForFinalLayout(membersToDisplay) {
+    const container = document.getElementById('factionBalanceListContainer');
+    if (!container) return;
+
+    if (!membersToDisplay) {
+        if (!factionBalancesData || !factionBalancesData.members) {
+            container.innerHTML = `<p>Member balance data not available.</p>`;
+            return;
+        }
+        membersToDisplay = factionBalancesData.members;
+    }
+    
+    if (membersToDisplay.length === 0) {
+        container.innerHTML = `<p style="text-align:center; padding: 20px;">No members match your search.</p>`;
+        return;
     }
 
-    // Now, call the functions to populate the new layout with data
-    populateFactionBalances();
-    populateMemberBalances();
-    populateRecentFundNews();
-    setupMemberFundSearch();
+    membersToDisplay.sort((a, b) => a.username.localeCompare(b.username));
+    
+    const midpoint = Math.ceil(membersToDisplay.length / 2);
+    const leftColumn = membersToDisplay.slice(0, midpoint);
+    const rightColumn = membersToDisplay.slice(midpoint);
+
+    const createColumnHtml = (members) => {
+        let colHtml = '<table class="fo-data-table" style="width: 100%;"><tbody>';
+        members.forEach(member => {
+            colHtml += `<tr>
+                <td>${member.username}</td>
+                <td style="text-align: right;">$${member.money.toLocaleString()}</td>
+                <td style="text-align: right;">${member.points.toLocaleString()} pts</td>
+            </tr>`;
+        });
+        colHtml += '</tbody></table>';
+        return colHtml;
+    };
+
+    container.innerHTML = `<div style="display: flex; gap: 20px;">
+        <div style="flex: 1;">${createColumnHtml(leftColumn)}</div>
+        <div style="flex: 1;">${createColumnHtml(rightColumn)}</div>
+    </div>`;
 }
+
+/**
+ * Sets up the search functionality for the final layout.
+ */
+function setupFinalMemberSearch() {
+    const searchInput = document.getElementById('memberBalanceSearchInput');
+    const clearButton = document.getElementById('memberBalanceClearButton');
+    const historyContainer = document.getElementById('playerHistoryContainer');
+
+    if (!searchInput || !clearButton || !historyContainer) return;
+
+    const allFundActivity = [...fundDepositsData, ...fundWithdrawalsData];
+
+    const handleSearch = () => {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        
+        if (!factionBalancesData || !factionBalancesData.members) return;
+
+        // Filter the left panel (member balances)
+        const filteredMembers = searchTerm 
+            ? factionBalancesData.members.filter(m => m.username.toLowerCase().includes(searchTerm) || String(m.id).includes(searchTerm))
+            : factionBalancesData.members;
+        populateMemberBalancesForFinalLayout(filteredMembers);
+
+        // Filter the right panel (transaction history)
+        if (!searchTerm) {
+            historyContainer.innerHTML = `<p style="text-align: center; color: #aaa;">Search for a player on the left to see their history.</p>`;
+            return;
+        }
+        
+        const memberHistory = allFundActivity.filter(item => {
+            const user = (item.user || '').toLowerCase();
+            const sender = (item.sender || '').toLowerCase();
+            const recipient = (item.recipient || '').toLowerCase();
+            const userId = (item.userId || '').toString();
+            const senderId = (item.senderId || '').toString();
+            const recipientId = (item.recipientId || '').toString();
+            return user.includes(searchTerm) || sender.includes(searchTerm) || recipient.includes(searchTerm) || userId.includes(searchTerm) || senderId.includes(searchTerm) || recipientId.includes(searchTerm);
+        });
+
+        if (memberHistory.length === 0) {
+            historyContainer.innerHTML = `<p style="padding:15px; text-align:center;">No fund history found for "${searchInput.value}".</p>`;
+            return;
+        }
+
+        let historyHtml = '<ul style="padding: 0; margin: 0; list-style: none;">';
+        memberHistory.sort((a, b) => b.timestamp - a.timestamp).forEach(item => {
+             let text = '';
+             if (item.recipient) {
+                text = `${item.sender} sent <strong style="color: #28a745;">$${item.amount.toLocaleString()}</strong> to ${item.recipient}`;
+             } else {
+                text = `${item.user} deposited <strong style="color: #28a745;">$${item.amount.toLocaleString()}</strong>`;
+             }
+             historyHtml += `<li style="padding: 8px; border-bottom: 1px solid #34495e; font-size: 0.9em;">${formatTimestampToLocale(item.timestamp)}: ${text}</li>`;
+        });
+        historyHtml += '</ul>';
+        historyContainer.innerHTML = historyHtml;
+    };
+    
+    searchInput.addEventListener('keyup', handleSearch);
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        handleSearch();
+    });
+}
+
+function populateFactionTotals() {
+    const container = document.getElementById('factionTotalsContainer');
+    if (!container) return;
+
+    if (!factionBalancesData) {
+        container.innerHTML = `<p style="color: #ffc107;">Faction balance data not available.</p>`;
+        return;
+    }
+
+    const money = factionBalancesData.faction?.money || 0;
+    const points = factionBalancesData.faction?.points || 0;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-around; background: #1e2a38; padding: 10px; border-radius: 5px;">
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Money</h4>
+                <h2 style="color: #28a745; margin: 0;">$${money.toLocaleString()}</h2>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 5px 0;">Total Points</h4>
+                <h2 style="color: #28a745; margin: 0;">${points.toLocaleString()}</h2>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Populates the two-column member list.
+ * @param {Array} [membersToDisplay=factionBalancesData.members] - The array of members to display.
+ */
+function populateMemberBalancesTwoColumn(membersToDisplay) {
+    const container = document.getElementById('factionBalanceListContainer');
+    if (!container) return;
+    
+    // If no specific list is provided, use the full list from the global data.
+    if (!membersToDisplay) {
+        if (!factionBalancesData || !factionBalancesData.members) {
+            container.innerHTML = `<p>Member balance data not available.</p>`;
+            return;
+        }
+        membersToDisplay = factionBalancesData.members;
+    }
+    
+    membersToDisplay.sort((a, b) => a.username.localeCompare(b.username));
+    
+    const midpoint = Math.ceil(membersToDisplay.length / 2);
+    const leftColumnMembers = membersToDisplay.slice(0, midpoint);
+    const rightColumnMembers = membersToDisplay.slice(midpoint);
+
+    const createColumnHtml = (members) => {
+        let colHtml = '<table class="fo-data-table" style="width: 100%;"><tbody>';
+        members.forEach(member => {
+            const balanceColor = member.money < 0 ? '#dc3545' : '#ecf0f1';
+            colHtml += `
+                <tr>
+                    <td>${member.username}</td>
+                    <td style="color: ${balanceColor}; text-align: right;">$${member.money.toLocaleString()}</td>
+                    <td style="text-align: right;">${member.points.toLocaleString()} pts</td>
+                </tr>
+            `;
+        });
+        colHtml += '</tbody></table>';
+        return colHtml;
+    };
+
+    const finalHtml = `
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">${createColumnHtml(leftColumnMembers)}</div>
+            <div style="flex: 1;">${createColumnHtml(rightColumnMembers)}</div>
+        </div>
+    `;
+
+    container.innerHTML = finalHtml;
+}
+
+/**
+ * Sets up the search functionality for the member balances list.
+ */
+function setupMemberBalanceSearch() {
+    const searchInput = document.getElementById('memberBalanceSearchInput');
+    const clearButton = document.getElementById('memberBalanceClearButton');
+
+    if (!searchInput || !clearButton) return;
+
+    const handleSearch = () => {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        
+        if (!factionBalancesData || !factionBalancesData.members) return;
+
+        if (!searchTerm) {
+            // If search is empty, show all members
+            populateMemberBalancesTwoColumn(factionBalancesData.members);
+            return;
+        }
+
+        const filteredMembers = factionBalancesData.members.filter(member => 
+            member.username.toLowerCase().includes(searchTerm)
+        );
+        
+        populateMemberBalancesTwoColumn(filteredMembers);
+    };
+    
+    searchInput.addEventListener('keyup', handleSearch);
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        handleSearch(); // Trigger search to reset the list
+    });
+}
+function populateRecentFundNewsList() {
+    const container = document.getElementById('foFundActivityScroll');
+    if (!container) return;
+
+    const allFundActivity = [...fundDepositsData, ...fundWithdrawalsData];
+    allFundActivity.sort((a, b) => b.timestamp - a.timestamp);
+    const recentActivity = allFundActivity.slice(0, 20); // Show top 20 recent activities
+
+    if (recentActivity.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#aaa;">No recent fund activity found.</p>`;
+        return;
+    }
+
+    let listHtml = '<ul style="padding: 0; margin: 0; list-style: none;">';
+    recentActivity.forEach(item => {
+        let text = '';
+        if (item.recipient) { // This is a withdrawal
+            text = `${item.sender} sent <strong style="color: #28a745;">$${item.amount.toLocaleString()}</strong> to ${item.recipient}`;
+        } else { // This is a deposit
+            text = `${item.user} deposited <strong style="color: #28a745;">$${item.amount.toLocaleString()}</strong>`;
+        }
+        listHtml += `<li style="padding: 8px; border-bottom: 1px solid #34495e; font-size: 0.9em;">${text}</li>`;
+    });
+    listHtml += '</ul>';
+    container.innerHTML = listHtml;
+}
+
+function setupMemberFundActivitySearch() {
+    const searchInput = document.getElementById('memberFundSearchInput');
+    const searchButton = document.getElementById('memberFundSearchButton');
+    const clearButton = document.getElementById('memberFundClearButton');
+    const resultsBox = document.getElementById('foFundActivityScroll');
+
+    if (!searchButton || !resultsBox || !searchInput || !clearButton) return;
+    
+    const searchHandler = () => {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        if (!searchTerm) {
+            // If search is cleared, show recent news again
+            populateRecentFundNewsList();
+            return;
+        }
+
+        const allFundActivity = [...fundDepositsData, ...fundWithdrawalsData];
+        const memberHistory = allFundActivity.filter(item => {
+            const user = (item.user || '').toLowerCase();
+            const sender = (item.sender || '').toLowerCase();
+            const recipient = (item.recipient || '').toLowerCase();
+            const id = (item.userId || item.senderId || item.recipientId || '').toString();
+            return user.includes(searchTerm) || sender.includes(searchTerm) || recipient.includes(searchTerm) || id.includes(searchTerm);
+        });
+
+        if (memberHistory.length === 0) {
+            resultsBox.innerHTML = `<p style="padding:15px; text-align:center;">No fund history found for "${searchInput.value}".</p>`;
+            return;
+        }
+
+        let resultsHtml = '<ul style="padding: 0; margin: 0; list-style: none;">';
+        memberHistory.sort((a, b) => b.timestamp - a.timestamp).forEach(item => {
+             let text = '';
+             if (item.recipient) {
+                text = `${item.sender} sent <strong style="color: #28a745;">$${item.amount.toLocaleString()}</strong> to ${item.recipient}`;
+             } else {
+                text = `${item.user} deposited <strong style="color: #28a745;">$${item.amount.toLocaleString()}</strong>`;
+             }
+             resultsHtml += `<li style="padding: 8px; border-bottom: 1px solid #34495e; font-size: 0.9em;">${formatTimestampToLocale(item.timestamp)}: ${text}</li>`;
+        });
+        resultsHtml += '</ul>';
+        resultsBox.innerHTML = resultsHtml;
+    };
+
+    searchButton.addEventListener('click', searchHandler);
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') searchHandler();
+    });
+
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        // When cleared, show the default recent news list
+        populateRecentFundNewsList();
+    });
+}
+
+
+
 function populateFactionBalances() {
     const container = document.getElementById('foOverallFactionBalances');
     if (!container) return;
@@ -378,191 +674,83 @@ function populateMemberBalances() {
     });
 }
 
-async function populateMemberBalances(memberBoxStyles, profilePicStyles, memberNameStyles, memberBalanceTextStyles) {
-    const memberGridEl = document.getElementById('foMemberBalancesGrid');
-    if (!memberGridEl) return;
+function populateRecentFundNews() {
+    const listContainer = document.getElementById('foRecentFundNewsList');
+    if (!listContainer) return;
 
-    memberGridEl.innerHTML = `<p style="text-align: center; padding: 15px; color: #ccc;">Fetching member data...</p>`;
+    // Combine deposits and withdrawals, sort by date, and take the top 15
+    const allFundActivity = [...fundDepositsData, ...fundWithdrawalsData];
+    allFundActivity.sort((a, b) => b.timestamp - a.timestamp);
+    const recentActivity = allFundActivity.slice(0, 15);
 
-    try {
-        const factionId = factionOverviewGlobalYourFactionID;
-        const apiKey = primaryFactionApiKey || factionOverviewUserApiKey;
-
-        if (!factionId || !apiKey) {
-            memberGridEl.innerHTML = `<p style="text-align: center; color: red;">Cannot load members: Faction ID or API Key missing.</p>`;
-            return;
-        }
-
-        // Fetch faction members with basic details (money, points)
-        const factionMembersResp = await fetchTornApiData(
-            `https://api.torn.com/v2/faction/${factionId}?selections=members`,
-            'MyTornPA_FactionMemberBalances'
-        );
-
-        if (!factionMembersResp || !factionMembersResp.members) {
-            memberGridEl.innerHTML = `<p style="text-align: center; color: orange;">No faction member data found or API error.</p>`;
-            return;
-        }
-
-        const membersArray = Object.values(factionMembersResp.members);
-        membersArray.sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
-
-        let membersHtml = '';
-        if (membersArray.length > 0) {
-            membersArray.forEach(member => {
-                const tornId = member.id;
-                const memberName = member.name || `Unknown (${tornId})`;
-                const memberMoney = member.money !== undefined ? `$${member.money.toLocaleString()}` : 'N/A';
-                const memberPoints = member.points !== undefined ? member.points.toLocaleString() : 'N/A';
-                // Construct profile image URL. Torn profile images often follow this pattern.
-                // Using 'medium' size for better fit in smaller boxes.
-                const profileImgUrl = `https://www.torn.com/images/profile_image/${tornId}/profile_medium.jpg`;
-
-                membersHtml += `
-                    <div style="${memberBoxStyles}">
-                        <img src="${profileImgUrl}" alt="${memberName}" style="${profilePicStyles}" onerror="this.onerror=null;this.src='https://www.torn.com/images/v2/default_profile_image.svg';" loading="lazy">
-                        <p style="${memberNameStyles}" title="${memberName}">${memberName}</p>
-                        <p style="${memberBalanceTextStyles}">Money: ${memberMoney}</p>
-                        <p style="${memberBalanceTextStyles}">Points: ${memberPoints}</p>
-                    </div>
-                `;
-            });
-        } else {
-            membersHtml = `<p style="text-align: center; padding: 15px; color: #ccc;">No faction members found.</p>`;
-        }
-        memberGridEl.innerHTML = membersHtml;
-
-    } catch (error) {
-        console.error("Error populating member balances:", error);
-        memberGridEl.innerHTML = `<p style="text-align: center; color: red;">Error loading member balances: ${error.message}</p>`;
-    }
-}
-
-/**
- * Populates the recent fund news list.
- * @param {string} recentNewsListItemStyles CSS string for list items.
- */
-async function populateRecentFundNews(recentNewsListItemStyles) {
-    const fundNewsListEl = document.getElementById('foRecentFundNewsList');
-    if (!fundNewsListEl) return;
-
-    if (historicalFundLogs.length === 0) {
-        fundNewsListEl.innerHTML = `<li style="color: #ccc;">No recent fund news available in historical data.</li>`;
+    if (recentActivity.length === 0) {
+        listContainer.innerHTML = `<li>No recent fund activity found.</li>`;
         return;
     }
 
-    // Filter for recent fund news (e.g., last 30 days) and take a reasonable number (e.g., top 50)
-    const thirtyDaysAgo = new Date().getTime() - (30 * 24 * 60 * 60 * 1000);
-    const recentNews = historicalFundLogs
-        .filter(log => log.timestamp >= thirtyDaysAgo)
-        .slice(0, 50); // Limit to most recent 50 for display
-
-    let newsHtml = '';
-    if (recentNews.length > 0) {
-        recentNews.forEach(newsItem => {
-            let displayMessage = newsItem.rawNews; // Default to raw news
-            if (newsItem.category === 'depositFunds' && newsItem.user && newsItem.amount !== 'N/A') {
-                displayMessage = `<strong style="color: #8fd0ff;">${newsItem.user}</strong> deposited <span style="color: #66bb6a;">$${newsItem.amount.toLocaleString()}</span>.`;
-            } else if (newsItem.category === 'giveFunds' && newsItem.sender && newsItem.recipient && newsItem.amount !== 'N/A') {
-                displayMessage = `<strong style="color: #8fd0ff;">${newsItem.sender}</strong> gave <span style="color: #e74c3c;">$${newsItem.amount.toLocaleString()}</span> to <strong style="color: #8fd0ff;">${newsItem.recipient}</strong>.`;
-            }
-
-            newsHtml += `
-                <li style="${recentNewsListItemStyles}">
-                    <span class="fo-news-timestamp" style="color: #ffeb3b; font-weight: bold;">${formatTimestampToLocale(newsItem.timestamp)}:</span> ${displayMessage}
-                </li>
-            `;
-        });
-    } else {
-        newsHtml = `<li style="color: #ccc;">No recent fund news found in the last 30 days.</li>`;
-    }
-    fundNewsListEl.innerHTML = newsHtml;
+    listContainer.innerHTML = ''; // Clear loading message
+    recentActivity.forEach(item => {
+        let text = '';
+        if (item.recipient) { // It's a withdrawal
+            text = `${item.sender} sent $${item.amount.toLocaleString()} to ${item.recipient}`;
+        } else { // It's a deposit
+            text = `${item.user} deposited $${item.amount.toLocaleString()}`;
+        }
+        const listItem = `<li style="background: #1e2a38; padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 0.9em;">${text}</li>`;
+        listContainer.innerHTML += listItem;
+    });
 }
 
-/**
- * Sets up the search bar and logic for a specific member's fund activity.
- * @param {string} searchInputStyles CSS string for search input.
- * @param {string} buttonStyles CSS string for buttons.
- * @param {string} searchButtonStyles CSS string for search button.
- * @param {string} clearButtonStyles CSS string for clear button.
- * @param {string} searchResultBoxStyles CSS string for search result box.
- */
-function setupMemberFundSearch(searchInputStyles, buttonStyles, searchButtonStyles, clearButtonStyles, searchResultBoxStyles) {
+function setupMemberFundSearch() {
     const searchInput = document.getElementById('memberFundSearchInput');
     const searchButton = document.getElementById('memberFundSearchButton');
     const clearButton = document.getElementById('memberFundClearButton');
-    const searchResultDiv = document.getElementById('memberFundSearchResult');
+    const resultsBox = document.getElementById('memberFundSearchResult');
 
-    if (!searchInput || !searchButton || !clearButton || !searchResultDiv) {
-        console.error("Member fund search elements not found.");
-        return;
-    }
-
-    // Apply styles
-    Object.assign(searchInput.style, searchInputStyles);
-    Object.assign(searchButton.style, `${buttonStyles} ${searchButtonStyles}`);
-    Object.assign(clearButton.style, `${buttonStyles} ${clearButtonStyles}`);
-    Object.assign(searchResultDiv.style, searchResultBoxStyles);
-
-    const performSearch = () => {
-        const searchTerm = searchInput.value.toLowerCase().trim();
+    if (!searchButton || !resultsBox || !searchInput || !clearButton) return;
+    
+    const searchHandler = () => {
+        const searchTerm = searchInput.value.trim().toLowerCase();
         if (!searchTerm) {
-            searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>`;
+            resultsBox.innerHTML = `<p style="text-align: center; color: #aaa;">Please enter a player name or ID.</p>`;
             return;
         }
 
-        let totalDeposited = 0;
-        let totalWithdrawn = 0;
-        let foundUser = false;
-
-        // Combine all fund logs for searching
-        historicalFundLogs.forEach(log => {
-            const isTargetUserDeposit = log.category === 'depositFunds' &&
-                                        (log.user.toLowerCase().includes(searchTerm) || (log.userId && String(log.userId) === searchTerm));
-            const isTargetUserWithdrawalSender = log.category === 'giveFunds' &&
-                                                  (log.sender.toLowerCase().includes(searchTerm) || (log.senderId && String(log.senderId) === searchTerm));
-            const isTargetUserWithdrawalRecipient = log.category === 'giveFunds' &&
-                                                    (log.recipient.toLowerCase().includes(searchTerm) || (log.recipientId && String(log.recipientId) === searchTerm));
-
-            // Funds deposited *by* this user
-            if (isTargetUserDeposit && typeof log.amount === 'number') {
-                totalDeposited += log.amount;
-                foundUser = true;
-            }
-            // Funds withdrawn *by* this user (meaning they are the sender of a 'giveFunds' transaction, often out of the faction bank)
-            if (isTargetUserWithdrawalSender && typeof log.amount === 'number') {
-                totalWithdrawn += log.amount;
-                foundUser = true;
-            }
-            // Note: If 'isTargetUserWithdrawalRecipient' is for funds *given to* the user by someone else (e.g., faction payouts),
-            // you'll need more complex logic to differentiate funds *from* the faction vs. from another player if you want to
-            // include that in a "money taken" calculation. For this implementation, we focus on what they 'deposited'
-            // and what they 'withdrew' as a sender.
+        const allFundActivity = [...fundDepositsData, ...fundWithdrawalsData];
+        const memberHistory = allFundActivity.filter(item => {
+            const user = (item.user || '').toLowerCase();
+            const sender = (item.sender || '').toLowerCase();
+            const recipient = (item.recipient || '').toLowerCase();
+            return user.includes(searchTerm) || sender.includes(searchTerm) || recipient.includes(searchTerm);
         });
 
-        if (foundUser) {
-            const netBalance = totalDeposited - totalWithdrawn;
-            searchResultDiv.innerHTML = `
-                <p style="margin: 0 0 5px 0;"><strong>${searchInput.value.trim()}</strong></p>
-                <p style="margin: 2px 0;">Total Deposited: <span style="color: #66bb6a;">$${totalDeposited.toLocaleString()}</span></p>
-                <p style="margin: 2px 0;">Total Withdrawn: <span style="color: #e74c3c;">$${totalWithdrawn.toLocaleString()}</span></p>
-                <p style="margin: 5px 0 0 0;">Net Activity: <span style="color: ${netBalance >= 0 ? '#66bb6a' : '#e74c3c'}; font-weight: bold;">$${netBalance.toLocaleString()}</span></p>
-                <p style="font-size: 0.8em; color: #aaa; margin-top: 10px;">(Net positive means more deposited than withdrawn by this member for monitored categories.)</p>
-            `;
-        } else {
-            searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: orange;">No fund activity found for "${searchInput.value.trim()}" in historical logs.</p>`;
+        if (memberHistory.length === 0) {
+            resultsBox.innerHTML = `<p>No fund history found for "${searchInput.value}".</p>`;
+            return;
         }
+
+        let resultsHtml = '<ul>';
+        memberHistory.sort((a, b) => b.timestamp - a.timestamp).forEach(item => {
+             let text = '';
+             if (item.recipient) {
+                text = `${item.sender} sent <strong>$${item.amount.toLocaleString()}</strong> to ${item.recipient}`;
+             } else {
+                text = `${item.user} deposited <strong>$${item.amount.toLocaleString()}</strong>`;
+             }
+             resultsHtml += `<li style="margin-bottom: 5px;">${formatTimestampToLocale(item.timestamp)}: ${text}</li>`;
+        });
+        resultsHtml += '</ul>';
+        resultsBox.innerHTML = resultsHtml;
     };
 
-    searchButton.addEventListener('click', performSearch);
+    searchButton.addEventListener('click', searchHandler);
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') searchHandler();
+    });
+
     clearButton.addEventListener('click', () => {
         searchInput.value = '';
-        searchResultDiv.innerHTML = `<p style="text-align: center; padding: 10px; color: #aaa;">Search for a member's fund history.</p>`;
-    });
-    searchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            performSearch();
-        }
+        resultsBox.innerHTML = `<p style="text-align: center; color: #aaa;">Search for a member's fund history.</p>`;
     });
 }
 function renderDynamicDataTable(targetElement, data, columns, title) {
