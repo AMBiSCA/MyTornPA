@@ -325,24 +325,31 @@ function renderFactionBalancesTabContent(targetElement) {
     populateRecentFundNews();
     setupMemberFundSearch();
 }
-/**
- * Populates the overall faction bank and points balances.
- */
-async function populateFactionBalances() {
-    const overallBalancesEl = document.getElementById('foOverallFactionBalances');
-    if (!overallBalancesEl) return;
+function populateFactionBalances() {
+    const container = document.getElementById('foOverallFactionBalances');
+    if (!container) return;
 
-    if (factionBalancesData) {
-        overallBalancesEl.innerHTML = `
-            <p>Faction Bank: <strong style="color: #66bb6a;">$${factionBalancesData.bank.toLocaleString()}</strong></p>
-            <p>Faction Points: <strong style="color: #ffeb3b;">${factionBalancesData.points.toLocaleString()}</strong></p>
-        `;
-    } else {
-        overallBalancesEl.innerHTML = `<p style="text-align: center; color: orange;">Faction balances not available. Ensure API key is valid and fetched.</p>`;
+    if (!factionBalancesData) {
+        container.innerHTML = `<p style="color: #ffc107;">Faction balance data not available.</p>`;
+        return;
     }
-}
 
-/**
+    const money = factionBalancesData.faction?.money || 0;
+    const points = factionBalancesData.faction?.points || 0;
+
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-around;">
+            <div>
+                <h4>Money</h4>
+                <h2 style="color: #28a745; margin-top: 5px;">$${money.toLocaleString()}</h2>
+            </div>
+            <div>
+                <h4>Points</h4>
+                <h2 style="color: #28a745; margin-top: 5px;">${points.toLocaleString()}</h2>
+            </div>
+        </div>
+    `;
+}
  * Populates individual member money and points balances with profile pictures.
  * @param {string} memberBoxStyles CSS string for member boxes.
  * @param {string} profilePicStyles CSS string for profile pictures.
