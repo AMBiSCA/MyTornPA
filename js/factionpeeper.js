@@ -456,10 +456,10 @@ function sleep(ms) {
 async function fetchData(user) { // <--- Added 'user' parameter
     
     // --- SPEED TUNING SETTINGS ---
-    // You can adjust these values. A smaller delay or larger batch size is faster
-    // but increases the risk of hitting the API rate limit.
-    const batchSize = 10; // How many users to fetch at once.
-    const delayBetweenBatchesMs = 3000; // How long to wait between batches (in milliseconds).
+    // This is set to the absolute maximum speed. 
+    // WARNING: This will likely cause API rate-limit errors for larger factions.
+    const batchSize = 10;
+    const delayBetweenBatchesMs = 0; // Set to 0 for maximum speed.
     // --- END OF SETTINGS ---
 
     const factionIdError = document.getElementById('factionIdError');
