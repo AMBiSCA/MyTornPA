@@ -105,6 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
             logoutButtonHeader.onclick = function() { alert('Logout functionality (Firebase) not ready.'); };
         }
     }
-
+    // Any merits.html specific JavaScript actions for the tracker would go below this line.
+    // For the provided HTML, the main content is a placeholder, so no unique JS yet.
 });
-
