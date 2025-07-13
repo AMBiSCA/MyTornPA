@@ -1,124 +1,140 @@
-// This is for ../js/eventcalendar.js - Cleaned and Finalized Logic
+// This is for ../js/eventcalendar.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Get references to all necessary DOM elements once the DOM is loaded
+    console.log("eventcalendar.js: Script started. DOMContentLoaded event fired."); // DEBUG 1
+
     const calendarDays = document.getElementById('calendarDays');
     const currentMonthYear = document.getElementById('currentMonthYear');
     const prevMonthBtn = document.getElementById('prevMonthBtn');
     const nextMonthBtn = document.getElementById('nextMonthBtn');
+    const eventDetailsSection = document.getElementById('eventDetails');
+    const detailEventName = document.getElementById('detailEventName');
+    const detailEventDate = document.getElementById('detailEventDate');
+    const detailEventTime = document.getElementById('detailEventTime');
+    const detailEventDescription = document.getElementById('detailEventDescription');
+    const detailEventLink = document.getElementById('detailEventLink');
+    const setReminderBtn = document.getElementById('setReminderBtn');
 
-    const eventModal = document.getElementById('eventModal');
-    const modalCloseBtn = eventModal ? eventModal.querySelector('.modal-close-btn') : null; // Check if eventModal exists
-    const modalEventTitle = document.getElementById('modalEventTitle');
-    const modalEventContent = document.getElementById('modalEventContent');
-    const modalSetReminderBtn = document.getElementById('modalSetReminderBtn');
+    // DEBUG 2: Check if essential elements are found
+    console.log("eventcalendar.js: calendarDays element:", calendarDays);
+    console.log("eventcalendar.js: currentMonthYear element:", currentMonthYear);
+    console.log("eventcalendar.js: prevMonthBtn element:", prevMonthBtn);
+    console.log("eventcalendar.js: nextMonthBtn element:", nextMonthBtn);
 
-    // Initialize the current date for the calendar display
-    let currentDate = new Date(); 
 
-    // --- Torn API Key (IMPORTANT: Consider more secure handling in production!) ---
+    let currentDate = new Date(); // Represents the month/year currently displayed
+
+    // --- Torn API Key (IMPORTANT: Replace with a secure way to handle this!) ---
     const TORN_API_KEY = "gCNmxrHxlOYeNiS7"; // Your provided API key
 
-    // --- Function to Render the Calendar Days ---
+    // --- Function to Render the Calendar ---
     function renderCalendar() {
-        calendarDays.innerHTML = ''; // Clear previous days
+        console.log("eventcalendar.js: renderCalendar function called."); // DEBUG 3
 
-        // Hide the modal whenever the calendar view changes
-        if (eventModal) {
-            eventModal.style.display = 'none'; 
-        }
+        calendarDays.innerHTML = ''; // Clear previous days
+        eventDetailsSection.style.display = 'none'; // Hide event details when changing month
 
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth(); // 0-indexed (0 for Jan, 11 for Dec)
 
-        // Update the displayed month and year in the header
+        // Set the display for the current month and year
         currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', {
             month: 'long',
             year: 'numeric'
         });
+        console.log(`eventcalendar.js: Displaying month: ${currentMonthYear.textContent}`); // DEBUG 4
 
-        // Calculate days to display (leading empty days + actual days in month)
+        // Get the first day of the month (0 = Sunday, 6 = Saturday)
         const firstDayOfMonth = new Date(year, month, 1).getDay();
+        // Get the number of days in the current month
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        // Add empty divs for days before the 1st of the month
+        // Fill leading empty days (from previous month)
         for (let i = 0; i < firstDayOfMonth; i++) {
             const emptyDay = document.createElement('div');
             emptyDay.classList.add('calendar-day', 'empty');
             calendarDays.appendChild(emptyDay);
         }
 
-        // Add divs for each day of the current month
+        // Fill days of the current month
         for (let day = 1; day <= daysInMonth; day++) {
             const dayElement = document.createElement('div');
             dayElement.classList.add('calendar-day');
             dayElement.textContent = day;
-            dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            
-            // Highlight the current day if it matches today's date
+            dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; // YYYY-MM-DD
+            // Add a class for the current day if applicable (for styling)
             if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
                 dayElement.classList.add('current-day');
             }
             calendarDays.appendChild(dayElement);
         }
+        console.log(`eventcalendar.js: ${daysInMonth} days rendered for the month.`); // DEBUG 5
 
-        // Fetch and display Torn events for the currently rendered month
+
+        // Fetch and display events for this month
         fetchTornEventsForMonth(year, month + 1);
     }
 
-    // --- Navigation Button Event Listeners ---
-    if (prevMonthBtn) {
-        prevMonthBtn.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        });
-    }
+    // --- Navigation Buttons Event Listeners ---
+    prevMonthBtn.addEventListener('click', () => {
+        console.log("eventcalendar.js: 'Previous' button clicked."); // DEBUG 6
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
 
-    if (nextMonthBtn) {
-        nextMonthBtn.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        });
-    }
+    nextMonthBtn.addEventListener('click', () => {
+        console.log("eventcalendar.js: 'Next' button clicked."); // DEBUG 7
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
 
     // --- Function to Fetch Torn Events from API ---
     async function fetchTornEventsForMonth(year, month) {
-        // Clear any existing event indicators and data attributes from previous fetches
+        console.log(`eventcalendar.js: fetchTornEventsForMonth called for ${year}-${month}.`); // DEBUG 8
+        // Clear existing event indicators before fetching new ones
         document.querySelectorAll('.event-indicator').forEach(el => el.remove());
         document.querySelectorAll('.calendar-day[data-events]').forEach(el => delete el.dataset.events);
 
+
+        // Torn API calendar endpoint (you provided this earlier)
         const apiUrl = `https://api.torn.com/v2/torn/calendar?key=${TORN_API_KEY}`;
+        console.log("eventcalendar.js: API URL:", apiUrl); // DEBUG 9
 
         try {
             const response = await fetch(apiUrl);
+            console.log("eventcalendar.js: API Fetch response received:", response); // DEBUG 10
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
+            console.log("eventcalendar.js: Torn API Calendar Data (parsed):", data); // DEBUG 11
 
-            // Check for correct API response structure (data.calendar.events)
+            // FIX: Access events correctly via data.calendar.events
             if (data && data.calendar && data.calendar.events) {
-                // Filter events that fall within the currently displayed month
-                const eventsInMonth = Object.values(data.calendar.events).filter(event => {
-                    const eventDate = new Date(event.start * 1000); // API timestamp is in seconds, convert to milliseconds
+                const eventsInMonth = Object.values(data.calendar.events).filter(event => { // CHANGED THIS LINE
+                    const eventDate = new Date(event.start * 1000); // 'start' is the timestamp from the API in seconds
                     return eventDate.getFullYear() === year && (eventDate.getMonth() + 1) === month;
                 });
+                console.log(`eventcalendar.js: Found ${eventsInMonth.length} events for ${year}-${month}.`); // DEBUG 12
                 displayEventsOnCalendar(eventsInMonth);
             } else {
-                console.warn("No 'events' data found in Torn API response or response structure is unexpected.");
+                console.warn("eventcalendar.js: No 'events' data found in Torn API response or response is empty, or 'calendar' object is missing."); // DEBUG 13 (UPDATED MESSAGE)
             }
 
         } catch (error) {
-            console.error("Error fetching Torn events:", error);
-            if (calendarDays) {
-                 calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
-            }
+            console.error("eventcalendar.js: Error fetching Torn events:", error); // DEBUG 14
+            calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
         }
     }
 
     // --- Function to Display Events on Calendar Days ---
     function displayEventsOnCalendar(events) {
+        console.log("eventcalendar.js: displayEventsOnCalendar called with events:", events); // DEBUG 15
+        if (events.length === 0) {
+            console.log("eventcalendar.js: No events to display for this month.");
+        }
         events.forEach(event => {
-            const eventDateObj = new Date(event.start * 1000);
+            const eventStartTimestamp = event.start * 1000;
+            const eventDateObj = new Date(eventStartTimestamp);
 
             const day = eventDateObj.getDate();
             const month = eventDateObj.getMonth();
@@ -128,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
 
             if (dayElement && !dayElement.classList.contains('empty')) {
-                // Add a visual indicator for events on the day cell
                 let eventIndicator = dayElement.querySelector('.event-indicator');
                 if (!eventIndicator) {
                     eventIndicator = document.createElement('div');
@@ -136,9 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayElement.appendChild(eventIndicator);
                 }
 
-                // Prepare event data for modal display
+                // Prepare event details for display.
+                // The API provides 'title' and 'description', not 'name'
                 const displayEvent = {
-                    name: event.title, // API uses 'title' for event name
+                    name: event.title, // CHANGED FROM event.name to event.title
                     date: eventDateObj.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -149,102 +165,44 @@ document.addEventListener('DOMContentLoaded', function() {
                         minute: '2-digit'
                     }),
                     description: event.description,
-                    link: `https://www.torn.com/calendar.php#${encodeURIComponent(event.title.replace(/\s+/g, '_'))}` // Construct a basic link
+                    link: `https://www.torn.com/calendar.php#${event.title.replace(/\s+/g, '_')}` // Construct a simple link from title
                 };
 
-                // Store all events for this day in a dataset attribute (as an array)
+
                 const existingEvents = JSON.parse(dayElement.dataset.events || '[]');
                 existingEvents.push(displayEvent);
                 dayElement.dataset.events = JSON.stringify(existingEvents);
 
-                // Add click listener to show modal when a day with events is clicked
                 dayElement.addEventListener('click', (e) => {
                     const clickedEvents = JSON.parse(e.currentTarget.dataset.events);
                     if (clickedEvents && clickedEvents.length > 0) {
-                        showEventDetails(clickedEvents);
+                        showEventDetails(clickedEvents[0]);
                     }
                 });
+                console.log(`eventcalendar.js: Event '${event.title}' added to day ${day}.`); // DEBUG 16 (UPDATED MESSAGE)
+            } else {
+                console.log(`eventcalendar.js: Day element not found or is empty for event: ${event.title} on ${formattedDate}`); // DEBUG 17 (UPDATED MESSAGE)
             }
         });
     }
 
-    // --- Function to Show Event Details in the Modal ---
-    function showEventDetails(events) { // Accepts an array of events for the clicked day
-        // Ensure all modal elements are available before attempting to use them
-        if (!eventModal || !modalEventTitle || !modalEventContent || !modalSetReminderBtn) {
-            console.error("Error: Modal elements not found. Cannot show event details.");
-            return;
-        }
+    // --- Function to Show Event Details ---
+    function showEventDetails(event) {
+        console.log("eventcalendar.js: showEventDetails called for event:", event); // DEBUG 18
+        detailEventName.textContent = event.name;
+        detailEventDate.textContent = event.date;
+        detailEventTime.textContent = event.time;
+        detailEventDescription.textContent = event.description;
+        detailEventLink.href = event.link;
+        detailEventLink.textContent = event.link.length > 30 ? event.link.substring(0, 30) + '...' : event.link;
 
-        modalEventContent.innerHTML = ''; // Clear previous modal content
+        eventDetailsSection.style.display = 'block';
 
-        if (events.length === 1) {
-            const event = events[0];
-            modalEventTitle.textContent = event.name; // Use event name as modal title
-            modalEventContent.innerHTML = `
-                <p><strong>Date:</strong> ${event.date}</p>
-                <p><strong>Time:</strong> ${event.time}</p>
-                <p><strong>Description:</strong> ${event.description}</p>
-                <p><strong>Link:</strong> <a href="${event.link}" target="_blank" rel="noopener noreferrer">${event.link}</a></p>
-            `;
-            // For single events, the main reminder button is used
-            modalSetReminderBtn.style.display = 'block';
-            modalSetReminderBtn.onclick = () => {
-                alert(`Reminder set for: ${event.name} on ${event.date} at ${event.time} (Reminder feature coming soon!)`);
-            };
-        } else {
-            // If multiple events on one day, list them in the modal
-            modalEventTitle.textContent = `Events on ${events[0].date}`; // Date as title for multiple events
-            let eventsListHtml = '<ul>';
-            events.forEach(event => {
-                eventsListHtml += `
-                    <li>
-                        <h4>${event.name}</h4>
-                        <p><strong>Time:</strong> ${event.time}</p>
-                        <p><strong>Description:</strong> ${event.description}</p>
-                        <p><strong>Link:</strong> <a href="${event.link}" target="_blank" rel="noopener noreferrer">${event.link}</a></p>
-                        <button class="action-btn set-single-reminder-btn" data-event-name="${event.name}" data-event-date="${event.date}" data-event-time="${event.time}">Set Reminder for This Event</button>
-                    </li>
-                `;
-            });
-            eventsListHtml += '</ul>';
-            modalEventContent.innerHTML = eventsListHtml;
-            
-            // Hide the main reminder button and use individual ones for multiple events
-            modalSetReminderBtn.style.display = 'none';
-
-            // Attach listeners to individual reminder buttons inside the list
-            document.querySelectorAll('.set-single-reminder-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    const eventName = e.target.dataset.eventName;
-                    const eventDate = e.target.dataset.eventDate;
-                    const eventTime = e.target.dataset.eventTime;
-                    alert(`Reminder set for: ${eventName} on ${eventDate} at ${eventTime} (Reminder feature coming soon!)`);
-                };
-            });
-        }
-
-        // Show the modal by setting its display style
-        eventModal.style.display = 'flex'; 
-    }
-
-    // --- Modal Close Event Listeners ---
-    // Close modal via the 'x' button
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', () => {
-            eventModal.style.display = 'none';
-        });
-    }
-
-    // Close modal if clicked outside of modal content
-    if (eventModal) {
-        window.addEventListener('click', (event) => {
-            if (event.target === eventModal) {
-                eventModal.style.display = 'none';
-            }
-        });
+        setReminderBtn.onclick = () => {
+            alert(`Reminder set for: ${event.name} on ${event.date} at ${event.time} (functionality coming soon!)`);
+        };
     }
 
     // --- Initial Render when page loads ---
-    renderCalendar(); 
+    renderCalendar(); // Call renderCalendar to start the process
 });
