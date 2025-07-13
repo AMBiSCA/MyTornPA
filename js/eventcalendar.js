@@ -108,15 +108,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log("eventcalendar.js: Torn API Calendar Data (parsed):", data); // DEBUG 11
 
-            if (data && data.events) {
-                const eventsInMonth = Object.values(data.events).filter(event => {
-                    const eventDate = new Date(event.start * 1000);
+            // FIX: Access events correctly via data.calendar.events
+            if (data && data.calendar && data.calendar.events) {
+                const eventsInMonth = Object.values(data.calendar.events).filter(event => { // CHANGED THIS LINE
+                    const eventDate = new Date(event.start * 1000); // 'start' is the timestamp from the API in seconds
                     return eventDate.getFullYear() === year && (eventDate.getMonth() + 1) === month;
                 });
                 console.log(`eventcalendar.js: Found ${eventsInMonth.length} events for ${year}-${month}.`); // DEBUG 12
                 displayEventsOnCalendar(eventsInMonth);
             } else {
-                console.warn("eventcalendar.js: No 'events' data found in Torn API response or response is empty."); // DEBUG 13
+                console.warn("eventcalendar.js: No 'events' data found in Torn API response or response is empty, or 'calendar' object is missing."); // DEBUG 13 (UPDATED MESSAGE)
             }
 
         } catch (error) {
@@ -150,8 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     dayElement.appendChild(eventIndicator);
                 }
 
+                // Prepare event details for display.
+                // The API provides 'title' and 'description', not 'name'
                 const displayEvent = {
-                    name: event.name,
+                    name: event.title, // CHANGED FROM event.name to event.title
                     date: eventDateObj.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -162,23 +165,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         minute: '2-digit'
                     }),
                     description: event.description,
-                    link: event.link || `https://www.torn.com/calendar.php#${event.ID}`
+                    link: `https://www.torn.com/calendar.php#${event.title.replace(/\s+/g, '_')}` // Construct a simple link from title
                 };
+
 
                 const existingEvents = JSON.parse(dayElement.dataset.events || '[]');
                 existingEvents.push(displayEvent);
                 dayElement.dataset.events = JSON.stringify(existingEvents);
 
-                // Add event listener to show details on click
                 dayElement.addEventListener('click', (e) => {
                     const clickedEvents = JSON.parse(e.currentTarget.dataset.events);
                     if (clickedEvents && clickedEvents.length > 0) {
                         showEventDetails(clickedEvents[0]);
                     }
                 });
-                console.log(`eventcalendar.js: Event '${event.name}' added to day ${day}.`); // DEBUG 16
+                console.log(`eventcalendar.js: Event '${event.title}' added to day ${day}.`); // DEBUG 16 (UPDATED MESSAGE)
             } else {
-                console.log(`eventcalendar.js: Day element not found or is empty for event: ${event.name} on ${formattedDate}`); // DEBUG 17
+                console.log(`eventcalendar.js: Day element not found or is empty for event: ${event.title} on ${formattedDate}`); // DEBUG 17 (UPDATED MESSAGE)
             }
         });
     }
