@@ -99,16 +99,6 @@
     background-color: var(--highlight-color-bg); /* Slightly different background for today */
 }
 
-/* Event Details Section */
-.event-details-section {
-    background-color: var(--background-color-dark-surface);
-    border: 1px solid var(--border-color-dark);
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 30px;
-    color: var(--text-color-light);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
 
 .event-details-section h3 {
     color: var(--text-color-accent);
@@ -214,4 +204,49 @@
     /* ... (keep existing variables) ... */
     --event-indicator-color: #e74c3c; /* A distinct color for event dots (red) */
     --event-indicator-color-rgb: 231, 76, 60; /* RGB values for the glow effect */
+}
+
+/* Modal Overlay (the dark background) */
+.modal-overlay {
+  position: fixed; /* Sit on top of the page content */
+  z-index: 1000; /* Make sure it's on top of everything */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+  display: flex; /* Use flexbox to center the content */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content (the pop-up box itself) */
+.modal-content {
+  /* Most of these styles are from your old .event-details-section */
+  background-color: var(--background-color-dark-surface);
+  border: 1px solid var(--border-color-dark);
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  color: var(--text-color-light);
+  width: 90%;
+  max-width: 550px; /* Maximum width for the pop-up */
+  position: relative; /* This is crucial for positioning the close button */
+  padding-top: 45px; /* Add space at the top for the close button */
+}
+
+/* Modal Close Button (the 'x') */
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.8rem; /* Makes the 'x' bigger */
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--text-color-light); /* Make it brighter on hover */
 }

@@ -1,208 +1,178 @@
-// This is for ../js/eventcalendar.js
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("eventcalendar.js: Script started. DOMContentLoaded event fired."); // DEBUG 1
+    console.log("eventcalendar.js: Script started, waiting for user authentication...");
 
-    const calendarDays = document.getElementById('calendarDays');
-    const currentMonthYear = document.getElementById('currentMonthYear');
-    const prevMonthBtn = document.getElementById('prevMonthBtn');
-    const nextMonthBtn = document.getElementById('nextMonthBtn');
-    const eventDetailsSection = document.getElementById('eventDetails');
-    const detailEventName = document.getElementById('detailEventName');
-    const detailEventDate = document.getElementById('detailEventDate');
-    const detailEventTime = document.getElementById('detailEventTime');
-    const detailEventDescription = document.getElementById('detailEventDescription');
-    const detailEventLink = document.getElementById('detailEventLink');
-    const setReminderBtn = document.getElementById('setReminderBtn');
+    const calendarWrapper = document.querySelector('.calendar-wrapper');
 
-    // DEBUG 2: Check if essential elements are found
-    console.log("eventcalendar.js: calendarDays element:", calendarDays);
-    console.log("eventcalendar.js: currentMonthYear element:", currentMonthYear);
-    console.log("eventcalendar.js: prevMonthBtn element:", prevMonthBtn);
-    console.log("eventcalendar.js: nextMonthBtn element:", nextMonthBtn);
+    // Wait for Firebase to determine the user's authentication state
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            // --- User is logged in ---
+            console.log("User is logged in. Fetching API key from Firestore...");
 
+            try {
+                // Fetch the user's profile from the 'userProfiles' collection using their UID
+                const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
+                const userDoc = await userDocRef.get();
 
-    let currentDate = new Date(); // Represents the month/year currently displayed
+                // Check if the document and the API key field exist
+                if (userDoc.exists && userDoc.data().tornApiKey) {
+                    
+                    // --- API Key Found ---
+                    const TORN_API_KEY = userDoc.data().tornApiKey; // Use the key from the database
+                    console.log("Torn API key found. Initializing calendar.");
 
-    // --- Torn API Key (IMPORTANT: Replace with a secure way to handle this!) ---
-    const TORN_API_KEY = "gCNmxrHxlOYeNiS7"; // Your provided API key
+                    // ===================================================================
+                    // ALL THE ORIGINAL CALENDAR CODE NOW RUNS SAFELY INSIDE HERE
+                    // ===================================================================
 
-    // --- Function to Render the Calendar ---
-    function renderCalendar() {
-        console.log("eventcalendar.js: renderCalendar function called."); // DEBUG 3
+                    const calendarDays = document.getElementById('calendarDays');
+                    const currentMonthYear = document.getElementById('currentMonthYear');
+                    const prevMonthBtn = document.getElementById('prevMonthBtn');
+                    const nextMonthBtn = document.getElementById('nextMonthBtn');
+                    const eventDetailsSection = document.getElementById('eventDetails');
+                    const detailEventName = document.getElementById('detailEventName');
+                    const detailEventDate = document.getElementById('detailEventDate');
+                    const detailEventTime = document.getElementById('detailEventTime');
+                    const detailEventDescription = document.getElementById('detailEventDescription');
+                    const detailEventLink = document.getElementById('detailEventLink');
+                    const setReminderBtn = document.getElementById('setReminderBtn');
+                    const modalCloseBtn = document.getElementById('modalCloseBtn');
 
-        calendarDays.innerHTML = ''; // Clear previous days
-        eventDetailsSection.style.display = 'none'; // Hide event details when changing month
+                    let currentDate = new Date();
 
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth(); // 0-indexed (0 for Jan, 11 for Dec)
+                    // --- Modal Closing Logic ---
+                    modalCloseBtn.addEventListener('click', () => {
+                        eventDetailsSection.style.display = 'none';
+                    });
+                    eventDetailsSection.addEventListener('click', (event) => {
+                        if (event.target === eventDetailsSection) {
+                            eventDetailsSection.style.display = 'none';
+                        }
+                    });
 
-        // Set the display for the current month and year
-        currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', {
-            month: 'long',
-            year: 'numeric'
-        });
-        console.log(`eventcalendar.js: Displaying month: ${currentMonthYear.textContent}`); // DEBUG 4
-
-        // Get the first day of the month (0 = Sunday, 6 = Saturday)
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
-        // Get the number of days in the current month
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-        // Fill leading empty days (from previous month)
-        for (let i = 0; i < firstDayOfMonth; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.classList.add('calendar-day', 'empty');
-            calendarDays.appendChild(emptyDay);
-        }
-
-        // Fill days of the current month
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayElement = document.createElement('div');
-            dayElement.classList.add('calendar-day');
-            dayElement.textContent = day;
-            dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; // YYYY-MM-DD
-            // Add a class for the current day if applicable (for styling)
-            if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
-                dayElement.classList.add('current-day');
-            }
-            calendarDays.appendChild(dayElement);
-        }
-        console.log(`eventcalendar.js: ${daysInMonth} days rendered for the month.`); // DEBUG 5
-
-
-        // Fetch and display events for this month
-        fetchTornEventsForMonth(year, month + 1);
-    }
-
-    // --- Navigation Buttons Event Listeners ---
-    prevMonthBtn.addEventListener('click', () => {
-        console.log("eventcalendar.js: 'Previous' button clicked."); // DEBUG 6
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar();
-    });
-
-    nextMonthBtn.addEventListener('click', () => {
-        console.log("eventcalendar.js: 'Next' button clicked."); // DEBUG 7
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar();
-    });
-
-    // --- Function to Fetch Torn Events from API ---
-    async function fetchTornEventsForMonth(year, month) {
-        console.log(`eventcalendar.js: fetchTornEventsForMonth called for ${year}-${month}.`); // DEBUG 8
-        // Clear existing event indicators before fetching new ones
-        document.querySelectorAll('.event-indicator').forEach(el => el.remove());
-        document.querySelectorAll('.calendar-day[data-events]').forEach(el => delete el.dataset.events);
-
-
-        // Torn API calendar endpoint (you provided this earlier)
-        const apiUrl = `https://api.torn.com/v2/torn/calendar?key=${TORN_API_KEY}`;
-        console.log("eventcalendar.js: API URL:", apiUrl); // DEBUG 9
-
-        try {
-            const response = await fetch(apiUrl);
-            console.log("eventcalendar.js: API Fetch response received:", response); // DEBUG 10
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log("eventcalendar.js: Torn API Calendar Data (parsed):", data); // DEBUG 11
-
-            // FIX: Access events correctly via data.calendar.events
-            if (data && data.calendar && data.calendar.events) {
-                const eventsInMonth = Object.values(data.calendar.events).filter(event => { // CHANGED THIS LINE
-                    const eventDate = new Date(event.start * 1000); // 'start' is the timestamp from the API in seconds
-                    return eventDate.getFullYear() === year && (eventDate.getMonth() + 1) === month;
-                });
-                console.log(`eventcalendar.js: Found ${eventsInMonth.length} events for ${year}-${month}.`); // DEBUG 12
-                displayEventsOnCalendar(eventsInMonth);
-            } else {
-                console.warn("eventcalendar.js: No 'events' data found in Torn API response or response is empty, or 'calendar' object is missing."); // DEBUG 13 (UPDATED MESSAGE)
-            }
-
-        } catch (error) {
-            console.error("eventcalendar.js: Error fetching Torn events:", error); // DEBUG 14
-            calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
-        }
-    }
-
-    // --- Function to Display Events on Calendar Days ---
-    function displayEventsOnCalendar(events) {
-        console.log("eventcalendar.js: displayEventsOnCalendar called with events:", events); // DEBUG 15
-        if (events.length === 0) {
-            console.log("eventcalendar.js: No events to display for this month.");
-        }
-        events.forEach(event => {
-            const eventStartTimestamp = event.start * 1000;
-            const eventDateObj = new Date(eventStartTimestamp);
-
-            const day = eventDateObj.getDate();
-            const month = eventDateObj.getMonth();
-            const year = eventDateObj.getFullYear();
-
-            const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
-
-            if (dayElement && !dayElement.classList.contains('empty')) {
-                let eventIndicator = dayElement.querySelector('.event-indicator');
-                if (!eventIndicator) {
-                    eventIndicator = document.createElement('div');
-                    eventIndicator.classList.add('event-indicator');
-                    dayElement.appendChild(eventIndicator);
-                }
-
-                // Prepare event details for display.
-                // The API provides 'title' and 'description', not 'name'
-                const displayEvent = {
-                    name: event.title, // CHANGED FROM event.name to event.title
-                    date: eventDateObj.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    }),
-                    time: eventDateObj.toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }),
-                    description: event.description,
-                    link: `https://www.torn.com/calendar.php#${event.title.replace(/\s+/g, '_')}` // Construct a simple link from title
-                };
-
-
-                const existingEvents = JSON.parse(dayElement.dataset.events || '[]');
-                existingEvents.push(displayEvent);
-                dayElement.dataset.events = JSON.stringify(existingEvents);
-
-                dayElement.addEventListener('click', (e) => {
-                    const clickedEvents = JSON.parse(e.currentTarget.dataset.events);
-                    if (clickedEvents && clickedEvents.length > 0) {
-                        showEventDetails(clickedEvents[0]);
+                    // --- Calendar Functions ---
+                    function renderCalendar() {
+                        calendarDays.innerHTML = '';
+                        eventDetailsSection.style.display = 'none';
+                        const year = currentDate.getFullYear();
+                        const month = currentDate.getMonth();
+                        currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                        const firstDayOfMonth = new Date(year, month, 1).getDay();
+                        const daysInMonth = new Date(year, month + 1, 0).getDate();
+                        for (let i = 0; i < firstDayOfMonth; i++) {
+                            const emptyDay = document.createElement('div');
+                            emptyDay.classList.add('calendar-day', 'empty');
+                            calendarDays.appendChild(emptyDay);
+                        }
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            const dayElement = document.createElement('div');
+                            dayElement.classList.add('calendar-day');
+                            dayElement.textContent = day;
+                            dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+                                dayElement.classList.add('current-day');
+                            }
+                            calendarDays.appendChild(dayElement);
+                        }
+                        fetchTornEventsForMonth(year, month + 1);
                     }
-                });
-                console.log(`eventcalendar.js: Event '${event.title}' added to day ${day}.`); // DEBUG 16 (UPDATED MESSAGE)
-            } else {
-                console.log(`eventcalendar.js: Day element not found or is empty for event: ${event.title} on ${formattedDate}`); // DEBUG 17 (UPDATED MESSAGE)
+
+                    prevMonthBtn.addEventListener('click', () => {
+                        currentDate.setMonth(currentDate.getMonth() - 1);
+                        renderCalendar();
+                    });
+
+                    nextMonthBtn.addEventListener('click', () => {
+                        currentDate.setMonth(currentDate.getMonth() + 1);
+                        renderCalendar();
+                    });
+
+                    async function fetchTornEventsForMonth(year, month) {
+                        document.querySelectorAll('.event-indicator').forEach(el => el.remove());
+                        document.querySelectorAll('.calendar-day[data-events]').forEach(el => delete el.dataset.events);
+                        const apiUrl = `https://api.torn.com/v2/torn/calendar?key=${TORN_API_KEY}`;
+                        try {
+                            const response = await fetch(apiUrl);
+                            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                            const data = await response.json();
+                            if (data && data.calendar && data.calendar.events) {
+                                const eventsInMonth = Object.values(data.calendar.events).filter(event => {
+                                    const eventDate = new Date(event.start * 1000);
+                                    return eventDate.getFullYear() === year && (eventDate.getMonth() + 1) === month;
+                                });
+                                displayEventsOnCalendar(eventsInMonth);
+                            } else { console.warn("No 'events' data found in Torn API response."); }
+                        } catch (error) {
+                            console.error("Error fetching Torn events:", error);
+                            calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
+                        }
+                    }
+
+                    function displayEventsOnCalendar(events) {
+                        events.forEach(event => {
+                            const eventDateObj = new Date(event.start * 1000);
+                            const day = eventDateObj.getDate();
+                            const formattedDate = `${eventDateObj.getFullYear()}-${String(eventDateObj.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
+                            if (dayElement && !dayElement.classList.contains('empty')) {
+                                if (!dayElement.querySelector('.event-indicator')) {
+                                    const eventIndicator = document.createElement('div');
+                                    eventIndicator.classList.add('event-indicator');
+                                    dayElement.appendChild(eventIndicator);
+                                }
+                                const displayEvent = { name: event.title, date: eventDateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), time: eventDateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), description: event.description, link: `https://www.torn.com/calendar.php#${event.title.replace(/\s+/g, '_')}` };
+                                const existingEvents = JSON.parse(dayElement.dataset.events || '[]');
+                                existingEvents.push(displayEvent);
+                                dayElement.dataset.events = JSON.stringify(existingEvents);
+                                dayElement.addEventListener('click', (e) => {
+                                    const clickedEvents = JSON.parse(e.currentTarget.dataset.events);
+                                    if (clickedEvents && clickedEvents.length > 0) { showEventDetails(clickedEvents[0]); }
+                                });
+                            }
+                        });
+                    }
+
+                    function showEventDetails(event) {
+                        detailEventName.textContent = event.name;
+                        detailEventDate.textContent = event.date;
+                        detailEventTime.textContent = event.time;
+                        detailEventDescription.textContent = event.description;
+                        detailEventLink.href = event.link;
+                        detailEventLink.textContent = event.link;
+                        eventDetailsSection.style.display = 'flex';
+                        setReminderBtn.onclick = () => { alert(`Reminder set for: ${event.name} on ${event.date} at ${event.time} (functionality coming soon!)`); };
+                    }
+
+                    // --- Initial Render ---
+                    renderCalendar();
+
+                } else {
+                    // --- API Key NOT Found ---
+                    console.error("User logged in, but no Torn API Key found in their profile.");
+                    calendarWrapper.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: var(--text-color-error);">
+                            <h3>API Key Missing</h3>
+                            <p>Your Torn API key is not saved in your user profile.</p>
+                            <p>Please go to your settings to add it.</p>
+                        </div>`;
+                }
+            } catch (error) {
+                // --- Error Fetching Data ---
+                console.error("Error fetching user data from Firestore:", error);
+                calendarWrapper.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--text-color-error);">
+                        <h3>Loading Error</h3>
+                        <p>Could not load your profile data. Please refresh and try again.</p>
+                    </div>`;
             }
-        });
-    }
-
-    // --- Function to Show Event Details ---
-    function showEventDetails(event) {
-        console.log("eventcalendar.js: showEventDetails called for event:", event); // DEBUG 18
-        detailEventName.textContent = event.name;
-        detailEventDate.textContent = event.date;
-        detailEventTime.textContent = event.time;
-        detailEventDescription.textContent = event.description;
-        detailEventLink.href = event.link;
-        detailEventLink.textContent = event.link.length > 30 ? event.link.substring(0, 30) + '...' : event.link;
-
-        eventDetailsSection.style.display = 'block';
-
-        setReminderBtn.onclick = () => {
-            alert(`Reminder set for: ${event.name} on ${event.date} at ${event.time} (functionality coming soon!)`);
-        };
-    }
-
-    // --- Initial Render when page loads ---
-    renderCalendar(); // Call renderCalendar to start the process
+        } else {
+            // --- User is NOT logged in ---
+            console.log("No user is logged in.");
+            calendarWrapper.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3>Please Log In</h3>
+                    <p>You must be logged in to view the event calendar.</p>
+                </div>`;
+        }
+    });
 });
