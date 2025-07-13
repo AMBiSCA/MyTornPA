@@ -99,17 +99,6 @@
     background-color: var(--highlight-color-bg); /* Slightly different background for today */
 }
 
-/* Event indicator dot */
-.event-indicator {
-    width: 8px;
-    height: 8px;
-    background-color: var(--event-indicator-color); /* A vibrant color for events */
-    border-radius: 50%;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
 /* Event Details Section */
 .event-details-section {
     background-color: var(--background-color-dark-surface);
@@ -201,4 +190,28 @@
         top: 3px;
         right: 3px;
     }
+}
+
+/* eventcalendar.css */
+
+/* ... (keep existing styles above) ... */
+
+/* Event indicator dot */
+.event-indicator {
+    width: 8px; /* Make it a small visible dot */
+    height: 8px; /* Make it a small visible dot */
+    background-color: var(--event-indicator-color); /* A vibrant color for events, defined in global.css */
+    border-radius: 50%; /* Makes it a circle */
+    position: absolute; /* Position it relative to the calendar-day */
+    top: 5px; /* Adjust vertical position */
+    right: 5px; /* Adjust horizontal position */
+    box-shadow: 0 0 5px rgba(var(--event-indicator-color-rgb), 0.7); /* Subtle glow */
+    z-index: 2; /* Ensure it's above other day content if any */
+}
+
+/* Add these if not already in global.css to support the glow */
+:root {
+    /* ... (keep existing variables) ... */
+    --event-indicator-color: #e74c3c; /* A distinct color for event dots (red) */
+    --event-indicator-color-rgb: 231, 76, 60; /* RGB values for the glow effect */
 }
