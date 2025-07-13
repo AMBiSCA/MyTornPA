@@ -2,14 +2,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log("eventcalendar.js: Script started. DOMContentLoaded event fired."); // DEBUG 1
 
+    // Move all element selections INSIDE this DOMContentLoaded callback
     const calendarDays = document.getElementById('calendarDays');
     const currentMonthYear = document.getElementById('currentMonthYear');
     const prevMonthBtn = document.getElementById('prevMonthBtn');
     const nextMonthBtn = document.getElementById('nextMonthBtn');
 
-    // NEW: Get references to the modal elements
     const eventModal = document.getElementById('eventModal');
-    const modalCloseBtn = eventModal.querySelector('.modal-close-btn');
+    // Ensure eventModal is not null before querying its children
+    const modalCloseBtn = eventModal ? eventModal.querySelector('.modal-close-btn') : null;
     const modalEventTitle = document.getElementById('modalEventTitle');
     const modalEventContent = document.getElementById('modalEventContent');
     const modalSetReminderBtn = document.getElementById('modalSetReminderBtn');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("eventcalendar.js: prevMonthBtn element:", prevMonthBtn);
     console.log("eventcalendar.js: nextMonthBtn element:", nextMonthBtn);
     console.log("eventcalendar.js: eventModal element:", eventModal); // DEBUG: Check new modal element
+    console.log("eventcalendar.js: modalCloseBtn element:", modalCloseBtn); // DEBUG: Check modal close button
 
 
     let currentDate = new Date(); // Represents the month/year currently displayed
@@ -33,7 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("eventcalendar.js: renderCalendar function called."); // DEBUG 3
 
         calendarDays.innerHTML = ''; // Clear previous days
-        eventModal.style.display = 'none'; // Hide modal when changing month (FIXED: was eventDetailsSection)
+        // Only try to hide if eventModal exists
+        if (eventModal) { // Add a check here
+            eventModal.style.display = 'none'; // Hide modal when changing month
+        }
 
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth(); // 0-indexed (0 for Jan, 11 for Dec)
@@ -77,17 +82,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Navigation Buttons Event Listeners ---
-    prevMonthBtn.addEventListener('click', () => {
-        console.log("eventcalendar.js: 'Previous' button clicked."); // DEBUG 6
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar();
-    });
+    // Add checks for null before adding listeners
+    if (prevMonthBtn) {
+        prevMonthBtn.addEventListener('click', () => {
+            console.log("eventcalendar.js: 'Previous' button clicked."); // DEBUG 6
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+    } else {
+        console.warn("eventcalendar.js: prevMonthBtn not found, cannot attach listener.");
+    }
 
-    nextMonthBtn.addEventListener('click', () => {
-        console.log("eventcalendar.js: 'Next' button clicked."); // DEBUG 7
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar();
-    });
+    if (nextMonthBtn) {
+        nextMonthBtn.addEventListener('click', () => {
+            console.log("eventcalendar.js: 'Next' button clicked."); // DEBUG 7
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+    } else {
+        console.warn("eventcalendar.js: nextMonthBtn not found, cannot attach listener.");
+    }
+
 
     // --- Function to Fetch Torn Events from API ---
     async function fetchTornEventsForMonth(year, month) {
@@ -124,7 +139,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error("eventcalendar.js: Error fetching Torn events:", error); // DEBUG 14
-            calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
+            if (calendarDays) { // Add a check here
+                 calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
+            }
         }
     }
 
@@ -155,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Prepare event details for display.
                 const displayEvent = {
-                    name: event.title, // CHANGED FROM event.name to event.title
+                    name: event.title,
                     date: eventDateObj.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -166,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         minute: '2-digit'
                     }),
                     description: event.description,
-                    link: `https://www.torn.com/calendar.php#${event.title.replace(/\s+/g, '_')}` // Construct a simple link from title
+                    link: `https://www.torn.com/calendar.php#${event.title.replace(/\s+/g, '_')}`
                 };
 
 
@@ -177,39 +194,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 dayElement.addEventListener('click', (e) => {
                     const clickedEvents = JSON.parse(e.currentTarget.dataset.events);
                     if (clickedEvents && clickedEvents.length > 0) {
-                        showEventDetails(clickedEvents); // Pass all events for the day to handle multiple
+                        showEventDetails(clickedEvents);
                     }
                 });
-                console.log(`eventcalendar.js: Event '${event.title}' added to day ${day}.`); // DEBUG 16 (UPDATED MESSAGE)
+                console.log(`eventcalendar.js: Event '${event.title}' added to day ${day}.`); // DEBUG 16
             } else {
-                console.log(`eventcalendar.js: Day element not found or is empty for event: ${event.title} on ${formattedDate}`); // DEBUG 17 (UPDATED MESSAGE)
+                console.log(`eventcalendar.js: Day element not found or is empty for event: ${event.title} on ${formattedDate}`); // DEBUG 17
             }
         });
     }
 
     // --- Function to Show Event Details (UPDATED for modal) ---
-    function showEventDetails(events) { // Now accepts an array of events
+    function showEventDetails(events) {
         console.log("eventcalendar.js: showEventDetails called for events:", events); // DEBUG 18
 
-        modalEventTitle.textContent = "Event Details"; // Reset title
-        modalEventContent.innerHTML = ''; // Clear previous content
+        if (!eventModal || !modalEventTitle || !modalEventContent || !modalSetReminderBtn) { // Add checks here
+            console.error("eventcalendar.js: Modal elements not found. Cannot show details.");
+            return;
+        }
 
-        // Check if there's only one event or multiple
+        modalEventTitle.textContent = "Event Details";
+        modalEventContent.innerHTML = '';
+
         if (events.length === 1) {
             const event = events[0];
-            modalEventTitle.textContent = event.name; // Title reflects single event
+            modalEventTitle.textContent = event.name;
             modalEventContent.innerHTML = `
                 <p><strong>Date:</strong> ${event.date}</p>
                 <p><strong>Time:</strong> ${event.time}</p>
                 <p><strong>Description:</strong> ${event.description}</p>
                 <p><strong>Link:</strong> <a href="${event.link}" target="_blank" rel="noopener noreferrer">${event.link.length > 50 ? event.link.substring(0, 50) + '...' : event.link}</a></p>
             `;
+            // Ensure the main modal reminder button is visible for single events
+            modalSetReminderBtn.style.display = 'block';
             modalSetReminderBtn.onclick = () => {
                 alert(`Reminder set for: ${event.name} on ${event.date} at ${event.time} (functionality coming soon!)`);
             };
         } else {
-            // Handle multiple events on the same day
-            modalEventTitle.textContent = `Events on ${events[0].date}`; // Show date in title
+            modalEventTitle.textContent = `Events on ${events[0].date}`;
             let eventsListHtml = '<ul>';
             events.forEach(event => {
                 eventsListHtml += `
@@ -224,10 +246,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             eventsListHtml += '</ul>';
             modalEventContent.innerHTML = eventsListHtml;
-            // The main reminder button is hidden for multiple events, individual ones are shown
+            // Hide the main reminder button for multiple events, individual ones are shown
             modalSetReminderBtn.style.display = 'none';
 
-            // Attach event listeners to individual reminder buttons inside the list
             document.querySelectorAll('.set-single-reminder-btn').forEach(btn => {
                 btn.onclick = (e) => {
                     const eventName = e.target.dataset.eventName;
@@ -238,22 +259,32 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        eventModal.style.display = 'flex'; // Show the modal (FIXED: was eventDetailsSection)
+        eventModal.style.display = 'flex'; // Show the modal
     }
 
     // --- Close Modal Event Listener ---
-    modalCloseBtn.addEventListener('click', () => {
-        eventModal.style.display = 'none';
-        console.log("eventcalendar.js: Modal closed.");
-    });
+    // Add check for null before adding listener
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', () => {
+            eventModal.style.display = 'none';
+            console.log("eventcalendar.js: Modal closed.");
+        });
+    } else {
+        console.warn("eventcalendar.js: modalCloseBtn not found, cannot attach listener.");
+    }
+
 
     // Close modal if clicked outside of modal content
-    window.addEventListener('click', (event) => {
-        if (event.target === eventModal) {
-            eventModal.style.display = 'none';
-            console.log("eventcalendar.js: Modal closed by clicking outside.");
-        }
-    });
+    if (eventModal) { // Add check for null here
+        window.addEventListener('click', (event) => {
+            if (event.target === eventModal) {
+                eventModal.style.display = 'none';
+                console.log("eventcalendar.js: Modal closed by clicking outside.");
+            }
+        });
+    } else {
+        console.warn("eventcalendar.js: eventModal not found, cannot attach outside click listener.");
+    }
 
 
     // --- Initial Render when page loads ---
