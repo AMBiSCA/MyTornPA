@@ -1,56 +1,52 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("eventcalendar.js: Script started, waiting for user authentication...");
+    console.log("eventcalendar.js: Script started.");
 
+    // Get all calendar elements immediately
     const calendarWrapper = document.querySelector('.calendar-wrapper');
+    const calendarHeader = document.querySelector('.calendar-header');
+    const calendarWeekdays = document.querySelector('.calendar-weekdays');
+    const calendarDays = document.getElementById('calendarDays');
+    const currentMonthYear = document.getElementById('currentMonthYear');
+    const prevMonthBtn = document.getElementById('prevMonthBtn');
+    const nextMonthBtn = document.getElementById('nextMonthBtn');
+    const eventDetailsSection = document.getElementById('eventDetails');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    
+    // Show a loading state immediately
+    if (calendarHeader) calendarHeader.style.display = 'none';
+    if (calendarWeekdays) calendarWeekdays.style.display = 'none';
+    if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message">Loading Calendar...</div>`;
 
     // Wait for Firebase to determine the user's authentication state
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             // --- User is logged in ---
-            console.log("User is logged in. Fetching API key from Firestore...");
-
             try {
-                // Fetch the user's profile from the 'userProfiles' collection using their UID
                 const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
                 const userDoc = await userDocRef.get();
 
-                // Check if the document and the API key field exist
                 if (userDoc.exists && userDoc.data().tornApiKey) {
+                    // --- API Key Found: Build the calendar ---
+                    console.log("API key found. Initializing calendar.");
+                    if (calendarHeader) calendarHeader.style.display = 'flex';
+                    if (calendarWeekdays) calendarWeekdays.style.display = 'grid';
+
+                    const TORN_API_KEY = userDoc.data().tornApiKey;
                     
-                    // --- API Key Found ---
-                    const TORN_API_KEY = userDoc.data().tornApiKey; // Use the key from the database
-                    console.log("Torn API key found. Initializing calendar.");
-
-                    // ===================================================================
-                    // ALL THE ORIGINAL CALENDAR CODE NOW RUNS SAFELY INSIDE HERE
-                    // ===================================================================
-
-                    const calendarDays = document.getElementById('calendarDays');
-                    const currentMonthYear = document.getElementById('currentMonthYear');
-                    const prevMonthBtn = document.getElementById('prevMonthBtn');
-                    const nextMonthBtn = document.getElementById('nextMonthBtn');
-                    const eventDetailsSection = document.getElementById('eventDetails');
                     const detailEventName = document.getElementById('detailEventName');
                     const detailEventDate = document.getElementById('detailEventDate');
                     const detailEventTime = document.getElementById('detailEventTime');
                     const detailEventDescription = document.getElementById('detailEventDescription');
                     const detailEventLink = document.getElementById('detailEventLink');
                     const setReminderBtn = document.getElementById('setReminderBtn');
-                    const modalCloseBtn = document.getElementById('modalCloseBtn');
 
                     let currentDate = new Date();
 
-                    // --- Modal Closing Logic ---
-                    modalCloseBtn.addEventListener('click', () => {
-                        eventDetailsSection.style.display = 'none';
-                    });
+                    modalCloseBtn.addEventListener('click', () => { eventDetailsSection.style.display = 'none'; });
                     eventDetailsSection.addEventListener('click', (event) => {
-                        if (event.target === eventDetailsSection) {
-                            eventDetailsSection.style.display = 'none';
-                        }
+                        if (event.target === eventDetailsSection) { eventDetailsSection.style.display = 'none'; }
                     });
 
-                    // --- Calendar Functions ---
                     function renderCalendar() {
                         calendarDays.innerHTML = '';
                         eventDetailsSection.style.display = 'none';
@@ -77,15 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         fetchTornEventsForMonth(year, month + 1);
                     }
 
-                    prevMonthBtn.addEventListener('click', () => {
-                        currentDate.setMonth(currentDate.getMonth() - 1);
-                        renderCalendar();
-                    });
-
-                    nextMonthBtn.addEventListener('click', () => {
-                        currentDate.setMonth(currentDate.getMonth() + 1);
-                        renderCalendar();
-                    });
+                    prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
+                    nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
 
                     async function fetchTornEventsForMonth(year, month) {
                         document.querySelectorAll('.event-indicator').forEach(el => el.remove());
@@ -102,10 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 });
                                 displayEventsOnCalendar(eventsInMonth);
                             } else { console.warn("No 'events' data found in Torn API response."); }
-                        } catch (error) {
-                            console.error("Error fetching Torn events:", error);
-                            calendarDays.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-color-error);">Error loading events. Please try again later.</div>';
-                        }
+                        } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Error loading events. Please try again later.</div>`; }
                     }
 
                     function displayEventsOnCalendar(events) {
@@ -143,36 +129,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         setReminderBtn.onclick = () => { alert(`Reminder set for: ${event.name} on ${event.date} at ${event.time} (functionality coming soon!)`); };
                     }
 
-                    // --- Initial Render ---
                     renderCalendar();
 
                 } else {
                     // --- API Key NOT Found ---
-                    console.error("User logged in, but no Torn API Key found in their profile.");
-                    calendarWrapper.innerHTML = `
-                        <div style="text-align: center; padding: 20px; color: var(--text-color-error);">
-                            <h3>API Key Missing</h3>
-                            <p>Your Torn API key is not saved in your user profile.</p>
-                            <p>Please go to your settings to add it.</p>
-                        </div>`;
+                    if(calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>API Key Missing</h3><p>Your Torn API key is not saved in your user profile. Please go to your settings to add it.</p></div>`;
                 }
             } catch (error) {
                 // --- Error Fetching Data ---
-                console.error("Error fetching user data from Firestore:", error);
-                calendarWrapper.innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: var(--text-color-error);">
-                        <h3>Loading Error</h3>
-                        <p>Could not load your profile data. Please refresh and try again.</p>
-                    </div>`;
+                if(calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>Loading Error</h3><p>Could not load your profile data. Please refresh and try again.</p></div>`;
             }
         } else {
             // --- User is NOT logged in ---
-            console.log("No user is logged in.");
-            calendarWrapper.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <h3>Please Log In</h3>
-                    <p>You must be logged in to view the event calendar.</p>
-                </div>`;
+            if(calendarDays) calendarDays.innerHTML = `<div class="calendar-message"><h3>Please Log In</h3><p>You must be logged in to view the event calendar.</p></div>`;
         }
     });
 });
