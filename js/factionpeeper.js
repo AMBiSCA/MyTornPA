@@ -599,7 +599,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
         // BATCH PROCESSING CONFIGURATION
         const batchSize = 5; // Number of users to fetch concurrently in each batch
-        const delayBetweenBatchesMs = 1000; // Delay in milliseconds between batches (increased to 1 second)
+        const delayBetweenBatchesMs = 2000; // Increased delay to 2 seconds
 
         for (let i = 0; i < factionMembersIds.length; i += batchSize) {
             const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
@@ -607,65 +607,44 @@ async function fetchData(user) { // <--- Added 'user' parameter
             // Create an array of promises for the current batch
             const batchPromises = batchMemberIds.map(async (memberId) => {
                 let combinedData = { member_id_for_table: memberId };
-                let overallStatus = true;
                 let errors = [];
-                const primarySelections = 'basic,profile';
-                const primaryDataUrl = `https://api.torn.com/user/${memberId}?selections=${primarySelections}&key=${currentApiKey}`;
+                
+                // *** CHANGE #1: COMBINE ALL SELECTIONS INTO ONE API CALL ***
+                const selections = ['basic', 'profile'];
+                if (personalStatsNeeded) {
+                    selections.push('personalstats');
+                }
+                const apiUrl = `https://api.torn.com/user/${memberId}?selections=${selections.join(',')}&key=${currentApiKey}`;
 
                 try {
-                    const response1 = await fetch(primaryDataUrl);
-                    if (!response1.ok) {
-                        // Log the specific error from Torn API if available
-                        const errorData = await response1.json().catch(() => ({}));
-                        errors.push(`Primary Fetch (basic,profile) (HTTP ${response1.status}): ${errorData.error?.error || response1.statusText}`);
-                        overallStatus = false;
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        errors.push(`API Fetch (HTTP ${response.status}): ${errorData.error?.error || response.statusText}`);
                     } else {
-                        const data1 = await response1.json();
-                        if (data1.error) {
-                            errors.push(`Primary API (basic,profile): ${data1.error.error}`);
-                            overallStatus = false;
+                        const data = await response.json();
+                        if (data.error) {
+                            errors.push(`API Error: ${data.error.error}`);
                         } else {
-                            combinedData = { ...combinedData, ...data1 };
+                            combinedData = { ...combinedData, ...data };
                         }
                     }
                 } catch (e) {
-                    errors.push(`Primary Network Err (basic,profile): ${e.message.substring(0, 50)}`);
-                    overallStatus = false;
-                }
-
-                if (personalStatsNeeded && overallStatus) {
-                    const personalStatsSelection = 'personalstats';
-                    const personalStatsDataUrl = `https://api.torn.com/user/${memberId}?selections=${personalStatsSelection}&key=${currentApiKey}`;
-                    try {
-                        const response2 = await fetch(personalStatsDataUrl);
-                        if (!response2.ok) {
-                             // Log the specific error from Torn API if available
-                            const errorData = await response2.json().catch(() => ({}));
-                            errors.push(`PersonalStats Fetch (HTTP ${response2.status}): ${errorData.error?.error || response2.statusText}`);
-                        } else {
-                            const data2 = await response2.json();
-                            console.log(`User ${memberId} - Raw personalstats API response (data2):`, JSON.stringify(data2));
-                            if (data2.error) {
-                                errors.push(`PersonalStats API: ${data2.error.error}`);
-                            } else {
-                                combinedData.personalstats = { ...(combinedData.personalstats || {}), ...(data2.personalstats || {}) };
-                            }
-                        }
-                    } catch (e) {
-                        errors.push(`PersonalStats Network Err: ${e.message.substring(0, 50)}`);
-                    }
-                } else if (personalStatsNeeded && !overallStatus) {
-                    errors.push("Skipped personalstats due to primary fetch error.");
+                    errors.push(`Network Error: ${e.message.substring(0, 50)}`);
                 }
 
                 if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
+
+                // Fallback to get name from initial faction data if API call fails
                 if (!combinedData.name && members[memberId] && members[memberId].name) {
                     combinedData.name = members[memberId].name;
                 }
-
+                
+                // Logging for debugging personalstats specifically
                 if (personalStatsNeeded) {
                     console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
                 }
+                
                 return { memberId, data: combinedData, status: !combinedData.error };
             });
 
@@ -749,7 +728,6 @@ async function fetchData(user) { // <--- Added 'user' parameter
         showMainError(`Error: ${error.message}`);
     }
 }
-
 // Removed the direct fetchDataButton.addEventListener here.
 // It will now be added inside onAuthStateChanged or after user state is known.
 
