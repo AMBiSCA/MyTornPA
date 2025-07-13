@@ -454,11 +454,19 @@ function sleep(ms) {
 
 // IMPORTANT: Modified fetchData to accept the user object
 async function fetchData(user) { // <--- Added 'user' parameter
+    
+    // --- SPEED TUNING SETTINGS ---
+    // You can adjust these values. A smaller delay or larger batch size is faster
+    // but increases the risk of hitting the API rate limit.
+    const batchSize = 10; // How many users to fetch at once.
+    const delayBetweenBatchesMs = 3000; // How long to wait between batches (in milliseconds).
+    // --- END OF SETTINGS ---
+
     const factionIdError = document.getElementById('factionIdError');
-    const apiKeyError = document.getElementById('apiKeyError'); // This element now primarily shows messages related to fetching key from profile
+    const apiKeyError = document.getElementById('apiKeyError'); 
     const statsError = document.getElementById('statsError');
 
-    // Clear all feedback messages at the start of a new fetch attempt
+    // Clear all feedback messages
     if (factionIdError) factionIdError.textContent = '';
     if (apiKeyError) apiKeyError.textContent = '';
     if (statsError) statsError.textContent = '';
@@ -470,45 +478,35 @@ async function fetchData(user) { // <--- Added 'user' parameter
     const factionId = factionIdInput ? factionIdInput.value.trim() : '';
 
     let hasError = false;
-    let currentApiKey = ''; // Variable to hold the fetched API key
+    let currentApiKey = '';
 
     // --- AUTHENTICATION AND API KEY FETCH FROM FIRESTORE ---
-    if (!user || !db) { // Check if user object is provided and db is initialized
-        let errorMessage = 'Authentication error: Not signed in or Firebase/Firestore not initialized. Please sign in and try again.';
-        if (apiKeyError) apiKeyError.textContent = errorMessage; // Using apiKeyError div for this general message
-        else showMainError(errorMessage); // Display a prominent error
-        hasError = true;
-        hideLoadingSpinner(); // Ensure spinner is hidden if error occurs early
-        return; // Exit early if no user or db
+    if (!user || !db) { 
+        showMainError('Authentication error: Not signed in. Please sign in and try again.');
+        return; 
     } else {
-        showLoadingSpinner(); // Show spinner while fetching API key from Firestore
+        showLoadingSpinner();
         try {
-            const userDocRef = db.collection('userProfiles').doc(user.uid); // Use the passed user.uid
+            const userDocRef = db.collection('userProfiles').doc(user.uid);
             const userDoc = await userDocRef.get();
 
             if (userDoc.exists) {
                 const userData = userDoc.data();
-                currentApiKey = userData.tornApiKey; // Changed to lowercase 'k' here
+                currentApiKey = userData.tornApiKey;
                 if (!currentApiKey) {
-                    let errorMessage = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid API key.';
-                    if (apiKeyError) apiKeyError.textContent = errorMessage;
-                    else showMainError(errorMessage);
+                    showMainError('Your Torn API Key is not set in your profile. Please update your profile settings.');
                     hasError = true;
                     hideLoadingSpinner();
                     return;
                 }
             } else {
-                let errorMessage = 'User profile not found in database. Please ensure your profile is set up.';
-                if (apiKeyError) apiKeyError.textContent = errorMessage;
-                else showMainError(errorMessage);
+                showMainError('User profile not found in database. Please ensure your profile is set up.');
                 hasError = true;
                 hideLoadingSpinner();
                 return;
             }
         } catch (error) {
-            let errorMessage = `Error fetching API Key from profile: ${error.message}. Check console for details.`;
-            if (apiKeyError) apiKeyError.textContent = errorMessage;
-            else showMainError(errorMessage);
+            showMainError(`Error fetching API Key from profile: ${error.message}.`);
             hasError = true;
             hideLoadingSpinner();
             return;
@@ -529,7 +527,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
 
     if (hasError) {
         hideLoadingSpinner();
-        return; // Early exit if there are validation errors
+        return;
     }
 
     try {
@@ -569,17 +567,13 @@ async function fetchData(user) { // <--- Added 'user' parameter
         if (modalTableHeader) modalTableHeader.appendChild(tableHeaderRow);
 
         const modalTableBody = document.getElementById('modal-results-table-body');
-        if (modalTableBody) modalTableBody.innerHTML = ''; // Clear table body before populating
+        if (modalTableBody) modalTableBody.innerHTML = ''; 
 
         // Show the modal now, so the user can see the table filling up live
         showResultsModal();
 
         const factionMembersIds = Object.keys(members);
-
-        // BATCH PROCESSING CONFIGURATION
-        const batchSize = 8; // Process 8 users at a time
-        const delayBetweenBatchesMs = 4000; // Wait 4 seconds between batches
-
+        
         for (let i = 0; i < factionMembersIds.length; i += batchSize) {
             const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
 
@@ -638,9 +632,9 @@ async function fetchData(user) { // <--- Added 'user' parameter
                 return nameA.localeCompare(nameB);
             });
 
-            // *** PROGRESSIVE LOADING: Add this batch's results to the table immediately ***
+            // PROGRESSIVE LOADING: Add this batch's results to the table immediately
             for (const userResult of currentBatchResults) {
-                if (!modalTableBody) continue; // Safety check
+                if (!modalTableBody) continue; 
                 
                 const tr = document.createElement('tr');
                 const memberName = userResult.data.name || `User ${userResult.memberId}`;
@@ -669,7 +663,6 @@ async function fetchData(user) { // <--- Added 'user' parameter
             }
         }
         
-        // All batches are done, hide the main loading spinner
         hideLoadingSpinner();
 
     } catch (error) {
