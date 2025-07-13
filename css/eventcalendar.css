@@ -1,103 +1,6 @@
-/* eventcalendar.css - CLEANED AND COMBINED */
+/* eventcalendar.css - FINAL CLEANED MODAL STYLES */
 
-/* Main calendar wrapper */
-.calendar-wrapper {
-    background-color: var(--background-color-dark-surface);
-    border: 1px solid var(--border-color-dark);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    max-width: 900px;
-    margin: 30px auto;
-    color: var(--text-color-light);
-}
-
-/* Calendar header (Month navigation) */
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color-dark-subtle);
-}
-
-.calendar-header h3 {
-    color: var(--text-color-accent);
-    margin: 0;
-    font-size: 1.8em;
-    font-weight: 700;
-}
-
-.calendar-nav-btn {
-    background-color: var(--button-background-dark);
-    color: var(--button-text-light);
-    border: 1px solid var(--button-border-dark);
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.calendar-nav-btn:hover {
-    background-color: var(--button-background-dark-hover);
-    border-color: var(--button-border-dark-hover);
-}
-
-/* Weekday headers (Sun, Mon, Tue, etc.) */
-.calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: var(--text-color-secondary);
-    text-align: center;
-}
-
-/* Calendar days grid */
-.calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-}
-
-.calendar-day {
-    background-color: var(--background-color-dark-card);
-    border: 1px solid var(--border-color-dark-subtle);
-    border-radius: 5px;
-    padding: 15px 5px;
-    text-align: center;
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    font-size: 1.1em;
-    color: var(--text-color-light);
-}
-
-.calendar-day:hover:not(.empty) {
-    background-color: var(--background-color-dark-card-hover);
-    border-color: var(--text-color-accent);
-}
-
-.calendar-day.empty {
-    background-color: var(--background-color-dark-empty);
-    border-color: var(--border-color-dark-empty);
-    cursor: default;
-    opacity: 0.6;
-}
-
-/* Current day highlight */
-.calendar-day.current-day {
-    border: 2px solid var(--highlight-color-primary);
-    background-color: var(--highlight-color-bg);
-}
+/* ... (Keep all your existing calendar-wrapper, calendar-header, etc. styles above this) ... */
 
 /* Event indicator dot */
 .event-indicator {
@@ -131,23 +34,24 @@
 
 /* --- Event Details Modal Styles --- */
 
-/* --- Event Details Modal Styles --- */
-
 .modal-overlay {
-    display: flex !important; /* TEMPORARY: Force it to always be visible for debugging */
+    display: none; /* Initially hidden. JS will set to 'flex' */
     position: fixed;
-    z-index: 1000; /* Make sure this is high enough to be on top of everything */
+    z-index: 1000; /* High z-index to appear on top */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
-    backdrop-filter: blur(5px); /* Optional: blur background for a nice effect */
-	-webkit-backdrop-filter: blur(5px); /* For Safari */
-    align-items: center; /* Center content vertically */
-    justify-content: center; /* Center content horizontally */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    align-items: center; /* Center content vertically using flexbox */
+    justify-content: center; /* Center content horizontally using flexbox */
+    opacity: 1; /* Ensure it's not transparent by default if JS controls opacity */
+    transition: opacity 0.3s ease-in-out; /* Smooth transition for showing/hiding */
 }
+
 .modal-content {
     background-color: var(--background-color-dark-surface);
     margin: auto;
@@ -218,7 +122,7 @@
     text-align: center;
 }
 
-.set-single-reminder-btn { /* Style for individual reminder buttons within multi-event modal */
+.set-single-reminder-btn {
     margin-top: 10px;
     width: auto;
     padding: 8px 15px;
