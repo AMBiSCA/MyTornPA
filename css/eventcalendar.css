@@ -215,3 +215,126 @@
     --event-indicator-color: #e74c3c; /* A distinct color for event dots (red) */
     --event-indicator-color-rgb: 231, 76, 60; /* RGB values for the glow effect */
 }
+
+/* eventcalendar.css */
+
+/* ... (Keep all your existing calendar and general styles above) ... */
+
+/* --- Event Details Modal Styles --- */
+
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+    backdrop-filter: blur(5px); /* Optional: blur background for a nice effect */
+    -webkit-backdrop-filter: blur(5px); /* For Safari */
+    display: flex; /* Use flexbox for centering */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+}
+
+.modal-content {
+    background-color: var(--background-color-dark-surface); /* Dark background for modal */
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--border-color-dark);
+    border-radius: 10px;
+    width: 90%; /* Adjust width as needed */
+    max-width: 600px; /* Max width for readability */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    position: relative;
+    color: var(--text-color-light); /* Light text */
+    max-height: 80vh; /* Max height to allow scrolling if content is long */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.modal-close-btn {
+    color: var(--text-color-secondary);
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1; /* Ensures 'x' is centered properly */
+    transition: color 0.2s ease;
+}
+
+.modal-close-btn:hover,
+.modal-close-btn:focus {
+    color: var(--text-color-accent); /* Highlight on hover/focus */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#modalEventTitle {
+    color: var(--text-color-accent); /* Accent color for modal title */
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+#modalEventContent p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+#modalEventContent p strong {
+    color: var(--text-color-secondary); /* Muted color for labels */
+}
+
+#modalEventContent a {
+    color: var(--link-color-dark); /* Link color */
+    text-decoration: none;
+    word-break: break-all; /* For long URLs */
+}
+
+#modalEventContent a:hover {
+    text-decoration: underline;
+}
+
+/* Specific styling for the reminder button in the modal */
+#modalSetReminderBtn {
+    margin-top: 20px;
+    display: block; /* Make it a block element to take full width */
+    width: 100%;
+    text-align: center;
+}
+
+/* Ensure the calendar-day still has event-indicator styles as before */
+.event-indicator {
+    width: 8px;
+    height: 8px;
+    background-color: var(--event-indicator-color);
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    box-shadow: 0 0 5px rgba(var(--event-indicator-color-rgb), 0.7);
+    z-index: 2;
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    #modalEventTitle {
+        font-size: 1.5em;
+    }
+    .modal-close-btn {
+        font-size: 24px;
+        top: 8px;
+        right: 10px;
+    }
+}
