@@ -473,7 +473,6 @@ async function fetchData(user) { // <--- Added 'user' parameter
     let currentApiKey = ''; // Variable to hold the fetched API key
 
     // --- AUTHENTICATION AND API KEY FETCH FROM FIRESTORE ---
-    // Now, we check the 'user' object passed directly
     if (!user || !db) { // Check if user object is provided and db is initialized
         let errorMessage = 'Authentication error: Not signed in or Firebase/Firestore not initialized. Please sign in and try again.';
         if (apiKeyError) apiKeyError.textContent = errorMessage; // Using apiKeyError div for this general message
@@ -490,32 +489,29 @@ async function fetchData(user) { // <--- Added 'user' parameter
             if (userDoc.exists) {
                 const userData = userDoc.data();
                 currentApiKey = userData.tornApiKey; // Changed to lowercase 'k' here
-                console.log("DEBUG: Value of currentApiKey retrieved from Firestore:", currentApiKey);
-                console.log("DEBUG: Type of currentApiKey:", typeof currentApiKey);
-                console.log("DEBUG: Is currentApiKey truthy?", !!currentApiKey);
-                if (!currentApiKey) { // This check became true
+                if (!currentApiKey) {
                     let errorMessage = 'Your Torn API Key is not set in your profile. Please update your profile settings with a valid API key.';
                     if (apiKeyError) apiKeyError.textContent = errorMessage;
                     else showMainError(errorMessage);
                     hasError = true;
-                    hideLoadingSpinner(); // Hide spinner on this error
-                    return; // Exit early if API key is missing
+                    hideLoadingSpinner();
+                    return;
                 }
             } else {
                 let errorMessage = 'User profile not found in database. Please ensure your profile is set up.';
                 if (apiKeyError) apiKeyError.textContent = errorMessage;
                 else showMainError(errorMessage);
                 hasError = true;
-                hideLoadingSpinner(); // Hide spinner on this error
-                return; // Exit early if profile not found
+                hideLoadingSpinner();
+                return;
             }
         } catch (error) {
             let errorMessage = `Error fetching API Key from profile: ${error.message}. Check console for details.`;
             if (apiKeyError) apiKeyError.textContent = errorMessage;
             else showMainError(errorMessage);
             hasError = true;
-            hideLoadingSpinner(); // Hide spinner on this error
-            return; // Exit early on fetch error
+            hideLoadingSpinner();
+            return;
         }
     }
     // --- END AUTHENTICATION AND API KEY FETCH ---
@@ -532,31 +528,11 @@ async function fetchData(user) { // <--- Added 'user' parameter
     }
 
     if (hasError) {
-        hideLoadingSpinner(); // Ensure spinner is hidden if an error occurred before API calls
-        const mainPageStatus = document.createElement('div');
-        mainPageStatus.textContent = 'Error: Please correct the input fields above and ensure your API key is set in your profile.';
-        mainPageStatus.className = 'main-input-error-feedback';
-        mainPageStatus.style.textAlign = 'center';
-        mainPageStatus.style.color = 'red';
-        mainPageStatus.style.padding = '10px 0';
-        let errorAnchor = document.getElementById('statSelectionArea') || document.querySelector('.input-group');
-        // Only append if it's not the primary API key error message that was already shown
-        if (!document.querySelector('.main-input-error-feedback')) { // Prevent duplicate message if showMainError already displayed one
-            if (statsError && statsError.parentNode && (selected.size === 0 || selected.size > maxSelection)) {
-                statsError.parentNode.insertBefore(mainPageStatus, statsError.nextSibling);
-            } else if (errorAnchor) {
-                errorAnchor.appendChild(mainPageStatus);
-            } else {
-                const containerDiv = document.querySelector('.faction-peeper-tool-container');
-                if (containerDiv) containerDiv.appendChild(mainPageStatus);
-            }
-        }
-        setTimeout(() => { if (mainPageStatus.parentElement) mainPageStatus.remove(); }, 5000);
-        return;
+        hideLoadingSpinner();
+        return; // Early exit if there are validation errors
     }
 
     try {
-        // Spinner is already shown from the Firestore fetch above, no need to show again unless hidden by previous errors
         const personalStatsCheckList = [
             'Respect', 'Xanax Taken', 'Total War Hits', 'Refills', 'Total War Assists', 'Attacks Won', 'Attacks Lost', 'Attacks Draw', 'Defends Won', 'Defends Lost', 'Total Attack Hits', 'Attack Damage Dealt', 'Best Single Hit Damage', 'Critical Hits', 'One-Hit Kills', 'Best Kill Streak', 'ELO Rating', 'Stealth Attacks', 'Highest Level Beaten', 'Unarmored Fights Won', 'Times You Ran Away', 'Opponent Ran Away', 'Networth', 'Money Mugged', 'Largest Mug', 'Bazaar Profit ($)', 'Bazaar Sales (#)', 'Bazaar Customers', 'Points Bought', 'Points Sold', 'Items Bought (Market/Shops)', 'City Items Bought', 'Items Bought Abroad', 'Items Sent', 'Items Looted', 'Items Dumped', 'Trades Made', 'Businesses Owned', 'Properties Owned'
         ];
@@ -581,6 +557,7 @@ async function fetchData(user) { // <--- Added 'user' parameter
         if (modalFactionName) modalFactionName.textContent = factionData.name || 'Unknown Faction';
         if (modalMemberCount) modalMemberCount.textContent = Object.keys(members).length;
 
+        // Setup table headers
         const displayHeaders = ["Name", "User ID"].concat(Array.from(selected));
         const modalTableHeader = document.getElementById('modal-results-table-header');
         if (modalTableHeader) modalTableHeader.innerHTML = '';
@@ -591,25 +568,25 @@ async function fetchData(user) { // <--- Added 'user' parameter
         });
         if (modalTableHeader) modalTableHeader.appendChild(tableHeaderRow);
 
-        const factionMembersIds = Object.keys(members);
-        const allUserResults = []; // Array to store results for display
-
         const modalTableBody = document.getElementById('modal-results-table-body');
         if (modalTableBody) modalTableBody.innerHTML = ''; // Clear table body before populating
 
+        // Show the modal now, so the user can see the table filling up live
+        showResultsModal();
+
+        const factionMembersIds = Object.keys(members);
+
         // BATCH PROCESSING CONFIGURATION
-        const batchSize = 5; // Number of users to fetch concurrently in each batch
-        const delayBetweenBatchesMs = 2000; // Increased delay to 2 seconds
+        const batchSize = 8; // Process 8 users at a time
+        const delayBetweenBatchesMs = 4000; // Wait 4 seconds between batches
 
         for (let i = 0; i < factionMembersIds.length; i += batchSize) {
             const batchMemberIds = factionMembersIds.slice(i, i + batchSize);
 
-            // Create an array of promises for the current batch
             const batchPromises = batchMemberIds.map(async (memberId) => {
                 let combinedData = { member_id_for_table: memberId };
                 let errors = [];
-                
-                // *** CHANGE #1: COMBINE ALL SELECTIONS INTO ONE API CALL ***
+
                 const selections = ['basic', 'profile'];
                 if (personalStatsNeeded) {
                     selections.push('personalstats');
@@ -634,97 +611,70 @@ async function fetchData(user) { // <--- Added 'user' parameter
                 }
 
                 if (errors.length > 0) combinedData.error = { error: errors.join('; ') };
-
-                // Fallback to get name from initial faction data if API call fails
                 if (!combinedData.name && members[memberId] && members[memberId].name) {
                     combinedData.name = members[memberId].name;
-                }
-                
-                // Logging for debugging personalstats specifically
-                if (personalStatsNeeded) {
-                    console.log(`User ${memberId} - combinedData.personalstats object being passed to getValueForStat:`, JSON.stringify(combinedData.personalstats));
                 }
                 
                 return { memberId, data: combinedData, status: !combinedData.error };
             });
 
-            // Wait for all promises in the current batch to settle
-            const batchResults = await Promise.allSettled(batchPromises);
-            batchResults.forEach(result => {
+            const batchResultsSettled = await Promise.allSettled(batchPromises);
+
+            const currentBatchResults = [];
+            batchResultsSettled.forEach(result => {
                 if (result.status === 'fulfilled') {
-                    allUserResults.push(result.value);
+                    currentBatchResults.push(result.value);
                 } else {
-                    // Handle rejected promises from the batch
                     console.error("Batch promise rejected:", result.reason);
-                    // Provide a more informative error message for the table if a promise rejects
                     const failedMemberId = result.reason?.memberId || 'Unknown ID';
-                    allUserResults.push({ memberId: failedMemberId, data: { error: { error: `Request rejected for User ${failedMemberId}: ${result.reason?.message || 'Unknown error'}` } }, status: false });
+                    currentBatchResults.push({ memberId: failedMemberId, data: { error: { error: `Request rejected for User ${failedMemberId}: ${result.reason?.message || 'Unknown error'}` } }, status: false });
                 }
             });
 
-            // Introduce a delay after each batch, if it's not the last batch
+            // Sort the results within this batch alphabetically by name before adding to table
+            currentBatchResults.sort((a, b) => {
+                const nameA = (a.data.name || members[a.memberId]?.name || `User ${a.memberId}`).toLowerCase();
+                const nameB = (b.data.name || members[b.memberId]?.name || `User ${b.memberId}`).toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+
+            // *** PROGRESSIVE LOADING: Add this batch's results to the table immediately ***
+            for (const userResult of currentBatchResults) {
+                if (!modalTableBody) continue; // Safety check
+                
+                const tr = document.createElement('tr');
+                const memberName = userResult.data.name || `User ${userResult.memberId}`;
+                const memberIdForTable = userResult.memberId || 'N/A';
+
+                tr.insertCell().textContent = memberName;
+                tr.insertCell().textContent = memberIdForTable;
+
+                if (!userResult.status || userResult.data.error) {
+                    const errorCell = tr.insertCell();
+                    errorCell.textContent = `Error: ${userResult.data.error?.error || 'Unknown issue'}`;
+                    errorCell.style.color = 'red';
+                    errorCell.colSpan = selected.size > 0 ? selected.size : 1;
+                } else {
+                    Array.from(selected).forEach(statDisplayName => {
+                        const td = tr.insertCell();
+                        td.textContent = getValueForStat(statDisplayName, userResult.data);
+                    });
+                }
+                modalTableBody.appendChild(tr);
+            }
+
+            // Delay before starting the next batch
             if (i + batchSize < factionMembersIds.length) {
                 await sleep(delayBetweenBatchesMs);
             }
         }
-
-        // Now populate the table with collected results
-        // Sort results by member ID or name for consistent display, especially if some requests failed
-        allUserResults.sort((a, b) => {
-            const nameA = (a.data.name || members[a.memberId]?.name || `User ${a.memberId}`).toLowerCase();
-            const nameB = (b.data.name || members[b.memberId]?.name || `User ${b.memberId}`).toLowerCase();
-            return nameA.localeCompare(nameB);
-        });
-
-
-        for (const userResult of allUserResults) {
-            let userData;
-            let currentMemberIdFromPromise;
-
-            if (userResult.status === true) { // Check the custom 'status' flag from our object
-                currentMemberIdFromPromise = userResult.memberId;
-                userData = userResult.data;
-            } else {
-                const errorRow = document.createElement('tr');
-                const failedMemberId = userResult.memberId || 'Unknown ID';
-                // Try to get the name from the initial faction data if the user data fetch failed
-                const memberName = members[failedMemberId] ? members[failedMemberId].name : `User ${failedMemberId} (Failed Fetch)`;
-                errorRow.insertCell().textContent = memberName;
-                errorRow.insertCell().textContent = failedMemberId;
-                const msgCell = errorRow.insertCell();
-                msgCell.textContent = `Error: ${userResult.data.error?.error || 'Unknown Issue'}`; // Use the error message from data
-                msgCell.colSpan = selected.size > 0 ? selected.size : 1;
-                msgCell.style.color = 'red';
-                if (modalTableBody) modalTableBody.appendChild(errorRow);
-                continue;
-            }
-
-            const memberName = userData.name || `User ${currentMemberIdFromPromise}`;
-            const memberIdForTable = userData.member_id_for_table || currentMemberIdFromPromise || 'N/A';
-
-            const tr = document.createElement('tr');
-            tr.insertCell().textContent = memberName;
-            tr.insertCell().textContent = memberIdForTable;
-
-            if (userData.error) {
-                const errorCell = tr.insertCell();
-                errorCell.textContent = `Error: ${userData.error.error || 'Unknown data fetch issue'}`;
-                errorCell.style.color = 'red';
-                errorCell.colSpan = selected.size > 0 ? selected.size : 1;
-            } else {
-                Array.from(selected).forEach(statDisplayName => {
-                    const td = tr.insertCell();
-                    td.textContent = getValueForStat(statDisplayName, userData);
-                });
-            }
-            if (modalTableBody) modalTableBody.appendChild(tr);
-        }
+        
+        // All batches are done, hide the main loading spinner
         hideLoadingSpinner();
-        showResultsModal();
+
     } catch (error) {
         console.error("Overall Fetch Error:", error);
         hideLoadingSpinner();
-        // Centralized error display function
         showMainError(`Error: ${error.message}`);
     }
 }
