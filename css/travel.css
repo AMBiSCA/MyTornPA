@@ -237,16 +237,15 @@ header {
     min-height: 0; /* Allow content to shrink if needed within flex container */
 }
 
-/* Right Panel - Item Display */
 .right-panel {
-    flex: 1; /* Allows it to grow and shrink, taking up remaining space (70%) */
+    flex: 1;
     display: flex;
-    flex-direction: column; /* Stack its children (item-list-section) vertically */
-    min-width: 0; /* Prevents overflow issues with long content */
-    overflow-y: auto; /* Enable internal scrolling for the item list */
-    padding-left: 15px; /* Padding to prevent scrollbar touching edge */
-    box-sizing: border-box; /* Include padding in width */
-    min-height: 0; /* Allow content to shrink if needed within flex container */
+    flex-direction: column;
+    min-width: 0;
+    overflow-y: hidden; /* <-- CHANGED to hidden */
+    padding-left: 15px;
+    box-sizing: border-box;
+    min-height: 0;
 }
 
 
@@ -356,6 +355,7 @@ header {
     min-height: 0; /* Important for flex items with overflow */
     box-sizing: border-box; /* Ensures padding and border are included in the element's total size */
     margin-bottom: 25px;
+	overflow-y: auto;
     /* Remove any redundant properties like border-top or padding-top if they were previously there,
        as the 'border' and 'padding' shorthand properties above cover them. */
 }
