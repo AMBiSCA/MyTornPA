@@ -266,34 +266,29 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
         return null;
     }
 }
-// --- NEW HELPER FUNCTION to fetch a reliable price for a single item ---
 async function fetchTornCityItemPrice(itemId, apiKey) {
-    const cacheKey = `price_${itemId}`;
-    const cachedItem = sessionStorage.getItem(cacheKey);
-
-    // Use a 5-minute cache to avoid making the same API call too often
-    if (cachedItem) {
-        const { price, timestamp } = JSON.parse(cachedItem);
-        if (Date.now() - timestamp < 5 * 60 * 1000) {
-            return price;
-        }
+    if (!apiKey) {
+        console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
+        return null;
     }
 
     try {
+        // *** ADD THIS LINE to see the exact URL being fetched ***
+        console.log(`DEBUG: Fetching URL for item ID ${itemId}: https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
+
         const response = await fetch(`https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
-        if (!response.ok) {
-            // Handle cases where the item doesn't exist on the market, etc.
-            console.warn(`Market API request failed for item ${itemId} with status: ${response.status}`);
+        
+        if (response.status === 404) {
+            console.error(`ERROR: The URL was not found on the server (404).`);
             return null;
         }
-        const data = await response.json();
 
+        const data = await response.json();
         if (data.error) {
             console.error(`Market API Error for item ${itemId}:`, data.error.error);
             return null;
         }
 
-        // Combine prices from both bazaar and item market to find the absolute lowest
         const prices = [];
         if (data.bazaar) {
             Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
@@ -303,16 +298,11 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
         }
 
         if (prices.length === 0) {
-            return null; // No listings found
+            return null;
         }
 
         const lowestPrice = Math.min(...prices);
-        const finalPrice = lowestPrice > 0 ? lowestPrice : null; // Treat a price of 0 as not available
-
-        // Cache the result in session storage
-        sessionStorage.setItem(cacheKey, JSON.stringify({ price: finalPrice, timestamp: Date.now() }));
-
-        return finalPrice;
+        return lowestPrice > 0 ? lowestPrice : null;
 
     } catch (error) {
         console.error(`Failed to fetch price for item ${itemId}:`, error);
