@@ -255,9 +255,6 @@ async function displayItemsForCountry(selectedCountryId, apiKey) {
         return;
     }
 
-    // --- CRITICAL CHANGE HERE: Access yataData.stocks directly ---
-    const countryData = yataData.stocks[selectedCountryId];
-
     // And items are within countryData.stocks, not countryData.items
     if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
         itemListDiv.innerHTML = `<p>No live item data available for this country from YATA. It might be an unpopular travel destination or data isn't available.</p>`;
