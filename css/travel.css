@@ -340,7 +340,6 @@ header {
 
 /* Update this rule in travel.css to add full box styling for enclosure and alignment */
 .item-list-section {
-    margin-top: 25px; /* Sets consistent spacing from elements above it, matching .input-section's margin-bottom */
     padding: 20px; /* Internal spacing for content, matching .input-section */
     border: 1px solid #00a8ff; /* Blue border to match .input-section */
     border-radius: 8px; /* Rounded corners to match .input-section */
@@ -349,7 +348,7 @@ header {
     flex-grow: 1; /* Allows it to take up available vertical space in its parent (.right-panel) */
     min-height: 0; /* Important for flex items with overflow */
     box-sizing: border-box; /* Ensures padding and border are included in the element's total size */
-
+    margin-bottom: 25px;
     /* Remove any redundant properties like border-top or padding-top if they were previously there,
        as the 'border' and 'padding' shorthand properties above cover them. */
 }
