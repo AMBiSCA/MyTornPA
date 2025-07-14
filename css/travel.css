@@ -338,10 +338,20 @@ header {
     /* You might want to remove the inline style="display: none;" from HTML now */
 }
 
+/* Update this rule in travel.css to add full box styling for enclosure and alignment */
 .item-list-section {
-    margin-top: -10px; /* Space between header and first item */
-    border-top: none; /* Removed border as per redesign */
-    padding-top: 0; /* Adjusted for right-panel padding */
+    margin-top: 25px; /* Sets consistent spacing from elements above it, matching .input-section's margin-bottom */
+    padding: 20px; /* Internal spacing for content, matching .input-section */
+    border: 1px solid #00a8ff; /* Blue border to match .input-section */
+    border-radius: 8px; /* Rounded corners to match .input-section */
+    background-color: #2e2e2e; /* Darker background color to match .input-section */
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15); /* Subtle blue glow to match .input-section */
+    flex-grow: 1; /* Allows it to take up available vertical space in its parent (.right-panel) */
+    min-height: 0; /* Important for flex items with overflow */
+    box-sizing: border-box; /* Ensures padding and border are included in the element's total size */
+
+    /* Remove any redundant properties like border-top or padding-top if they were previously there,
+       as the 'border' and 'padding' shorthand properties above cover them. */
 }
 
 .item-list-section h2 {
