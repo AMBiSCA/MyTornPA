@@ -439,6 +439,35 @@ footer.footer {
     flex-direction: column;
     justify-content: center;
 }
+
+/* Add this new rule to travel.css */
+.input-section input[type="text"]#item-search {
+    margin-bottom: 15px; /* Spacing below the search bar */
+}
+
+/* Also, ensure the general input-section input[type="text"] rule is present and styled as desired: */
+.input-section input[type="text"],
+.input-section input[type="number"],
+.input-section select { /* Added select for consistency */
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px; /* Spacing below inputs/selects */
+    border: 1px solid #00a8ff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #383838;
+    color: #eee;
+    font-size: 0.95rem;
+}
+/* Ensure the :focus styles are applied to item-search too */
+.input-section input[type="text"]:focus,
+.input-section input[type="number"]:focus,
+.input-section select:focus {
+    outline: none;
+    border-color: #0086d1;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.6);
+}
+
 footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
