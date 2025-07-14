@@ -373,7 +373,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
     background-color: #383838;
     color: #eee;
     font-size: 0.95rem;
-	margin-top: 5px;
+	margin-top: 50px;
 }
 
 .input-section select:focus,
