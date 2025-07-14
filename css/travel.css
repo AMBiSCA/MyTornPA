@@ -210,7 +210,7 @@ header {
 .page-specific-content-area p {
     font-size: 1.1rem;
     line-height: 1.6;
-    margin-bottom: 0px;
+    margin-bottom: -5px;
 	text-align: center; 
 }
 /* Removed .placeholder-box styles as it's no longer in HTML */
@@ -231,7 +231,7 @@ header {
     flex: 0 0 30%; /* Don't grow, don't shrink, base width 30% as requested */
     display: flex;
     flex-direction: column; /* Stack its children (input-sections) vertically */
-    overflow-y: auto; /* Enable internal scrolling if inputs overflow */
+    overflow-y: hidden; /* Enable internal scrolling if inputs overflow */
     padding-right: 15px; /* Padding to prevent scrollbar touching edge */
     box-sizing: border-box; /* Include padding in width */
     min-height: 0; /* Allow content to shrink if needed within flex container */
