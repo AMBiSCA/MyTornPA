@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
     // Function to fetch all item details (Uses Torn API 'Items' selection for images & category fallback)
-    // No longer stores market_price directly from here.
+    // No longer stores market_price directly from here, as it's fetched per-item by fetchTornCityItemPrice.
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
             console.log("All Torn items already loaded from cache.");
@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: item.name, // This might be the 'scrambled' name
                         type: item.type, // This is the Torn API's category
                         image: `https://www.torn.com/images/items/${itemId}/large.png`, // Correct image URL
-                        // market_price is NO LONGER stored here, it's fetched per-item
                     };
                 }
             }
@@ -263,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("displayItemsForCountry called with selectedCountryId:", selectedCountryId); // DEBUG
 
+        // Ensure allTornItems is loaded (still needed for image URLs and category fallback from allTornItems.type)
         if (Object.keys(allTornItems).length === 0) {
             errorDisplay.textContent = 'Item details cache not loaded. Please ensure API key is valid.';
             loadingIndicator.style.display = 'none';
@@ -302,12 +302,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const itemsToProcess = countryData.stocks.map(itemInfo => {
             const categoryFromMap = itemCategoryMap[itemInfo.id];
             const categoryFromAllTornItems = allTornItems[itemInfo.id] ? allTornItems[itemInfo.id].type : 'Unknown';
-
+            
             return {
                 itemId: itemInfo.id,
-                name: itemInfo.name,
+                name: itemInfo.name, // Use name from YATA (should be correct)
                 foreignPrice: itemInfo.cost,
-                foreignStock: itemInfo.quantity,
+                foreignStock: itemInfo.quantity, // YATA uses 'quantity' for stock
                 category: categoryFromMap || categoryFromAllTornItems || 'Other',
             };
         });
@@ -324,15 +324,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // --- NEW: Fetch Torn City Price for each filtered item ---
+        // --- Fetch Torn City Price for each filtered item using Promise.all for concurrency ---
         const itemPromises = filteredItems.map(async (itemData) => {
             const itemId = itemData.itemId;
 
             const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
             const itemDescription = 'No description available.';
 
-            // NOW ASYNC: Call the caching fetchTornCityItemPrice
-            const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey);
+            const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Call the caching fetchTornCityItemPrice
             console.log(`Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from data:`, tornCityPrice); // DEBUG
 
             const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
@@ -354,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
 
-        // Resolve all promises concurrently
         const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
 
 
@@ -367,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsToDisplay.sort((a, b) => {
             // Handle 'N/A' correctly for sorting: push to bottom
             const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitB : -Infinity;
             return profitB - profitA;
         });
 
