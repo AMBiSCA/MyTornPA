@@ -92,8 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemListDiv = document.getElementById('item-list');
     const travelCapacityInput = document.getElementById('travel-capacity');
     const categoryFilterSelect = document.getElementById('category-filter');
-
-    let currentTornApiKey = null; // Variable to hold the fetched Torn API key
+    const itemSearchInput = document.getElementById('item-search'); // NEW: Reference to the search input
+   
+   let currentTornApiKey = null; // Variable to hold the fetched Torn API key
 
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
@@ -454,7 +455,147 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.style.display = 'none';
     }
 
+// NEW: Function to search for an item across all countries and display results
+async function searchItemsAndDisplayResults(searchQuery, apiKey) {
+    itemListDiv.innerHTML = ''; // Clear previous items
+    loadingIndicator.textContent = `Searching for "${searchQuery}"...`;
+    // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
+    errorDisplay.textContent = '';
+    selectedCountryNameSpan.textContent = `Search results for "${searchQuery}"`; // Update header
 
+    if (Object.keys(allTornItems).length === 0) {
+        errorDisplay.textContent = 'Item details cache not loaded. Please ensure API key is valid.';
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const yataData = await fetchYATATravelData();
+    if (!yataData) {
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const travelCapacity = parseInt(travelCapacityInput.value, 10);
+    if (isNaN(travelCapacity) || travelCapacity <= 0) {
+        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const matchedItems = [];
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+
+    // Iterate through all countries in YATA data
+    for (const countryCode in yataData.stocks) {
+        if (yataData.stocks.hasOwnProperty(countryCode)) {
+            const country = yataData.stocks[countryCode];
+            const countryName = countryNameMap[countryCode] || countryCode; // Get full country name
+
+            // Iterate through items in each country
+            for (const itemInfo of country.stocks) { // Assuming country.stocks is an array based on your YATA sample
+                if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
+                    // Item found, collect its details
+                    const categoryFromMap = itemCategoryMap[itemInfo.id] || 'Other'; // Get category
+
+                    matchedItems.push({
+                        itemId: itemInfo.id,
+                        name: itemInfo.name,
+                        foreignPrice: itemInfo.cost,
+                        foreignStock: itemInfo.quantity,
+                        countryCode: countryCode,
+                        countryName: countryName,
+                        category: categoryFromMap,
+                    });
+                }
+            }
+        }
+    }
+
+    if (matchedItems.length === 0) {
+        itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" in any country.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    // Now, filter by category if a specific category is selected
+    const selectedCategory = categoryFilterSelect.value;
+    let filteredItems = matchedItems;
+    if (selectedCategory !== 'all') {
+        filteredItems = matchedItems.filter(item => item.category === selectedCategory);
+    }
+
+    if (filteredItems.length === 0) {
+        itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" for the selected category.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    // Fetch Torn City prices concurrently for all filtered items
+    const itemPromises = filteredItems.map(async (itemData) => {
+        const itemId = itemData.itemId;
+        const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
+        const itemDescription = 'No description available.'; // Keep as placeholder
+
+        const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Fetch Torn City Price
+        // console.log(`Search: Processing item ${itemData.name} (ID: ${itemData.itemId}) in ${itemData.countryName} - Torn City Price:`, tornCityPrice); // DEBUG
+
+        const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
+        const totalPotentialProfit = (tornCityPrice !== null && tornCityPrice > 0 && typeof profitPerItem === 'number') ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
+        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+
+        return {
+            id: itemId,
+            name: itemData.name,
+            image: imageUrl,
+            description: itemDescription,
+            foreignPrice: itemData.foreignPrice,
+            foreignStock: itemData.foreignStock,
+            countryName: itemData.countryName, // Add country name to the final object
+            tornCityPrice: tornCityPrice,
+            profitPerItem: profitPerItem,
+            totalPotentialProfit: totalPotentialProfit,
+            canCarry: canCarry,
+            category: itemData.category
+        };
+    });
+
+    const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
+
+    if (itemsToDisplay.length === 0) {
+        itemListDiv.innerHTML = `<p>No complete data found for matching items after fetching Torn City prices.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    // Sort by profit (highest first) across all matched locations
+    itemsToDisplay.sort((a, b) => {
+        const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
+        const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+        return profitB - profitA;
+    });
+
+    // Display results in item cards
+    itemListDiv.innerHTML = ''; // Clear for search results
+    itemsToDisplay.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('item-card');
+        itemCard.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="item-details">
+                <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
+                <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
+                <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
+                <p>Torn City Price: ${item.tornCityPrice !== null && item.tornCityPrice > 0 ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
+                <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
+                <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
+                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
+            </div>
+        `;
+        itemListDiv.appendChild(itemCard);
+    });
+
+    loadingIndicator.style.display = 'none';
+}
     // --- Event Listeners ---
 
     fetchDataBtn.addEventListener('click', async () => {
@@ -479,6 +620,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         loadingIndicator.style.display = 'none';
     });
+	
+	// NEW: Event listener for the Item Search input
+   itemSearchInput.addEventListener('input', async () => {
+    const searchQuery = itemSearchInput.value.trim(); // Get the current search query
+    const apiKey = currentTornApiKey; // Ensure API key is available
+
+    // If search query is empty, revert to showing items based on selected country/category
+    if (searchQuery === '') {
+        const selectedCountryId = destinationSelect.value;
+        if (selectedCountryId && apiKey) {
+            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+            await displayItemsForCountry(selectedCountryId, apiKey);
+        } else {
+            // If no country selected, clear item list or show default message
+            selectedCountryNameSpan.textContent = 'Selected Country';
+            itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
+        }
+        return; // Exit if search query is empty
+    }
+
+    if (!apiKey) {
+        errorDisplay.textContent = 'No Torn API Key available. Please log in to search items.';
+        return;
+    }
+
+    // Call a new function to handle the item search and display results
+    await searchItemsAndDisplayResults(searchQuery, apiKey);
+});
 
     destinationSelect.addEventListener('change', async () => {
         const selectedCountryId = destinationSelect.value;
