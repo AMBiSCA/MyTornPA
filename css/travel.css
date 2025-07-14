@@ -366,7 +366,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 .input-section input[type="number"] {
     width: 100%;
     padding: 10px 12px;
-    margin-bottom: 15px; /* Spacing below inputs/selects */
+    margin-bottom: 5px; /* Spacing below inputs/selects */
     border: 1px solid #00a8ff;
     border-radius: 5px;
     box-sizing: border-box;
