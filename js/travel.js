@@ -29,7 +29,207 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemListDiv = document.getElementById('item-list');
     const travelCapacityInput = document.getElementById('travel-capacity');
     const categoryFilterSelect = document.getElementById('category-filter');
+    const itemCategoryMap = {
+    // Plushies (Common travel plushies with their IDs)
+    "207": "Plushie", // Panda Plushie
+    "212": "Plushie", // Camel Plushie
+    "205": "Plushie", // Lion Plushie
+    "206": "Plushie", // Monkey Plushie
+    "204": "Plushie", // Chamois Plushie
+    "213": "Plushie", // Nessie Plushie
+    "211": "Plushie", // Stingray Plushie
+    "214": "Plushie", // Jaguar Plushie
+    "215": "Plushie", // Wolverine Plushie
+    // YATA Sample IDs (verify these with actual item IDs from Torn)
+    "266": "Plushie", // Nessie Plushie (from YATA sample for Uni)
+    "618": "Plushie", // Stingray Plushie (from YATA sample for Cay)
+    "258": "Plushie", // Jaguar Plushie (from YATA sample for Mex)
+    "261": "Plushie", // Wolverine Plushie (from YATA sample for Can)
+    "274": "Plushie", // Panda Plushie (from YATA sample for Chi)
+    "281": "Plushie", // Lion Plushie (from YATA sample for Sou)
+    "269": "Plushie", // Monkey Plushie (from YATA sample for Arg)
+    "384": "Plushie", // Camel Plushie (from YATA sample for UAE)
+    "273": "Plushie", // Chamois Plushie (from YATA sample for Swi)
 
+    // Flowers (Common travel flowers with their IDs)
+    "203": "Flower", // Cherry Blossom
+    "201": "Flower", // Orchid
+    "209": "Flower", // Dahlia
+    "200": "Flower", // Tribulus Omanense
+    "210": "Flower", // Edelweiss
+    "202": "Flower", // Ceibo Flower
+    "216": "Flower", // Crocus
+    "217": "Flower", // Banana Orchid
+    "218": "Flower", // African Violet
+    "219": "Flower", // Peony
+    // YATA Sample IDs (verify these with actual item IDs from Torn)
+    "277": "Flower", // Cherry Blossom (from YATA sample for Jap)
+    "260": "Flower", // Dahlia (from YATA sample for Mex)
+    "617": "Flower", // Banana Orchid (from YATA sample for Cay)
+    "263": "Flower", // Crocus (from YATA sample for Can)
+    "264": "Flower", // Orchid (from YATA sample for Haw)
+    "267": "Flower", // Heather (from YATA sample for Uni)
+    "271": "Flower", // Ceibo Flower (from YATA sample for Arg)
+    "272": "Flower", // Edelweiss (from YATA sample for Swi)
+    "276": "Flower", // Peony (from YATA sample for Chi)
+    "385": "Flower", // Tribulus Omanense (from YATA sample for UAE)
+    "282": "Flower", // African Violet (from YATA sample for Sou)
+
+    // Drugs (Common travel drugs with their IDs from YATA samples)
+    "196": "Drug", // Cannabis
+    "197": "Drug", // Ecstasy
+    "198": "Drug", // Ketamine
+    "199": "Drug", // LSD
+    "200": "Drug", // Opium
+    "201": "Drug", // PCP
+    "203": "Drug", // Shrooms
+    "204": "Drug", // Speed
+    "205": "Drug", // Vicodin
+    "206": "Drug", // Xanax
+
+    // Special items that might be profitable or common travel items (IDs from YATA samples)
+    "273": "Special", // Bottle of Beer
+    "419": "Special", // Small Suitcase
+    "420": "Special", // Medium Suitcase
+    "421": "Special", // Large Suitcase
+    "327": "Special", // Blank Tokens
+    "259": "Special", // Mayan Statue (from your screenshot)
+    "616": "Special", // Trout
+    "619": "Special", // Steel Drum
+    "620": "Special", // Nodding Turtle
+    "621": "Special", // Snorkel
+    "622": "Special", // Flippers
+    "623": "Special", // Speedo
+    "624": "Special", // Bikini
+    "625": "Special", // Wetsuit
+    "626": "Special", // Diving Gloves
+    "412": "Special", // Sports Shades
+    "414": "Special", // Proda Sunglasses
+    "440": "Special", // Pillow
+    "381": "Special", // Gold Laptop
+    "382": "Special", // Gold Plated AK-47
+    "383": "Special", // Digital Organizer
+    "278": "Special", // Kabuki Mask
+    "279": "Special", // Maneki Neko
+    "294": "Special", // Bottle of Sake
+    "427": "Special", // Sumo Doll
+    "429": "Special", // Chopsticks
+    "433": "Special", // Sensu
+    "434": "Special", // Yakitori Lantern
+    "437": "Special", // Glow Stick
+    "270": "Special", // Soccer Ball
+    "407": "Special", // Compass
+    "361": "Special", // Neumune Tablet
+    "435": "Special", // Dozen White Roses
+    "436": "Special", // Snowboard
+    "408": "Special", // Sextant
+    "411": "Special", // Model Space Ship
+    "415": "Special", // Ship in a Bottle
+    "416": "Special", // Paper Weight
+    "418": "Special", // Tailor's Dummy
+    "431": "Special", // Dart Board
+    "432": "Special", // Crazy Straw
+    "426": "Special", // Bottle of Tequila
+    "409": "Special", // Yucca Plant
+    "410": "Special", // Fire Hydrant
+    "406": "Special", // Afro Comb
+
+    // Weapons (from YATA samples you provided)
+    "8": "Weapon", // Axe
+    "11": "Weapon", // Samurai Sword
+    "20": "Weapon", // Desert Eagle
+    "21": "Weapon", // Dual 92G Berettas
+    "26": "Weapon", // AK-47
+    "31": "Weapon", // M249 SAW
+    "63": "Weapon", // Minigun
+    "99": "Weapon", // Springfield 1911
+    "108": "Weapon", // 9mm Uzi
+    "110": "Weapon", // Leather Bullwhip
+    "111": "Weapon", // Ninja Claws
+    "175": "Weapon", // Taser
+    "177": "Weapon", // Cobra Derringer
+    "229": "Weapon", // Claymore Mine
+    "230": "Weapon", // Flare Gun
+    "231": "Weapon", // Heckler & Koch SL8
+    "232": "Weapon", // SIG 550
+    "399": "Weapon", // ArmaLite M-15A4
+    "612": "Weapon", // Tavor TAR-21
+    "613": "Weapon", // Harpoon
+    "614": "Weapon", // Diamond Bladed Knife
+    "615": "Weapon", // Naval Cutlass
+    "217": "Weapon", // Claymore Sword
+    "218": "Weapon", // Crossbow
+    "219": "Weapon", // Enfield SA-80
+    "220": "Weapon", // Grenade
+    "221": "Weapon", // Stick Grenade
+    "397": "Weapon", // Flail
+    "438": "Weapon", // Cricket Bat
+    "1246": "Weapon", // Inkwell (often used for training)
+    "252": "Weapon", // Ithaca 37
+    "253": "Weapon", // Lorcin 380
+    "262": "Weapon", // Hockey Stick
+    "402": "Weapon", // Ice Pick
+    "255": "Weapon", // Flamethrower
+    "256": "Weapon", // Tear Gas
+    "257": "Weapon", // Throwing Knife
+    "333": "Weapon", // Liquid Body Armor (also in armor)
+    "391": "Weapon", // Macana
+    "398": "Weapon", // SIG 552
+    "400": "Weapon", // Guandao
+    "222": "Weapon", // Flash Grenade
+    "223": "Weapon", // Jackhammer
+    "224": "Weapon", // Swiss Army Knife
+    "233": "Weapon", // BT MP9
+    "234": "Weapon", // Chain Whip
+    "235": "Weapon", // Wooden Nunchaku
+    "236": "Weapon", // Kama
+    "237": "Weapon", // Kodachi
+    "238": "Weapon", // Sai
+    "239": "Weapon", // Ninja Star
+    "395": "Weapon", // Metal Nunchaku
+    "240": "Weapon", // Type 98 Anti Tank
+    "241": "Weapon", // Bushmaster Carbon 15
+    "242": "Weapon", // HEG
+    "243": "Weapon", // Taurus
+    "244": "Weapon", // Blowgun
+    "245": "Weapon", // Bo Staff
+    "246": "Weapon", // Fireworks
+    "247": "Weapon", // Katana
+    "248": "Weapon", // Qsz-92
+    "249": "Weapon", // SKS Carbine
+    "250": "Weapon", // Twin Tiger Hooks
+    "251": "Weapon", // Wushu Double Axes
+
+
+    // Armor (from YATA samples you provided)
+    "50": "Armor", // Outer Tactical Vest
+    "107": "Armor", // Trench Coat
+    "178": "Armor", // Flak Jacket
+    "640": "Armor", // Kevlar Gloves
+    "641": "Armor", // WWII Helmet
+    "645": "Armor", // Safety Boots
+    "332": "Armor", // Combat Vest
+    "334": "Armor", // Flexible Body Armor
+    "651": "Armor", // Combat Helmet
+    "652": "Armor", // Combat Pants
+    "653": "Armor", // Combat Boots
+    "654": "Armor", // Combat Gloves
+    "430": "Armor", // Coconut Bra
+
+    // Clothing (from YATA samples you provided)
+    "1125": "Clothing", // Card Skimmer
+    "624": "Clothing", // Bikini
+    "625": "Clothing", // Wetsuit
+    "626": "Clothing", // Diving Gloves
+    "623": "Clothing", // Speedo
+    "413": "Clothing", // Mountie Hat
+    "439": "Clothing", // Frying Pan (sometimes considered a clothing item or misc)
+
+    // Miscellaneous (items that don't fit other common categories well, often quest/crime related)
+    "159": "Miscellaneous", // Bolt Cutters
+    "328": "Miscellaneous", // PVC Cards
+    "335": "Miscellaneous", // Stick of Dynamite
+};
     let currentTornApiKey = null; // Variable to hold the fetched Torn API key
 
     // --- Firebase Auth State Listener (Modified) ---
@@ -178,72 +378,131 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
     }
 }
 
-// Function to fetch all item details (CORRECTED for Image Mapping)
-async function fetchAllTornItems(apiKey) {
-    if (Object.keys(allTornItems).length > 0) {
-        console.log("All Torn items already loaded from cache.");
-        return;
-    }
-
-    if (!apiKey) {
-        errorDisplay.textContent = 'API Key is required to fetch item details.';
-        return;
-    }
-
-    loadingIndicator.textContent = 'Loading all Torn item data... This might take a moment.';
+// UPDATED: Function to display items for a selected country using YATA data ONLY (no Torn API 'items' details)
+async function displayItemsForCountry(selectedCountryId, apiKey) {
+    itemListDiv.innerHTML = '';
+    loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
     loadingIndicator.style.display = 'block';
     errorDisplay.textContent = '';
 
-    try {
-        const response = await fetch(`https://api.torn.com/v2/torn?selections=items&key=${apiKey}`);
-        const data = await response.json();
+    console.log("displayItemsForCountry called with selectedCountryId:", selectedCountryId);
 
-        if (data.error) {
-            errorDisplay.textContent = `API Error fetching items: ${data.error.error}`;
-            console.error('Torn API Error fetching items:', data.error);
-            loadingIndicator.style.display = 'none';
-            return;
-        }
+    // Removed the allTornItems check here, as item images/descriptions are now derived differently.
+    // However, if your 'category' filter still needs it for some reason, the fetchAllTornItems call
+    // in the onAuthStateChanged or fetchDataBtn listeners still runs.
 
-        // --- CRITICAL CORRECTION HERE ---
-        // Ensure that each item object correctly stores its own ID and uses a consistent image URL pattern.
-        const itemsById = {};
-        for (const itemId in data.items) {
-            if (data.items.hasOwnProperty(itemId)) {
-                const item = data.items[itemId];
-                // Ensure the image URL directly references the item's own ID
-                // The Torn API generally follows this pattern: https://www.torn.com/images/items/ITEM_ID/large.png
-                item.image = `https://www.torn.com/images/items/${itemId}/large.png`;
-                itemsById[itemId] = item;
-            }
-        }
-        allTornItems = itemsById; // Assign the correctly mapped items
-
-        console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
-        console.log("Checking image data for specific items (after fix):"); // DEBUG
-        if (allTornItems['8']) { // Axe
-            console.log("Axe (ID 8) data:", allTornItems['8'].name, allTornItems['8'].image);
-        } else {
-            console.log("Axe (ID 8) not found in allTornItems.");
-        }
-        if (allTornItems['31']) { // M249 SAW
-            console.log("M249 SAW (ID 31) data:", allTornItems['31'].name, allTornItems['31'].image);
-        } else {
-            console.log("M249 SAW (ID 31) not found in allTornItems.");
-        }
-        if (allTornItems['1125']) { // Card Skimmer
-            console.log("Card Skimmer (ID 1125) data:", allTornItems['1125'].name, allTornItems['1125'].image);
-        } else {
-            console.log("Card Skimmer (ID 1125) not found in allTornItems.");
-        }
-
+    const yataData = await fetchYATATravelData();
+    if (!yataData) {
         loadingIndicator.style.display = 'none';
-
-    } catch (error) {
-        errorDisplay.textContent = 'Failed to fetch all Torn items. Check your network.';
-        console.error('Fetch all items error:', error);
-        loadingIndicator.style.display = 'none';
+        return;
     }
+
+    const travelCapacity = parseInt(travelCapacityInput.value, 10);
+    if (isNaN(travelCapacity) || travelCapacity <= 0) {
+        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    console.log("YATA Data (stocks key exists?):", yataData.stocks ? true : false);
+    console.log("Attempting to access countryData for key:", selectedCountryId);
+
+    const countryData = yataData.stocks[selectedCountryId];
+
+    console.log("Country Data from YATA for selected ID:", countryData);
+    if (countryData) {
+        console.log("Number of stocks in countryData:", countryData.stocks ? countryData.stocks.length : 0);
+    }
+
+    if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
+        itemListDiv.innerHTML = `<p>No live item data available for this country from YATA. It might be an unpopular travel destination or data isn't available.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const itemsForSelectedCountry = countryData.stocks.map(itemInfo => ({
+        itemId: itemInfo.id,
+        name: itemInfo.name, // Use name from YATA (should be correct)
+        foreignPrice: itemInfo.cost,
+        foreignStock: itemInfo.quantity, // YATA uses 'quantity' for stock
+        // Use the hardcoded itemCategoryMap for category
+        category: itemCategoryMap[itemInfo.id] || 'Other' // This requires itemCategoryMap to be defined
+    }));
+
+    const selectedCategory = categoryFilterSelect.value;
+    let filteredItems = itemsForSelectedCountry;
+    if (selectedCategory !== 'all') {
+        filteredItems = itemsForSelectedCountry.filter(item => item.category === selectedCategory);
+    }
+
+    if (filteredItems.length === 0) {
+        itemListDiv.innerHTML = `<p>No items found for the selected category in this country based on YATA data.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const itemPromises = filteredItems.map(async (itemData) => {
+        const itemId = itemData.itemId;
+
+        // --- CRITICAL CHANGE: Derive image URL directly from ID ---
+        const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
+        // Default description as Torn API 'items' endpoint is now fully bypassed for details
+        const itemDescription = 'No description available.'; // Or you can make a hardcoded map for descriptions
+
+        const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Still needs Torn API 'Market' permission
+        const profitPerItem = tornCityPrice !== null ? tornCityPrice - itemData.foreignPrice : 'N/A';
+        const totalPotentialProfit = tornCityPrice !== null ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
+        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+
+        return {
+            id: itemId,
+            name: itemData.name,
+            image: imageUrl, // Use the directly constructed image URL
+            description: itemDescription, // Use default description
+            foreignPrice: itemData.foreignPrice,
+            foreignStock: itemData.foreignStock,
+            tornCityPrice: tornCityPrice,
+            profitPerItem: profitPerItem,
+            totalPotentialProfit: totalPotentialProfit,
+            canCarry: canCarry,
+            category: itemData.category
+        };
+    });
+
+    const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
+
+    if (itemsToDisplay.length === 0) {
+        itemListDiv.innerHTML = `<p>Could not load any item data for the selected country and category.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    itemsToDisplay.sort((a, b) => {
+        if (typeof a.profitPerItem !== 'number' && typeof b.profitPerItem !== 'number') return 0;
+        if (typeof a.profitPerItem !== 'number') return 1;
+        if (typeof b.profitPerItem !== 'number') return -1;
+        return b.profitPerItem - a.profitPerItem;
+    });
+
+    itemsToDisplay.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('item-card');
+        itemCard.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="item-details">
+                <h3>${item.name} (${item.category})</h3>
+                <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
+                <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
+                <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
+                <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
+                <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
+                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
+            </div>
+        `;
+        itemListDiv.appendChild(itemCard);
+    });
+
+    loadingIndicator.style.display = 'none';
 }
 
 // UPDATED: Function to display items for a selected country using YATA data (Corrected YATA data path and duplicate code)
