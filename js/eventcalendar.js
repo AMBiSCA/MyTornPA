@@ -36,69 +36,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             renderCalendar();
                         }
                     });
-				function displayEventsOnCalendar(events) {
-    events.forEach((event, index) => {
-        const originalStartDate = new Date(event.start * 1000);
-        const originalEndDate = new Date(event.end * 1000);
-        const normalizedStartDate = new Date(originalStartDate);
-        normalizedStartDate.setHours(0, 0, 0, 0);
-        const normalizedEndDate = new Date(originalEndDate);
-        normalizedEndDate.setHours(0, 0, 0, 0);
-        
-        const eventColor = eventColors[index % eventColors.length];
-        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
-
-        for (let d = new Date(normalizedStartDate); d <= normalizedEndDate; d.setDate(d.getDate() + 1)) {
-            const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
-
-            if (dayElement) {
-                // Get the day number before we clear the element
-                const dayNumber = dayElement.textContent;
-
-                // Create the event data for the tooltip, with a fallback for description
-                const displayEvent = {
-                    name: event.title,
-                    description: event.description || 'No description available.'
-                };
-                dayElement.dataset.events = JSON.stringify([displayEvent]);
-
-                // Apply styles for the event bar
-                dayElement.classList.add('event-day-range');
-                dayElement.style.backgroundColor = eventColor;
-                
-                const isStart = d.getTime() === normalizedStartDate.getTime();
-                const isEnd = d.getTime() === normalizedEndDate.getTime();
-                
-                if (isStart && isEnd) dayElement.classList.add('event-range-single');
-                else if (isStart) dayElement.classList.add('event-range-start');
-                else if (isEnd) dayElement.classList.add('event-range-end');
-
-                // --- Build the new HTML content for the day cell ---
-                let newHTML = `<div class="day-number">${dayNumber}</div>`;
-
-                if (isStart) {
-                    newHTML += `<div class="day-event-title"><span>${event.title}</span><span class="reminder-bell">🔔</span></div>`;
-                }
-
-                if (isStart && isEnd) {
-                    const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
-                    const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
-                    newHTML += `<div class="day-event-time">(${startTime} - ${endTime})</div>`;
-                } else if (isStart) {
-                    const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
-                    newHTML += `<div class="day-event-time">Start: ${startTime}</div>`;
-                } else if (isEnd) {
-                    const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
-                    newHTML += `<div class="day-event-time">End: ${endTime}</div>`;
-                }
-                
-                // Set the entire HTML content at once
-                dayElement.innerHTML = newHTML;
-            }
+calendarDays.addEventListener('mouseover', (event) => {
+    const dayElement = event.target.closest('.event-day-range');
+    if (dayElement && dayElement.dataset.events) {
+        const eventData = JSON.parse(dayElement.dataset.events)[0];
+        if (eventData) {
+            tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
+            tooltip.classList.add('visible'); // Corrected
         }
-    });
-}
+    }
+});
+
+calendarDays.addEventListener('mouseout', () => {
+    tooltip.style.display = 'none';
+});
+
+calendarDays.addEventListener('mousemove', (event) => {
+    tooltip.style.left = `${event.pageX + 15}px`;
+    tooltip.style.top = `${event.pageY + 15}px`;
+});
                     function renderCalendar() {
                         calendarDays.innerHTML = '';
                         const year = currentDate.getFullYear();
