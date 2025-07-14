@@ -36,27 +36,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             renderCalendar();
                         }
                     });
-					
-					calendarDays.addEventListener('mouseover', (event) => {
-    const dayElement = event.target.closest('.event-day-range');
-    if (dayElement && dayElement.dataset.events) {
-        const eventData = JSON.parse(dayElement.dataset.events)[0];
-        if (eventData) {
-            tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
-            tooltip.style.display = 'block';
-        }
-    }
+				calendarDays.addEventListener('mouseover', (event) => {
+    const dayElement = event.target.closest('.event-day-range');
+    if (dayElement && dayElement.dataset.events) {
+        const eventData = JSON.parse(dayElement.dataset.events)[0];
+        if (eventData) {
+            tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
+            tooltip.style.display = 'block';
+        }
+    }
 });
 
 calendarDays.addEventListener('mouseout', () => {
-    tooltip.style.display = 'none';
+    tooltip.style.display = 'none';
 });
 
 calendarDays.addEventListener('mousemove', (event) => {
-    tooltip.style.left = `${event.pageX + 15}px`;
-    tooltip.style.top = `${event.pageY + 15}px`;
+    tooltip.style.left = `${event.pageX + 15}px`;
+    tooltip.style.top = `${event.pageY + 15}px`;
 });
-
                     function renderCalendar() {
                         calendarDays.innerHTML = '';
                         const year = currentDate.getFullYear();
