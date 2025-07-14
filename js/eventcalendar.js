@@ -56,6 +56,7 @@ calendarDays.addEventListener('mousemove', (event) => {
     tooltip.style.top = `${event.pageY + 15}px`;
 });
                     function renderCalendar() {
+						updateNavButtonsState();
                         calendarDays.innerHTML = '';
                         const year = currentDate.getFullYear();
                         const month = currentDate.getMonth();
@@ -85,6 +86,26 @@ calendarDays.addEventListener('mousemove', (event) => {
                             } else { if(data.error) throw new Error(`API Error: ${data.error.error}`); }
                         } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Could not load events. The API key might be invalid.</div>`; console.error(error); }
                     }
+
+function updateNavButtonsState() {
+    const actualCurrentYear = new Date().getFullYear();
+    const prevMonthBtn = document.getElementById('prevMonthBtn');
+    const nextMonthBtn = document.getElementById('nextMonthBtn');
+
+    // Disable 'Previous' button if viewing January of the current year
+    if (currentDate.getFullYear() === actualCurrentYear && currentDate.getMonth() === 0) {
+        prevMonthBtn.disabled = true;
+    } else {
+        prevMonthBtn.disabled = false;
+    }
+
+    // Disable 'Next' button if viewing December of the current year
+    if (currentDate.getFullYear() === actualCurrentYear && currentDate.getMonth() === 11) {
+        nextMonthBtn.disabled = true;
+    } else {
+        nextMonthBtn.disabled = false;
+    }
+}
 
 function displayEventsOnCalendar(events) {
     events.forEach((event, index) => {

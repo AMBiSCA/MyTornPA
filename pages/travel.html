@@ -50,61 +50,47 @@
     <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
 
     <main class="page-specific-content-area">
-      <h2>Travel Helper</h2>
-      <p>Plan your Torn City travels effectively! This tool will help you find profitable items in different countries, check stock levels, and calculate potential profits from your travel runs.</p>
-      
-      <div class="placeholder-box">
-        <p><strong>To build out this Travel Helper, you'll need to consider:</strong></p>
-        <ul>
-            <li>
-                <strong>Data Sources:</strong>
-                <ul>
-                    <li>Torn API: Use the `torn/items/{item_id}/` endpoint for item details. Foreign country item stock and prices are not directly available in a simple way via the standard user API for *all* items simultaneously.</li>
-                    <li>Community Data/Third-Party APIs: Services like YATA often aggregate travel data. You might need to see if they offer an API or how you can leverage such community-sourced information (always respecting their terms).</li>
-                    <li>Manual Updates/User Input: For some data, you might initially rely on curated lists or allow users to input prices they've seen.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>User Interface (UI):</strong>
-                <ul>
-                    <li>Allow users to select a destination country.</li>
-                    <li>Display a list of notable items available in that country.</li>
-                    <li>Show item images, descriptions, stock levels (if available), and prices in that country.</li>
-                    <li>Show current Torn city market prices for comparison.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Core Functionality:</strong>
-                <ul>
-                    <li>Calculate potential profit per item and per travel run (considering item capacity and travel time/cost).</li>
-                    <li>Allow users to input their current travel capacity.</li>
-                    <li>Filter items by category (e.g., plushies, flowers, drugs, special items).</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Advanced Features (Future ideas):</strong>
-                <ul>
-                    <li>Track user's current location and flight cooldowns (requires user API key with relevant permissions).</li>
-                    <li>Notifications for when certain items are in stock.</li>
-                    <li>"Best run" suggestions based on current data and user's capacity/time.</li>
-                    <li>Integration with a personal inventory to see what they already have.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>JavaScript Logic:</strong>
-                <ul>
-                    <li>Fetch data from your chosen sources (API calls).</li>
-                    <li>Perform calculations for profit, capacity, etc.</li>
-                    <li>Dynamically update the HTML to display the information to the user.</li>
-                    <li>Handle user selections (destination, items to track).</li>
-                </ul>
-            </li>
-        </ul>
-        <p style="margin-top: 15px;"><em>Start with a simple version, perhaps focusing on displaying items for one or two popular travel destinations and their Torn market prices. You can then expand data sources and features.</em></p>
-      </div>
-      
-      <p style="text-align:center; margin-top: 20px;"><em>Travel Helper - Feature Coming Soon!</em></p>
-    </main>
+    <h2>Torn Travel Helper</h2>
+    <p>Plan your Torn City travels effectively! This tool will help you find profitable items in different countries, check stock levels, and calculate potential profits from your travel runs.</p>
+
+    <div class="input-section">
+        <label for="api-key">Your Torn API Key:</label>
+        <input type="text" id="api-key" placeholder="Enter your API key">
+        <p style="font-size: 0.8em; color: #aaa;">(Required for fetching your travel capacity and Torn market prices. Get it from <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer" style="color: #00a8ff;">Torn City - API Key</a>)</p>
+
+        <label for="destination-select">Select Destination Country:</label>
+        <select id="destination-select">
+            <option value="">Loading destinations...</option>
+        </select>
+
+        <label for="travel-capacity">Your Current Travel Capacity:</label>
+        <input type="number" id="travel-capacity" value="5" min="1">
+        <p style="font-size: 0.8em; color: #aaa;">(Default is 5. Update if you have Airstrip/WLT/Suitcases.)</p>
+
+        <button class="btn-header" id="fetch-data-btn" style="width: 100%; margin-top: 10px;">Fetch Travel Data</button>
+    </div>
+
+    <div class="input-section" style="margin-top: 20px;">
+        <label for="category-filter">Filter by Category:</label>
+        <select id="category-filter">
+            <option value="all">All Items</option>
+            <option value="Plushie">Plushies</option>
+            <option value="Flower">Flowers</option>
+            <option value="Drug">Drugs</option>
+            <option value="Special">Special Items</option>
+            </select>
+    </div>
+
+    <div id="loading-indicator" style="display: none; text-align: center; padding: 20px; font-size: 1.2em; color: #7f8c8d;">Loading data, please wait...</div>
+    <div id="error-display" class="error-message" style="text-align: center;"></div>
+
+    <div class="item-list-section" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
+        <h2>Items Available in <span id="selected-country-name" style="color: #00a8ff;">Selected Country</span></h2>
+        <div id="item-list">
+            <p style="text-align: center; color: #bbb;">Select a destination and click "Fetch Travel Data" to see items.</p>
+        </div>
+    </div>
+</main>
   </div> <footer class="footer">
     <div class="footer-links">
       <a href="home.html" id="homeButtonFooter">Home</a>
