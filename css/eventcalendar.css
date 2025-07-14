@@ -364,3 +364,30 @@ z-index: 2;
   /* Make it "light up" with a glow */
   text-shadow: 0 0 10px #ffd700;
 }
+
+#event-tooltip {
+  position: absolute;
+  display: none;
+  pointer-events: none; /* Lets mouse events pass through it */
+  z-index: 1010;
+  background-color: #2a2a2e;
+  border: 1px solid var(--text-color-accent);
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  max-width: 280px;
+  font-size: 0.9em;
+}
+
+#event-tooltip h4 {
+  margin: 0 0 8px 0;
+  color: var(--text-color-accent);
+  font-size: 1.1em;
+  border-bottom: 1px solid var(--border-color-dark-subtle);
+  padding-bottom: 5px;
+}
+
+#event-tooltip p {
+  margin: 0;
+  color: var(--text-color-light);
+}

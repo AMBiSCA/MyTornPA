@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarHeader = document.querySelector('.calendar-header');
     const calendarWeekdays = document.querySelector('.calendar-weekdays');
     const calendarDays = document.getElementById('calendarDays');
-    
+    const tooltip = document.getElementById('event-tooltip');
     const eventColors = ['#3b5998', '#6a4c93', '#1982c4', '#8ac926', '#ffca3a', '#ff595e', '#2d6a4f'];
     
     if (calendarHeader) calendarHeader.style.display = 'none';
@@ -36,6 +36,26 @@ document.addEventListener('DOMContentLoaded', function() {
                             renderCalendar();
                         }
                     });
+					
+					calendarDays.addEventListener('mouseover', (event) => {
+    const dayElement = event.target.closest('.event-day-range');
+    if (dayElement && dayElement.dataset.events) {
+        const eventData = JSON.parse(dayElement.dataset.events)[0];
+        if (eventData) {
+            tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
+            tooltip.style.display = 'block';
+        }
+    }
+});
+
+calendarDays.addEventListener('mouseout', () => {
+    tooltip.style.display = 'none';
+});
+
+calendarDays.addEventListener('mousemove', (event) => {
+    tooltip.style.left = `${event.pageX + 15}px`;
+    tooltip.style.top = `${event.pageY + 15}px`;
+});
 
                     function renderCalendar() {
                         calendarDays.innerHTML = '';
@@ -68,62 +88,65 @@ document.addEventListener('DOMContentLoaded', function() {
                         } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Could not load events. The API key might be invalid.</div>`; console.error(error); }
                     }
 
-                    // --- THIS IS THE MODIFIED FUNCTION ---
-                    function displayEventsOnCalendar(events) {
-                        events.forEach((event, index) => {
-                            // Keep original dates with time for display
-                            const originalStartDate = new Date(event.start * 1000);
-                            const originalEndDate = new Date(event.end * 1000);
+function displayEventsOnCalendar(events) {
+    events.forEach((event, index) => {
+        // Keep original dates with time for display
+        const originalStartDate = new Date(event.start * 1000);
+        const originalEndDate = new Date(event.end * 1000);
 
-                            // Create normalized dates (at midnight) for looping
-                            const normalizedStartDate = new Date(originalStartDate);
-                            normalizedStartDate.setHours(0, 0, 0, 0);
-                            const normalizedEndDate = new Date(originalEndDate);
-                            normalizedEndDate.setHours(0, 0, 0, 0);
-                            
-                            const eventColor = eventColors[index % eventColors.length];
-                            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+        // Create normalized dates (at midnight) for looping
+        const normalizedStartDate = new Date(originalStartDate);
+        normalizedStartDate.setHours(0, 0, 0, 0);
+        const normalizedEndDate = new Date(originalEndDate);
+        normalizedEndDate.setHours(0, 0, 0, 0);
+        
+        const eventColor = eventColors[index % eventColors.length];
+        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
 
-                            for (let d = new Date(normalizedStartDate); d <= normalizedEndDate; d.setDate(d.getDate() + 1)) {
-                                const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                                const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
+        for (let d = new Date(normalizedStartDate); d <= normalizedEndDate; d.setDate(d.getDate() + 1)) {
+            const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
 
-                                if (dayElement) {
-                                    dayElement.classList.add('event-day-range');
-                                    dayElement.style.backgroundColor = eventColor;
-                                    
-                                    const isStart = d.getTime() === normalizedStartDate.getTime();
-                                    const isEnd = d.getTime() === normalizedEndDate.getTime();
-                                    
-                                    if (isStart && isEnd) {
-                                        dayElement.classList.add('event-range-single');
-                                    } else if (isStart) {
-                                        dayElement.classList.add('event-range-start');
-                                    } else if (isEnd) {
-                                        dayElement.classList.add('event-range-end');
-                                    }
-                                    
-                                    // Add the title on the first day
-                                    if (isStart) {
-                                        dayElement.innerHTML += `<div class="day-event-title"><span>${event.title}</span><span class="reminder-bell">🔔</span></div>`;
-                                    }
+            if (dayElement) {
+                // --- NEW: Store the event data needed for the tooltip ---
+                const displayEvent = { name: event.title, description: event.description };
+                dayElement.dataset.events = JSON.stringify([displayEvent]);
 
-                                    // Add start and end times
-                                    if (isStart && isEnd) {
-                                        const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
-                                        const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
-                                        dayElement.innerHTML += `<div class="day-event-time">(${startTime} - ${endTime})</div>`;
-                                    } else if (isStart) {
-                                        const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
-                                        dayElement.innerHTML += `<div class="day-event-time">Start: ${startTime}</div>`;
-                                    } else if (isEnd) {
-                                        const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
-                                        dayElement.innerHTML += `<div class="day-event-time">End: ${endTime}</div>`;
-                                    }
-                                }
-                            }
-                        });
-                    }
+                dayElement.classList.add('event-day-range');
+                dayElement.style.backgroundColor = eventColor;
+                
+                const isStart = d.getTime() === normalizedStartDate.getTime();
+                const isEnd = d.getTime() === normalizedEndDate.getTime();
+                
+                if (isStart && isEnd) {
+                    dayElement.classList.add('event-range-single');
+                } else if (isStart) {
+                    dayElement.classList.add('event-range-start');
+                } else if (isEnd) {
+                    dayElement.classList.add('event-range-end');
+                }
+                
+                // Add the title and bell icon on the first day
+                if (isStart) {
+                    dayElement.innerHTML += `<div class="day-event-title"><span>${event.title}</span><span class="reminder-bell">🔔</span></div>`;
+                }
+
+                // Add start and end times
+                if (isStart && isEnd) {
+                    const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
+                    const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
+                    dayElement.innerHTML += `<div class="day-event-time">(${startTime} - ${endTime})</div>`;
+                } else if (isStart) {
+                    const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
+                    dayElement.innerHTML += `<div class="day-event-time">Start: ${startTime}</div>`;
+                } else if (isEnd) {
+                    const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
+                    dayElement.innerHTML += `<div class="day-event-time">End: ${endTime}</div>`;
+                }
+            }
+        }
+    });
+}
                     
                     renderCalendar();
 
