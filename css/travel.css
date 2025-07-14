@@ -339,7 +339,7 @@ header {
 }
 
 .item-list-section {
-    margin-top: 0px; /* Space between header and first item */
+    margin-top: -5px; /* Space between header and first item */
     border-top: none; /* Removed border as per redesign */
     padding-top: 0; /* Adjusted for right-panel padding */
 }
