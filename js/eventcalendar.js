@@ -54,23 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         tooltip.style.top = `${event.pageY + 15}px`;
                     });
 
-
-                    function renderCalendar() { /* ... same as before ... */ }
-                    async function fetchTornEventsForMonth(year, month) { /* ... same as before ... */ }
-                    
-                    // The full functions are included below for completeness
-                    function renderCalendar() {
-                        calendarDays.innerHTML = '';
-                        const year = currentDate.getFullYear();
-                        const month = currentDate.getMonth();
-                        currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-                        const firstDayOfMonth = new Date(year, month, 1).getDay();
-                        const daysInMonth = new Date(year, month + 1, 0).getDate();
-                        for (let i = 0; i < firstDayOfMonth; i++) { const emptyDay = document.createElement('div'); emptyDay.classList.add('calendar-day', 'empty'); calendarDays.appendChild(emptyDay); }
-                        for (let day = 1; day <= daysInMonth; day++) { const dayElement = document.createElement('div'); dayElement.classList.add('calendar-day'); dayElement.textContent = day; dayElement.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) { dayElement.classList.add('current-day'); } calendarDays.appendChild(dayElement); }
-                        fetchTornEventsForMonth(year, month + 1);
-                    }
-
                     async function fetchTornEventsForMonth(year, month) {
                         const apiUrl = `https://api.torn.com/v2/torn/calendar?key=${TORN_API_KEY}`;
                         try {
