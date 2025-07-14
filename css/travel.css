@@ -175,29 +175,12 @@ header {
     flex-direction: column; /* Stack children (page-specific-content-area) vertically */
     align-items: center; /* Center content horizontally */
     overflow: hidden; /* Hide overflow of main-content-wrapper itself to rely on inner scroll */
-    padding-top: 70px; /* Space for fixed header (adjust if header height changes) */
-    padding-bottom: 70px; /* Space for fixed footer (adjust if footer height changes) */
+    padding-top: 90px; /* Increased space from fixed header */
+    padding-bottom: 90px; /* Increased space from fixed footer */
     box-sizing: border-box; /* Include padding in height calculation */
     position: relative;
     z-index: 1;
 }
-
-.image-glow, .image-glow-flipped {
-    position: fixed;
-    bottom: 70px; /* Position relative to top of footer */
-    filter: drop-shadow(0px 0px 12px #00a8ff);
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-.image-glow {
-    left: -3%;
-}
-.image-glow-flipped {
-    right: -3%;
-    transform: scaleX(-1);
-}
-
 
 /* Page specific content area - the main dark blue box for the helper */
 .page-specific-content-area {
@@ -205,8 +188,8 @@ header {
     flex-direction: column; /* Stack children vertically */
     flex-grow: 1; /* Allows it to grow and fill available space in main-content-wrapper */
     width: 90%;
-    max-width: 1100px;
-    margin: 0 auto; /* Center horizontally, remove vertical margins as parent handles spacing */
+    max-width: 1000px; /* Adjusted: Make it slightly wider for more horizontal space */
+    margin: 30px auto; /* Add vertical margin to push it away from top/bottom */
     padding: 30px 40px;
     background-color: #2a2a2a;
     border-radius: 12px;
