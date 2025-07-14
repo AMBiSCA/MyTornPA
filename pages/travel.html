@@ -59,6 +59,10 @@
 
         <div class="left-panel">
             <div class="input-section">
+                <label for="item-search">Search for Item:</label>
+                <input type="text" id="item-search" placeholder="e.g., Xanax, Lion Plushie">
+                <p style="font-size: 0.8em; color: #aaa; margin-top: -10px; margin-bottom: 15px;">(Find where an item is sold abroad)</p>
+
                 <label for="destination-select">Select Destination Country:</label>
                 <select id="destination-select">
                     <option value="">Loading destinations...</option>
@@ -69,9 +73,9 @@
                 <p style="font-size: 0.8em; color: #aaa;">(Default is 5. Update if you have Airstrip/WLT/Suitcases.)</p>
 
                 <button class="btn-header" id="fetch-data-btn" style="width: 100%; margin-top: 10px;">Fetch Travel Data</button>
-            </div>
 
-            <div class="input-section" style="margin-top: 20px;">
+                <hr style="border-color: #00a8ff; margin: 25px 0; border-width: 0.5px;"> 
+                
                 <label for="category-filter">Filter by Category:</label>
                 <select id="category-filter">
                     <option value="all">All Items</option>
@@ -80,6 +84,7 @@
                     <option value="Drug">Drugs</option>
                     <option value="Special">Special Items</option>
                 </select>
+                <p style="font-size: 0.8em; color: #aaa; margin-top: -10px;">(Changes update instantly)</p>
             </div>
         </div>
 
