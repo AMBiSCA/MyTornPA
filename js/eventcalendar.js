@@ -6,16 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarWeekdays = document.querySelector('.calendar-weekdays');
     const calendarDays = document.getElementById('calendarDays');
     
-    // --- NEW: A list of colors for our events ---
-    const eventColors = [
-        '#3b5998', // Blue
-        '#6a4c93', // Purple
-        '#1982c4', // Bright Blue
-        '#8ac926', // Green
-        '#ffca3a', // Yellow-Orange
-        '#ff595e', // Red-Pink
-        '#2d6a4f'  // Dark Green
-    ];
+    const eventColors = ['#3b5998', '#6a4c93', '#1982c4', '#8ac926', '#ffca3a', '#ff595e', '#2d6a4f'];
     
     if (calendarHeader) calendarHeader.style.display = 'none';
     if (calendarWeekdays) calendarWeekdays.style.display = 'none';
@@ -77,28 +68,32 @@ document.addEventListener('DOMContentLoaded', function() {
                         } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Could not load events. The API key might be invalid.</div>`; console.error(error); }
                     }
 
+                    // --- THIS IS THE MODIFIED FUNCTION ---
                     function displayEventsOnCalendar(events) {
-                        // Loop through events with an index to pick a color
                         events.forEach((event, index) => {
-                            const startDate = new Date(event.start * 1000);
-                            const endDate = new Date(event.end * 1000);
-                            startDate.setHours(0, 0, 0, 0);
-                            endDate.setHours(0, 0, 0, 0);
+                            // Keep original dates with time for display
+                            const originalStartDate = new Date(event.start * 1000);
+                            const originalEndDate = new Date(event.end * 1000);
 
-                            // --- MODIFIED: Pick a color from our new array ---
+                            // Create normalized dates (at midnight) for looping
+                            const normalizedStartDate = new Date(originalStartDate);
+                            normalizedStartDate.setHours(0, 0, 0, 0);
+                            const normalizedEndDate = new Date(originalEndDate);
+                            normalizedEndDate.setHours(0, 0, 0, 0);
+                            
                             const eventColor = eventColors[index % eventColors.length];
+                            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
 
-                            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                            for (let d = new Date(normalizedStartDate); d <= normalizedEndDate; d.setDate(d.getDate() + 1)) {
                                 const formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                                 const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
 
                                 if (dayElement) {
                                     dayElement.classList.add('event-day-range');
-                                    // --- MODIFIED: Set the background color directly ---
                                     dayElement.style.backgroundColor = eventColor;
                                     
-                                    const isStart = d.getTime() === startDate.getTime();
-                                    const isEnd = d.getTime() === endDate.getTime();
+                                    const isStart = d.getTime() === normalizedStartDate.getTime();
+                                    const isEnd = d.getTime() === normalizedEndDate.getTime();
                                     
                                     if (isStart && isEnd) {
                                         dayElement.classList.add('event-range-single');
@@ -107,9 +102,23 @@ document.addEventListener('DOMContentLoaded', function() {
                                     } else if (isEnd) {
                                         dayElement.classList.add('event-range-end');
                                     }
-
+                                    
+                                    // Add the title on the first day
                                     if (isStart) {
                                         dayElement.innerHTML += `<div class="day-event-title">${event.title}</div>`;
+                                    }
+
+                                    // Add start and end times
+                                    if (isStart && isEnd) {
+                                        const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
+                                        const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
+                                        dayElement.innerHTML += `<div class="day-event-time">(${startTime} - ${endTime})</div>`;
+                                    } else if (isStart) {
+                                        const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
+                                        dayElement.innerHTML += `<div class="day-event-time">Start: ${startTime}</div>`;
+                                    } else if (isEnd) {
+                                        const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
+                                        dayElement.innerHTML += `<div class="day-event-time">End: ${endTime}</div>`;
                                     }
                                 }
                             }

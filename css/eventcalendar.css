@@ -64,23 +64,22 @@
 }
 
 .calendar-day {
-    background-color: var(--background-color-dark-card); /* Slightly lighter dark for day cells */
-    border: 1px solid var(--border-color-dark-subtle);
-    border-radius: 5px;
-    padding: 15px 5px; /* Adjust padding for better look */
-    text-align: center;
-    min-height: 80px; /* Ensure a decent size for each day cell */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start; /* Align content to the top */
-    position: relative; /* For event indicator positioning */
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    font-size: 1.1em;
-    color: var(--text-color-light);
+  background-color: var(--background-color-dark-card);
+  border: 1px solid var(--border-color-dark-subtle);
+  border-radius: 5px;
+  padding: 5px;
+  text-align: center;
+  min-height: 80px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  font-size: 1.1em;
+  color: var(--text-color-light);
+  display: flex;
+  flex-direction: column; /* Arrange items top-to-bottom */
+  justify-content: flex-start;
+  align-items: center;
 }
-
 .calendar-day:hover:not(.empty) {
     background-color: var(--background-color-dark-card-hover); /* Lighter dark on hover */
     border-color: var(--text-color-accent); /* Highlight border on hover */
@@ -286,4 +285,14 @@ z-index: 2;
 /* For an event that is only a single day */
 .event-range-single {
   border-radius: 20px;
+}
+
+.day-event-time {
+  font-size: 0.75em;
+  margin-top: auto; /* This pushes the element to the bottom */
+  padding: 2px 5px;
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.6);
+  align-self: flex-end; /* Puts it on the right side */
+  margin-right: -2px; /* Small adjustment for positioning */
 }
