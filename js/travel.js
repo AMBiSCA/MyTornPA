@@ -266,50 +266,7 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
         return null;
     }
 }
-async function fetchTornCityItemPrice(itemId, apiKey) {
-    if (!apiKey) {
-        console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
-        return null;
-    }
 
-    try {
-        // *** ADD THIS LINE to see the exact URL being fetched ***
-        console.log(`DEBUG: Fetching URL for item ID ${itemId}: https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
-
-        const response = await fetch(`https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
-        
-        if (response.status === 404) {
-            console.error(`ERROR: The URL was not found on the server (404).`);
-            return null;
-        }
-
-        const data = await response.json();
-        if (data.error) {
-            console.error(`Market API Error for item ${itemId}:`, data.error.error);
-            return null;
-        }
-
-        const prices = [];
-        if (data.bazaar) {
-            Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
-        }
-        if (data.itemmarket) {
-            Object.values(data.itemmarket).forEach(listing => prices.push(listing.cost));
-        }
-
-        if (prices.length === 0) {
-            return null;
-        }
-
-        const lowestPrice = Math.min(...prices);
-        return lowestPrice > 0 ? lowestPrice : null;
-
-    } catch (error) {
-        console.error(`Failed to fetch price for item ${itemId}:`, error);
-        return null;
-    }
-}
-    // NEW: Function to search for an item across all countries and display results
     async function searchItemsAndDisplayResults(searchQuery, apiKey) {
         itemListDiv.innerHTML = ''; // Clear previous items
         loadingIndicator.textContent = `Searching for "${searchQuery}"...`;
