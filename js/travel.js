@@ -227,16 +227,16 @@ async function fetchAllTornItems(apiKey) {
     }
 }
 
-
-   // UPDATED: Function to display items for a selected country using YATA data (Corrected YATA data path)
+// UPDATED: Function to display items for a selected country using YATA data (Corrected YATA data path and duplicate code)
 async function displayItemsForCountry(selectedCountryId, apiKey) {
     itemListDiv.innerHTML = '';
     loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
     loadingIndicator.style.display = 'block';
     errorDisplay.textContent = '';
 
+    console.log("displayItemsForCountry called with selectedCountryId:", selectedCountryId); // DEBUG
+
     if (Object.keys(allTornItems).length === 0) {
-        // This check is still valid if allTornItems is needed for images/categories
         errorDisplay.textContent = 'Item details not loaded. Please ensure API key is valid and user profile loaded correctly.';
         loadingIndicator.style.display = 'none';
         return;
@@ -255,7 +255,18 @@ async function displayItemsForCountry(selectedCountryId, apiKey) {
         return;
     }
 
-    // And items are within countryData.stocks, not countryData.items
+    console.log("YATA Data (stocks key exists?):", yataData.stocks ? true : false); // DEBUG
+    console.log("Attempting to access countryData for key:", selectedCountryId); // DEBUG
+
+    // This is the correct access path and should be the ONLY declaration for countryData
+    const countryData = yataData.stocks[selectedCountryId];
+
+    console.log("Country Data from YATA for selected ID:", countryData); // DEBUG
+    if (countryData) {
+        console.log("Number of stocks in countryData:", countryData.stocks ? countryData.stocks.length : 0); // DEBUG
+    }
+
+    // This is the correct check to perform once.
     if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
         itemListDiv.innerHTML = `<p>No live item data available for this country from YATA. It might be an unpopular travel destination or data isn't available.</p>`;
         loadingIndicator.style.display = 'none';
@@ -267,7 +278,7 @@ async function displayItemsForCountry(selectedCountryId, apiKey) {
         itemId: itemInfo.id,
         name: itemInfo.name,
         foreignPrice: itemInfo.cost,
-        foreignStock: itemInfo.quantity, // YATA uses 'quantity' for stock
+        foreignStock: itemInfo.quantity,
         category: allTornItems[itemInfo.id] ? allTornItems[itemInfo.id].type : 'Unknown'
     }));
 
@@ -285,7 +296,7 @@ async function displayItemsForCountry(selectedCountryId, apiKey) {
 
     const itemPromises = filteredItems.map(async (itemData) => {
         const itemId = itemData.itemId;
-        const itemDetailsFromTornAPI = allTornItems[itemId]; // Still needed for image and description
+        const itemDetailsFromTornAPI = allTornItems[itemId];
 
         const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey);
         const profitPerItem = tornCityPrice !== null ? tornCityPrice - itemData.foreignPrice : 'N/A';
@@ -334,14 +345,14 @@ async function displayItemsForCountry(selectedCountryId, apiKey) {
                 <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
                 <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
                 <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p> </div>
+                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
+            </div>
         `;
         itemListDiv.appendChild(itemCard);
     });
 
     loadingIndicator.style.display = 'none';
 }
-
  fetchDataBtn.addEventListener('click', async () => {
     if (!currentTornApiKey) {
         errorDisplay.textContent = 'No Torn API Key available. Please ensure you are logged in and your key is stored.';
