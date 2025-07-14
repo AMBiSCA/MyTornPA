@@ -218,53 +218,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 async function fetchTornCityItemPrice(itemId, apiKey) {
-    // First, check if the API key was passed correctly.
     if (!apiKey) {
         console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
-        return null; // Stop if there's no key.
+        return null;
     }
 
-    // Log the exact URL to the console for debugging.
-    console.log(`DEBUG: Fetching URL: https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
-
     try {
-        // *** Using the /v2/market/ URL path as you ordered ***
-        const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
-
+        const response = await fetch(`https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
         if (!response.ok) {
-            // A 404 status here means the URL does not exist on the server.
-            console.error(`Error fetching item ${itemId}. Status: ${response.status} (${response.statusText})`);
+            console.error(`Error fetching item ${itemId}. Status: ${response.status}`);
             return null;
         }
 
         const data = await response.json();
-
         if (data.error) {
             console.error(`API Error for item ${itemId}:`, data.error.error);
             return null;
         }
 
-        const prices = [];
-        if (data.bazaar) {
-            Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
-        }
-        if (data.itemmarket) {
-            Object.values(data.itemmarket).forEach(listing => prices.push(listing.cost));
+        let finalPrice = null;
+
+        // As you requested, we will try to get the average_price first.
+        if (data.itemmarket && data.itemmarket.item && data.itemmarket.item.average_price) {
+            finalPrice = data.itemmarket.item.average_price;
         }
 
-        if (prices.length === 0) {
-            return null;
+        // If we could not get an average price, let's find the absolute lowest price from all listings.
+        if (!finalPrice) {
+            const prices = [];
+            // Bazaar listings use 'cost'
+            if (data.bazaar) {
+                Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
+            }
+            // *** THE FIX IS HERE: Item market listings use 'price' ***
+            if (data.itemmarket && data.itemmarket.listings) {
+                data.itemmarket.listings.forEach(listing => prices.push(listing.price));
+            }
+
+            if (prices.length > 0) {
+                finalPrice = Math.min(...prices);
+            }
         }
 
-        const lowestPrice = Math.min(...prices);
-        return lowestPrice > 0 ? lowestPrice : null;
+        // Return the final price, ensuring it's not null or zero.
+        return finalPrice > 0 ? finalPrice : null;
 
     } catch (error) {
         console.error(`Failed to fetch price for item ${itemId}:`, error);
         return null;
     }
 }
-    // --- FULLY CORRECTED function to search for an item and display results ---
 async function searchItemsAndDisplayResults(searchQuery, apiKey) {
     itemListDiv.innerHTML = '';
     loadingIndicator.textContent = `Searching for "${searchQuery}" and fetching prices...`;
