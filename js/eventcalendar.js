@@ -150,3 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 calendarDays.innerHTML = `<div class="calendar-message error"><h3>Loading Error</h3><p>Could not load your profile data.</p></div>`;
             }
         } else {
+            calendarDays.innerHTML = `<div class="calendar-message"><h3>Please Log In</h3><p>You must be logged in to view the event calendar.</p></div>`;
+        }
+    });
+});
