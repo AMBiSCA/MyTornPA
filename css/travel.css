@@ -366,7 +366,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 .input-section input[type="number"] {
     width: 100%;
     padding: 10px 12px;
-    margin-bottom: 5px; /* Spacing below inputs/selects */
+    margin-bottom: 0px; /* Adjusted to 0px to bring button closer */
     border: 1px solid #00a8ff;
     border-radius: 5px;
     box-sizing: border-box;
@@ -392,7 +392,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 }
 
 #fetch-data-btn {
-    margin-top: -20px; /* Current negative margin-top */
+    margin-top: 5px; /* Adjusted to 5px for proper spacing from the input/p above */
     padding: 12px 20px;
     font-size: 1.1rem;
 }
@@ -539,8 +539,8 @@ footer.footer {
     flex-direction: column;
     justify-content: center;
 }
-footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links { margin-bottom: 4px; }
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 footer.footer > p { /* New rule for the copyright paragraph */
     margin-top: 0;
