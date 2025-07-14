@@ -6,16 +6,6 @@ let yataTravelData = null;
 let lastYataFetchTime = 0;
 const YATA_CACHE_DURATION = 5 * 60 * 1000; // Cache YATA data for 5 minutes (adjust as needed)
 const countryNameMap = {
-    "1": "United Kingdom",
-    "2": "Canada",
-    "3": "Japan",
-    "4": "Cayman Islands",
-    "5": "Mexico",
-    "6": "South Africa",
-    "7": "Switzerland",
-    "8": "United Arab Emirates",
-    "9": "Argentina",
-    "10": "Hawaii",
     "mex": "Mexico",
     "cay": "Cayman Islands",
     "can": "Canada",
