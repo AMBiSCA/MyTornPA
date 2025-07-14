@@ -1,4 +1,13 @@
-/* eventcalendar.css */
+header,
+main,
+footer {
+  /* You can change this value to make the page wider or narrower */
+  max-width: 900px; 
+  
+  /* These two lines center the content on the page */
+  margin-left: auto;
+  margin-right: auto;
+}
 
 /* Main calendar wrapper */
 .calendar-wrapper {
