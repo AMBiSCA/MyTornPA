@@ -329,31 +329,29 @@ async function fetchAllTornItems(apiKey) {
     }
 
 
-    // --- Event Listeners (all now use currentTornApiKey) ---
+ fetchDataBtn.addEventListener('click', async () => {
+    if (!currentTornApiKey) {
+        errorDisplay.textContent = 'No Torn API Key available. Please ensure you are logged in and your key is stored.';
+        return;
+    }
+    errorDisplay.textContent = '';
+    loadingIndicator.textContent = 'Refetching travel data...';
+    loadingIndicator.style.display = 'block';
 
-    // The Fetch Data button will now just trigger a re-fetch with the already loaded API key
-    fetchDataBtn.addEventListener('click', async () => {
-        if (!currentTornApiKey) {
-            errorDisplay.textContent = 'No Torn API Key available. Please ensure you are logged in and your key is stored.';
-            return;
-        }
-        errorDisplay.textContent = '';
-        loadingIndicator.textContent = 'Refetching travel data...';
-        loadingIndicator.style.display = 'block';
+    await fetchAllTornItems(currentTornApiKey);
+    // Corrected: No API key passed to fetchAndPopulateDestinations
+    await fetchAndPopulateDestinations(); // <--- This line is changed
 
-        await fetchAllTornItems(currentTornApiKey);
-        await fetchAndPopulateDestinations(currentTornApiKey);
-
-        if (destinationSelect.value) {
-            const selectedCountryId = destinationSelect.value;
-            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
-        } else {
-            selectedCountryNameSpan.textContent = 'Selected Country';
-            itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
-        }
-        loadingIndicator.style.display = 'none';
-    });
+    if (destinationSelect.value) {
+        const selectedCountryId = destinationSelect.value;
+        selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+        await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+    } else {
+        selectedCountryNameSpan.textContent = 'Selected Country';
+        itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
+    }
+    loadingIndicator.style.display = 'none';
+});
 
     destinationSelect.addEventListener('change', async () => {
         const selectedCountryId = destinationSelect.value;
