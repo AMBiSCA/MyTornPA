@@ -252,6 +252,7 @@ header {
 
 /* --- Existing Travel Helper Specific Styles (retained and adjusted) --- */
 
+/* Update this rule in travel.css to make it fill vertical space */
 .input-section {
     margin-bottom: 25px;
     padding: 20px;
@@ -259,6 +260,12 @@ header {
     border-radius: 8px;
     background-color: #2e2e2e;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    
+    flex-grow: 1; /* NEW: Allows the input section to grow and fill available vertical space */
+    min-height: 0; /* NEW: Crucial for flex items with overflow content */
+    display: flex; /* NEW: Make it a flex container to align its own children (inputs, labels) */
+    flex-direction: column; /* NEW: Stack its own children vertically */
+    box-sizing: border-box; /* Ensure padding/border are included in height */
 }
 
 .input-section label {
