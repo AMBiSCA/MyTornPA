@@ -391,3 +391,6 @@ z-index: 2;
   margin: 0;
   color: var(--text-color-light);
 }
+.day-number {
+  padding-bottom: 2px;
+}
