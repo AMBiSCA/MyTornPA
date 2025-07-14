@@ -373,6 +373,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
     background-color: #383838;
     color: #eee;
     font-size: 0.95rem;
+	margin-top: 5px;
 }
 
 .input-section select:focus,
@@ -482,6 +483,8 @@ footer.footer > p { /* New rule for the copyright paragraph */
     border: 1px solid #555;
 }
 
+
+
 .item-details {
     flex-grow: 1;
 }
@@ -539,6 +542,8 @@ footer.footer {
     flex-direction: column;
     justify-content: center;
 }
+
+
 footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
