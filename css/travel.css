@@ -210,7 +210,8 @@ header {
 .page-specific-content-area p {
     font-size: 1.1rem;
     line-height: 1.6;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
+	text-align: center; 
 }
 /* Removed .placeholder-box styles as it's no longer in HTML */
 
@@ -327,6 +328,7 @@ header {
     border-radius: 8px;
     border: 1px solid rgba(255, 107, 107, 0.3);
     text-align: center;
+	display: none; 
 }
 
 .item-list-section {
