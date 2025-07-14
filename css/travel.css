@@ -188,7 +188,7 @@ header {
     flex-direction: column; /* Stack children vertically */
     flex-grow: 1; /* Allows it to grow and fill available space in main-content-wrapper */
     width: 95%; /* Increased width to be closer to edges */
-    max-width: 1750px; /* **Increased Max-Width**: Makes it horizontally wider */
+    max-width: 1650px; /* **Increased Max-Width**: Makes it horizontally wider */
     margin: 10px auto; /* Keep vertical margin to push it away from top/bottom */
     padding: 20px 40px; /* **Reduced Vertical Padding**: Makes it vertically slimmer */
     background-color: #2a2a2a;
