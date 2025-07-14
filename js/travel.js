@@ -478,10 +478,7 @@ async function searchItemsAndDisplayResults(searchQuery, apiKey) {
         auth.onAuthStateChanged(async function(user) {
             const usefulLinksBtn = document.getElementById('usefulLinksBtn');
             const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-            const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-            const signUpButtonHeader = document.getElementById('signUpButtonHeader');
-            const homeButtonFooter = document.getElementById('homeButtonFooter');
-            const logoutButtonHeader = document.getElementById('logoutButtonHeader');
+            
 
             // --- Common Header/Footer UI script (re-integrated here) ---
             if (usefulLinksBtn && usefulLinksDropdown) {
