@@ -228,106 +228,122 @@ async function fetchAllTornItems(apiKey) {
 }
 
 
-    async function displayItemsForCountry(selectedCountryId, apiKey) { // ENSURE apiKey PARAMETER IS HERE
-        // ... (existing displayItemsForCountry code, now uses 'apiKey' parameter) ...
-        itemListDiv.innerHTML = '';
-        loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
-        loadingIndicator.style.display = 'block';
-        errorDisplay.textContent = '';
-        if (Object.keys(allTornItems).length === 0) {
-            errorDisplay.textContent = 'Item details not loaded. Please ensure API key is valid and user profile loaded correctly.';
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-        const yataData = await fetchYATATravelData();
-        if (!yataData) {
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-        const travelCapacity = parseInt(travelCapacityInput.value, 10);
-        if (isNaN(travelCapacity) || travelCapacity <= 0) {
-            errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-        const countryData = yataData.data.countries[selectedCountryId];
-        if (!countryData || !countryData.items || Object.keys(countryData.items).length === 0) {
-            itemListDiv.innerHTML = `<p>No live item data available for this country from YATA. It might be an unpopular travel destination or data isn't available.</p>`;
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-        const itemsForSelectedCountry = Object.entries(countryData.items).map(([itemId, itemInfo]) => ({
-            itemId: itemId,
-            foreignPrice: itemInfo.cost,
-            foreignStock: itemInfo.stock,
-            category: allTornItems[itemId] ? allTornItems[itemId].type : 'Unknown'
-        }));
-        const selectedCategory = categoryFilterSelect.value;
-        let filteredItems = itemsForSelectedCountry;
-        if (selectedCategory !== 'all') {
-            filteredItems = itemsForSelectedCountry.filter(item => item.category === selectedCategory);
-        }
-        if (filteredItems.length === 0) {
-            itemListDiv.innerHTML = `<p>No items found for the selected category in this country based on YATA data.</p>`;
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-        const itemPromises = filteredItems.map(async (itemData) => {
-            const itemId = itemData.itemId;
-            const itemDetails = allTornItems[itemId];
-            if (!itemDetails) {
-                console.warn(`Item details for ID ${itemId} not found in Torn API cache. Skipping.`);
-                return null;
-            }
-            const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey);
-            const profitPerItem = tornCityPrice !== null ? tornCityPrice - itemData.foreignPrice : 'N/A';
-            const totalPotentialProfit = tornCityPrice !== null ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
-            const canCarry = Math.min(itemData.foreignStock, travelCapacity);
-            return {
-                id: itemId,
-                name: itemDetails.name,
-                image: itemDetails.image,
-                description: itemDetails.description,
-                foreignPrice: itemData.foreignPrice,
-                foreignStock: itemData.foreignStock,
-                tornCityPrice: tornCityPrice,
-                profitPerItem: profitPerItem,
-                totalPotentialProfit: totalPotentialProfit,
-                canCarry: canCarry,
-                category: itemData.category || 'Unknown'
-            };
-        });
-        const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
-        if (itemsToDisplay.length === 0) {
-            itemListDiv.innerHTML = `<p>Could not load any item data for the selected country and category.</p>`;
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-        itemsToDisplay.sort((a, b) => {
-            if (typeof a.profitPerItem !== 'number' && typeof b.profitPerItem !== 'number') return 0;
-            if (typeof a.profitPerItem !== 'number') return 1;
-            if (typeof b.profitPerItem !== 'number') return -1;
-            return b.profitPerItem - a.profitPerItem;
-        });
-        itemsToDisplay.forEach(item => {
-            const itemCard = document.createElement('div');
-            itemCard.classList.add('item-card');
-            itemCard.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <div class="item-details">
-                    <h3>${item.name} (${item.category})</h3>
-                    <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
-                    <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
-                    <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
-                    <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
-                    <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                </div>
-            `;
-            itemListDiv.appendChild(itemCard);
-        });
+   // UPDATED: Function to display items for a selected country using YATA data (Corrected YATA data path)
+async function displayItemsForCountry(selectedCountryId, apiKey) {
+    itemListDiv.innerHTML = '';
+    loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
+    loadingIndicator.style.display = 'block';
+    errorDisplay.textContent = '';
+
+    if (Object.keys(allTornItems).length === 0) {
+        // This check is still valid if allTornItems is needed for images/categories
+        errorDisplay.textContent = 'Item details not loaded. Please ensure API key is valid and user profile loaded correctly.';
         loadingIndicator.style.display = 'none';
+        return;
     }
 
+    const yataData = await fetchYATATravelData();
+    if (!yataData) {
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const travelCapacity = parseInt(travelCapacityInput.value, 10);
+    if (isNaN(travelCapacity) || travelCapacity <= 0) {
+        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    // --- CRITICAL CHANGE HERE: Access yataData.stocks directly ---
+    const countryData = yataData.stocks[selectedCountryId];
+
+    // And items are within countryData.stocks, not countryData.items
+    if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
+        itemListDiv.innerHTML = `<p>No live item data available for this country from YATA. It might be an unpopular travel destination or data isn't available.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    // Map the YATA stock data to our desired item structure
+    const itemsForSelectedCountry = countryData.stocks.map(itemInfo => ({
+        itemId: itemInfo.id,
+        name: itemInfo.name,
+        foreignPrice: itemInfo.cost,
+        foreignStock: itemInfo.quantity, // YATA uses 'quantity' for stock
+        category: allTornItems[itemInfo.id] ? allTornItems[itemInfo.id].type : 'Unknown'
+    }));
+
+    const selectedCategory = categoryFilterSelect.value;
+    let filteredItems = itemsForSelectedCountry;
+    if (selectedCategory !== 'all') {
+        filteredItems = itemsForSelectedCountry.filter(item => item.category === selectedCategory);
+    }
+
+    if (filteredItems.length === 0) {
+        itemListDiv.innerHTML = `<p>No items found for the selected category in this country based on YATA data.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const itemPromises = filteredItems.map(async (itemData) => {
+        const itemId = itemData.itemId;
+        const itemDetailsFromTornAPI = allTornItems[itemId]; // Still needed for image and description
+
+        const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey);
+        const profitPerItem = tornCityPrice !== null ? tornCityPrice - itemData.foreignPrice : 'N/A';
+        const totalPotentialProfit = tornCityPrice !== null ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
+        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+
+        return {
+            id: itemId,
+            name: itemData.name,
+            image: itemDetailsFromTornAPI ? itemDetailsFromTornAPI.image : '',
+            description: itemDetailsFromTornAPI ? itemDetailsFromTornAPI.description : 'No description available.',
+            foreignPrice: itemData.foreignPrice,
+            foreignStock: itemData.foreignStock,
+            tornCityPrice: tornCityPrice,
+            profitPerItem: profitPerItem,
+            totalPotentialProfit: totalPotentialProfit,
+            canCarry: canCarry,
+            category: itemData.category
+        };
+    });
+
+    const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
+
+    if (itemsToDisplay.length === 0) {
+        itemListDiv.innerHTML = `<p>Could not load any item data for the selected country and category.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    itemsToDisplay.sort((a, b) => {
+        if (typeof a.profitPerItem !== 'number' && typeof b.profitPerItem !== 'number') return 0;
+        if (typeof a.profitPerItem !== 'number') return 1;
+        if (typeof b.profitPerItem !== 'number') return -1;
+        return b.profitPerItem - a.profitPerItem;
+    });
+
+    itemsToDisplay.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('item-card');
+        itemCard.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="item-details">
+                <h3>${item.name} (${item.category})</h3>
+                <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
+                <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
+                <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
+                <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
+                <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
+                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p> </div>
+        `;
+        itemListDiv.appendChild(itemCard);
+    });
+
+    loadingIndicator.style.display = 'none';
+}
 
  fetchDataBtn.addEventListener('click', async () => {
     if (!currentTornApiKey) {
