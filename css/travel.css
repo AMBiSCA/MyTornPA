@@ -373,7 +373,12 @@ footer.footer > p { /* New rule for the copyright paragraph */
     background-color: #383838;
     color: #eee;
     font-size: 0.95rem;
-	margin-top: 50px;
+	
+}
+
+.input-section input[type="text"]#item-search + p { /* Targets a paragraph immediately following the #item-search input */
+    margin-top: 5px; /* Add a small space above it */
+    margin-bottom: 15px; /* Add space below it, before the next label */
 }
 
 .input-section select:focus,
