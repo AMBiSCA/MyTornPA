@@ -178,7 +178,7 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
     }
 }
 
-// Function to fetch all item details (UPDATED for V2)
+// Function to fetch all item details (CORRECTED for Image Mapping)
 async function fetchAllTornItems(apiKey) {
     if (Object.keys(allTornItems).length > 0) {
         console.log("All Torn items already loaded from cache.");
@@ -195,7 +195,6 @@ async function fetchAllTornItems(apiKey) {
     errorDisplay.textContent = '';
 
     try {
-        // Correct Torn API v2 URL for all items
         const response = await fetch(`https://api.torn.com/v2/torn?selections=items&key=${apiKey}`);
         const data = await response.json();
 
@@ -206,25 +205,40 @@ async function fetchAllTornItems(apiKey) {
             return;
         }
 
-        allTornItems = data.items;
+        // --- CRITICAL CORRECTION HERE ---
+        // Ensure that each item object correctly stores its own ID and uses a consistent image URL pattern.
+        const itemsById = {};
+        for (const itemId in data.items) {
+            if (data.items.hasOwnProperty(itemId)) {
+                const item = data.items[itemId];
+                // Ensure the image URL directly references the item's own ID
+                // The Torn API generally follows this pattern: https://www.torn.com/images/items/ITEM_ID/large.png
+                item.image = `https://www.torn.com/images/items/${itemId}/large.png`;
+                itemsById[itemId] = item;
+            }
+        }
+        allTornItems = itemsById; // Assign the correctly mapped items
+
         console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
+        console.log("Checking image data for specific items (after fix):"); // DEBUG
+        if (allTornItems['8']) { // Axe
+            console.log("Axe (ID 8) data:", allTornItems['8'].name, allTornItems['8'].image);
+        } else {
+            console.log("Axe (ID 8) not found in allTornItems.");
+        }
+        if (allTornItems['31']) { // M249 SAW
+            console.log("M249 SAW (ID 31) data:", allTornItems['31'].name, allTornItems['31'].image);
+        } else {
+            console.log("M249 SAW (ID 31) not found in allTornItems.");
+        }
+        if (allTornItems['1125']) { // Card Skimmer
+            console.log("Card Skimmer (ID 1125) data:", allTornItems['1125'].name, allTornItems['1125'].image);
+        } else {
+            console.log("Card Skimmer (ID 1125) not found in allTornItems.");
+        }
+
         loadingIndicator.style.display = 'none';
-             console.log("Checking image data for specific items:");
-if (allTornItems['8']) { // Axe
-    console.log("Axe (ID 8) data:", allTornItems['8'].name, allTornItems['8'].image);
-} else {
-    console.log("Axe (ID 8) not found in allTornItems.");
-}
-if (allTornItems['31']) { // M249 SAW
-    console.log("M249 SAW (ID 31) data:", allTornItems['31'].name, allTornItems['31'].image);
-} else {
-    console.log("M249 SAW (ID 31) not found in allTornItems.");
-}
-if (allTornItems['1125']) { // Card Skimmer
-    console.log("Card Skimmer (ID 1125) data:", allTornItems['1125'].name, allTornItems['1125'].image);
-} else {
-    console.log("Card Skimmer (ID 1125) not found in allTornItems.");
-}
+
     } catch (error) {
         errorDisplay.textContent = 'Failed to fetch all Torn items. Check your network.';
         console.error('Fetch all items error:', error);
