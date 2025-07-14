@@ -221,7 +221,7 @@ header {
     display: flex; /* Arrange left and right panels horizontally */
     flex-grow: 1; /* Allows this container to take up remaining vertical space */
     gap: 30px; /* Space between left and right panels */
-    margin-top: 25px; /* Space below intro text */
+    margin-top: 22px; /* Space below intro text */
     min-height: 0; /* Crucial for flex child sizing within a limited height parent */
     width: 100%; /* Take full width of page-specific-content-area */
 }
