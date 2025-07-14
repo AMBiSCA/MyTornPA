@@ -209,7 +209,22 @@ async function fetchAllTornItems(apiKey) {
         allTornItems = data.items;
         console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
         loadingIndicator.style.display = 'none';
-
+             console.log("Checking image data for specific items:");
+if (allTornItems['8']) { // Axe
+    console.log("Axe (ID 8) data:", allTornItems['8'].name, allTornItems['8'].image);
+} else {
+    console.log("Axe (ID 8) not found in allTornItems.");
+}
+if (allTornItems['31']) { // M249 SAW
+    console.log("M249 SAW (ID 31) data:", allTornItems['31'].name, allTornItems['31'].image);
+} else {
+    console.log("M249 SAW (ID 31) not found in allTornItems.");
+}
+if (allTornItems['1125']) { // Card Skimmer
+    console.log("Card Skimmer (ID 1125) data:", allTornItems['1125'].name, allTornItems['1125'].image);
+} else {
+    console.log("Card Skimmer (ID 1125) not found in allTornItems.");
+}
     } catch (error) {
         errorDisplay.textContent = 'Failed to fetch all Torn items. Check your network.';
         console.error('Fetch all items error:', error);
