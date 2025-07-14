@@ -183,20 +183,17 @@
 }
 
 /* eventcalendar.css */
-
-/* ... (keep existing styles above) ... */
-
 /* Event indicator dot */
 .event-indicator {
-    width: 8px; /* Make it a small visible dot */
-    height: 8px; /* Make it a small visible dot */
-    background-color: var(--event-indicator-color); /* A vibrant color for events, defined in global.css */
-    border-radius: 50%; /* Makes it a circle */
-    position: absolute; /* Position it relative to the calendar-day */
-    top: 5px; /* Adjust vertical position */
-    right: 5px; /* Adjust horizontal position */
-    box-shadow: 0 0 5px rgba(var(--event-indicator-color-rgb), 0.7); /* Subtle glow */
-    z-index: 2; /* Ensure it's above other day content if any */
+width: 8px;
+height: 8px;
+background-color: var(--event-indicator-color);
+border-radius: 50%;
+position: absolute;
+top: 5px;
+right: 5px;
+box-shadow: 0 0 5px rgba(var(--event-indicator-color-rgb), 0.7);
+z-index: 2;
 }
 
 /* Add these if not already in global.css to support the glow */
@@ -249,4 +246,47 @@
 
 .modal-close-btn:hover {
   color: var(--text-color-light); /* Make it brighter on hover */
+}
+/* Styles for event bars directly on the calendar grid */
+
+/* This is the text (e.g., "World Tiger Day") */
+.day-event-title {
+  font-size: 0.8em;
+  padding: 3px 5px;
+  margin-top: 4px; /* Space below the day number */
+  border-radius: 4px;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.5); /* Dark background for readability */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adds '...' if text is too long */
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* This is the colored bar background */
+.event-day-range {
+  /* Using a color that should stand out. Adjust if needed. */
+  background-color: #3b5998; 
+  color: #fff; /* Make the day number white */
+  /* Remove individual day borders within a range */
+  border: 1px solid transparent; 
+}
+
+/* For the first day of an event */
+.event-range-start {
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+/* For the last day of an event */
+.event-range-end {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+/* For an event that is only a single day */
+.event-range-single {
+  border-radius: 20px;
 }
