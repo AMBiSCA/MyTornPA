@@ -224,11 +224,11 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
     }
 
     try {
-        // This is the correct, official V2 URL for market data.
-        const response = await fetch(`https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
+        // *** URL updated to include /v2/ as ordered ***
+        const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
         
         if (!response.ok) {
-            console.error(`Error fetching item ${itemId}. Status: ${response.status}`);
+            console.error(`Error fetching item ${itemId}. Status: ${response.status} (${response.statusText})`);
             return null;
         }
 
@@ -240,12 +240,10 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
 
         let finalPrice = null;
 
-        // Prioritize average_price as you suggested.
         if (data.itemmarket && data.itemmarket.item && data.itemmarket.item.average_price) {
             finalPrice = data.itemmarket.item.average_price;
         }
 
-        // If no average price, fall back to finding the absolute lowest price.
         if (!finalPrice) {
             const prices = [];
             if (data.bazaar) {
