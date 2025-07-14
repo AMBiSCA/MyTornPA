@@ -1,4 +1,4 @@
-// --- Global variables (declared outside DOMContentLoaded for broader scope) ---
+// --- Global variables ---
 let allTornItems = {}; // To store item details: item_id -> {name, type, image, market_price}
 let yataTravelData = null; // To store cached YATA travel data
 let lastYataFetchTime = 0; // Timestamp of last YATA fetch
@@ -139,6 +139,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (allTornItems['8']) { console.log("ID 8 (Axe):", allTornItems['8'].name, allTornItems['8'].image, allTornItems['8'].type, "Market Price:", allTornItems['8'].market_price); }
             if (allTornItems['31']) { console.log("ID 31 (M249 SAW):", allTornItems['31'].name, allTornItems['31'].image, allTornItems['31'].type, "Market Price:", allTornItems['31'].market_price); }
             if (allTornItems['1125']) { console.log("ID 1125 (Card Skimmer):", allTornItems['1125'].name, allTornItems['1125'].image, allTornItems['1125'].type, "Market Price:", allTornItems['1125'].market_price); }
+            if (allTornItems['206']) { console.log("Xanax (ID 206):", allTornItems['206'].name, allTornItems['206'].image, allTornItems['206'].type, "Market Price:", allTornItems['206'].market_price); } // Added for Xanax
+            if (allTornItems['200']) { console.log("Opium (ID 200):", allTornItems['200'].name, allTornItems['200'].image, allTornItems['200'].type, "Market Price:", allTornItems['200'].market_price); } // Added for Opium
             if (allTornItems['266']) { console.log("ID 266 (Nessie Plushie):", allTornItems['266'].name, allTornItems['266'].image, allTornItems['266'].type, "Market Price:", allTornItems['266'].market_price); } // Added for Nessie
             if (allTornItems['617']) { console.log("ID 617 (Banana Orchid):", allTornItems['617'].name, allTornItems['617'].image, allTornItems['617'].type, "Market Price:", allTornItems['617'].market_price); } // Added for Banana Orchid
             // END DEBUGGING LOGS
@@ -204,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingIndicator.style.display = 'none';
         }
     }
+
 
     // Function to display items for a selected country (uses YATA for name/price/stock, hardcoded map for category, derived URL for image)
     async function displayItemsForCountry(selectedCountryId, apiKey) {
@@ -288,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemDescription = 'No description available.'; // Or you could potentially map common descriptions.
 
             const tornCityPrice = itemData.tornCityPrice; // Use the already retrieved price
+            console.log(`Processing item ${itemData.name} (ID: ${itemData.id}) - Torn City Price from data:`, tornCityPrice); // DEBUG
 
             const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
             const totalPotentialProfit = (tornCityPrice !== null && tornCityPrice > 0 && typeof profitPerItem === 'number') ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
@@ -319,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsToDisplay.sort((a, b) => {
             // Handle 'N/A' correctly for sorting: push to bottom
             const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitB : -Infinity; // Fixed typo here (was profitB instead of profitA)
             return profitB - profitA;
         });
 
@@ -365,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             loadingIndicator.style.display = 'block';
 
                             // Initial data fetches on login/page load
-                            await fetchAllTornItems(currentTornApiKey); // Still needed for image URLs and market_price
+                            await fetchAllTornItems(currentTornApiKey); // Needed for images and market_price
                             await fetchAndPopulateDestinations(); // No API key needed here anymore
 
                             // If a destination is already selected after populating, display items
@@ -421,8 +425,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.textContent = 'Refetching travel data...';
         loadingIndicator.style.display = 'block';
 
-        await fetchAllTornItems(currentTornApiKey);
-        await fetchAndPopulateDestinations();
+        await fetchAllTornItems(currentTornApiKey); // Needed for images and market_price
+        await fetchAndPopulateDestinations(); // No API key needed here anymore
 
         if (destinationSelect.value) {
             const selectedCountryId = destinationSelect.value;
