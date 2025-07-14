@@ -2,14 +2,14 @@
 
 /* Main calendar wrapper */
 .calendar-wrapper {
-    background-color: var(--background-color-dark-surface); /* Dark surface for the calendar box */
-    border: 1px solid var(--border-color-dark);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Softer, subtle shadow */
-    max-width: 900px; /* Adjust as needed */
-    margin: 30px auto;
-    color: var(--text-color-light); /* Light text kground */
+  background-color: var(--background-color-dark-surface);
+  border: 1px solid var(--border-color-dark);
+  border-radius: 8px;
+  padding: 15px; /* Reduced */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  max-width: 800px; /* Reduced */
+  margin: 30px auto;
+  color: var(--text-color-light);
 }
 
 /* Calendar header (Month navigation) */
@@ -45,22 +45,20 @@
     border-color: var(--button-border-dark-hover);
 }
 
-/* Weekday headers (Sun, Mon, Tue, etc.) */
 .calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: var(--text-color-secondary); /* A slightly muted text color */
-    text-align: center;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px; /* Reduced */
+  margin-bottom: 5px; /* Reduced */
+  font-weight: bold;
+  color: var(--text-color-secondary);
+  text-align: center;
 }
 
-/* Calendar days grid */
 .calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px; /* Reduced */
 }
 
 .calendar-day {
@@ -69,14 +67,14 @@
   border-radius: 5px;
   padding: 5px;
   text-align: center;
-  min-height: 80px;
+  min-height: 75px; /* Reduced */
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
-  font-size: 1.1em;
+  font-size: 1em; /* Reduced */
   color: var(--text-color-light);
   display: flex;
-  flex-direction: column; /* Arrange items top-to-bottom */
+  flex-direction: column;
   justify-content: flex-start;
   align-items: center;
 }
