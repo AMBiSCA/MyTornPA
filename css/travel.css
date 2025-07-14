@@ -139,7 +139,7 @@ header {
 }
 .btn:not(:disabled):hover::before, .btn-header:not(:disabled):hover::before { opacity: 0.08; } /* Added .btn-header here */
 .btn:not(:disabled):active, .btn:not(:disabled):focus, .btn-header:not(:disabled):active, .btn-header:not(:disabled):focus { border-color: #00a8ff; } /* Added .btn-header here */
-.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before, .btn-header:not(:disabled):active::before, .btn-header:not(:disabled):focus::before { opacity: 0.12; } /* Added .btn-header here */
+.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before, .btn-header:not(:disabled):focus::before { opacity: 0.12; } /* Added .btn-header here */
 
 .btn:disabled, .btn-header:disabled { /* Added .btn-header here */
     cursor: default;
@@ -392,7 +392,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 }
 
 #fetch-data-btn {
-    margin-top: -20px;
+    margin-top: -20px; /* Current negative margin-top */
     padding: 12px 20px;
     font-size: 1.1rem;
 }
@@ -516,7 +516,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 }
 
 footer.footer {
-    flex-shrink: 0; /* Prevents footer from shrinking */
+    flex-shrink: 0;
     background-color: #222;
     color: #999;
     padding-top: 12px;
