@@ -54,41 +54,47 @@
     <h2>Torn Travel Helper</h2>
     <p>Plan your Torn City travels effectively! This tool will help you find profitable items in different countries, check stock levels, and calculate potential profits from your travel runs.</p>
 
-    <div class="input-section">
+    <div class="travel-layout-container">
 
-        <label for="destination-select">Select Destination Country:</label>
-        <select id="destination-select">
-            <option value="">Loading destinations...</option>
-        </select>
+        <div class="left-panel">
+            <div class="input-section">
+                <label for="destination-select">Select Destination Country:</label>
+                <select id="destination-select">
+                    <option value="">Loading destinations...</option>
+                </select>
 
-        <label for="travel-capacity">Your Current Travel Capacity:</label>
-        <input type="number" id="travel-capacity" value="5" min="1">
-        <p style="font-size: 0.8em; color: #aaa;">(Default is 5. Update if you have Airstrip/WLT/Suitcases.)</p>
+                <label for="travel-capacity">Your Current Travel Capacity:</label>
+                <input type="number" id="travel-capacity" value="5" min="1">
+                <p style="font-size: 0.8em; color: #aaa;">(Default is 5. Update if you have Airstrip/WLT/Suitcases.)</p>
 
-        <button class="btn-header" id="fetch-data-btn" style="width: 100%; margin-top: 10px;">Fetch Travel Data</button>
-    </div>
+                <button class="btn-header" id="fetch-data-btn" style="width: 100%; margin-top: 10px;">Fetch Travel Data</button>
+            </div>
 
-    <div class="input-section" style="margin-top: 20px;">
-        <label for="category-filter">Filter by Category:</label>
-        <select id="category-filter">
-            <option value="all">All Items</option>
-            <option value="Plushie">Plushies</option>
-            <option value="Flower">Flowers</option>
-            <option value="Drug">Drugs</option>
-            <option value="Special">Special Items</option>
-            </select>
-    </div>
-
-    <div id="loading-indicator" style="display: none; text-align: center; padding: 20px; font-size: 1.2em; color: #7f8c8d;">Loading data, please wait...</div>
-    <div id="error-display" class="error-message" style="text-align: center;"></div>
-
-    <div class="item-list-section" style="margin-top: 30px; border-top: 1px solid #444; padding-top: 20px;">
-        <h2>Items Available in <span id="selected-country-name" style="color: #00a8ff;">Selected Country</span></h2>
-        <div id="item-list">
-            <p style="text-align: center; color: #bbb;">Select a destination and click "Fetch Travel Data" to see items.</p>
+            <div class="input-section" style="margin-top: 20px;">
+                <label for="category-filter">Filter by Category:</label>
+                <select id="category-filter">
+                    <option value="all">All Items</option>
+                    <option value="Plushie">Plushies</option>
+                    <option value="Flower">Flowers</option>
+                    <option value="Drug">Drugs</option>
+                    <option value="Special">Special Items</option>
+                </select>
+            </div>
         </div>
-    </div>
-</main>
+
+        <div class="right-panel">
+            <div id="loading-indicator" style="display: none;">Loading data, please wait...</div>
+            <div id="error-display" class="error-message"></div>
+
+            <div class="item-list-section">
+                <h2>Items Available in <span id="selected-country-name" style="color: #00a8ff;">Selected Country</span></h2>
+                <div id="item-list">
+                    <p style="text-align: center; color: #bbb;">Select a destination and click "Fetch Travel Data" to see items.</p>
+                </div>
+            </div>
+        </div>
+
+    </div> </main>
   </div> <footer class="footer">
     <div class="footer-links">
       <a href="home.html" id="homeButtonFooter">Home</a>

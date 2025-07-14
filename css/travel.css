@@ -3,21 +3,22 @@ html, body {
     height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: hidden; 
+    overflow: hidden; /* Prevents overall page scrolling */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #eee;
 }
 
-body { 
+body {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Stacks header, main, footer vertically */
     box-sizing: border-box;
     position: relative;
-    z-index: 0; 
+    z-index: 0;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
+    min-height: 100vh; /* Ensures body takes full viewport height */
 }
 
-body::before { 
+body::before {
     content: '';
     position: fixed;
     top: 0;
@@ -46,100 +47,174 @@ header {
     left: 0;
     z-index: 102;
     box-sizing: border-box;
-    height: 70px; 
+    height: 70px;
+    flex-shrink: 0; /* Prevents header from shrinking in flex container */
 }
-
+.header-left {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.header-left a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+.header-left h1 {
+    font-size: 1.6rem;
+    color: #00a8ff;
+    margin: 0;
+    user-select: none;
+    white-space: nowrap;
+}
+.header-left .tagline {
+    font-size: 0.8rem;
+    color: #aaa;
+    font-weight: 400;
+    margin-left: 8px;
+    display: inline-block;
+    white-space: nowrap;
+}
+.header-center {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#headerMainLogo {
+    max-height: 60px;
+    width: auto;
+    display: block;
+    margin-top: 5px;
+    filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
+}
+.header-right-controls {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn-header, .header-text-link {
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding: 8px 12px;
+}
+.btn-header {
+    background: #00a8ff;
+    border: none;
+    color: #222;
+    transition: background-color 0.3s ease;
+}
+.btn-header:hover {
+    background: #0086d1;
+}
 .header-text-link {
-  color: #00a8ff;
-  background: none;
-  border: none;
-  padding: 8px 5px;
+    color: #00a8ff;
+    background: none;
+    border: none;
+    padding: 8px 5px;
 }
 .header-text-link:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 .dropdown {
-  position: relative;
-  display: inline-block;
+    position: relative;
+    display: inline-block;
 }
 .dropdown-toggle::after {
-  content: ' \25BC';
-  font-size: 0.6em;
-  margin-left: 4px;
+    content: ' \25BC';
+    font-size: 0.6em;
+    margin-left: 4px;
 }
 .dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #272727;
-  min-width: 240px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
-  z-index: 103;
-  border-radius: 6px;
-  margin-top: 6px;
-  left: 0;
-  border: 1px solid #00a8ff;
+    display: none;
+    position: absolute;
+    background-color: #272727;
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+    z-index: 103;
+    border-radius: 6px;
+    margin-top: 6px;
+    left: 0;
+    border: 1px solid #00a8ff;
 }
 .dropdown-content.show { display: block; }
 .dropdown.align-right .dropdown-content { left: auto; right: 0; }
 .dropdown-content a {
-  color: #00a8ff;
-  padding: 10px 15px;
-  text-decoration: none;
-  display: block;
-  font-size: 0.85rem;
-  font-weight: bold;
-  white-space: nowrap;
-  transition: background-color 0.2s ease;
-  position: relative;
+    color: #00a8ff;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.85rem;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+    position: relative;
 }
 .dropdown-content a::after { content: "\00a0\00a0🔗"; }
 .dropdown-content a:hover { background-color: #383838; color: #fff; }
 
+/* Main content wrapper - takes up remaining vertical space */
 .main-content-wrapper {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-top: 90px;   
-    padding-bottom: 90px; 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
+    flex-grow: 1; /* Allows it to take all available vertical space between header and footer */
+    display: flex; /* Make it a flex container for centering and layout */
+    flex-direction: column; /* Stack children (page-specific-content-area) vertically */
+    align-items: center; /* Center content horizontally */
+    overflow: hidden; /* Hide overflow of main-content-wrapper itself to rely on inner scroll */
+    padding-top: 70px; /* Space for fixed header (adjust if header height changes) */
+    padding-bottom: 70px; /* Space for fixed footer (adjust if footer height changes) */
+    box-sizing: border-box; /* Include padding in height calculation */
     position: relative;
     z-index: 1;
 }
-  
-.image-glow { 
-  position: fixed; 
-  left: -3%;
-  bottom: 0;
-  filter: drop-shadow(0px 0px 12px #00a8ff);
-  width: 570px;
-  z-index: 0; 
-  pointer-events: none;
-}
 
+.image-glow, .image-glow-flipped {
+    position: fixed;
+    bottom: 70px; /* Position relative to top of footer */
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow {
+    left: -3%;
+}
 .image-glow-flipped {
-  position: fixed; 
-  right: -3%;
-  bottom: 0;
-  transform: scaleX(-1);
-  filter: drop-shadow(0px 0px 12px #00a8ff);
-  width: 570px;
-  z-index: 0;
-  pointer-events: none;
+    right: -3%;
+    transform: scaleX(-1);
 }
 
-.page-specific-content-area { 
-  width: 90%;
-  max-width: 1100px; 
-  margin: 30px auto; 
-  padding: 30px 40px;
-  background-color: #2a2a2a; 
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
-  text-align: left; 
-  position: relative; 
-  z-index: 1; 
+
+/* Page specific content area - the main dark blue box for the helper */
+.page-specific-content-area {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    flex-grow: 1; /* Allows it to grow and fill available space in main-content-wrapper */
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto; /* Center horizontally, remove vertical margins as parent handles spacing */
+    padding: 30px 40px;
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+    text-align: left;
+    position: relative;
+    z-index: 1;
+    min-height: 0; /* Important for flex items to prevent overflow issues */
 }
 .page-specific-content-area h2 {
     color: #00a8ff;
@@ -153,33 +228,204 @@ header {
     line-height: 1.6;
     margin-bottom: 15px;
 }
-.placeholder-box {
-    border: 2px dashed #00a8ff;
-    padding: 20px 30px; 
-    text-align: left; 
-    color: #bbb; 
-    font-style: normal; 
-    margin-top: 20px;
+/* Removed .placeholder-box styles as it's no longer in HTML */
+
+
+/* --- NEW Layout for Travel Helper: Two-Column Structure --- */
+.travel-layout-container {
+    display: flex; /* Arrange left and right panels horizontally */
+    flex-grow: 1; /* Allows this container to take up remaining vertical space */
+    gap: 30px; /* Space between left and right panels */
+    margin-top: 25px; /* Space below intro text */
+    min-height: 0; /* Crucial for flex child sizing within a limited height parent */
+    width: 100%; /* Take full width of page-specific-content-area */
+}
+
+/* Left Panel - Inputs and Filters */
+.left-panel {
+    flex: 0 0 30%; /* Don't grow, don't shrink, base width 30% as requested */
+    display: flex;
+    flex-direction: column; /* Stack its children (input-sections) vertically */
+    overflow-y: auto; /* Enable internal scrolling if inputs overflow */
+    padding-right: 15px; /* Padding to prevent scrollbar touching edge */
+    box-sizing: border-box; /* Include padding in width */
+    min-height: 0; /* Allow content to shrink if needed within flex container */
+}
+
+/* Right Panel - Item Display */
+.right-panel {
+    flex: 1; /* Allows it to grow and shrink, taking up remaining space (70%) */
+    display: flex;
+    flex-direction: column; /* Stack its children (item-list-section) vertically */
+    min-width: 0; /* Prevents overflow issues with long content */
+    overflow-y: auto; /* Enable internal scrolling for the item list */
+    padding-left: 15px; /* Padding to prevent scrollbar touching edge */
+    box-sizing: border-box; /* Include padding in width */
+    min-height: 0; /* Allow content to shrink if needed within flex container */
+}
+
+
+/* --- Existing Travel Helper Specific Styles (retained and adjusted) --- */
+
+.input-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    border: 1px solid #00a8ff;
     border-radius: 8px;
-    background-color: rgba(0,0,0,0.1); 
+    background-color: #2e2e2e;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
 }
-.placeholder-box strong {
-    color: #00a8ff;
-    font-size: 1.1em;
-}
-.placeholder-box ul {
-    margin-top: 10px;
-    margin-left: 20px; 
-    padding-left: 0; 
-    list-style-type: disc; 
-}
-.placeholder-box ul li {
+
+.input-section label {
+    display: block;
     margin-bottom: 8px;
-    line-height: 1.5;
+    font-weight: bold;
+    color: #00a8ff;
+    font-size: 1.05rem;
+}
+
+.input-section select,
+.input-section input[type="text"],
+.input-section input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border: 1px solid #00a8ff;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #383838;
+    color: #eee;
+    font-size: 0.95rem;
+}
+
+.input-section select:focus,
+.input-section input[type="text"]:focus,
+.input-section input[type="number"]:focus {
+    outline: none;
+    border-color: #0086d1;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.6);
+}
+
+.input-section p a {
+    color: #00a8ff;
+    text-decoration: none;
+}
+.input-section p a:hover {
+    text-decoration: underline;
+}
+
+#fetch-data-btn {
+    margin-top: 10px;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+}
+
+/* Loading and Error Message Styling (retained for later use/debugging) */
+#loading-indicator {
+    text-align: center;
+    padding: 15px 20px;
+    font-size: 1.15em;
+    color: #00a8ff;
+    font-weight: bold;
+    background-color: rgba(0, 168, 255, 0.1);
+    border-radius: 8px;
+    margin-top: 0; /* Adjusted for right-panel padding */
+    border: 1px solid rgba(0, 168, 255, 0.3);
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-weight: bold;
+    margin-top: 0; /* Adjusted for right-panel padding */
+    padding: 12px 20px;
+    background-color: rgba(255, 107, 107, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    text-align: center;
+}
+
+.item-list-section {
+    margin-top: 25px; /* Space between header and first item */
+    border-top: none; /* Removed border as per redesign */
+    padding-top: 0; /* Adjusted for right-panel padding */
+}
+
+.item-list-section h2 {
+    text-align: center;
+    color: #00a8ff;
+    margin-bottom: 25px;
+}
+
+#selected-country-name {
+    color: #00a8ff;
+    font-weight: bold;
+}
+
+.item-card {
+    display: flex;
+    align-items: center;
+    background-color: #333;
+    border: 1px solid #00a8ff;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4);
+    background-color: #3a3a3a;
+}
+
+.item-card img {
+    width: 70px;
+    height: 70px;
+    margin-right: 20px;
+    border-radius: 5px;
+    object-fit: contain;
+    background-color: #4a4a4a;
+    padding: 5px;
+    border: 1px solid #555;
+}
+
+.item-details {
+    flex-grow: 1;
+}
+
+.item-details h3 {
+    margin: 0 0 8px 0;
+    color: #eee;
+    font-size: 1.3rem;
+}
+
+.item-details p {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    color: #ccc;
+}
+
+.profit-info {
+    font-weight: bold;
+    color: #2ecc71;
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+#item-list p {
+    text-align: center;
+    color: #bbb;
+    font-style: italic;
+    padding: 15px;
+    background-color: #2e2e2e;
+    border-radius: 8px;
+    border: 1px dashed #00a8ff;
 }
 
 footer.footer {
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevents footer from shrinking */
     background-color: #222;
     color: #999;
     padding-top: 12px;
@@ -191,13 +437,11 @@ footer.footer {
     border-top: 2px solid #00a8ff;
     width: 100%;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    /* No longer fixed positioning */
     user-select: none;
     z-index: 102;
     box-sizing: border-box;
-    height: 70px;
+    height: 70px; /* Fixed height for footer */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -206,7 +450,28 @@ footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: 
 footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 
+/* --- Responsive Adjustments for new layout --- */
 @media (max-width: 768px) {
+    .travel-layout-container {
+        flex-direction: column; /* Stack panels vertically on smaller screens */
+        gap: 20px; /* Adjust gap for vertical stacking */
+    }
+    .left-panel, .right-panel {
+        flex: 1 1 100%; /* Each panel takes full width */
+        overflow-y: visible; /* Allow content to expand normally on small screens */
+        padding-left: 0;
+        padding-right: 0;
+    }
+    /* Add horizontal padding back to content elements that lost it from panel padding */
+    .input-section, .item-list-section, #loading-indicator, .error-message {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .page-specific-content-area {
+        padding: 20px; /* Reduce main padding */
+    }
+
+    /* Existing media queries from your CSS (retained and adjusted) */
     header { height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
     .main-content-wrapper { padding-top: 100px; padding-bottom: 100px; }
@@ -216,7 +481,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .btn-header, .header-text-link { padding: 6px 10px; font-size: 0.85rem; }
     .page-specific-content-area h2 { font-size: 1.8rem; }
     .page-specific-content-area p { font-size: 1rem; }
-    .image-glow, .image-glow-flipped { display: none; } 
+    .image-glow, .image-glow-flipped { display: none; }
 
     footer.footer { height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
     footer.footer .footer-links { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
@@ -230,224 +495,6 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .main-content-wrapper { padding-top: 80px; }
     .page-specific-content-area { margin: 10px; padding: 15px; }
     .page-specific-content-area h2 { font-size: 1.5rem; }
-}
-
-/* --- Travel Helper Specific Styles --- */
-
-/* Input section general styling (for API key, destination, capacity) */
-.input-section {
-    margin-bottom: 25px; /* More space below the main input section */
-    padding: 20px;
-    border: 1px solid #00a8ff; /* Border matching your theme */
-    border-radius: 8px; /* Slightly more rounded corners */
-    background-color: #2e2e2e; /* Darker background for the input box */
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15); /* Subtle blue glow */
-}
-
-.input-section label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #00a8ff; /* Your primary theme blue */
-    font-size: 1.05rem; /* Slightly larger text */
-}
-
-/* Styling for all select and input elements within input-section */
-.input-section select,
-.input-section input[type="text"], /* Specifically for the API key input */
-.input-section input[type="number"] {
-    width: 100%;
-    padding: 10px 12px; /* Good padding for clickable/typeable areas */
-    margin-bottom: 15px; /* Space between inputs */
-    border: 1px solid #00a8ff; /* Blue border */
-    border-radius: 5px; /* Consistent border radius */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    background-color: #383838; /* Slightly lighter dark background for input fields */
-    color: #eee; /* Light text color */
-    font-size: 0.95rem; /* Readable font size */
-}
-
-/* Focus states for input and select */
-.input-section select:focus,
-.input-section input[type="text"]:focus,
-.input-section input[type="number"]:focus {
-    outline: none; /* Remove default outline */
-    border-color: #0086d1; /* Darker blue on focus */
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.6); /* More prominent glow on focus */
-}
-
-/* Style for the API Key descriptive paragraph link */
-.input-section p a {
-    color: #00a8ff; /* Ensure consistency for links */
-    text-decoration: none;
-}
-.input-section p a:hover {
-    text-decoration: underline;
-}
-
-
-/* Adjustments for the Fetch Data Button */
-#fetch-data-btn {
-    margin-top: 10px; /* Space above the button */
-    padding: 12px 20px; /* Larger clickable area */
-    font-size: 1.1rem; /* Clearer text */
-    /* Inherits .btn-header styles for background, color, hover, etc. */
-}
-
-/* Loading and Error Message Styling */
-#loading-indicator {
-    text-align: center;
-    padding: 15px 20px;
-    font-size: 1.15em;
-    color: #00a8ff; /* Your theme blue */
-    font-weight: bold;
-    background-color: rgba(0, 168, 255, 0.1); /* Light blue tint */
-    border-radius: 8px;
-    margin-top: 25px; /* Space above it */
-    border: 1px solid rgba(0, 168, 255, 0.3);
-    box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
-}
-
-.error-message {
-    color: #ff6b6b; /* A soft red for errors */
-    font-weight: bold;
-    margin-top: 15px;
-    padding: 12px 20px;
-    background-color: rgba(255, 107, 107, 0.1); /* Light red tint */
-    border-radius: 8px;
-    border: 1px solid rgba(255, 107, 107, 0.3);
-    text-align: center;
-}
-
-/* Item List Section Styling */
-.item-list-section {
-    margin-top: 35px; /* More space above this section */
-    border-top: 1px solid #444; /* A subtle separator line */
-    padding-top: 25px;
-}
-
-.item-list-section h2 {
-    text-align: center;
-    color: #00a8ff; /* Blue for section header */
-    margin-bottom: 25px;
-}
-
-/* Span for selected country name within the h2 */
-#selected-country-name {
-    color: #00a8ff; /* Explicitly ensure it's blue */
-    font-weight: bold;
-    /* Consider adding a slight text-shadow for emphasis if needed */
-    /* text-shadow: 0 0 5px rgba(0, 168, 255, 0.5); */
-}
-
-/* Styling for individual item cards */
-.item-card {
-    display: flex;
-    align-items: center;
-    background-color: #333; /* Slightly lighter dark background for cards */
-    border: 1px solid #00a8ff; /* Blue border to match theme */
-    border-radius: 10px; /* More prominent rounding */
-    margin-bottom: 18px; /* Good spacing between cards */
-    padding: 15px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3); /* Subtle shadow */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.item-card:hover {
-    transform: translateY(-5px); /* Lift effect on hover */
-    box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4); /* Stronger blue glow on hover */
-    background-color: #3a3a3a; /* Slightly lighter on hover */
-}
-
-.item-card img {
-    width: 70px; /* Larger image size for better visibility */
-    height: 70px;
-    margin-right: 20px;
-    border-radius: 5px;
-    object-fit: contain; /* Ensure images scale within their box without cropping */
-    background-color: #4a4a4a; /* Background for the image area itself */
-    padding: 5px; /* Small padding inside image container */
-    border: 1px solid #555; /* Subtle border for image */
-}
-
-.item-details {
-    flex-grow: 1; /* Allows details to take up remaining space */
-}
-
-.item-details h3 {
-    margin: 0 0 8px 0;
-    color: #eee; /* White text for item names */
-    font-size: 1.3rem; /* Prominent item name */
-}
-
-.item-details p {
-    margin: 0 0 4px 0;
-    font-size: 0.95rem; /* Standard text size */
-    color: #ccc; /* Lighter grey for information */
-}
-
-.profit-info {
-    font-weight: bold;
-    color: #2ecc71; /* A vibrant green for profit numbers */
-    font-size: 1.1rem; /* Make profit stand out */
-    margin-top: 10px;
-}
-
-/* Styling for initial message in item-list */
-#item-list p {
-    text-align: center;
-    color: #bbb;
-    font-style: italic;
-    padding: 15px;
-    background-color: #2e2e2e;
-    border-radius: 8px;
-    border: 1px dashed #00a8ff; /* Dashed border to indicate it's a prompt */
-}
-
-/* --- Responsive Adjustments for Travel Helper Elements --- */
-@media (max-width: 768px) {
-    .input-section {
-        padding: 15px;
-    }
-    .input-section label {
-        font-size: 1rem;
-    }
-    .input-section select,
-    .input-section input[type="text"],
-    .input-section input[type="number"] {
-        padding: 8px 10px;
-        font-size: 0.9rem;
-    }
-    #fetch-data-btn {
-        padding: 10px 15px;
-        font-size: 1rem;
-    }
-    #loading-indicator, .error-message {
-        padding: 10px 15px;
-        font-size: 1em;
-    }
-    .item-card {
-        flex-direction: column; /* Stack vertically on small screens */
-        text-align: center;
-        padding: 12px;
-    }
-    .item-card img {
-        margin: 0 auto 15px auto; /* Center image and add space below */
-        width: 60px;
-        height: 60px;
-    }
-    .item-details {
-        width: 100%; /* Take full width */
-    }
-    .item-details h3 {
-        font-size: 1.15rem;
-    }
-    .item-details p, .profit-info {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
     .input-section {
         padding: 10px;
     }
