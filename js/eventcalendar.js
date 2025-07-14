@@ -1,11 +1,10 @@
-document.addEventListener('DOMContentLoaded', function() {
+// --- CHANGED: We now wait for the entire window to load ---
+window.addEventListener('load', function() {
     // --- Primary Safety Check ---
-    // First, find all critical elements we need to run the script.
     const calendarWrapper = document.querySelector('.calendar-wrapper');
     const calendarDays = document.getElementById('calendarDays');
     const tooltip = document.getElementById('event-tooltip');
 
-    // If any of these are missing from the HTML, stop immediately.
     if (!calendarWrapper || !calendarDays || !tooltip) {
         console.error("Calendar script aborted: One or more critical HTML elements are missing (#calendarWrapper, #calendarDays, #event-tooltip).");
         return; 
