@@ -83,59 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Helper Functions (all remain inside DOMContentLoaded) ---
 
-    async function fetchTornCityItemPrice(itemId, apiKey) {
-        // ... (existing fetchTornCityItemPrice code, now using 'apiKey' parameter) ...
-        try {
-            const response = await fetch(`https://api.torn.com/market/${itemId}?selections=itemmarket&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) {
-                console.warn(`API Error fetching Torn City market for item ${itemId}: ${data.error.error}`);
-                return null;
-            }
-            const listings = data.itemmarket;
-            if (listings && listings.length > 0) {
-                const lowestPrice = listings.reduce((min, listing) => Math.min(min, listing.cost), Infinity);
-                return lowestPrice;
-            }
-            return null;
-        } catch (error) {
-            console.error(`Error fetching Torn City market price for item ${itemId}:`, error);
-            return null;
-        }
-    }
-
-    async function fetchAllTornItems(apiKey) {
-        // ... (existing fetchAllTornItems code, now using 'apiKey' parameter) ...
-        if (Object.keys(allTornItems).length > 0) {
-            console.log("All Torn items already loaded from cache.");
-            return;
-        }
-        if (!apiKey) {
-            errorDisplay.textContent = 'API Key is required to fetch item details.';
-            return;
-        }
-        loadingIndicator.textContent = 'Loading all Torn item data... This might take a moment.';
-        loadingIndicator.style.display = 'block';
-        errorDisplay.textContent = '';
-        try {
-            const response = await fetch(`https://api.torn.com/torn/?selections=items&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) {
-                errorDisplay.textContent = `API Error fetching items: ${data.error.error}`;
-                console.error('Torn API Error fetching items:', data.error);
-                loadingIndicator.style.display = 'none';
-                return;
-            }
-            allTornItems = data.items;
-            console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
-            loadingIndicator.style.display = 'none';
-        } catch (error) {
-            errorDisplay.textContent = 'Failed to fetch all Torn items. Check your network.';
-            console.error('Fetch all items error:', error);
-            loadingIndicator.style.display = 'none';
-        }
-    }
-
+   
     async function fetchYATATravelData() {
         // ... (existing fetchYATATravelData code) ...
         const now = Date.now();
@@ -164,42 +112,114 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function fetchAndPopulateDestinations(apiKey) { // ADD apiKey PARAMETER HERE
-        // ... (existing fetchAndPopulateDestinations code, now uses 'apiKey' parameter) ...
-        if (!apiKey) { // Check the passed API key
-            errorDisplay.textContent = 'API Key is required to fetch destinations.';
+   // --- Updated Helper Functions using Torn API v2 URLs ---
+
+// Function to fetch Torn City market price for a single item (UPDATED for V2)
+async function fetchTornCityItemPrice(itemId, apiKey) {
+    try {
+        // Correct Torn API v2 URL for item market
+        const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${apiKey}`);
+        const data = await response.json();
+
+        if (data.error) {
+            console.warn(`API Error fetching Torn City market for item ${itemId}: ${data.error.error}`);
+            return null;
+        }
+
+        const listings = data.itemmarket;
+        if (listings && listings.length > 0) {
+            // Find the lowest price on the Torn City Item Market
+            const lowestPrice = listings.reduce((min, listing) => Math.min(min, listing.cost), Infinity);
+            return lowestPrice;
+        }
+        return null; // No listings found
+    } catch (error) {
+        console.error(`Error fetching Torn City market price for item ${itemId}:`, error);
+        return null;
+    }
+}
+
+// Function to fetch all item details (UPDATED for V2)
+async function fetchAllTornItems(apiKey) {
+    if (Object.keys(allTornItems).length > 0) {
+        console.log("All Torn items already loaded from cache.");
+        return;
+    }
+
+    if (!apiKey) {
+        errorDisplay.textContent = 'API Key is required to fetch item details.';
+        return;
+    }
+
+    loadingIndicator.textContent = 'Loading all Torn item data... This might take a moment.';
+    loadingIndicator.style.display = 'block';
+    errorDisplay.textContent = '';
+
+    try {
+        // Correct Torn API v2 URL for all items
+        const response = await fetch(`https://api.torn.com/v2/torn?selections=items&key=${apiKey}`);
+        const data = await response.json();
+
+        if (data.error) {
+            errorDisplay.textContent = `API Error fetching items: ${data.error.error}`;
+            console.error('Torn API Error fetching items:', data.error);
+            loadingIndicator.style.display = 'none';
             return;
         }
-        loadingIndicator.style.display = 'block';
-        errorDisplay.textContent = '';
-        destinationSelect.innerHTML = '<option value="">Loading destinations...</option>';
-        try {
-            const response = await fetch(`https://api.torn.com/torn/?selections=travel&key=${apiKey}`);
-            const data = await response.json();
-            if (data.error) {
-                errorDisplay.textContent = `API Error: ${data.error.error}`;
-                console.error('Torn API Error:', data.error);
-                loadingIndicator.style.display = 'none';
-                return;
-            }
-            const destinations = data.travel;
-            destinationSelect.innerHTML = '<option value="">-- Select a country --</option>';
-            for (const countryId in destinations) {
-                if (destinations.hasOwnProperty(countryId)) {
-                    const country = destinations[countryId];
-                    const option = document.createElement('option');
-                    option.value = countryId;
-                    option.textContent = country.name;
-                    destinationSelect.appendChild(option);
-                }
-            }
-            loadingIndicator.style.display = 'none';
-        } catch (error) {
-            errorDisplay.textContent = 'Failed to fetch travel destinations. Check your network connection.';
-            console.error('Fetch error:', error);
-            loadingIndicator.style.display = 'none';
-        }
+
+        allTornItems = data.items;
+        console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
+        loadingIndicator.style.display = 'none';
+
+    } catch (error) {
+        errorDisplay.textContent = 'Failed to fetch all Torn items. Check your network.';
+        console.error('Fetch all items error:', error);
+        loadingIndicator.style.display = 'none';
     }
+}
+
+// Function to fetch and populate destinations (UPDATED for V2)
+async function fetchAndPopulateDestinations(apiKey) {
+    if (!apiKey) {
+        errorDisplay.textContent = 'API Key is required to fetch destinations.';
+        return;
+    }
+
+    loadingIndicator.style.display = 'block';
+    errorDisplay.textContent = '';
+    destinationSelect.innerHTML = '<option value="">Loading destinations...</option>';
+
+    try {
+        // Correct Torn API v2 URL for travel destinations
+        const response = await fetch(`https://api.torn.com/v2/torn?selections=travel&key=${apiKey}`);
+        const data = await response.json();
+
+        if (data.error) {
+            errorDisplay.textContent = `API Error: ${data.error.error}`;
+            console.error('Torn API Error:', data.error);
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+
+        const destinations = data.travel;
+        destinationSelect.innerHTML = '<option value="">-- Select a country --</option>';
+        for (const countryId in destinations) {
+            if (destinations.hasOwnProperty(countryId)) {
+                const country = destinations[countryId];
+                const option = document.createElement('option');
+                option.value = countryId;
+                option.textContent = country.name;
+                destinationSelect.appendChild(option);
+            }
+        }
+        loadingIndicator.style.display = 'none';
+
+    } catch (error) {
+        errorDisplay.textContent = 'Failed to fetch travel destinations. Check your network connection.';
+        console.error('Fetch error:', error);
+        loadingIndicator.style.display = 'none';
+    }
+}
 
     async function displayItemsForCountry(selectedCountryId, apiKey) { // ENSURE apiKey PARAMETER IS HERE
         // ... (existing displayItemsForCountry code, now uses 'apiKey' parameter) ...
