@@ -377,7 +377,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 }
 
 .input-section input[type="text"]#item-search + p { /* Targets a paragraph immediately following the #item-search input */
-    margin-top: 5px; /* Add a small space above it */
+    margin-top: 60px; /* Add a small space above it */
     margin-bottom: 15px; /* Add space below it, before the next label */
 }
 
