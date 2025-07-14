@@ -1,5 +1,5 @@
 // --- Global variables ---
-let allTornItems = {}; // To store item details: item_id -> {name, type, image, market_price}
+let allTornItems = {}; // To store item details: item_id -> {name, type, image} (no longer storing market_price)
 let yataTravelData = null; // To store cached YATA travel data
 let lastYataFetchTime = 0; // Timestamp of last YATA fetch
 const YATA_CACHE_DURATION = 5 * 60 * 1000; // Cache YATA data for 5 minutes (adjust as needed)
@@ -92,14 +92,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemListDiv = document.getElementById('item-list');
     const travelCapacityInput = document.getElementById('travel-capacity');
     const categoryFilterSelect = document.getElementById('category-filter');
-    const itemSearchInput = document.getElementById('item-search'); // NEW: Reference to the search input
-   
-   let currentTornApiKey = null; // Variable to hold the fetched Torn API key
+    const itemSearchInput = document.getElementById('item-search'); // Reference to the search input
+    
+    let currentTornApiKey = null; // Variable to hold the fetched Torn API key
 
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
     // Function to fetch all item details (Uses Torn API 'Items' selection for images & category fallback)
-    // No longer stores market_price directly from here, as it's fetched per-item by fetchTornCityItemPrice.
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
             console.log("All Torn items already loaded from cache.");
@@ -251,6 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
             errorDisplay.textContent = 'Failed to populate travel destinations from hardcoded list.';
             console.error('Populate destinations error:', error);
             loadingIndicator.style.display = 'none';
+            return null; // Return null on error to ensure subsequent calls don't proceed with bad data
         }
     }
 
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: itemInfo.name, // Use name from YATA (should be correct)
                 foreignPrice: itemInfo.cost,
                 foreignStock: itemInfo.quantity, // YATA uses 'quantity' for stock
-                category: categoryFromMap || categoryFromAllTornItems || 'Other',
+                category: categoryFromMap || categoryFromAllTornItems || 'Other', // Prioritize hardcoded map, then Torn API type, then 'Other'
             };
         });
 
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemId = itemData.itemId;
 
             const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
-            const itemDescription = 'No description available.';
+            const itemDescription = 'No description available.'; // Description is not available from YATA or reliable from Torn API 'items'.
 
             const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Call the caching fetchTornCityItemPrice
             console.log(`Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from data:`, tornCityPrice); // DEBUG
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsToDisplay.sort((a, b) => {
             // Handle 'N/A' correctly for sorting: push to bottom
             const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitB : -Infinity; // Corrected typo here (was profitB instead of profitA)
             return profitB - profitA;
         });
 
@@ -396,8 +396,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Firebase Auth State Listener & Initial Data Load ---
     if (typeof auth !== 'undefined' && auth && typeof db !== 'undefined' && db) {
         auth.onAuthStateChanged(async function(user) {
-            if (user) {
+            const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+            const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+            const headerButtonsContainer = document.getElementById('headerButtonsContainer');
+            const signUpButtonHeader = document.getElementById('signUpButtonHeader');
+            const homeButtonFooter = document.getElementById('homeButtonFooter');
+            const logoutButtonHeader = document.getElementById('logoutButtonHeader');
+
+            // --- Common Header/Footer UI script (re-integrated here) ---
+            if (usefulLinksBtn && usefulLinksDropdown) {
+                usefulLinksBtn.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    usefulLinksDropdown.classList.toggle('show');
+                });
+            }
+            window.addEventListener('click', function(event) {
+                if (usefulLinksBtn && usefulLinksDropdown && usefulLinksDropdown.classList.contains('show')) {
+                    if (!usefulLinksBtn.contains(event.target) && !usefulLinksDropdown.contains(event.target)) {
+                        usefulLinksDropdown.classList.remove('show');
+                    }
+                }
+            });
+
+            if (user) { // User is signed in
                 console.log("User logged in:", user.uid); // DEBUG
+                // User is signed in, fetch their API key from Firestore
                 const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
                 try {
                     const doc = await userDocRef.get();
@@ -407,6 +430,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log("Fetched Torn API Key from Firebase:", currentTornApiKey); // DEBUG
 
                         if (currentTornApiKey) {
+                            // Update UI for logged-in state
+                            if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                            if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+                            if (homeButtonFooter) homeButtonFooter.style.display = 'inline';
+                            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+
                             errorDisplay.textContent = ''; // Clear any previous API key errors
                             loadingIndicator.textContent = 'Fetching essential data using your stored API key...';
                             // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
@@ -429,173 +458,79 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else {
                             errorDisplay.textContent = 'No Torn API Key found in your profile. Please add it in your settings.';
                             loadingIndicator.style.display = 'none';
+                            // Hide logged-in UI if no API key
+                            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                            if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex'; // Show sign up if no key
+                            if (homeButtonFooter) homeButtonFooter.style.display = 'none';
+                            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                         }
                     } else {
                         errorDisplay.textContent = 'User profile not found in database.';
                         console.error("User profile not found for UID:", user.uid); // DEBUG
                         loadingIndicator.style.display = 'none';
+                        // Hide logged-in UI if no profile
+                        if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                        if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+                        if (homeButtonFooter) homeButtonFooter.style.display = 'none';
+                        if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                     }
                 } catch (error) {
                     errorDisplay.textContent = 'Error fetching user profile: ' + error.message;
                     console.error('Error fetching user profile from Firestore:', error); // DEBUG
                     loadingIndicator.style.display = 'none';
+                    // Hide logged-in UI on error
+                    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                    if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+                    if (homeButtonFooter) homeButtonFooter.style.display = 'none';
+                    if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
                 }
             } else {
-                // User is not signed in
+                // No user signed in
                 currentTornApiKey = null;
                 errorDisplay.textContent = 'You must be logged in to use the Travel Helper. Please log in.';
                 loadingIndicator.style.display = 'none';
                 itemListDiv.innerHTML = '<p>Please log in to use the Travel Helper.</p>';
                 destinationSelect.innerHTML = '<option value="">-- Log in to load destinations --</option>';
+
+                // Update UI for not logged-in state
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                // Define nonAuthEntryPages for safety, or simplify
+                const currentPagePath = window.location.pathname;
+                let pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
+                const nonAuthEntryPages = ['index.html', 'ranked.html', 'login.html', 'travel.html']; // Travel.html is now accessible unauthenticated
+                let isThisNonAuthEntryPage = nonAuthEntryPages.includes(pageName) || (pageName === "" && currentPagePath === "/");
+
+                if (signUpButtonHeader) signUpButtonHeader.style.display = isThisNonAuthEntryPage ? 'none' : 'inline-flex';
+                if (homeButtonFooter) homeButtonFooter.style.display = 'none';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
             }
         });
+
+        // Logout functionality
+        const logoutButtonHeader = document.getElementById('logoutButtonHeader'); // Re-get here for scope
+        if (logoutButtonHeader) {
+            logoutButtonHeader.onclick = function() {
+                auth.signOut().then(() => {
+                    console.log('User signed out');
+                    // Redirect or update UI after logout
+                    const currentPagePath = window.location.pathname;
+                    let pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
+                    const nonAuthEntryPages = ['index.html', 'ranked.html', 'login.html', 'travel.html'];
+                    if (!nonAuthEntryPages.includes(pageName) && !(pageName === "" && currentPagePath === "/")) {
+                        window.location.href = 'ranked.html'; // Or your primary login page
+                    }
+                }).catch((error) => {
+                    console.error('Sign out error', error);
+                });
+            };
+        }
     } else {
         console.warn("Firebase auth or firestore object (from firebase-init.js) is not available. API key fetching will not work."); // DEBUG
         errorDisplay.textContent = "Firebase is not initialized. Please ensure firebase-init.js is loaded correctly.";
         loadingIndicator.style.display = 'none';
     }
 
-// NEW: Function to search for an item across all countries and display results
-async function searchItemsAndDisplayResults(searchQuery, apiKey) {
-    itemListDiv.innerHTML = ''; // Clear previous items
-    loadingIndicator.textContent = `Searching for "${searchQuery}"...`;
-    // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
-    errorDisplay.textContent = '';
-    selectedCountryNameSpan.textContent = `Search results for "${searchQuery}"`; // Update header
 
-    if (Object.keys(allTornItems).length === 0) {
-        errorDisplay.textContent = 'Item details cache not loaded. Please ensure API key is valid.';
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    const yataData = await fetchYATATravelData();
-    if (!yataData) {
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    const travelCapacity = parseInt(travelCapacityInput.value, 10);
-    if (isNaN(travelCapacity) || travelCapacity <= 0) {
-        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    const matchedItems = [];
-    const lowerCaseSearchQuery = searchQuery.toLowerCase();
-
-    // Iterate through all countries in YATA data
-    for (const countryCode in yataData.stocks) {
-        if (yataData.stocks.hasOwnProperty(countryCode)) {
-            const country = yataData.stocks[countryCode];
-            const countryName = countryNameMap[countryCode] || countryCode; // Get full country name
-
-            // Iterate through items in each country
-            for (const itemInfo of country.stocks) { // Assuming country.stocks is an array based on your YATA sample
-                if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
-                    // Item found, collect its details
-                    const categoryFromMap = itemCategoryMap[itemInfo.id] || 'Other'; // Get category
-
-                    matchedItems.push({
-                        itemId: itemInfo.id,
-                        name: itemInfo.name,
-                        foreignPrice: itemInfo.cost,
-                        foreignStock: itemInfo.quantity,
-                        countryCode: countryCode,
-                        countryName: countryName,
-                        category: categoryFromMap,
-                    });
-                }
-            }
-        }
-    }
-
-    if (matchedItems.length === 0) {
-        itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" in any country.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    // Now, filter by category if a specific category is selected
-    const selectedCategory = categoryFilterSelect.value;
-    let filteredItems = matchedItems;
-    if (selectedCategory !== 'all') {
-        filteredItems = matchedItems.filter(item => item.category === selectedCategory);
-    }
-
-    if (filteredItems.length === 0) {
-        itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" for the selected category.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    // Fetch Torn City prices concurrently for all filtered items
-    const itemPromises = filteredItems.map(async (itemData) => {
-        const itemId = itemData.itemId;
-        const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
-        const itemDescription = 'No description available.'; // Keep as placeholder
-
-        const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Fetch Torn City Price
-        // console.log(`Search: Processing item ${itemData.name} (ID: ${itemData.itemId}) in ${itemData.countryName} - Torn City Price:`, tornCityPrice); // DEBUG
-
-        const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
-        const totalPotentialProfit = (tornCityPrice !== null && tornCityPrice > 0 && typeof profitPerItem === 'number') ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
-        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
-
-        return {
-            id: itemId,
-            name: itemData.name,
-            image: imageUrl,
-            description: itemDescription,
-            foreignPrice: itemData.foreignPrice,
-            foreignStock: itemData.foreignStock,
-            countryName: itemData.countryName, // Add country name to the final object
-            tornCityPrice: tornCityPrice,
-            profitPerItem: profitPerItem,
-            totalPotentialProfit: totalPotentialProfit,
-            canCarry: canCarry,
-            category: itemData.category
-        };
-    });
-
-    const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
-
-    if (itemsToDisplay.length === 0) {
-        itemListDiv.innerHTML = `<p>No complete data found for matching items after fetching Torn City prices.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    // Sort by profit (highest first) across all matched locations
-    itemsToDisplay.sort((a, b) => {
-        const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-        const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
-        return profitB - profitA;
-    });
-
-    // Display results in item cards
-    itemListDiv.innerHTML = ''; // Clear for search results
-    itemsToDisplay.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.classList.add('item-card');
-        itemCard.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
-            <div class="item-details">
-                <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
-                <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
-                <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
-                <p>Torn City Price: ${item.tornCityPrice !== null && item.tornCityPrice > 0 ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
-                <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
-                <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
-            </div>
-        `;
-        itemListDiv.appendChild(itemCard);
-    });
-
-    loadingIndicator.style.display = 'none';
-}
     // --- Event Listeners ---
 
     fetchDataBtn.addEventListener('click', async () => {
@@ -607,7 +542,7 @@ async function searchItemsAndDisplayResults(searchQuery, apiKey) {
         loadingIndicator.textContent = 'Refetching travel data...';
         // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
 
-        await fetchAllTornItems(currentTornApiKey); // Needed for images and category fallback
+        await fetchAllTornItems(currentTornApiKey);
         await fetchAndPopulateDestinations();
 
         if (destinationSelect.value) {
@@ -620,34 +555,34 @@ async function searchItemsAndDisplayResults(searchQuery, apiKey) {
         }
         loadingIndicator.style.display = 'none';
     });
-	
-	// NEW: Event listener for the Item Search input
-   itemSearchInput.addEventListener('input', async () => {
-    const searchQuery = itemSearchInput.value.trim(); // Get the current search query
-    const apiKey = currentTornApiKey; // Ensure API key is available
+    
+    // NEW: Event listener for the Item Search input
+    itemSearchInput.addEventListener('input', async () => {
+        const searchQuery = itemSearchInput.value.trim(); // Get the current search query
+        const apiKey = currentTornApiKey; // Ensure API key is available
 
-    // If search query is empty, revert to showing items based on selected country/category
-    if (searchQuery === '') {
-        const selectedCountryId = destinationSelect.value;
-        if (selectedCountryId && apiKey) {
-            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-            await displayItemsForCountry(selectedCountryId, apiKey);
-        } else {
-            // If no country selected, clear item list or show default message
-            selectedCountryNameSpan.textContent = 'Selected Country';
-            itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
+        // If search query is empty, revert to showing items based on selected country/category
+        if (searchQuery === '') {
+            const selectedCountryId = destinationSelect.value;
+            if (selectedCountryId && apiKey) {
+                selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+                await displayItemsForCountry(selectedCountryId, apiKey);
+            } else {
+                // If no country selected, clear item list or show default message
+                selectedCountryNameSpan.textContent = 'Selected Country';
+                itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
+            }
+            return; // Exit if search query is empty
         }
-        return; // Exit if search query is empty
-    }
 
-    if (!apiKey) {
-        errorDisplay.textContent = 'No Torn API Key available. Please log in to search items.';
-        return;
-    }
+        if (!apiKey) {
+            errorDisplay.textContent = 'No Torn API Key available. Please log in to search items.';
+            return;
+        }
 
-    // Call a new function to handle the item search and display results
-    await searchItemsAndDisplayResults(searchQuery, apiKey);
-});
+        // Call a new function to handle the item search and display results
+        await searchItemsAndDisplayResults(searchQuery, apiKey);
+    });
 
     destinationSelect.addEventListener('change', async () => {
         const selectedCountryId = destinationSelect.value;
