@@ -217,32 +217,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-   // --- HELPER FUNCTION with better error checking ---
-// --- Function to test the user-provided URL format ---
 async function fetchTornCityItemPrice(itemId, apiKey) {
+    // First, check if the API key was passed correctly.
     if (!apiKey) {
         console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
-        return null;
+        return null; // Stop if there's no key.
     }
 
-    try {
-        // *** Using the exact URL format you provided ***
-        const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
-        
-        console.log(`FETCHING URL: https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`); // LOG THE URL
-        console.log(`RESPONSE STATUS for item ${itemId}:`, response.status); // LOG THE HTTP STATUS
+    // Log the exact URL to the console for debugging.
+    console.log(`DEBUG: Fetching URL: https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
 
-        // Check if the server could not find the URL (404 error)
-        if (response.status === 404) {
-            console.error(`ERROR: The URL was not found on the server (404). This confirms the /v2/ path is not correct for the market endpoint.`);
+    try {
+        // *** Using the /v2/market/ URL path as you ordered ***
+        const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
+
+        if (!response.ok) {
+            // A 404 status here means the URL does not exist on the server.
+            console.error(`Error fetching item ${itemId}. Status: ${response.status} (${response.statusText})`);
             return null;
         }
 
         const data = await response.json();
-        console.log(`DATA for item ${itemId}:`, data); // LOG THE DATA
 
         if (data.error) {
-            console.error(`Market API Error for item ${itemId}:`, data.error.error);
+            console.error(`API Error for item ${itemId}:`, data.error.error);
             return null;
         }
 
@@ -266,7 +264,6 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
         return null;
     }
 }
-
     async function searchItemsAndDisplayResults(searchQuery, apiKey) {
         itemListDiv.innerHTML = ''; // Clear previous items
         loadingIndicator.textContent = `Searching for "${searchQuery}"...`;
