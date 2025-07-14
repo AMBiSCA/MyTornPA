@@ -1,27 +1,16 @@
-// --- CHANGED: We now wait for the entire window to load ---
-window.addEventListener('load', function() {
-    // --- Primary Safety Check ---
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("eventcalendar.js: Script loaded. Using event bar rendering model.");
+
     const calendarWrapper = document.querySelector('.calendar-wrapper');
-    const calendarDays = document.getElementById('calendarDays');
-    const tooltip = document.getElementById('event-tooltip');
-
-    if (!calendarWrapper || !calendarDays || !tooltip) {
-        console.error("Calendar script aborted: One or more critical HTML elements are missing (#calendarWrapper, #calendarDays, #event-tooltip).");
-        return; 
-    }
-
-    console.log("Calendar script initialized: All critical elements found.");
-
-    // Get secondary elements
     const calendarHeader = document.querySelector('.calendar-header');
     const calendarWeekdays = document.querySelector('.calendar-weekdays');
+    const calendarDays = document.getElementById('calendarDays');
     
     const eventColors = ['#3b5998', '#6a4c93', '#1982c4', '#8ac926', '#ffca3a', '#ff595e', '#2d6a4f'];
     
-    // Set initial loading state safely
     if (calendarHeader) calendarHeader.style.display = 'none';
     if (calendarWeekdays) calendarWeekdays.style.display = 'none';
-    calendarDays.innerHTML = `<div class="calendar-message">Loading Calendar...</div>`;
+    if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message">Loading Calendar...</div>`;
 
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
@@ -37,40 +26,22 @@ window.addEventListener('load', function() {
                     let currentDate = new Date();
                     const currentMonthYear = document.getElementById('currentMonthYear');
 
-                    // --- Event Listeners ---
                     calendarWrapper.addEventListener('click', (event) => {
-                        if (event.target.closest('#prevMonthBtn')) { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
-                        if (event.target.closest('#nextMonthBtn')) { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
-                    });
-                    
-                    calendarDays.addEventListener('mouseover', (event) => {
-                        const dayElement = event.target.closest('.event-day-range');
-                        if (dayElement && dayElement.dataset.events) {
-                            const eventData = JSON.parse(dayElement.dataset.events)[0];
-                            if (eventData) {
-                                tooltip.innerHTML = `<h4>${eventData.name}</h4><p>${eventData.description}</p>`;
-                                tooltip.classList.add('visible');
-                            }
+                        if (event.target.closest('#prevMonthBtn')) {
+                            currentDate.setMonth(currentDate.getMonth() - 1);
+                            renderCalendar();
+                        }
+                        if (event.target.closest('#nextMonthBtn')) {
+                            currentDate.setMonth(currentDate.getMonth() + 1);
+                            renderCalendar();
                         }
                     });
 
-                    calendarDays.addEventListener('mouseout', () => {
-                        tooltip.classList.remove('visible');
-                    });
-                    
-                    calendarDays.addEventListener('mousemove', (event) => {
-                        tooltip.style.left = `${event.pageX + 15}px`;
-                        tooltip.style.top = `${event.pageY + 15}px`;
-                    });
-
-                    // --- Main Functions ---
                     function renderCalendar() {
                         calendarDays.innerHTML = '';
                         const year = currentDate.getFullYear();
                         const month = currentDate.getMonth();
-                        if (currentMonthYear) {
-                            currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-                        }
+                        currentMonthYear.textContent = new Date(year, month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
                         const firstDayOfMonth = new Date(year, month, 1).getDay();
                         const daysInMonth = new Date(year, month + 1, 0).getDate();
                         for (let i = 0; i < firstDayOfMonth; i++) { const emptyDay = document.createElement('div'); emptyDay.classList.add('calendar-day', 'empty'); calendarDays.appendChild(emptyDay); }
@@ -97,14 +68,19 @@ window.addEventListener('load', function() {
                         } catch (error) { calendarDays.innerHTML = `<div class="calendar-message error">Could not load events. The API key might be invalid.</div>`; console.error(error); }
                     }
 
+                    // --- THIS IS THE MODIFIED FUNCTION ---
                     function displayEventsOnCalendar(events) {
                         events.forEach((event, index) => {
+                            // Keep original dates with time for display
                             const originalStartDate = new Date(event.start * 1000);
                             const originalEndDate = new Date(event.end * 1000);
+
+                            // Create normalized dates (at midnight) for looping
                             const normalizedStartDate = new Date(originalStartDate);
                             normalizedStartDate.setHours(0, 0, 0, 0);
                             const normalizedEndDate = new Date(originalEndDate);
                             normalizedEndDate.setHours(0, 0, 0, 0);
+                            
                             const eventColor = eventColors[index % eventColors.length];
                             const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
 
@@ -113,16 +89,26 @@ window.addEventListener('load', function() {
                                 const dayElement = calendarDays.querySelector(`.calendar-day[data-date="${formattedDate}"]`);
 
                                 if (dayElement) {
-                                    const displayEvent = { name: event.title, description: event.description };
-                                    dayElement.dataset.events = JSON.stringify([displayEvent]);
                                     dayElement.classList.add('event-day-range');
                                     dayElement.style.backgroundColor = eventColor;
+                                    
                                     const isStart = d.getTime() === normalizedStartDate.getTime();
                                     const isEnd = d.getTime() === normalizedEndDate.getTime();
-                                    if (isStart && isEnd) { dayElement.classList.add('event-range-single'); } 
-                                    else if (isStart) { dayElement.classList.add('event-range-start'); } 
-                                    else if (isEnd) { dayElement.classList.add('event-range-end'); }
-                                    if (isStart) { dayElement.innerHTML += `<div class="day-event-title">${event.title}</div>`; }
+                                    
+                                    if (isStart && isEnd) {
+                                        dayElement.classList.add('event-range-single');
+                                    } else if (isStart) {
+                                        dayElement.classList.add('event-range-start');
+                                    } else if (isEnd) {
+                                        dayElement.classList.add('event-range-end');
+                                    }
+                                    
+                                    // Add the title on the first day
+                                    if (isStart) {
+                                        dayElement.innerHTML += `<div class="day-event-title">${event.title}</div>`;
+                                    }
+
+                                    // Add start and end times
                                     if (isStart && isEnd) {
                                         const startTime = originalStartDate.toLocaleTimeString([], timeOptions);
                                         const endTime = originalEndDate.toLocaleTimeString([], timeOptions);
@@ -142,14 +128,14 @@ window.addEventListener('load', function() {
                     renderCalendar();
 
                 } else {
-                    calendarDays.innerHTML = `<div class="calendar-message error"><h3>API Key Missing</h3><p>Your Torn API key is not saved in your user profile.</p></div>`;
+                    if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>API Key Missing</h3><p>Your Torn API key is not saved in your user profile.</p></div>`;
                 }
             } catch (error) {
                 console.error("Error fetching user data from Firestore:", error);
-                calendarDays.innerHTML = `<div class="calendar-message error"><h3>Loading Error</h3><p>Could not load your profile data.</p></div>`;
+                if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message error"><h3>Loading Error</h3><p>Could not load your profile data.</p></div>`;
             }
         } else {
-            calendarDays.innerHTML = `<div class="calendar-message"><h3>Please Log In</h3><p>You must be logged in to view the event calendar.</p></div>`;
+            if (calendarDays) calendarDays.innerHTML = `<div class="calendar-message"><h3>Please Log In</h3><p>You must be logged in to view the event calendar.</p></div>`;
         }
     });
 });
