@@ -4,7 +4,7 @@ main
 max-width: 1000px; 
 margin-left: auto;
 margin-right: auto;
-border: 2px solid black;
+border: 2px #00a8ff;
 }
 
 /* Main calendar wrapper */
@@ -305,4 +305,44 @@ z-index: 2;
 /* Add a hover effect for non-event days */
 .calendar-day:not(.event-day-range):hover {
   border-color: var(--text-color-accent);
+}
+
+/* --- Tooltip Styles --- */
+#event-tooltip {
+  /* Positioning and Visibility */
+  position: absolute;
+  display: none; /* Hidden by default */
+  z-index: 1010; /* Ensure it's on top of other elements */
+  pointer-events: none; /* Lets you click 'through' the tooltip */
+
+  /* Appearance */
+  background-color: #2a2a2e;
+  border: 1px solid var(--text-color-accent);
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  max-width: 280px;
+  font-size: 0.9em;
+  
+  /* Smooth appearance */
+  transition: opacity 0.1s ease-in-out;
+  opacity: 0;
+}
+
+#event-tooltip.visible {
+  display: block;
+  opacity: 1;
+}
+
+#event-tooltip h4 {
+  margin: 0 0 8px 0;
+  color: var(--text-color-accent);
+  font-size: 1.1em;
+  border-bottom: 1px solid var(--border-color-dark-subtle);
+  padding-bottom: 5px;
+}
+
+#event-tooltip p {
+  margin: 0;
+  color: var(--text-color-light);
 }
