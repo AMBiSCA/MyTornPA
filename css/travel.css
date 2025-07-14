@@ -16,6 +16,8 @@ body {
     z-index: 0;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
     min-height: 100vh; /* Ensures body takes full viewport height */
+    overflow-y: hidden; /* Ensure only main-content-wrapper scrolls */
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 body::before {
@@ -34,6 +36,24 @@ body::before {
     z-index: -1;
 }
 
+/* Custom Scrollbar Styles (from activitywatch.css) */
+::-webkit-scrollbar {
+    width: 10px; height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #2b2b2b; border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+::-webkit-scrollbar-corner {
+    background: #222;
+}
+
+/* Header Styles (UPDATED from activitywatch.css) */
 header {
     width: 100%;
     background: #222;
@@ -48,193 +68,264 @@ header {
     z-index: 102;
     box-sizing: border-box;
     height: 70px;
-    flex-shrink: 0; /* Prevents header from shrinking in flex container */
+    flex-shrink: 0;
+    border-bottom: 3px solid #00a8ff; /* Added from activitywatch.css */
 }
 .header-left {
-    flex: 1;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    flex: 1; display: flex; justify-content: flex-start; align-items: center;
 }
 .header-left a {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
+    display: flex; align-items: center; text-decoration: none;
 }
 .header-left h1 {
-    font-size: 1.6rem;
-    color: #00a8ff;
-    margin: 0;
-    user-select: none;
-    white-space: nowrap;
+    font-size: 1.6rem; color: #00a8ff; margin: 0; user-select: none; white-space: nowrap;
 }
 .header-left .tagline {
-    font-size: 0.8rem;
-    color: #aaa;
-    font-weight: 400;
-    margin-left: 8px;
-    display: inline-block;
-    white-space: nowrap;
+    font-size: 0.8rem; color: #aaa; font-weight: 400; margin-left: 8px; font-weight: bold; display: inline-block; white-space: nowrap;
 }
 .header-center {
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-shrink: 0; display: flex; justify-content: center; align-items: center;
 }
 #headerMainLogo {
-    max-height: 60px;
-    width: auto;
-    display: block;
-    margin-top: 5px;
+    max-height: 70px; width: auto; display: block; margin-top: -5px; /* Adjusted from activitywatch.css */
     filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
 }
 .header-right-controls {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 10px;
+    flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+}
+.header-user-display { /* New rule from activitywatch.css */
+    color: #fff;
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-right: 10px;
+    white-space: nowrap;
 }
 .header-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
 }
-.btn-header, .header-text-link {
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    padding: 8px 12px;
+
+/* Button Base Styles (from activitywatch.css, more comprehensive) */
+.btn, .btn-header { /* Combined to ensure .btn-header inherits all .btn styles */
+    font-weight: bold; border-radius: 20px; /* More rounded buttons */
+    cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center;
+    font-size: 14px; /* Consistent font size */
+    line-height: 1.4; padding: 0 12px; /* Adjusted padding */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Added box shadow */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+    user-select: none;
+    -webkit-appearance: none; appearance: none;
+    background-image: none;
+    box-sizing: border-box;
+    outline: none; overflow: hidden; position: relative; z-index: 0;
+    text-align: center; text-transform: none;
+    vertical-align: middle; min-width: min-content;
+    margin: 8px 0; /* Vertical margin for buttons */
+    background-color: #131314; /* Darker background */
+    border: 1px solid #00a8ff; /* Blue border */
+    color: #e3e3e3; /* Light text color */
+    height: 40px; /* Fixed height for buttons */
 }
-.btn-header {
-    background: #00a8ff;
-    border: none;
-    color: #222;
-    transition: background-color 0.3s ease;
+.btn:not(:disabled):hover, .btn:not(:disabled):focus, .btn-header:not(:disabled):hover, .btn-header:not(:disabled):focus { /* Added .btn-header here */
+    border-color: #4dc4ff;
+    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
+    transform: translateY(-1px);
 }
-.btn-header:hover {
-    background: #0086d1;
+.btn::before, .btn-header::before { /* Added .btn-header here */
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; background-color: white;
+    opacity: 0; border-radius: inherit; transition: opacity 0.218s;
+    pointer-events: none; z-index: -1;
+}
+.btn:not(:disabled):hover::before, .btn-header:not(:disabled):hover::before { opacity: 0.08; } /* Added .btn-header here */
+.btn:not(:disabled):active, .btn:not(:disabled):focus, .btn-header:not(:disabled):active, .btn-header:not(:disabled):focus { border-color: #00a8ff; } /* Added .btn-header here */
+.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before, .btn-header:not(:disabled):active::before, .btn-header:not(:disabled):focus::before { opacity: 0.12; } /* Added .btn-header here */
+
+.btn:disabled, .btn-header:disabled { /* Added .btn-header here */
+    cursor: default;
+    background-color: rgba(19, 19, 20, 0.38);
+    border-color: rgba(0, 168, 255, 0.38);
+    color: rgba(227, 227, 227, 0.38);
+}
+.btn:disabled::before, .btn-header:disabled::before { opacity: 0; } /* Added .btn-header here */
+.btn:disabled .btn-text, .btn:disabled .btn-icon, .btn-header:disabled .btn-text, .btn-header:disabled .btn-icon { opacity: 0.38; } /* Added .btn-header here */
+
+/* For buttons with text and icon spans */
+.btn .btn-text { order: 1; }
+.btn .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
+
+/* Specific .btn-header adjustments */
+.btn-header { /* Merged with .btn rules above, this only handles specific overrides */
+    margin: 0 4px; /* Smaller horizontal margin for header buttons */
+    box-shadow: none; /* No box shadow for simpler header buttons */
 }
 .header-text-link {
-    color: #00a8ff;
-    background: none;
-    border: none;
-    padding: 8px 5px;
+    font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
+    color: #00a8ff; background: none; border: none; box-shadow: none;
 }
 .header-text-link:hover {
-    text-decoration: underline;
+    text-decoration: underline; color: #00e0ff; transform: translateY(-1px);
 }
-.dropdown {
-    position: relative;
-    display: inline-block;
+
+#signUpButtonHeader {
+    font-weight: bold; /* Ensure sign up button text is bold */
 }
-.dropdown-toggle::after {
-    content: ' \25BC';
+
+/* Dropdown Styles (UPDATED from activitywatch.css) */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-toggle::after { /* Specific icon for dropdown buttons */
+    content: ' \25BC'; /* Standard dropdown arrow */
     font-size: 0.6em;
     margin-left: 4px;
 }
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #272727;
-    min-width: 240px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
-    z-index: 103;
-    border-radius: 6px;
-    margin-top: 6px;
-    left: 0;
-    border: 1px solid #00a8ff;
+.btn.dropdown-toggle .btn-icon { /* Adjusting default for .btn .btn-icon on dropdowns */
+    margin-left: 0; /* Remove default margin from .btn .btn-icon */
+    order: 3; /* Move icon after text and generated arrow */
 }
+.btn.dropdown-toggle#usefulLinksBtn .btn-icon { content: ""; margin-left: 0; } /* Specific for useful links */
+.btn.dropdown-toggle#contactUsBtn .btn-icon { content: ""; margin-left: 0; } /* Specific for contact */
+
+
+.dropdown-content {
+    display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
+    border: 1px solid #00a8ff;
+    left: 0;
+    top: calc(100% + 5px); /* Position dropdown below button */
+    overflow-y: auto; max-height: 300px; padding: 0; /* Added overflow for scrollable dropdown content */
+}
+.header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; } /* Custom scrollbar for dropdowns */
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #2c2f33; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
+.header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
+
 .dropdown-content.show { display: block; }
 .dropdown.align-right .dropdown-content { left: auto; right: 0; }
 .dropdown-content a {
-    color: #00a8ff;
-    padding: 10px 15px;
-    text-decoration: none;
-    display: block;
-    font-size: 0.85rem;
-    font-weight: bold;
-    white-space: nowrap;
-    transition: background-color 0.2s ease;
-    position: relative;
+    color: #d0d0d0; padding: 10px 15px; text-decoration: none; display: block;
+    font-size: 0.9rem; font-weight: bold; white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease; position: relative; text-align: left;
 }
-.dropdown-content a::after { content: "\00a0\00a0🔗"; }
-.dropdown-content a:hover { background-color: #383838; color: #fff; }
+#usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
+.dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
+
 
 /* Main content wrapper - takes up remaining vertical space */
 .main-content-wrapper {
-    flex-grow: 1; /* Allows it to take all available vertical space between header and footer */
-    display: flex; /* Make it a flex container for centering and layout */
-    flex-direction: column; /* Stack children (page-specific-content-area) vertically */
-    align-items: center; /* Center content horizontally */
-    overflow: hidden; /* Hide overflow of main-content-wrapper itself to rely on inner scroll */
-    padding-top: 70px; /* Increased space from fixed header */
-    padding-bottom: 90px; /* Increased space from fixed footer */
-    box-sizing: border-box; /* Include padding in height calculation */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    padding-top: 70px; /* Space for fixed header */
+    padding-bottom: 90px; /* Space for fixed footer */
+    box-sizing: border-box;
     position: relative;
     z-index: 1;
+    min-height: 0;
 }
 
-/* Page specific content area - the main dark blue box for the helper */
+/* Image Glows positioning */
+.image-glow, .image-glow-flipped {
+    position: fixed;
+    bottom: 70px; /* Position relative to top of footer */
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    max-width: 30%; /* Adjusted from activitywatch.css */
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow { left: -3%; }
+.image-glow-flipped { right: -3%; transform: scaleX(-1); }
+
+
+/* Footer Styles (UPDATED from activitywatch.css) */
+footer.footer {
+    flex-shrink: 0;
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    border-top: 2px solid #00a8ff;
+    width: 100%;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    position: fixed; /* Retained fixed positioning for footer based on travel.css preference */
+    bottom: 0;
+    left: 0;
+    user-select: none;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px; /* Fixed height for footer */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+footer.footer .footer-links { margin-bottom: 4px; }
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
+footer.footer .footer-links a:hover { text-decoration: underline; }
+footer.footer > p { /* New rule for the copyright paragraph */
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+/* Main Content Area - the dark blue box */
 .page-specific-content-area {
     display: flex;
-    flex-direction: column; /* Stack children vertically */
-    flex-grow: 1; /* Allows it to grow and fill available space in main-content-wrapper */
-    width: 95%; /* Increased width to be closer to edges */
-    max-width: 1650px; /* **Increased Max-Width**: Makes it horizontally wider */
-    margin: -10px auto; /* Keep vertical margin to push it away from top/bottom */
-    padding: 20px 40px; /* **Reduced Vertical Padding**: Makes it vertically slimmer */
+    flex-direction: column;
+    flex-grow: 1;
+    width: 95%;
+    max-width: 1650px;
+    margin: 0 auto; /* Margin to position the overall box, changed from -10px auto */
+    padding: 10px 40px; /* Padding inside the box */
     background-color: #2a2a2a;
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
     text-align: left;
     position: relative;
     z-index: 1;
-    min-height: 0; /* Important for flex items to prevent overflow issues */
-	border: 2px solid #00a8ff;
+    min-height: 0;
+    border: 2px solid #00a8ff;
 }
 .page-specific-content-area h2 {
     color: #00a8ff;
     text-align: center;
     font-size: 2rem;
     margin-top: 0;
-    margin-bottom: -10px;
+    margin-bottom: 10px; /* Adjusted to pull intro text up */
 }
 .page-specific-content-area p {
     font-size: 1.1rem;
     line-height: 1.6;
-    margin-bottom: -5px;
-	text-align: center; 
+    margin-bottom: 25px; /* Reverted for proper spacing to travel-layout-container */
+    text-align: center;
 }
-/* Removed .placeholder-box styles as it's no longer in HTML */
 
 
-/* --- NEW Layout for Travel Helper: Two-Column Structure --- */
+/* --- Travel Helper Specific Layout & Item Styles --- */
 .travel-layout-container {
-    display: flex; /* Arrange left and right panels horizontally */
-    flex-grow: 1; /* Allows this container to take up remaining vertical space */
-    gap: 30px; /* Space between left and right panels */
-    margin-top: 22px; /* Space below intro text */
-    min-height: 0; /* Crucial for flex child sizing within a limited height parent */
-    width: 100%; /* Take full width of page-specific-content-area */
+    display: flex;
+    flex-grow: 1;
+    gap: 30px;
+    margin-top: 25px; /* Reverted for proper spacing */
+    min-height: 0;
+    width: 100%;
 }
 
 /* Left Panel - Inputs and Filters */
 .left-panel {
-    flex: 0 0 30%; /* Don't grow, don't shrink, base width 30% as requested */
+    flex: 0 0 30%;
     display: flex;
-    flex-direction: column; /* Stack its children (input-sections) vertically */
-    overflow-y: hidden; /* Enable internal scrolling if inputs overflow */
-    padding-right: 15px; /* Padding to prevent scrollbar touching edge */
-    box-sizing: border-box; /* Include padding in width */
-    min-height: 0; /* Allow content to shrink if needed within flex container */
+    flex-direction: column;
+    overflow-y: hidden; /* No scrollbar on left panel */
+    padding-right: 15px;
+    box-sizing: border-box;
+    min-height: 0;
 }
 
 .right-panel {
@@ -242,29 +333,24 @@ header {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    overflow-y: hidden; /* <-- CHANGED to hidden */
+    overflow-y: hidden; /* Right panel itself doesn't scroll */
     padding-left: 15px;
     box-sizing: border-box;
     min-height: 0;
 }
 
-
-/* --- Existing Travel Helper Specific Styles (retained and adjusted) --- */
-
-/* Update this rule in travel.css to make it fill vertical space */
-.input-section {
-    margin-bottom: 25px;
+.input-section { /* Consolidated left panel box */
+    margin-bottom: 25px; /* Keep this margin-bottom for consistent spacing to footer */
     padding: 20px;
     border: 1px solid #00a8ff;
     border-radius: 8px;
     background-color: #2e2e2e;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
-    
-    flex-grow: 1; /* NEW: Allows the input section to grow and fill available vertical space */
-    min-height: 0; /* NEW: Crucial for flex items with overflow content */
-    display: flex; /* NEW: Make it a flex container to align its own children (inputs, labels) */
-    flex-direction: column; /* NEW: Stack its own children vertically */
-    box-sizing: border-box; /* Ensure padding/border are included in height */
+    flex-grow: 1; /* Makes it fill vertical space */
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
 }
 
 .input-section label {
@@ -280,7 +366,7 @@ header {
 .input-section input[type="number"] {
     width: 100%;
     padding: 10px 12px;
-    margin-bottom: 15px;
+    margin-bottom: 15px; /* Spacing below inputs/selects */
     border: 1px solid #00a8ff;
     border-radius: 5px;
     box-sizing: border-box;
@@ -315,37 +401,35 @@ header {
     text-align: center;
     padding: 15px 20px;
     font-size: 1.15em;
-    color: #00a8ff; /* Your theme blue */
+    color: #00a8ff;
     font-weight: bold;
-    background-color: rgba(0, 168, 255, 0.1); /* Light blue tint */
+    background-color: rgba(0, 168, 255, 0.1);
     border-radius: 8px;
-    margin: 20px auto; /* NEW: Add top/bottom margin and center horizontally */
+    margin: 20px auto;
     border: 1px solid rgba(0, 168, 255, 0.3);
     box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
-    width: fit-content; /* NEW: Make box only as wide as its content */
-    max-width: 80%; /* NEW: Prevent it from getting too wide */
-    display: none; /* Ensure it's hidden by default, JS will show/hide */
-    /* You might want to remove the inline style="display: none;" from HTML now */
+    width: fit-content;
+    max-width: 80%;
+    display: none;
 }
 
-/* Update this rule in travel.css for central positioning */
 .error-message {
-    color: #ff6b6b; /* A soft red for errors */
+    color: #ff6b6b;
     font-weight: bold;
     padding: 12px 20px;
     background-color: rgba(255, 107, 107, 0.1);
     border-radius: 8px;
     border: 1px solid rgba(255, 107, 107, 0.3);
     text-align: center;
-    margin: 20px auto; /* NEW: Add top/bottom margin and center horizontally */
-    width: fit-content; /* NEW: Make box only as wide as its content */
-    max-width: 80%; /* NEW: Prevent it from getting too wide */
-    display: none; /* Ensure it's hidden by default, JS will show/hide */
-    /* You might want to remove the inline style="display: none;" from HTML now */
+    margin: 20px auto;
+    width: fit-content;
+    max-width: 80%;
+    display: none;
 }
 
-/* Update this rule in travel.css to add full box styling for enclosure and alignment */
+/* Updated to add full box styling for enclosure and alignment */
 .item-list-section {
+    margin-top: 25px; /* Sets consistent spacing from elements above it, matching .input-section's margin-bottom */
     padding: 20px; /* Internal spacing for content, matching .input-section */
     border: 1px solid #00a8ff; /* Blue border to match .input-section */
     border-radius: 8px; /* Rounded corners to match .input-section */
@@ -353,17 +437,15 @@ header {
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15); /* Subtle blue glow to match .input-section */
     flex-grow: 1; /* Allows it to take up available vertical space in its parent (.right-panel) */
     min-height: 0; /* Important for flex items with overflow */
-    box-sizing: border-box; /* Ensures padding and border are included in the element's total size */
-    margin-bottom: 25px;
-	overflow-y: auto;
-    /* Remove any redundant properties like border-top or padding-top if they were previously there,
-       as the 'border' and 'padding' shorthand properties above cover them. */
+    box-sizing: border-box; /* Ensures padding and border are included in its size */
+    overflow-y: auto; /* THIS MAKES THE ITEM LIST SCROLL INTERNALLY */
 }
 
 .item-list-section h2 {
     text-align: center;
     color: #00a8ff;
-    margin-bottom: 25px;
+    margin-top: -10px; /* Adjusted to pull heading closer to top border */
+    margin-bottom: 25px; /* Keep this spacing to first item card */
 }
 
 #selected-country-name {
@@ -446,7 +528,9 @@ footer.footer {
     border-top: 2px solid #00a8ff;
     width: 100%;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    /* No longer fixed positioning */
+    position: fixed; /* Retained fixed positioning for footer based on travel.css preference */
+    bottom: 0;
+    left: 0;
     user-select: none;
     z-index: 102;
     box-sizing: border-box;
@@ -455,44 +539,38 @@ footer.footer {
     flex-direction: column;
     justify-content: center;
 }
-
-/* Add this new rule to travel.css */
-.input-section input[type="text"]#item-search {
-    margin-bottom: 15px; /* Spacing below the search bar */
-}
-
-/* Also, ensure the general input-section input[type="text"] rule is present and styled as desired: */
-.input-section input[type="text"],
-.input-section input[type="number"],
-.input-section select { /* Added select for consistency */
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 15px; /* Spacing below inputs/selects */
-    border: 1px solid #00a8ff;
-    border-radius: 5px;
-    box-sizing: border-box;
-    background-color: #383838;
-    color: #eee;
-    font-size: 0.95rem;
-}
-/* Ensure the :focus styles are applied to item-search too */
-.input-section input[type="text"]:focus,
-.input-section input[type="number"]:focus,
-.input-section select:focus {
-    outline: none;
-    border-color: #0086d1;
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.6);
-}
-
 footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
+footer.footer > p { /* New rule for the copyright paragraph */
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
 
-/* --- Responsive Adjustments for new layout --- */
+/* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
+    body { padding-top: 0; padding-bottom: 0; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; }
+    .header-left h1 { font-size: 1.4rem; }
+    .tagline { font-size: 0.7rem; }
+    .btn-header, .header-text-link { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+    main { margin: 20px 15px; padding: 25px 20px; width: auto; } /* Main should be page-specific-content-area */
+    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+
+    .main-content-wrapper {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: auto;
+        min-height: unset;
+    }
+
     .travel-layout-container {
         flex-direction: column; /* Stack panels vertically on smaller screens */
-        gap: 20px; /* Adjust gap for vertical stacking */
+        gap: 20px;
     }
     .left-panel, .right-panel {
         flex: 1 1 100%; /* Each panel takes full width */
@@ -509,28 +587,12 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
         padding: 20px; /* Reduce main padding */
     }
 
-    /* Existing media queries from your CSS (retained and adjusted) */
-    header { height: auto; min-height: 70px; padding: 10px; flex-wrap: wrap; justify-content: center; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    .main-content-wrapper { padding-top: 100px; padding-bottom: 100px; }
-    .page-specific-content-area { width: auto; margin: 20px 15px; padding: 20px; max-width: 95%; }
-    header h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .btn-header, .header-text-link { padding: 6px 10px; font-size: 0.85rem; }
-    .page-specific-content-area h2 { font-size: 1.8rem; }
-    .page-specific-content-area p { font-size: 1rem; }
-    .image-glow, .image-glow-flipped { display: none; }
-
-    footer.footer { height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
-    footer.footer .footer-links a { margin: 0; }
-    footer.footer p { margin-top: 0; }
 }
 
 @media (max-width: 480px) {
     .header-left h1 { font-size: 1.2rem; }
     .header-left .tagline { display: none; }
-    .main-content-wrapper { padding-top: 80px; }
+    .main-content-wrapper { padding-top: 80px; } /* Should be 10px as per 768px break */
     .page-specific-content-area { margin: 10px; padding: 15px; }
     .page-specific-content-area h2 { font-size: 1.5rem; }
     .input-section {
