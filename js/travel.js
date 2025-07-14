@@ -1,12 +1,12 @@
 // --- Global variables ---
-let allTornItems = {}; // To store item details: item_id -> {name, type, image, market_price} (market_price IS stored here again)
+let allTornItems = {}; // To store item details: item_id -> {name, type, image} (no longer storing market_price)
 let yataTravelData = null; // To store cached YATA travel data
 let lastYataFetchTime = 0; // Timestamp of last YATA fetch
 const YATA_CACHE_DURATION = 5 * 60 * 1000; // Cache YATA data for 5 minutes (adjust as needed)
 
-// --- Torn City Price Cache is NO LONGER needed, as prices are from allTornItems ---
-// const tornCityPriceCache = {};
-// const TORN_CITY_PRICE_CACHE_DURATION = 15 * 60 * 1000;
+// --- NEW: Cache for Torn City Prices (per item) ---
+const tornCityPriceCache = {}; // Stores prices: item_id -> {price: value, timestamp: time}
+const TORN_CITY_PRICE_CACHE_DURATION = 15 * 60 * 1000; // Cache Torn City prices for 15 minutes
 
 
 // --- Hardcoded Country Name Map (for destination dropdown) ---
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
-    // Function to fetch all item details (Uses Torn API 'Items' selection for images & market_price)
+    // Function to fetch all item details (Uses Torn API 'Items' selection for images & category fallback)
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
             console.log("All Torn items already loaded from cache.");
@@ -132,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     itemsById[itemId] = {
                         // We are specifically NOT using item.name or item.type as they are scrambled from this endpoint
                         image: `https://www.torn.com/images/items/${itemId}/large.png`, // Correct image URL
-                        market_price: item.value ? item.value.market_price : null // <-- Store market_price from here
                     };
                 }
             }
@@ -140,14 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
 
             // DEBUGGING LOGS (can remove after verification)
-            console.log("Checking specific item data after fetchAllTornItems (images & market_price):");
-            if (allTornItems['8']) { console.log("ID 8 (Axe):", allTornItems['8'].image, "Market Price:", allTornItems['8'].market_price); }
-            if (allTornItems['31']) { console.log("ID 31 (M249 SAW):", allTornItems['31'].image, "Market Price:", allTornItems['31'].market_price); }
-            if (allTornItems['1125']) { console.log("ID 1125 (Card Skimmer):", allTornItems['1125'].image, "Market Price:", allTornItems['1125'].market_price); }
-            if (allTornItems['206']) { console.log("ID 206 (Xanax):", allTornItems['206'].image, "Market Price:", allTornItems['206'].market_price); }
-            if (allTornItems['200']) { console.log("ID 200 (Opium):", allTornItems['200'].image, "Market Price:", allTornItems['200'].market_price); }
-            if (allTornItems['266']) { console.log("ID 266 (Nessie Plushie):", allTornItems['266'].image, "Market Price:", allTornItems['266'].market_price); }
-            if (allTornItems['617']) { console.log("ID 617 (Banana Orchid):", allTornItems['617'].image, "Market Price:", allTornItems['617'].market_price); }
+            console.log("Checking specific item data after fetchAllTornItems (images only):");
+            if (allTornItems['8']) { console.log("ID 8 (Axe):", allTornItems['8'].image); }
+            if (allTornItems['31']) { console.log("ID 31 (M249 SAW):", allTornItems['31'].image); }
+            if (allTornItems['1125']) { console.log("ID 1125 (Card Skimmer):", allTornItems['1125'].image); }
+            if (allTornItems['206']) { console.log("ID 206 (Xanax):", allTornItems['206'].image); }
+            if (allTornItems['200']) { console.log("ID 200 (Opium):", allTornItems['200'].image); }
+            if (allTornItems['266']) { console.log("ID 266 (Nessie Plushie):", allTornItems['266'].image); }
+            if (allTornItems['617']) { console.log("ID 617 (Banana Orchid):", allTornItems['617'].image); }
             // END DEBUGGING LOGS
 
             loadingIndicator.style.display = 'none';
@@ -159,8 +158,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to fetch Torn City market price for a single item (This function is NO LONGER needed in this strategy)
-    // async function fetchTornCityItemPrice(itemId, apiKey) { ... } // DELETED
+    // Function to fetch Torn City market price for a single item (RE-INTRODUCED with Caching)
+    async function fetchTornCityItemPrice(itemId, apiKey) {
+        const now = Date.now();
+        const cached = tornCityPriceCache[itemId];
+
+        if (cached && (now - cached.timestamp < TORN_CITY_PRICE_CACHE_DURATION)) {
+            console.log(`Using cached Torn City price for ID ${itemId}: ${cached.price}`); // DEBUG
+            return cached.price;
+        }
+
+        try {
+            const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${apiKey}`);
+            const data = await response.json();
+
+            if (data.error) {
+                console.warn(`API Error fetching Torn City market for item ${itemId}: ${data.error.error}`);
+                // Cache null/0 to avoid repeated API calls for unavailable prices for some duration
+                tornCityPriceCache[itemId] = { price: null, timestamp: now };
+                return null;
+            }
+
+            const listings = data.itemmarket;
+            if (listings && listings.length > 0) {
+                const lowestPrice = listings.reduce((min, listing) => Math.min(min, listing.cost), Infinity);
+                tornCityPriceCache[itemId] = { price: lowestPrice, timestamp: now }; // Cache the fetched price
+                console.log(`Fetched new Torn City price for ID ${itemId}: ${lowestPrice}`); // DEBUG
+                return lowestPrice;
+            }
+            // No listings found, cache as null
+            tornCityPriceCache[itemId] = { price: null, timestamp: now };
+            console.log(`No listings found for ID ${itemId}, Torn City Price: null`); // DEBUG
+            return null;
+        } catch (error) {
+            console.error(`Error fetching Torn City market price for item ${itemId}:`, error);
+            // Cache null due to error
+            tornCityPriceCache[itemId] = { price: null, timestamp: now };
+            return null;
+        }
+    }
+
 
     // Function to fetch YATA travel data
     async function fetchYATATravelData() {
@@ -226,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("displayItemsForCountry called with selectedCountryId:", selectedCountryId); // DEBUG
 
-        // Ensure allTornItems is loaded (needed for image URLs)
+        // Ensure allTornItems is loaded (still needed for image URLs and category fallback from allTornItems.type)
         if (Object.keys(allTornItems).length === 0) {
             errorDisplay.textContent = 'Item details cache not loaded. Please ensure API key is valid.';
             loadingIndicator.style.display = 'none';
@@ -262,19 +299,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Prepare item data for display. Torn City price is now sourced directly from allTornItems.
+        // Prepare item data, making the Torn City Price a promise to resolve later
         const itemsToProcess = countryData.stocks.map(itemInfo => {
             const categoryFromMap = itemCategoryMap[itemInfo.id];
-            // No longer using allTornItems.type as a fallback category, due to its unreliability for 'type'
-            const tornItemData = allTornItems[itemInfo.id]; // Get item data from allTornItems for image and market_price
-
+            const categoryFromAllTornItems = allTornItems[itemInfo.id] ? allTornItems[itemInfo.id].type : 'Unknown';
+            
             return {
                 itemId: itemInfo.id,
                 name: itemInfo.name, // Use name from YATA (should be correct)
                 foreignPrice: itemInfo.cost,
                 foreignStock: itemInfo.quantity, // YATA uses 'quantity' for stock
-                category: categoryFromMap || 'Other', // Only use hardcoded map or 'Other'
-                tornCityPrice: tornItemData ? tornItemData.market_price : null // Get market_price from allTornItems
+                category: categoryFromMap || categoryFromAllTornItems || 'Other', // Prioritize hardcoded map, then Torn API type, then 'Other'
             };
         });
 
@@ -290,14 +325,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // --- All data (including Torn City Price) is now prepared here ---
-        const itemsToDisplay = filteredItems.map(itemData => { // No 'async' and 'await' here
+        // --- Fetch Torn City Price for each filtered item using Promise.all for concurrency ---
+        const itemPromises = filteredItems.map(async (itemData) => {
             const itemId = itemData.itemId;
 
             const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
             const itemDescription = 'No description available.';
 
-            const tornCityPrice = itemData.tornCityPrice; // Use the tornCityPrice already extracted
+            const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Call the caching fetchTornCityItemPrice
             console.log(`Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from data:`, tornCityPrice); // DEBUG
 
             const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
@@ -311,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 description: itemDescription,
                 foreignPrice: itemData.foreignPrice,
                 foreignStock: itemData.foreignStock,
-                tornCityPrice: tornCityPrice,
+                tornCityPrice: tornCityPrice, // Set tornCityPrice here after fetch
                 profitPerItem: profitPerItem,
                 totalPotentialProfit: totalPotentialProfit,
                 canCarry: canCarry,
@@ -319,15 +354,17 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
 
+        const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
 
-        if (itemsToDisplay.length === 0) {
+
+        if (itemsToplay.length === 0) {
             itemListDiv.innerHTML = `<p>Could not load any item data for the selected country and category.</p>`;
             loadingIndicator.style.display = 'none';
             return;
         }
 
         itemsToDisplay.sort((a, b) => {
-            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitA : -Infinity; // Corrected typo here (was profitB instead of profitA)
             const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
             return profitB - profitA;
         });
@@ -353,150 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.style.display = 'none';
     }
 
-    // NEW: Function to search for an item across all countries and display results
-    async function searchItemsAndDisplayResults(searchQuery, apiKey) {
-        itemListDiv.innerHTML = ''; // Clear previous items
-        loadingIndicator.textContent = `Searching for "${searchQuery}"...`;
-        // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
-        errorDisplay.textContent = '';
-        selectedCountryNameSpan.textContent = `Search results for "${searchQuery}"`; // Update header
-
-        if (Object.keys(allTornItems).length === 0) {
-            errorDisplay.textContent = 'Item details cache not loaded. Please ensure API key is valid.';
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        const yataData = await fetchYATATravelData();
-        if (!yataData) {
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        const travelCapacity = parseInt(travelCapacityInput.value, 10);
-        if (isNaN(travelCapacity) || travelCapacity <= 0) {
-            errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        const matchedItems = [];
-        const lowerCaseSearchQuery = searchQuery.toLowerCase();
-
-        // Iterate through all countries in YATA data
-        for (const countryCode in yataData.stocks) {
-            if (yataData.stocks.hasOwnProperty(countryCode)) {
-                const country = yataData.stocks[countryCode];
-                const countryName = countryNameMap[countryCode] || countryCode; // Get full country name
-
-                // Iterate through items in each country
-                for (const itemInfo of country.stocks) { // Assuming country.stocks is an array based on your YATA sample
-                    if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
-                        const categoryFromMap = itemCategoryMap[itemInfo.id] || 'Other'; // Get category
-                        const tornItemData = allTornItems[itemInfo.id]; // Get item data from allTornItems for market_price
-
-                        matchedItems.push({
-                            itemId: itemInfo.id,
-                            name: itemInfo.name,
-                            foreignPrice: itemInfo.cost,
-                            foreignStock: itemInfo.quantity,
-                            countryCode: countryCode,
-                            countryName: countryName,
-                            category: categoryFromMap,
-                            tornCityPrice: tornItemData ? tornItemData.market_price : null // Get market_price from allTornItems
-                        });
-                    }
-                }
-            }
-        }
-
-        if (matchedItems.length === 0) {
-            itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" in any country.</p>`;
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        // Now, filter by category if a specific category is selected
-        const selectedCategory = categoryFilterSelect.value;
-        let filteredItems = matchedItems;
-        if (selectedCategory !== 'all') {
-            filteredItems = matchedItems.filter(item => item.category === selectedCategory);
-        }
-
-        if (filteredItems.length === 0) {
-            itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" for the selected category.</p>`;
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        // --- All data (including Torn City Price) is now prepared here ---
-        const itemsToDisplay = filteredItems.map(itemData => { // No 'async' and 'await' here
-            const itemId = itemData.itemId;
-
-            const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
-            const itemDescription = 'No description available.'; // Keep as placeholder
-
-            const tornCityPrice = itemData.tornCityPrice; // Use the already retrieved price
-            console.log(`Search: Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from data:`, tornCityPrice); // DEBUG
-
-            const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
-            const totalPotentialProfit = (tornCityPrice !== null && tornCityPrice > 0 && typeof profitPerItem === 'number') ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
-            const canCarry = Math.min(itemData.foreignStock, travelCapacity);
-
-            return {
-                id: itemId,
-                name: itemData.name,
-                image: imageUrl,
-                description: itemDescription,
-                foreignPrice: itemData.foreignPrice,
-                foreignStock: itemData.foreignStock,
-                countryName: itemData.countryName, // Add country name to the final object
-                tornCityPrice: tornCityPrice,
-                profitPerItem: profitPerItem,
-                totalPotentialProfit: totalPotentialProfit,
-                canCarry: canCarry,
-                category: itemData.category
-            };
-        });
-
-        // No Promise.all needed as prices are pre-calculated
-        const finalItemsToDisplay = itemsToDisplay.filter(item => item !== null); 
-
-
-        if (finalItemsToDisplay.length === 0) {
-            itemListDiv.innerHTML = `<p>No complete data found for matching items after filtering.</p>`;
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        finalItemsToDisplay.sort((a, b) => {
-            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
-            return profitB - profitA;
-        });
-
-        // Display results in item cards
-        itemListDiv.innerHTML = ''; // Clear for search results
-        finalItemsToDisplay.forEach(item => {
-            const itemCard = document.createElement('div');
-            itemCard.classList.add('item-card');
-            itemCard.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <div class="item-details">
-                    <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
-                    <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
-                    <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
-                    <p>Torn City Price: ${item.tornCityPrice !== null && item.tornCityPrice > 0 ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
-                    <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
-                    <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                    <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
-                </div>
-            `;
-            itemListDiv.appendChild(itemCard);
-        });
-
-        loadingIndicator.style.display = 'none';
-    }
 
     // --- Firebase Auth State Listener & Initial Data Load ---
     if (typeof auth !== 'undefined' && auth && typeof db !== 'undefined' && db) {
