@@ -205,7 +205,7 @@ header {
     text-align: center;
     font-size: 2rem;
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: -10px;
 }
 .page-specific-content-area p {
     font-size: 1.1rem;
