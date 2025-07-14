@@ -4,7 +4,7 @@ main
 max-width: 1000px; 
 margin-left: auto;
 margin-right: auto;
-
+border: 2px solid black;
 }
 
 /* Main calendar wrapper */
@@ -13,7 +13,7 @@ margin-right: auto;
   border: 2px solid black;
   border-radius: 8px;
   padding: 15px; /* Reduced */
-  box-shadow: 0 4px black;
+  box-shadow: 2px 2px black;
   max-width: 800px; /* Reduced */
   margin: 30px auto;
   color: var(--text-color-light);
