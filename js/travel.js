@@ -98,30 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
-    // Function to fetch Torn City market price for a single item (Uses Torn API 'Market' selection)
-    async function fetchTornCityItemPrice(itemId, apiKey) {
-        try {
-            const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=itemmarket&key=${apiKey}`);
-            const data = await response.json();
-
-            if (data.error) {
-                console.warn(`API Error fetching Torn City market for item ${itemId}: ${data.error.error}`);
-                return null;
-            }
-
-            const listings = data.itemmarket;
-            if (listings && listings.length > 0) {
-                const lowestPrice = listings.reduce((min, listing) => Math.min(min, listing.cost), Infinity);
-                return lowestPrice;
-            }
-            return null; // No listings found
-        } catch (error) {
-            console.error(`Error fetching Torn City market price for item ${itemId}:`, error);
-            return null;
-        }
-    }
-
-    // Function to fetch all item details (UPDATED to include market_price from Torn API 'items')
+    
 async function fetchAllTornItems(apiKey) {
     if (Object.keys(allTornItems).length > 0) {
         console.log("All Torn items already loaded from cache.");
