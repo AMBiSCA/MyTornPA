@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
     // Function to fetch all item details (Uses Torn API 'Items' selection for images & category fallback)
+    // No longer stores market_price directly from here, as it's fetched per-item by fetchTornCityItemPrice.
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
             console.log("All Torn items already loaded from cache.");
@@ -299,10 +300,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Prepare item data, making the Torn City Price a promise to resolve later
+        // Prepare item data, WITHOUT tornCityPrice for now
         const itemsToProcess = countryData.stocks.map(itemInfo => {
             const categoryFromMap = itemCategoryMap[itemInfo.id];
-            // Use allTornItems.type as a fallback category if itemCategoryMap doesn't have it (unlikely now)
             const categoryFromAllTornItems = allTornItems[itemInfo.id] ? allTornItems[itemInfo.id].type : 'Unknown';
             
             return {
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemId = itemData.itemId;
 
             const imageUrl = `https://www.torn.com/images/items/${itemId}/large.png`;
-            const itemDescription = 'No description available.'; // Description is not available from YATA or reliable from Torn API 'items'.
+            const itemDescription = 'No description available.';
 
             const tornCityPrice = await fetchTornCityItemPrice(itemId, apiKey); // Call the caching fetchTornCityItemPrice
             console.log(`Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from data:`, tornCityPrice); // DEBUG
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 description: itemDescription,
                 foreignPrice: itemData.foreignPrice,
                 foreignStock: itemData.foreignStock,
-                tornCityPrice: tornCityPrice,
+                tornCityPrice: tornCityPrice, // Set tornCityPrice here after fetch
                 profitPerItem: profitPerItem,
                 totalPotentialProfit: totalPotentialProfit,
                 canCarry: canCarry,
@@ -366,8 +366,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         itemsToDisplay.sort((a, b) => {
             // Handle 'N/A' correctly for sorting: push to bottom
-            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-            const profitB = typeof b.profitPerItem === 'number' ? b.profitB : -Infinity; // Corrected typo here (was profitB instead of profitA)
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitA : -Infinity; // Corrected typo here (was profitB instead of profitA)
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
             return profitB - profitA;
         });
 
@@ -420,7 +420,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (user) { // User is signed in
                 console.log("User logged in:", user.uid); // DEBUG
-                // User is signed in, fetch their API key from Firestore
                 const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
                 try {
                     const doc = await userDocRef.get();
@@ -542,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.textContent = 'Refetching travel data...';
         // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
 
-        await fetchAllTornItems(currentTornApiKey);
+        await fetchAllTornItems(currentTornApiKey); // Needed for images and category fallback
         await fetchAndPopulateDestinations();
 
         if (destinationSelect.value) {
