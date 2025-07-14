@@ -175,7 +175,7 @@ header {
     flex-direction: column; /* Stack children (page-specific-content-area) vertically */
     align-items: center; /* Center content horizontally */
     overflow: hidden; /* Hide overflow of main-content-wrapper itself to rely on inner scroll */
-    padding-top: 90px; /* Increased space from fixed header */
+    padding-top: 70px; /* Increased space from fixed header */
     padding-bottom: 90px; /* Increased space from fixed footer */
     box-sizing: border-box; /* Include padding in height calculation */
     position: relative;
