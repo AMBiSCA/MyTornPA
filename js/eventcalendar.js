@@ -48,7 +48,7 @@ calendarDays.addEventListener('mouseover', (event) => {
 });
 
 calendarDays.addEventListener('mouseout', () => {
-    tooltip.style.display = 'none';
+    tooltip.classList.remove('visible');
 });
 
 calendarDays.addEventListener('mousemove', (event) => {
