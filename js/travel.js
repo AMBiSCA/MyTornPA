@@ -291,8 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemDescription = 'No description available.'; // Or you could potentially map common descriptions.
 
             const tornCityPrice = itemData.tornCityPrice; // Use the already retrieved price
-            console.log(`Processing item ${itemData.name} (ID: ${itemData.id}) - Torn City Price from data:`, tornCityPrice); // DEBUG
-
+            console.log(`Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from data:`, tornCityPrice); // DEBUG
             const profitPerItem = (tornCityPrice !== null && tornCityPrice > 0) ? tornCityPrice - itemData.foreignPrice : 'N/A';
             const totalPotentialProfit = (tornCityPrice !== null && tornCityPrice > 0 && typeof profitPerItem === 'number') ? profitPerItem * Math.min(itemData.foreignStock, travelCapacity) : 'N/A';
             const canCarry = Math.min(itemData.foreignStock, travelCapacity);
