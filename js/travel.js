@@ -217,6 +217,104 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+// Function to display items for a selected country
+async function displayItemsForCountry(selectedCountryId, apiKey) {
+    itemListDiv.innerHTML = '';
+    loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
+    errorDisplay.textContent = '';
+
+    const yataData = await fetchYATATravelData();
+    if (!yataData) {
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const travelCapacity = parseInt(travelCapacityInput.value, 10);
+    if (isNaN(travelCapacity) || travelCapacity <= 0) {
+        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    const countryData = yataData.stocks[selectedCountryId];
+
+    if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
+        itemListDiv.innerHTML = `<p>No live item data available for this country from YATA.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+
+    // Prepare items from YATA first
+    let itemsToProcess = countryData.stocks.map(itemInfo => ({
+        itemId: itemInfo.id,
+        name: itemInfo.name,
+        foreignPrice: itemInfo.cost,
+        foreignStock: itemInfo.quantity,
+        category: itemCategoryMap[itemInfo.id] || 'Other',
+    }));
+
+    const selectedCategory = categoryFilterSelect.value;
+    if (selectedCategory !== 'all') {
+        itemsToProcess = itemsToProcess.filter(item => item.category === selectedCategory);
+    }
+
+    if (itemsToProcess.length === 0) {
+        itemListDiv.innerHTML = `<p>No items found for the selected category in this country.</p>`;
+        loadingIndicator.style.display = 'none';
+        return;
+    }
+    
+    // Fetch reliable prices for each item individually
+    const itemsToDisplay = await Promise.all(itemsToProcess.map(async (itemData) => {
+        const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
+        const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
+        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+        const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
+        const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
+
+        return {
+            id: itemData.itemId,
+            name: itemData.name,
+            image: imageUrl,
+            foreignPrice: itemData.foreignPrice,
+            foreignStock: itemData.foreignStock,
+            tornCityPrice: tornCityPrice,
+            profitPerItem: profitPerItem,
+            totalPotentialProfit: totalPotentialProfit,
+            canCarry: canCarry,
+            category: itemData.category,
+        };
+    }));
+
+    // Sort by profit
+    itemsToDisplay.sort((a, b) => {
+        const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
+        const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+        return profitB - profitA;
+    });
+
+    // Display the items
+    itemsToDisplay.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.classList.add('item-card');
+        itemCard.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="item-details">
+                <h3>${item.name} (${item.category})</h3>
+                <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
+                <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
+                <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
+                <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
+                <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
+                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
+            </div>
+        `;
+        itemListDiv.appendChild(itemCard);
+    });
+
+    loadingIndicator.style.display = 'none';
+}
+
 async function fetchTornCityItemPrice(itemId, apiKey) {
     if (!apiKey) {
         console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
