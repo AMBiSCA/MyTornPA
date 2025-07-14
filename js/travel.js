@@ -224,7 +224,9 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
     }
 
     try {
+        // This is the correct, official V2 URL for market data.
         const response = await fetch(`https://api.torn.com/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
+        
         if (!response.ok) {
             console.error(`Error fetching item ${itemId}. Status: ${response.status}`);
             return null;
@@ -238,19 +240,17 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
 
         let finalPrice = null;
 
-        // As you requested, we will try to get the average_price first.
+        // Prioritize average_price as you suggested.
         if (data.itemmarket && data.itemmarket.item && data.itemmarket.item.average_price) {
             finalPrice = data.itemmarket.item.average_price;
         }
 
-        // If we could not get an average price, let's find the absolute lowest price from all listings.
+        // If no average price, fall back to finding the absolute lowest price.
         if (!finalPrice) {
             const prices = [];
-            // Bazaar listings use 'cost'
             if (data.bazaar) {
                 Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
             }
-            // *** THE FIX IS HERE: Item market listings use 'price' ***
             if (data.itemmarket && data.itemmarket.listings) {
                 data.itemmarket.listings.forEach(listing => prices.push(listing.price));
             }
@@ -260,7 +260,6 @@ async function fetchTornCityItemPrice(itemId, apiKey) {
             }
         }
 
-        // Return the final price, ensuring it's not null or zero.
         return finalPrice > 0 ? finalPrice : null;
 
     } catch (error) {
