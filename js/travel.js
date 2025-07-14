@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
     // Function to fetch all item details (Uses Torn API 'Items' selection for images & category fallback)
+    // No longer stores market_price directly from here, as it's fetched per-item by fetchTornCityItemPrice.
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
             console.log("All Torn items already loaded from cache.");
@@ -357,14 +358,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const itemsToDisplay = (await Promise.all(itemPromises)).filter(item => item !== null);
 
 
-        if (itemsToplay.length === 0) {
+        if (itemsToDisplay.length === 0) {
             itemListDiv.innerHTML = `<p>Could not load any item data for the selected country and category.</p>`;
             loadingIndicator.style.display = 'none';
             return;
         }
 
         itemsToDisplay.sort((a, b) => {
-            const profitA = typeof a.profitPerItem === 'number' ? a.profitA : -Infinity; // Corrected typo here (was profitB instead of profitA)
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity; // Corrected typo here (was profitB instead of profitA)
             const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
             return profitB - profitA;
         });
