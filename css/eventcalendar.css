@@ -346,3 +346,21 @@ z-index: 2;
   margin: 0;
   color: var(--text-color-light);
 }
+
+.day-event-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reminder-bell {
+  font-style: normal; /* In case you use an <i> tag */
+  cursor: pointer;
+  transition: transform 0.2s ease, text-shadow 0.2s ease;
+}
+
+.reminder-bell:hover {
+  transform: scale(1.2); /* Make it slightly bigger on hover */
+  /* Make it "light up" with a glow */
+  text-shadow: 0 0 10px #ffd700;
+}

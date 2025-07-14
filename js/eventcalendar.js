@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     
                                     // Add the title on the first day
                                     if (isStart) {
-                                        dayElement.innerHTML += `<div class="day-event-title">${event.title}</div>`;
+                                        dayElement.innerHTML += `<div class="day-event-title"><span>${event.title}</span><span class="reminder-bell">🔔</span></div>`;
                                     }
 
                                     // Add start and end times
