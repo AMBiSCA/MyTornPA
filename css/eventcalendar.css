@@ -13,7 +13,6 @@ border: 2px solid black;
   border: 2px solid black;
   border-radius: 8px;
   padding: 15px; /* Reduced */
-  box-shadow: 2px 2px black;
   max-width: 800px; /* Reduced */
   margin: 30px auto;
   color: var(--text-color-light);
@@ -70,15 +69,16 @@ border: 2px solid black;
 
 .calendar-day {
   background-color: var(--background-color-dark-card);
-  border: 1px solid var(--border-color-dark-subtle);
+  /* --- CHANGED LINE --- */
+  border: 1px solid #4a4a4a; /* A more visible border for the grid */
   border-radius: 5px;
   padding: 5px;
   text-align: center;
-  min-height: 75px; /* Reduced */
+  min-height: 75px;
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
-  font-size: 1em; /* Reduced */
+  font-size: 1em;
   color: var(--text-color-light);
   display: flex;
   flex-direction: column;
@@ -300,4 +300,9 @@ z-index: 2;
   background-color: rgba(0, 0, 0, 0.6);
   align-self: flex-end; /* Puts it on the right side */
   margin-right: -2px; /* Small adjustment for positioning */
+}
+
+/* Add a hover effect for non-event days */
+.calendar-day:not(.event-day-range):hover {
+  border-color: var(--text-color-accent);
 }
