@@ -267,10 +267,7 @@ z-index: 2;
 
 /* This is the colored bar background */
 .event-day-range {
-  /* Using a color that should stand out. Adjust if needed. */
-  background-color: #3b5998; 
-  color: #fff; /* Make the day number white */
-  /* Remove individual day borders within a range */
+  color: #fff;
   border: 1px solid transparent; 
 }
 
