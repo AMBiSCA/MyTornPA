@@ -18,26 +18,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const headerLogoLink = document.querySelector('.header-left a'); // More robust selector for the logo link
 
     // --- Dropdown Logic (Does not depend on Firebase Auth) ---
-    function closeOtherDropdowns(currentDropdown) {
+    function closeAllDropdowns() {
         document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
-            if (dropdown !== currentDropdown) {
-                dropdown.classList.remove('show');
-                const button = dropdown.previousElementSibling;
-                if (button) button.classList.remove('active');
-            }
+            dropdown.classList.remove('show');
+            const button = dropdown.previousElementSibling;
+            if (button) button.classList.remove('active');
         });
     }
 
     function setupDropdown(button, dropdown) {
         if (button && dropdown) {
+            let timeout;
+
             button.addEventListener('click', function(event) {
-                event.stopPropagation();
+                event.stopPropagation(); // Prevent document click from immediately closing
                 const isShowing = dropdown.classList.contains('show');
-                closeOtherDropdowns(dropdown);
+                closeAllDropdowns(); // Close other dropdowns
                 if (!isShowing) {
                     dropdown.classList.add('show');
                     button.classList.add('active');
                 }
+            });
+
+            // Close dropdown when mouse leaves the button or the dropdown content
+            button.addEventListener('mouseleave', function() {
+                timeout = setTimeout(() => {
+                    if (!dropdown.matches(':hover')) { // Check if mouse is not over the dropdown
+                        closeAllDropdowns();
+                    }
+                }, 100); // Small delay to allow mouse to move from button to dropdown
+            });
+
+            dropdown.addEventListener('mouseleave', function() {
+                timeout = setTimeout(() => {
+                    if (!button.matches(':hover')) { // Check if mouse is not over the button
+                        closeAllDropdowns();
+                    }
+                }, 100); // Small delay
+            });
+
+            // Clear timeout if mouse re-enters to prevent premature closing
+            button.addEventListener('mouseenter', function() {
+                clearTimeout(timeout);
+            });
+            dropdown.addEventListener('mouseenter', function() {
+                clearTimeout(timeout);
             });
         }
     }
@@ -45,9 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDropdown(usefulLinksBtn, usefulLinksDropdown);
     setupDropdown(contactUsBtn, contactUsDropdown);
 
-    window.addEventListener('click', function() {
-        closeOtherDropdowns(null); // Close all dropdowns
-    });
+    // Removed the window click listener as per your request
 
     // --- CORRECTED FIREBASE INITIALIZATION ---
     let auth = null;
@@ -136,8 +159,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     elements.logoutButtonHeader.addEventListener('click', logoutHandler);
                 }
                 if (elements.homeButtonHeader) {
-                     elements.homeButtonHeader.removeEventListener('click', homeNavHandler);
-                     elements.homeButtonHeader.addEventListener('click', homeNavHandler);
+                    elements.homeButtonHeader.removeEventListener('click', homeNavHandler);
+                    elements.homeButtonHeader.addEventListener('click', homeNavHandler);
                 }
                 if (elements.headerLogoLink) {
                     elements.headerLogoLink.removeEventListener('click', homeNavHandler);
@@ -147,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // --- USER IS LOGGED OUT ---
                 if (elements.headerButtonsContainer) elements.headerButtonsContainer.style.display = 'none';
-                
+
                 // Show logged-out buttons
                 if (elements.tornCityHomepageLink) elements.tornCityHomepageLink.style.display = 'inline-flex';
                 if (elements.signUpButtonHeader) {

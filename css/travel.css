@@ -175,7 +175,6 @@ header {
 /* Dropdown Styles (UPDATED from activitywatch.css) */
 .dropdown { position: relative; display: inline-block; }
 .dropdown-toggle::after { /* Specific icon for dropdown buttons */
-    content: ' \25BC'; /* Standard dropdown arrow */
     font-size: 0.6em;
     margin-left: 4px;
 }
