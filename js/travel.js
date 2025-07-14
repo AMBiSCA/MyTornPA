@@ -217,105 +217,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-   // --- UPDATED function to display items for a selected country ---
-async function displayItemsForCountry(selectedCountryId, apiKey) {
-    itemListDiv.innerHTML = '';
-    loadingIndicator.textContent = 'Fetching live prices and item details...';
-    // loadingIndicator.style.display = 'block'; // Commented out to hide indicator
-    errorDisplay.textContent = '';
-
-    const yataData = await fetchYATATravelData();
-    if (!yataData) {
-        loadingIndicator.style.display = 'none';
-        return;
+   // --- HELPER FUNCTION with better error checking ---
+// --- Function to test the user-provided URL format ---
+async function fetchTornCityItemPrice(itemId, apiKey) {
+    if (!apiKey) {
+        console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
+        return null;
     }
 
-    const travelCapacity = parseInt(travelCapacityInput.value, 10);
-    if (isNaN(travelCapacity) || travelCapacity <= 0) {
-        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
-        loadingIndicator.style.display = 'none';
-        return;
+    try {
+        // *** Using the exact URL format you provided ***
+        const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
+        
+        console.log(`FETCHING URL: https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`); // LOG THE URL
+        console.log(`RESPONSE STATUS for item ${itemId}:`, response.status); // LOG THE HTTP STATUS
+
+        // Check if the server could not find the URL (404 error)
+        if (response.status === 404) {
+            console.error(`ERROR: The URL was not found on the server (404). This confirms the /v2/ path is not correct for the market endpoint.`);
+            return null;
+        }
+
+        const data = await response.json();
+        console.log(`DATA for item ${itemId}:`, data); // LOG THE DATA
+
+        if (data.error) {
+            console.error(`Market API Error for item ${itemId}:`, data.error.error);
+            return null;
+        }
+
+        const prices = [];
+        if (data.bazaar) {
+            Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
+        }
+        if (data.itemmarket) {
+            Object.values(data.itemmarket).forEach(listing => prices.push(listing.cost));
+        }
+
+        if (prices.length === 0) {
+            return null;
+        }
+
+        const lowestPrice = Math.min(...prices);
+        return lowestPrice > 0 ? lowestPrice : null;
+
+    } catch (error) {
+        console.error(`Failed to fetch price for item ${itemId}:`, error);
+        return null;
     }
-
-    const countryData = yataData.stocks[selectedCountryId];
-
-    if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
-        itemListDiv.innerHTML = `<p>No live item data available for this country from YATA.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    // Prepare items from YATA first
-    let itemsToProcess = countryData.stocks.map(itemInfo => ({
-        itemId: itemInfo.id,
-        name: itemInfo.name,
-        foreignPrice: itemInfo.cost,
-        foreignStock: itemInfo.quantity,
-        category: itemCategoryMap[itemInfo.id] || 'Other',
-    }));
-
-    const selectedCategory = categoryFilterSelect.value;
-    if (selectedCategory !== 'all') {
-        itemsToProcess = itemsToProcess.filter(item => item.category === selectedCategory);
-    }
-
-    if (itemsToProcess.length === 0) {
-        itemListDiv.innerHTML = `<p>No items found for the selected category in this country.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-
-    // *** KEY CHANGE: Fetch reliable prices for each item individually ***
-    const itemsToDisplay = await Promise.all(itemsToProcess.map(async (itemData) => {
-        const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
-        console.log(`Processing item ${itemData.name} (ID: ${itemData.itemId}) - Torn City Price from Market API:`, tornCityPrice);
-
-        const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
-        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
-        const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
-        const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
-
-        return {
-            id: itemData.itemId,
-            name: itemData.name,
-            image: imageUrl,
-            foreignPrice: itemData.foreignPrice,
-            foreignStock: itemData.foreignStock,
-            tornCityPrice: tornCityPrice,
-            profitPerItem: profitPerItem,
-            totalPotentialProfit: totalPotentialProfit,
-            canCarry: canCarry,
-            category: itemData.category,
-        };
-    }));
-
-    // Sort by profit
-    itemsToDisplay.sort((a, b) => {
-        const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-        const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
-        return profitB - profitA;
-    });
-
-    // Display the items
-    itemsToDisplay.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.classList.add('item-card');
-        itemCard.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
-            <div class="item-details">
-                <h3>${item.name} (${item.category})</h3>
-                <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
-                <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
-                <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
-                <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
-                <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
-            </div>
-        `;
-        itemListDiv.appendChild(itemCard);
-    });
-
-    loadingIndicator.style.display = 'none';
 }
 // --- NEW HELPER FUNCTION to fetch a reliable price for a single item ---
 async function fetchTornCityItemPrice(itemId, apiKey) {
