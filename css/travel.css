@@ -305,30 +305,37 @@ header {
     font-size: 1.1rem;
 }
 
-/* Loading and Error Message Styling (retained for later use/debugging) */
 #loading-indicator {
     text-align: center;
     padding: 15px 20px;
     font-size: 1.15em;
-    color: #00a8ff;
+    color: #00a8ff; /* Your theme blue */
     font-weight: bold;
-    background-color: rgba(0, 168, 255, 0.1);
+    background-color: rgba(0, 168, 255, 0.1); /* Light blue tint */
     border-radius: 8px;
-    margin-top: 0; /* Adjusted for right-panel padding */
+    margin: 20px auto; /* NEW: Add top/bottom margin and center horizontally */
     border: 1px solid rgba(0, 168, 255, 0.3);
     box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
+    width: fit-content; /* NEW: Make box only as wide as its content */
+    max-width: 80%; /* NEW: Prevent it from getting too wide */
+    display: none; /* Ensure it's hidden by default, JS will show/hide */
+    /* You might want to remove the inline style="display: none;" from HTML now */
 }
 
+/* Update this rule in travel.css for central positioning */
 .error-message {
-    color: #ff6b6b;
+    color: #ff6b6b; /* A soft red for errors */
     font-weight: bold;
-    margin-top: 0; /* Adjusted for right-panel padding */
     padding: 12px 20px;
     background-color: rgba(255, 107, 107, 0.1);
     border-radius: 8px;
     border: 1px solid rgba(255, 107, 107, 0.3);
     text-align: center;
-	display: none; 
+    margin: 20px auto; /* NEW: Add top/bottom margin and center horizontally */
+    width: fit-content; /* NEW: Make box only as wide as its content */
+    max-width: 80%; /* NEW: Prevent it from getting too wide */
+    display: none; /* Ensure it's hidden by default, JS will show/hide */
+    /* You might want to remove the inline style="display: none;" from HTML now */
 }
 
 .item-list-section {

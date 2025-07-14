@@ -52,6 +52,9 @@
     <h2>Torn Travel Helper</h2>
     <p>Plan your Torn City travels effectively! This tool will help you find profitable items in different countries, check stock levels, and calculate potential profits from your travel runs.</p>
 
+         <div id="loading-indicator" style="display: none;">Loading data, please wait...</div>
+         <div id="error-display" class="error-message"></div>
+
     <div class="travel-layout-container">
 
         <div class="left-panel">
@@ -81,9 +84,7 @@
         </div>
 
         <div class="right-panel">
-            <div id="loading-indicator" style="display: none;">Loading data, please wait...</div>
-            <div id="error-display" class="error-message"></div>
-
+           
             <div class="item-list-section">
                 <h2>Items Available in <span id="selected-country-name" style="color: #00a8ff;">Selected Country</span></h2>
                 <div id="item-list">
