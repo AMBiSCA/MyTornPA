@@ -1,12 +1,12 @@
 // --- Global variables ---
-let allTornItems = {}; // To store item details: item_id -> {name, type, image} (no longer storing market_price)
+let allTornItems = {}; // To store item details: item_id -> {name, type, image, market_price} (market_price IS stored here again)
 let yataTravelData = null; // To store cached YATA travel data
 let lastYataFetchTime = 0; // Timestamp of last YATA fetch
 const YATA_CACHE_DURATION = 5 * 60 * 1000; // Cache YATA data for 5 minutes (adjust as needed)
 
-// --- NEW: Cache for Torn City Prices (per item) ---
-const tornCityPriceCache = {}; // Stores prices: item_id -> {price: value, timestamp: time}
-const TORN_CITY_PRICE_CACHE_DURATION = 15 * 60 * 1000; // Cache Torn City prices for 15 minutes
+// --- Torn City Price Cache (NO LONGER needed for fetchTornCityItemPrice) ---
+// const tornCityPriceCache = {}; // Removed
+// const TORN_CITY_PRICE_CACHE_DURATION = 15 * 60 * 1000; // Removed
 
 
 // --- Hardcoded Country Name Map (for destination dropdown) ---
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- HELPER FUNCTIONS (ALL DEFINED HERE AT THE TOP OF DOMContentLoaded SCOPE) ---
 
     // Function to fetch all item details (Uses Torn API 'Items' selection for images & category fallback)
-    // No longer stores market_price directly from here, as it's fetched per-item by fetchTornCityItemPrice.
+    // IMPORTANT: This no longer stores market_price, as that is fetched live via fetchTornCityItemPrice.
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
             console.log("All Torn items already loaded from cache.");
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.items.hasOwnProperty(itemId)) {
                     const item = data.items[itemId];
                     itemsById[itemId] = {
-                        // We are specifically NOT using item.name or item.type as they are scrambled from this endpoint
+                        // We are specifically NOT using item.name or item.type from here, as they are scrambled
                         image: `https://www.torn.com/images/items/${itemId}/large.png`, // Correct image URL
                     };
                 }
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         itemsToDisplay.sort((a, b) => {
-            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity; // Corrected typo here (was profitB instead of profitA)
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitA : -Infinity; // Corrected typo here (was profitB instead of profitA)
             const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
             return profitB - profitA;
         });
