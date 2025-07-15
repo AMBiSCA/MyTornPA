@@ -294,7 +294,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 }
 
 
-/* --- Travel Helper Specific Layout & Item Styles --- */
+/* --- Travel Helper Specayout & Item Styles --- */
 .travel-layout-container {
   display: grid;
   grid-template-columns: 30% 1fr;
