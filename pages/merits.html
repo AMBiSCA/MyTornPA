@@ -1,181 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MyTornPA - Honors & Medals</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyTornPA - Honors & Medals</title>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/merits.css"> </head>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/merits.css">
+</head>
 <body>
 
-  <header>
-    <div class="header-left">
-        <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
-            <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-        </a>
-    </div>
-    <div class="header-center">
-        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
-    </div>
-    <div class="header-right-controls">
-        <div class="header-user-display js-hidden-initially" id="logged-in-user-display">
-        </div>
+    <header>
+        <div class="header-left">
+            <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
+                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+        </div>
+        <div class="header-right-controls">
+            <div class="header-user-display js-hidden-initially" id="logged-in-user-display">
+            </div>
 
-        <a href="https://www.torn.com/index.php" class="header-text-link js-hidden-initially" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
+            <a href="https://www.torn.com/index.php" class="header-text-link js-hidden-initially" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
 
-        <div class="header-buttons js-hidden-initially" id="headerButtonsContainer">
-            <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
-                <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
-            </button>
+            <div class="header-buttons js-hidden-initially" id="headerButtonsContainer">
+                <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+                    <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
+                </button>
 
-            <div class="dropdown" id="usefulLinksDropdownContainer">
-                <button class="btn header-btn" id="usefulLinksBtn">
-                    <span class="btn-text">Useful Links:</span>
-                    <span class="btn-icon">🔗 🔽</span>
-                </button>
-                <div class="dropdown-content" id="usefulLinksDropdown">
-                    <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                    <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                    <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                    <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                    <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                    <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                    <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                    <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                    <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                    <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                </div>
-            </div>
+                <div class="dropdown" id="usefulLinksDropdownContainer">
+                    <button class="btn header-btn" id="usefulLinksBtn">
+                        <span class="btn-text">Useful Links:</span>
+                        <span class="btn-icon">🔗 🔽</span>
+                    </button>
+                    <div class="dropdown-content" id="usefulLinksDropdown">
+                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                    </div>
+                </div>
 
-            <div class="dropdown" id="contactUsDropdownContainer">
-                <button class="btn dropdown-toggle" id="contactUsBtn">
-                    <span class="btn-text">Contact:</span><span class="btn-icon">💬 🔽</span>
-                </button>
-                <div class="dropdown-content" id="contactUsDropdown">
-                    <a href="report.html">Report an Issue</a>
-                    <a href="#">Live Chat (Soon™)</a>
-                    <a href="FAQ.html">F.A.Q</a>
-                </div>
-            </div>
+                <div class="dropdown" id="contactUsDropdownContainer">
+                    <button class="btn dropdown-toggle" id="contactUsBtn">
+                        <span class="btn-text">Contact:</span><span class="btn-icon">💬 🔽</span>
+                    </button>
+                    <div class="dropdown-content" id="contactUsDropdown">
+                        <a href="report.html">Report an Issue</a>
+                        <a href="#">Live Chat (Soon™)</a>
+                        <a href="FAQ.html">F.A.Q</a>
+                    </div>
+                </div>
 
-            <button class="btn" id="logoutButtonHeader">
-                <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
-            </button>
-        </div>
+                <button class="btn" id="logoutButtonHeader">
+                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+                </button>
+            </div>
 
-        <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
-    </div>
-</header>
+            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+        </div>
+    </header>
 
-  <div class="main-content-wrapper">
+    <div class="main-content-wrapper">
+        <main class="page-specific-content-area">
+            <h2>Torn City Honors & Medals Tracker</h2>
+            <p>Track your progress on various in-game Honors and Medals!</p>
 
-    <main class="page-specific-content-area">
-      <h2>Torn City Honors & Medals Tracker</h2>
-      <p>Track your progress on various in-game Honors and Medals!</p>
+            <div id="loading-indicator" class="js-hidden-initially">Loading data, please wait...</div>
+            <div id="error-display" class="error-message js-hidden-initially"></div>
 
-      <div id="loading-indicator" class="js-hidden-initially">Loading data, please wait...</div>
-      <div id="error-display" class="error-message js-hidden-initially"></div>
+            <div class="merits-layout-container">
+                <div class="player-summary-section">
+                    <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Rank: <span id="player-rank">N/A</span> | Networth: <span id="player-networth">N/A</span></p>
+                </div>
 
-      <div class="merits-layout-container">
-        <div class="player-summary-section">
-          <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Rank: <span id="player-rank">N/A</span> | Networth: <span id="player-networth">N/A</span></p>
-        </div>
+                <div class="tabs-container">
+                    <button class="tab-button active" data-tab="honors">Honors</button>
+                    <button class="tab-button" data-tab="medals">Medals</button>
+                    <button class="tab-button" data-tab="stats">Stats Overview</button>
+                    </div>
 
-        <div class="tabs-container">
-          <button class="tab-button active" data-tab="honors">Honors</button>
-          <button class="tab-button" data-tab="medals">Medals</button>
-          <button class="tab-button" data-tab="stats">Stats Overview</button>
-                  </div>
+                <div id="tab-content" class="tab-content">
+                    <div id="honors-tab" class="tab-pane active">
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel">
+                                <h3>Attacking Honors</h3>
+                                <ul id="honors-attacking-list">
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Chainer 1</span> - <span class="merit-requirement">Participate in a 10 length chain</span><span class="merit-progress"> (Progress: 7/10 chains completed)</span></span></li>
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Chainer 2</span> - <span class="merit-requirement">Participate in a 100 length chain</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Carnage</span> - <span class="merit-requirement">Make a single hit that earns your faction 10 or more respect</span><span class="merit-progress"> (Progress: 5/10)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Massacre</span> - <span class="merit-requirement">Make a single hit that earns your faction 100 or more respect</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Genocide</span> - <span class="merit-requirement">Make a single hit that earns your faction 1,000 or more respect</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Chain Saver</span> - <span class="merit-requirement">Save a 100+ chain 10 seconds before it breaks</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Strongest Link</span> - <span class="merit-requirement">Make 100 hits in a single chain</span><span class="merit-progress"> (Progress: 65/100)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Kill Streaker 1</span> - <span class="merit-requirement">Achieve a 10 kill streak</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Kill Streaker 2</span> - <span class="merit-requirement">Achieve a 100 kill streak</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Kill Streaker 3</span> - <span class="merit-requirement">Achieve a 500 kill streak</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Wham!</span> - <span class="merit-requirement">Deal over 100,000 total damage</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Flatline</span> - <span class="merit-requirement">Achieve a one hit kill</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Sidekick</span> - <span class="merit-requirement">Assist in 250 attacks</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Precision</span> - <span class="merit-requirement">Achieve 25 critical hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">50cal</span> - <span class="merit-requirement">Achieve 1,000 Critical Hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Domino Effect</span> - <span class="merit-requirement">Beat someone wearing this honor</span></span></li>
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Weapons Honors</h3>
+                                <ul id="honors-weapons-list">
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">2800 Ft/S</span> - <span class="merit-requirement">Achieve 100 finishing hits with rifles</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Axe Wound</span> - <span class="merit-requirement">Achieve 100 finishing hits with clubbing weapons</span><span class="merit-progress"> (Progress: 30/100)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Cartridge Packer</span> - <span class="merit-requirement">Achieve 100 finishing hits with shotguns</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Leonidas</span> - <span class="merit-requirement">Achieve a finishing hit with Kick</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Lend A Hand</span> - <span class="merit-requirement">Achieve 100 finishing hits with machine guns</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Pin Puller</span> - <span class="merit-requirement">Achieve 100 finishing hits with temporary weapons</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Machinist</span> - <span class="merit-requirement">Achieve 100 finishing hits with mechanical weapons</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Slasher</span> - <span class="merit-requirement">Achieve 100 finishing hits with slashing weapons</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Stumped</span> - <span class="merit-requirement">Achieve 100 finishing hits with heavy artillery</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">The Stabbist</span> - <span class="merit-requirement">Achieve 100 finishing hits with piercing weapons</span></span></li>
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Chaining Honors</h3>
+                                <ul id="honors-chaining-list">
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Chainer 1</span> - <span class="merit-requirement">Participate in a 10 length chain</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Chainer 2</span> - <span class="merit-requirement">Participate in a 100 length chain</span><span class="merit-progress"> (Progress: 85/100)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Chainer 3</span> - <span class="merit-requirement">Participate in a 1,000 length chain</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Chainer 4</span> - <span class="merit-requirement">Participate in a 10,000 length chain</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Chainer 5</span> - <span class="merit-requirement">Participate in a 100,000 length chain</span></span></li>
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Carnage</span> - <span class="merit-requirement">Make a single hit that earns your faction 10 or more respect</span></span></li>
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Attacking (General) Honors</h3>
+                                <ul id="honors-attacking-general-list">
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Kill Streaker 1</span> - <span class="merit-requirement">Achieve a 10 kill streak</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Kill Streaker 2</span> - <span class="merit-requirement">Achieve a 100 kill streak</span><span class="merit-progress"> (Progress: 45/100)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Wham!</span> - <span class="merit-requirement">Deal over 100,000 total damage</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Flatline</span> - <span class="merit-requirement">Achieve a one hit kill</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Sidekick</span> - <span class="merit-requirement">Assist in 250 attacks</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Precision</span> - <span class="merit-requirement">Achieve 25 critical hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">50cal</span> - <span class="merit-requirement">Achieve 1,000 Critical Hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Domino Effect</span> - <span class="merit-requirement">Beat someone wearing this honor</span></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
 
-        <div id="tab-content" class="tab-content">
-          <div id="honors-tab" class="tab-pane active">
-                        <div class="merit-category-grid">
-              <div class="merit-category-panel">
-                <h3>Attacking Honors</h3>
-                <ul id="honors-attacking-list">
-                                  </ul>
-              </div>
-              <div class="merit-category-panel">
-                <h3>Weapons Honors</h3>
-                <ul id="honors-weapons-list">
-                                  </ul>
-              </div>
-              <div class="merit-category-panel">
-                <h3>Chaining Honors</h3>
-                <ul id="honors-chaining-list">
-                                  </ul>
-              </div>
-                <div class="merit-category-panel">
-                <h3>Attacking (General) Honors</h3>
-                <ul id="honors-attacking-general-list">
-                                  </ul>
-              </div>
-            </div>
-          </div>
+                    <div id="medals-tab" class="tab-pane js-hidden-initially">
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel">
+                                <h3>Combat Medals</h3>
+                                <ul id="medals-combat-list">
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Anti Social</span> - <span class="merit-requirement">Win 50 attacks</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Happy Slapper</span> - <span class="merit-requirement">Win 250 attacks</span><span class="merit-progress"> (Progress: 180/250)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Scar Maker</span> - <span class="merit-requirement">Win 500 attacks</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Hired Gun</span> - <span class="merit-requirement">Collect 25 bounties</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Bone Collector</span> - <span class="merit-requirement">Collect 100 bounties</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Boom Headshot</span> - <span class="merit-requirement">Deal 500 critical hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Pwned in the face</span> - <span class="merit-requirement">Deal 2,500 critical hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Lee Harvey Oswald</span> - <span class="merit-requirement">Deal 10,000 critical hits</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Bouncer</span> - <span class="merit-requirement">Win 50 defends</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Brick wall</span> - <span class="merit-requirement">Win 250 defends</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Turtle</span> - <span class="merit-requirement">Win 500 defends</span></span></li>
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Commitment Medals</h3>
+                                <ul id="medals-commitment-list">
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Citizenship</span> - <span class="merit-requirement">Be a donator for 30 days</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Devoted</span> - <span class="merit-requirement">Be a donator for 100 days</span><span class="merit-progress"> (Progress: 80/100)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Apprentice Faction Member</span> - <span class="merit-requirement">Same faction for 100 days</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Committed Faction Member</span> - <span class="merit-requirement">Same faction for 200 days</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Loyal Faction Member</span> - <span class="merit-requirement">Same faction for 300 days</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Silver Anniversary</span> - <span class="merit-requirement">Same spouse for 50 consecutive days</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Ruby Anniversary</span> - <span class="merit-requirement">Same spouse for 100 consecutive days</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">One Year of Service</span> - <span class="merit-requirement">Live in Torn for One Year</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Two Years of Service</span> - <span class="merit-requirement">Live in Torn for Two Years</span></span></li>
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Level Medals</h3>
+                                <ul id="medals-level-list">
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Level Five</span> - <span class="merit-requirement">Reach level Five</span></span></li>
+                                    <li><span class="merit-status-icon completed">✔</span> <span class="merit-details"><span class="merit-name">Level Ten</span> - <span class="merit-requirement">Reach level Ten</span></span></li>
+                                    <li><span class="merit-status-icon in-progress">●</span> <span class="merit-details"><span class="merit-name">Level Fifteen</span> - <span class="merit-requirement">Reach level Fifteen</span><span class="merit-progress"> (Current Level: 12)</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Level Twenty</span> - <span class="merit-requirement">Reach level Twenty</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Level Twenty Five</span> - <span class="merit-requirement">Reach level Twenty Five</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Level Thirty</span> - <span class="merit-requirement">Reach level Thirty</span></span></li>
+                                </ul>
+                            </div>
+                            <div class="merit-category-panel">
+                                <h3>Crimes Medals</h3>
+                                <ul id="medals-crimes-list">
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Trainee Troublemaker</span> - <span class="merit-requirement">Commit 100 Criminal offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Petty Pilferer</span> - <span class="merit-requirement">Commit 100 Theft offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Sinister Scoundrel</span> - <span class="merit-requirement">Commit 100 Vandalism offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Digital Duplicator</span> - <span class="merit-requirement">Commit 100 Counterfeiting offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Troublesome Trickster</span> - <span class="merit-requirement">Commit 100 Fraud offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Underworld Upstart</span> - <span class="merit-requirement">Commit 100 Illicit Service offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Web Wizard</span> - <span class="merit-requirement">Commit 100 Cybercrime offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Budding Bully</span> - <span class="merit-requirement">Commit 100 Extortion offenses</span></span></li>
+                                    <li><span class="merit-status-icon not-started">◎</span> <span class="merit-details"><span class="merit-name">Grass Grower</span> - <span class="merit-requirement">Commit 100 Illegal Production offenses</span></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
 
-          <div id="medals-tab" class="tab-pane js-hidden-initially">
-                        <div class="merit-category-grid">
-              <div class="merit-category-panel">
-                <h3>Combat Medals</h3>
-                <ul id="medals-combat-list">
-                                  </ul>
-              </div>
-              <div class="merit-category-panel">
-                <h3>Commitment Medals</h3>
-                <ul id="medals-commitment-list">
-                                  </ul>
-              </div>
-              <div class="merit-category-panel">
-                <h3>Level Medals</h3>
-                <ul id="medals-level-list">
-                                  </ul>
-              </div>
-                <div class="merit-category-panel">
-                <h3>Crimes Medals</h3>
-                <ul id="medals-crimes-list">
-                                  </ul>
-              </div>
-            </div>
-          </div>
+                    <div id="stats-tab" class="tab-pane js-hidden-initially">
+                        <div class="merit-category-panel full-width">
+                            <h3>Player Stats Overview</h3>
+                            <ul id="player-stats-list">
+                                <li><strong>Attacks Won:</strong> <span id="stat-attacks-won">N/A</span></li>
+                                <li><strong>Defends Won:</strong> <span id="stat-defends-won">N/A</span></li>
+                                <li><strong>Crimes Committed:</strong> <span id="stat-crimes-committed">N/A</span></li>
+                                <li><strong>Items Found:</strong> <span id="stat-items-found">N/A</span></li>
+                                <li><strong>Medical Items Used:</strong> <span id="stat-medical-items-used">N/A</span></li>
+                                <li><strong>Times Hospitalized:</strong> <span id="stat-times-hospitalized">N/A</span></li>
+                                <li><strong>Times Jailed:</strong> <span id="stat-times-jailed">N/A</span></li>
+                                <li><strong>Travels Made:</strong> <span id="stat-travels-made">N/A</span></li>
+                                <li><strong>Bounties Collected:</strong> <span id="stat-bounties-collected">N/A</span></li>
+                                <li><strong>Busted People from Jail:</strong> <span id="stat-busted-people">N/A</span></li>
+                                <li><strong>Revives Given:</strong> <span id="stat-revives-given">N/A</span></li>
+                                <li><strong>Max Chain Hits:</strong> <span id="stat-max-chain-hits">N/A</span></li>
+                                <li><strong>Total Damage Dealt:</strong> <span id="stat-total-damage">N/A</span></li>
+                                <li><strong>Total Critical Hits:</strong> <span id="stat-total-critical-hits">N/A</span></li>
+                                <li><strong>Total Respect Earned:</strong> <span id="stat-total-respect">N/A</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
-          <div id="stats-tab" class="tab-pane js-hidden-initially">
-                        <div class="merit-category-panel full-width">
-              <h3>Player Stats Overview</h3>
-              <ul id="player-stats-list">
-                              </ul>
-            </div>
-          </div>
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
 
-          <div id="other-tab" class="tab-pane js-hidden-initially">
-                        <div class="merit-category-panel full-width">
-              <h3>Other Honors / Medals</h3>
-              <ul id="other-honors-medals-list">
-                              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <footer class="footer">
-    <div class="footer-links">
-      <a href="home.html" id="homeButtonFooter">Home</a>
-      <a href="FAQ.html">F.A.Q</a>
-      <a href="Terms.html">Disclaimer & Terms</a>
-      <a href="report.html">Report an Issue</a>
-      <a href="about.html">About Us</a>
-      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-    </div>
-    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-  </footer>
-
-  <script src="../js/firebase-init.js"></script>
-  <script src="../js/globalheader.js"></script>
-  <script src="../js/merits.js"></script> </body>
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/merits.js"></script> </body>
 </html>

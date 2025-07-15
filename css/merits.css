@@ -1,33 +1,48 @@
 /* --- merits.css --- */
 
-/* Inherits global styles from global.css */
+/* Ensure HTML and Body use full viewport height and disable page scroll */
+html, body {
+    height: 100vh; /* Set to 100% of viewport height */
+    overflow: hidden; /* Disable scrolling on the main page */
+    margin: 0;
+    padding: 0;
+}
 
-/* Specific overrides/additions for the Merits page */
-
-/* Ensure the main content area correctly fits */
-.page-specific-content-area {
-    /*
-     * REVISED: Remove flex-grow and use explicit height calculation.
-     * global.css: .main-content-wrapper has padding-top: 95px; padding-bottom: 95px;
-     * So, the height for .page-specific-content-area must be 100% of its parent's content-box height.
-     * Its parent (.main-content-wrapper) takes 100vh - 70px (header) - 70px (footer).
-     * So, .page-specific-content-area's effective height is 100% of its parent's height MINUS its own
-     * vertical padding.
-     * We want it to fill the entire remaining space of main-content-wrapper's *padding-box*,
-     * then its own padding will be applied inside.
-     */
-    height: calc(100% - 20px); /* 100% of parent's content height, minus its own 10px top/bottom padding */
+body {
     display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Ensure this element itself does not scroll */
-    padding-top: 10px;
-    padding-bottom: 10px;
-    box-sizing: border-box; /* Include padding in the height */
+    flex-direction: column; /* Arrange header, main, footer in a column */
+    min-height: 100vh; /* Ensure body stretches to full viewport height */
+}
 
-    /* Inherited from global.css but good to re-confirm */
+/* Global header/footer heights from your global.css */
+/* header { height: 70px; flex-shrink: 0; } */
+/* footer { height: 70px; flex-shrink: 0; } */
+
+/* Main content wrapper must take all remaining vertical space */
+.main-content-wrapper {
+    flex-grow: 1; /* Allow it to grow and fill available space */
+    min-height: 0; /* Important for flex items within a column layout */
+    overflow: hidden; /* Prevent this wrapper from scrolling, delegate to inner content */
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack main content vertically */
+    box-sizing: border-box; /* Include padding in height calculation */
+    /* Your global.css sets padding-top: 95px; padding-bottom: 95px; */
+    /* We don't need to manually calculate height here, flex-grow will handle it */
+}
+
+/* The actual main content area (inside main-content-wrapper padding) */
+.page-specific-content-area {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    flex-grow: 1; /* Make it fill the remaining space of its parent (main-content-wrapper) */
+    min-height: 0; /* Crucial for flex items to correctly constrain height */
+    overflow: hidden; /* This element itself should not scroll */
+
+    /* Inherited from global.css but important */
     width: 95%;
     max-width: 1650px;
     margin: 0 auto;
+    padding: 10px 40px; /* Reduced vertical padding here, if needed */
     background-color: #2a2a2a;
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
@@ -35,26 +50,27 @@
     position: relative;
     z-index: 1;
     border: 2px solid #00a8ff;
+    box-sizing: border-box; /* Include padding in its own height calculation */
 }
 
-/* Ensure these elements take their intrinsic height and don't contribute to overflow */
-.page-specific-content-area h2,
-.page-specific-content-area p {
-    flex-shrink: 0; /* Prevents them from shrinking if space is tight */
-    margin-top: 0;
-    margin-bottom: 10px; /* Adjust if needed, this adds to height */
-    text-align: center;
+/* Page title and description - ensure they don't grow/shrink */
+.page-specific-content-area h2 {
     color: #00a8ff;
+    text-align: center;
     font-size: 2rem;
-    line-height: 1.6;
+    margin-top: 0;
+    margin-bottom: 10px; /* Adjust if needed */
+    flex-shrink: 0; /* Prevent from shrinking */
 }
 .page-specific-content-area p {
     font-size: 1.1rem;
-    margin-bottom: 25px; /* Adjust if needed, this adds to height */
+    line-height: 1.6;
+    margin-bottom: 25px; /* Adjust if needed */
+    text-align: center;
+    flex-shrink: 0; /* Prevent from shrinking */
 }
 
-
-/* --- Loading and Error Indicators --- */
+/* Loading and Error Indicators */
 #loading-indicator, #error-display {
     display: none; /* Controlled by .js-hidden-initially class */
     flex-shrink: 0; /* Ensure it takes its space and doesn't shrink */
@@ -85,28 +101,27 @@
     display: none !important;
 }
 
-
-/* --- Merits Layout Container (Main content flex item) --- */
+/* Main container for player summary, tabs, and tab content */
 .merits-layout-container {
     display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* This will now take ALL remaining space */
-    min-height: 0; /* Critical for flex items */
+    flex-direction: column; /* Stack player summary, tabs, content vertically */
+    flex-grow: 1; /* Take all remaining space within .page-specific-content-area */
+    min-height: 0; /* Crucial for flex items */
     overflow: hidden; /* This container itself should not scroll */
 }
 
-/* --- Player Summary Section --- */
+/* Player Summary Section */
 .player-summary-section {
     text-align: center;
     background-color: #383838;
     border: 1px solid #00a8ff;
     border-radius: 8px;
     padding: 10px 20px;
-    margin-bottom: 20px; /* Adjust if needed */
+    margin-bottom: 20px; /* Space below this section */
     color: #eee;
     font-size: 1.05rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    flex-shrink: 0; /* Ensures it takes its natural height */
+    flex-shrink: 0; /* Ensures it maintains its height */
 }
 .player-summary-section p {
     margin: 0;
@@ -122,17 +137,17 @@
     color: #00e0ff;
 }
 
-/* --- Tabs Container --- */
+/* Tabs Container */
 .tabs-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px; /* Adjust if needed */
+    margin-bottom: 20px; /* Space below tabs */
     background-color: #2e2e2e;
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid #00a8ff;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
-    flex-shrink: 0; /* Ensures it takes its natural height */
+    flex-shrink: 0; /* Ensures it maintains its height */
 }
 
 .tab-button {
@@ -153,12 +168,10 @@
 .tab-button:last-child {
     border-right: none;
 }
-
 .tab-button:hover:not(.active) {
     background-color: #353535;
     color: #00e0ff;
 }
-
 .tab-button.active {
     background-color: #007acc;
     color: #fff;
@@ -167,48 +180,54 @@
     padding-bottom: 9px;
 }
 
-/* --- Tab Content Areas --- */
+/* Main Tab Content Area - This is the primary scrollable section */
 .tab-content {
-    flex-grow: 1; /* This will take all remaining height below summary/tabs */
-    min-height: 0; /* Critical for flex items */
-    display: flex;
-    flex-direction: column;
-    /* Removed padding-right and padding-bottom here, move to .merit-category-grid for scrolling */
-    overflow: hidden; /* Ensure this element does not scroll */
+    flex-grow: 1; /* Take all remaining height in .merits-layout-container */
+    min-height: 0; /* Crucial for flex items to allow shrinking for scrolling */
+    overflow-y: auto; /* *** THIS IS WHERE THE MAIN VERTICAL SCROLLBAR WILL APPEAR *** */
+    padding-right: 15px; /* Space for the scrollbar itself */
+    padding-bottom: 10px; /* Space at the bottom of the scrollable area */
+    box-sizing: border-box; /* Include padding in height calculation */
 }
 
+/* Individual Tab Panes (Honors, Medals, Stats) */
 .tab-pane {
-    display: none;
-    flex-grow: 1; /* Allow tab-pane to take up remaining height */
-    min-height: 0; /* Critical for flex items */
-    /* Removed padding from here */
-}
-
-.tab-pane.active {
-    display: flex; /* Active tab pane should be flex to contain the grid */
+    display: none; /* Hidden by default */
+    height: 100%; /* Make sure the active tab pane takes the full height of .tab-content */
+    display: flex; /* Make it a flex container to manage the grid */
     flex-direction: column; /* Stack grid vertically */
 }
+/* Only the active tab pane is displayed */
+.tab-pane.active {
+    display: flex; /* Show as flex container */
+}
 
-/* --- Merit Category Grid (within tabs) --- */
+
+/* Grid for Merit Categories within a Tab Pane */
 .merit-category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(calc(50% - 15px), 1fr));
-    gap: 30px;
-    flex-grow: 1; /* This is the key: make the grid fill the remaining height */
-    min-height: 0; /* Allow the grid to shrink if content needs to scroll */
-    overflow-y: auto; /* ***THIS IS WHERE THE MAIN SCROLLING WILL OCCUR*** */
-    padding-right: 15px; /* Add padding for the scrollbar specifically on the grid */
-    padding-bottom: 10px; /* Add some padding at the bottom of the grid's scroll area */
-    box-sizing: border-box; /* Include padding in its calculated height */
-    align-content: start; /* Align content to the start (top) if space allows */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2+ columns */
+    gap: 30px; /* Gap between grid items (panels) */
+    flex-grow: 1; /* Allow the grid to expand vertically */
+    min-height: 0; /* Crucial for grid item to shrink correctly */
+    /* Removed overflow-y here, it's on .tab-content */
+    padding-right: 0; /* Removed this, already on .tab-content */
+    align-content: start; /* Align items to the top if extra space exists */
 }
-/* If only one item in grid, make it span full width if desired */
-.merit-category-grid:has(> .merit-category-panel:only-child) {
-    grid-template-columns: 1fr;
-    justify-content: center;
+/* Adjust minmax to ensure at least 2 columns if screen allows */
+@media (min-width: 1200px) {
+    .merit-category-grid {
+        grid-template-columns: repeat(2, 1fr); /* Force 2 columns on larger screens */
+    }
+}
+@media (min-width: 1600px) {
+    .merit-category-grid {
+        grid-template-columns: repeat(3, 1fr); /* Consider 3 columns on very large screens */
+    }
 }
 
-/* --- Merit Category Panel (individual boxes within the grid) --- */
+
+/* Individual Merit Category Panels */
 .merit-category-panel {
     background-color: #2e2e2e;
     border: 1px solid #00a8ff;
@@ -216,16 +235,18 @@
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
     display: flex;
-    flex-direction: column;
-    height: auto; /* Let content define height, constrained by grid */
-    min-height: 150px;
+    flex-direction: column; /* Stack header and ul vertically */
+    height: auto; /* Let content define height, constrained by grid rows */
+    min-height: 150px; /* Minimum height for visual consistency */
     box-sizing: border-box;
+    overflow: hidden; /* Hide panel overflow, delegate to ul */
 }
 
 .merit-category-panel.full-width {
-    grid-column: 1 / -1;
+    grid-column: 1 / -1; /* Make it span all columns */
 }
 
+/* Panel Header */
 .merit-category-panel h3 {
     color: #00a8ff;
     margin-top: 0;
@@ -234,20 +255,21 @@
     font-size: 1.3rem;
     padding-bottom: 5px;
     border-bottom: 1px solid rgba(0, 168, 255, 0.3);
-    flex-shrink: 0;
+    flex-shrink: 0; /* Ensure header doesn't shrink */
 }
 
+/* List of Merits/Medals within a Panel - This is the ULTIMATE SCROLL AREA for panel lists */
 .merit-category-panel ul {
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-grow: 1; /* This list should take remaining space in its panel */
-    overflow-y: auto; /* ***INTERNAL SCROLLING FOR INDIVIDUAL PANELS*** */
+    flex-grow: 1; /* Allow the list to take up remaining space in its panel */
+    min-height: 0; /* Critical for list to correctly scroll */
+    overflow-y: auto; /* *** THIS IS WHERE INDIVIDUAL PANEL LISTS WILL SCROLL *** */
     font-size: 0.95rem;
     color: #ccc;
     line-height: 1.4;
     padding-right: 10px; /* Space for internal scrollbar on the list */
-    min-height: 0; /* Crucial for internal scrolling in flex/grid context */
 }
 
 .merit-category-panel ul li {
@@ -256,38 +278,37 @@
     align-items: flex-start;
 }
 
+/* Merit Item Styling */
 .merit-status-icon {
     margin-right: 8px;
     font-size: 1.1em;
     flex-shrink: 0;
 }
-.merit-status-icon.completed { color: #2ecc71; }
-.merit-status-icon.in-progress { color: #f39c12; }
-.merit-status-icon.not-started { color: #95a5a6; }
+.merit-status-icon.completed { color: #2ecc71; } /* Green checkmark */
+.merit-status-icon.in-progress { color: #f39c12; } /* Orange progress */
+.merit-status-icon.not-started { color: #95a5a6; } /* Grey empty */
 
 .merit-details {
     flex-grow: 1;
 }
-
 .merit-name {
     font-weight: bold;
     color: #eee;
     display: block;
     margin-bottom: 2px;
 }
-
 .merit-requirement {
     font-size: 0.85em;
     color: #bbb;
 }
-
 .merit-progress {
     font-size: 0.8em;
     color: #888;
     margin-top: 2px;
 }
 
-/* --- Responsive Adjustments for Merits Page --- */
+
+/* --- Responsive Adjustments --- */
 @media (max-width: 992px) {
     .player-summary-section p {
         flex-direction: column;
@@ -295,32 +316,41 @@
     }
     .merit-category-grid {
         grid-template-columns: 1fr; /* Stack panels vertically on medium screens */
-        overflow-y: auto; /* Ensure scrolling still applies to the main grid */
-        height: auto; /* Allow grid to determine height for overall page scroll if needed */
-        padding-right: 0; /* On smaller screens, allow browser to handle main scroll */
-    }
-    .merit-category-panel {
-        overflow-y: auto; /* Enable scrolling on panels when stacked vertically */
-    }
-    .merit-category-panel ul {
-        padding-right: 5px;
+        /* If the entire grid is stacked, internal panel scrolling becomes more important */
     }
 }
 
 @media (max-width: 768px) {
-    .page-specific-content-area {
-        padding: 15px;
+    /* On smaller screens, allow the body to scroll as fixed header/footer might be too restrictive */
+    html, body {
+        overflow: auto; /* Allow page scrolling on smaller devices */
+        height: auto; /* Let height be determined by content */
     }
-    /* On small screens, we allow the body to scroll, so we reset internal overflow/heights */
+    body {
+        min-height: auto; /* Remove min-height constraint */
+    }
+    .main-content-wrapper {
+        padding-top: 10px; /* Reduce main padding to gain space */
+        padding-bottom: 10px;
+        height: auto;
+        min-height: unset;
+        overflow: visible; /* Allow content to push wrapper height */
+    }
+    .page-specific-content-area {
+        padding: 15px; /* Adjust padding */
+        height: auto;
+        min-height: unset;
+        overflow: visible; /* Allow content to push page area height */
+    }
     .merits-layout-container,
     .tab-content,
     .tab-pane,
     .merit-category-grid,
     .merit-category-panel ul {
-        overflow-y: visible; /* Allow content to push height on mobile, body will scroll */
-        height: auto; /* Let them grow to content on mobile */
-        min-height: unset; /* Remove min-height on small screens */
-        padding-right: 0; /* Remove scrollbar padding if main container scrolls */
+        overflow-y: visible; /* Content flows naturally, body handles scroll */
+        height: auto; /* Let elements determine their own height */
+        min-height: unset; /* Remove min-height constraints */
+        padding-right: 0; /* Remove scrollbar padding */
     }
     .tab-pane {
         flex-direction: column;
