@@ -191,15 +191,18 @@ body {
 }
 
 /* Individual Tab Panes (Honors, Medals, Stats) */
+/* This rule applies to ALL .tab-pane elements, hiding them by default. */
 .tab-pane {
-    display: none; /* Hidden by default */
-    height: 100%; /* Make sure the active tab pane takes the full height of .tab-content */
-    display: flex; /* Make it a flex container to manage the grid */
-    flex-direction: column; /* Stack grid vertically */
+    display: none !important; /* Forces hidden state for all inactive tabs */
+    height: 100%;
+    flex-grow: 1;
+    min-height: 0;
+    flex-direction: column; /* This is part of its layout when active */
 }
-/* Only the active tab pane is displayed */
+
+/* This rule applies ONLY to the .tab-pane that ALSO has the .active class, making it visible. */
 .tab-pane.active {
-    display: flex; /* Show as flex container */
+    display: flex !important; /* Forces visible (flex) state for the active tab */
 }
 
 
@@ -316,7 +319,6 @@ body {
     }
     .merit-category-grid {
         grid-template-columns: 1fr; /* Stack panels vertically on medium screens */
-        /* If the entire grid is stacked, internal panel scrolling becomes more important */
     }
 }
 
