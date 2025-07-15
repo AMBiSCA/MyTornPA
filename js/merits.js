@@ -6,9 +6,9 @@ const errorDisplay = document.getElementById('error-display');
 const playerNameSpan = document.getElementById('player-name');
 const playerLevelSpan = document.getElementById('player-level');
 const playerTotalStatsSpan = document.getElementById('player-total-stats'); // Updated order in HTML
-const playerRankSpan = document.getElementById('player-rank');
+
 const playerNetworthSpan = document.getElementById('player-networth');
-const playerLifeSpan = document.getElementById('player-life');
+
 const playerAwardsSpan = document.getElementById('player-awards'); // Updated order in HTML
 
 const tabsContainer = document.querySelector('.tabs-container');
@@ -216,36 +216,16 @@ async function fetchTornDataDirectly(apiKey) {
     }
 }
 
-/**
- * Displays basic player information in the summary section.
- * @param {object} playerData - The player data from the Torn API.
- */
 function displayPlayerSummary(playerData) {
     console.log("displayPlayerSummary: Processing playerData:", playerData);
 
     if (playerData) {
-        // Name and Level are directly at the top level of the playerData object
         playerNameSpan.textContent = playerData.name || 'N/A';
         playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
 
-        // Rank: Try basic.rank (standard), then top-level .rank (if flattened), otherwise N/A
-        let playerRank = 'N/A';
-        if (playerData.basic && playerData.basic.rank) {
-            playerRank = playerData.basic.rank;
-        } else if (playerData.rank) { // Check for rank if it's flattened to top-level
-            playerRank = playerData.rank;
-        }
-        playerRankSpan.textContent = playerRank;
-
-        // Networth and Life are in personalstats
+        // Networth is in personalstats
         const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
         playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
-
-        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
-        // Check if playerLifeSpan element actually exists on the page
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
-        }
 
         // Total Stats and Awards are in personalstats
         const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
@@ -254,26 +234,24 @@ function displayPlayerSummary(playerData) {
         const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
         playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
 
-
         // More granular logging for debugging specific values
         console.log(`  Name: ${playerNameSpan.textContent}`);
         console.log(`  Level: ${playerLevelSpan.textContent}`);
-        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
+        // console.log(`  Rank (after checks): ${playerRankSpan.textContent}`); // DELETE OR COMMENT OUT
         console.log(`  Networth: ${playerNetworthSpan.textContent}`);
-        console.log(`  Life: ${playerLifeSpan ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
+        // console.log(`  Life: ${playerLifeSpan ? playerLifeSpan.textContent : 'N/A (span not found)'}`); // DELETE OR COMMENT OUT
         console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
         console.log(`  Awards: ${playerAwardsSpan.textContent}`);
 
     } else {
-        // Fallback if no player data is available
         console.warn("displayPlayerSummary: playerData is missing.");
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
-        playerRankSpan.textContent = 'N/A';
+        // playerRankSpan.textContent = 'N/A'; // DELETE OR COMMENT OUT
         playerNetworthSpan.textContent = 'N/A';
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = 'N/A';
-        }
+        // if (playerLifeSpan) { // DELETE OR COMMENT OUT
+        //     playerLifeSpan.textContent = 'N/A'; // DELETE OR COMMENT OUT
+        // }
         playerTotalStatsSpan.textContent = 'N/A';
         playerAwardsSpan.textContent = 'N/A';
     }
