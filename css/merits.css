@@ -169,14 +169,13 @@ body {
 }
 
 .tab-content {
-    flex-grow: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding-right: 15px;
-    padding-bottom: 10px;
-    box-sizing: border-box;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    /* UPDATED: Symmetrical horizontal padding for .tab-content */
+    padding: 0 15px 10px; /* 0px top, 15px left/right, 10px bottom */
+    box-sizing: border-box;
 }
-
 .tab-pane {
     display: none !important;
     height: 100%;
@@ -221,12 +220,7 @@ body {
     padding-right: 0; /* Remove inherited padding if it interferes with alignment */
 }
 
-/* Adjust the single panel within the Awards Progress tab to ensure it has a max-width and respects centering */
-#progress-tab.active .merit-category-grid .merit-category-panel.full-width {
-    max-width: 700px; /* Set a maximum width for this panel */
-    margin: 0; /* Remove any auto margins as justify-content will handle centering */
-    grid-column: auto; /* Ensure it doesn't force itself to span all grid columns */
-}
+
 /* Center the single panel within the "Awards Progress" tab */
 #progress-tab.active .merit-category-grid .merit-category-panel.full-width {
     max-width: 700px; /* Adjust this maximum width as desired for your design */
@@ -294,16 +288,17 @@ body {
 }
 
 .merit-category-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1;
-    min-height: 0;
-    overflow-y: auto;
-    font-size: 0.95rem;
-    color: #ccc;
-    line-height: 1.4;
-    padding-right: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    color: #ccc;
+    line-height: 1.4;
+    /* UPDATED: Symmetrical horizontal padding for .merit-category-panel ul */
+    padding: 0 10px;
 }
 
 .merit-category-panel ul li {
