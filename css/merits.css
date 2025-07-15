@@ -205,7 +205,7 @@ body {
     padding: 0 15px; 
     box-sizing: border-box;
     align-content: start;
-    max-width: 1450px;
+    max-width: 1550px;
     /* ADDED: Centers the entire grid's content within its available space */
     justify-content: center; 
     margin-left: auto;
