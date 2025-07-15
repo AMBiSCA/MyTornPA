@@ -212,6 +212,11 @@ body {
     max-width: 1450px; /* Adjust this value based on your desired maximum content width */
 }
 
+#progress-tab.active .merit-category-grid .merit-category-panel.full-width {
+    max-width: 700px; /* Adjust this maximum width as desired for your design */
+    margin: 0 auto; /* This centers the panel horizontally */
+}
+
 
 /* 1. Configure the grid specifically for the active Stats Overview tab */
 #stats-tab.active .merit-category-grid {
