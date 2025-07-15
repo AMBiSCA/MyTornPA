@@ -169,7 +169,7 @@ async function fetchTornDataDirectly(apiKey) {
 
     // Selections needed for various merits/medals/stats
     // I've added 'factions' and expanded 'personalstats' sub-selections
-    const selections = "basic,personalstats,attacks,revives,factions";
+    const selections = "basic,personalstats"; // <- REVISED TO MINIMUM SELECTIONS
     const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
     try {
