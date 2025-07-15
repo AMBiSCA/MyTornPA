@@ -385,48 +385,67 @@ tabsContainer.addEventListener('click', (event) => {
 });
 
 
-// --- Initialization Function ---
+/// ... (rest of merits.js)
 
-/**
- * Initializes the Merits page, fetches data, and updates UI.
- */
 async function initializeMeritsPage() {
     hideError();
-    showLoading(); // Show loading initially
+    showLoading();
 
-    // Listen for Firebase authentication state changes
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             console.log("User is logged in:", user.uid);
-            // Fetch the user's API key from Firestore
+
+            // --- ADD THESE NEW CONSOLE.LOGS ---
+            console.log("Attempting to get Firestore instance...");
             const db = firebase.firestore();
+            console.log("Firestore instance obtained.");
+
             try {
                 const userDocRef = db.collection('users').doc(user.uid);
+                console.log("User document reference created:", userDocRef.path);
+
                 const doc = await userDocRef.get();
+                console.log("User document fetch attempt complete. Doc exists:", doc.exists);
 
-                if (doc.exists && doc.data() && doc.data().tornApiKey) {
-                    const tornApiKey = doc.data().tornApiKey;
-                    console.log("Torn API Key retrieved from Firestore.");
+                if (doc.exists && doc.data()) {
+                    const userData = doc.data();
+                    console.log("User data from Firestore:", userData); // Log all user data
 
-                    const playerData = await fetchTornDataDirectly(tornApiKey);
-                    if (playerData) {
-                        displayPlayerSummary(playerData);
-                        updateAchievementsDisplay(playerData);
-                        populatePlayerStats(playerData); // Populate stats for the overview tab
+                    if (userData.tornApiKey) {
+                        const tornApiKey = userData.tornApiKey;
+                        console.log("Torn API Key retrieved from Firestore.");
+
+                        const playerData = await fetchTornDataDirectly(tornApiKey);
+                        if (playerData) {
+                            displayPlayerSummary(playerData);
+                            updateAchievementsDisplay(playerData);
+                            populatePlayerStats(playerData);
+                        } else {
+                            // Error message handled by fetchTornDataDirectly
+                            console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
+                        }
                     } else {
-                        // Error message handled by fetchTornDataDirectly
+                        hideLoading();
+                        showError('No Torn API key found for your account. Please set it in your profile settings (e.g., in your user management section).');
+                        console.warn("tornApiKey field is missing in user's Firestore document.");
                     }
                 } else {
                     hideLoading();
-                    showError('No Torn API key found for your account. Please set it in your profile.');
+                    showError('User data document not found in Firestore. Please ensure your user profile is correctly set up.');
+                    console.warn("User document does not exist in Firestore for UID:", user.uid);
                 }
             } catch (firestoreError) {
                 console.error("Error fetching API key from Firestore:", firestoreError);
                 hideLoading();
-                showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
+                if (firestoreError.code === 'permission-denied') {
+                     showError('Permission denied to access your data. Please check Firebase Security Rules.');
+                } else {
+                     showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
+                }
+
             }
         } else {
-            console.log("No user logged in.");
+            console.log("No user logged in. Redirecting or prompting login.");
             hideLoading();
             showError('Please log in to view your Torn Honors & Medals.');
             // Optionally redirect to login page
@@ -435,5 +454,6 @@ async function initializeMeritsPage() {
     });
 }
 
+// ... (rest of merits.js)
 // Run initialization when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeMeritsPage);
