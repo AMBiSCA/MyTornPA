@@ -401,7 +401,7 @@ async function initializeMeritsPage() {
             console.log("Firestore instance obtained.");
 
             try {
-                const userDocRef = db.collection('users').doc(user.uid);
+                const userDocRef = db.collection('userProfiles').doc(user.uid); // <--- CORRECTED
                 console.log("User document reference created:", userDocRef.path);
 
                 const doc = await userDocRef.get();
