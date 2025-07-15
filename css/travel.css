@@ -478,24 +478,35 @@ footer.footer > p {
     border: 1px solid #555;
     flex-shrink: 0; /* Prevents image from shrinking */
 }
+
 .item-info {
-    flex-grow: 1; /* Takes up remaining space */
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Space between title, stats, and profit line */
+    flex-grow: 1; /* This rule just removes the flexbox properties */
 }
+
 .item-info h3 {
-    margin: 0;
+    margin: 0 0 10px 0; /* Adds spacing below the title */
     color: #eee;
     font-size: 1.1rem;
 }
+
 .item-stats {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Creates two equal columns */
-    gap: 5px 20px; /* Row gap and Column gap */
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 20px;
     font-size: 0.9rem;
     color: #ccc;
+    margin-bottom: 12px; /* Adds spacing below the stats grid */
 }
+
+.profit-summary {
+    font-weight: bold;
+    color: #2ecc71;
+    font-size: 1rem;
+    margin: 0;
+    text-align: left;
+    /* The background, padding, and border-radius have been removed */
+}
+
 .item-stats span {
     display: block; /* Ensures each stat is on its own line within the grid */
 }
@@ -503,16 +514,7 @@ footer.footer > p {
     color: #00a8ff; /* Makes the label part blue */
     margin-right: 5px;
 }
-.profit-summary {
-    font-weight: bold;
-    color: #2ecc71; /* Green for profit */
-    font-size: 1rem;
-    margin: 0;
-    text-align: left; /* Overrides any inherited centered text */
-    background-color: rgba(46, 204, 113, 0.1);
-    padding: 8px;
-    border-radius: 5px;
-}
+
 
 
 /* --- Responsive Adjustments --- */
