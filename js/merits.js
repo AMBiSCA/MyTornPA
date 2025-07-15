@@ -827,10 +827,9 @@ function clearAllLists() {
 
 
 /**
- * Fetches Torn player data using the 'honors' and 'medals' selections,
- * which is the correct and most accurate method.
+ * Fetches all necessary Torn player data (basic, personalstats, honors, and medals).
  * @param {string} apiKey - The Torn API key for the current user.
- * @returns {Promise<object|null>} A promise that resolves with an object like { honors: [], medals: [] }, or null on failure.
+ * @returns {Promise<object|null>} A promise that resolves with a combined data object, or null on failure.
  */
 async function fetchTornDataDirectly(apiKey) {
     if (!apiKey) {
@@ -840,33 +839,41 @@ async function fetchTornDataDirectly(apiKey) {
     const baseUrl = "https://api.torn.com/user/";
     const keyParam = `key=${apiKey}`;
 
-    // Create the URLs for the two API calls we need to make
+    // Create URLs for all three API calls we need
+    const summaryUrl = `${baseUrl}?selections=basic,personalstats&${keyParam}`;
     const honorsUrl = `${baseUrl}?selections=honors&${keyParam}`;
     const medalsUrl = `${baseUrl}?selections=medals&${keyParam}`;
 
     try {
-        // Use Promise.all to run both fetch requests at the same time for efficiency
-        const [honorsResponse, medalsResponse] = await Promise.all([
+        // Use Promise.all to fetch all three endpoints at the same time for efficiency
+        const [summaryResponse, honorsResponse, medalsResponse] = await Promise.all([
+            fetch(summaryUrl),
             fetch(honorsUrl),
             fetch(medalsUrl)
         ]);
 
-        // Check if either of the network requests failed
+        // Check if any of the network requests failed
+        if (!summaryResponse.ok) throw new Error(`Summary API request failed: ${summaryResponse.status}`);
         if (!honorsResponse.ok) throw new Error(`Honors API request failed: ${honorsResponse.status}`);
         if (!medalsResponse.ok) throw new Error(`Medals API request failed: ${medalsResponse.status}`);
 
+        const summaryData = await summaryResponse.json();
         const honorsData = await honorsResponse.json();
         const medalsData = await medalsResponse.json();
 
         // Check for errors returned inside the API's JSON response
+        if (summaryData.error) throw new Error(`Summary API error: ${summaryData.error.error}`);
         if (honorsData.error) throw new Error(`Honors API error: ${honorsData.error.error}`);
         if (medalsData.error) throw new Error(`Medals API error: ${medalsData.error.error}`);
 
-        console.log('Successfully fetched direct honors and medals from API.');
+        console.log('Successfully fetched all required API data.');
         hideLoading();
 
-        // Return a single object containing both lists
+        // Combine all the data into one object.
+        // The summaryData (which has name, level, personalstats) is the base.
+        // Then we add the honors and medals arrays to it.
         return {
+            ...summaryData,
             honors: honorsData.honors || [],
             medals: medalsData.medals || []
         };
