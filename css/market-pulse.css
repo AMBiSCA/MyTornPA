@@ -1,0 +1,285 @@
+/* Styles specific to market-pulse.html */
+
+/* Main layout container for the market pulse page */
+.market-pulse-container {
+    display: flex; /* Use flexbox for main sections */
+    flex-direction: column; /* Stack sections vertically */
+    flex-grow: 1; /* Allow it to fill available height */
+    gap: 20px; /* Spacing between main sections */
+    min-height: 0; /* Important for flex items */
+    width: 100%;
+}
+
+/* Section for item search, chart, and metrics */
+.item-analyzer-section {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allows this section to take up available vertical space */
+    padding: 20px;
+    border: 1px solid #00a8ff;
+    border-radius: 12px; /* Slightly more rounded than input-section */
+    background-color: #2e2e2e;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    min-height: 0; /* Important for containing flex items */
+    box-sizing: border-box;
+}
+
+/* Compact version of input-section for search and metrics */
+.input-section.compact {
+    padding: 10px 15px; /* Smaller padding */
+    border: none; /* No border for these internal sections */
+    background-color: transparent; /* No background */
+    box-shadow: none; /* No shadow */
+    gap: 8px; /* Smaller gap for elements inside */
+    margin-bottom: 15px; /* Spacing below search input */
+}
+
+/* Specific styling for the search input in this context */
+.input-section.compact input[type="text"] {
+    max-width: 400px; /* Limit width of search input */
+    margin-right: 10px; /* Space between input and button */
+    display: inline-block; /* Allow button to be next to it */
+    vertical-align: middle;
+}
+
+/* Styles for the metrics section, also using compact input-section */
+.metrics-section {
+    margin-top: 15px; /* Spacing above metrics from chart */
+    margin-bottom: 0; /* Ensure no extra space at bottom */
+    padding: 10px 0 0 0; /* Only top padding for a cleaner look */
+    border-top: 1px solid rgba(0, 168, 255, 0.3); /* Separator line */
+}
+
+.metrics-title {
+    color: #00a8ff;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center; /* Center the title */
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid for metrics */
+    gap: 10px; /* Space between metric items */
+    color: #eee;
+    font-size: 0.95rem;
+    text-align: center; /* Center metric values */
+}
+
+.metrics-grid strong {
+    color: #00a8ff; /* Highlight metric labels */
+}
+
+#24hr-change-icon {
+    font-size: 0.8em; /* Smaller icon */
+    vertical-align: middle;
+    margin-left: 5px;
+}
+
+
+/* Chart Specific Styles */
+.chart-container {
+    flex-grow: 1; /* Allow chart to take up most available space */
+    min-height: 250px; /* Minimum height for chart to be visible */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* For time filters positioning */
+}
+
+#priceTrendChart {
+    max-height: 100%; /* Ensure canvas scales within its container */
+    max-width: 100%;
+}
+
+.chart-time-filters {
+    margin-top: 10px; /* Space between chart and filter buttons */
+    display: flex;
+    gap: 8px; /* Space between buttons */
+    justify-content: center; /* Center the buttons */
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+.chart-filter-btn {
+    padding: 8px 15px; /* Smaller padding for filter buttons */
+    font-size: 0.9rem;
+}
+
+.chart-filter-btn.active {
+    background-color: #00a8ff; /* Active state styling */
+    color: #fff;
+    border-color: #00a8ff;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.5);
+}
+.chart-filter-btn.active:hover {
+    background-color: #0086d1;
+    border-color: #0086d1;
+}
+
+
+/* Top Movers Section */
+.top-movers-section {
+    flex-shrink: 0; /* Prevent this section from growing */
+    padding: 15px 20px;
+    border: 1px solid #00a8ff;
+    border-radius: 12px;
+    background-color: #2e2e2e;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    margin-top: 0; /* Gap handles spacing */
+    box-sizing: border-box;
+    /* Limit height to prevent scroll and ensure it fits snug */
+    max-height: 180px; /* Adjust as needed to fit page */
+    overflow: hidden; /* Hide anything that overflows this section */
+}
+
+.movers-title {
+    color: #00a8ff;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 5px; /* Smaller margin */
+    text-align: center;
+}
+
+.movers-subtitle {
+    font-size: 0.8rem;
+    color: #bbb;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+#top-movers-list {
+    display: flex;
+    flex-wrap: wrap; /* Allow movers to wrap to next line if needed */
+    justify-content: center; /* Center mover cards */
+    gap: 15px; /* Space between mover cards */
+    min-height: 0; /* Important for containing flex items */
+    overflow-y: hidden; /* Ensure no internal scroll for this container itself */
+}
+
+.mover-card {
+    background-color: #333;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column; /* Stack name, price, change */
+    align-items: center;
+    text-align: center;
+    flex-basis: calc(25% - 15px); /* Roughly 4 cards per row, adjust as needed */
+    max-width: 180px; /* Max width for individual cards */
+    box-sizing: border-box;
+    min-width: 120px; /* Ensure cards don't get too small */
+}
+
+.mover-card:hover {
+    transform: translateY(-3px);
+    background-color: #3a3a3a;
+    box-shadow: 0 5px 15px rgba(0, 168, 255, 0.4);
+}
+
+.mover-name {
+    font-weight: bold;
+    color: #eee;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.mover-price {
+    color: #00a8ff;
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.mover-change {
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap; /* Prevent breaking */
+}
+
+.mover-change.positive { color: #2ecc71; } /* Green for positive change */
+.mover-change.negative { color: #e74c3c; } /* Red for negative change */
+.mover-change.neutral { color: #bbbbbb; } /* Grey for no change */
+
+/* Media Queries for Responsiveness (adjusting from travel.css) */
+@media (max-width: 1024px) {
+    .metrics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    #top-movers-list {
+        gap: 10px;
+    }
+    .mover-card {
+        flex-basis: calc(33.33% - 10px); /* 3 cards per row */
+    }
+}
+
+@media (max-width: 768px) {
+    /* Inherits main responsive adjustments from global.css */
+    .market-pulse-container {
+        gap: 15px;
+    }
+    .item-analyzer-section {
+        padding: 15px;
+    }
+    .metrics-grid {
+        grid-template-columns: 1fr; /* Stack metrics vertically on small screens */
+        text-align: left;
+    }
+    .metrics-grid div {
+        border-bottom: 1px dashed rgba(255,255,255,0.1); /* Separator for stacked metrics */
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+    }
+    .metrics-grid div:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    .top-movers-section {
+        padding: 10px 15px;
+        max-height: 250px; /* May need more height if cards stack more */
+    }
+    #top-movers-list {
+        flex-direction: column; /* Stack mover cards vertically on very small screens */
+        align-items: center;
+    }
+    .mover-card {
+        width: 90%; /* Take up more width when stacked */
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .item-analyzer-section {
+        padding: 10px;
+    }
+    .input-section.compact {
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+    .input-section.compact input[type="text"] {
+        width: calc(100% - 70px); /* Adjust width to fit beside a search button if added */
+    }
+    .chart-time-filters .btn {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    .metrics-title, .movers-title {
+        font-size: 1rem;
+    }
+    .movers-subtitle {
+        font-size: 0.7rem;
+    }
+    .mover-name {
+        font-size: 1rem;
+    }
+    .mover-price, .mover-change {
+        font-size: 0.8rem;
+    }
+}
