@@ -140,7 +140,8 @@ body {
 .tab-button {
     flex-grow: 1;
     text-align: center;
-    padding: 12px 20px;
+    /* ADJUSTED PADDING */
+    padding: 12px 25px; /* Increased horizontal padding from 20px to 25px */
     cursor: pointer;
     background-color: #2a2a2a;
     color: #00a8ff;
