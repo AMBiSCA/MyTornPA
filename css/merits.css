@@ -210,7 +210,7 @@ body {
 
     /* ADDED (Optional): Max-width to prevent the grid from stretching too wide on very large screens */
     /* This might be needed if the grid is just too wide for centering to be noticeable */
-    max-width: 1300px; /* Adjust this value based on your desired maximum content width */
+    max-width: 1400px; /* Adjust this value based on your desired maximum content width */
 }
 
 
