@@ -748,28 +748,6 @@ const allMedals = [
     { name: "Invincible", requirement: "Reach the rank of \"Invincible\"", statKey: "rank_text", threshold: "Invincible", category: "misc-awards-list", type: "rank" },
 ];
 
-
-// --- Helper Functions ---
-
-/**
- * Shows the loading indicator.
- */
-function showLoading() {
-    loadingIndicator.classList.remove('js-hidden-initially');
-    errorDisplay.classList.add('js-hidden-initially'); // Hide any previous errors
-}
-
-/**
- * Hides the loading indicator.
- */
-function hideLoading() {
-    loadingIndicator.classList.add('js-hidden-initially');
-}
-
-/**
- * Shows an error message.
- * @param {string} message - The error message to display.
- */
 function showError(message) {
     errorDisplay.textContent = `Error: ${message}`;
     errorDisplay.classList.remove('js-hidden-initially');
@@ -1900,46 +1878,6 @@ const allMedals = [
 ];
 
 
-// --- Helper Functions ---
-
-/**
- * Shows the loading indicator.
- */
-function showLoading() {
-    loadingIndicator.classList.remove('js-hidden-initially');
-    errorDisplay.classList.add('js-hidden-initially'); // Hide any previous errors
-}
-
-/**
- * Hides the loading indicator.
- */
-function hideLoading() {
-    loadingIndicator.classList.add('js-hidden-initially');
-}
-
-/**
- * Shows an error message.
- * @param {string} message - The error message to display.
- */
-function showError(message) {
-    errorDisplay.textContent = `Error: ${message}`;
-    errorDisplay.classList.remove('js-hidden-initially');
-    hideLoading();
-}
-
-/**
- * Hides the error message.
- */
-function hideError() {
-    errorDisplay.classList.add('js-hidden-initially');
-    errorDisplay.textContent = '';
-}
-
-/**
- * Formats a number with commas.
- * @param {number} num - The number to format.
- * @returns {string} The formatted number.
- */
 function formatNumber(num) {
     if (typeof num !== 'number' || isNaN(num)) {
         return 'N/A';
