@@ -306,14 +306,13 @@ footer.footer > p { /* New rule for the copyright paragraph */
 
 /* Left Panel - Inputs and Filters */
 .left-panel {
-    flex: 0 0 30%;
-    display: flex;
-    flex-direction: column;
-    overflow-y: hidden; /* No scrollbar on left panel */
-    padding-right: 15px;
-    box-sizing: border-box;
-    min-height: 0;
-	transform: translateY(-25px);
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden; /* No scrollbar on left panel */
+  padding-right: 15px;
+  box-sizing: border-box;
+  min-height: 0;
+  transform: translateY(-25px);
 }
 
 .right-panel {
