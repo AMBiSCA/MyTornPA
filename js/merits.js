@@ -30,52 +30,60 @@ const playerStatsList = document.getElementById('player-stats-list');
 // The 'type' helps determine how to check progress (e.g., 'count', 'level', 'boolean')
 // 'category' maps to the <ul> ID in HTML
 const allHonors = [
-    // Attacking Honors (Chaining is separate for now)
-    { name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chain_hits", threshold: 10, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 2", requirement: "Participate in a 100 length chain", statKey: "personalstats.chain_hits", threshold: 100, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "personalstats.chain_hits", threshold: 1000, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 4", requirement: "Participate in a 10,000 length chain", statKey: "personalstats.chain_hits", threshold: 10000, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 5", requirement: "Participate in a 100,000 length chain", statKey: "personalstats.chain_hits", threshold: 100000, category: "honors-chaining-list", type: "count" },
+    // Chaining Honors (Corrected statKey paths for personalstats)
+    { name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chains", threshold: 10, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 2", requirement: "Participate in a 100 length chain", statKey: "personalstats.chains", threshold: 100, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "personalstats.chains", threshold: 1000, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 4", requirement: "Participate in a 10,000 length chain", statKey: "personalstats.chains", threshold: 10000, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 5", requirement: "Participate in a 100,000 length chain", statKey: "personalstats.chains", threshold: 100000, category: "honors-chaining-list", type: "count" },
     { name: "Carnage", requirement: "Make a single hit that earns your faction 10 or more respect", statKey: "personalstats.best_chain_hit", threshold: 10, category: "honors-chaining-list", type: "count" },
     { name: "Massacre", requirement: "Make a single hit that earns your faction 100 or more respect", statKey: "personalstats.best_chain_hit", threshold: 100, category: "honors-chaining-list", type: "count" },
-    { name: "Strongest Link", requirement: "Make 100 hits in a single chain", statKey: "personalstats.max_chain", threshold: 100, category: "honors-chaining-list", type: "count" }, // Note: Torn API's 'max_chain' is in personalstats
-    // Weapons Honors
-    { name: "2800 Ft/S", requirement: "Achieve 100 finishing hits with rifles", statKey: "personalstats.finishing_hits.rifle", threshold: 100, category: "honors-weapons-list", type: "count" },
-    { name: "Axe Wound", requirement: "Achieve 100 finishing hits with clubbing weapons", statKey: "personalstats.finishing_hits.club", threshold: 100, category: "honors-weapons-list", type: "count" },
-    { name: "Unarmed", requirement: "Achieve 100 fists or kick finishing hits", statKey: "personalstats.finishing_hits.unarmed", threshold: 100, category: "honors-weapons-list", type: "count" },
-    // General Attacking Honors
-    { name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.kill_streak", threshold: 10, category: "honors-attacking-general-list", type: "count" },
-    { name: "Kill Streaker 2", requirement: "Achieve a 100 kill streak", statKey: "personalstats.kill_streak", threshold: 100, category: "honors-attacking-general-list", type: "count" },
-    { name: "Wham!", requirement: "Deal over 100,000 total damage", statKey: "personalstats.total_dam_dealt", threshold: 100000, category: "honors-attacking-general-list", type: "count" },
-    { name: "Bounty Hunter", requirement: "Collect 250 bounties", statKey: "personalstats.bounties_collected", threshold: 250, category: "honors-attacking-general-list", type: "count" },
-    // ... add more Honors here following the structure ...
+    { name: "Strongest Link", requirement: "Make 100 hits in a single chain", statKey: "personalstats.max_chain", threshold: 100, category: "honors-chaining-list", type: "count" },
+
+    // Weapons Honors (Corrected statKey paths based on your API response's direct fields)
+    { name: "2800 Ft/S", requirement: "Achieve 100 finishing hits with rifles", statKey: "personalstats.rifhits", threshold: 100, category: "honors-weapons-list", type: "count" },
+    { name: "Axe Wound", requirement: "Achieve 100 finishing hits with clubbing weapons", statKey: "personalstats.axehits", threshold: 100, category: "honors-weapons-list", type: "count" },
+    { name: "Unarmed", requirement: "Achieve 100 fists or kick finishing hits", statKey: "personalstats.h2hhits", threshold: 100, category: "honors-weapons-list", type: "count" },
+    // Add other weapons if needed: personalstats.smghits, personalstats.pishits, personalstats.piehits, personalstats.slahits, personalstats.grehits, personalstats.chahits, etc.
+
+    // General Attacking Honors (Corrected statKey paths)
+    { name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.killstreak", threshold: 10, category: "honors-attacking-general-list", type: "count" }, // Changed kill_streak to killstreak
+    { name: "Kill Streaker 2", requirement: "Achieve a 100 kill streak", statKey: "personalstats.killstreak", threshold: 100, category: "honors-attacking-general-list", type: "count" },
+    { name: "Wham!", requirement: "Deal over 100,000 total damage", statKey: "personalstats.attackdamage", threshold: 100000, category: "honors-attacking-general-list", type: "count" }, // Changed total_dam_dealt to attackdamage
+    { name: "Bounty Hunter", requirement: "Collect 250 bounties", statKey: "personalstats.bountiescollected", threshold: 250, category: "honors-attacking-general-list", type: "count" }, // Changed bounties_collected to bountiescollected
+
+    // ... add more Honors here following the corrected structure ...
 ];
 
 const allMedals = [
-    // Combat Medals
-    { name: "Anti Social", requirement: "Win 50 attacks", statKey: "attacks.attacks_won", threshold: 50, category: "medals-combat-list", type: "count" },
-    { name: "Happy Slapper", requirement: "Win 250 attacks", statKey: "attacks.attacks_won", threshold: 250, category: "medals-combat-list", type: "count" },
-    { name: "Scar Maker", requirement: "Win 500 attacks", statKey: "attacks.attacks_won", threshold: 500, category: "medals-combat-list", type: "count" },
-    { name: "Hired Gun", requirement: "Collect 25 bounties", statKey: "personalstats.bounties_collected", threshold: 25, category: "medals-combat-list", type: "count" },
-    { name: "Bouncer", requirement: "Win 50 defends", statKey: "personalstats.defends_won", threshold: 50, category: "medals-combat-list", type: "count" },
-    { name: "Brick wall", requirement: "Win 250 defends", statKey: "personalstats.defends_won", threshold: 250, category: "medals-combat-list", type: "count" },
-    { name: "Boom Headshot", requirement: "Deal 500 critical hits", statKey: "personalstats.critical_hits", threshold: 500, category: "medals-combat-list", type: "count" },
-    // Commitment Medals
-    { name: "Citizenship", requirement: "Be a donator for 30 days", statKey: "personalstats.donator_days", threshold: 30, category: "medals-commitment-list", type: "count" },
-    { name: "Devoted", requirement: "Be a donator for 100 days", statKey: "personalstats.donator_days", threshold: 100, category: "medals-commitment-list", type: "count" },
-    { name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "personalstats.days_old", threshold: 365, category: "medals-commitment-list", type: "count" },
+    // Combat Medals (Corrected statKey paths)
+    { name: "Anti Social", requirement: "Win 50 attacks", statKey: "personalstats.attackswon", threshold: 50, category: "medals-combat-list", type: "count" }, // Changed attacks.attacks_won to personalstats.attackswon
+    { name: "Happy Slapper", requirement: "Win 250 attacks", statKey: "personalstats.attackswon", threshold: 250, category: "medals-combat-list", type: "count" },
+    { name: "Scar Maker", requirement: "Win 500 attacks", statKey: "personalstats.attackswon", threshold: 500, category: "medals-combat-list", type: "count" },
+    { name: "Hired Gun", requirement: "Collect 25 bounties", statKey: "personalstats.bountiescollected", threshold: 25, category: "medals-combat-list", type: "count" },
+    { name: "Bouncer", requirement: "Win 50 defends", statKey: "personalstats.defendswon", threshold: 50, category: "medals-combat-list", type: "count" }, // Changed personalstats.defends_won to personalstats.defendswon
+    { name: "Brick wall", requirement: "Win 250 defends", statKey: "personalstats.defendswon", threshold: 250, category: "medals-combat-list", type: "count" },
+    { name: "Boom Headshot", requirement: "Deal 500 critical hits", statKey: "personalstats.attackcriticalhits", threshold: 500, category: "medals-combat-list", type: "count" }, // Changed personalstats.critical_hits to personalstats.attackcriticalhits
+
+    // Commitment Medals (Corrected statKey paths)
+    { name: "Citizenship", requirement: "Be a donator for 30 days", statKey: "personalstats.daysbeendonator", threshold: 30, category: "medals-commitment-list", type: "count" }, // Changed personalstats.donator_days to personalstats.daysbeendonator
+    { name: "Devoted", requirement: "Be a donator for 100 days", statKey: "personalstats.daysbeendonator", threshold: 100, category: "medals-commitment-list", type: "count" },
+    { name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "personalstats.days_old", threshold: 365, category: "medals-commitment-list", type: "count" }, // This one looks correct already
     { name: "Two Years of Service", requirement: "Live in Torn for Two Years", statKey: "personalstats.days_old", threshold: 730, category: "medals-commitment-list", type: "count" },
-    // Level Medals
+
+    // Level Medals (statKey 'basic.level' is correct)
     { name: "Level Five", requirement: "Reach level Five", statKey: "basic.level", threshold: 5, category: "medals-level-list", type: "level" },
     { name: "Level Ten", requirement: "Reach level Ten", statKey: "basic.level", threshold: 10, category: "medals-level-list", type: "level" },
     { name: "Level Fifteen", requirement: "Reach level Fifteen", statKey: "basic.level", threshold: 15, category: "medals-level-list", type: "level" },
     { name: "Level One Hundred", requirement: "Reach level One Hundred", statKey: "basic.level", threshold: 100, category: "medals-level-list", type: "level" },
-    // Crimes Medals (Simplified as 1.0 vs 2.0 is complex; this uses total)
-    { name: "Trainee Troublemaker", requirement: "Commit 100 Criminal offenses", statKey: "personalstats.crimes.total", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { name: "Mastermind", requirement: "Participate in 100 Organized Crimes", statKey: "personalstats.organized_crimes", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { name: "Sneak Thief", requirement: "Commit 1,000 Theft crimes", statKey: "personalstats.crimes.theft", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    // ... add more Medals here following the structure ...
+
+    // Crimes Medals (Corrected statKey paths)
+    { name: "Trainee Troublemaker", requirement: "Commit 100 Criminal offenses", statKey: "personalstats.criminaloffenses", threshold: 100, category: "medals-crimes-list", type: "count" }, // Changed personalstats.crimes.total to personalstats.criminaloffenses
+    { name: "Mastermind", requirement: "Participate in 100 Organized Crimes", statKey: "personalstats.organisedcrimes", threshold: 100, category: "medals-crimes-list", type: "count" }, // Changed personalstats.organized_crimes to personalstats.organisedcrimes
+    { name: "Sneak Thief", requirement: "Commit 1,000 Theft crimes", statKey: "personalstats.theft", threshold: 1000, category: "medals-crimes-list", type: "count" }, // Changed personalstats.crimes.theft to personalstats.theft
+    // ... add more Medals here following the corrected structure ...
 ];
+
 
 
 // --- Helper Functions ---
@@ -321,31 +329,30 @@ function populatePlayerStats(playerData) {
     }
 
     const statsMapping = {
-        'Attacks Won': 'attacks.attacks_won',
-        'Defends Won': 'personalstats.defends_won',
-        'Crimes Committed': 'personalstats.crimes.total',
-        'Items Found': 'personalstats.items_found',
-        'Medical Items Used': 'personalstats.medical_items_used',
-        'Times Hospitalized': 'personalstats.times_hospitalized',
-        'Times Jailed': 'personalstats.times_jailed',
-        'Travels Made': 'personalstats.travel_count',
-        'Bounties Collected': 'personalstats.bounties_collected',
-        'Busted People from Jail': 'personalstats.busting_busted',
-        'Revives Given': 'personalstats.revives', // Ensure this stat is fetched via API
-        'Max Chain Hits (Personal)': 'personalstats.max_chain',
-        'Max Faction Chain Hits': 'factions.max_chain_hits', // Added faction chain for clarity
-        'Total Damage Dealt': 'personalstats.total_dam_dealt',
-        'Total Critical Hits': 'personalstats.critical_hits',
-        'Total Respect Earned': 'personalstats.respect',
-        'Networth': 'personalstats.networth',
-        'Strength': 'personalstats.strength',
-        'Defense': 'personalstats.defense',
-        'Speed': 'personalstats.speed',
-        'Dexterity': 'personalstats.dexterity',
-        'Life': 'personalstats.life',
-        'Level': 'basic.level',
-        'Rank': 'basic.rank'
-    };
+    'Attacks Won': 'personalstats.attackswon',
+    'Defends Won': 'personalstats.defendswon',
+    'Crimes Committed (Total)': 'personalstats.criminaloffenses',
+    'Items Found': 'personalstats.cityfinds', // Assuming this is for general items found
+    'Medical Items Used': 'personalstats.medicalitemsused',
+    'Times Hospitalized': 'personalstats.hospital',
+    'Times Jailed': 'personalstats.jailed',
+    'Travels Made': 'personalstats.traveltimes', // Changed from travel_count to traveltimes
+    'Bounties Collected': 'personalstats.bountiescollected',
+    'Busted People from Jail': 'personalstats.peoplebusted',
+    'Revives Given': 'personalstats.revives',
+    'Max Chain Hits (Personal)': 'personalstats.max_chain',
+    'Total Damage Dealt': 'personalstats.attackdamage',
+    'Total Critical Hits': 'personalstats.attackcriticalhits',
+    'Total Respect Earned': 'personalstats.respectforfaction', // This might be personalstats.respect depending on the exact metric
+    'Networth': 'personalstats.networth',
+    'Strength': 'personalstats.strength',
+    'Defense': 'personalstats.defense',
+    'Speed': 'personalstats.speed',
+    'Dexterity': 'personalstats.dexterity',
+    'Life': 'personalstats.life',
+    'Level': 'basic.level',
+    'Rank': 'basic.rank'
+};
 
     for (const [displayName, statPath] of Object.entries(statsMapping)) {
         const value = getNestedProperty(playerData, statPath);
