@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown');
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
-    const loggedInUserDisplay = document.getElementById('logged-in-user-display'); // Corrected ID to match HTML
-    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn'); // This ID doesn't exist in your HTML
+    const loggedInUserDisplay = document.getElementById('logged-in-user-display'); // CORRECTED ID
+    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn'); // This ID doesn't exist in your HTML, will be null
     const headerLogoLink = document.querySelector('.header-left a');
 
     // Add console logs for element existence
-    console.log("Elements found:", {
+    console.log("globalheader.js: Elements found:", {
         headerButtonsContainer: !!headerButtonsContainer,
         signUpButtonHeader: !!signUpButtonHeader,
         logoutButtonHeader: !!logoutButtonHeader,
@@ -113,29 +113,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Firebase Auth State Listener (Controls UI) ---
     if (auth) {
         auth.onAuthStateChanged(function(user) {
-            console.log("globalheader.js: Auth state changed. User object:", user); // Log the user object
+            console.log("globalheader.js: Auth state changed. User object:", user);
 
             const currentPagePath = window.location.pathname;
             const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
             const isSignUpPage = (pageName === 'signup.html');
-            const isHomePage = (pageName === 'home.html' || pageName === '' || pageName === 'index.html'); // Added index.html
-
-            // Ensure all elements exist before trying to manipulate them (already done by constants at top)
+            const isHomePage = (pageName === 'home.html' || pageName === '' || pageName === 'index.html');
 
             if (user) {
-                console.log("User IS logged in:", user.email || user.uid);
+                console.log("globalheader.js: User IS logged in:", user.email || user.uid);
                 // --- USER IS LOGGED IN ---
                 if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
                 if (loggedInUserDisplay) {
-                    loggedInUserDisplay.style.display = 'inline-flex'; // Show if intended for logged-in user display
-                    // Assuming you want to display user info here:
-                    loggedInUserDisplay.textContent = user.email || 'Logged In'; // Or user.displayName, etc.
+                    loggedInUserDisplay.style.display = 'inline-flex';
+                    loggedInUserDisplay.textContent = user.email || 'Logged In';
                 }
 
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                // if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex'; // No such ID in your HTML
+                // if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex'; // Still no such ID in your HTML
                 if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
                 if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
 
@@ -162,10 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
             } else {
-                console.log("User IS NOT logged in.");
+                console.log("globalheader.js: User IS NOT logged in.");
                 // --- USER IS LOGGED OUT ---
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // Hide if intended for logged-in user display
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
 
                 // Show logged-out buttons
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
@@ -177,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.warn("globalheader.js: Firebase auth object is NULL. Can't update header UI.");
         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-        if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex'; // Default to showing sign up if auth fails
+        if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
     }
 
     console.log("globalheader.js: End of script.");
