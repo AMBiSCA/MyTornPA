@@ -161,7 +161,7 @@ function clearAllLists() {
 
 /**
  * Fetches Torn player data directly from the Torn API.
- * This function now assumes the API key is retrieved from Firestore.
+ * This function assumes the API key is retrieved from Firestore.
  * @param {string} apiKey - The Torn API key for the current user.
  * @returns {Promise<object>} A promise that resolves with the player data.
  */
@@ -170,8 +170,8 @@ async function fetchTornDataDirectly(apiKey) {
         throw new Error("No Torn API key found.");
     }
 
-    // This is the V2 URL structure. The "v2" refers to the available fields/data, not a different base domain.
-    // Streamlined selections to basic and personalstats for robustness.
+    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
+    // 'basic' contains name, level, gender. 'personalstats' contains a vast array of user stats.
     const selections = "basic,personalstats";
     const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
@@ -223,4 +223,296 @@ async function fetchTornDataDirectly(apiKey) {
 function displayPlayerSummary(playerData) {
     console.log("displayPlayerSummary: Processing playerData:", playerData);
 
-    if (playerD
+    if (playerData) {
+        // Name and Level are directly at the top level of the playerData object
+        playerNameSpan.textContent = playerData.name || 'N/A';
+        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
+
+        // Rank: Try basic.rank (standard), then top-level .rank (if flattened), otherwise N/A
+        let playerRank = 'N/A';
+        if (playerData.basic && playerData.basic.rank) {
+            playerRank = playerData.basic.rank;
+        } else if (playerData.rank) { // Check for rank if it's flattened to top-level
+            playerRank = playerData.rank;
+        }
+        playerRankSpan.textContent = playerRank;
+
+        // Networth and Life are in personalstats
+        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
+        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
+
+        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
+        // Check if playerLifeSpan element actually exists on the page
+        if (playerLifeSpan) {
+            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
+        }
+
+        // Total Stats and Awards are in personalstats
+        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
+        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
+
+        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
+        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
+
+
+        // More granular logging for debugging specific values
+        console.log(`  Name: ${playerNameSpan.textContent}`);
+        console.log(`  Level: ${playerLevelSpan.textContent}`);
+        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
+        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
+        console.log(`  Life: ${playerLifeSpan ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
+        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
+        console.log(`  Awards: ${playerAwardsSpan.textContent}`);
+
+    } else {
+        // Fallback if no player data is available
+        console.warn("displayPlayerSummary: playerData is missing.");
+        playerNameSpan.textContent = 'N/A';
+        playerLevelSpan.textContent = 'N/A';
+        playerRankSpan.textContent = 'N/A';
+        playerNetworthSpan.textContent = 'N/A';
+        if (playerLifeSpan) {
+            playerLifeSpan.textContent = 'N/A';
+        }
+        playerTotalStatsSpan.textContent = 'N/A';
+        playerAwardsSpan.textContent = 'N/A';
+    }
+}
+
+/**
+ * Updates the display for Honors and Medals based on player data.
+ * @param {object} playerData - The player data from the Torn API.
+ */
+function updateAchievementsDisplay(playerData) {
+    clearAllLists(); // Clear previous content
+
+    const achievementLists = {
+        'honors-attacking-list': honorsAttackingList,
+        'honors-weapons-list': honorsWeaponsList,
+        'honors-chaining-list': honorsChainingList,
+
+        'medals-combat-list': medalsCombatList,
+        'medals-commitment-list': medalsCommitmentList, // This now points to the combined list
+
+        'medals-crimes-list': medalsCrimesList,
+    };
+
+    // Helper to process a list of achievements (Honors or Medals)
+    const processAchievements = (achievements, isMedal = false) => {
+        achievements.forEach(achievement => {
+            const value = getNestedProperty(playerData, achievement.statKey);
+
+            // Detailed logging for each achievement processing step
+            // console.log(`Processing ${achievement.name}:`);
+            // console.log(`  Stat Key: ${achievement.statKey}`);
+            // console.log(`  Value from API:`, value);
+            // console.log(`  Threshold: ${achievement.threshold}`);
+
+            let statusIconClass = 'not-started';
+            let statusSymbol = '◎'; // Default not started symbol
+            let progressText = '';
+            let isCompleted = false;
+
+            if (value !== undefined && value !== null) {
+                if (achievement.type === 'count' || achievement.type === 'level') {
+                    if (value >= achievement.threshold) {
+                        statusIconClass = 'completed';
+                        statusSymbol = '✔';
+                        isCompleted = true;
+                    } else {
+                        statusIconClass = 'in-progress';
+                        statusSymbol = '●';
+                        progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
+                        if (achievement.type === 'level') {
+                            progressText = ` (Current Level: ${formatNumber(value)})`; // Specific for level
+                        }
+                    }
+                }
+                // Add more complex type checks here if needed (e.g., for boolean flags, or specific item counts)
+            }
+
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                    <span class="merit-progress">${progressText}</span>
+                </span>
+            `;
+            // Append to the correct list based on category
+            if (achievementLists[achievement.category]) {
+                achievementLists[achievement.category].appendChild(listItem);
+            } else {
+                console.warn(`Category list not found for: ${achievement.category}. Check HTML ID or allHonors/allMedals category assignment.`);
+            }
+        });
+    };
+
+    processAchievements(allHonors);
+    processAchievements(allMedals);
+}
+
+/**
+ * Populates the Player Stats Overview tab.
+ * @param {object} playerData - The player data from the Torn API.
+ */
+function populatePlayerStats(playerData) {
+    const statsContainer = document.getElementById('player-stats-list');
+    statsContainer.innerHTML = ''; // Clear previous stats
+
+    // Ensure playerData and at least personalstats are available for basic overview
+    if (!playerData || !playerData.personalstats) {
+        statsContainer.innerHTML = '<li>No detailed stats available.</li>';
+        return;
+    }
+
+    const statsMapping = {
+        'Attacks Won': 'personalstats.attackswon',
+        'Defends Won': 'personalstats.defendswon',
+        'Crimes Committed (Total)': 'personalstats.criminaloffenses',
+        'Items Found': 'personalstats.cityfinds',
+        'Medical Items Used': 'personalstats.medicalitemsused',
+        'Times Hospitalized': 'personalstats.hospital',
+        'Times Jailed': 'personalstats.jailed',
+        'Travels Made': 'personalstats.traveltimes',
+        'Bounties Collected': 'personalstats.bountiescollected',
+        'Busted People from Jail': 'personalstats.peoplebusted',
+        'Revives Given': 'personalstats.revives',
+        'Max Chain Hits (Personal)': 'personalstats.max_chain',
+        'Total Damage Dealt': 'personalstats.attackdamage',
+        'Total Critical Hits': 'personalstats.attackcriticalhits',
+        'Total Respect Earned': 'personalstats.respectforfaction',
+        'Networth': 'personalstats.networth',
+        'Strength': 'personalstats.strength',
+        'Defense': 'personalstats.defense',
+        'Speed': 'personalstats.speed',
+        'Dexterity': 'personalstats.dexterity',
+        'Life': 'personalstats.life',
+        'Level': 'level', // Path is direct from playerData
+        'Rank': (playerData.basic && playerData.basic.rank) ? 'basic.rank' : 'rank' // Path for rank, conditional check
+    };
+
+    for (const [displayName, statPath] of Object.entries(statsMapping)) {
+        let value;
+        // Special handling for 'Rank' as its path might be conditional
+        if (displayName === 'Rank') {
+            value = (playerData.basic && playerData.basic.rank) ? playerData.basic.rank : playerData.rank;
+        } else if (typeof statPath === 'string') {
+             value = getNestedProperty(playerData, statPath);
+        } else {
+            // Fallback for unexpected statPath type, though should be string for this map
+            value = 'N/A';
+        }
+
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${displayName}:</strong> <span id="stat-${displayName.replace(/\s/g, '-').toLowerCase()}">${typeof value === 'number' ? formatNumber(value) : (value || 'N/A')}</span>`;
+        statsContainer.appendChild(li);
+    }
+}
+
+
+// --- Tab Switching Logic ---
+
+/**
+ * Handles switching between tabs.
+ * @param {string} tabId - The ID of the tab to activate (e.g., 'honors-tab').
+ */
+function switchTab(tabId) {
+    // Deactivate all tab buttons and content panes
+    tabsContainer.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    tabContents.forEach(pane => {
+        // Ensure ALL panes are hidden explicitly
+        pane.classList.remove('active'); // Remove active class if it was somehow present
+        pane.style.display = 'none'; // Directly set display to none
+    });
+
+    // Activate the clicked tab button and its content pane
+    const activeButton = tabsContainer.querySelector(`[data-tab="${tabId.replace('-tab', '')}"]`);
+    const activePane = document.getElementById(tabId);
+
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+    if (activePane) {
+        activePane.style.display = 'flex'; // Directly set display to flex for active pane
+        // Add active class if your CSS uses it for styling beyond just display
+        activePane.classList.add('active');
+    }
+}
+
+// Event listener for tab buttons
+tabsContainer.addEventListener('click', (event) => {
+    const targetButton = event.target.closest('.tab-button');
+    if (targetButton) {
+        const tabName = targetButton.dataset.tab;
+        switchTab(`${tabName}-tab`);
+    }
+});
+
+
+// --- Initialization Function ---
+
+/**
+ * Initializes the Merits page, fetches data, and updates UI.
+ */
+async function initializeMeritsPage() {
+    hideError();
+    showLoading(); // Show loading initially
+
+    // Listen for Firebase authentication state changes
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            console.log("User is logged in:", user.uid);
+            // Fetch the user's API key from Firestore
+            const db = firebase.firestore();
+            try {
+                const userDocRef = db.collection('userProfiles').doc(user.uid);
+                const doc = await userDocRef.get();
+
+                if (doc.exists && doc.data() && doc.data().tornApiKey) {
+                    const tornApiKey = doc.data().tornApiKey;
+                    console.log("Torn API Key retrieved from Firestore.");
+
+                    const playerData = await fetchTornDataDirectly(tornApiKey);
+                    if (playerData) {
+                        displayPlayerSummary(playerData);
+                        updateAchievementsDisplay(playerData);
+                        populatePlayerStats(playerData); // Populate stats for the overview tab
+
+                        // Initial tab display: ensure correct tab is shown after data loads
+                        // The 'active' class on honors-tab in HTML will handle initial display via CSS
+                        // but if we were explicitly showing a different tab, we'd call switchTab here.
+                        // For now, it defaults to Honors tab via HTML/CSS.
+                    } else {
+                        // Error message handled by fetchTornDataDirectly
+                        console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
+                    }
+                } else {
+                    hideLoading();
+                    showError('No Torn API key found for your account. Please set it in your profile settings.');
+                    console.warn("tornApiKey field is missing in user's Firestore document or document does not exist.");
+                }
+            } catch (firestoreError) {
+                console.error("Error fetching API key from Firestore:", firestoreError);
+                hideLoading();
+                if (firestoreError.code === 'permission-denied') {
+                     showError('Permission denied to access your data. Please check Firebase Security Rules.');
+                } else {
+                     showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
+                }
+            }
+        } else {
+            console.log("No user logged in. Redirecting or prompting login.");
+            hideLoading();
+            showError('Please log in to view your Torn Honors & Medals.');
+            // Optionally redirect to login page
+            // window.location.href = 'login.html';
+        }
+    });
+}
+
+// Run initialization when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initializeMeritsPage);
