@@ -357,27 +357,7 @@ ul li:last-child { border-bottom: none; }
     color: var(--btn-close-hover-color, #00e0ff);
 }
 
-/* In global.css, near the top or where you define global display rules */
 
-/* Forcefully hide the Register button by default */
-#signUpButtonHeader {
-    display: none !important;
-}
-
-/* Forcefully hide the Torn City Homepage link by default */
-#tornCityHomepageLink {
-    display: none !important;
-}
-
-/* Ensure the logged-in buttons container is hidden by default */
-#headerButtonsContainer {
-    display: none !important;
-}
-
-/* And ensure the logged-in user display is hidden by default */
-#logged-in-user-display {
-    display: none !important;
-}
 
 .hidden-until-js {
     display: none; /* Use !important to ensure it applies initially */
