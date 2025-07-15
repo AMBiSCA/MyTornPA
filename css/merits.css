@@ -1,3 +1,9 @@
+/* --- merits.css --- */
+
+/* Inherits global styles from global.css */
+
+/* Specific overrides/additions for the Merits page */
+
 .page-specific-content-area {
     /* Ensure flex-grow is 1 to take available space */
     flex-grow: 1;
@@ -131,16 +137,25 @@
     padding-right: 15px; /* Space for potential scrollbar */
     padding-bottom: 10px; /* Space below content */
     box-sizing: border-box; /* Include padding in height */
+    
+    /* ADDED: To ensure tab-content explicitly defines its height */
+    display: flex;
+    flex-direction: column;
 }
 
 .tab-pane {
     display: none; /* Hidden by default */
     height: 100%; /* Take full height of parent */
     /* No padding here, padding goes into individual panels */
+    
+    /* ADDED: To ensure tab-pane takes full height and contains its grid */
+    flex-grow: 1;
+    min-height: 0; /* Important for inner flex/grid children */
 }
 
 .tab-pane.active {
-    display: block; /* Show active tab */
+    display: flex; /* Changed from block to flex to manage inner grid */
+    flex-direction: column; /* Stack grid vertically */
 }
 
 
@@ -149,7 +164,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(calc(50% - 15px), 1fr)); /* 2 columns, flexible width */
     gap: 30px; /* Gap between grid items */
-    height: 100%; /* Take full height of its parent (.tab-pane) */
+    
+    /* MODIFIED: Ensure grid takes remaining height and scrolls if needed */
+    flex-grow: 1; /* Allow the grid to grow and fill available space */
+    min-height: 0; /* Crucial for flex items to shrink correctly */
+    overflow-y: auto; /* Add internal scrolling for the entire grid if it overflows */
+    padding-right: 15px; /* Account for scrollbar if grid scrolls */
     box-sizing: border-box;
     align-content: start; /* Align content to the start (top) if space allows */
 }
@@ -169,8 +189,8 @@
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Hide overflow if content is too long */
-    height: auto; /* Allow height to adjust to content */
+    overflow: hidden; /* Hide overflow if content is too long - manage with inner ul */
+    height: auto; /* Allow height to adjust to content, but can be constrained by grid */
     min-height: 150px; /* Minimum height for visual consistency */
     box-sizing: border-box; /* Include padding in height */
 }
@@ -199,6 +219,7 @@
     color: #ccc;
     line-height: 1.4;
     padding-right: 10px; /* Space for internal scrollbar */
+    min-height: 0; /* Crucial for internal scrolling in flex/grid context */
 }
 
 .merit-category-panel ul li {
@@ -248,6 +269,12 @@
     .merit-category-grid {
         grid-template-columns: 1fr; /* Stack panels vertically on medium screens */
     }
+    .merit-category-panel {
+        overflow-y: auto; /* Enable scrolling on panels when stacked vertically */
+    }
+    .merit-category-panel ul {
+        padding-right: 5px; /* Less space for scrollbar on mobile */
+    }
 }
 
 @media (max-width: 768px) {
@@ -257,10 +284,16 @@
     }
     .merits-layout-container {
         overflow-y: visible; /* Allow scrolling on the main container on mobile */
+        height: auto; /* Let it grow to content on mobile */
     }
     .tab-content {
         overflow-y: visible; /* Allow content to push height on mobile */
         padding-right: 0; /* Remove scrollbar padding if main container scrolls */
+        height: auto; /* Let it grow to content on mobile */
+    }
+    .tab-pane {
+        height: auto; /* Let it grow to content on mobile */
+        flex-direction: column; /* Ensure panels stack */
     }
     .merit-category-panel {
         min-height: unset; /* Remove min-height on small screens */
