@@ -27,7 +27,7 @@
             <div class="header-user-display js-hidden-initially" id="logged-in-user-display">
             </div>
 
-            <a href="https://www.torn.com/index.php" class="header-text-link js-hidden-initially" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
+            <a href="https://www.torn.com/index.php" class="header-text-link js-hidden-initially" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
 
             <div class="header-buttons js-hidden-initially" id="headerButtonsContainer">
                 <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
@@ -83,14 +83,14 @@
 
             <div class="merits-layout-container">
                 <div class="player-summary-section">
-                    <p>| Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Total Stats: <span id="player-total-stats">N/A</span> | Networth: <span id="player-networth">N/A</span> | Awards: <span id="player-awards">N/A</span></p>
+                    <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Total Stats: <span id="player-total-stats">N/A</span> | Rank: <span id="player-rank">N/A</span> | Networth: <span id="player-networth">N/A</span> | Life: <span id="player-life">N/A</span> | Awards: <span id="player-awards">N/A</span></p>
                 </div>
 
                 <div class="tabs-container">
                     <button class="tab-button active" data-tab="honors">Honors</button>
                     <button class="tab-button" data-tab="medals">Medals</button>
                     <button class="tab-button" data-tab="stats">Stats Overview</button>
-                    </div>
+                </div>
 
                 <div id="tab-content" class="tab-content">
                     <div id="honors-tab" class="tab-pane active">
@@ -110,7 +110,7 @@
                                 <ul id="honors-chaining-list">
                                     </ul>
                             </div>
-                            </div>
+                        </div>
                     </div>
 
                     <div id="medals-tab" class="tab-pane">
@@ -134,10 +134,17 @@
                     </div>
 
                     <div id="stats-tab" class="tab-pane">
-                        <div class="merit-category-panel full-width">
-                            <h3>Player Stats Overview</h3>
-                            <ul id="player-stats-list">
-                                </ul>
+                        <div class="merit-category-grid">
+                            <div class="merit-category-panel full-width">
+                                <h3>Player Stats Overview</h3>
+                                <ul id="player-stats-list">
+                                    </ul>
+                            </div>
+                            <div class="merit-category-panel full-width">
+                                <h3>Miscellaneous Awards</h3>
+                                <ul id="misc-awards-list">
+                                    </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
