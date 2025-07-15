@@ -24,33 +24,30 @@ const medalsCrimesList = document.getElementById('medals-crimes-list');
 const playerStatsList = document.getElementById('player-stats-list');
 
 
-// --- Static Merit/Medal Data ---
+// --- Static Merit/Medal Data (SAMPLE - EXPAND THIS!) ---
 // This is a SAMPLE subset. You will need to expand this with ALL your honor/medal requirements.
 // The 'statKey' maps to the Torn API response path (e.g., playerData.attacks.attacks_won)
 // The 'type' helps determine how to check progress (e.g., 'count', 'level', 'boolean')
 // 'category' maps to the <ul> ID in HTML
 const allHonors = [
     // Attacking Honors (Chaining is separate for now)
-    { name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "factions.chain_hits", threshold: 10, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 2", requirement: "Participate in a 100 length chain", statKey: "factions.chain_hits", threshold: 100, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "factions.chain_hits", threshold: 1000, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 4", requirement: "Participate in a 10,000 length chain", statKey: "factions.chain_hits", threshold: 10000, category: "honors-chaining-list", type: "count" },
-    { name: "Chainer 5", requirement: "Participate in a 100,000 length chain", statKey: "factions.chain_hits", threshold: 100000, category: "honors-chaining-list", type: "count" },
-    { name: "Carnage", requirement: "Make a single hit that earns your faction 10 or more respect", statKey: "factions.best_chain_hit", threshold: 10, category: "honors-chaining-list", type: "count" }, // This is simplified, real logic is more complex for "best_chain_hit"
-    { name: "Massacre", requirement: "Make a single hit that earns your faction 100 or more respect", statKey: "factions.best_chain_hit", threshold: 100, category: "honors-chaining-list", type: "count" },
-    { name: "Strongest Link", requirement: "Make 100 hits in a single chain", statKey: "factions.max_chain_hits", threshold: 100, category: "honors-chaining-list", type: "count" }, // This might be personalstats.max_chain depending on API
-
-    // Weapons Honors (Requires parsing multiple personalstats.weapon_xp, .finishing_hits_*)
-    { name: "2800 Ft/S", requirement: "Achieve 100 finishing hits with rifles", statKey: "personalstats.finishing_hits_rifle", threshold: 100, category: "honors-weapons-list", type: "count" },
-    { name: "Axe Wound", requirement: "Achieve 100 finishing hits with clubbing weapons", statKey: "personalstats.finishing_hits_club", threshold: 100, category: "honors-weapons-list", type: "count" },
-    { name: "Unarmed", requirement: "Achieve 100 fists or kick finishing hits", statKey: "personalstats.finishing_hits_unarmed", threshold: 100, category: "honors-weapons-list", type: "count" },
-
+    { name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chain_hits", threshold: 10, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 2", requirement: "Participate in a 100 length chain", statKey: "personalstats.chain_hits", threshold: 100, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "personalstats.chain_hits", threshold: 1000, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 4", requirement: "Participate in a 10,000 length chain", statKey: "personalstats.chain_hits", threshold: 10000, category: "honors-chaining-list", type: "count" },
+    { name: "Chainer 5", requirement: "Participate in a 100,000 length chain", statKey: "personalstats.chain_hits", threshold: 100000, category: "honors-chaining-list", type: "count" },
+    { name: "Carnage", requirement: "Make a single hit that earns your faction 10 or more respect", statKey: "personalstats.best_chain_hit", threshold: 10, category: "honors-chaining-list", type: "count" },
+    { name: "Massacre", requirement: "Make a single hit that earns your faction 100 or more respect", statKey: "personalstats.best_chain_hit", threshold: 100, category: "honors-chaining-list", type: "count" },
+    { name: "Strongest Link", requirement: "Make 100 hits in a single chain", statKey: "personalstats.max_chain", threshold: 100, category: "honors-chaining-list", type: "count" }, // Note: Torn API's 'max_chain' is in personalstats
+    // Weapons Honors
+    { name: "2800 Ft/S", requirement: "Achieve 100 finishing hits with rifles", statKey: "personalstats.finishing_hits.rifle", threshold: 100, category: "honors-weapons-list", type: "count" },
+    { name: "Axe Wound", requirement: "Achieve 100 finishing hits with clubbing weapons", statKey: "personalstats.finishing_hits.club", threshold: 100, category: "honors-weapons-list", type: "count" },
+    { name: "Unarmed", requirement: "Achieve 100 fists or kick finishing hits", statKey: "personalstats.finishing_hits.unarmed", threshold: 100, category: "honors-weapons-list", type: "count" },
     // General Attacking Honors
     { name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.kill_streak", threshold: 10, category: "honors-attacking-general-list", type: "count" },
     { name: "Kill Streaker 2", requirement: "Achieve a 100 kill streak", statKey: "personalstats.kill_streak", threshold: 100, category: "honors-attacking-general-list", type: "count" },
     { name: "Wham!", requirement: "Deal over 100,000 total damage", statKey: "personalstats.total_dam_dealt", threshold: 100000, category: "honors-attacking-general-list", type: "count" },
     { name: "Bounty Hunter", requirement: "Collect 250 bounties", statKey: "personalstats.bounties_collected", threshold: 250, category: "honors-attacking-general-list", type: "count" },
-
     // ... add more Honors here following the structure ...
 ];
 
@@ -63,25 +60,20 @@ const allMedals = [
     { name: "Bouncer", requirement: "Win 50 defends", statKey: "personalstats.defends_won", threshold: 50, category: "medals-combat-list", type: "count" },
     { name: "Brick wall", requirement: "Win 250 defends", statKey: "personalstats.defends_won", threshold: 250, category: "medals-combat-list", type: "count" },
     { name: "Boom Headshot", requirement: "Deal 500 critical hits", statKey: "personalstats.critical_hits", threshold: 500, category: "medals-combat-list", type: "count" },
-
-
     // Commitment Medals
     { name: "Citizenship", requirement: "Be a donator for 30 days", statKey: "personalstats.donator_days", threshold: 30, category: "medals-commitment-list", type: "count" },
     { name: "Devoted", requirement: "Be a donator for 100 days", statKey: "personalstats.donator_days", threshold: 100, category: "medals-commitment-list", type: "count" },
     { name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "personalstats.days_old", threshold: 365, category: "medals-commitment-list", type: "count" },
     { name: "Two Years of Service", requirement: "Live in Torn for Two Years", statKey: "personalstats.days_old", threshold: 730, category: "medals-commitment-list", type: "count" },
-
     // Level Medals
     { name: "Level Five", requirement: "Reach level Five", statKey: "basic.level", threshold: 5, category: "medals-level-list", type: "level" },
     { name: "Level Ten", requirement: "Reach level Ten", statKey: "basic.level", threshold: 10, category: "medals-level-list", type: "level" },
     { name: "Level Fifteen", requirement: "Reach level Fifteen", statKey: "basic.level", threshold: 15, category: "medals-level-list", type: "level" },
     { name: "Level One Hundred", requirement: "Reach level One Hundred", statKey: "basic.level", threshold: 100, category: "medals-level-list", type: "level" },
-
-    // Crimes Medals (Simplified for demonstration as Crimes 1.0 vs 2.0 is complex)
+    // Crimes Medals (Simplified as 1.0 vs 2.0 is complex; this uses total)
     { name: "Trainee Troublemaker", requirement: "Commit 100 Criminal offenses", statKey: "personalstats.crimes.total", threshold: 100, category: "medals-crimes-list", type: "count" },
     { name: "Mastermind", requirement: "Participate in 100 Organized Crimes", statKey: "personalstats.organized_crimes", threshold: 100, category: "medals-crimes-list", type: "count" },
     { name: "Sneak Thief", requirement: "Commit 1,000 Theft crimes", statKey: "personalstats.crimes.theft", threshold: 1000, category: "medals-crimes-list", type: "count" },
-
     // ... add more Medals here following the structure ...
 ];
 
@@ -127,6 +119,9 @@ function hideError() {
  * @returns {string} The formatted number.
  */
 function formatNumber(num) {
+    if (typeof num !== 'number' || isNaN(num)) {
+        return 'N/A';
+    }
     return num.toLocaleString();
 }
 
@@ -162,38 +157,58 @@ function clearAllLists() {
 // --- Main Data Handling Functions ---
 
 /**
- * Fetches Torn player data from your Firebase backend.
+ * Fetches Torn player data directly from the Torn API.
+ * This function now assumes the API key is retrieved from Firestore.
+ * @param {string} apiKey - The Torn API key for the current user.
  * @returns {Promise<object>} A promise that resolves with the player data.
  */
-async function fetchTornData() {
-    showLoading();
-    hideError(); // Clear previous errors
+async function fetchTornDataDirectly(apiKey) {
+    if (!apiKey) {
+        throw new Error("No Torn API key found.");
+    }
+
+    // Selections needed for various merits/medals/stats
+    // I've added 'factions' and expanded 'personalstats' sub-selections
+    const selections = "basic,personalstats,attacks,revives,factions";
+    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
     try {
-        // IMPORTANT: Replace '/api/torn-data' with the actual endpoint of your Firebase Function
-        // or backend service that calls the Torn API with the user's key.
-        const response = await fetch('/api/torn-data', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                // If your backend endpoint requires a Firebase ID token for auth:
-                // 'Authorization': `Bearer ${await firebase.auth().currentUser.getIdToken()}`
-            },
-        });
+        const response = await fetch(tornApiUrl);
 
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Backend error: ${response.status} - ${errorText}`);
+            let errorDetail = await response.text();
+            try {
+                // Try to parse JSON error if available
+                const errorJson = JSON.parse(errorDetail);
+                if (errorJson && errorJson.error && errorJson.error.error) {
+                    errorDetail = errorJson.error.error;
+                }
+            } catch (e) {
+                // Not JSON, use raw text
+            }
+            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
         }
 
         const data = await response.json();
+
+        // Check for specific Torn API error messages within the JSON response
+        if (data.error && data.error.error) {
+            throw new Error(`Torn API error: ${data.error.error}`);
+        }
+
         console.log('Torn API Data fetched:', data); // For debugging
         hideLoading();
         return data;
 
     } catch (error) {
         console.error('Error fetching Torn data:', error);
-        showError('Failed to load Torn data. Please try again later.');
+        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
+            showError('Invalid Torn API key. Please update your API key in your profile settings.');
+        } else if (error.message.includes("Too many requests")) {
+            showError('Torn API rate limit hit. Please wait a moment and refresh.');
+        } else {
+            showError(`Failed to load Torn data: ${error.message}.`);
+        }
         return null;
     }
 }
@@ -205,8 +220,9 @@ async function fetchTornData() {
 function displayPlayerSummary(playerData) {
     if (playerData && playerData.basic) {
         playerNameSpan.textContent = playerData.basic.name || 'N/A';
-        playerLevelSpan.textContent = playerData.basic.level || 'N/A';
+        playerLevelSpan.textContent = formatNumber(playerData.basic.level) || 'N/A';
         playerRankSpan.textContent = playerData.basic.rank || 'N/A';
+        // Networth is in personalstats, ensure it's accessed correctly
         playerNetworthSpan.textContent = playerData.personalstats && playerData.personalstats.networth ? `$${formatNumber(playerData.personalstats.networth)}` : 'N/A';
     } else {
         playerNameSpan.textContent = 'N/A';
@@ -234,78 +250,53 @@ function updateAchievementsDisplay(playerData) {
         'medals-crimes-list': medalsCrimesList,
     };
 
-    // Process Honors
-    allHonors.forEach(honor => {
-        const value = getNestedProperty(playerData, honor.statKey);
-        let statusIconClass = 'not-started';
-        let progressText = '';
-        let isCompleted = false;
+    // Helper to process a list of achievements (Honors or Medals)
+    const processAchievements = (achievements, isMedal = false) => {
+        achievements.forEach(achievement => {
+            const value = getNestedProperty(playerData, achievement.statKey);
+            let statusIconClass = 'not-started';
+            let statusSymbol = '◎'; // Default not started symbol
+            let progressText = '';
+            let isCompleted = false;
 
-        if (value !== undefined && value !== null) {
-            if (honor.type === 'count' || honor.type === 'level') {
-                if (value >= honor.threshold) {
-                    statusIconClass = 'completed';
-                    isCompleted = true;
-                } else {
-                    statusIconClass = 'in-progress';
-                    progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(honor.threshold)})`;
-                }
-            } else {
-                // For other types, you'd add specific logic
-                // For now, if value exists and isn't 0, assume progress or completion
-                 if (value > 0) { // Generic check for non-count/level stats
-                    statusIconClass = 'in-progress';
-                    progressText = ` (Current: ${formatNumber(value)})`;
-                 }
-            }
-        }
-
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            <span class="merit-status-icon ${statusIconClass}">${isCompleted ? '✔' : (statusIconClass === 'in-progress' ? '●' : '◎')}</span>
-            <span class="merit-details">
-                <span class="merit-name">${honor.name}</span> -
-                <span class="merit-requirement">${honor.requirement}</span>
-                <span class="merit-progress">${progressText}</span>
-            </span>
-        `;
-        achievementLists[honor.category].appendChild(listItem);
-    });
-
-    // Process Medals (similar logic to Honors, you can refactor if too much duplication)
-    allMedals.forEach(medal => {
-        const value = getNestedProperty(playerData, medal.statKey);
-        let statusIconClass = 'not-started';
-        let progressText = '';
-        let isCompleted = false;
-
-        if (value !== undefined && value !== null) {
-            if (medal.type === 'count' || medal.type === 'level') {
-                if (value >= medal.threshold) {
-                    statusIconClass = 'completed';
-                    isCompleted = true;
-                } else {
-                    statusIconClass = 'in-progress';
-                    progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(medal.threshold)})`;
-                    if (medal.type === 'level') {
-                        progressText = ` (Current Level: ${formatNumber(value)})`; // Specific for level
+            if (value !== undefined && value !== null) {
+                if (achievement.type === 'count' || achievement.type === 'level') {
+                    if (value >= achievement.threshold) {
+                        statusIconClass = 'completed';
+                        statusSymbol = '✔';
+                        isCompleted = true;
+                    } else {
+                        statusIconClass = 'in-progress';
+                        statusSymbol = '●';
+                        progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
+                        if (achievement.type === 'level') {
+                            progressText = ` (Current Level: ${formatNumber(value)})`; // Specific for level
+                        }
                     }
                 }
+                // Add more complex type checks here if needed (e.g., for boolean flags, or specific item counts)
             }
-            // Add more specific medal types here if needed
-        }
 
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            <span class="merit-status-icon ${statusIconClass}">${isCompleted ? '✔' : (statusIconClass === 'in-progress' ? '●' : '◎')}</span>
-            <span class="merit-details">
-                <span class="merit-name">${medal.name}</span> -
-                <span class="merit-requirement">${medal.requirement}</span>
-                <span class="merit-progress">${progressText}</span>
-            </span>
-        `;
-        achievementLists[medal.category].appendChild(listItem);
-    });
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                    <span class="merit-progress">${progressText}</span>
+                </span>
+            `;
+            // Append to the correct list based on category
+            if (achievementLists[achievement.category]) {
+                achievementLists[achievement.category].appendChild(listItem);
+            } else {
+                console.warn(`Category list not found for: ${achievement.category}`);
+            }
+        });
+    };
+
+    processAchievements(allHonors);
+    processAchievements(allMedals);
 }
 
 /**
@@ -316,7 +307,7 @@ function populatePlayerStats(playerData) {
     const statsContainer = document.getElementById('player-stats-list');
     statsContainer.innerHTML = ''; // Clear previous stats
 
-    if (!playerData || !playerData.personalstats) {
+    if (!playerData || (!playerData.personalstats && !playerData.attacks && !playerData.basic)) {
         statsContainer.innerHTML = '<li>No detailed stats available.</li>';
         return;
     }
@@ -333,7 +324,8 @@ function populatePlayerStats(playerData) {
         'Bounties Collected': 'personalstats.bounties_collected',
         'Busted People from Jail': 'personalstats.busting_busted',
         'Revives Given': 'personalstats.revives', // Ensure this stat is fetched via API
-        'Max Chain Hits': 'personalstats.max_chain', // Or factions.max_chain_hits
+        'Max Chain Hits (Personal)': 'personalstats.max_chain',
+        'Max Faction Chain Hits': 'factions.max_chain_hits', // Added faction chain for clarity
         'Total Damage Dealt': 'personalstats.total_dam_dealt',
         'Total Critical Hits': 'personalstats.critical_hits',
         'Total Respect Earned': 'personalstats.respect',
@@ -402,17 +394,36 @@ async function initializeMeritsPage() {
     hideError();
     showLoading(); // Show loading initially
 
-    // Check Firebase authentication state
+    // Listen for Firebase authentication state changes
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             console.log("User is logged in:", user.uid);
-            const playerData = await fetchTornData();
-            if (playerData) {
-                displayPlayerSummary(playerData);
-                updateAchievementsDisplay(playerData);
-                populatePlayerStats(playerData); // Populate stats for the overview tab
-            } else {
-                showError('Could not load player data. Ensure your API key is correctly set in Firebase.');
+            // Fetch the user's API key from Firestore
+            const db = firebase.firestore();
+            try {
+                const userDocRef = db.collection('users').doc(user.uid);
+                const doc = await userDocRef.get();
+
+                if (doc.exists && doc.data() && doc.data().tornApiKey) {
+                    const tornApiKey = doc.data().tornApiKey;
+                    console.log("Torn API Key retrieved from Firestore.");
+
+                    const playerData = await fetchTornDataDirectly(tornApiKey);
+                    if (playerData) {
+                        displayPlayerSummary(playerData);
+                        updateAchievementsDisplay(playerData);
+                        populatePlayerStats(playerData); // Populate stats for the overview tab
+                    } else {
+                        // Error message handled by fetchTornDataDirectly
+                    }
+                } else {
+                    hideLoading();
+                    showError('No Torn API key found for your account. Please set it in your profile.');
+                }
+            } catch (firestoreError) {
+                console.error("Error fetching API key from Firestore:", firestoreError);
+                hideLoading();
+                showError('Failed to retrieve your API key. Please check your internet connection or try again later.');
             }
         } else {
             console.log("No user logged in.");
