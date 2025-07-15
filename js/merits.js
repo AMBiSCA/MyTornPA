@@ -62,8 +62,8 @@ const allHonors = [
     { name: "Unarmed", requirement: "Achieve 100 fists or kick finishing hits", statKey: "personalstats.h2hhits", threshold: 100, category: "honors-weapons-list", type: "count" },
     { name: "Modded", requirement: "Equip two high-tier mods to a weapon", statKey: "personalstats.modded_weapons", threshold: 1, category: "honors-weapons-list", type: "count" }, // Placeholder, needs inventory access
     { name: "Specialist", requirement: "Achieve 100% EXP on 25 different weapons", statKey: "personalstats.weapons_mastered", threshold: 25, category: "honors-weapons-list", type: "count" }, // Placeholder, needs /user/weapon_exp selection
-    { name: "Riddled", requirement: "Defeat an opponent after hitting at least 10 different body parts in a single attack", statKey: "personalstats.distinct_body_hits", threshold: 1, category: "honors-weapons-list", type: "count" },
-    { name: "War Machine", requirement: "Achieve 1,000 finishing hits in every category", statKey: "personalstats.all_finishing_hits", threshold: 1000, category: "honors-weapons-list", type: "count" },
+    { name: "Riddled", requirement: "Defeat an opponent after hitting at least 10 different body parts in a single attack", statKey: "personalstats.distinct_body_hits", threshold: 1, category: "honors-weapons-list", type: "count" }, // Placeholder, needs log or specific stat
+    { name: "War Machine", requirement: "Achieve 1,000 finishing hits in every category", statKey: "personalstats.all_finishing_hits", threshold: 1000, category: "honors-weapons-list", type: "count" }, // Placeholder, needs complex check
     { name: "Surplus", requirement: "Use 100 rounds of special ammunition", statKey: "personalstats.specialammoused", threshold: 100, category: "honors-weapons-list", type: "count" },
     { name: "Bandolier", requirement: "User 1,000 rounds of special ammunition", statKey: "personalstats.specialammoused", threshold: 1000, category: "honors-weapons-list", type: "count" },
     { name: "Quartermaster", requirement: "Use 10,000 rounds of special ammunition", statKey: "personalstats.specialammoused", threshold: 10000, category: "honors-weapons-list", type: "count" },
@@ -72,8 +72,8 @@ const allHonors = [
     { name: "Marked", requirement: "Use 2,500 Tracer rounds", statKey: "personalstats.tracerammoused", threshold: 2500, category: "honors-weapons-list", type: "count" },
     { name: "Scorched", requirement: "Use 2,500 Incendiary rounds", statKey: "personalstats.incendiaryammoused", threshold: 2500, category: "honors-weapons-list", type: "count" },
     { name: "Penetrated", requirement: "Use 2,500 Piercing rounds", statKey: "personalstats.piercingammoused", threshold: 2500, category: "honors-weapons-list", type: "count" },
-    { name: "Mod Boss", requirement: "Own at least 20 weapon mods", statKey: "personalstats.weapon_mods_owned", threshold: 20, category: "honors-weapons-list", type: "count" },
-    { name: "Gone Fishing", requirement: "Be defeated by a Trout", statKey: "personalstats.defeated_by_trout", threshold: 1, category: "honors-weapons-list", type: "count" },
+    { name: "Mod Boss", requirement: "Own at least 20 weapon mods", statKey: "personalstats.weapon_mods_owned", threshold: 20, category: "honors-weapons-list", type: "count" }, // Placeholder
+    { name: "Gone Fishing", requirement: "Be defeated by a Trout", statKey: "personalstats.defeated_by_trout", threshold: 1, category: "honors-weapons-list", type: "count" }, // Placeholder
 
     // --- Attacking / General Honors ---
     { name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.killstreak", threshold: 10, category: "honors-attacking-list", type: "count" },
@@ -280,11 +280,11 @@ const allHonors = [
 
     // Commitment (Leveling and Age are better as Medals; Forgiven is Church-related)
     { name: "Welcome", requirement: "Be online everyday for 100 days", statKey: "personalstats.activestreak", threshold: 100, category: "misc-awards-list", type: "count" },
-    { name: "Couch Potato", requirement: "Reach 1,000 hours of Time Played on Torn", statKey: "personalstats.useractivity", threshold: 3600000, category: "misc-awards-list", type: "count" },
-    { name: "Fascination", requirement: "Stay married for 250 days", statKey: "personalstats.spousetime", threshold: 21600000, category: "misc-awards-list", type: "count_time_convert" },
+    { name: "Couch Potato", requirement: "Reach 1,000 hours of Time Played on Torn", statKey: "personalstats.useractivity", threshold: 3600000, category: "misc-awards-list", type: "count" }, // Convert hours to seconds
+    { name: "Fascination", requirement: "Stay married for 250 days", statKey: "personalstats.spousetime", threshold: 21600000, category: "misc-awards-list", type: "count_time_convert" }, // 250 days in seconds
     { name: "Chasm", requirement: "Stay married for 750 days", statKey: "personalstats.spousetime", threshold: 64800000, category: "misc-awards-list", type: "count_time_convert" },
     { name: "Stairway To Heaven", requirement: "Stay married for 1,500 days", statKey: "personalstats.spousetime", threshold: 129600000, category: "misc-awards-list", type: "count_time_convert" },
-    { name: "Forgiven (Commitment)", requirement: "Be truly forgiven for all of your sins", statKey: "personalstats.forgiven_sins", threshold: 1, category: "misc-awards-list", type: "boolean" },
+    { name: "Forgiven (Commitment)", requirement: "Be truly forgiven for all of your sins", statKey: "personalstats.forgiven_sins", threshold: 1, category: "misc-awards-list", type: "boolean" }, // Also under Church
 
     // Items
     { name: "Alcoholic", requirement: "Drink 500 bottles of alcohol", statKey: "personalstats.alcoholused", threshold: 500, category: "misc-awards-list", type: "count" },
@@ -413,9 +413,9 @@ const allHonors = [
     { name: "Year Of The Dragon", requirement: "Travel to China 50 times", statKey: "personalstats.chitravel", threshold: 50, category: "misc-awards-list", type: "count" },
     { name: "Land Of Promise", requirement: "Travel to Dubai 50 times", statKey: "personalstats.dubtravel", threshold: 50, category: "misc-awards-list", type: "count" },
     { name: "Cape Town", requirement: "Travel to South Africa 50 times", statKey: "personalstats.soutravel", threshold: 50, category: "misc-awards-list", type: "count" },
-    { name: "Tourist", requirement: "Spend 7 days in the air", statKey: "personalstats.traveltime", threshold: 604800, category: "misc-awards-list", type: "count" },
-    { name: "Frequent Flyer (Honor)", requirement: "Spend 31 days in the air", statKey: "personalstats.traveltime", threshold: 2678400, category: "misc-awards-list", type: "count" },
-    { name: "Globetrotter", requirement: "Spend 365 days in the air", statKey: "personalstats.traveltime", threshold: 31536000, category: "misc-awards-list", type: "count" },
+    { name: "Tourist", requirement: "Spend 7 days in the air", statKey: "personalstats.traveltime", threshold: 604800, category: "misc-awards-list", type: "count" }, // 7 days in seconds
+    { name: "Frequent Flyer (Honor)", requirement: "Spend 31 days in the air", statKey: "personalstats.traveltime", threshold: 2678400, category: "misc-awards-list", type: "count" }, // 31 days in seconds
+    { name: "Globetrotter", requirement: "Spend 365 days in the air", statKey: "personalstats.traveltime", threshold: 31536000, category: "misc-awards-list", type: "count" }, // 365 days in seconds
     { name: "Mule", requirement: "Import 100 items from abroad", statKey: "personalstats.itemsboughtabroad", threshold: 100, category: "misc-awards-list", type: "count" },
     { name: "Smuggler", requirement: "Import 1,000 items from abroad", statKey: "personalstats.itemsboughtabroad", threshold: 1000, category: "misc-awards-list", type: "count" },
     { name: "Trafficker", requirement: "Import 10,000 items from abroad", statKey: "personalstats.itemsboughtabroad", threshold: 10000, category: "misc-awards-list", type: "count" },
@@ -563,36 +563,36 @@ const allMedals = [
     { name: "Petty Pilferer", requirement: "Commit 100 Theft offenses", statKey: "personalstats.theft", threshold: 100, category: "medals-crimes-list", type: "count" },
     { name: "Crafty Crook", requirement: "Commit 200 Theft offenses", statKey: "personalstats.theft", threshold: 200, category: "medals-crimes-list", type: "count" },
     { name: "Nifty Nicker", requirement: "Commit 300 Theft offenses", statKey: "personalstats.theft", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { name: "Sneaky Snatcher", statKey: "personalstats.theft", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { name: "Brazen Booster", statKey: "personalstats.theft", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { name: "Stealthy Stealer", statKey: "personalstats.theft", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { name: "Rampant Robber", statKey: "personalstats.theft", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { name: "Bold Burglar", statKey: "personalstats.theft", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { name: "Invisible Intruder", statKey: "personalstats.theft", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { name: "Lucrative Larcenist", statKey: "personalstats.theft", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { name: "Looting Luminary", statKey: "personalstats.theft", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { name: "Formidable Filcher", statKey: "personalstats.theft", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { name: "Sophisticated Swiper", statKey: "personalstats.theft", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { name: "Notorious Nabber", statKey: "personalstats.theft", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { name: "Prolific Plunderer", statKey: "personalstats.theft", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { name: "Sinister Scoundrel", statKey: "personalstats.vandalism", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { name: "Devious Delinquent", statKey: "personalstats.vandalism", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { name: "Rebellious Ruffian", statKey: "personalstats.vandalism", threshold: 300, category: "medals-crimes-list", type: "count" },
-    { name: "Artistic Anarchist", statKey: "personalstats.vandalism", threshold: 500, category: "medals-crimes-list", type: "count" },
-    { name: "Renegade Rascal", statKey: "personalstats.vandalism", threshold: 750, category: "medals-crimes-list", type: "count" },
-    { name: "Decisive Defacer", statKey: "personalstats.vandalism", threshold: 1000, category: "medals-crimes-list", type: "count" },
-    { name: "Villainous Vandal", statKey: "personalstats.vandalism", threshold: 1500, category: "medals-crimes-list", type: "count" },
-    { name: "Menacing Misfit", statKey: "personalstats.vandalism", threshold: 2000, category: "medals-crimes-list", type: "count" },
-    { name: "Radical Rebel", statKey: "personalstats.vandalism", threshold: 2500, category: "medals-crimes-list", type: "count" },
-    { name: "Urban Upsetter", statKey: "personalstats.vandalism", threshold: 3000, category: "medals-crimes-list", type: "count" },
-    { name: "Malicious Maverick", statKey: "personalstats.vandalism", threshold: 4000, category: "medals-crimes-list", type: "count" },
-    { name: "Reckless Renovator", statKey: "personalstats.vandalism", threshold: 5000, category: "medals-crimes-list", type: "count" },
-    { name: "Dynamic Destructor", statKey: "personalstats.vandalism", threshold: 6000, category: "medals-crimes-list", type: "count" },
-    { name: "Infernal Instigator", statKey: "personalstats.vandalism", threshold: 7500, category: "medals-crimes-list", type: "count" },
-    { name: "Nefarious Nihilist", statKey: "personalstats.vandalism", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { name: "Digital Duplicator", statKey: "personalstats.counterfeiting", threshold: 100, category: "medals-crimes-list", type: "count" },
-    { name: "Covert Copier", statKey: "personalstats.counterfeiting", threshold: 200, category: "medals-crimes-list", type: "count" },
-    { name: "Resourceful Replicator", statKey: "personalstats.counterfeiting", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { name: "Sneaky Snatcher", requirement: "Commit 500 Theft offenses", statKey: "personalstats.theft", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { name: "Brazen Booster", requirement: "Commit 750 Theft offenses", statKey: "personalstats.theft", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { name: "Stealthy Stealer", requirement: "Commit 1,000 Theft offenses", statKey: "personalstats.theft", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { name: "Rampant Robber", requirement: "Commit 1,500 Theft offenses", statKey: "personalstats.theft", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { name: "Bold Burglar", requirement: "Commit 2,000 Theft offenses", statKey: "personalstats.theft", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { name: "Invisible Intruder", requirement: "Commit 2,500 Theft offenses", statKey: "personalstats.theft", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { name: "Lucrative Larcenist", requirement: "Commit 3,000 Theft offenses", statKey: "personalstats.theft", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { name: "Looting Luminary", requirement: "Commit 4,000 Theft offenses", statKey: "personalstats.theft", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { name: "Formidable Filcher", requirement: "Commit 5,000 Theft offenses", statKey: "personalstats.theft", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { name: "Sophisticated Swiper", requirement: "Commit 6,000 Theft offenses", statKey: "personalstats.theft", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { name: "Notorious Nabber", requirement: "Commit 7,500 Theft offenses", statKey: "personalstats.theft", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { name: "Prolific Plunderer", requirement: "Commit 10,000 Theft offenses", statKey: "personalstats.theft", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { name: "Sinister Scoundrel", requirement: "Commit 100 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { name: "Devious Delinquent", requirement: "Commit 200 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { name: "Rebellious Ruffian", requirement: "Commit 300 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 300, category: "medals-crimes-list", type: "count" },
+    { name: "Artistic Anarchist", requirement: "Commit 500 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 500, category: "medals-crimes-list", type: "count" },
+    { name: "Renegade Rascal", requirement: "Commit 750 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 750, category: "medals-crimes-list", type: "count" },
+    { name: "Decisive Defacer", requirement: "Commit 1,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 1000, category: "medals-crimes-list", type: "count" },
+    { name: "Villainous Vandal", requirement: "Commit 1,500 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 1500, category: "medals-crimes-list", type: "count" },
+    { name: "Menacing Misfit", requirement: "Commit 2,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 2000, category: "medals-crimes-list", type: "count" },
+    { name: "Radical Rebel", requirement: "Commit 2,500 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 2500, category: "medals-crimes-list", type: "count" },
+    { name: "Urban Upsetter", requirement: "Commit 3,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 3000, category: "medals-crimes-list", type: "count" },
+    { name: "Malicious Maverick", requirement: "Commit 4,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 4000, category: "medals-crimes-list", type: "count" },
+    { name: "Reckless Renovator", requirement: "Commit 5,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 5000, category: "medals-crimes-list", type: "count" },
+    { name: "Dynamic Destructor", requirement: "Commit 6,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 6000, category: "medals-crimes-list", type: "count" },
+    { name: "Infernal Instigator", requirement: "Commit 7,500 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 7500, category: "medals-crimes-list", type: "count" },
+    { name: "Nefarious Nihilist", requirement: "Commit 10,000 Vandalism offenses", statKey: "personalstats.vandalism", threshold: 10000, category: "medals-crimes-list", type: "count" },
+    { name: "Digital Duplicator", requirement: "Commit 100 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 100, category: "medals-crimes-list", type: "count" },
+    { name: "Covert Copier", requirement: "Commit 200 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 200, category: "medals-crimes-list", type: "count" },
+    { name: "Resourceful Replicator", requirement: "Commit 300 Counterfeiting offenses", statKey: "personalstats.counterfeiting", threshold: 300, category: "medals-crimes-list", type: "count" },
     { name: "Mimicking Maestro", statKey: "personalstats.counterfeiting", threshold: 500, category: "medals-crimes-list", type: "count" },
     { name: "Faux Fabricator", statKey: "personalstats.counterfeiting", threshold: 750, category: "medals-crimes-list", type: "count" },
     { name: "Mock Manufacturer", statKey: "personalstats.counterfeiting", threshold: 1000, category: "medals-crimes-list", type: "count" },
@@ -826,6 +826,122 @@ function clearAllLists() {
 }
 
 
+// --- Main Data Handling Functions ---
+
+/**
+ * Fetches Torn player data directly from the Torn API.
+ * This function assumes the API key is retrieved from Firestore.
+ * @param {string} apiKey - The Torn API key for the current user.
+ * @returns {Promise<object>} A promise that resolves with the player data.
+ */
+async function fetchTornDataDirectly(apiKey) {
+    if (!apiKey) {
+        throw new Error("No Torn API key found.");
+    }
+
+    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
+    const selections = "basic,personalstats";
+    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
+
+    try {
+        const response = await fetch(tornApiUrl);
+
+        if (!response.ok) {
+            let errorDetail = await response.text();
+            try {
+                const errorJson = JSON.parse(errorDetail);
+                if (errorJson && errorJson.error && errorJson.error.error) {
+                    errorDetail = errorJson.error.error;
+                }
+            } catch (e) {
+                // Not JSON, use raw text
+            }
+            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
+        }
+
+        const data = await response.json();
+
+        if (data.error && data.error.error) {
+            throw new Error(`Torn API error: ${data.error.error}`);
+        }
+
+        console.log('Torn API Data fetched:', data); // For debugging
+        hideLoading();
+        return data;
+
+    } catch (error) {
+        console.error('Error fetching Torn data:', error);
+        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
+            showError('Invalid Torn API key. Please update your API key in your profile settings.');
+        } else if (error.message.includes("Too many requests")) {
+            showError('Torn API rate limit hit. Please wait a moment and refresh.');
+        } else if (error.message.includes("wrongfields")) {
+            showError('Torn API returned "wrongfields". This usually means a requested data field does not exist. Check console for details.');
+        } else {
+            showError(`Failed to load Torn data: ${error.message}.`);
+        }
+        return null;
+    }
+}
+
+/**
+ * Displays basic player information in the summary section.
+ * @param {object} playerData - The player data from the Torn API.
+ */
+function displayPlayerSummary(playerData) {
+    console.log("displayPlayerSummary: Processing playerData:", playerData);
+
+    if (playerData) {
+        playerNameSpan.textContent = playerData.name || 'N/A';
+        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
+
+        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
+        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
+
+        // Rank: Try basic.rank (standard), then top-level .rank (if flattened), otherwise N/A
+        let playerRank = 'N/A';
+        if (playerData.basic && playerData.basic.rank) {
+            playerRank = playerData.basic.rank;
+        } else if (playerData.rank) {
+            playerRank = playerData.rank;
+        }
+        playerRankSpan.textContent = playerRank;
+
+        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
+        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
+
+        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
+        if (playerLifeSpan) {
+            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
+        }
+        
+        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
+        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
+
+
+        // More granular logging for debugging specific values
+        console.log(`  Name: ${playerNameSpan.textContent}`);
+        console.log(`  Level: ${playerLevelSpan.textContent}`);
+        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
+        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
+        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
+        console.log(`  Life: ${playerLifeSpan ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
+        console.log(`  Awards: ${playerAwardsSpan.textContent}`);
+
+    } else {
+        console.warn("displayPlayerSummary: playerData is missing.");
+        playerNameSpan.textContent = 'N/A';
+        playerLevelSpan.textContent = 'N/A';
+        playerTotalStatsSpan.textContent = 'N/A';
+        playerRankSpan.textContent = 'N/A';
+        playerNetworthSpan.textContent = 'N/A';
+        if (playerLifeSpan) {
+            playerLifeSpan.textContent = 'N/A';
+        }
+        playerAwardsSpan.textContent = 'N/A';
+    }
+}
+
 /**
  * Processes a single achievement to determine its status and progress.
  * @param {object} achievement - The achievement object from allHonors/allMedals.
@@ -856,7 +972,7 @@ function getAchievementStatus(achievement, playerData) {
                     progressText = ` (Current Level: ${formatNumber(value)})`;
                 }
             }
-        } else if (achievement.type === 'boolean') { // For boolean true/false checks (e.g., has achieved it once)
+        } else if (achievement.type === 'boolean') {
             if (value > 0) { // Assuming 1 for true, 0 for false for a boolean stat
                 statusIconClass = 'completed';
                 statusSymbol = '✔';
@@ -901,7 +1017,8 @@ function getAchievementStatus(achievement, playerData) {
             statusIconClass = 'in-progress';
             statusSymbol = '●';
             progressText = ` (Current: ${formatNumber(value)})`;
-            calculatedPercentage = 1; // Indicate some progress but not quantifiable in percent
+            // For general 'count' where threshold isn't clear, just show current value
+            calculatedPercentage = 1; // Indicate some progress but not quantifiable
         }
     }
 
@@ -911,7 +1028,7 @@ function getAchievementStatus(achievement, playerData) {
 
 /**
  * Updates the display for Honors and Medals based on player data.
- * @param {object} playerData - The player data from Torn API.
+ * @param {object} playerData - The player data from the Torn API.
  */
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
@@ -988,17 +1105,12 @@ function populateAwardsProgressTab(achievementsInPrgoress) {
 
     achievementsInPrgoress.forEach(item => {
         const listItem = document.createElement('li');
-        // Include percentage in progress text if it's not a rank and not 0/1 (boolean)
-        const displayProgress = (item.calculatedPercentage > 1 && item.calculatedPercentage < 100 && item.achievement.type !== 'rank')
-            ? ` (${item.calculatedPercentage.toFixed(1)}% complete)`
-            : (item.progressText || ''); // Use original progressText if percentage isn't applicable
-        
         listItem.innerHTML = `
             <span class="merit-status-icon ${item.statusIconClass}">${item.statusSymbol}</span>
             <span class="merit-details">
                 <span class="merit-name">${item.achievement.name}</span> -
                 <span class="merit-requirement">${item.achievement.requirement}</span>
-                <span class="merit-progress">${displayProgress}</span>
+                <span class="merit-progress">${item.progressText || ''} (${item.calculatedPercentage.toFixed(1)}% complete)</span>
             </span>
         `;
         awardsProgressList.appendChild(listItem);
