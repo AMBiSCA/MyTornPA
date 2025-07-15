@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Attach listeners for logged-in state (ensure no duplicates)
+                // Attach listeners logged-in state (ensure no duplicates)
                 if (logoutButtonHeader) {
                     logoutButtonHeader.removeEventListener('click', logoutHandler);
                     logoutButtonHeader.addEventListener('click', logoutHandler);
