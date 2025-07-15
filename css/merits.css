@@ -194,44 +194,22 @@ body {
 .merit-category-grid {
     display: grid;
     grid-template-rows: repeat(auto-fit, minmax(0, 1fr));
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2+ columns */
     gap: 30px;
     flex-grow: 1;
     min-height: 0;
     height: 100%;
     overflow-y: auto;
-    /* UPDATED: Symmetrical horizontal padding for better centering */
-    padding: 0 15px; 
+    padding-right: 15px;
     box-sizing: border-box;
     align-content: start;
-    max-width: 1450px;
-    /* ADDED: Centers the entire grid's content within its available space */
-    justify-content: center; 
-}
+    
+    /* REMOVED: justify-content: center; from here as it's now handled by parent */
+    /* If the grid has exactly 2 columns and stretches, this won't do much anyway */
 
-/* Override grid for the active Awards Progress tab to be a flex container */
-#progress-tab.active .merit-category-grid {
-    display: flex; /* Make it a flex container to easily center its single child */
-    justify-content: center; /* Center its children horizontally */
-    align-items: flex-start; /* Align children to the top vertically */
-    flex-grow: 1;
-    width: 100%;
-    box-sizing: border-box;
-    padding-left: 0; /* Remove inherited padding if it interferes with alignment */
-    padding-right: 0; /* Remove inherited padding if it interferes with alignment */
-}
-
-/* Adjust the single panel within the Awards Progress tab to ensure it has a max-width and respects centering */
-#progress-tab.active .merit-category-grid .merit-category-panel.full-width {
-    max-width: 700px; /* Set a maximum width for this panel */
-    margin: 0; /* Remove any auto margins as justify-content will handle centering */
-    grid-column: auto; /* Ensure it doesn't force itself to span all grid columns */
-}
-/* Center the single panel within the "Awards Progress" tab */
-#progress-tab.active .merit-category-grid .merit-category-panel.full-width {
-    max-width: 700px; /* Adjust this maximum width as desired for your design */
-    margin: 0 auto; /* This centers the panel horizontally */
-    grid-column: auto; /* IMPORTANT: Override 'full-width' to allow centering */
+    /* ADDED (Optional): Max-widtho prevent the grm stretching too wide on very large screens */
+    /* This might be needed if the grid is just too wide for centering to be noticeable */
+    max-width: 1450px; /* Adjust this value based on your desired maximum content width */
 }
 
 
