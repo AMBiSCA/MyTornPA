@@ -1,125 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MyTornPA - Merit/Honor Tracker</title>
-  
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <link rel="stylesheet" href="../css/global.css"> 
-  <link rel="stylesheet" href="../css/merits.css"> 
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyTornPA - Honors & Medals</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/merits.css"> </head>
 <body>
 
-  <header>
-    <div class="header-left">
-        <a href="home.html" style="text-decoration: none;">
-            <h1>MyTornPA <span class="tagline">Your personal assistant!</span></h1>
-        </a>
-    </div>
-    <div class="header-center">
-        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
-    </div>
-    <div class="header-right-controls">
-        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
-            <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
-            <div class="dropdown" id="usefulLinksDropdownContainer">
-              <button class="btn-header dropdown-toggle" id="usefulLinksBtn">Useful Links&nbsp;🔗</button>
-              <div class="dropdown-content" id="usefulLinksDropdown">
-                <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
-                <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
-                <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-              </div>
-            </div>
-            <button class="btn-header" id="homeButtonHeader" onclick="window.location.href='home.html'">Home&nbsp;🏠</button>
-            <button class="btn-header" id="logoutButtonHeader">Logout&nbsp;🚪</button>
-        </div>
-        <button class="btn-header" id="signUpButtonHeader" onclick="window.location.href='signup.html';" style="display: none;">Sign Up!</button>
-    </div>
-  </header>
+  <header>
+    <div class="header-left">
+        <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
+            <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
+    </div>
+    <div class="header-right-controls">
+        <div class="header-user-display js-hidden-initially" id="logged-in-user-display">
+        </div>
 
-    <main class="page-specific-content-area">
-      <h2>Merit & Honor Tracker</h2>
-      <p>Keep track of your hard-earned merits and honors in Torn City. Mark your achievements and see what's next on your list to conquer!</p>
-      
-      <div class="placeholder-box">
-        <p><strong>To make this Merit & Honor Tracker functional and appealing, consider these points:</strong></p>
-        <ul>
-            <li>
-                <strong>Data Source for Merits/Honors:</strong>
-                <ul>
-                    <li>You'll need a comprehensive list of all available merits and honors in Torn City. This is generally static data you can get from the Torn Wiki or community resources.</li>
-                    <li>Organize them by category (e.g., Crimes, Stats, Company, General for merits; various categories for honors).</li>
-                </ul>
-            </li>
-            <li>
-                <strong>User Progress Storage:</strong>
-                <ul>
-                    <li>Each user will need to save which merits/honors they have completed. This requires a database (like Firebase Firestore) to store a list of completed items linked to their `user.uid`.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>User Interface (UI):</strong>
-                <ul>
-                    <li>Display merits and honors clearly, perhaps in expandable sections by category.</li>
-                    <li>Use checkboxes or a similar toggle for users to mark items as completed.</li>
-                    <li>Show a progress bar or count (e.g., "You have completed X out of Y merits").</li>
-                    <li>For each merit/honor, you could display its name, description, and the reward (e.g., +X% to Y stat for merits).</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Core Functionality:</strong>
-                <ul>
-                    <li>Load the full list of merits/honors.</li>
-                    <li>When a user logs in, fetch their saved progress from your database and pre-select the completed items.</li>
-                    <li>When a user checks/unchecks an item, save this change back to their profile in the database immediately or with a "Save Progress" button.</li>
-                    <li>Allow filtering by category or searching for specific merits/honors.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>User Experience (UX):</strong>
-                <ul>
-                    <li>Make it visually clear which items are completed versus incomplete.</li>
-                    <li>Provide a satisfying interaction when marking an item as complete.</li>
-                    <li>Ensure the page is easy to navigate and update.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>JavaScript Logic:</strong>
-                <ul>
-                    <li>Dynamically render the list of merits/honors from your data source.</li>
-                    <li>Handle user interactions (checking/unchecking).</li>
-                    <li>Communicate with your database (Firestore) to save and load user progress.</li>
-                    <li>Update progress displays (counts, progress bars).</li>
-                </ul>
-            </li>
-        </ul>
-        <p style="margin-top: 15px;"><em>A good start would be to get the full list of merits, display them with checkboxes, and then work on saving/loading the user's selections.</em></p>
-      </div>
-      
-      <p style="text-align:center; margin-top: 20px;"><em>Merit & Honor Tracker - Feature Coming Soon!</em></p>
-    </main>
-  </div> <footer class="footer">
-    <div class="footer-links">
-      <a href="home.html" id="homeButtonFooter">Home</a>
-      <a href="FAQ.html">F.A.Q</a>
-      <a href="Terms.html">Disclaimer & Terms</a>
-      <a href="report.html">Report an Issue</a>
-      <a href="about.html">About Us</a>
-      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-    </div>
-    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-  </footer>
+        <a href="https://www.torn.com/index.php" class="header-text-link js-hidden-initially" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
 
-  <script src="../js/firebase-init.js"></script>
-  <script src="../js/merits.js"></script>
-</body>
+        <div class="header-buttons js-hidden-initially" id="headerButtonsContainer">
+            <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
+                <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
+            </button>
+
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+                <button class="btn header-btn" id="usefulLinksBtn">
+                    <span class="btn-text">Useful Links:</span>
+                    <span class="btn-icon">🔗 🔽</span>
+                </button>
+                <div class="dropdown-content" id="usefulLinksDropdown">
+                    <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
+                    <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
+                    <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
+                    <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                    <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                    <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                    <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                    <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                    <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                    <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                </div>
+            </div>
+
+            <div class="dropdown" id="contactUsDropdownContainer">
+                <button class="btn dropdown-toggle" id="contactUsBtn">
+                    <span class="btn-text">Contact:</span><span class="btn-icon">💬 🔽</span>
+                </button>
+                <div class="dropdown-content" id="contactUsDropdown">
+                    <a href="report.html">Report an Issue</a>
+                    <a href="#">Live Chat (Soon™)</a>
+                    <a href="FAQ.html">F.A.Q</a>
+                </div>
+            </div>
+
+            <button class="btn" id="logoutButtonHeader">
+                <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
+            </button>
+        </div>
+
+        <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+    </div>
+</header>
+
+  <div class="main-content-wrapper">
+
+    <main class="page-specific-content-area">
+      <h2>Torn City Honors & Medals Tracker</h2>
+      <p>Track your progress on various in-game Honors and Medals!</p>
+
+      <div id="loading-indicator" class="js-hidden-initially">Loading data, please wait...</div>
+      <div id="error-display" class="error-message js-hidden-initially"></div>
+
+      <div class="merits-layout-container">
+        <div class="player-summary-section">
+          <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Rank: <span id="player-rank">N/A</span> | Networth: <span id="player-networth">N/A</span></p>
+        </div>
+
+        <div class="tabs-container">
+          <button class="tab-button active" data-tab="honors">Honors</button>
+          <button class="tab-button" data-tab="medals">Medals</button>
+          <button class="tab-button" data-tab="stats">Stats Overview</button>
+                  </div>
+
+        <div id="tab-content" class="tab-content">
+          <div id="honors-tab" class="tab-pane active">
+                        <div class="merit-category-grid">
+              <div class="merit-category-panel">
+                <h3>Attacking Honors</h3>
+                <ul id="honors-attacking-list">
+                                  </ul>
+              </div>
+              <div class="merit-category-panel">
+                <h3>Weapons Honors</h3>
+                <ul id="honors-weapons-list">
+                                  </ul>
+              </div>
+              <div class="merit-category-panel">
+                <h3>Chaining Honors</h3>
+                <ul id="honors-chaining-list">
+                                  </ul>
+              </div>
+                <div class="merit-category-panel">
+                <h3>Attacking (General) Honors</h3>
+                <ul id="honors-attacking-general-list">
+                                  </ul>
+              </div>
+            </div>
+          </div>
+
+          <div id="medals-tab" class="tab-pane js-hidden-initially">
+                        <div class="merit-category-grid">
+              <div class="merit-category-panel">
+                <h3>Combat Medals</h3>
+                <ul id="medals-combat-list">
+                                  </ul>
+              </div>
+              <div class="merit-category-panel">
+                <h3>Commitment Medals</h3>
+                <ul id="medals-commitment-list">
+                                  </ul>
+              </div>
+              <div class="merit-category-panel">
+                <h3>Level Medals</h3>
+                <ul id="medals-level-list">
+                                  </ul>
+              </div>
+                <div class="merit-category-panel">
+                <h3>Crimes Medals</h3>
+                <ul id="medals-crimes-list">
+                                  </ul>
+              </div>
+            </div>
+          </div>
+
+          <div id="stats-tab" class="tab-pane js-hidden-initially">
+                        <div class="merit-category-panel full-width">
+              <h3>Player Stats Overview</h3>
+              <ul id="player-stats-list">
+                              </ul>
+            </div>
+          </div>
+
+          <div id="other-tab" class="tab-pane js-hidden-initially">
+                        <div class="merit-category-panel full-width">
+              <h3>Other Honors / Medals</h3>
+              <ul id="other-honors-medals-list">
+                              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/globalheader.js"></script>
+  <script src="../js/merits.js"></script> </body>
 </html>
