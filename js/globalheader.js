@@ -125,23 +125,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("globalheader.js: User IS logged in:", user.email || user.uid);
                 // --- USER IS LOGGED IN ---
 
-                // Forcefully hide "Register" button
+                // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED IN
                 if (signUpButtonHeader) {
                     signUpButtonHeader.style.setProperty('display', 'none', 'important');
                 }
-
-                // Forcefully hide "Torn City - Homepage" link
                 if (tornCityHomepageLink) {
                     tornCityHomepageLink.style.setProperty('display', 'none', 'important');
                 }
 
+                // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED IN
                 if (loggedInUserDisplay) {
-                    loggedInUserDisplay.style.display = 'inline-flex'; // Show logged-in user display
+                    loggedInUserDisplay.style.removeProperty('display'); // Clear any !important from CSS if present
+                    loggedInUserDisplay.style.display = 'inline-flex';
                     loggedInUserDisplay.textContent = user.email || 'Logged In';
                 }
 
                 if (headerButtonsContainer) {
-                    headerButtonsContainer.style.display = 'flex'; // Show logged-in buttons container
+                    headerButtonsContainer.style.removeProperty('display'); // Clear any !important from CSS if present
+                    headerButtonsContainer.style.display = 'flex';
                 }
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
                 if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
@@ -172,20 +173,33 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.log("globalheader.js: User IS NOT logged in.");
                 // --- USER IS LOGGED OUT ---
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hide logged-in buttons container
-                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // Hide logged-in user display
 
-                // Show logged-out buttons
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Show Torn City Homepage link
+                // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED OUT
+                if (headerButtonsContainer) {
+                    headerButtonsContainer.style.removeProperty('display'); // Clear any !important from CSS if present
+                    headerButtonsContainer.style.display = 'none';
+                }
+                if (loggedInUserDisplay) {
+                    loggedInUserDisplay.style.removeProperty('display'); // Clear any !important from CSS if present
+                    loggedInUserDisplay.style.display = 'none';
+                }
+
+                // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED OUT
+                if (tornCityHomepageLink) {
+                    tornCityHomepageLink.style.removeProperty('display'); // Clear any !important from CSS if present
+                    tornCityHomepageLink.style.display = 'inline-flex';
+                }
                 if (signUpButtonHeader) {
-                    const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
-                    signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex'; // Show Register (unless on signup page)
+                    signUpButtonHeader.style.removeProperty('display'); // Clear any !important from CSS if present
+                    signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex';
                 }
             }
         });
     } else {
-        console.warn("globalheader.js: Firebase auth object is NULL. Can't update header UI.");
-        // Fallback if Firebase fails: default to logged-out view
+        // Fallback if Firebase fails: default to logged-out view controlled by CSS !important
+        console.warn("globalheader.js: Firebase auth object is NULL. Header UI defaults to logged-out.");
+        // If Firebase fails, we want the default CSS to control, which means hiding logged-in elements.
+        // We'll set these explicitly here for robustness, matching the logged-out state.
         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
         if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
         if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
