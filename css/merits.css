@@ -173,8 +173,10 @@ body {
     flex-grow: 1;
     min-height: 0;
     overflow-y: auto;
-    padding-right: 15px;
-    padding-bottom: 10px;
+    
+    /* MODIFIED THIS LINE 👇 */
+    padding: 0 15px 10px 15px; /* Symmetrical padding: top, right, bottom, left */
+
     box-sizing: border-box;
 }
 
