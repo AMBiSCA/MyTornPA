@@ -840,7 +840,7 @@ async function fetchTornDataDirectly(apiKey) {
     }
 
     // Torn API v2 selections: streamlined to basic and personalstats for robustness.
-    const selections = "basic,personalstats,chain"; // This is CORRECT
+    const selections = "basic,personalstats";
     const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
     try {
