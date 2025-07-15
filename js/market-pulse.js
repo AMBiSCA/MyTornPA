@@ -1,8 +1,9 @@
 // js/market-pulse.js
-// This script manages the Torn Market Pulse page, including fetching Torn API Key from Firebase.
+// This script manages the Torn Market Pulse page. It waits for the Torn API Key
+// to be provided by globalheader.js (which fetches it from Firebase).
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('market-pulse.js: DOM content loaded. Initiating setup...');
+    console.log('market-pulse.js: DOM content loaded. Waiting for API Key...');
 
     const BASE_API_URL_V2 = 'https://api.torn.com/v2';
 
@@ -49,69 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
     }
 
-    // --- Core API Key Retrieval and Initialization ---
-    async function setupTornApiKeyAndInitializePage() {
-        showLoadingIndicator('Awaiting user login and API key...');
-        clearMessages(); // Clear any previous error/loading messages
-
-        let authInitialized = false;
-        let dbInitialized = false;
-        let attempts = 0;
-        const maxAttempts = 40; // Wait up to 20 seconds (40 * 500ms)
-
-        // Wait for Firebase auth and db objects to be globally available
-        while ((!window.auth || !window.db) && attempts < maxAttempts) {
-            console.log(`market-pulse.js: Waiting for Firebase (Auth: ${!!window.auth}, DB: ${!!window.db}). Attempt ${attempts + 1}/${maxAttempts}`);
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
-            attempts++;
-        }
-
-        if (!window.auth || !window.db) {
-            displayErrorMessage('Firebase not fully initialized. Please check console for errors or refresh the page.');
-            return;
-        }
-
-        authInitialized = true;
-        dbInitialized = true;
-        console.log('market-pulse.js: Firebase Auth and DB are available.');
-
-        // Now that auth is available, listen for auth state changes
-        window.auth.onAuthStateChanged(async (user) => {
-            console.log('market-pulse.js: Auth state changed. User:', user);
-
-            if (user) {
-                // User is logged in, try to fetch their API key
-                try {
-                    const docRef = window.db.collection('users').doc(user.uid);
-                    const doc = await docRef.get();
-
-                    if (doc.exists && doc.data().tornApiKey) {
-                        userTornApiKey = doc.data().tornApiKey;
-                        console.log('market-pulse.js: Torn API Key retrieved from Firestore.');
-                        await initializeMarketPulsePage(); // Proceed with page content load
-                    } else {
-                        userTornApiKey = null;
-                        displayErrorMessage('Torn API Key not found in your profile. Please ensure it is saved in your settings.');
-                    }
-                } catch (error) {
-                    console.error('market-pulse.js: Error fetching Torn API Key from Firestore:', error);
-                    userTornApiKey = null;
-                    displayErrorMessage('Error retrieving API Key. Please check your network or try again.');
-                }
-            } else {
-                // User is logged out
-                userTornApiKey = null;
-                displayErrorMessage('You are logged out. Please log in to view market data.');
-                clearMessages(); // Clear loading message
-            }
-        });
-
-        // If user is already logged in by the time this script loads (common on refresh)
-        // onAuthStateChanged might fire immediately or with a slight delay.
-        // We'll rely on onAuthStateChanged to trigger initializeMarketPulsePage.
-    }
-
-
     // --- API Fetching Functions ---
 
     /**
@@ -123,10 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return allTornItems; // Return cached data if available
         }
 
-        clearMessages(); // Ensure messages are clear before new fetch
+        clearMessages();
         showLoadingIndicator('Fetching Torn item list...');
         try {
             if (!userTornApiKey) {
+                // This scenario should be rare if initialization logic is correct, but good to have
                 throw new Error('Torn API key is not available for this request.');
             }
             const response = await fetch(`${BASE_API_URL_V2}/torn/?selections=items&key=${userTornApiKey}`);
@@ -154,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {Promise<object|null>} - Market data or null if error.
      */
     async function fetchItemMarket(itemId) {
-        clearMessages(); // Ensure messages are clear before new fetch
+        clearMessages();
         showLoadingIndicator(`Fetching market data for item ID ${itemId}...`);
         try {
             if (!userTornApiKey) {
@@ -557,6 +496,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Start the API Key retrieval process on DOMContentLoaded ---
-    setupTornApiKeyAndInitializePage();
+    // --- Main Initialization Function for Market Pulse Page ---
+    // This function will be called once the Torn API Key is ready.
+    async function initializeMarketPulsePage() {
+        showLoadingIndicator('Loading market data...');
+        clearMessages(); // Ensure any previous API key errors are cleared
+
+        await fetchAllTornItems();
+
+        await populateTopMovers();
+
+        if (allTornItems.length > 0) {
+            const defaultItem = allTornItems.find(item => item.name === "Xanax") || allTornItems.find(item => item.name === "Feathery Hotel Coupon") || allTornItems[0];
+            if (defaultItem) {
+                document.getElementById('item-search').dataset.itemId = defaultItem.id;
+                await displayItemMarketData(defaultItem.id, '7d');
+            } else {
+                displayErrorMessage('No suitable default item to display.');
+            }
+        } else {
+            displayErrorMessage('Could not load Torn items for market analysis.');
+        }
+
+        hideLoadingIndicator();
+    }
+
+    // --- Start the API Key observation process ---
+    // This will wait for window.currentUserTornApiKey to be set by globalheader.js
+    async function waitForApiKey() {
+        showLoadingIndicator('Waiting for user API key...');
+        const maxAttempts = 40; // 40 attempts * 500ms = 20 seconds total wait
+        let attempts = 0;
+
+        while (!window.currentUserTornApiKey && attempts < maxAttempts) {
+            console.log(`market-pulse.js: Waiting for window.currentUserTornApiKey. Attempt ${attempts + 1}/${maxAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+            attempts++;
+        }
+
+        userTornApiKey = window.currentUserTornApiKey; // Assign the key
+
+        if (userTornApiKey) {
+            console.log('market-pulse.js: Torn API Key found! Proceeding with initialization.');
+            initializeMarketPulsePage();
+        } else {
+            displayErrorMessage('Torn API Key not found. Please log in and ensure your API key is configured correctly in your profile settings.');
+        }
+    }
+
+    // Kick off the waiting process
+    waitForApiKey();
 });

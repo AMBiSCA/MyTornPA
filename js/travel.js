@@ -1,549 +1,573 @@
-// js/market-pulse.js
-// This script manages the Torn Market Pulse page. It waits for the Torn API Key
-// to be provided by globalheader.js (which fetches it from Firebase).
+// Global Variables
+let allTornItems = {};
+let yataTravelData = null;
+let lastYataFetchTime = 0;
+const YATA_CACHE_DURATION = 5 * 60 * 1000;
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('market-pulse.js: DOM content loaded. Waiting for API Key...');
+// Country Name Map
+const countryNameMap = {
+    "uni": "United Kingdom",
+    "can": "Canada",
+    "jap": "Japan",
+    "cay": "Cayman Islands",
+    "mex": "Mexico",
+    "sou": "South Africa",
+    "swi": "Switzerland",
+    "uae": "United Arab Emirates",
+    "arg": "Argentina",
+    "haw": "Hawaii",
+    "chi": "China"
+};
 
-    const BASE_API_URL_V2 = 'https://api.torn.com/v2';
+// Item Category Map
+const itemCategoryMap = {
+    // Plushies
+    "207": "Plushie", "212": "Plushie", "205": "Plushie", "206": "Plushie", "204": "Plushie",
+    "213": "Plushie", "211": "Plushie", "214": "Plushie", "215": "Plushie", "266": "Plushie",
+    "618": "Plushie", "258": "Plushie", "261": "Plushie", "274": "Plushie", "281": "Plushie",
+    "269": "Plushie", "384": "Plushie", "273": "Plushie",
+    // Flowers
+    "203": "Flower", "201": "Flower", "209": "Flower", "200": "Flower", "210": "Flower",
+    "202": "Flower", "216": "Flower", "217": "Flower", "218": "Flower", "219": "Flower",
+    "277": "Flower", "260": "Flower", "617": "Flower", "263": "Flower", "264": "Flower",
+    "267": "Flower", "271": "Flower", "272": "Flower", "276": "Flower", "385": "Flower",
+    "282": "Flower",
+    // Drugs
+    "196": "Drug", "197": "Drug", "198": "Drug", "199": "Drug", "200": "Drug",
+    "201": "Drug", "203": "Drug", "204": "Drug", "205": "Drug", "206": "Drug",
+    // Special items
+    "419": "Special", "420": "Special", "421": "Special", "327": "Special",
+    "259": "Special", "616": "Special", "619": "Special", "620": "Special", "621": "Special",
+    "622": "Special", "623": "Special", "624": "Special", "625": "Special", "626": "Special",
+    "412": "Special", "414": "Special", "440": "Special", "381": "Special", "382": "Special",
+    "383": "Special", "278": "Special", "279": "Special", "294": "Special", "427": "Special",
+    "429": "Special", "433": "Special", "434": "Special", "437": "Special", "270": "Special",
+    "407": "Special", "361": "Special", "435": "Special", "436": "Special", "408": "Special",
+    "411": "Special", "415": "Special", "416": "Special", "418": "Special", "431": "Special",
+    "432": "Special", "426": "Special", "409": "Special", "410": "Special", "406": "Special",
+    "273": "Special",
+    // Weapons
+    "8": "Weapon", "11": "Weapon", "20": "Weapon", "21": "Weapon", "26": "Weapon", "31": "Weapon",
+    "63": "Weapon", "99": "Weapon", "108": "Weapon", "110": "Weapon", "111": "Weapon", "175": "Weapon",
+    "177": "Weapon", "229": "Weapon", "230": "Weapon", "231": "Weapon", "232": "Weapon", "399": "Weapon",
+    "612": "Weapon", "613": "Weapon", "614": "Weapon", "615": "Weapon", "217": "Weapon", "218": "Weapon",
+    "219": "Weapon", "220": "Weapon", "221": "Weapon", "397": "Weapon", "438": "Weapon", "1246": "Weapon",
+    "252": "Weapon", "253": "Weapon", "262": "Weapon", "402": "Weapon", "255": "Weapon", "256": "Weapon",
+    "257": "Weapon", "333": "Weapon", "391": "Weapon", "398": "Weapon", "400": "Weapon", "222": "Weapon",
+    "223": "Weapon", "224": "Weapon", "233": "Weapon", "234": "Weapon", "235": "Weapon", "236": "Weapon",
+    "237": "Weapon", "238": "Weapon", "239": "Weapon", "395": "Weapon", "240": "Weapon", "241": "Weapon",
+    "242": "Weapon", "243": "Weapon", "244": "Weapon", "245": "Weapon", "246": "Weapon", "247": "Weapon",
+    "248": "Weapon", "249": "Weapon", "250": "Weapon", "251": "Weapon",
+    // Armor
+    "50": "Armor", "107": "Armor", "178": "Armor", "640": "Armor", "641": "Armor",
+    "645": "Armor", "332": "Armor", "334": "Armor", "651": "Armor", "652": "Armor",
+    "653": "Armor", "654": "Armor", "430": "Armor",
+    // Clothing
+    "1125": "Clothing", "624": "Clothing", "625": "Clothing", "626": "Clothing",
+    "623": "Clothing", "413": "Clothing", "439": "Clothing",
+    // Miscellaneous
+    "159": "Miscellaneous", "328": "Miscellaneous", "335": "Miscellaneous",
+};
 
-    // Global State & Caches
-    let allTornItems = []; // Cache for all Torn items (from torn/items)
-    let currentChartInstance = null; // To store the Chart.js instance
-    let historicalMarketData = {}; // Simulates historical data for chart. Key: itemId, Value: Array of {timestamp, price}
-    let userTornApiKey = null; // Will hold the user's Torn API key
 
-    // --- Utility Functions ---
-    function showLoadingIndicator(message = 'Loading data, please wait...') {
-        const loadingIndicator = document.getElementById('loading-indicator');
-        if (loadingIndicator) {
-            loadingIndicator.textContent = message;
-            loadingIndicator.style.display = 'block';
+document.addEventListener('DOMContentLoaded', function() {
+    // UI References
+    const destinationSelect = document.getElementById('destination-select');
+    const fetchDataBtn = document.getElementById('fetch-data-btn');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const errorDisplay = document.getElementById('error-display');
+    const selectedCountryNameSpan = document.getElementById('selected-country-name');
+    const itemListDiv = document.getElementById('item-list');
+    const travelCapacityInput = document.getElementById('travel-capacity');
+    const categoryFilterSelect = document.getElementById('category-filter');
+    const itemSearchInput = document.getElementById('item-search');
+    
+    let currentTornApiKey = null;
+
+    // Helper Functions
+    
+    // Fetch All Torn Items
+    async function fetchAllTornItems(apiKey) {
+        if (Object.keys(allTornItems).length > 0) {
+            console.log("All Torn items already loaded from cache.");
+            return;
         }
-    }
 
-    function hideLoadingIndicator() {
-        const loadingIndicator = document.getElementById('loading-indicator');
-        if (loadingIndicator) {
+        if (!apiKey) {
+            errorDisplay.textContent = 'API Key is required to fetch item details.';
+            return;
+        }
+
+        loadingIndicator.textContent = 'Loading all Torn item data... This might take a moment.';
+        errorDisplay.textContent = '';
+
+        try {
+            const response = await fetch(`https://api.torn.com/v2/torn?selections=items&key=${apiKey}`);
+            const data = await response.json();
+
+            if (data.error) {
+                errorDisplay.textContent = `API Error fetching items: ${data.error.error}`;
+                console.error('Torn API Error fetching items:', data.error);
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+
+            const itemsById = {};
+            for (const itemId in data.items) {
+                if (data.items.hasOwnProperty(itemId)) {
+                    const item = data.items[itemId];
+                    itemsById[itemId] = {
+                        image: `https://www.torn.com/images/items/${itemId}/large.png`,
+                        market_price: item.value ? item.value.market_price : null
+                    };
+                }
+            }
+            allTornItems = itemsById;
+            console.log('Successfully loaded all Torn items:', Object.keys(allTornItems).length);
+            loadingIndicator.style.display = 'none';
+
+        } catch (error) {
+            errorDisplay.textContent = 'Failed to fetch all Torn items. Check your network.';
+            console.error('Fetch all items error:', error);
             loadingIndicator.style.display = 'none';
         }
     }
 
-    function displayErrorMessage(message) {
-        const errorDisplay = document.getElementById('error-display');
-        if (errorDisplay) {
-            errorDisplay.textContent = `Error: ${message}`;
-            errorDisplay.style.display = 'block';
-        }
-        hideLoadingIndicator(); // Always hide loading indicator on error
-    }
-
-    function clearMessages() {
-        hideLoadingIndicator();
-        const errorDisplay = document.getElementById('error-display');
-        if (errorDisplay) {
-            errorDisplay.style.display = 'none';
-        }
-    }
-
-    function formatNumber(num) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
-    }
-
-    // --- API Fetching Functions ---
-
-    /**
-     * Fetches a list of all Torn items.
-     * Caches the result to avoid repeated API calls.
-     */
-    async function fetchAllTornItems() {
-        if (allTornItems.length > 0) {
-            return allTornItems; // Return cached data if available
-        }
-
-        clearMessages();
-        showLoadingIndicator('Fetching Torn item list...');
-        try {
-            if (!userTornApiKey) {
-                // This scenario should be rare if initialization logic is correct, but good to have
-                throw new Error('Torn API key is not available for this request.');
-            }
-            const response = await fetch(`${BASE_API_URL_V2}/torn/?selections=items&key=${userTornApiKey}`);
-            const data = await response.json();
-
-            if (data.error) {
-                throw new Error(data.error.error || 'Failed to fetch Torn items.');
-            }
-
-            allTornItems = Object.values(data.items); // Convert object to array for easier search
-            console.log('All Torn items fetched:', allTornItems.length);
-            return allTornItems;
-        } catch (error) {
-            console.error('Error fetching all Torn items:', error);
-            displayErrorMessage(`Could not fetch Torn items: ${error.message}`);
-            return [];
-        } finally {
-            hideLoadingIndicator();
-        }
-    }
-
-    /**
-     * Fetches current market listings for a specific item.
-     * @param {number} itemId - The ID of the item.
-     * @returns {Promise<object|null>} - Market data or null if error.
-     */
-    async function fetchItemMarket(itemId) {
-        clearMessages();
-        showLoadingIndicator(`Fetching market data for item ID ${itemId}...`);
-        try {
-            if (!userTornApiKey) {
-                throw new Error('Torn API key is not available for this request.');
-            }
-            const response = await fetch(`${BASE_API_URL_V2}/market/${itemId}/itemmarket?key=${userTornApiKey}`);
-            const data = await response.json();
-
-            if (data.error) {
-                throw new Error(data.error.error || `Failed to fetch market data for item ID ${itemId}.`);
-            }
-            console.log(`Market data for ${itemId}:`, data.itemmarket);
-            return data.itemmarket;
-        } catch (error) {
-            console.error(`Error fetching market data for item ID ${itemId}:`, error);
-            displayErrorMessage(`Could not fetch market data for item ID ${itemId}: ${error.message}`);
-            return null;
-        } finally {
-            hideLoadingIndicator();
-        }
-    }
-
-    // --- Charting Functions (using Chart.js) ---
-
-    /**
-     * Creates or updates the price trend chart using Chart.js.
-     * Includes a simulation for historical data.
-     * @param {object} itemData - The item data, including average_price and id.
-     * @param {string} period - The time period for the chart ('24h', '7d', '30d', 'all').
-     */
-    function createOrUpdateChart(itemData, period = '7d') {
-        const ctx = document.getElementById('priceTrendChart').getContext('2d');
-
-        if (currentChartInstance) {
-            currentChartInstance.destroy(); // Destroy existing chart instance
-        }
-
-        // --- HISTORICAL DATA SIMULATION START ---
+    // Fetch YATA Data
+    async function fetchYATATravelData() {
         const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000;
-        const currentPrice = itemData.average_price || 0;
-
-        // Initialize or update simulated historical data for this item
-        if (!historicalMarketData[itemData.id] || historicalMarketData[itemData.id].length === 0) {
-            historicalMarketData[itemData.id] = [];
-            // Generate 30 days of initial simulated data points
-            for (let i = 29; i >= 0; i--) {
-                const pastTime = now - i * oneDay;
-                // Simulate some variation around the current price
-                const simulatedPrice = currentPrice * (1 + (Math.random() - 0.5) * 0.15); // +/- 7.5% variation
-                historicalMarketData[itemData.id].push({ timestamp: pastTime, price: Math.max(1, Math.round(simulatedPrice)) });
-            }
-        } else {
-            // Add the current price as a new data point if it's sufficiently new
-            const lastDataPoint = historicalMarketData[itemData.id][historicalMarketData[itemData.id].length - 1];
-            if (now - lastDataPoint.timestamp > oneDay / 4) { // Add new point if last one is older than 6 hours
-                historicalMarketData[itemData.id].push({ timestamp: now, price: Math.round(currentPrice) });
-                // Keep history size reasonable (e.g., last 31 days)
-                historicalMarketData[itemData.id] = historicalMarketData[itemData.id].filter(dp => (now - dp.timestamp) < 31 * oneDay);
-            }
+        if (yataTravelData && (now - lastYataFetchTime < YATA_CACHE_DURATION)) {
+            console.log("Using cached YATA travel data.");
+            return yataTravelData;
         }
-
-        // Filter data points based on the selected period
-        let periodMs;
-        switch (period) {
-            case '24h': periodMs = oneDay; break;
-            case '7d': periodMs = 7 * oneDay; break;
-            case '30d': periodMs = 30 * oneDay; break;
-            case 'all': periodMs = 31 * oneDay; break; // 'All time' uses our max simulated history
-            default: periodMs = 7 * oneDay; break;
-        }
-
-        const periodStart = now - periodMs;
-        let filteredData = historicalMarketData[itemData.id].filter(dp => dp.timestamp >= periodStart);
-
-        // Ensure at least two points for the chart to draw a line, even if simulated data is sparse
-        if (filteredData.length < 2) {
-             filteredData = [
-                { timestamp: periodStart, price: itemData.average_price || 0 },
-                { timestamp: now, price: itemData.average_price || 0 }
-             ];
-             console.warn("Not enough historical data, using current price for a flat line segment.");
-        }
-
-
-        const labels = filteredData.map(dp => {
-            const date = new Date(dp.timestamp);
-            if (period === '24h') {
-                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            } else if (period === '7d' || period === '30d' || period === 'all') {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        loadingIndicator.textContent = 'Fetching live travel data from YATA... This might take a moment.';
+        errorDisplay.textContent = '';
+        try {
+            const response = await fetch('https://yata.yt/api/v1/travel/export/');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return date.toLocaleString(); // Fallback
-        });
-        const prices = filteredData.map(dp => dp.price);
-        // --- HISTORICAL DATA SIMULATION END ---
+            const data = await response.json();
+            yataTravelData = data;
+            lastYataFetchTime = now;
+            console.log('Successfully loaded YATA travel data.');
+            return data;
+        } catch (error) {
+            errorDisplay.textContent = 'Failed to fetch live travel data from YATA. Please try again later.';
+            console.error('YATA Fetch error:', error);
+            loadingIndicator.style.display = 'none';
+            return null;
+        }
+    }
 
-        currentChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: `${itemData.name} Price`,
-                    data: prices,
-                    borderColor: '#00a8ff', // Blue line
-                    backgroundColor: 'rgba(0, 168, 255, 0.2)', // Light blue fill
-                    tension: 0.3, // Smoother line
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#00a8ff',
-                    pointBorderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // Allows chart to fill container
-                plugins: {
-                    legend: {
-                        display: false // No legend as we have only one dataset
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                return `Price: ${formatNumber(context.raw)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)' // Light grid lines
-                        },
-                        ticks: {
-                            color: '#eee', // White tick labels
-                            autoSkip: true,
-                            maxTicksLimit: 10 // Limit number of ticks to avoid clutter
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#eee',
-                            callback: function(value, index, ticks) {
-                                return formatNumber(value); // Format Y-axis labels as currency
-                            }
-                        },
-                        beginAtZero: false // Important for price charts to show true scale
-                    }
-                },
-                layout: {
-                    padding: {
-                        left: 10,
-                        right: 10,
-                        top: 0,
-                        bottom: 0
-                    }
+    // Populate Destinations
+    async function fetchAndPopulateDestinations() {
+        loadingIndicator.textContent = 'Loading destinations...';
+        errorDisplay.textContent = '';
+        destinationSelect.innerHTML = '<option value="">Loading destinations...</option>';
+        try {
+            destinationSelect.innerHTML = '<option value="">-- Select a country --</option>';
+            for (const countryCode in countryNameMap) {
+                if (countryNameMap.hasOwnProperty(countryCode)) {
+                    const countryName = countryNameMap[countryCode];
+                    const option = document.createElement('option');
+                    option.value = countryCode;
+                    option.textContent = countryName;
+                    destinationSelect.appendChild(option);
                 }
             }
-        });
-    }
-
-    /**
-     * Updates the "Current Snapshot" metrics section.
-     * @param {object} itemData - The market data for the item.
-     * @param {string} period - The currently selected chart period (e.g., '24h', '7d').
-     */
-    function updateMetrics(itemData, period) {
-        document.getElementById('current-avg-price').textContent = formatNumber(itemData.average_price || 0);
-
-        let changeAmount = 0;
-        let changePercent = 0;
-        let changeIcon = '';
-        let changeClass = 'neutral';
-
-        const currentPrice = itemData.average_price || 0;
-        const historicalPoints = historicalMarketData[itemData.id] || [];
-
-        const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
-        let referencePrice = null;
-
-        for (let i = historicalPoints.length - 1; i >= 0; i--) {
-            if (historicalPoints[i].timestamp <= twentyFourHoursAgo) {
-                referencePrice = historicalPoints[i].price;
-                break;
-            }
-        }
-
-        if (referencePrice && currentPrice !== referencePrice) {
-            changeAmount = currentPrice - referencePrice;
-            changePercent = (changeAmount / referencePrice) * 100;
-
-            if (changeAmount > 0) {
-                changeIcon = '&#9650;'; // Up arrow
-                changeClass = 'positive';
-            } else if (changeAmount < 0) {
-                changeIcon = '&#9660;'; // Down arrow
-                changeClass = 'negative';
-            }
-        } else {
-            changeIcon = '&#9679;'; // Dot for no change
-            changeClass = 'neutral';
-        }
-
-        const changeElement = document.getElementById('24hr-change');
-        changeElement.innerHTML = `${formatNumber(changeAmount)} (${changePercent.toFixed(1)}% <span class="${changeClass}">${changeIcon}</span>)`;
-        changeElement.className = changeClass; // Set class for overall color
-
-        const periodStartMs = Date.now() - (period === '24h' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 31) * 24 * 60 * 60 * 1000;
-        const relevantData = historicalMarketData[itemData.id] ? historicalMarketData[itemData.id].filter(dp => dp.timestamp >= periodStartMs) : [];
-        const pricesInPeriod = relevantData.map(dp => dp.price);
-        const periodHigh = pricesInPeriod.length ? Math.max(...pricesInPeriod) : itemData.average_price;
-        const periodLow = pricesInPeriod.length ? Math.min(...pricesInPeriod) : itemData.average_price;
-
-        document.getElementById('period-high').textContent = formatNumber(periodHigh || 0);
-        document.getElementById('period-low').textContent = formatNumber(periodLow || 0);
-
-        const estimatedVolume = Math.floor(Math.random() * 5000) + 1000;
-        document.getElementById('estimated-volume').textContent = `${estimatedVolume} units`;
-    }
-
-    /**
-     * Displays a specific item's market data (chart and metrics).
-     * @param {number} itemId - The ID of the item to display.
-     * @param {string} [period='7d'] - The default period for the chart.
-     */
-    async function displayItemMarketData(itemId, period = '7d') {
-        const itemMarketData = await fetchItemMarket(itemId);
-        if (itemMarketData && itemMarketData.item) {
-            const itemSearchInput = document.getElementById('item-search');
-            if (itemSearchInput) {
-                itemSearchInput.value = itemMarketData.item.name;
-                itemSearchInput.dataset.itemId = itemId;
-            }
-
-            createOrUpdateChart(itemMarketData.item, period);
-            updateMetrics(itemMarketData.item, period);
-
-            document.querySelectorAll('.chart-filter-btn').forEach(button => {
-                if (button.dataset.time === period) {
-                    button.classList.add('active');
-                } else {
-                    button.classList.remove('active');
-                }
-            });
-        } else {
-            console.error("Failed to get item market data for display or item not found.");
+            loadingIndicator.style.display = 'none';
+            console.log("Destinations populated from hardcoded list.");
+        } catch (error) {
+            errorDisplay.textContent = 'Failed to populate travel destinations from hardcoded list.';
+            console.error('Populate destinations error:', error);
+            loadingIndicator.style.display = 'none';
+            return null;
         }
     }
 
-    // --- Top Market Movers Functions ---
+    // Display Country Items
+    async function displayItemsForCountry(selectedCountryId, apiKey) {
+        itemListDiv.innerHTML = '';
+        loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
+        errorDisplay.textContent = '';
 
-    /**
-     * Fetches and displays the top market movers.
-     * This simulates "top movers" as real-time tracking of movers requires a backend.
-     */
-    async function populateTopMovers() {
-        const topMoversList = document.getElementById('top-movers-list');
-        topMoversList.innerHTML = '<p style="text-align: center; color: #bbb;">Finding top market movers...</p>';
-
-        const items = await fetchAllTornItems();
-        if (!items || items.length === 0) {
-            topMoversList.innerHTML = '<p style="text-align: center; color: #e74c3c;">Could not load top movers.</p>';
+        const yataData = await fetchYATATravelData();
+        if (!yataData) {
+            loadingIndicator.style.display = 'none';
             return;
         }
 
-        const popularItemNames = [
-            "Xanax", "Energy Drink", "Can of Beer", "Empty Can", "Feathery Hotel Coupon",
-            "Lion Plushie", "Teddy Bear", "Flower Lei", "Orchid", "Gold AK47",
-            "Point Bag", "Drug Pack", "Medical Kit", "Bottle of Beer", "Brick", "Plank",
-            "Sheep Plushie", "Stink Bomb", "Smoke Grenade", "Taser", "Flash Grenade"
-        ];
-
-        const popularItems = items.filter(item => popularItemNames.includes(item.name));
-        const moverItems = [];
-
-        for (const item of popularItems) {
-            const marketData = await fetchItemMarket(item.id);
-            if (marketData && marketData.item) {
-                const currentPrice = marketData.item.average_price || 0;
-                let simulatedChangeAmount = 0;
-                let simulatedChangePercent = 0;
-
-                const historicalPoints = historicalMarketData[item.id] || [];
-                const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
-                let referencePrice = null;
-
-                for (let i = historicalPoints.length - 1; i >= 0; i--) {
-                    if (historicalPoints[i].timestamp <= twentyFourHoursAgo) {
-                        referencePrice = historicalPoints[i].price;
-                        break;
-                    }
-                }
-
-                if (referencePrice && currentPrice !== referencePrice) {
-                    simulatedChangeAmount = currentPrice - referencePrice;
-                    simulatedChangePercent = (simulatedChangeAmount / referencePrice) * 100;
-                } else if (currentPrice > 0 && historicalPoints.length > 0) {
-                    if (historicalPoints[0].price !== currentPrice) {
-                        simulatedChangeAmount = currentPrice - historicalPoints[0].price;
-                        simulatedChangePercent = (simulatedChangeAmount / historicalPoints[0].price) * 100;
-                    }
-                }
-
-                moverItems.push({
-                    id: item.id,
-                    name: item.name,
-                    average_price: currentPrice,
-                    simulatedChangeAmount: simulatedChangeAmount,
-                    simulatedChangePercent: simulatedChangePercent
-                });
-            }
-        }
-
-        moverItems.sort((a, b) => Math.abs(b.simulatedChangePercent) - Math.abs(a.simulatedChangePercent));
-
-        const moversToDisplay = moverItems.slice(0, 8);
-
-        topMoversList.innerHTML = '';
-
-        if (moversToDisplay.length === 0) {
-            topMoversList.innerHTML = '<p style="text-align: center; color: #bbb;">No prominent movers found right now.</p>';
+        const travelCapacity = parseInt(travelCapacityInput.value, 10);
+        if (isNaN(travelCapacity) || travelCapacity <= 0) {
+            errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+            loadingIndicator.style.display = 'none';
             return;
         }
 
-        moversToDisplay.forEach(mover => {
-            const moverCard = document.createElement('div');
-            moverCard.classList.add('mover-card');
-            moverCard.dataset.itemId = mover.id;
+        const countryData = yataData.stocks[selectedCountryId];
+        if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
+            itemListDiv.innerHTML = `<p>No live item data available for this country from YATA.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-            let changeClass = 'neutral';
-            let changeIcon = '&#9679;';
-            if (mover.simulatedChangePercent > 0) {
-                changeClass = 'positive';
-                changeIcon = '&#9650;';
-            } else if (mover.simulatedChangePercent < 0) {
-                changeClass = 'negative';
-                changeIcon = '&#9660;';
-            }
+        let itemsToProcess = countryData.stocks.map(itemInfo => ({
+            itemId: itemInfo.id,
+            name: itemInfo.name,
+            foreignPrice: itemInfo.cost,
+            foreignStock: itemInfo.quantity,
+            category: itemCategoryMap[itemInfo.id] || 'Other',
+        }));
 
-            moverCard.innerHTML = `
-                <span class="mover-name">${mover.name}</span>
-                <span class="mover-price">${formatNumber(mover.average_price)}</span>
-                <span class="mover-change ${changeClass}">${mover.simulatedChangePercent.toFixed(1)}% ${changeIcon}</span>
-            `;
-            topMoversList.appendChild(moverCard);
+        const selectedCategory = categoryFilterSelect.value;
+        if (selectedCategory !== 'all') {
+            itemsToProcess = itemsToProcess.filter(item => item.category === selectedCategory);
+        }
+
+        if (itemsToProcess.length === 0) {
+            itemListDiv.innerHTML = `<p>No items found for the selected category in this country.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+        
+        const itemsToDisplay = await Promise.all(itemsToProcess.map(async (itemData) => {
+            const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
+            const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
+            const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+            const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
+            const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
+
+            return {
+                id: itemData.itemId,
+                name: itemData.name,
+                image: imageUrl,
+                foreignPrice: itemData.foreignPrice,
+                foreignStock: itemData.foreignStock,
+                tornCityPrice: tornCityPrice,
+                profitPerItem: profitPerItem,
+                totalPotentialProfit: totalPotentialProfit,
+                canCarry: canCarry,
+                category: itemData.category,
+            };
+        }));
+
+        itemsToDisplay.sort((a, b) => {
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+            return profitB - profitA;
         });
+
+        itemsToDisplay.forEach(item => {
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('item-card');
+            itemCard.innerHTML = `
+    <img src="${item.image}" alt="${item.name}">
+    <div class="item-info">
+        <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
+        <div class="item-stats">
+            <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
+            <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
+            <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
+            <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+        </div>
+        <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
+    </div>
+`;         itemListDiv.appendChild(itemCard);
+        });
+
+        loadingIndicator.style.display = 'none';
     }
 
-    // --- Event Listeners ---
-    const itemSearchInput = document.getElementById('item-search');
-    if (itemSearchInput) {
-        itemSearchInput.addEventListener('keypress', async (event) => {
-            if (event.key === 'Enter') {
-                const searchTerm = itemSearchInput.value.trim().toLowerCase();
-                if (searchTerm) {
-                    const foundItem = allTornItems.find(item => item.name.toLowerCase() === searchTerm);
-                    if (foundItem) {
-                        await displayItemMarketData(foundItem.id, '7d');
+    // Fetch Torn City Price
+    async function fetchTornCityItemPrice(itemId, apiKey) {
+        if (!apiKey) {
+            console.error(`API Key is MISSING. Cannot fetch price for item ${itemId}.`);
+            return null;
+        }
+
+        try {
+            const response = await fetch(`https://api.torn.com/v2/market/${itemId}?selections=bazaar,itemmarket&key=${apiKey}`);
+            if (!response.ok) {
+                console.error(`Error fetching item ${itemId}. Status: ${response.status} (${response.statusText})`);
+                return null;
+            }
+
+            const data = await response.json();
+            if (data.error) {
+                console.error(`API Error for item ${itemId}:`, data.error.error);
+                return null;
+            }
+
+            let finalPrice = null;
+            if (data.itemmarket && data.itemmarket.item && data.itemmarket.item.average_price) {
+                finalPrice = data.itemmarket.item.average_price;
+            }
+
+            if (!finalPrice) {
+                const prices = [];
+                if (data.bazaar) {
+                    Object.values(data.bazaar).forEach(listing => prices.push(listing.cost));
+                }
+                if (data.itemmarket && data.itemmarket.listings) {
+                    data.itemmarket.listings.forEach(listing => prices.push(listing.price));
+                }
+                if (prices.length > 0) {
+                    finalPrice = Math.min(...prices);
+                }
+            }
+            return finalPrice > 0 ? finalPrice : null;
+        } catch (error) {
+            console.error(`Failed to fetch price for item ${itemId}:`, error);
+            return null;
+        }
+    }
+    
+    // Search Items
+    async function searchItemsAndDisplayResults(searchQuery, apiKey) {
+        itemListDiv.innerHTML = '';
+        loadingIndicator.textContent = `Searching for "${searchQuery}" and fetching prices...`;
+        errorDisplay.textContent = '';
+        selectedCountryNameSpan.textContent = `Search results for "${searchQuery}"`;
+
+        const yataData = await fetchYATATravelData();
+        if (!yataData) {
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+
+        const travelCapacity = parseInt(travelCapacityInput.value, 10);
+        if (isNaN(travelCapacity) || travelCapacity <= 0) {
+            errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+
+        const matchedItems = [];
+        const lowerCaseSearchQuery = searchQuery.toLowerCase();
+        for (const countryCode in yataData.stocks) {
+            if (yataData.stocks.hasOwnProperty(countryCode)) {
+                const country = yataData.stocks[countryCode];
+                const countryName = countryNameMap[countryCode] || countryCode;
+                for (const itemInfo of country.stocks) {
+                    if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
+                        matchedItems.push({
+                            itemId: itemInfo.id,
+                            name: itemInfo.name,
+                            foreignPrice: itemInfo.cost,
+                            foreignStock: itemInfo.quantity,
+                            countryName: countryName,
+                            category: itemCategoryMap[itemInfo.id] || 'Other',
+                        });
+                    }
+                }
+            }
+        }
+
+        if (matchedItems.length === 0) {
+            itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" in any country.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+
+        const selectedCategory = categoryFilterSelect.value;
+        let filteredItems = matchedItems;
+        if (selectedCategory !== 'all') {
+            filteredItems = matchedItems.filter(item => item.category === selectedCategory);
+        }
+
+        if (filteredItems.length === 0) {
+            itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" for the selected category.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+
+        const itemsToDisplay = await Promise.all(filteredItems.map(async (itemData) => {
+            const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
+            const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
+            const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+            const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
+            const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
+
+            return {
+                id: itemData.itemId,
+                name: itemData.name,
+                image: imageUrl,
+                foreignPrice: itemData.foreignPrice,
+                foreignStock: itemData.foreignStock,
+                countryName: itemData.countryName,
+                tornCityPrice: tornCityPrice,
+                profitPerItem: profitPerItem,
+                totalPotentialProfit: totalPotentialProfit,
+                canCarry: canCarry,
+                category: itemData.category,
+            };
+        }));
+
+        itemsToDisplay.sort((a, b) => {
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+            return profitB - profitA;
+        });
+
+        itemListDiv.innerHTML = '';
+        itemsToDisplay.forEach(item => {
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('item-card');
+itemCard.innerHTML = `
+    <img src="${item.image}" alt="${item.name}">
+    <div class="item-info">
+        <h3>${item.name} (${item.category})</h3>
+        <div class="item-stats">
+            <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
+            <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
+            <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
+            <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+        </div>
+        <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
+    </div>
+`;
+            itemListDiv.appendChild(itemCard);
+        });
+
+        loadingIndicator.style.display = 'none';
+    }
+
+    // Firebase Authentication
+    if (typeof auth !== 'undefined' && auth && typeof db !== 'undefined' && db) {
+        auth.onAuthStateChanged(async function(user) {
+            
+            // Header logic has been removed as requested.
+
+            if (user) {
+                console.log("User logged in:", user.uid);
+                const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
+                try {
+                    const doc = await userDocRef.get();
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        currentTornApiKey = userData.tornApiKey || null;
+                        console.log("Fetched Torn API Key from Firebase:", currentTornApiKey);
+
+                        if (currentTornApiKey) {
+                            errorDisplay.textContent = '';
+                            loadingIndicator.textContent = 'Fetching essential data...';
+                            
+                            await fetchAllTornItems(currentTornApiKey);
+                            await fetchAndPopulateDestinations();
+
+                            if (destinationSelect.value) {
+                                const selectedCountryId = destinationSelect.value;
+                                selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+                                await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+                            } else {
+                                selectedCountryNameSpan.textContent = 'Selected Country';
+                                itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
+                            }
+                            loadingIndicator.style.display = 'none';
+
+                        } else {
+                            errorDisplay.textContent = 'No Torn API Key found in your profile. Please add it in your settings.';
+                            loadingIndicator.style.display = 'none';
+                        }
                     } else {
-                        displayErrorMessage(`Item "${itemSearchInput.value}" not found.`);
+                        errorDisplay.textContent = 'User profile not found in database.';
+                        console.error("User profile not found for UID:", user.uid);
+                        loadingIndicator.style.display = 'none';
                     }
-                } else {
-                    displayErrorMessage('Please enter an item name.');
+                } catch (error) {
+                    errorDisplay.textContent = 'Error fetching user profile: ' + error.message;
+                    console.error('Error fetching user profile from Firestore:', error);
+                    loadingIndicator.style.display = 'none';
                 }
+            } else {
+                currentTornApiKey = null;
+                errorDisplay.textContent = 'You must be logged in to use the Travel Helper. Please log in.';
+                loadingIndicator.style.display = 'none';
+                itemListDiv.innerHTML = '<p>Please log in to use the Travel Helper.</p>';
+                destinationSelect.innerHTML = '<option value="">-- Log in to load destinations --</option>';
             }
         });
+
+    } else {
+        console.warn("Firebase auth or firestore object is not available.");
+        errorDisplay.textContent = "Firebase is not initialized.";
+        loadingIndicator.style.display = 'none';
     }
 
-    document.querySelectorAll('.chart-filter-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            document.querySelectorAll('.chart-filter-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
 
-            const selectedPeriod = button.dataset.time;
-            const currentItemId = document.getElementById('item-search').dataset.itemId;
+    // Event Listeners
+    fetchDataBtn.addEventListener('click', async () => {
+        if (!currentTornApiKey) {
+            errorDisplay.textContent = 'No Torn API Key available.';
+            return;
+        }
+        errorDisplay.textContent = '';
+        loadingIndicator.textContent = 'Refetching travel data...';
 
-            if (currentItemId) {
-                displayItemMarketData(parseInt(currentItemId), selectedPeriod);
+        await fetchAllTornItems(currentTornApiKey);
+        await fetchAndPopulateDestinations();
+
+        if (destinationSelect.value) {
+            const selectedCountryId = destinationSelect.value;
+            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+        } else {
+            selectedCountryNameSpan.textContent = 'Selected Country';
+            itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
+        }
+        loadingIndicator.style.display = 'none';
+    });
+    
+    itemSearchInput.addEventListener('input', async () => {
+        const searchQuery = itemSearchInput.value.trim();
+        const apiKey = currentTornApiKey;
+        if (searchQuery === '') {
+            const selectedCountryId = destinationSelect.value;
+            if (selectedCountryId && apiKey) {
+                selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+                await displayItemsForCountry(selectedCountryId, apiKey);
             } else {
-                displayErrorMessage('Please select an item first (type in search or click a mover).');
+                selectedCountryNameSpan.textContent = 'Selected Country';
+                itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
             }
-        });
+            return;
+        }
+        if (!apiKey) {
+            errorDisplay.textContent = 'No Torn API Key available.';
+            return;
+        }
+        await searchItemsAndDisplayResults(searchQuery, apiKey);
     });
 
-    const topMoversListElement = document.getElementById('top-movers-list');
-    if (topMoversListElement) {
-        topMoversListElement.addEventListener('click', async (event) => {
-            const moverCard = event.target.closest('.mover-card');
-            if (moverCard && moverCard.dataset.itemId) {
-                const itemId = parseInt(moverCard.dataset.itemId);
-                document.getElementById('item-search').dataset.itemId = itemId;
-                await displayItemMarketData(itemId, '7d');
-            }
-        });
-    }
+    destinationSelect.addEventListener('change', async () => {
+        const selectedCountryId = destinationSelect.value;
+        if (!currentTornApiKey) {
+            errorDisplay.textContent = 'No Torn API Key available.';
+            destinationSelect.value = "";
+            return;
+        }
 
-    // --- Main Initialization Function for Market Pulse Page ---
-    // This function will be called once the Torn API Key is ready.
-    async function initializeMarketPulsePage() {
-        showLoadingIndicator('Loading market data...');
-        clearMessages(); // Ensure any previous API key errors are cleared
-
-        await fetchAllTornItems();
-
-        await populateTopMovers();
-
-        if (allTornItems.length > 0) {
-            const defaultItem = allTornItems.find(item => item.name === "Xanax") || allTornItems.find(item => item.name === "Feathery Hotel Coupon") || allTornItems[0];
-            if (defaultItem) {
-                document.getElementById('item-search').dataset.itemId = defaultItem.id;
-                await displayItemMarketData(defaultItem.id, '7d');
-            } else {
-                displayErrorMessage('No suitable default item to display.');
-            }
+        if (selectedCountryId) {
+            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
+            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
         } else {
-            displayErrorMessage('Could not load Torn items for market analysis.');
+            selectedCountryNameSpan.textContent = 'Selected Country';
+            itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
+        }
+    });
+
+    categoryFilterSelect.addEventListener('change', async () => {
+        const selectedCountryId = destinationSelect.value;
+        if (!currentTornApiKey) {
+            errorDisplay.textContent = 'No Torn API Key available.';
+            categoryFilterSelect.value = "all";
+            return;
         }
 
-        hideLoadingIndicator();
-    }
-
-    // --- Start the API Key observation process ---
-    // This will wait for window.currentUserTornApiKey to be set by globalheader.js
-    async function waitForApiKey() {
-        showLoadingIndicator('Waiting for user API key...');
-        const maxAttempts = 40; // 40 attempts * 500ms = 20 seconds total wait
-        let attempts = 0;
-
-        while (!window.currentUserTornApiKey && attempts < maxAttempts) {
-            console.log(`market-pulse.js: Waiting for window.currentUserTornApiKey. Attempt ${attempts + 1}/${maxAttempts}`);
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
-            attempts++;
+        if (selectedCountryId) {
+            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
         }
+    });
 
-        userTornApiKey = window.currentUserTornApiKey; // Assign the key
-
-        if (userTornApiKey) {
-            console.log('market-pulse.js: Torn API Key found! Proceeding with initialization.');
-            initializeMarketPulsePage();
-        } else {
-            displayErrorMessage('Torn API Key not found. Please log in and ensure your API key is configured correctly in your profile settings.');
-        }
-    }
-
-    // Kick off the waiting process
-    waitForApiKey();
 });
