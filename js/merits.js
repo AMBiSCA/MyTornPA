@@ -226,13 +226,15 @@ async function fetchTornDataDirectly(apiKey) {
  * @param {object} playerData - The player data from the Torn API.
  */
 function displayPlayerSummary(playerData) {
+    // Check if playerData and basic property exist
     if (playerData && playerData.basic) {
         playerNameSpan.textContent = playerData.basic.name || 'N/A';
         playerLevelSpan.textContent = formatNumber(playerData.basic.level) || 'N/A';
         playerRankSpan.textContent = playerData.basic.rank || 'N/A';
-        // Networth is in personalstats, ensure it's accessed correctly
+        // Access networth from personalstats, checking if personalstats exists
         playerNetworthSpan.textContent = playerData.personalstats && playerData.personalstats.networth ? `$${formatNumber(playerData.personalstats.networth)}` : 'N/A';
     } else {
+        // Fallback if basic data is not available
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
         playerRankSpan.textContent = 'N/A';
