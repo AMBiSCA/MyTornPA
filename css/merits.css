@@ -184,17 +184,14 @@ body {
     flex-grow: 1;
     min-height: 0;
     flex-direction: column;
+	align-items: center;
 }
 
 .tab-pane.active {
     display: flex !important;
+
 }
 
-/* --- merits.css --- */
-
-/* ... (previous CSS code) ... */
-
-/* Grid for Merit Categories within a Tab Pane */
 .merit-category-grid {
     display: grid;
     grid-template-rows: repeat(auto-fit, minmax(0, 1fr));
@@ -208,9 +205,14 @@ body {
     box-sizing: border-box;
     align-content: start;
     
-    /* ADDED: For horizontal centering of the grid's content */
-    justify-content: center; /* Centers grid items horizontally within the grid container */
+    /* REMOVED: justify-content: center; from here as it's now handled by parent */
+    /* If the grid has exactly 2 columns and stretches, this won't do much anyway */
+
+    /* ADDED (Optional): Max-width to prevent the grid from stretching too wide on very large screens */
+    /* This might be needed if the grid is just too wide for centering to be noticeable */
+    max-width: 1300px; /* Adjust this value based on your desired maximum content width */
 }
+
 
 /* ... (rest of CSS code) ... */
 
