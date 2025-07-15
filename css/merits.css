@@ -226,8 +226,11 @@ body {
     height: auto;
     min-height: 150px;
     box-sizing: border-box;
-    overflow: hidden;
-    max-height: calc(50vh - 200px); /* Adjust this value as needed */
+    overflow: hidden; /* This makes the internal ul scroll if content overflows */
+
+    /* ADJUST THIS LINE */
+    /* Try a smaller 'px' value to make the boxes taller */
+    max-height: calc(50vh - 150px); /* Original was -200px, trying -150px as a starting point */
 }
 
 .merit-category-panel.full-width {
