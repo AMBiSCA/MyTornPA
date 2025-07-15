@@ -384,7 +384,6 @@ footer.footer > p { /* New rule for the copyright paragraph */
   border: none;                   /* Removes the default 3D browser styling */
   border-top: 1px solid #00a8ff; /* Creates a 1px solid blue line */
   margin: 0;                      /* The 'gap' property on .input-section handles the spacing */
-  margin-top: -100px;
 }
 
 /* NEW: Added a general rule for descriptive paragraphs */
