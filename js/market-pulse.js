@@ -1,15 +1,16 @@
-// Ensure the DOM is fully loaded before running any scripts
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('market-pulse.js loaded and DOM content loaded.');
+// js/market-pulse.js
+// This script manages the Torn Market Pulse page, including fetching Torn API Key from Firebase.
 
-    // Base URL for Torn API v2
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('market-pulse.js: DOM content loaded. Initiating setup...');
+
     const BASE_API_URL_V2 = 'https://api.torn.com/v2';
 
     // Global State & Caches
     let allTornItems = []; // Cache for all Torn items (from torn/items)
-    let currentChartInstance = null; // To store the Chart.js instance for destruction/re-creation
+    let currentChartInstance = null; // To store the Chart.js instance
     let historicalMarketData = {}; // Simulates historical data for chart. Key: itemId, Value: Array of {timestamp, price}
-    let userTornApiKey = null; // Will hold the user's Torn API key once retrieved
+    let userTornApiKey = null; // Will hold the user's Torn API key
 
     // --- Utility Functions ---
     function showLoadingIndicator(message = 'Loading data, please wait...') {
@@ -44,10 +45,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Formats a number as currency (e.g., $12,345)
     function formatNumber(num) {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
     }
+
+    // --- Core API Key Retrieval and Initialization ---
+    async function setupTornApiKeyAndInitializePage() {
+        showLoadingIndicator('Awaiting user login and API key...');
+        clearMessages(); // Clear any previous error/loading messages
+
+        let authInitialized = false;
+        let dbInitialized = false;
+        let attempts = 0;
+        const maxAttempts = 40; // Wait up to 20 seconds (40 * 500ms)
+
+        // Wait for Firebase auth and db objects to be globally available
+        while ((!window.auth || !window.db) && attempts < maxAttempts) {
+            console.log(`market-pulse.js: Waiting for Firebase (Auth: ${!!window.auth}, DB: ${!!window.db}). Attempt ${attempts + 1}/${maxAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+            attempts++;
+        }
+
+        if (!window.auth || !window.db) {
+            displayErrorMessage('Firebase not fully initialized. Please check console for errors or refresh the page.');
+            return;
+        }
+
+        authInitialized = true;
+        dbInitialized = true;
+        console.log('market-pulse.js: Firebase Auth and DB are available.');
+
+        // Now that auth is available, listen for auth state changes
+        window.auth.onAuthStateChanged(async (user) => {
+            console.log('market-pulse.js: Auth state changed. User:', user);
+
+            if (user) {
+                // User is logged in, try to fetch their API key
+                try {
+                    const docRef = window.db.collection('users').doc(user.uid);
+                    const doc = await docRef.get();
+
+                    if (doc.exists && doc.data().tornApiKey) {
+                        userTornApiKey = doc.data().tornApiKey;
+                        console.log('market-pulse.js: Torn API Key retrieved from Firestore.');
+                        await initializeMarketPulsePage(); // Proceed with page content load
+                    } else {
+                        userTornApiKey = null;
+                        displayErrorMessage('Torn API Key not found in your profile. Please ensure it is saved in your settings.');
+                    }
+                } catch (error) {
+                    console.error('market-pulse.js: Error fetching Torn API Key from Firestore:', error);
+                    userTornApiKey = null;
+                    displayErrorMessage('Error retrieving API Key. Please check your network or try again.');
+                }
+            } else {
+                // User is logged out
+                userTornApiKey = null;
+                displayErrorMessage('You are logged out. Please log in to view market data.');
+                clearMessages(); // Clear loading message
+            }
+        });
+
+        // If user is already logged in by the time this script loads (common on refresh)
+        // onAuthStateChanged might fire immediately or with a slight delay.
+        // We'll rely on onAuthStateChanged to trigger initializeMarketPulsePage.
+    }
+
 
     // --- API Fetching Functions ---
 
@@ -60,11 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return allTornItems; // Return cached data if available
         }
 
-        clearMessages();
+        clearMessages(); // Ensure messages are clear before new fetch
         showLoadingIndicator('Fetching Torn item list...');
         try {
             if (!userTornApiKey) {
-                throw new Error('Torn API key is not available. Please log in.');
+                throw new Error('Torn API key is not available for this request.');
             }
             const response = await fetch(`${BASE_API_URL_V2}/torn/?selections=items&key=${userTornApiKey}`);
             const data = await response.json();
@@ -91,11 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {Promise<object|null>} - Market data or null if error.
      */
     async function fetchItemMarket(itemId) {
-        clearMessages();
+        clearMessages(); // Ensure messages are clear before new fetch
         showLoadingIndicator(`Fetching market data for item ID ${itemId}...`);
         try {
             if (!userTornApiKey) {
-                throw new Error('Torn API key is not available. Please log in.');
+                throw new Error('Torn API key is not available for this request.');
             }
             const response = await fetch(`${BASE_API_URL_V2}/market/${itemId}/itemmarket?key=${userTornApiKey}`);
             const data = await response.json();
@@ -130,8 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- HISTORICAL DATA SIMULATION START ---
-        // !!! IMPORTANT: For real, accurate historical data, you need a backend
-        // that periodically fetches and stores market prices. This is a simulation. !!!
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
         const currentPrice = itemData.average_price || 0;
@@ -277,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentPrice = itemData.average_price || 0;
         const historicalPoints = historicalMarketData[itemData.id] || [];
 
-        // Calculate 24hr change based on simulated historical data
         const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
         let referencePrice = null;
 
@@ -306,11 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const changeElement = document.getElementById('24hr-change');
         changeElement.innerHTML = `${formatNumber(changeAmount)} (${changePercent.toFixed(1)}% <span class="${changeClass}">${changeIcon}</span>)`;
-        // Set the color for the entire change text by adding classes to its parent span
-        changeElement.className = changeClass;
+        changeElement.className = changeClass; // Set class for overall color
 
-
-        // Update high/low based on the currently displayed chart period
         const periodStartMs = Date.now() - (period === '24h' ? 1 : period === '7d' ? 7 : period === '30d' ? 30 : 31) * 24 * 60 * 60 * 1000;
         const relevantData = historicalMarketData[itemData.id] ? historicalMarketData[itemData.id].filter(dp => dp.timestamp >= periodStartMs) : [];
         const pricesInPeriod = relevantData.map(dp => dp.price);
@@ -320,13 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('period-high').textContent = formatNumber(periodHigh || 0);
         document.getElementById('period-low').textContent = formatNumber(periodLow || 0);
 
-        // Estimated volume - this is purely a guess as Torn API doesn't provide it directly
-        // You'd need to infer this from bazaar/item market listings over time if possible,
-        // or a manual estimate. For now, it's a simple placeholder.
-        const estimatedVolume = Math.floor(Math.random() * 5000) + 1000; // Random 1000-6000 units
+        const estimatedVolume = Math.floor(Math.random() * 5000) + 1000;
         document.getElementById('estimated-volume').textContent = `${estimatedVolume} units`;
     }
-
 
     /**
      * Displays a specific item's market data (chart and metrics).
@@ -336,19 +389,15 @@ document.addEventListener('DOMContentLoaded', () => {
     async function displayItemMarketData(itemId, period = '7d') {
         const itemMarketData = await fetchItemMarket(itemId);
         if (itemMarketData && itemMarketData.item) {
-            // Update search input to show current item name
             const itemSearchInput = document.getElementById('item-search');
             if (itemSearchInput) {
                 itemSearchInput.value = itemMarketData.item.name;
-                // Store the item ID on the input element for chart filter buttons to access
                 itemSearchInput.dataset.itemId = itemId;
             }
 
-            // Create/Update chart and metrics
             createOrUpdateChart(itemMarketData.item, period);
             updateMetrics(itemMarketData.item, period);
 
-            // Set active class on the correct filter button
             document.querySelectorAll('.chart-filter-btn').forEach(button => {
                 if (button.dataset.time === period) {
                     button.classList.add('active');
@@ -358,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             console.error("Failed to get item market data for display or item not found.");
-            // Error message already handled by fetchItemMarket
         }
     }
 
@@ -370,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function populateTopMovers() {
         const topMoversList = document.getElementById('top-movers-list');
-        topMoversList.innerHTML = '<p style="text-align: center; color: #bbb;">Finding top market movers...</p>'; // Clear and show message
+        topMoversList.innerHTML = '<p style="text-align: center; color: #bbb;">Finding top market movers...</p>';
 
         const items = await fetchAllTornItems();
         if (!items || items.length === 0) {
@@ -378,7 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Curated list of popular item names to monitor for movers
         const popularItemNames = [
             "Xanax", "Energy Drink", "Can of Beer", "Empty Can", "Feathery Hotel Coupon",
             "Lion Plushie", "Teddy Bear", "Flower Lei", "Orchid", "Gold AK47",
@@ -386,17 +433,13 @@ document.addEventListener('DOMContentLoaded', () => {
             "Sheep Plushie", "Stink Bomb", "Smoke Grenade", "Taser", "Flash Grenade"
         ];
 
-        // Filter and get actual item objects for popular items
         const popularItems = items.filter(item => popularItemNames.includes(item.name));
         const moverItems = [];
 
-        // Fetch current prices for these popular items
         for (const item of popularItems) {
             const marketData = await fetchItemMarket(item.id);
             if (marketData && marketData.item) {
                 const currentPrice = marketData.item.average_price || 0;
-
-                // Simulate price change for the last 24 hours based on simulated history
                 let simulatedChangeAmount = 0;
                 let simulatedChangePercent = 0;
 
@@ -414,8 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (referencePrice && currentPrice !== referencePrice) {
                     simulatedChangeAmount = currentPrice - referencePrice;
                     simulatedChangePercent = (simulatedChangeAmount / referencePrice) * 100;
-                } else if (currentPrice > 0 && historicalPoints.length > 0) { // If no 24hr specific point, but we have history
-                    // Fallback: use oldest point if current is different to show *some* change
+                } else if (currentPrice > 0 && historicalPoints.length > 0) {
                     if (historicalPoints[0].price !== currentPrice) {
                         simulatedChangeAmount = currentPrice - historicalPoints[0].price;
                         simulatedChangePercent = (simulatedChangeAmount / historicalPoints[0].price) * 100;
@@ -432,13 +474,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Sort by simulated absolute change (most volatile first)
         moverItems.sort((a, b) => Math.abs(b.simulatedChangePercent) - Math.abs(a.simulatedChangePercent));
 
-        // Limit to a reasonable number of movers to fit the screen
-        const moversToDisplay = moverItems.slice(0, 8); // Display top 8 movers
+        const moversToDisplay = moverItems.slice(0, 8);
 
-        topMoversList.innerHTML = ''; // Clear the "finding..." message or placeholder
+        topMoversList.innerHTML = '';
 
         if (moversToDisplay.length === 0) {
             topMoversList.innerHTML = '<p style="text-align: center; color: #bbb;">No prominent movers found right now.</p>';
@@ -448,16 +488,16 @@ document.addEventListener('DOMContentLoaded', () => {
         moversToDisplay.forEach(mover => {
             const moverCard = document.createElement('div');
             moverCard.classList.add('mover-card');
-            moverCard.dataset.itemId = mover.id; // Store item ID for click handler
+            moverCard.dataset.itemId = mover.id;
 
             let changeClass = 'neutral';
-            let changeIcon = '&#9679;'; // Dot
+            let changeIcon = '&#9679;';
             if (mover.simulatedChangePercent > 0) {
                 changeClass = 'positive';
-                changeIcon = '&#9650;'; // Up arrow
+                changeIcon = '&#9650;';
             } else if (mover.simulatedChangePercent < 0) {
                 changeClass = 'negative';
-                changeIcon = '&#9660;'; // Down arrow
+                changeIcon = '&#9660;';
             }
 
             moverCard.innerHTML = `
@@ -470,8 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-
-    // Item search input handler
     const itemSearchInput = document.getElementById('item-search');
     if (itemSearchInput) {
         itemSearchInput.addEventListener('keypress', async (event) => {
@@ -480,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (searchTerm) {
                     const foundItem = allTornItems.find(item => item.name.toLowerCase() === searchTerm);
                     if (foundItem) {
-                        await displayItemMarketData(foundItem.id, '7d'); // Default to 7 days for search
+                        await displayItemMarketData(foundItem.id, '7d');
                     } else {
                         displayErrorMessage(`Item "${itemSearchInput.value}" not found.`);
                     }
@@ -491,16 +529,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Chart time filter buttons
     document.querySelectorAll('.chart-filter-btn').forEach(button => {
         button.addEventListener('click', () => {
-            // Remove 'active' class from all buttons
             document.querySelectorAll('.chart-filter-btn').forEach(btn => btn.classList.remove('active'));
-            // Add 'active' class to the clicked button
             button.classList.add('active');
 
             const selectedPeriod = button.dataset.time;
-            // Get current item ID from the dataset of the search input
             const currentItemId = document.getElementById('item-search').dataset.itemId;
 
             if (currentItemId) {
@@ -511,67 +545,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Delegated event listener for Top Movers clicks
     const topMoversListElement = document.getElementById('top-movers-list');
     if (topMoversListElement) {
         topMoversListElement.addEventListener('click', async (event) => {
             const moverCard = event.target.closest('.mover-card');
             if (moverCard && moverCard.dataset.itemId) {
                 const itemId = parseInt(moverCard.dataset.itemId);
-                // Set the current item ID on the search input for filter buttons to use
                 document.getElementById('item-search').dataset.itemId = itemId;
-                await displayItemMarketData(itemId, '7d'); // Default to 7 days for click
+                await displayItemMarketData(itemId, '7d');
             }
         });
     }
 
-    // --- Initialization ---
-
-    /**
-     * Main function to initialize the Market Pulse page.
-     * This waits for the user's Torn API key to be available.
-     */
-    async function initializeMarketPulsePage() {
-        showLoadingIndicator('Initializing market pulse...');
-        clearMessages();
-
-        // Wait for userTornApiKey to be available from your global header/Firebase setup
-        // This relies on your globalheader.js setting window.currentUserTornApiKey
-        const maxAttempts = 20; // Try for up to 10 seconds (20 * 500ms)
-        let attempt = 0;
-        while (!window.currentUserTornApiKey && attempt < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
-            attempt++;
-        }
-
-        userTornApiKey = window.currentUserTornApiKey; // Assign the key once available
-
-        if (!userTornApiKey) {
-            displayErrorMessage('Torn API Key not available. Please ensure you are logged in and your API key is configured correctly in your profile settings.');
-            return;
-        }
-
-        await fetchAllTornItems(); // Fetch all items once at start for search
-
-        // Populate top movers
-        await populateTopMovers();
-
-        // Display a default item's data initially if items are available
-        if (allTornItems.length > 0) {
-            const defaultItem = allTornItems.find(item => item.name === "Xanax") || allTornItems.find(item => item.name === "Feathery Hotel Coupon") || allTornItems[0];
-            if (defaultItem) {
-                document.getElementById('item-search').dataset.itemId = defaultItem.id;
-                await displayItemMarketData(defaultItem.id, '7d');
-            } else {
-                displayErrorMessage('No suitable default item to display.');
-            }
-        } else {
-            displayErrorMessage('Could not load Torn items for market analysis.');
-        }
-
-        hideLoadingIndicator();
-    }
-
-    // Call the initialization function when the page loads
-    initializeMarketPulsePage();
+    // --- Start the API Key retrieval process on DOMContentLoaded ---
+    setupTornApiKeyAndInitializePage();
 });
