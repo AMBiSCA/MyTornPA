@@ -389,7 +389,7 @@ footer.footer > p {
     margin-bottom: 10px;
 }
 #loading-indicator {
-    display: none; /* Hidden by default, controlled by JS */
+    display: none;
     text-align: center;
     padding: 15px 20px;
     font-size: 1.15em;
@@ -404,7 +404,7 @@ footer.footer > p {
     max-width: 80%;
 }
 .error-message {
-    display: none; /* Hidden by default */
+    display: none;
     color: #ff6b6b;
     font-weight: bold;
     padding: 12px 20px;
@@ -452,12 +452,12 @@ footer.footer > p {
 /* --- NEW COMPACT ITEM CARD STYLES --- */
 .item-card {
     display: flex;
-    align-items: center; /* Vertically centers the image with the text block */
-    gap: 15px; /* Space between image and text block */
+    align-items: center;
+    gap: 15px;
     background-color: #333;
     border: 1px solid #00a8ff;
     border-radius: 10px;
-    margin-bottom: 15px; /* Space between cards */
+    margin-bottom: 15px;
     padding: 15px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -468,54 +468,47 @@ footer.footer > p {
     background-color: #3a3a3a;
 }
 .item-card img {
-    width: 60px;  /* Slightly smaller image */
+    width: 60px;
     height: 60px;
-    margin-right: 0; /* Gap property on parent handles spacing */
     border-radius: 5px;
     object-fit: contain;
     background-color: #4a4a4a;
     padding: 5px;
-    border: 1px solid  #00a8ff;
-    flex-shrink: 0; /* Prevents image from shrinking */
+    border: 1px solid #555;
+    flex-shrink: 0;
 }
-
 .item-info {
-    flex-grow: 1; /* This rule just removes the flexbox properties */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
-
 .item-info h3 {
-    margin: 0 0 10px 0; /* Adds spacing below the title */
+    margin: 0;
     color: #eee;
     font-size: 1.1rem;
 }
-
 .item-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 5px 20px;
     font-size: 0.9rem;
     color: #ccc;
-    margin-bottom: 12px; /* Adds spacing below the stats grid */
 }
-
+.item-stats span {
+    display: block;
+}
+.item-stats strong {
+    color: #00a8ff;
+    margin-right: 5px;
+}
 .profit-summary {
     font-weight: bold;
     color: #2ecc71;
     font-size: 1rem;
     margin: 0;
     text-align: left;
-    /* The background, padding, and border-radius have been removed */
 }
-
-.item-stats span {
-    display: block; /* Ensures each stat is on its own line within the grid */
-}
-.item-stats strong {
-    color: #00a8ff; /* Makes the label part blue */
-    margin-right: 5px;
-}
-
-
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
@@ -540,16 +533,16 @@ footer.footer > p {
         padding: 20px;
     }
     .travel-layout-container {
-        grid-template-columns: 1fr; /* Stack panels vertically */
+        grid-template-columns: 1fr;
         gap: 20px;
     }
     .left-panel, .right-panel {
-        transform: none; /* Reset transform on mobile */
+        transform: none;
         padding-left: 0;
         padding-right: 0;
     }
     .item-list-section {
-        overflow-y: visible; /* Allow it to grow naturally */
+        overflow-y: visible;
     }
 }
 
@@ -566,6 +559,6 @@ footer.footer > p {
         height: 50px;
     }
     .item-stats {
-        grid-template-columns: 1fr; /* Stack stats in a single column */
+        grid-template-columns: 1fr;
     }
 }
