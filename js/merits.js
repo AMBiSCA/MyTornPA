@@ -825,15 +825,6 @@ function clearAllLists() {
     awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
 }
 
-
-// --- Main Data Handling Functions ---
-
-/**
- * Fetches Torn player data directly from the Torn API.
- * This function assumes the API key is retrieved from Firestore.
- * @param {string} apiKey - The Torn API key for the current user.
- * @returns {Promise<object>} A promise that resolves with the player data.
- */
 async function fetchTornDataDirectly(apiKey) {
     if (!apiKey) {
         throw new Error("No Torn API key found.");
@@ -888,6 +879,7 @@ async function fetchTornDataDirectly(apiKey) {
  * Displays basic player information in the summary section.
  * @param {object} playerData - The player data from the Torn API.
  */
+
 function displayPlayerSummary(playerData) {
     console.log("displayPlayerSummary: Processing playerData:", playerData);
 
