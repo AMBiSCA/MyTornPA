@@ -289,7 +289,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
 .page-specific-content-area p {
     font-size: 1.1rem;
     line-height: 1.6;
-    margin-bottom: 25px; /* Reverted for proper spacing to travel-layout-container */
+    margin-bottom: 25px; /* Reted for proper spacing to travel-layout-container */
     text-align: center;
 }
 
