@@ -120,7 +120,7 @@ header {
     outline: none; overflow: hidden; position: relative; z-index: 0;
     text-align: center; text-transform: none;
     vertical-align: middle; min-width: min-content;
-    margin: 8px 0; /* Vertical margin for buttons */
+    margin: 0; /* REMOVED margin to allow flex gap to control spacing */
     background-color: #131314; /* Darker background */
     border: 1px solid #00a8ff; /* Blue border */
     color: #e3e3e3; /* Light text color */
@@ -175,6 +175,7 @@ header {
 /* Dropdown Styles (UPDATED from activitywatch.css) */
 .dropdown { position: relative; display: inline-block; }
 .dropdown-toggle::after { /* Specific icon for dropdown buttons */
+    content: ' \25BC'; /* Standard dropdown arrow */
     font-size: 0.6em;
     margin-left: 4px;
 }
@@ -338,46 +339,54 @@ footer.footer > p { /* New rule for the copyright paragraph */
     min-height: 0;
 }
 
-.input-section { /* Consolidated left panel box */
-    margin-bottom: 25px; /* Keep this margin-bottom for consistent spacing to footer */
+/* MODIFIED: Using flex gap for spacing */
+.input-section {
     padding: 20px;
     border: 1px solid #00a8ff;
     border-radius: 8px;
     background-color: #2e2e2e;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
-    flex-grow: 1; /* Makes it fill vertical space */
+    flex-grow: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    gap: 15px; /* NEW: This adds consistent spacing between all form items */
 }
 
+/* MODIFIED: Removed margin-bottom */
 .input-section label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 0; /* REMOVED: gap property handles this now */
     font-weight: bold;
     color: #00a8ff;
     font-size: 1.05rem;
 }
 
+/* MODIFIED: Removed margin-bottom */
 .input-section select,
 .input-section input[type="text"],
 .input-section input[type="number"] {
     width: 100%;
     padding: 10px 12px;
-    margin-bottom: 0px; /* Adjusted to 0px to bring button closer */
+    margin-bottom: 0; /* REMOVED: gap property handles this now */
     border: 1px solid #00a8ff;
     border-radius: 5px;
     box-sizing: border-box;
     background-color: #383838;
     color: #eee;
     font-size: 0.95rem;
-	
 }
 
-.input-section input[type="text"]#item-search + p { /* Targets a paragraph immediately following the #item-search input */
-    margin-top: 60px; /* Add a small space above it */
-    margin-bottom: 15px; /* Add space below it, before the next label */
+/* DELETED the specific rule for .input-section input[type="text"]#item-search + p */
+
+/* NEW: Added a general rule for descriptive paragraphs */
+.input-section p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #bbb;
+    line-height: 1.4;
+    text-align: left; /* Override centered paragraph from main rule */
 }
 
 .input-section select:focus,
@@ -396,8 +405,9 @@ footer.footer > p { /* New rule for the copyright paragraph */
     text-decoration: underline;
 }
 
+/* MODIFIED: Removed margin-top */
 #fetch-data-btn {
-    margin-top: 5px; /* Adjusted to 5px for proper spacing from the input/p above */
+    margin-top: 0; /* REMOVED: gap property handles spacing */
     padding: 12px 20px;
     font-size: 1.1rem;
 }
@@ -486,8 +496,6 @@ footer.footer > p { /* New rule for the copyright paragraph */
     padding: 5px;
     border: 1px solid #555;
 }
-
-
 
 .item-details {
     flex-grow: 1;
