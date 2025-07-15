@@ -221,28 +221,61 @@ async function fetchTornDataDirectly(apiKey) {
     }
 }
 
+// --- merits.js ---
+
+// ... (previous code)
+
 /**
  * Displays basic player information in the summary section.
  * @param {object} playerData - The player data from the Torn API.
  */
 function displayPlayerSummary(playerData) {
-    // Check if playerData and basic property exist
-    if (playerData && playerData.basic) {
-        playerNameSpan.textContent = playerData.basic.name || 'N/A';
-        playerLevelSpan.textContent = formatNumber(playerData.basic.level) || 'N/A';
-        playerRankSpan.textContent = playerData.basic.rank || 'N/A';
-        // Access networth from personalstats, checking if personalstats exists
-        playerNetworthSpan.textContent = playerData.personalstats && playerData.personalstats.networth ? `$${formatNumber(playerData.personalstats.networth)}` : 'N/A';
+    console.log("displayPlayerSummary: Processing playerData:", playerData); // For debugging
+
+    // Ensure playerData exists
+    if (playerData) {
+        // Name and Level are directly at the top level of the playerData object
+        playerNameSpan.textContent = playerData.name || 'N/A';
+        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
+
+        // Rank is expected within the 'basic' object returned by Torn API.
+        // It might be missing in your specific API response, so handle gracefully.
+        playerRankSpan.textContent = (playerData.basic && playerData.basic.rank) ? playerData.basic.rank : 'N/A';
+
+        // Networth is in personalstats
+        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
+        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
+
+        // Life is also in personalstats, if you still want it in the summary
+        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
+        // If you still want 'Life' displayed in the summary, ensure playerLifeSpan is defined
+        // and its HTML span is present (as added in previous steps).
+        if (typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null) {
+            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
+        }
+
+
+        // More granular logging for debugging specific values
+        console.log(`  Name (from playerData.name): ${playerData.name}`);
+        console.log(`  Level (from playerData.level): ${playerData.level}`);
+        console.log(`  Rank (from playerData.basic.rank): ${playerData.basic ? playerData.basic.rank : 'N/A'} `);
+        console.log(`  Networth (from personalstats.networth): ${networth}`);
+        console.log(`  Life (from personalstats.life): ${life}`);
+
     } else {
-        // Fallback if basic data is not available
+        // Fallback if no player data is available
+        console.warn("displayPlayerSummary: playerData is missing.");
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
         playerRankSpan.textContent = 'N/A';
         playerNetworthSpan.textContent = 'N/A';
+        if (typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null) {
+            playerLifeSpan.textContent = 'N/A';
+        }
     }
 }
 
-// ... (inside merits.js)
+// ... (rest of the code)
 
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
