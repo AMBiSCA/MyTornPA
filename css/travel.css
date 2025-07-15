@@ -410,6 +410,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
     margin-top: 0; /* REMOVED: gap property handles spacing */
     padding: 12px 20px;
     font-size: 1.1rem;
+	order: 1;
 }
 
 #loading-indicator {
