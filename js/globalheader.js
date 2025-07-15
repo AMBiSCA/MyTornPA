@@ -126,24 +126,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // --- USER IS LOGGED IN ---
 
                 // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED IN
-                if (signUpButtonHeader) {
-                    signUpButtonHeader.style.setProperty('display', 'none', 'important');
-                }
-                if (tornCityHomepageLink) {
-                    tornCityHomepageLink.style.setProperty('display', 'none', 'important');
-                }
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
 
                 // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED IN
                 if (loggedInUserDisplay) {
-                    loggedInUserDisplay.style.removeProperty('display'); // Clear any !important from CSS if present
                     loggedInUserDisplay.style.display = 'inline-flex';
                     loggedInUserDisplay.textContent = user.email || 'Logged In';
                 }
 
-                if (headerButtonsContainer) {
-                    headerButtonsContainer.style.removeProperty('display'); // Clear any !important from CSS if present
-                    headerButtonsContainer.style.display = 'flex';
-                }
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
                 if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
                 if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
@@ -173,33 +165,19 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.log("globalheader.js: User IS NOT logged in.");
                 // --- USER IS LOGGED OUT ---
-
-                // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED OUT
-                if (headerButtonsContainer) {
-                    headerButtonsContainer.style.removeProperty('display'); // Clear any !important from CSS if present
-                    headerButtonsContainer.style.display = 'none';
-                }
-                if (loggedInUserDisplay) {
-                    loggedInUserDisplay.style.removeProperty('display'); // Clear any !important from CSS if present
-                    loggedInUserDisplay.style.display = 'none';
-                }
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
 
                 // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED OUT
-                if (tornCityHomepageLink) {
-                    tornCityHomepageLink.style.removeProperty('display'); // Clear any !important from CSS if present
-                    tornCityHomepageLink.style.display = 'inline-flex';
-                }
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
                 if (signUpButtonHeader) {
-                    signUpButtonHeader.style.removeProperty('display'); // Clear any !important from CSS if present
                     signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex';
                 }
             }
         });
     } else {
-        // Fallback if Firebase fails: default to logged-out view controlled by CSS !important
         console.warn("globalheader.js: Firebase auth object is NULL. Header UI defaults to logged-out.");
-        // If Firebase fails, we want the default CSS to control, which means hiding logged-in elements.
-        // We'll set these explicitly here for robustness, matching the logged-out state.
+        // Fallback if Firebase fails to initialize: explicitly set to logged-out state.
         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
         if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
         if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
