@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    async function searchItemsAndDisplayResults(searchQuery, apiKey) {
+  async function searchItemsAndDisplayResults(searchQuery, apiKey) {
     itemListDiv.innerHTML = '';
     loadingIndicator.textContent = `Searching for "${searchQuery}" and fetching prices...`;
     errorDisplay.textContent = '';
@@ -369,6 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - currentItemData.foreignPrice : -Infinity;
                     const canCarry = Math.min(currentItemData.foreignStock, travelCapacity);
                     const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : -Infinity;
+                    const imageUrl = `https://www.torn.com/images/items/${currentItemData.itemId}/large.png`; // Define imageUrl here
 
                     // Only consider if profit is positive and foreign stock > 0
                     if (profitPerItem > 0 && currentItemData.foreignStock > 0) {
@@ -376,6 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (!bestProfitItems[currentItemData.itemId] || totalPotentialProfit > bestProfitItems[currentItemData.itemId].totalPotentialProfit) {
                             bestProfitItems[currentItemData.itemId] = {
                                 ...currentItemData,
+                                image: imageUrl, // *** ADDED THIS LINE ***
                                 tornCityPrice: tornCityPrice,
                                 profitPerItem: profitPerItem,
                                 totalPotentialProfit: totalPotentialProfit,
@@ -423,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const itemCard = document.createElement('div');
         itemCard.classList.add('item-card');
         itemCard.innerHTML = `
-            <img src="https://www.torn.com/images/items/${item.id}/large.png" alt="${item.name}">
+            <img src="${item.image}" alt="${item.name}">
             <div class="item-info">
                 <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
                 <div class="item-stats">
