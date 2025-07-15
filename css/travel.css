@@ -1,23 +1,23 @@
-/* Styles specific to travel.html */
+/* --- Global Styles --- */
 html, body {
     height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevents overall page scrolling */
+    overflow: hidden;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #eee;
 }
 
 body {
     display: flex;
-    flex-direction: column; /* Stacks header, main, footer vertically */
+    flex-direction: column;
     box-sizing: border-box;
     position: relative;
     z-index: 0;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
-    min-height: 100vh; /* Ensures body takes full viewport height */
-    overflow-y: hidden; /* Ensure only main-content-wrapper scrolls */
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    min-height: 100vh;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 body::before {
@@ -27,7 +27,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('../images/background.jpg'); /* Path relative to this CSS file */
+    background-image: url('../images/background.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -36,7 +36,7 @@ body::before {
     z-index: -1;
 }
 
-/* Custom Scrollbar Styles (from activitywatch.css) */
+/* --- Custom Scrollbar --- */
 ::-webkit-scrollbar {
     width: 10px; height: 10px;
 }
@@ -53,7 +53,7 @@ body::before {
     background: #222;
 }
 
-/* Header Styles (UPDATED from activitywatch.css) */
+/* --- Header --- */
 header {
     width: 100%;
     background: #222;
@@ -69,7 +69,7 @@ header {
     box-sizing: border-box;
     height: 70px;
     flex-shrink: 0;
-    border-bottom: 3px solid #00a8ff; /* Added from activitywatch.css */
+    border-bottom: 3px solid #00a8ff;
 }
 .header-left {
     flex: 1; display: flex; justify-content: flex-start; align-items: center;
@@ -87,13 +87,13 @@ header {
     flex-shrink: 0; display: flex; justify-content: center; align-items: center;
 }
 #headerMainLogo {
-    max-height: 70px; width: auto; display: block; margin-top: -5px; /* Adjusted from activitywatch.css */
+    max-height: 70px; width: auto; display: block; margin-top: -5px;
     filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
 }
 .header-right-controls {
     flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;
 }
-.header-user-display { /* New rule from activitywatch.css */
+.header-user-display {
     color: #fff;
     font-size: 0.9em;
     font-weight: bold;
@@ -104,14 +104,14 @@ header {
     display: flex; align-items: center; gap: 10px;
 }
 
-/* Button Base Styles (from activitywatch.css, more comprehensive) */
-.btn, .btn-header { /* Combined to ensure .btn-header inherits all .btn styles */
-    font-weight: bold; border-radius: 20px; /* More rounded buttons */
+/* --- Base Button Styles --- */
+.btn, .btn-header {
+    font-weight: bold; border-radius: 20px;
     cursor: pointer; white-space: nowrap; text-decoration: none;
     display: inline-flex; align-items: center;
-    font-size: 14px; /* Consistent font size */
-    line-height: 1.4; padding: 0 12px; /* Adjusted padding */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Added box shadow */
+    font-size: 14px;
+    line-height: 1.4; padding: 0 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
     user-select: none;
     -webkit-appearance: none; appearance: none;
@@ -120,44 +120,42 @@ header {
     outline: none; overflow: hidden; position: relative; z-index: 0;
     text-align: center; text-transform: none;
     vertical-align: middle; min-width: min-content;
-    margin: 0; /* REMOVED margin to allow flex gap to control spacing */
-    background-color: #131314; /* Darker background */
-    border: 1px solid #00a8ff; /* Blue border */
-    color: #e3e3e3; /* Light text color */
-    height: 40px; /* Fixed height for buttons */
+    margin: 0;
+    background-color: #131314;
+    border: 1px solid #00a8ff;
+    color: #e3e3e3;
+    height: 40px;
 }
-.btn:not(:disabled):hover, .btn:not(:disabled):focus, .btn-header:not(:disabled):hover, .btn-header:not(:disabled):focus { /* Added .btn-header here */
+.btn:not(:disabled):hover, .btn:not(:disabled):focus, .btn-header:not(:disabled):hover, .btn-header:not(:disabled):focus {
     border-color: #4dc4ff;
     box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
     transform: translateY(-1px);
 }
-.btn::before, .btn-header::before { /* Added .btn-header here */
+.btn::before, .btn-header::before {
     content: ""; position: absolute; top: 0; left: 0;
     width: 100%; height: 100%; background-color: white;
     opacity: 0; border-radius: inherit; transition: opacity 0.218s;
     pointer-events: none; z-index: -1;
 }
-.btn:not(:disabled):hover::before, .btn-header:not(:disabled):hover::before { opacity: 0.08; } /* Added .btn-header here */
-.btn:not(:disabled):active, .btn:not(:disabled):focus, .btn-header:not(:disabled):active, .btn-header:not(:disabled):focus { border-color: #00a8ff; } /* Added .btn-header here */
-.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before, .btn-header:not(:disabled):focus::before { opacity: 0.12; } /* Added .btn-header here */
+.btn:not(:disabled):hover::before, .btn-header:not(:disabled):hover::before { opacity: 0.08; }
+.btn:not(:disabled):active, .btn:not(:disabled):focus, .btn-header:not(:disabled):active, .btn-header:not(:disabled):focus { border-color: #00a8ff; }
+.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before, .btn-header:not(:disabled):focus::before { opacity: 0.12; }
 
-.btn:disabled, .btn-header:disabled { /* Added .btn-header here */
+.btn:disabled, .btn-header:disabled {
     cursor: default;
     background-color: rgba(19, 19, 20, 0.38);
     border-color: rgba(0, 168, 255, 0.38);
     color: rgba(227, 227, 227, 0.38);
 }
-.btn:disabled::before, .btn-header:disabled::before { opacity: 0; } /* Added .btn-header here */
-.btn:disabled .btn-text, .btn:disabled .btn-icon, .btn-header:disabled .btn-text, .btn-header:disabled .btn-icon { opacity: 0.38; } /* Added .btn-header here */
+.btn:disabled::before, .btn-header:disabled::before { opacity: 0; }
+.btn:disabled .btn-text, .btn:disabled .btn-icon, .btn-header:disabled .btn-text, .btn-header:disabled .btn-icon { opacity: 0.38; }
 
-/* For buttons with text and icon spans */
 .btn .btn-text { order: 1; }
 .btn .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
 
-/* Specific .btn-header adjustments */
-.btn-header { /* Merged with .btn rules above, this only handles specific overrides */
-    margin: 0 4px; /* Smaller horizontal margin for header buttons */
-    box-shadow: none; /* No box shadow for simpler header buttons */
+.btn-header {
+    margin: 0 4px;
+    box-shadow: none;
 }
 .header-text-link {
     font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
@@ -169,33 +167,32 @@ header {
 }
 
 #signUpButtonHeader {
-    font-weight: bold; /* Ensure sign up button text is bold */
+    font-weight: bold;
 }
 
-/* Dropdown Styles (UPDATED from activitywatch.css) */
+/* --- Dropdown Menus --- */
 .dropdown { position: relative; display: inline-block; }
-.dropdown-toggle::after { /* Specific icon for dropdown buttons */
-    content: ' \25BC'; /* Standard dropdown arrow */
+.dropdown-toggle::after {
+    content: ' \25BC';
     font-size: 0.6em;
     margin-left: 4px;
 }
-.btn.dropdown-toggle .btn-icon { /* Adjusting default for .btn .btn-icon on dropdowns */
-    margin-left: 0; /* Remove default margin from .btn .btn-icon */
-    order: 3; /* Move icon after text and generated arrow */
+.btn.dropdown-toggle .btn-icon {
+    margin-left: 0;
+    order: 3;
 }
-.btn.dropdown-toggle#usefulLinksBtn .btn-icon { content: ""; margin-left: 0; } /* Specific for useful links */
-.btn.dropdown-toggle#contactUsBtn .btn-icon { content: ""; margin-left: 0; } /* Specific for contact */
-
+.btn.dropdown-toggle#usefulLinksBtn .btn-icon { content: ""; margin-left: 0; }
+.btn.dropdown-toggle#contactUsBtn .btn-icon { content: ""; margin-left: 0; }
 
 .dropdown-content {
     display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
     border: 1px solid #00a8ff;
     left: 0;
-    top: calc(100% + 5px); /* Position dropdown below button */
-    overflow-y: auto; max-height: 300px; padding: 0; /* Added overflow for scrollable dropdown content */
+    top: calc(100% + 5px);
+    overflow-y: auto; max-height: 300px; padding: 0;
 }
-.header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; } /* Custom scrollbar for dropdowns */
+.header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-track { background: #2c2f33; border-radius: 0 8px 8px 0; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
 .header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
@@ -210,23 +207,22 @@ header {
 #usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
 .dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
 
-
-/* Main content wrapper - takes up remaining vertical space */
+/* --- Main Content Wrapper --- */
 .main-content-wrapper {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
-    padding-top: 95px; /* Space for fixed header */
-    padding-bottom: 95px; /* Space for fixed footer */
+    padding-top: 95px;
+    padding-bottom: 95px;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
     min-height: 0;
 }
 
-/* Footer Styles (UPDATED from activitywatch.css) */
+/* --- Footer --- */
 footer.footer {
     flex-shrink: 0;
     background-color: #222;
@@ -240,13 +236,13 @@ footer.footer {
     border-top: 2px solid #00a8ff;
     width: 100%;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    position: fixed; /* Retained fixed positioning for footer based on travel.css preference */
+    position: fixed;
     bottom: 0;
     left: 0;
     user-select: none;
     z-index: 102;
     box-sizing: border-box;
-    height: 70px; /* Fixed height for footer */
+    height: 70px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -255,21 +251,21 @@ footer.footer {
 footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
-footer.footer > p { /* New rule for the copyright paragraph */
+footer.footer > p {
     margin-top: 0;
     margin-bottom: 0;
     line-height: 1.2;
 }
 
-/* Main Content Area - the dark blue box */
+/* --- Main Page Container --- */
 .page-specific-content-area {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     width: 95%;
     max-width: 1650px;
-    margin: 0 auto; /* Margin to position the overall box, changed from -10px auto */
-    padding: 10px 40px; /* Padding inside the box */
+    margin: 0 auto;
+    padding: 10px 40px;
     background-color: #2a2a2a;
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
@@ -284,50 +280,48 @@ footer.footer > p { /* New rule for the copyright paragraph */
     text-align: center;
     font-size: 2rem;
     margin-top: 0;
-    margin-bottom: 10px; /* Adjusted to pull intro text up */
+    margin-bottom: 10px;
 }
 .page-specific-content-area p {
     font-size: 1.1rem;
     line-height: 1.6;
-    margin-bottom: 25px; /* Reted for proper spacing to travel-layout-container */
+    margin-bottom: 25px;
     text-align: center;
 }
 
-
-/* --- Travel Helper Specayout & Item Styles --- */
+/* --- Travel Page Layout --- */
 .travel-layout-container {
-  display: grid;
-  grid-template-columns: 30% 1fr;
-  gap: 30px;
-  margin-top: 25px;
-  min-height: 0;
-  width: 100%;
+    display: grid;
+    grid-template-columns: 30% 1fr;
+    gap: 30px;
+    margin-top: 25px;
+    min-height: 0;
+    width: 100%;
 }
 
-/* Left Panel - Inputs and Filters */
+/* --- Left Panel --- */
 .left-panel {
-  display: flex;
-  flex-direction: column;
-  overflow-y: hidden; /* No scrollbar on left panel */
-  padding-right: 15px;
-  box-sizing: border-box;
-  min-height: 0;
-  transform: translateY(-25px);
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    padding-right: 15px;
+    box-sizing: border-box;
+    min-height: 0;
+    transform: translateY(-25px);
 }
-
 .right-panel {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
-    overflow-y: hidden; /* Right panel itself doesn't scroll */
+    overflow-y: hidden;
     padding-left: 15px;
     box-sizing: border-box;
     min-height: 0;
-    transform: translateY(-50px);
+    transform: translateY(-25px);
 }
 
-/* MODIFIED: Using flex gap for spacing */
+/* --- Input Section (Left Panel) --- */
 .input-section {
     padding: 20px;
     border: 1px solid #00a8ff;
@@ -339,25 +333,21 @@ footer.footer > p { /* New rule for the copyright paragraph */
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    gap: 15px; /* NEW: This adds consistent spacing between all form items */
+    gap: 15px;
 }
-
-/* MODIFIED: Removed margin-bottom */
 .input-section label {
     display: block;
-    margin-bottom: 0; /* REMOVED: gap property handles this now */
+    margin-bottom: 0;
     font-weight: bold;
     color: #00a8ff;
     font-size: 1.05rem;
 }
-
-/* MODIFIED: Removed margin-bottom */
 .input-section select,
 .input-section input[type="text"],
 .input-section input[type="number"] {
     width: 100%;
     padding: 10px 12px;
-    margin-bottom: 0; /* REMOVED: gap property handles this now */
+    margin-bottom: 0;
     border: 1px solid #00a8ff;
     border-radius: 5px;
     box-sizing: border-box;
@@ -365,24 +355,19 @@ footer.footer > p { /* New rule for the copyright paragraph */
     color: #eee;
     font-size: 0.95rem;
 }
-
-/* --- Divider Style --- */
 .input-section hr {
-  width: 100%;                  /* Makes the line span the full width of the container */
-  border: none;                   /* Removes the default 3D browser styling */
-  border-top: 1px solid #00a8ff; /* Creates a 1px solid blue line */
-  margin: 0;                      /* The 'gap' property on .input-section handles the spacing */
+    width: 100%;
+    border: none;
+    border-top: 1px solid #00a8ff;
+    margin: 0;
 }
-
-/* NEW: Added a general rule for descriptive paragraphs */
 .input-section p {
     margin: 0;
     font-size: 0.85rem;
     color: #bbb;
     line-height: 1.4;
-    text-align: left; /* Override centered paragraph from main rule */
+    text-align: left;
 }
-
 .input-section select:focus,
 .input-section input[type="text"]:focus,
 .input-section input[type="number"]:focus {
@@ -390,7 +375,6 @@ footer.footer > p { /* New rule for the copyright paragraph */
     border-color: #0086d1;
     box-shadow: 0 0 10px rgba(0, 168, 255, 0.6);
 }
-
 .input-section p a {
     color: #00a8ff;
     text-decoration: none;
@@ -398,16 +382,14 @@ footer.footer > p { /* New rule for the copyright paragraph */
 .input-section p a:hover {
     text-decoration: underline;
 }
-
-/* MODIFIED: Removed margin-top */
 #fetch-data-btn {
-    margin-top: 0; /* REMOVED: gap property handles spacing */
+    margin-top: 0;
     padding: 12px 20px;
     font-size: 1.1rem;
-	margin-bottom: 10px;
+    margin-bottom: 10px;
 }
-
 #loading-indicator {
+    display: none; /* Hidden by default, controlled by JS */
     text-align: center;
     padding: 15px 20px;
     font-size: 1.15em;
@@ -420,10 +402,9 @@ footer.footer > p { /* New rule for the copyright paragraph */
     box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
     width: fit-content;
     max-width: 80%;
-    display: none;
 }
-
 .error-message {
+    display: none; /* Hidden by default */
     color: #ff6b6b;
     font-weight: bold;
     padding: 12px 20px;
@@ -434,87 +415,30 @@ footer.footer > p { /* New rule for the copyright paragraph */
     margin: 20px auto;
     width: fit-content;
     max-width: 80%;
-    display: none;
 }
 
-/* Updated to add full box styling for enclosure and alignment */
+/* --- Item List Section (Right Panel) --- */
 .item-list-section {
-    margin-top: 25px; /* Sets consistent spacing from elements above it, matching .input-section's margin-bottom */
-    padding: 20px; /* Internal spacing for content, matching .input-section */
-    border: 1px solid #00a8ff; /* Blue border to match .input-section */
-    border-radius: 8px; /* Rounded corners to match .input-section */
-    background-color: #2e2e2e; /* Darker background color to match .input-section */
-    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15); /* Subtle blue glow to match .input-section */
-    flex-grow: 1; /* Allows it to take up available vertical space in its parent (.right-panel) */
-    min-height: 0; /* Important for flex items with overflow */
-    box-sizing: border-box; /* Ensures padding and border are included in its size */
-    overflow-y: auto; /* THIS MAKES THE ITEM LIST SCROLL INTERNALLY */
+    padding: 20px;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    background-color: #2e2e2e;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    flex-grow: 1;
+    min-height: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
-
 .item-list-section h2 {
     text-align: center;
     color: #00a8ff;
-    margin-top: -10px; /* Adjusted to pull heading closer to top border */
-    margin-bottom: 25px; /* Keep this spacing to first item card */
+    margin-top: -10px;
+    margin-bottom: 25px;
 }
-
 #selected-country-name {
     color: #00a8ff;
     font-weight: bold;
 }
-
-.item-card {
-    display: flex;
-    align-items: center;
-    background-color: #333;
-    border: 1px solid #00a8ff;
-    border-radius: 10px;
-    margin-bottom: 18px;
-    padding: 15px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.item-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4);
-    background-color: #3a3a3a;
-}
-
-.item-card img {
-    width: 70px;
-    height: 70px;
-    margin-right: 20px;
-    border-radius: 5px;
-    object-fit: contain;
-    background-color: #4a4a4a;
-    padding: 5px;
-    border: 1px solid #555;
-}
-
-.item-details {
-    flex-grow: 1;
-}
-
-.item-details h3 {
-    margin: 0 0 8px 0;
-    color: #eee;
-    font-size: 1.3rem;
-}
-
-.item-details p {
-    margin: 0 0 4px 0;
-    font-size: 0.95rem;
-    color: #ccc;
-}
-
-.profit-info {
-    font-weight: bold;
-    color: #2ecc71;
-    font-size: 1.1rem;
-    margin-top: 10px;
-}
-
 #item-list p {
     text-align: center;
     color: #bbb;
@@ -525,51 +449,81 @@ footer.footer > p { /* New rule for the copyright paragraph */
     border: 1px dashed #00a8ff;
 }
 
-footer.footer {
-    flex-shrink: 0;
-    background-color: #222;
-    color: #999;
-    padding-top: 12px;
-    padding-bottom: 6px;
-    padding-left: 20px;
-    padding-right: 20px;
-    text-align: center;
-    font-size: 14px;
-    border-top: 2px solid #00a8ff;
-    width: 100%;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    position: fixed; /* Retained fixed positioning for footer based on travel.css preference */
-    bottom: 0;
-    left: 0;
-    user-select: none;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px; /* Fixed height for footer */
+/* --- NEW COMPACT ITEM CARD STYLES --- */
+.item-card {
+    display: flex;
+    align-items: center; /* Vertically centers the image with the text block */
+    gap: 15px; /* Space between image and text block */
+    background-color: #333;
+    border: 1px solid #00a8ff;
+    border-radius: 10px;
+    margin-bottom: 15px; /* Space between cards */
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4);
+    background-color: #3a3a3a;
+}
+.item-card img {
+    width: 60px;  /* Slightly smaller image */
+    height: 60px;
+    margin-right: 0; /* Gap property on parent handles spacing */
+    border-radius: 5px;
+    object-fit: contain;
+    background-color: #4a4a4a;
+    padding: 5px;
+    border: 1px solid #555;
+    flex-shrink: 0; /* Prevents image from shrinking */
+}
+.item-info {
+    flex-grow: 1; /* Takes up remaining space */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 10px; /* Space between title, stats, and profit line */
+}
+.item-info h3 {
+    margin: 0;
+    color: #eee;
+    font-size: 1.1rem;
+}
+.item-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Creates two equal columns */
+    gap: 5px 20px; /* Row gap and Column gap */
+    font-size: 0.9rem;
+    color: #ccc;
+}
+.item-stats span {
+    display: block; /* Ensures each stat is on its own line within the grid */
+}
+.item-stats strong {
+    color: #00a8ff; /* Makes the label part blue */
+    margin-right: 5px;
+}
+.profit-summary {
+    font-weight: bold;
+    color: #2ecc71; /* Green for profit */
+    font-size: 1rem;
+    margin: 0;
+    text-align: left; /* Overrides any inherited centered text */
+    background-color: rgba(46, 204, 113, 0.1);
+    padding: 8px;
+    border-radius: 5px;
 }
 
-
-footer.footer .footer-links { margin-bottom: 4px; }
-footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
-footer.footer .footer-links a:hover { text-decoration: underline; }
-footer.footer > p { /* New rule for the copyright paragraph */
-    margin-top: 0;
-    margin-bottom: 0;
-    line-height: 1.2;
-}
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    body { padding-top: 0; padding-bottom: 0; overflow-y: auto; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
     #headerMainLogo { max-height: 50px; margin-top: 0; }
     .header-left h1 { font-size: 1.4rem; }
     .tagline { font-size: 0.7rem; }
     .btn-header, .header-text-link { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; } /* Main should be page-specific-content-area */
     footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
     footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 
@@ -578,33 +532,28 @@ footer.footer > p { /* New rule for the copyright paragraph */
         padding-bottom: 10px;
         height: auto;
         min-height: unset;
+        overflow: visible;
     }
-
+    .page-specific-content-area {
+        padding: 20px;
+    }
     .travel-layout-container {
-        flex-direction: column; /* Stack panels vertically on smaller screens */
+        grid-template-columns: 1fr; /* Stack panels vertically */
         gap: 20px;
     }
     .left-panel, .right-panel {
-        flex: 1 1 100%; /* Each panel takes full width */
-        overflow-y: visible; /* Allow content to expand normally on small screens */
+        transform: none; /* Reset transform on mobile */
         padding-left: 0;
         padding-right: 0;
     }
-    /* Add horizontal padding back to content elements that lost it from panel padding */
-    .input-section, .item-list-section, #loading-indicator, .error-message {
-        padding-left: 15px;
-        padding-right: 15px;
+    .item-list-section {
+        overflow-y: visible; /* Allow it to grow naturally */
     }
-    .page-specific-content-area {
-        padding: 20px; /* Reduce main padding */
-    }
-
 }
 
 @media (max-width: 480px) {
     .header-left h1 { font-size: 1.2rem; }
     .header-left .tagline { display: none; }
-    .main-content-wrapper { padding-top: 80px; } /* Should be 10px as per 768px break */
     .page-specific-content-area { margin: 10px; padding: 15px; }
     .page-specific-content-area h2 { font-size: 1.5rem; }
     .input-section {
@@ -613,5 +562,8 @@ footer.footer > p { /* New rule for the copyright paragraph */
     .item-card img {
         width: 50px;
         height: 50px;
+    }
+    .item-stats {
+        grid-template-columns: 1fr; /* Stack stats in a single column */
     }
 }
