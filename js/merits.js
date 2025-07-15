@@ -1013,68 +1013,57 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
-/**
- * Updates the display for Honors and Medals based on player data.
- * @param {object} playerData - The player data from the Torn API.
- */
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
 
-    const achievementLists = {
+    // Create Sets of the IDs the player has earned for very fast lookups.
+    const earnedHonorIds = new Set(playerData.honors.honors_awarded);
+    const earnedMedalIds = new Set(playerData.medals.medals_awarded);
+
+    // This object maps the category name from our data file to the actual list element on the page.
+    const categoryElementMap = {
         'honors-attacking-list': honorsAttackingList,
         'honors-weapons-list': honorsWeaponsList,
         'honors-chaining-list': honorsChainingList,
-
         'medals-combat-list': medalsCombatList,
         'medals-commitment-list': medalsCommitmentList,
-
         'medals-crimes-list': medalsCrimesList,
-        'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
+        'misc-awards-list': miscAwardsList
     };
 
-    // Process all achievements and collect their statuses for sorting later
-    const allAchievementsWithStatus = [];
+    // This is a helper function that does the work of rendering a list.
+    const renderList = (masterList, earnedIds) => {
+        masterList.forEach(item => {
+            const listElement = categoryElementMap[item.category];
 
-    const processAchievements = (achievements) => {
-        achievements.forEach(achievement => {
-            const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
-            
-            // Add to the general lists
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `
-                <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
-                <span class="merit-details">
-                    <span class="merit-name">${achievement.name}</span> -
-                    <span class="merit-requirement">${achievement.requirement}</span>
-                    <span class="merit-progress">${progressText}</span>
-                </span>
-            `;
-            if (achievementLists[achievement.category]) {
-                achievementLists[achievement.category].appendChild(listItem);
-            } else {
-                console.warn(`Category list not found for: ${achievement.category}. Check HTML ID or allHonors/allMedals category assignment.`);
-            }
+            // Only proceed if the category list exists on the page
+            if (listElement) {
+                const isCompleted = earnedIds.has(item.id);
+                const statusIconClass = isCompleted ? 'completed' : 'not-started';
+                const statusSymbol = isCompleted ? '✔' : '◎';
 
-            // Also add to the list for Awards Progress tab if not completed
-            if (!isCompleted) {
-                allAchievementsWithStatus.push({
-                    achievement,
-                    statusIconClass,
-                    statusSymbol,
-                    progressText,
-                    calculatedPercentage // Use this for sorting
-                });
+                // Create the new list item element
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                    <span class="merit-details">
+                        <span class="merit-name">${item.name}</span> -
+                        <span class="merit-requirement">${item.requirement}</span>
+                    </span>
+                `;
+                listElement.appendChild(listItem);
             }
         });
     };
 
-    processAchievements(allHonors);
-    processAchievements(allMedals);
+    // --- Render all the lists ---
+    renderList(allHonors, earnedHonorIds);
+    renderList(allMedals, earnedMedalIds);
 
-    // Populate the Awards Progress tab after all other lists are processed
-    populateAwardsProgressTab(allAchievementsWithStatus);
+    // Note: The "Awards Progress" tab is not handled by this function yet.
+    // We will tackle that feature next.
+    populateAwardsProgressTab(playerData); // We'll call this, but it will need to be updated.
 }
-
 /**
  * Populates the Awards Progress tab with in-progress achievements, sorted by closeness.
  * @param {Array<object>} achievementsInPrgoress - Array of in-progress achievements from updateAchievementsDisplay.
