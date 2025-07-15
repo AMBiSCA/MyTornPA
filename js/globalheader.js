@@ -121,75 +121,71 @@ document.addEventListener('DOMContentLoaded', function() {
             const isSignUpPage = (pageName === 'signup.html');
             const isHomePage = (pageName === 'home.html' || pageName === '' || pageName === 'index.html');
 
-            // Define a function to apply display styles
-            function applyHeaderDisplay(isLoggedIn) {
-                if (isLoggedIn) {
-                    // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED IN
-                    if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                    if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
+            if (user) {
+                console.log("globalheader.js: User IS logged in:", user.email || user.uid);
+                // --- USER IS LOGGED IN ---
 
-                    // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED IN
-                    if (loggedInUserDisplay) {
-                        loggedInUserDisplay.style.display = 'inline-flex';
-                        loggedInUserDisplay.textContent = user.email || 'Logged In';
-                    }
-                    if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                    if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                    if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
-                    if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
+                // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED IN
+                if (signUpButtonHeader) signUpButtonHeader.classList.add('js-hidden-initially');
+                if (tornCityHomepageLink) tornCityHomepageLink.classList.add('js-hidden-initially');
 
-                    if (homeButtonHeader) {
-                        if (isHomePage || pageName === 'social.html' || pageName === 'dashboard.html') {
-                            homeButtonHeader.style.display = 'none';
-                        } else {
-                            homeButtonHeader.style.display = 'inline-flex';
-                        }
-                    }
-                } else {
-                    // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED OUT
-                    if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                    if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+                // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED IN
+                if (loggedInUserDisplay) {
+                    loggedInUserDisplay.classList.remove('js-hidden-initially');
+                    loggedInUserDisplay.textContent = user.email || 'Logged In'; // Display user info
+                }
+                if (headerButtonsContainer) headerButtonsContainer.classList.remove('js-hidden-initially');
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex'; // Still keep explicit display for this
+                if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
+                if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
 
-                    // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED OUT
-                    if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
-                    if (signUpButtonHeader) {
-                        signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex';
+                if (homeButtonHeader) {
+                    if (isHomePage || pageName === 'social.html' || pageName === 'dashboard.html') {
+                        homeButtonHeader.style.display = 'none';
+                    } else {
+                        homeButtonHeader.style.display = 'inline-flex';
                     }
                 }
-            }
 
-            // Apply styles immediately
-            applyHeaderDisplay(!!user);
-            console.log("globalheader.js: Applied display styles immediately.");
+                // Attach listeners (unchanged)
+                if (logoutButtonHeader) {
+                    logoutButtonHeader.removeEventListener('click', logoutHandler);
+                    logoutButtonHeader.addEventListener('click', logoutHandler);
+                }
+                if (homeButtonHeader) {
+                    homeButtonHeader.removeEventListener('click', homeNavHandler);
+                    homeButtonHeader.addEventListener('click', homeNavHandler);
+                }
+                if (headerLogoLink) {
+                    headerLogoLink.removeEventListener('click', homeNavHandler);
+                    headerLogoLink.addEventListener('click', homeNavHandler);
+                }
 
-            // Apply styles again after a tiny delay
-            setTimeout(() => {
-                applyHeaderDisplay(!!user);
-                console.log("globalheader.js: Applied display styles after 0ms timeout.");
-            }, 0);
+            } else {
+                console.log("globalheader.js: User IS NOT logged in.");
+                // --- USER IS LOGGED OUT ---
 
+                // HIDE ELEMENTS THAT SHOULD NOT BE VISIBLE WHEN LOGGED OUT
+                if (headerButtonsContainer) headerButtonsContainer.classList.add('js-hidden-initially');
+                if (loggedInUserDisplay) loggedInUserDisplay.classList.add('js-hidden-initially');
 
-            // Attach listeners (unchanged)
-            if (logoutButtonHeader) {
-                logoutButtonHeader.removeEventListener('click', logoutHandler);
-                logoutButtonHeader.addEventListener('click', logoutHandler);
-            }
-            if (homeButtonHeader) {
-                homeButtonHeader.removeEventListener('click', homeNavHandler);
-                homeButtonHeader.addEventListener('click', homeNavHandler);
-            }
-            if (headerLogoLink) {
-                headerLogoLink.removeEventListener('click', homeNavHandler);
-                headerLogoLink.addEventListener('click', homeNavHandler);
+                // SHOW ELEMENTS THAT SHOULD BE VISIBLE WHEN LOGGED OUT
+                if (tornCityHomepageLink) tornCityHomepageLink.classList.remove('js-hidden-initially');
+                if (signUpButtonHeader) {
+                    signUpButtonHeader.classList.remove('js-hidden-initially');
+                    // Explicitly set display for signup button, as it might be hidden on signup.html
+                    signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex';
+                }
             }
         });
     } else {
         console.warn("globalheader.js: Firebase auth object is NULL. Header UI defaults to logged-out.");
-        // Fallback if Firebase fails to initialize: explicitly set to logged-out state.
-        if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-        if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-        if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
-        if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+        // Fallback if Firebase fails to initialize: explicitly add hidden class to logged-in elements
+        if (headerButtonsContainer) headerButtonsContainer.classList.add('js-hidden-initially');
+        if (loggedInUserDisplay) loggedInUserDisplay.classList.add('js-hidden-initially');
+        // And ensure logged-out elements are visible by removing the class
+        if (signUpButtonHeader) signUpButtonHeader.classList.remove('js-hidden-initially');
+        if (tornCityHomepageLink) tornCityHomepageLink.classList.remove('js-hidden-initially');
     }
 
     console.log("globalheader.js: End of script.");
