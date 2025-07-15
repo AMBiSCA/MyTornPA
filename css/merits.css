@@ -142,7 +142,7 @@ body {
     /* REMOVED: flex-grow: 1; */
     width: 180px; /* Set a fixed wr h button */
     text-align: center;
-    padding: 50px 25px;
+    padding: 12px 25px;
     cursor: pointer;
     background-color: #2a2a2a;
     color: #00a8ff;
