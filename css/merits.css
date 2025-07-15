@@ -140,7 +140,7 @@ body {
 }
 .tab-button {
     /* REMOVED: flex-grow: 1; */
-    width: 180px; /* Set a fixed wr h button */
+    width: 180px; /* Set a fixed wr h buon */
     text-align: center;
     padding: 12px 50px;
     cursor: pointer;
