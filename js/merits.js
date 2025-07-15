@@ -933,6 +933,10 @@ function displayPlayerSummary(playerData) {
  * @param {object} playerData - The complete player data from the API.
  */
 function updateAchievementsDisplay(playerData) {
+    // --- ADD THIS DEBUG LINE ---
+    console.log("Inspecting playerData object inside display function:", playerData);
+    // -------------------------
+
     clearAllLists(); // Clear previous content
 
     // Create Sets of the IDs the player has earned from the API for fast lookups.
@@ -950,7 +954,7 @@ function updateAchievementsDisplay(playerData) {
         'misc-awards-list': miscAwardsList
     };
 
-    // This is a helper function that renders a list of awards.
+    // This is a helper function that does the work of rendering a list.
     const renderList = (masterList, earnedIds) => {
         masterList.forEach(item => {
             const listElement = categoryElementMap[item.category];
@@ -959,6 +963,7 @@ function updateAchievementsDisplay(playerData) {
                 const statusIconClass = isCompleted ? 'completed' : 'not-started';
                 const statusSymbol = isCompleted ? '✔' : '◎';
 
+                // Create the new list item element
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `
                     <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
@@ -972,15 +977,13 @@ function updateAchievementsDisplay(playerData) {
         });
     };
 
-    // Render both master lists.
+    // --- Render all the lists ---
     renderList(allHonors, earnedHonorIds);
     renderList(allMedals, earnedMedalIds);
 
     // Call the other display functions.
-    populateAwardsProgressTab(playerData); // This will now be handled by the new function below.
+    populateAwardsProgressTab(playerData);
 }
-
-
 /**
  * Populates the Awards Progress tab. (Temporarily shows a placeholder).
  * @param {object} playerData - The player data from the Torn API.
