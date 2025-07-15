@@ -194,22 +194,20 @@ body {
 
 .merit-category-grid {
     display: grid;
-    grid-template-rows: repeat(auto-fit, minmax(0, 1fr));
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
-    flex-grow: 1;
-    min-height: 0;
-    height: 100%;
-    overflow-y: auto;
-    /* UPDATED: Symmetrical horizontal padding for better centering */
-    padding: 0 15px; 
-    box-sizing: border-box;
-    align-content: Center;
     max-width: 1550px;
-    /* ADDED: Centers the entire grid's content within its available space */
-    justify-content: center; 
+    height: 100%;
+    
+    /* These two lines are the correct way to center the whole container */
     margin-left: auto;
     margin-right: auto;
+
+    /* These are other styling properties */
+    padding: 0 15px;
+    box-sizing: border-box;
+    align-content: center; /* Corrected typo and centers rows vertically */
+    overflow-y: auto;
 }
 
 /* Override grid for the active Awards Progress tab to be a flex container */
