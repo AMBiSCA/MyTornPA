@@ -825,34 +825,33 @@ function clearAllLists() {
     awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
 }
 
+// ==================================================================
+// FINAL CORRECTED FUNCTIONS - PASTE OVER YOUR OLD ONES
+// ==================================================================
+
 
 /**
- * Fetches all necessary Torn player data (basic, personalstats, honors, and medals).
+ * Fetches all necessary Torn player data and combines it into a single, correct object.
  * @param {string} apiKey - The Torn API key for the current user.
- * @returns {Promise<object|null>} A promise that resolves with a combined data object, or null on failure.
+ * @returns {Promise<object|null>} A promise that resolves with the combined data object.
  */
 async function fetchTornDataDirectly(apiKey) {
-    if (!apiKey) {
-        throw new Error("No Torn API key found.");
-    }
+    if (!apiKey) throw new Error("No Torn API key found.");
 
     const baseUrl = "https://api.torn.com/user/";
     const keyParam = `key=${apiKey}`;
 
-    // Create URLs for all three API calls we need
     const summaryUrl = `${baseUrl}?selections=basic,personalstats&${keyParam}`;
     const honorsUrl = `${baseUrl}?selections=honors&${keyParam}`;
     const medalsUrl = `${baseUrl}?selections=medals&${keyParam}`;
 
     try {
-        // Use Promise.all to fetch all three endpoints at the same time for efficiency
         const [summaryResponse, honorsResponse, medalsResponse] = await Promise.all([
             fetch(summaryUrl),
             fetch(honorsUrl),
             fetch(medalsUrl)
         ]);
 
-        // Check if any of the network requests failed
         if (!summaryResponse.ok) throw new Error(`Summary API request failed: ${summaryResponse.status}`);
         if (!honorsResponse.ok) throw new Error(`Honors API request failed: ${honorsResponse.status}`);
         if (!medalsResponse.ok) throw new Error(`Medals API request failed: ${medalsResponse.status}`);
@@ -861,7 +860,6 @@ async function fetchTornDataDirectly(apiKey) {
         const honorsData = await honorsResponse.json();
         const medalsData = await medalsResponse.json();
 
-        // Check for errors returned inside the API's JSON response
         if (summaryData.error) throw new Error(`Summary API error: ${summaryData.error.error}`);
         if (honorsData.error) throw new Error(`Honors API error: ${honorsData.error.error}`);
         if (medalsData.error) throw new Error(`Medals API error: ${medalsData.error.error}`);
@@ -869,26 +867,69 @@ async function fetchTornDataDirectly(apiKey) {
         console.log('Successfully fetched all required API data.');
         hideLoading();
 
-        // Combine all the data into one object.
-        // The summaryData (which has name, level, personalstats) is the base.
-        // Then we add the honors and medals arrays to it.
+        // **THE FIX IS HERE:** We now explicitly combine all data into one object.
+        // We take the 'summaryData' as the base and then add the specific arrays we need.
         return {
-            ...summaryData,
-            honors: honorsData.honors || [],
-            medals: medalsData.medals || []
+            ...summaryData, // Includes name, level, personalstats, etc.
+            earned_honors: honorsData.honors || [],
+            earned_medals: medalsData.medals_awarded || []
         };
 
     } catch (error) {
         console.error('Error fetching Torn data:', error);
-        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
-            showError('Invalid Torn API key. Please update your API key in your profile settings.');
-        } else if (error.message.includes("Too many requests")) {
-            showError('Torn API rate limit hit. Please wait a moment and refresh.');
-        } else {
-            showError(`Failed to load Torn data: ${error.message}.`);
-        }
-        return null; // Return null if anything went wrong
+        // (Your existing error handling here is good)
+        showError(`Failed to load Torn data: ${error.message}.`);
+        return null;
     }
+}
+
+
+/**
+ * Updates the display for all Honors and Medals using the corrected data structure.
+ * @param {object} playerData - The complete player data from the API.
+ */
+function updateAchievementsDisplay(playerData) {
+    clearAllLists(); 
+
+    // **THE FIX IS HERE:** We now look for 'earned_honors' and 'earned_medals'.
+    const earnedHonorIds = new Set(playerData.earned_honors || []);
+    const earnedMedalIds = new Set(playerData.earned_medals || []);
+
+    const categoryElementMap = {
+        'honors-attacking-list': honorsAttackingList,
+        'honors-weapons-list': honorsWeaponsList,
+        'honors-chaining-list': honorsChainingList,
+        'medals-combat-list': medalsCombatList,
+        'medals-commitment-list': medalsCommitmentList,
+        'medals-crimes-list': medalsCrimesList,
+        'misc-awards-list': miscAwardsList
+    };
+
+    const renderList = (masterList, earnedIds) => {
+        masterList.forEach(item => {
+            const listElement = categoryElementMap[item.category];
+            if (listElement) {
+                const isCompleted = earnedIds.has(item.id);
+                const statusIconClass = isCompleted ? 'completed' : 'not-started';
+                const statusSymbol = isCompleted ? '✔' : '◎';
+
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                    <span class="merit-details">
+                        <span class="merit-name">${item.name}</span> -
+                        <span class="merit-requirement">${item.requirement}</span>
+                    </span>
+                `;
+                listElement.appendChild(listItem);
+            }
+        });
+    };
+
+    renderList(allHonors, earnedHonorIds);
+    renderList(allMedals, earnedMedalIds);
+
+    populateAwardsProgressTab(playerData);
 }
 
 function displayPlayerSummary(playerData) {
@@ -928,62 +969,7 @@ function displayPlayerSummary(playerData) {
     summaryParagraph.innerHTML = summaryParts.join(' | ');
 }
 
-/**
- * Updates the display for all Honors and Medals using the master data lists.
- * @param {object} playerData - The complete player data from the API.
- */
-function updateAchievementsDisplay(playerData) {
-    // --- ADD THIS DEBUG LINE ---
-    console.log("Inspecting playerData object inside display function:", playerData);
-    // -------------------------
 
-    clearAllLists(); // Clear previous content
-
-    // Create Sets of the IDs the player has earned from the API for fast lookups.
-    const earnedHonorIds = new Set(playerData.honors_awarded || []);
-    const earnedMedalIds = new Set(playerData.medals_awarded || []);
-
-    // This object maps a category name to the correct list element on the page.
-    const categoryElementMap = {
-        'honors-attacking-list': honorsAttackingList,
-        'honors-weapons-list': honorsWeaponsList,
-        'honors-chaining-list': honorsChainingList,
-        'medals-combat-list': medalsCombatList,
-        'medals-commitment-list': medalsCommitmentList,
-        'medals-crimes-list': medalsCrimesList,
-        'misc-awards-list': miscAwardsList
-    };
-
-    // This is a helper function that does the work of rendering a list.
-    const renderList = (masterList, earnedIds) => {
-        masterList.forEach(item => {
-            const listElement = categoryElementMap[item.category];
-            if (listElement) {
-                const isCompleted = earnedIds.has(item.id);
-                const statusIconClass = isCompleted ? 'completed' : 'not-started';
-                const statusSymbol = isCompleted ? '✔' : '◎';
-
-                // Create the new list item element
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `
-                    <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
-                    <span class="merit-details">
-                        <span class="merit-name">${item.name}</span> -
-                        <span class="merit-requirement">${item.requirement}</span>
-                    </span>
-                `;
-                listElement.appendChild(listItem);
-            }
-        });
-    };
-
-    // --- Render all the lists ---
-    renderList(allHonors, earnedHonorIds);
-    renderList(allMedals, earnedMedalIds);
-
-    // Call the other display functions.
-    populateAwardsProgressTab(playerData);
-}
 /**
  * Populates the Awards Progress tab. (Temporarily shows a placeholder).
  * @param {object} playerData - The player data from the Torn API.
