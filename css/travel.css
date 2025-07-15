@@ -173,7 +173,6 @@ header {
 /* --- Dropdown Menus --- */
 .dropdown { position: relative; display: inline-block; }
 .dropdown-toggle::after {
-    content: ' \25BC';
     font-size: 0.6em;
     margin-left: 4px;
 }
