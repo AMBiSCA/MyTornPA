@@ -262,17 +262,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemCard = document.createElement('div');
             itemCard.classList.add('item-card');
             itemCard.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <div class="item-details">
-                    <h3>${item.name} (${item.category})</h3>
-                    <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
-                    <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
-                    <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
-                    <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
-                    <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                    <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
-                </div>
-            `;
+    <img src="${item.image}" alt="${item.name}">
+    <div class="item-info">
+        <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
+        <div class="item-stats">
+            <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
+            <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
+            <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
+            <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+        </div>
+        <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
+    </div>
+`;
             itemListDiv.appendChild(itemCard);
         });
 
@@ -415,17 +416,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemCard = document.createElement('div');
             itemCard.classList.add('item-card');
             itemCard.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <div class="item-details">
-                    <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
-                    <p>Foreign Price: $${item.foreignPrice.toLocaleString()}</p>
-                    <p>Foreign Stock: ${item.foreignStock.toLocaleString()}</p>
-                    <p>Torn City Price: ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'Not available'}</p>
-                    <p class="profit-info">Profit per item: ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : item.profitPerItem}</p>
-                    <p class="profit-info">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : item.totalPotentialProfit})</p>
-                    <p style="font-size: 0.8em; color: #888;">ID: ${item.id}</p>
-                </div>
-            `;
+    <img src="${item.image}" alt="${item.name}">
+    <div class="item-info">
+        <h3>${item.name} (${item.category})</h3>
+        <div class="item-stats">
+            <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
+            <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
+            <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
+            <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+        </div>
+        <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
+    </div>
+`;
             itemListDiv.appendChild(itemCard);
         });
 
