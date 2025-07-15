@@ -313,7 +313,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
     padding-right: 15px;
     box-sizing: border-box;
     min-height: 0;
-	transform: translateY(-10px);
+	transform: translateY(-25px);
 }
 
 .right-panel {
@@ -325,6 +325,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
     padding-left: 15px;
     box-sizing: border-box;
     min-height: 0;
+    transform: translateY(-25px);
 }
 
 /* MODIFIED: Using flex gap for spacing */
