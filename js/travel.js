@@ -360,13 +360,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: itemInfo.name,
                         foreignPrice: itemInfo.cost,
                         foreignStock: itemInfo.quantity,
-                        countryName: countryName, // Added countryName here
+                        countryName: countryName,
                         category: itemCategoryMap[itemInfo.id] || 'Other',
                     };
 
                     // Fetch Torn City price for this item
                     const tornCityPrice = await fetchTornCityItemPrice(currentItemData.itemId, apiKey);
-                    const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - currentItemData.foreignPrice : -Infinity; // Use -Infinity for N/A profits
+                    const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - currentItemData.foreignPrice : -Infinity;
                     const canCarry = Math.min(currentItemData.foreignStock, travelCapacity);
                     const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : -Infinity;
 
@@ -375,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Check if this item is already in bestProfitItems and if the current profit is better
                         if (!bestProfitItems[currentItemData.itemId] || totalPotentialProfit > bestProfitItems[currentItemData.itemId].totalPotentialProfit) {
                             bestProfitItems[currentItemData.itemId] = {
-                                ...currentItemData, // Spread the itemData including countryName
+                                ...currentItemData,
                                 tornCityPrice: tornCityPrice,
                                 profitPerItem: profitPerItem,
                                 totalPotentialProfit: totalPotentialProfit,
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const itemCard = document.createElement('div');
         itemCard.classList.add('item-card');
         itemCard.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
+            <img src="https://www.torn.com/images/items/${item.id}/large.png" alt="${item.name}">
             <div class="item-info">
                 <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
                 <div class="item-stats">
