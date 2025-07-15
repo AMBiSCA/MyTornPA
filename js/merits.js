@@ -826,48 +826,50 @@ function clearAllLists() {
 }
 
 
-// --- Main Data Handling Functions ---
-
 /**
- * Fetches Torn player data directly from the Torn API.
- * This function assumes the API key is retrieved from Firestore.
+ * Fetches Torn player data using the 'honors' and 'medals' selections,
+ * which is the correct and most accurate method.
  * @param {string} apiKey - The Torn API key for the current user.
- * @returns {Promise<object>} A promise that resolves with the player data.
+ * @returns {Promise<object|null>} A promise that resolves with an object like { honors: [], medals: [] }, or null on failure.
  */
 async function fetchTornDataDirectly(apiKey) {
     if (!apiKey) {
         throw new Error("No Torn API key found.");
     }
 
-    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
-    const selections = "basic,personalstats";
-    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
+    const baseUrl = "https://api.torn.com/user/";
+    const keyParam = `key=${apiKey}`;
+
+    // Create the URLs for the two API calls we need to make
+    const honorsUrl = `${baseUrl}?selections=honors&${keyParam}`;
+    const medalsUrl = `${baseUrl}?selections=medals&${keyParam}`;
 
     try {
-        const response = await fetch(tornApiUrl);
+        // Use Promise.all to run both fetch requests at the same time for efficiency
+        const [honorsResponse, medalsResponse] = await Promise.all([
+            fetch(honorsUrl),
+            fetch(medalsUrl)
+        ]);
 
-        if (!response.ok) {
-            let errorDetail = await response.text();
-            try {
-                const errorJson = JSON.parse(errorDetail);
-                if (errorJson && errorJson.error && errorJson.error.error) {
-                    errorDetail = errorJson.error.error;
-                }
-            } catch (e) {
-                // Not JSON, use raw text
-            }
-            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
-        }
+        // Check if either of the network requests failed
+        if (!honorsResponse.ok) throw new Error(`Honors API request failed: ${honorsResponse.status}`);
+        if (!medalsResponse.ok) throw new Error(`Medals API request failed: ${medalsResponse.status}`);
 
-        const data = await response.json();
+        const honorsData = await honorsResponse.json();
+        const medalsData = await medalsResponse.json();
 
-        if (data.error && data.error.error) {
-            throw new Error(`Torn API error: ${data.error.error}`);
-        }
+        // Check for errors returned inside the API's JSON response
+        if (honorsData.error) throw new Error(`Honors API error: ${honorsData.error.error}`);
+        if (medalsData.error) throw new Error(`Medals API error: ${medalsData.error.error}`);
 
-        console.log('Torn API Data fetched:', data); // For debugging
+        console.log('Successfully fetched direct honors and medals from API.');
         hideLoading();
-        return data;
+
+        // Return a single object containing both lists
+        return {
+            honors: honorsData.honors || [],
+            medals: medalsData.medals || []
+        };
 
     } catch (error) {
         console.error('Error fetching Torn data:', error);
@@ -875,12 +877,10 @@ async function fetchTornDataDirectly(apiKey) {
             showError('Invalid Torn API key. Please update your API key in your profile settings.');
         } else if (error.message.includes("Too many requests")) {
             showError('Torn API rate limit hit. Please wait a moment and refresh.');
-        } else if (error.message.includes("wrongfields")) {
-            showError('Torn API returned "wrongfields". This usually means a requested data field does not exist. Check console for details.');
         } else {
             showError(`Failed to load Torn data: ${error.message}.`);
         }
-        return null;
+        return null; // Return null if anything went wrong
     }
 }
 
