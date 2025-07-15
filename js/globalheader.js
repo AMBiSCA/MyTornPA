@@ -1,5 +1,4 @@
 // mysite/js/globalheader.js
-// This script manages the header UI based on Firebase authentication state.
 document.addEventListener('DOMContentLoaded', function() {
     console.log("globalheader.js: DOMContentLoaded event fired.");
 
@@ -13,19 +12,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const contactUsBtn = document.getElementById('contactUsBtn');
     const contactUsDropdown = document.getElementById('contactUsDropdown');
     const tornCityHomepageLink = document.getElementById('tornCityHomepageLink');
-    const loggedInUserDisplay = document.getElementById('logged-in-user-display'); // CORRECTED ID
-    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn'); // This ID doesn't exist in your HTML, will be null
+    const loggedInUserDisplay = document.getElementById('logged-in-user-display');
     const headerLogoLink = document.querySelector('.header-left a');
 
-    // Add console logs for element existence
-    console.log("globalheader.js: Elements found:", {
+    console.log("globalheader.js: Elements found status:", {
         headerButtonsContainer: !!headerButtonsContainer,
         signUpButtonHeader: !!signUpButtonHeader,
         logoutButtonHeader: !!logoutButtonHeader,
         loggedInUserDisplay: !!loggedInUserDisplay,
         usefulLinksBtn: !!usefulLinksBtn,
-        contactUsBtn: !!contactUsBtn
+        contactUsBtn: !!contactUsBtn,
+        tornCityHomepageLink: !!tornCityHomepageLink
     });
+
 
     // --- Dropdown Logic (Does not depend on Firebase Auth) ---
     function closeAllDropdowns() {
@@ -123,16 +122,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (user) {
                 console.log("globalheader.js: User IS logged in:", user.email || user.uid);
                 // --- USER IS LOGGED IN ---
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; // Hide Register
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none'; // Hide Torn City Homepage link
                 if (loggedInUserDisplay) {
-                    loggedInUserDisplay.style.display = 'inline-flex';
+                    loggedInUserDisplay.style.display = 'inline-flex'; // Show logged-in user display
                     loggedInUserDisplay.textContent = user.email || 'Logged In';
                 }
 
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex'; // Show logged-in buttons
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                // if (headerEditProfileBtn) headerEditProfileBtn.style.display = 'inline-flex'; // Still no such ID in your HTML
                 if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
                 if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
 
@@ -144,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Attach listeners logged-in state (ensure no duplicates)
+                // Attach listeners for logged-in state (ensure no duplicates)
                 if (logoutButtonHeader) {
                     logoutButtonHeader.removeEventListener('click', logoutHandler);
                     logoutButtonHeader.addEventListener('click', logoutHandler);
@@ -161,20 +159,23 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.log("globalheader.js: User IS NOT logged in.");
                 // --- USER IS LOGGED OUT ---
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hide logged-in buttons
+                if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // Hide logged-in user display
 
                 // Show logged-out buttons
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
+                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Show Torn City Homepage link
                 if (signUpButtonHeader) {
-                    signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex';
+                    signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex'; // Show Register (unless on signup page)
                 }
             }
         });
     } else {
         console.warn("globalheader.js: Firebase auth object is NULL. Can't update header UI.");
+        // Fallback if Firebase fails: default to logged-out view
         if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
         if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+        if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex';
+        if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none';
     }
 
     console.log("globalheader.js: End of script.");

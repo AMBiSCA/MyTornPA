@@ -359,7 +359,7 @@ ul li:last-child { border-bottom: none; }
 
 
 .hidden-until-js {
-    display: none !important; /* Use !important to ensure it applies initially */
+    display: none; /* Use !important to ensure it applies initially */
 }
 
 #firebaseui-auth-container {
