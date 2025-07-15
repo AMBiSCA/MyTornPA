@@ -213,6 +213,14 @@ body {
 }
 
 
+#stats-tab.active {
+    display: flex !important;
+    flex-direction: row;
+    gap: 30px; /* Adjust this value for spacing between the side-by-side sections */
+    flex-wrap: wrap; /* Allows sections to wrap to the next line on smaller screens */
+    align-items: flex-start; /* Aligns items to the top if they have different heights */
+}
+
 /* ... (rest of CSS code) ... */
 
 @media (min-width: 1200px) {
