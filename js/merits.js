@@ -884,62 +884,41 @@ async function fetchTornDataDirectly(apiKey) {
     }
 }
 
-/**
- * Displays basic player information in the summary section.
- * @param {object} playerData - The player data from the Torn API.
- */
 function displayPlayerSummary(playerData) {
     console.log("displayPlayerSummary: Processing playerData:", playerData);
 
-    if (playerData) {
-        playerNameSpan.textContent = playerData.name || 'N/A';
-        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
-
-        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
-        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
-
-        // Rank: Try basic.rank (standard), then top-level .rank (if flattened), otherwise N/A
-        let playerRank = 'N/A';
-        if (playerData.basic && playerData.basic.rank) {
-            playerRank = playerData.basic.rank;
-        } else if (playerData.rank) {
-            playerRank = playerData.rank;
-        }
-        playerRankSpan.textContent = playerRank;
-
-        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
-        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
-
-        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
-        }
-        
-        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
-        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
-
-
-        // More granular logging for debugging specific values
-        console.log(`  Name: ${playerNameSpan.textContent}`);
-        console.log(`  Level: ${playerLevelSpan.textContent}`);
-        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
-        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
-        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
-        console.log(`  Life: ${playerLifeSpan ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
-        console.log(`  Awards: ${playerAwardsSpan.textContent}`);
-
-    } else {
-        console.warn("displayPlayerSummary: playerData is missing.");
-        playerNameSpan.textContent = 'N/A';
-        playerLevelSpan.textContent = 'N/A';
-        playerTotalStatsSpan.textContent = 'N/A';
-        playerRankSpan.textContent = 'N/A';
-        playerNetworthSpan.textContent = 'N/A';
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = 'N/A';
-        }
-        playerAwardsSpan.textContent = 'N/A';
+    // Find the parent <p> tag where the summary is displayed.
+    const summaryParagraph = document.querySelector('.player-summary-section p');
+    if (!summaryParagraph) {
+        console.error("Could not find the player summary <p> tag.");
+        return; // Exit if the element doesn't exist
     }
+
+    // If playerData is missing, show an error and stop.
+    if (!playerData) {
+        console.warn("displayPlayerSummary: playerData is missing.");
+        summaryParagraph.textContent = 'Player data could not be loaded.';
+        return;
+    }
+
+    // 1. Create an array to hold the parts of our summary string.
+    const summaryParts = [];
+
+    // Add the stats that you want to keep.
+    summaryParts.push(`Player: <span id="player-name">${playerData.name || 'N/A'}</span>`);
+    summaryParts.push(`Level: <span id="player-level">${formatNumber(playerData.level) || 'N/A'}</span>`);
+    
+    const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
+    summaryParts.push(`Total Stats: <span id="player-total-stats">${totalStats !== undefined ? formatNumber(totalStats) : 'N/A'}</span>`);
+    
+    const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
+    summaryParts.push(`Networth: <span id="player-networth">${networth !== undefined ? '$' + formatNumber(networth) : 'N/A'}</span>`);
+    
+    const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
+    summaryParts.push(`Awards: <span id="player-awards">${awards !== undefined ? formatNumber(awards) : 'N/A'}</span>`);
+
+    // 2. Join all the parts together with a separator and update the HTML.
+    summaryParagraph.innerHTML = summaryParts.join(' | ');
 }
 
 /**
