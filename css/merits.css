@@ -129,7 +129,6 @@ body {
     display: flex;
     justify-content: center;
     /* ADDED THIS LINE */
-    gap: 350px; /* Adjust this value as needed to create space between buttons */
     margin-bottom: 20px;
     background-color: #2e2e2e;
     border-radius: 8px;
