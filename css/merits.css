@@ -230,7 +230,7 @@ body {
 
     /* ADJUST THIS LINE */
     /* Try a smaller 'px' value to make the boxes taller */
-    max-height: calc(50vh - 50px); /* Original was -200px, trying -150px as a starting point */
+    max-height: calc(50vh - 60px); /* Original was -200px, trying -150px as a starting point */
 }
 
 .merit-category-panel.full-width {
