@@ -19,8 +19,11 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
+    box-sizing: border-box; /* IMPORTANT: Ensure border-box */
+    padding-top: 95px !important;   /* ADDED/MODIFIED THIS LINE */
+    padding-bottom: 95px !important; /* ADDED/MODIFIED THIS LINE */
 }
+
 
 .page-specific-content-area {
     display: flex;
