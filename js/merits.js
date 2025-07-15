@@ -232,10 +232,8 @@ function displayPlayerSummary(playerData) {
     }
 }
 
-/**
- * Updates the display for Honors and Medals based on player data.
- * @param {object} playerData - The player data from the Torn API.
- */
+// ... (inside merits.js)
+
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
 
@@ -244,18 +242,26 @@ function updateAchievementsDisplay(playerData) {
         'honors-weapons-list': honorsWeaponsList,
         'honors-chaining-list': honorsChainingList,
         'honors-attacking-general-list': honorsAttackingGeneralList,
+
         'medals-combat-list': medalsCombatList,
         'medals-commitment-list': medalsCommitmentList,
         'medals-level-list': medalsLevelList,
         'medals-crimes-list': medalsCrimesList,
     };
 
-    // Helper to process a list of achievements (Honors or Medals)
     const processAchievements = (achievements, isMedal = false) => {
         achievements.forEach(achievement => {
             const value = getNestedProperty(playerData, achievement.statKey);
+
+            // --- ADD THESE NEW CONSOLE.LOGS ---
+            console.log(`Processing ${achievement.name}:`);
+            console.log(`  Stat Key: ${achievement.statKey}`);
+            console.log(`  Value from API:`, value);
+            console.log(`  Threshold: ${achievement.threshold}`);
+            // --- END NEW CONSOLE.LOGS ---
+
             let statusIconClass = 'not-started';
-            let statusSymbol = '◎'; // Default not started symbol
+            let statusSymbol = '◎';
             let progressText = '';
             let isCompleted = false;
 
@@ -270,12 +276,15 @@ function updateAchievementsDisplay(playerData) {
                         statusSymbol = '●';
                         progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
                         if (achievement.type === 'level') {
-                            progressText = ` (Current Level: ${formatNumber(value)})`; // Specific for level
+                            progressText = ` (Current Level: ${formatNumber(value)})`;
                         }
                     }
                 }
-                // Add more complex type checks here if needed (e.g., for boolean flags, or specific item counts)
             }
+            // --- ADD THIS LOG TO SEE IF LIST ITEM IS BEING CREATED AND APPENDED ---
+            console.log(`  Status: ${statusIconClass}, Progress: ${progressText}`);
+            console.log(`  Appending to: ${achievement.category}`);
+            // --- END NEW CONSOLE.LOGS ---
 
             const listItem = document.createElement('li');
             listItem.innerHTML = `
@@ -286,7 +295,6 @@ function updateAchievementsDisplay(playerData) {
                     <span class="merit-progress">${progressText}</span>
                 </span>
             `;
-            // Append to the correct list based on category
             if (achievementLists[achievement.category]) {
                 achievementLists[achievement.category].appendChild(listItem);
             } else {
