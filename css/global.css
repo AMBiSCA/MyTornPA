@@ -357,32 +357,6 @@ ul li:last-child { border-bottom: none; }
     color: var(--btn-close-hover-color, #00e0ff);
 }
 
-/* Add this to your mysite/css/global.css, preferably near the top */
-.js-hidden-initially {
-    display: none !important;
-}
-
-/* Ensure these are present in your global.css (from earlier) */
-#headerButtonsContainer {
-    display: flex; /* Default display when visible */
-    /* ... other styles for header-buttons ... */
-}
-#tornCityHomepageLink {
-    display: inline-flex; /* Default display when visible */
-    /* ... other styles for header-text-link ... */
-}
-#logged-in-user-display {
-    display: inline-flex; /* Default display when visible */
-    /* ... other styles for header-user-display ... */
-}
-#signUpButtonHeader {
-    display: inline-flex; /* Default display when visible */
-    /* ... other styles for btn ... */
-}
-
-.hidden-until-js {
-    display: none; /* Use !important to ensure it applies initially */
-}
 
 #firebaseui-auth-container {
     margin-top: 25px; margin-bottom: 15px; text-align: left;
