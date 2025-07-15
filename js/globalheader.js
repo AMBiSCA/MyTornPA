@@ -1,4 +1,5 @@
 // mysite/js/globalheader.js
+// This script manages the header UI based on Firebase authentication state.
 document.addEventListener('DOMContentLoaded', function() {
     console.log("globalheader.js: DOMContentLoaded event fired.");
 
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loggedInUserDisplay = document.getElementById('logged-in-user-display');
     const headerLogoLink = document.querySelector('.header-left a');
 
+    // Add console logs for element existence
     console.log("globalheader.js: Elements found status:", {
         headerButtonsContainer: !!headerButtonsContainer,
         signUpButtonHeader: !!signUpButtonHeader,
@@ -122,14 +124,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if (user) {
                 console.log("globalheader.js: User IS logged in:", user.email || user.uid);
                 // --- USER IS LOGGED IN ---
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none'; // Hide Register
-                if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'none'; // Hide Torn City Homepage link
+
+                // Forcefully hide "Register" button
+                if (signUpButtonHeader) {
+                    signUpButtonHeader.style.setProperty('display', 'none', 'important');
+                }
+
+                // Forcefully hide "Torn City - Homepage" link
+                if (tornCityHomepageLink) {
+                    tornCityHomepageLink.style.setProperty('display', 'none', 'important');
+                }
+
                 if (loggedInUserDisplay) {
                     loggedInUserDisplay.style.display = 'inline-flex'; // Show logged-in user display
                     loggedInUserDisplay.textContent = user.email || 'Logged In';
                 }
 
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex'; // Show logged-in buttons
+                if (headerButtonsContainer) {
+                    headerButtonsContainer.style.display = 'flex'; // Show logged-in buttons container
+                }
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
                 if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
                 if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
@@ -159,12 +172,13 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.log("globalheader.js: User IS NOT logged in.");
                 // --- USER IS LOGGED OUT ---
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hide logged-in buttons
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none'; // Hide logged-in buttons container
                 if (loggedInUserDisplay) loggedInUserDisplay.style.display = 'none'; // Hide logged-in user display
 
                 // Show logged-out buttons
                 if (tornCityHomepageLink) tornCityHomepageLink.style.display = 'inline-flex'; // Show Torn City Homepage link
                 if (signUpButtonHeader) {
+                    const pageName = currentPagePath.substring(currentPagePath.lastIndexOf('/') + 1).toLowerCase();
                     signUpButtonHeader.style.display = isSignUpPage ? 'none' : 'inline-flex'; // Show Register (unless on signup page)
                 }
             }
