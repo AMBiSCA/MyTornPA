@@ -324,7 +324,7 @@ footer.footer > p { /* New rule for the copyright paragraph */
     padding-left: 15px;
     box-sizing: border-box;
     min-height: 0;
-    transform: translateY(-25px);
+    transform: translateY(-50px);
 }
 
 /* MODIFIED: Using flex gap for spacing */
