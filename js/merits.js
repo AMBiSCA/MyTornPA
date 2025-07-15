@@ -9,7 +9,8 @@ const playerRankSpan = document.getElementById('player-rank');
 const playerNetworthSpan = document.getElementById('player-networth');
 const tabsContainer = document.querySelector('.tabs-container');
 const tabContents = document.querySelectorAll('.tab-pane');
-
+const playerTotalStatsSpan = document.getElementById('player-total-stats'); // ADD THIS LINE
+const playerAwardsSpan = document.getElementById('player-awards'); // ADD THIS LINE
 // Lists for dynamic content
 const honorsAttackingList = document.getElementById('honors-attacking-list');
 const honorsWeaponsList = document.getElementById('honors-weapons-list');
@@ -230,40 +231,47 @@ async function fetchTornDataDirectly(apiKey) {
  * @param {object} playerData - The player data from the Torn API.
  */
 function displayPlayerSummary(playerData) {
-    console.log("displayPlayerSummary: Processing playerData:", playerData); // For debugging
+    console.log("displayPlayerSummary: Processing playerData:", playerData);
 
-    // Ensure playerData exists
     if (playerData) {
-        // Name and Level are directly at the top level of the playerData object
         playerNameSpan.textContent = playerData.name || 'N/A';
         playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
 
-        // Rank is expected within the 'basic' object returned by Torn API.
-        // It might be missing in your specific API response, so handle gracefully.
-        playerRankSpan.textContent = (playerData.basic && playerData.basic.rank) ? playerData.basic.rank : 'N/A';
+        let playerRank = 'N/A';
+        if (playerData.basic && playerData.basic.rank) {
+            playerRank = playerData.basic.rank;
+        } else if (playerData.rank) {
+            playerRank = playerData.rank;
+        }
+        playerRankSpan.textContent = playerRank;
 
-        // Networth is in personalstats
         const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
         playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
 
-        // Life is also in personalstats, if you still want it in the summary
         const life = playerData.personalstats ? playerData.personalstats.life : undefined;
-        // If you still want 'Life' displayed in the summary, ensure playerLifeSpan is defined
-        // and its HTML span is present (as added in previous steps).
         if (typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null) {
             playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
         }
 
+        // --- ADD THESE NEW STATS ---
+        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
+        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
+
+        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
+        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
+        // --- END NEW STATS ---
+
 
         // More granular logging for debugging specific values
-        console.log(`  Name (from playerData.name): ${playerData.name}`);
-        console.log(`  Level (from playerData.level): ${playerData.level}`);
-        console.log(`  Rank (from playerData.basic.rank): ${playerData.basic ? playerData.basic.rank : 'N/A'} `);
-        console.log(`  Networth (from personalstats.networth): ${networth}`);
-        console.log(`  Life (from personalstats.life): ${life}`);
+        console.log(`  Name: ${playerNameSpan.textContent}`);
+        console.log(`  Level: ${playerLevelSpan.textContent}`);
+        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
+        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
+        console.log(`  Life: ${typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
+        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`); // NEW LOG
+        console.log(`  Awards: ${playerAwardsSpan.textContent}`); // NEW LOG
 
     } else {
-        // Fallback if no player data is available
         console.warn("displayPlayerSummary: playerData is missing.");
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
@@ -272,10 +280,10 @@ function displayPlayerSummary(playerData) {
         if (typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null) {
             playerLifeSpan.textContent = 'N/A';
         }
+        playerTotalStatsSpan.textContent = 'N/A'; // NEW FALLBACK
+        playerAwardsSpan.textContent = 'N/A'; // NEW FALLBACK
     }
 }
-
-// ... (rest of the code)
 
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
