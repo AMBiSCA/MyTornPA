@@ -213,12 +213,16 @@ body {
 }
 
 
-#stats-tab.active {
-    display: flex !important;
-    flex-direction: row;
-    gap: 30px; /* Adjust this value for spacing between the side-by-side sections */
-    flex-wrap: wrap; /* Allows sections to wrap to the next line on smaller screens */
-    align-items: flex-start; /* Aligns items to the top if they have different heights */
+/* 1. Configure the grid specifically for the active Stats Overview tab */
+#stats-tab.active .merit-category-grid {
+    grid-template-columns: 1fr 1fr; /* Force two equal columns for these two panels */
+    gap: 30px; /* Add space between the two panels */
+    /* Ensure no conflicting properties from the general .merit-category-grid if they cause issues */
+}
+
+/* 2. Override the 'full-width' behavior for the panels within this specific grid */
+#stats-tab.active .merit-category-grid .merit-category-panel.full-width {
+    grid-column: auto; /* Allow panels to take their natural place in the two-column grid */
 }
 
 /* ... (rest of CSS code) ... */
