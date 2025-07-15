@@ -190,10 +190,15 @@ body {
     display: flex !important;
 }
 
+/* --- merits.css --- */
+
+/* ... (previous CSS code) ... */
+
+/* Grid for Merit Categories within a Tab Pane */
 .merit-category-grid {
     display: grid;
     grid-template-rows: repeat(auto-fit, minmax(0, 1fr));
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2+ columns */
     gap: 30px;
     flex-grow: 1;
     min-height: 0;
@@ -202,7 +207,12 @@ body {
     padding-right: 15px;
     box-sizing: border-box;
     align-content: start;
+    
+    /* ADDED: For horizontal centering of the grid's content */
+    justify-content: center; /* Centers grid items horizontally within the grid container */
 }
+
+/* ... (rest of CSS code) ... */
 
 @media (min-width: 1200px) {
     .merit-category-grid {
