@@ -169,13 +169,14 @@ body {
 }
 
 .tab-content {
-    flex-grow: 1;
-    min-height: 0;
-    overflow-y: auto;
-    /* UPDATED: Symmetrical horizontal padding for .tab-content */
-    padding: 0 15px 10px; /* 0px top, 15px left/right, 10px bottom */
-    box-sizing: border-box;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    box-sizing: border-box;
 }
+
 .tab-pane {
     display: none !important;
     height: 100%;
@@ -288,17 +289,16 @@ body {
 }
 
 .merit-category-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1;
-    min-height: 0;
-    overflow-y: auto;
-    font-size: 0.95rem;
-    color: #ccc;
-    line-height: 1.4;
-    /* UPDATED: Symmetrical horizontal padding for .merit-category-panel ul */
-    padding: 0 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    color: #ccc;
+    line-height: 1.4;
+    padding-right: 10px;
 }
 
 .merit-category-panel ul li {
