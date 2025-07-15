@@ -344,27 +344,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const matchedItems = [];
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
+    
+    // Store the best profit item for each unique item ID
+    const bestProfitItems = {}; // { itemId: { itemData, totalPotentialProfit } }
+
     for (const countryCode in yataData.stocks) {
         if (yataData.stocks.hasOwnProperty(countryCode)) {
             const country = yataData.stocks[countryCode];
             const countryName = countryNameMap[countryCode] || countryCode;
             for (const itemInfo of country.stocks) {
                 if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
-                    matchedItems.push({
+                    // Temporarily store item data with its country
+                    const currentItemData = {
                         itemId: itemInfo.id,
                         name: itemInfo.name,
                         foreignPrice: itemInfo.cost,
                         foreignStock: itemInfo.quantity,
-                        countryName: countryName,
+                        countryName: countryName, // Added countryName here
                         category: itemCategoryMap[itemInfo.id] || 'Other',
-                    });
+                    };
+
+                    // Fetch Torn City price for this item
+                    const tornCityPrice = await fetchTornCityItemPrice(currentItemData.itemId, apiKey);
+                    const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - currentItemData.foreignPrice : -Infinity; // Use -Infinity for N/A profits
+                    const canCarry = Math.min(currentItemData.foreignStock, travelCapacity);
+                    const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : -Infinity;
+
+                    // Only consider if profit is positive and foreign stock > 0
+                    if (profitPerItem > 0 && currentItemData.foreignStock > 0) {
+                        // Check if this item is already in bestProfitItems and if the current profit is better
+                        if (!bestProfitItems[currentItemData.itemId] || totalPotentialProfit > bestProfitItems[currentItemData.itemId].totalPotentialProfit) {
+                            bestProfitItems[currentItemData.itemId] = {
+                                ...currentItemData, // Spread the itemData including countryName
+                                tornCityPrice: tornCityPrice,
+                                profitPerItem: profitPerItem,
+                                totalPotentialProfit: totalPotentialProfit,
+                                canCarry: canCarry,
+                            };
+                        }
+                    }
                 }
             }
         }
     }
 
+    // Convert bestProfitItems object back into an array for sorting and display
+    for (const itemId in bestProfitItems) {
+        matchedItems.push(bestProfitItems[itemId]);
+    }
+
     if (matchedItems.length === 0) {
-        itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" in any country.</p>`;
+        itemListDiv.innerHTML = `<p>No profitable items found matching "${searchQuery}" in any country or no stock available.</p>`;
         loadingIndicator.style.display = 'none';
         return;
     }
@@ -381,42 +411,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    const itemsToDisplay = await Promise.all(filteredItems.map(async (itemData) => {
-        const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
-        const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
-        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
-        const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
-        const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
-
-        return {
-            id: itemData.itemId,
-            name: itemData.name,
-            image: imageUrl,
-            foreignPrice: itemData.foreignPrice,
-            foreignStock: itemData.foreignStock,
-            countryName: itemData.countryName,
-            tornCityPrice: tornCityPrice,
-            profitPerItem: profitPerItem,
-            totalPotentialProfit: totalPotentialProfit,
-            canCarry: canCarry,
-            category: itemData.category,
-        };
-    }));
-
-    itemsToDisplay.sort((a, b) => {
-        const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-        const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
+    // Sort by total potential profit in descending order
+    filteredItems.sort((a, b) => {
+        const profitA = typeof a.totalPotentialProfit === 'number' ? a.totalPotentialProfit : -Infinity;
+        const profitB = typeof b.totalPotentialProfit === 'number' ? b.totalPotentialProfit : -Infinity;
         return profitB - profitA;
     });
 
     itemListDiv.innerHTML = '';
-    itemsToDisplay.forEach(item => {
+    filteredItems.forEach(item => {
         const itemCard = document.createElement('div');
         itemCard.classList.add('item-card');
         itemCard.innerHTML = `
             <img src="${item.image}" alt="${item.name}">
             <div class="item-info">
-                <h3>${item.name} (${item.category})</h3>
+                <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
                 <div class="item-stats">
                     <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
                     <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
@@ -431,7 +440,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     loadingIndicator.style.display = 'none';
 }
-
     // Firebase Authentication
     if (typeof auth !== 'undefined' && auth && typeof db !== 'undefined' && db) {
         auth.onAuthStateChanged(async function(user) {
