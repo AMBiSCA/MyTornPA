@@ -384,9 +384,16 @@ footer.footer > p {
 }
 #fetch-data-btn {
     margin-top: 0;
-    padding: 12px 20px;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
+    /* Centering the button */
+    display: block; /* Make it a block-level element for margin: auto to work */
+    margin-left: auto;
+    margin-right: auto;
+    
+    /* Making it smaller and thicker horizontally like header buttons */
+    padding: 10px 30px; /* Adjusted padding: smaller vertical, more horizontal */
+    font-size: 1rem; /* Slightly smaller font size */
+    height: 40px; /* Explicitly set height to match header buttons, if needed */
+    box-sizing: border-box; /* Ensure padding is included in the total height */
 }
 #loading-indicator {
     display: none;
