@@ -825,7 +825,55 @@ function clearAllLists() {
     awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
 }
 
+async function fetchTornDataDirectly(apiKey) {
+    if (!apiKey) {
+        throw new Error("No Torn API key found.");
+    }
 
+    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
+    const selections = "basic,personalstats";
+    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
+
+    try {
+        const response = await fetch(tornApiUrl);
+
+        if (!response.ok) {
+            let errorDetail = await response.text();
+            try {
+                const errorJson = JSON.parse(errorDetail);
+                if (errorJson && errorJson.error && errorJson.error.error) {
+                    errorDetail = errorJson.error.error;
+                }
+            } catch (e) {
+                // Not JSON, use raw text
+            }
+            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
+        }
+
+        const data = await response.json();
+
+        if (data.error && data.error.error) {
+            throw new Error(`Torn API error: ${data.error.error}`);
+        }
+
+        console.log('Torn API Data fetched:', data); // For debugging
+        hideLoading();
+        return data;
+
+    } catch (error) {
+        console.error('Error fetching Torn data:', error);
+        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
+            showError('Invalid Torn API key. Please update your API key in your profile settings.');
+        } else if (error.message.includes("Too many requests")) {
+            showError('Torn API rate limit hit. Please wait a moment and refresh.');
+        } else if (error.message.includes("wrongfields")) {
+            showError('Torn API returned "wrongfields". This usually means a requested data field does not exist. Check console for details.');
+        } else {
+            showError(`Failed to load Torn data: ${error.message}.`);
+        }
+        return null;
+    }
+}
 /**
  * Processes a single achievement to determine its status and progress.
  * @param {object} achievement - The achievement object from allHonors/allMedals.
