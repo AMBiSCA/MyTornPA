@@ -204,7 +204,7 @@ body {
     /* UPDATED: Symmetrical horizontal padding for better centering */
     padding: 0 15px; 
     box-sizing: border-box;
-    align-content: start;
+    align-content: Center;
     max-width: 1550px;
     /* ADDED: Centers the entire grid's content within its available space */
     justify-content: center; 
