@@ -9,7 +9,8 @@ const playerRankSpan = document.getElementById('player-rank');
 const playerNetworthSpan = document.getElementById('player-networth');
 const tabsContainer = document.querySelector('.tabs-container');
 const tabContents = document.querySelectorAll('.tab-pane');
-
+const playerTotalStatsSpan = document.getElementById('player-total-stats'); // ADD THIS LINE
+const playerAwardsSpan = document.getElementById('player-awards'); // ADD THIS LINE
 // Lists for dynamic content
 const honorsAttackingList = document.getElementById('honors-attacking-list');
 const honorsWeaponsList = document.getElementById('honors-weapons-list');
@@ -221,26 +222,68 @@ async function fetchTornDataDirectly(apiKey) {
     }
 }
 
+// --- merits.js ---
+
+// ... (previous code)
+
 /**
  * Displays basic player information in the summary section.
  * @param {object} playerData - The player data from the Torn API.
  */
 function displayPlayerSummary(playerData) {
-    if (playerData && playerData.basic) {
-        playerNameSpan.textContent = playerData.basic.name || 'N/A';
-        playerLevelSpan.textContent = formatNumber(playerData.basic.level) || 'N/A';
-        playerRankSpan.textContent = playerData.basic.rank || 'N/A';
-        // Networth is in personalstats, ensure it's accessed correctly
-        playerNetworthSpan.textContent = playerData.personalstats && playerData.personalstats.networth ? `$${formatNumber(playerData.personalstats.networth)}` : 'N/A';
+    console.log("displayPlayerSummary: Processing playerData:", playerData);
+
+    if (playerData) {
+        playerNameSpan.textContent = playerData.name || 'N/A';
+        playerLevelSpan.textContent = formatNumber(playerData.level) || 'N/A';
+
+        let playerRank = 'N/A';
+        if (playerData.basic && playerData.basic.rank) {
+            playerRank = playerData.basic.rank;
+        } else if (playerData.rank) {
+            playerRank = playerData.rank;
+        }
+        playerRankSpan.textContent = playerRank;
+
+        const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
+        playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
+
+        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
+        if (typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null) {
+            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
+        }
+
+        // --- ADD THESE NEW STATS ---
+        const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
+        playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
+
+        const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
+        playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
+        // --- END NEW STATS ---
+
+
+        // More granular logging for debugging specific values
+        console.log(`  Name: ${playerNameSpan.textContent}`);
+        console.log(`  Level: ${playerLevelSpan.textContent}`);
+        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
+        console.log(`  Networth: ${playerNetworthSpan.textContent}`);
+        console.log(`  Life: ${typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
+        console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`); // NEW LOG
+        console.log(`  Awards: ${playerAwardsSpan.textContent}`); // NEW LOG
+
     } else {
+        console.warn("displayPlayerSummary: playerData is missing.");
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
         playerRankSpan.textContent = 'N/A';
         playerNetworthSpan.textContent = 'N/A';
+        if (typeof playerLifeSpan !== 'undefined' && playerLifeSpan !== null) {
+            playerLifeSpan.textContent = 'N/A';
+        }
+        playerTotalStatsSpan.textContent = 'N/A'; // NEW FALLBACK
+        playerAwardsSpan.textContent = 'N/A'; // NEW FALLBACK
     }
 }
-
-// ... (inside merits.js)
 
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
