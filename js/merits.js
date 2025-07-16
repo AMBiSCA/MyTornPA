@@ -1114,7 +1114,7 @@ function populatePlayerStats(playerData) {
 
         const li = document.createElement('li');
         const spanId = `stat-${displayName.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}`;
-        li.innerHTML = `<strong>${displayName}:</strong> <span id="${spanId}">${typeof value === 'number' ? formatNumber(value) : (value || 'N/A')}</span>`;
+li.innerHTML = `<span class="stat-label"><strong>${displayName}:</strong></span><span class="stat-value" id="${spanId}">${typeof value === 'number' ? formatNumber(value) : (value || 'N/A')}</span>`;
         statsContainer.appendChild(li);
     }
 

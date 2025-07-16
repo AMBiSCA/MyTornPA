@@ -448,3 +448,8 @@ body {
 /* If you have any specific .awarded-tick CSS from previous attempts, remove it */
 /* This will prevent any conflict with the direct FA icon injected by JS */
 .awarded-tick { /* DELETE THIS RULE if it exists and remove its content */ }
+
+#player-stats-list li {
+    display: flex;
+    justify-content: space-between;
+}
