@@ -653,9 +653,7 @@ const errorDisplay = document.getElementById('error-display');
 const playerNameSpan = document.getElementById('player-name');
 const playerLevelSpan = document.getElementById('player-level');
 const playerTotalStatsSpan = document.getElementById('player-total-stats');
-const playerRankSpan = document.getElementById('player-rank');
 const playerNetworthSpan = document.getElementById('player-networth');
-const playerLifeSpan = document.getElementById('player-life');
 const playerAwardsSpan = document.getElementById('player-awards');
 
 const tabsContainer = document.querySelector('.tabs-container');
@@ -830,22 +828,13 @@ function displayPlayerSummary(playerData) {
         const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
         playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
 
-        // Rank: Try basic.rank (standard), then top-level .rank (if flattened), otherwise N/A
-        let playerRank = 'N/A';
-        if (playerData.basic && playerData.basic.rank) {
-            playerRank = playerData.basic.rank;
-        } else if (playerData.rank) {
-            playerRank = playerData.rank;
-        }
-        playerRankSpan.textContent = playerRank;
+       
 
         const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
         playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
 
-        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
-        }
+        
+        
         
         const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
         playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
