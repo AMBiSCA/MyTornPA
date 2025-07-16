@@ -958,13 +958,13 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
-// --- merits.js (FINALIZED updateAchievementsDisplay function for direct FA tick) ---
+// --- merits.js (UPDATED updateAchievementsDisplay for dedicated tick span) ---
 
-// ... (keep all code above this function as it is, including global variables and helper functions) ...
+// ... (keep all code above this function as it is) ...
 
 /**
  * Updates the display for Honors and Medals based on player data.
- * Displays a single, integrated Font Awesome tick for awarded items, replacing progress symbols.
+ * Displays progress symbols and adds a dedicated tick span for awarded items.
  * @param {object} playerData - The full player data from Torn API.
  */
 function updateAchievementsDisplay(playerData) {
@@ -1007,32 +1007,36 @@ function updateAchievementsDisplay(playerData) {
             listItem.classList.add('awarded-by-api'); // Keep this for overall row styling (green box)
         }
 
-        // --- CRITICAL CHANGE: Determine content and class for .merit-status-icon based on awarded status ---
-        let finalStatusIconContent; // What goes inside the <span>
-        let finalStatusIconClass = statusIconClass; // What classes the <span> gets
-
-        if (isAwardedByApi) {
-            // If awarded, force the content to be the Font Awesome checkmark icon
-            finalStatusIconContent = '<i class="fas fa-check"></i>'; 
-            finalStatusIconClass = 'completed'; // Also ensure it gets the 'completed' class for green color
-        } else {
-            // If not awarded, use the regular progress symbol and class
-            finalStatusIconContent = statusSymbol;
-            // finalStatusIconClass already holds statusIconClass
-        }
-        // --- END CRITICAL CHANGE ---
-
-
         listItem.innerHTML = `
-            <span class="merit-status-icon ${finalStatusIconClass}">
-                ${finalStatusIconContent}
+            <span class="merit-status-icon ${statusIconClass}">
+                ${statusSymbol}
             </span>
             <span class="merit-details">
-                <span class="merit-name">${achievement.name}</span> -
+                <span class="merit-name">${achievement.name}</span>
                 <span class="merit-requirement">${achievement.requirement}</span>
                 <span class="merit-progress">${progressText}</span>
             </span>
         `;
+
+        // --- NEW LOGIC: Add the awarded tick span if awarded ---
+        if (isAwardedByApi) {
+            const tickSpan = document.createElement('span');
+            tickSpan.className = 'awarded-tick fas fa-check'; // Use Font Awesome icon
+            // You can change 'fas fa-check' to 'fa-solid fa-check' if using FA6, or simply '✅' if preferring Unicode.
+            // If using Unicode: tickSpan.textContent = ' ✅'; tickSpan.className = 'awarded-tick';
+
+            const meritDetailsSpan = listItem.querySelector('.merit-details');
+            if (meritDetailsSpan) {
+                // Insert the tick right after the merit-name span
+                const meritNameSpan = meritDetailsSpan.querySelector('.merit-name');
+                if (meritNameSpan) {
+                    meritNameSpan.appendChild(tickSpan); // Appends the tick *inside* the merit-name span
+                } else {
+                    meritDetailsSpan.prepend(tickSpan); // Fallback to start of merit-details
+                }
+            }
+        }
+        // --- END NEW LOGIC ---
 
         if (achievementLists[achievement.category]) {
             achievementLists[achievement.category].appendChild(listItem);
@@ -1044,8 +1048,8 @@ function updateAchievementsDisplay(playerData) {
         if (!isCompleted) {
             allAchievementsWithStatus.push({
                 achievement,
-                statusIconClass, // Use original statusIconClass for progress tab
-                statusSymbol,    // Use original statusSymbol for progress tab
+                statusIconClass,
+                statusSymbol,
                 progressText,
                 calculatedPercentage
             });
