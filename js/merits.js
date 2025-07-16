@@ -926,33 +926,29 @@ function getAchievementStatus(achievement, playerData) {
                 calculatedPercentage = Math.min(progressAttacks, progressDefends); // Take the lower percentage
                 progressText = ` (Attacks: ${formatNumber(attacksWon)}/${formatNumber(attacksThreshold)}, Defends: ${formatNumber(defendsWon)}/${formatNumber(defendsThreshold)})`;
             }
-        } else if (achievement.type === 'count_time_convert') {
-            const valueInDays = value / (24 * 60 * 60); // Convert seconds to days
-             if (valueInDays >= achievement.threshold) {
-                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
-            } else {
-                statusIconClass = 'in-progress'; statusSymbol = '●';
-                calculatedPercentage = (valueInDays / achievement.threshold) * 100;
-                progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(1))}/${formatNumber(achievement.threshold)} days)`;
-            }
-        } else if (achievement.type === 'rank') {
-             let currentRankValue = getNestedProperty(playerData, achievement.statKey);
-             if (currentRankValue === achievement.threshold) {
-                 statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
-             } else {
-                 statusIconClass = 'not-started';
-             }
-             progressText = ` (Current: ${currentRankValue || 'N/A'})`;
-             // For ranks, closeness is harder to calculate numerically, so percentage might not be meaningful
-        }
-        else if (value > 0 && !isCompleted) { // Generic check for non-zero progress for other types
-            statusIconClass = 'in-progress';
-            statusSymbol = '●';
-            progressText = ` (Current: ${formatNumber(value)})`;
-            // For general 'count' where threshold isn't clear, just show current value
-            calculatedPercentage = 1; // Indicate some progress but not quantifiable
-        }
+       } else if (achievement.type === 'count_time_convert') {
+    const valueInSeconds = value; // The API value is already in seconds
+    const thresholdInSeconds = achievement.threshold;
+
+    // Convert to days ONLY for the display text
+    const valueInDays = valueInSeconds / 86400;
+    const thresholdInDays = thresholdInSeconds / 86400;
+
+    // Correctly compare seconds with seconds for the logic
+    if (valueInSeconds >= thresholdInSeconds) {
+        statusIconClass = 'completed';
+        statusSymbol = '✔';
+        isCompleted = true;
+        calculatedPercentage = 100;
+        progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(0))}/${formatNumber(thresholdInDays)} days)`;
+    } else {
+        statusIconClass = 'in-progress';
+        statusSymbol = '●';
+        // Calculate percentage accurately using the second values
+        calculatedPercentage = (valueInSeconds / thresholdInSeconds) * 100;
+        progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(0))}/${formatNumber(thresholdInDays)} days)`;
     }
+}
 
     return { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage };
 }
