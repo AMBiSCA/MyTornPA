@@ -1207,8 +1207,8 @@ async function initializeMeritsPage() {
                     if (playerData) {
                         displayPlayerSummary(playerData);
                         updateAchievementsDisplay(playerData); // This also calls populateAwardsProgressTab internally
-                        populatePlayerStats(playerData);
-						applyAwardedTicks(playerData); 
+                        populatePlayerStats(playerData)
+						
 
 
                         
