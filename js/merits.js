@@ -871,7 +871,7 @@ function displayPlayerSummary(playerData) {
         }
         playerAwardsSpan.textContent = 'N/A';
     }
-}
+
 
 /**
  * Processes a single achievement to determine its status and progress.
