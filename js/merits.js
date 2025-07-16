@@ -653,9 +653,9 @@ const errorDisplay = document.getElementById('error-display');
 const playerNameSpan = document.getElementById('player-name');
 const playerLevelSpan = document.getElementById('player-level');
 const playerTotalStatsSpan = document.getElementById('player-total-stats');
-
+const playerRankSpan = document.getElementById('player-rank');
 const playerNetworthSpan = document.getElementById('player-networth');
-
+const playerLifeSpan = document.getElementById('player-life');
 const playerAwardsSpan = document.getElementById('player-awards');
 
 const tabsContainer = document.querySelector('.tabs-container');
@@ -830,13 +830,22 @@ function displayPlayerSummary(playerData) {
         const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
         playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
 
-       
-
+        // Rank: Try basic.rank (standard), then top-level .rank (if flattened), otherwise N/A
+        let playerRank = 'N/A';
+        if (playerData.basic && playerData.basic.rank) {
+            playerRank = playerData.basic.rank;
+        } else if (playerData.rank) {
+            playerRank = playerData.rank;
+        }
+        playerRankSpan.textContent = playerRank;
 
         const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
         playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
 
-        
+        const life = playerData.personalstats ? playerData.personalstats.life : undefined;
+        if (playerLifeSpan) {
+            playerLifeSpan.textContent = life !== undefined ? formatNumber(life) : 'N/A';
+        }
         
         const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
         playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
@@ -856,13 +865,14 @@ function displayPlayerSummary(playerData) {
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
         playerTotalStatsSpan.textContent = 'N/A';
-
+        playerRankSpan.textContent = 'N/A';
         playerNetworthSpan.textContent = 'N/A';
-
+        if (playerLifeSpan) {
+            playerLifeSpan.textContent = 'N/A';
         }
         playerAwardsSpan.textContent = 'N/A';
     }
-
+}
 
 /**
  * Processes a single achievement to determine its status and progress.
@@ -948,15 +958,6 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
-// --- merits.js (UPDATED updateAchievementsDisplay function - Single Tick) ---
-
-// ... (keep all code above this function as it is) ...
-
-/**
- * Updates the display for Honors and Medals based on player data.
- * Displays a single, integrated tick for awarded items, replacing progress symbols.
- * @param {object} playerData - The full player data from the Torn API.
- */
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
 
@@ -972,11 +973,6 @@ function updateAchievementsDisplay(playerData) {
         'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
     };
 
-    // Extract user's awarded IDs from the API response
-    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
-    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
-
-
     const allAchievementsWithStatus = []; // Used for Awards Progress tab
 
     const processAndDisplay = (achievement, type) => {
@@ -986,35 +982,13 @@ function updateAchievementsDisplay(playerData) {
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); 
 
-        // Add data-id and data-type attributes (essential for any future external lookup/styling)
+        // Add data-id and data-type attributes (essential for applyAwardedTicks)
         listItem.dataset.id = achievement.id; 
         listItem.dataset.type = type; 
 
-        // Determine if the award is owned by the API response
-        let isAwardedByApi = false;
-        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        }
-
-        // --- MODIFIED LOGIC: Show Font Awesome tick IF AWARDED, else show progress symbol ---
-        let finalDisplayIconHtml = ''; // Will contain the HTML for the icon/symbol
-        let finalIconClass = statusIconClass; // Keep original progress class by default
-
-        if (isAwardedByApi) {
-            finalDisplayIconHtml = '<i class="fas fa-check"></i>'; // Font Awesome checkmark icon
-            finalIconClass = 'completed'; // Force to 'completed' color (green)
-            listItem.classList.add('awarded-by-api'); // Keep for overall row styling
-        } else {
-            finalDisplayIconHtml = statusSymbol; // Use the original progress symbol (◎, ●, or ✔)
-            // finalIconClass remains statusIconClass
-        }
-        // --- END MODIFIED LOGIC ---
-
-
+        // No tick injection here, only the progress symbol
         listItem.innerHTML = `
-            <span class="merit-status-icon ${finalIconClass}">${finalDisplayIconHtml}</span>
+            <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
             <span class="merit-details">
                 <span class="merit-name">${achievement.name}</span> -
                 <span class="merit-requirement">${achievement.requirement}</span>
@@ -1029,11 +1003,11 @@ function updateAchievementsDisplay(playerData) {
         }
 
         // Add to the Awards Progress tab if not completed by stat threshold
-        if (!isCompleted) { // Use original isCompleted, not affected by isAwardedByApi
+        if (!isCompleted) {
             allAchievementsWithStatus.push({
                 achievement,
-                statusIconClass, // Use original statusIconClass for progress tab
-                statusSymbol,    // Use original statusSymbol for progress tab
+                statusIconClass,
+                statusSymbol,
                 progressText,
                 calculatedPercentage
             });
@@ -1048,9 +1022,6 @@ function updateAchievementsDisplay(playerData) {
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
 
-// ... (The separate applyAwardedTicks function should be completely removed from your file) ...
-
-// ... (keep all code below this function as it is) ...
 
 
 
@@ -1198,7 +1169,8 @@ async function initializeMeritsPage() {
                         displayPlayerSummary(playerData);
                         updateAchievementsDisplay(playerData); // This also calls populateAwardsProgressTab internally
                         populatePlayerStats(playerData);
-				
+						applyAwardedTicks(playerData); 
+
 
                         
                         switchTab('honors-tab'); 
