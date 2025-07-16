@@ -929,6 +929,9 @@ function displayPlayerSummary(playerData) {
  */
 function getAchievementStatus(achievement, playerData) {
     const value = getNestedProperty(playerData, achievement.statKey);
+	
+	console.log(`Checking: '${achievement.name}' | Using Key: '${achievement.statKey}' | Found Value: ${value} | Required: ${achievement.threshold}`);
+	
     let statusIconClass = 'not-started';
     let statusSymbol = '◎';
     let progressText = '';
