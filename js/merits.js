@@ -1041,58 +1041,6 @@ function updateAchievementsDisplay(playerData) {
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
 
-// --- NEW SEPARATE FUNCTION: applyAwardedTicks ---
-// Add this new function immediately after updateAchievementsDisplay
-
-/**
- * Applies a visual "tick" to awards the user has definitively been awarded (by ID).
- * This function is separate from the progress tracking to avoid interference.
- * It relies on updateAchievementsDisplay having added data-id and data-type attributes.
- * @param {object} playerData - The full player data from Torn API, containing honors_awarded and medals_awarded lists.
- */
-function applyAwardedTicks(playerData) {
-    // Get the actual awarded IDs from the API response
-    // These need to be Sets for efficient lookup
-    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number)); 
-    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []);
-
-    // Select all achievement list items created by updateAchievementsDisplay
-    document.querySelectorAll('li.achievement-item').forEach(listItem => {
-        const achievementId = parseInt(listItem.dataset.id);
-        const achievementType = listItem.dataset.type; // 'honor' or 'medal'
-
-        let isAwarded = false;
-
-        if (achievementType === 'honor' && userOwnedHonorsIds.has(achievementId)) {
-            isAwarded = true;
-        } else if (achievementType === 'medal' && userOwnedMedalsIds.has(achievementId)) {
-            isAwarded = true;
-        }
-
-        if (isAwarded) {
-            listItem.classList.add('awarded-by-api'); // Add class for CSS styling
-
-            // Add the tick icon if it's not already there
-            let existingTick = listItem.querySelector('.awarded-tick');
-            if (!existingTick) {
-                const tickSpan = document.createElement('span');
-                tickSpan.className = 'awarded-tick fas fa-check'; // Font Awesome tick icon
-                // Alternatively, for a simple unicode tick:
-                // tickSpan.textContent = ' ✅'; // Unicode checkmark emoji
-                // tickSpan.className = 'awarded-tick'; 
-                
-                // Append the tick inside the merit-details span or directly to listItem
-                const meritDetailsSpan = listItem.querySelector('.merit-details');
-                if (meritDetailsSpan) {
-                    meritDetailsSpan.appendChild(tickSpan);
-                } else {
-                    listItem.appendChild(tickSpan); // Fallback if merit-details not found
-                }
-            }
-        }
-    });
-}
-
 function applyAwardedTicks(playerData) {
     // Corrected extraction of user's awarded IDs from the API response
     // Based on your provided JSON response, both are direct arrays under playerData.
