@@ -127,12 +127,18 @@ function getAchievementStatus(achievement, playerData, earnedIds) {
     return { isCompleted: false, statusIconClass, statusSymbol, progressText, calculatedPercentage };
 }
 
+/**
+ * Updates the display for all Honors and Medals with detailed logging.
+ * @param {object} playerData - The complete player data from the API.
+ */
 function updateAchievementsDisplay(playerData) {
     clearAllLists();
+    console.log("--- Starting to display all achievements ---");
+
     const earnedHonorIds = new Set(playerData.honors_awarded || []);
     const earnedMedalIds = new Set(playerData.medals_awarded || []);
 
-    const achievementLists = {
+    const categoryElementMap = {
         'honors-attacking-list': honorsAttackingList,
         'honors-weapons-list': honorsWeaponsList,
         'honors-chaining-list': honorsChainingList,
@@ -141,33 +147,64 @@ function updateAchievementsDisplay(playerData) {
         'medals-crimes-list': medalsCrimesList,
         'misc-awards-list': miscAwardsList
     };
-    
-    const achievementsForProgressTab = [];
 
-    const processList = (masterList, earnedIds) => {
-        masterList.forEach(achievement => {
-            const listElement = achievementLists[achievement.category];
+    const processList = (masterList, earnedIds, type) => {
+        console.log(`--- Processing all ${type} ---`);
+        masterList.forEach(item => {
+            const listElement = categoryElementMap[item.category];
+
+            // --- NEW DEBUG LOGGING ---
             if (listElement) {
-                const status = getAchievementStatus(achievement, playerData, earnedIds);
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `
-                    <span class="merit-status-icon ${status.statusIconClass}">${status.statusSymbol}</span>
-                    <span class="merit-details">
-                        <span class="merit-name">${achievement.name}</span> -
-                        <span class="merit-requirement">${achievement.requirement}</span>
-                        <span class="merit-progress">${status.progressText}</span>
-                    </span>`;
-                listElement.appendChild(listItem);
-                if (!status.isCompleted && status.calculatedPercentage > 0) {
-                    achievementsForProgressTab.push({ achievement, ...status });
-                }
+                // This will run if the HTML list was found correctly.
+                console.log(`Found list for '${item.name}'. Processing...`);
+            } else {
+                // This will run if the HTML list is missing.
+                console.warn(`HTML list NOT found for category: '${item.category}'. Skipping '${item.name}'.`);
+                return; // Skip this item if its container doesn't exist.
             }
+            // -------------------------
+
+            const isCompleted = earnedIds.has(item.id);
+            const status = getAchievementStatus(item, playerData, isCompleted); // We'll create this next
+
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <span class="merit-status-icon ${status.statusIconClass}">${status.statusSymbol}</span>
+                <span class="merit-details">
+                    <span class="merit-name">${item.name}</span> -
+                    <span class="merit-requirement">${item.requirement}</span>
+                    <span class="merit-progress">${status.progressText}</span>
+                </span>
+            `;
+            listElement.appendChild(listItem);
         });
     };
 
-    processList(allHonors, earnedHonorIds);
-    processList(allMedals, earnedMedalIds);
-    populateAwardsProgressTab(achievementsForProgressTab);
+    processList(allHonors, earnedHonorIds, "Honors");
+    processList(allMedals, earnedMedalIds, "Medals");
+
+    // The rest of your functions (like populateAwardsProgressTab) would go here.
+    // For now, let's focus on the main display.
+}
+
+// We also need to slightly adjust getAchievementStatus to work with the new display function
+function getAchievementStatus(achievement, playerData, isCompleted) {
+    if (isCompleted) {
+        return { statusIconClass: 'completed', statusSymbol: '✔', progressText: '' };
+    }
+
+    // If not completed, calculate progress
+    const value = getNestedProperty(playerData, achievement.statKey);
+    if (value > 0) {
+        return {
+            statusIconClass: 'in-progress',
+            statusSymbol: '●',
+            progressText: ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`
+        };
+    }
+
+    // Default to not started
+    return { statusIconClass: 'not-started', statusSymbol: '◎', progressText: '' };
 }
 
 function populateAwardsProgressTab(progressList) {
