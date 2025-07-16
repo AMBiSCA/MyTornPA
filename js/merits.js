@@ -814,10 +814,6 @@ async function fetchTornDataDirectly(apiKey) {
     }
 }
 
-/**
- * Displays basic player information in the summary section.
- * @param {object} playerData - The player data from the Torn API.
- */
 function displayPlayerSummary(playerData) {
     console.log("displayPlayerSummary: Processing playerData:", playerData);
 
@@ -828,13 +824,8 @@ function displayPlayerSummary(playerData) {
         const totalStats = playerData.personalstats ? playerData.personalstats.totalstats : undefined;
         playerTotalStatsSpan.textContent = totalStats !== undefined ? formatNumber(totalStats) : 'N/A';
 
-       
-
         const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
         playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
-
-        
-        
         
         const awards = playerData.personalstats ? playerData.personalstats.awards : undefined;
         playerAwardsSpan.textContent = awards !== undefined ? formatNumber(awards) : 'N/A';
@@ -844,9 +835,7 @@ function displayPlayerSummary(playerData) {
         console.log(`  Name: ${playerNameSpan.textContent}`);
         console.log(`  Level: ${playerLevelSpan.textContent}`);
         console.log(`  Total Stats: ${playerTotalStatsSpan.textContent}`);
-        console.log(`  Rank (after checks): ${playerRankSpan.textContent}`);
         console.log(`  Networth: ${playerNetworthSpan.textContent}`);
-        console.log(`  Life: ${playerLifeSpan ? playerLifeSpan.textContent : 'N/A (span not found)'}`);
         console.log(`  Awards: ${playerAwardsSpan.textContent}`);
 
     } else {
@@ -854,11 +843,7 @@ function displayPlayerSummary(playerData) {
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
         playerTotalStatsSpan.textContent = 'N/A';
-        playerRankSpan.textContent = 'N/A';
         playerNetworthSpan.textContent = 'N/A';
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = 'N/A';
-        }
         playerAwardsSpan.textContent = 'N/A';
     }
 }
