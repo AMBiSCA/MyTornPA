@@ -964,7 +964,6 @@ function updateAchievementsDisplay(playerData) {
     const allAchievementsWithStatus = []; // Used for Awards Progress tab
 
     const processAndDisplay = (achievement, type) => {
-        // Get the progress status and symbol (◎, ●, or ✔)
         const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
         
         const listItem = document.createElement('li');
@@ -991,7 +990,7 @@ function updateAchievementsDisplay(playerData) {
             finalIconClass = 'completed'; // Force to 'completed' color (green)
             listItem.classList.add('awarded-by-api'); // Keep for overall row styling
         } else {
-            finalDisplayIconHtml = statusSymbol; // Use the original progress symbol (◎, ●, or ✔)
+            finalDisplayIconHtml = statusSymbol;
             // finalIconClass remains statusIconClass
         }
         // --- END MODIFIED LOGIC ---
