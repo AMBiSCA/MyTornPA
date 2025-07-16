@@ -5505,6 +5505,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
            document.addEventListener('DOMContentLoaded', () => {
     // --- START OF DOMCONTENTLOADED ---
 
+    // --- NEW: This block reads the URL to see if a specific tab was requested ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTabName = urlParams.get('view'); // e.g. ?view=live-faction-activity
+    // --- END NEW ---
+
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane'); // This variable is declared but not directly used in the provided snippet.
@@ -5539,8 +5544,8 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             }
         });
     });
-	
-	
+
+
 
     // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
     const availabilityTab = document.getElementById('war-availability-tab');
@@ -5584,7 +5589,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
                     const tornUserId = userProfileDoc.data().tornProfileId;
                     const availabilityDocRef = db.collection('factionWars').doc('currentWar').collection('availability').doc(tornUserId);
-                    await availabilityDocRef.set({ [`day_${dayNumber}`]: availabilityData }, { merge: true });
+                    await availabilityDocRef.set({
+                        [`day_${dayNumber}`]: availabilityData
+                    }, {
+                        merge: true
+                    });
                     await displayWarRoster(); // Refresh the roster and summary
                     button.textContent = "Saved! ✅";
                 } catch (error) {
@@ -5641,7 +5650,17 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
     // --- END RE-ADDED AVAILABILITY LISTENERS ---
 
-    showTab('announcements-tab'); // Sets initial tab to announcements
+    // --- MODIFIED: This block now checks for the requestedTabName from the URL ---
+    if (requestedTabName) {
+        // This will take the value from the URL (e.g., 'live-faction-activity')
+        // and turn it into the tab ID (e.g., 'live-faction-activity-tab') to show it.
+        showTab(requestedTabName + '-tab');
+    } else {
+        // This is the original default behavior if no specific tab is requested.
+        showTab('announcements-tab');
+    }
+    // --- END MODIFIED ---
+
     let listenersInitialized = false;
 
     // References to chat elements (ensure these are correctly defined based on your HTML)
@@ -5697,7 +5716,9 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
                     try {
                         // Update the database with the cleared data
-                        await db.collection('factionWars').doc('currentWar').set(clearedData, { merge: true });
+                        await db.collection('factionWars').doc('currentWar').set(clearedData, {
+                            merge: true
+                        });
 
                         // Update all the input fields on the screen
                         if (toggleEnlisted) toggleEnlisted.checked = false;
@@ -5746,7 +5767,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
                 await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
 
-                setupProgressText();  
+                setupProgressText();
 
                 const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
                 if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
@@ -5930,7 +5951,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             saveAdminsBtn.textContent = "Saving...";
             try {
                 const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({ tab4Admins: selectedAdminIds }, { merge: true });
+                await db.collection('factionWars').doc('currentWar').set({
+                    tab4Admins: selectedAdminIds
+                }, {
+                    merge: true
+                });
                 saveAdminsBtn.textContent = "Saved! ✅";
             } catch (error) {
                 console.error("Error saving admins:", error);
@@ -5954,7 +5979,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             saveEnergyTrackMembersBtn.textContent = "Saving...";
             try {
                 const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({ energyTrackingMembers: selectedEnergyMemberIds }, { merge: true });
+                await db.collection('factionWars').doc('currentWar').set({
+                    energyTrackingMembers: selectedEnergyMemberIds
+                }, {
+                    merge: true
+                });
                 saveEnergyTrackMembersBtn.textContent = "Saved! ✅";
             } catch (error) {
                 console.error("Error saving energy members:", error);
@@ -5978,7 +6007,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             saveSelectionsBtnBH.textContent = "Saving...";
             try {
                 const selectedBigHitterIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({ bigHitterWatchlist: selectedBigHitterIds }, { merge: true });
+                await db.collection('factionWars').doc('currentWar').set({
+                    bigHitterWatchlist: selectedBigHitterIds
+                }, {
+                    merge: true
+                });
                 saveSelectionsBtnBH.textContent = "Saved! ✅";
             } catch (error) {
                 console.error("Error saving big hitter watchlist:", error);
@@ -5992,10 +6025,10 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             }
         });
     }
-	
-	
 
- // --- RESTORED IMAGE UPLOAD LISTENERS ---
+
+
+    // --- RESTORED IMAGE UPLOAD LISTENERS ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
@@ -6022,7 +6055,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             const confirmed = await showCustomConfirm("Are you sure you want to remove the current Game Plan image?", "Confirm Removal");
             if (!confirmed) return;
             try {
-                await db.collection('factionWars').doc('currentWar').set({ gamePlanImageUrl: null }, { merge: true });
+                await db.collection('factionWars').doc('currentWar').set({
+                    gamePlanImageUrl: null
+                }, {
+                    merge: true
+                });
                 if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
                 alert('Game Plan image cleared!');
             } catch (error) {
@@ -6038,7 +6075,11 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             const confirmed = await showCustomConfirm("Are you sure you want to remove the current Announcement image?", "Confirm Removal");
             if (!confirmed) return;
             try {
-                await db.collection('factionWars').doc('currentWar').set({ announcementsImageUrl: null }, { merge: true });
+                await db.collection('factionWars').doc('currentWar').set({
+                    announcementsImageUrl: null
+                }, {
+                    merge: true
+                });
                 if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
                 alert('Announcement image cleared!');
             } catch (error) {
