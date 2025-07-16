@@ -837,7 +837,7 @@ function displayPlayerSummary(playerData) {
         } else if (playerData.rank) {
             playerRank = playerData.rank;
         }
-        playerRankSpan.textContent = playerRank;
+
 
         const networth = playerData.personalstats ? playerData.personalstats.networth : undefined;
         playerNetworthSpan.textContent = networth !== undefined ? `$${formatNumber(networth)}` : 'N/A';
