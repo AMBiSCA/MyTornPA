@@ -958,6 +958,11 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
+/// --- merits.js (UPDATED updateAchievementsDisplay function) ---
+
+// ... (keep all code above this function as it is, including global variables and helper functions) ...
+
+
 /**
  * Updates the display for Honors and Medals based on player data.
  * ALSO ADDS A TICK FOR AWARDS THE USER HAS AWARDED (BY ID).
@@ -993,13 +998,9 @@ function updateAchievementsDisplay(playerData) {
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); // Add a general class for styling
 
-        // --- NEW/UPDATED: Add data-id and data-type attributes to the listItem ---
-        // This is crucial for the tick logic to find the correct element.
-        listItem.dataset.id = achievement.id; 
-        listItem.dataset.type = type; // 'honor' or 'medal'
-
         // Check if the award is in the user's awarded lists and add a specific class/tick
         let isAwardedByApi = false;
+        // The 'type' parameter passed to this function determines if we check against honors or medals
         if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
             isAwardedByApi = true;
             listItem.classList.add('awarded-by-api'); // Add class for awarded items
@@ -1045,6 +1046,62 @@ function updateAchievementsDisplay(playerData) {
 
     // Populate the Awards Progress tab after all other lists are processed
     populateAwardsProgressTab(allAchievementsWithStatus);
+}
+
+// Add this new function to your merits.js file
+
+/**
+ * Applies a visual "tick" to awards the user has definitively been awarded (by ID).
+ * This function is separate from the progress tracking to avoid interference.
+ * Assumes 'allHonors' and 'allMedals' arrays (with 'id' property) are defined.
+ * @param {object} playerData - The full player data from Torn API, containing honors_awarded and medals_awarded lists.
+ */
+function applyAwardedTicks(playerData) {
+    // Get the actual awarded IDs from the API response
+    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number));
+    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []);
+
+    // Helper to process a list of achievements (Honors or Medals)
+    const processAwardList = (achievements, type) => {
+        achievements.forEach(achievement => {
+            // Find the specific DOM element for this achievement by its data-id and data-type
+            // This relies on updateAchievementsDisplay having added these data attributes
+            const listItem = document.querySelector(`li.achievement-item[data-id="${achievement.id}"][data-type="${type}"]`);
+
+            if (listItem) { // Only proceed if the element is found on the page
+                let isAwardedByApi = false;
+                if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
+                    isAwardedByApi = true;
+                } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
+                    isAwardedByApi = true;
+                }
+
+                if (isAwardedByApi) {
+                    listItem.classList.add('awarded-by-api'); // Add class for styling
+                    // Check if tick already exists to prevent duplicates if function runs multiple times
+                    let existingTick = listItem.querySelector('.awarded-tick');
+                    if (!existingTick) {
+                        const tickSpan = document.createElement('span');
+                        tickSpan.className = 'awarded-tick fas fa-check'; // Font Awesome tick icon
+                        // Or use a Unicode tick: tickSpan.textContent = ' ✅'; tickSpan.className = 'awarded-tick';
+                        
+                        // Append the tick inside the merit-details span or directly to listItem
+                        // Adjust selector if you want it in a different spot
+                        const meritDetailsSpan = listItem.querySelector('.merit-details');
+                        if (meritDetailsSpan) {
+                            meritDetailsSpan.appendChild(tickSpan);
+                        } else {
+                            listItem.appendChild(tickSpan); // Fallback
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    // Apply ticks for both Honors and Medals using the master lists
+    processAwardList(allHonors, 'honor');
+    processAwardList(allMedals, 'medal');
 }
 
 // ... (keep all code below this function as it is, including populateAwardsProgressTab, populatePlayerStats, switchTab, and initializeMeritsPage) ...
@@ -1207,6 +1264,8 @@ async function initializeMeritsPage() {
                         displayPlayerSummary(playerData);
                         updateAchievementsDisplay(playerData); // This also calls populateAwardsProgressTab internally
                         populatePlayerStats(playerData);
+						applyAwardedTicks(playerData); 
+
 
                         // Ensure Honors tab is active on initial load
                         switchTab('honors-tab'); 
