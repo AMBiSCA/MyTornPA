@@ -1041,9 +1041,18 @@ function updateAchievementsDisplay(playerData) {
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
 
+// --- merits.js (UPDATED applyAwardedTicks function for reliable tick) ---
+
+// ... (keep all code above this function as it is) ...
+
+/**
+ * Applies a visual "tick" to awards the user has definitively been awarded (by ID).
+ * This function is separate from the progress tracking to avoid interference.
+ * It relies on updateAchievementsDisplay having added data-id and data-type attributes.
+ * @param {object} playerData - The full player data from Torn API, containing honors_awarded and medals_awarded lists.
+ */
 function applyAwardedTicks(playerData) {
-    // Corrected extraction of user's awarded IDs from the API response
-    // Based on your provided JSON response, both are direct arrays under playerData.
+    // Get the actual awarded IDs from the API response safely
     const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
     const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
 
@@ -1067,8 +1076,9 @@ function applyAwardedTicks(playerData) {
             let existingTick = listItem.querySelector('.awarded-tick');
             if (!existingTick) {
                 const tickSpan = document.createElement('span');
-                tickSpan.className = 'awarded-tick fas fa-check'; // Font Awesome tick icon
-                
+                tickSpan.className = 'awarded-tick'; // Just the awarded-tick class
+                tickSpan.textContent = ' ✔'; // DIRECTLY INSERT UNICODE CHECKMARK EMOJI
+
                 // Append the tick inside the merit-details span or directly to listItem
                 const meritDetailsSpan = listItem.querySelector('.merit-details');
                 if (meritDetailsSpan) {
@@ -1081,8 +1091,9 @@ function applyAwardedTicks(playerData) {
     });
 
     // We no longer call processAwardList here as this function only applies ticks to existing DOM elements.
-    // The previous logic was causing an error because it was trying to re-process and append.
 }
+
+// ... (keep all code below this function as it is) ...
 
 function populateAwardsProgressTab(achievementsInPrgoress) {
     awardsProgressList.innerHTML = ''; // Clear previous content
