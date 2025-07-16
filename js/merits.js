@@ -871,7 +871,7 @@ function getAchievementStatus(achievement, playerData) {
                 calculatedPercentage = 100;
             } else {
                 statusIconClass = 'in-progress';
-                statusSymbol = '●';
+                statusSymbol = '';
                 calculatedPercentage = (value / achievement.threshold) * 100;
                 progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
                 if (achievement.type === 'level') {
@@ -894,7 +894,7 @@ function getAchievementStatus(achievement, playerData) {
             if (attacksWon >= attacksThreshold && defendsWon >= defendsThreshold) {
                 statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
             } else {
-                statusIconClass = 'in-progress'; statusSymbol = '●';
+                statusIconClass = 'in-progress'; statusSymbol = '';
                 const progressAttacks = (attacksWon / attacksThreshold) * 100;
                 const progressDefends = (defendsWon / defendsThreshold) * 100;
                 calculatedPercentage = Math.min(progressAttacks, progressDefends); // Take the lower percentage
