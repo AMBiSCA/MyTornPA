@@ -367,7 +367,7 @@ ul li:last-child { border-bottom: none; }
     body { padding-top: 0; padding-bottom: 0; }
     header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
     .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* <-- Change is here */
     .header-left h1 { font-size: 1.4rem; }
     .tagline { font-size: 0.7rem; }
     .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
