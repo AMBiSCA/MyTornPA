@@ -1093,67 +1093,57 @@ function applyAwardedTicks(playerData) {
     });
 }
 
-
-/**
- * Applies a visual "tick" to awards the user has definitively been awarded (by ID).
- * This function is separate from the progress tracking to avoid interference.
- * Assumes 'allHonors' and 'allMedals' arrays (with 'id' property) are defined.
- * @param {object} playerData - The full player data from Torn API, containing honors_awarded and medals_awarded lists.
- */
 function applyAwardedTicks(playerData) {
-    // Get the actual awarded IDs from the API response
-    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number));
-    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []);
+    // Get the actual awarded IDs from the API response safely
+    // Use optional chaining (?.) and nullish coalescing (?? []) for robustness
+    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors?.honors_awarded || {}).map(Number)); // Assuming honors.honors_awarded if nested
+    const userOwnedMedalsIds = new Set(playerData.medals?.medals_awarded || []); 
 
-    // Helper to process a list of achievements (Honors or Medals)
-    const processAwardList = (achievements, type) => {
-        achievements.forEach(achievement => {
-            // Find the specific DOM element for this achievement by its data-id and data-type
-            // This relies on updateAchievementsDisplay having added these data attributes
-            const listItem = document.querySelector(`li.achievement-item[data-id="${achievement.id}"][data-type="${type}"]`);
+    // Re-check your API response structure for 'honors'. 
+    // If playerData.honors is *already* the object with ID keys:
+    // const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number));
+    // If playerData.honors contains an array like playerData.honors.honors_awarded:
+    // const userOwnedHonorsIds = new Set(playerData.honors.honors_awarded || []); 
+    // Based on your previous JSON, it was a direct array: playerData.honors_awarded, not nested under playerData.honors object.
+    // Let's use the most direct paths you provided in your last JSON:
+    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []);
+    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
 
-            if (listItem) { // Only proceed if the element is found on the page
-                let isAwardedByApi = false;
-                if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-                    isAwardedByApi = true;
-                } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-                    isAwardedByApi = true;
-                }
 
-                if (isAwardedByApi) {
-                    listItem.classList.add('awarded-by-api'); // Add class for styling
-                    // Check if tick already exists to prevent duplicates if function runs multiple times
-                    let existingTick = listItem.querySelector('.awarded-tick');
-                    if (!existingTick) {
-                        const tickSpan = document.createElement('span');
-                        tickSpan.className = 'awarded-tick fas fa-check'; // Font Awesome tick icon
-                        // Or use a Unicode tick: tickSpan.textContent = ' ✅'; tickSpan.className = 'awarded-tick';
-                        
-                        // Append the tick inside the merit-details span or directly to listItem
-                        // Adjust selector if you want it in a different spot
-                        const meritDetailsSpan = listItem.querySelector('.merit-details');
-                        if (meritDetailsSpan) {
-                            meritDetailsSpan.appendChild(tickSpan);
-                        } else {
-                            listItem.appendChild(tickSpan); // Fallback
-                        }
-                    }
+    // Select all achievement list items created by updateAchievementsDisplay
+    document.querySelectorAll('li.achievement-item').forEach(listItem => {
+        const achievementId = parseInt(listItem.dataset.id);
+        const achievementType = listItem.dataset.type; // 'honor' or 'medal'
+
+        let isAwarded = false;
+
+        if (achievementType === 'honor' && userOwnedHonorsIds.has(achievementId)) {
+            isAwarded = true;
+        } else if (achievementType === 'medal' && userOwnedMedalsIds.has(achievementId)) {
+            isAwarded = true;
+        }
+
+        if (isAwarded) {
+            listItem.classList.add('awarded-by-api'); // Add class for CSS styling
+
+            // Add the tick icon if it's not already there
+            let existingTick = listItem.querySelector('.awarded-tick');
+            if (!existingTick) {
+                const tickSpan = document.createElement('span');
+                tickSpan.className = 'awarded-tick fas fa-check'; // Font Awesome tick icon
+                
+                // Append the tick inside the merit-details span or directly to listItem
+                const meritDetailsSpan = listItem.querySelector('.merit-details');
+                if (meritDetailsSpan) {
+                    meritDetailsSpan.appendChild(tickSpan);
+                } else {
+                    listItem.appendChild(tickSpan); // Fallback if merit-details not found
                 }
             }
-        });
-    };
-
-    // Apply ticks for both Honors and Medals using the master lists
-    processAwardList(allHonors, 'honor');
-    processAwardList(allMedals, 'medal');
+        }
+    });
 }
 
-// ... (keep all code below this function as it is, including populateAwardsProgressTab, populatePlayerStats, switchTab, and initializeMeritsPage) ...
-
-/**
- * Populates the Awards Progress tab with in-progress achievements, sorted by closeness.
- * @param {Array<object>} achievementsInPrgoress - Array of in-progress achievements from updateAchievementsDisplay.
- */
 function populateAwardsProgressTab(achievementsInPrgoress) {
     awardsProgressList.innerHTML = ''; // Clear previous content
 
@@ -1179,11 +1169,6 @@ function populateAwardsProgressTab(achievementsInPrgoress) {
     });
 }
 
-
-/**
- * Populates the Player Stats Overview tab.
- * @param {object} playerData - The player data from the Torn API.
- */
 function populatePlayerStats(playerData) {
     const statsContainer = document.getElementById('player-stats-list');
     statsContainer.innerHTML = ''; // Clear previous stats
@@ -1227,7 +1212,7 @@ function populatePlayerStats(playerData) {
         } else if (typeof statPath === 'string') {
             value = getNestedProperty(playerData, statPath);
         } else {
-            value = 'N/A'; // Fallback for unexpected statPath type
+            value = 'N/A';
         }
 
         const li = document.createElement('li');
@@ -1235,21 +1220,14 @@ function populatePlayerStats(playerData) {
         li.innerHTML = `<strong>${displayName}:</strong> <span id="${spanId}">${typeof value === 'number' ? formatNumber(value) : (value || 'N/A')}</span>`;
         statsContainer.appendChild(li);
     }
-    // Add total awards tracked after the loop
+
     const totalAwardsLi = document.createElement('li');
     totalAwardsLi.innerHTML = `<strong>Total Awards Tracked:</strong> <span id="total-awards-tracked">${formatNumber(allHonors.length + allMedals.length)}</span>`;
     statsContainer.appendChild(totalAwardsLi);
 }
 
-
-// --- Tab Switching Logic (keep unchanged) ---
-
-/**
- * Handles switching between tabs.
- * @param {string} tabId - The ID of the tab to activate (e.g., 'honors-tab').
- */
 function switchTab(tabId) {
-    // Deactivate all tab buttons and content panes
+
     tabsContainer.querySelectorAll('.tab-button').forEach(button => {
         button.classList.remove('active');
     });
@@ -1258,7 +1236,6 @@ function switchTab(tabId) {
         pane.style.display = 'none'; // Directly set display to none
     });
 
-    // Activate the clicked tab button and its content pane
     const activeButton = tabsContainer.querySelector(`[data-tab="${tabId.replace('-tab', '')}"]`);
     const activePane = document.getElementById(tabId);
 
@@ -1311,7 +1288,7 @@ async function initializeMeritsPage() {
 						applyAwardedTicks(playerData); 
 
 
-                        // Ensure Honors tab is active on initial load
+                        
                         switchTab('honors-tab'); 
                     } else {
                         console.log("Player data could not be fetched by fetchTornDataDirectly (error already displayed).");
