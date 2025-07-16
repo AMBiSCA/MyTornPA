@@ -35,7 +35,7 @@ const awardsProgressList = document.getElementById('awards-progress-list'); // N
 // Some statKeys are inferred or generalized and might need fine-tuning.
 const allHonors = [
     // --- Chaining Honors ---
-    { name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "chain.max", threshold: 10, ... },
+    { name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chains", threshold: 10, category: "honors-chaining-list", type: "count" },
     { name: "Chainer 2", requirement: "Participate in a 100 length chain", statKey: "personalstats.chains", threshold: 100, category: "honors-chaining-list", type: "count" },
     { name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "personalstats.chains", threshold: 1000, category: "honors-chaining-list", type: "count" },
     { name: "Chainer 4", requirement: "Participate in a 10,000 length chain", statKey: "personalstats.chains", threshold: 10000, category: "honors-chaining-list", type: "count" },
