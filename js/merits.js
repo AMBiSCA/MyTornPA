@@ -512,7 +512,7 @@ const allMedals = [
     { name: "Triple Diamond Anniversary", requirement: "Same spouse for 1,500 consecutive days", statKey: "personalstats.spousetime", threshold: 129600000, category: "medals-commitment-list", type: "count_time_convert" },
     { name: "Triple Platinum Anniversary", requirement: "Same spouse for 2,000 consecutive days", statKey: "personalstats.spousetime", threshold: 172800000, category: "medals-commitment-list", type: "count_time_convert" },
     // Age
-    { name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "personalstats.days_old", threshold: 365, category: "medals-commitment-list", type: "count" },
+    { name: "One Year of Service", requirement: "Live in Torn for One Year", statKey: "age", threshold: 365, category: "medals-commitment-list", type: "count" },
     { name: "Two Years of Service", requirement: "Live in Torn for Two Years", statKey: "personalstats.days_old", threshold: 730, category: "medals-commitment-list", type: "count" },
     { name: "Three Years of Service", requirement: "Live in Torn for Three Years", statKey: "personalstats.days_old", threshold: 1095, category: "medals-commitment-list", type: "count" },
     { name: "Four Years of Service", requirement: "Live in Torn for Four Years", statKey: "personalstats.days_old", threshold: 1460, category: "medals-commitment-list", type: "count" },
