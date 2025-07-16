@@ -958,11 +958,6 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
-// --- merits.js (FINAL UPDATED updateAchievementsDisplay function) ---
-
-// ... (keep all code above this function as it is, including global variables and helper functions) ...
-
-
 /**
  * Updates the display for Honors and Medals based on player data.
  * ALSO ADDS A TICK FOR AWARDS THE USER HAS AWARDED (BY ID).
@@ -983,10 +978,11 @@ function updateAchievementsDisplay(playerData) {
         'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
     };
 
-    // Extract user's awarded IDs directly from playerData
-    // Based on your provided JSON response, both are direct arrays of IDs.
-    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
-    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
+    // Extract user's awarded IDs from the API response
+    // Torn API 'honors' selection returns an object where keys are IDs (strings)
+    // Torn API 'medals' selection returns 'medals_awarded' as an array of IDs
+    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number)); // Convert keys to numbers
+    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []); // Medals are already an array of IDs
 
 
     const allAchievementsWithStatus = []; // Used for Awards Progress tab
@@ -997,9 +993,13 @@ function updateAchievementsDisplay(playerData) {
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); // Add a general class for styling
 
+        // --- NEW/UPDATED: Add data-id and data-type attributes to the listItem ---
+        // This is crucial for the tick logic to find the correct element.
+        listItem.dataset.id = achievement.id; 
+        listItem.dataset.type = type; // 'honor' or 'medal'
+
         // Check if the award is in the user's awarded lists and add a specific class/tick
         let isAwardedByApi = false;
-        // The 'type' parameter passed to this function determines if we check against honors or medals
         if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
             isAwardedByApi = true;
             listItem.classList.add('awarded-by-api'); // Add class for awarded items
@@ -1046,8 +1046,6 @@ function updateAchievementsDisplay(playerData) {
     // Populate the Awards Progress tab after all other lists are processed
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
-
-// ... (keep all code below this function as it is, including populateAwardsProgressTab, populatePlayerStats, switchTab, and initializeMeritsPage) ...
 
 // ... (keep all code below this function as it is, including populateAwardsProgressTab, populatePlayerStats, switchTab, and initializeMeritsPage) ...
 
