@@ -1094,21 +1094,10 @@ function applyAwardedTicks(playerData) {
 }
 
 function applyAwardedTicks(playerData) {
-    // Get the actual awarded IDs from the API response safely
-    // Use optional chaining (?.) and nullish coalescing (?? []) for robustness
-    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors?.honors_awarded || {}).map(Number)); // Assuming honors.honors_awarded if nested
-    const userOwnedMedalsIds = new Set(playerData.medals?.medals_awarded || []); 
-
-    // Re-check your API response structure for 'honors'. 
-    // If playerData.honors is *already* the object with ID keys:
-    // const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number));
-    // If playerData.honors contains an array like playerData.honors.honors_awarded:
-    // const userOwnedHonorsIds = new Set(playerData.honors.honors_awarded || []); 
-    // Based on your previous JSON, it was a direct array: playerData.honors_awarded, not nested under playerData.honors object.
-    // Let's use the most direct paths you provided in your last JSON:
-    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []);
+    // Corrected extraction of user's awarded IDs from the API response
+    // Based on your provided JSON response, both are direct arrays under playerData.
+    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
     const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
-
 
     // Select all achievement list items created by updateAchievementsDisplay
     document.querySelectorAll('li.achievement-item').forEach(listItem => {
@@ -1142,6 +1131,9 @@ function applyAwardedTicks(playerData) {
             }
         }
     });
+
+    // We no longer call processAwardList here as this function only applies ticks to existing DOM elements.
+    // The previous logic was causing an error because it was trying to re-process and append.
 }
 
 function populateAwardsProgressTab(achievementsInPrgoress) {
