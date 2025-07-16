@@ -825,111 +825,63 @@ function clearAllLists() {
     awardsProgressList.innerHTML = ''; // Clear the new Awards Progress list
 }
 
-// ==================================================================
-// FINAL CORRECTED FUNCTIONS - PASTE OVER YOUR OLD ONES
-// ==================================================================
 
+// --- Main Data Handling Functions ---
 
 /**
- * Fetches all necessary Torn player data and combines it into a single, correct object.
+ * Fetches Torn player data directly from the Torn API.
+ * This function assumes the API key is retrieved from Firestore.
  * @param {string} apiKey - The Torn API key for the current user.
- * @returns {Promise<object|null>} A promise that resolves with the combined data object.
+ * @returns {Promise<object>} A promise that resolves with the player data.
  */
 async function fetchTornDataDirectly(apiKey) {
-    if (!apiKey) throw new Error("No Torn API key found.");
+    if (!apiKey) {
+        throw new Error("No Torn API key found.");
+    }
 
-    const baseUrl = "https://api.torn.com/user/";
-    const keyParam = `key=${apiKey}`;
-
-    const summaryUrl = `${baseUrl}?selections=basic,personalstats&${keyParam}`;
-    const honorsUrl = `${baseUrl}?selections=honors&${keyParam}`;
-    const medalsUrl = `${baseUrl}?selections=medals&${keyParam}`;
+    // Torn API v2 selections: streamlined to basic and personalstats for robustness.
+    const selections = "basic,personalstats";
+    const tornApiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
     try {
-        const [summaryResponse, honorsResponse, medalsResponse] = await Promise.all([
-            fetch(summaryUrl),
-            fetch(honorsUrl),
-            fetch(medalsUrl)
-        ]);
+        const response = await fetch(tornApiUrl);
 
-        if (!summaryResponse.ok) throw new Error(`Summary API request failed: ${summaryResponse.status}`);
-        if (!honorsResponse.ok) throw new Error(`Honors API request failed: ${honorsResponse.status}`);
-        if (!medalsResponse.ok) throw new Error(`Medals API request failed: ${medalsResponse.status}`);
+        if (!response.ok) {
+            let errorDetail = await response.text();
+            try {
+                const errorJson = JSON.parse(errorDetail);
+                if (errorJson && errorJson.error && errorJson.error.error) {
+                    errorDetail = errorJson.error.error;
+                }
+            } catch (e) {
+                // Not JSON, use raw text
+            }
+            throw new Error(`Torn API error: ${response.status} - ${errorDetail}`);
+        }
 
-        const summaryData = await summaryResponse.json();
-        const honorsData = await honorsResponse.json();
-        const medalsData = await medalsResponse.json();
+        const data = await response.json();
 
-        if (summaryData.error) throw new Error(`Summary API error: ${summaryData.error.error}`);
-        if (honorsData.error) throw new Error(`Honors API error: ${honorsData.error.error}`);
-        if (medalsData.error) throw new Error(`Medals API error: ${medalsData.error.error}`);
+        if (data.error && data.error.error) {
+            throw new Error(`Torn API error: ${data.error.error}`);
+        }
 
-        console.log('Successfully fetched all required API data.');
+        console.log('Torn API Data fetched:', data); // For debugging
         hideLoading();
-
-        // **THE FIX IS HERE:** We now explicitly combine all data into one object.
-        // We take the 'summaryData' as the base and then add the specific arrays we need.
-        return {
-            ...summaryData, // Includes name, level, personalstats, etc.
-            earned_honors: honorsData.honors || [],
-            earned_medals: medalsData.medals_awarded || []
-        };
+        return data;
 
     } catch (error) {
         console.error('Error fetching Torn data:', error);
-        // (Your existing error handling here is good)
-        showError(`Failed to load Torn data: ${error.message}.`);
+        if (error.message.includes("Invalid key") || error.message.includes("Incorrect key")) {
+            showError('Invalid Torn API key. Please update your API key in your profile settings.');
+        } else if (error.message.includes("Too many requests")) {
+            showError('Torn API rate limit hit. Please wait a moment and refresh.');
+        } else if (error.message.includes("wrongfields")) {
+            showError('Torn API returned "wrongfields". This usually means a requested data field does not exist. Check console for details.');
+        } else {
+            showError(`Failed to load Torn data: ${error.message}.`);
+        }
         return null;
     }
-}
-
-
-/**
- * Updates the display for all Honors and Medals using the corrected data structure.
- * @param {object} playerData - The complete player data from the API.
- */
-function updateAchievementsDisplay(playerData) {
-    clearAllLists(); 
-
-    // **THE FIX IS HERE:** We now look for 'earned_honors' and 'earned_medals'.
-    const earnedHonorIds = new Set(playerData.earned_honors || []);
-    const earnedMedalIds = new Set(playerData.earned_medals || []);
-
-    const categoryElementMap = {
-        'honors-attacking-list': honorsAttackingList,
-        'honors-weapons-list': honorsWeaponsList,
-        'honors-chaining-list': honorsChainingList,
-        'medals-combat-list': medalsCombatList,
-        'medals-commitment-list': medalsCommitmentList,
-        'medals-crimes-list': medalsCrimesList,
-        'misc-awards-list': miscAwardsList
-    };
-
-    const renderList = (masterList, earnedIds) => {
-        masterList.forEach(item => {
-            const listElement = categoryElementMap[item.category];
-            if (listElement) {
-                const isCompleted = earnedIds.has(item.id);
-                const statusIconClass = isCompleted ? 'completed' : 'not-started';
-                const statusSymbol = isCompleted ? '✔' : '◎';
-
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `
-                    <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
-                    <span class="merit-details">
-                        <span class="merit-name">${item.name}</span> -
-                        <span class="merit-requirement">${item.requirement}</span>
-                    </span>
-                `;
-                listElement.appendChild(listItem);
-            }
-        });
-    };
-
-    renderList(allHonors, earnedHonorIds);
-    renderList(allMedals, earnedMedalIds);
-
-    populateAwardsProgressTab(playerData);
 }
 
 function displayPlayerSummary(playerData) {
@@ -969,14 +921,179 @@ function displayPlayerSummary(playerData) {
     summaryParagraph.innerHTML = summaryParts.join(' | ');
 }
 
+/**
+ * Processes a single achievement to determine its status and progress.
+ * @param {object} achievement - The achievement object from allHonors/allMedals.
+ * @param {object} playerData - The full player data from Torn API.
+ * @returns {object} An object containing statusIconClass, statusSymbol, progressText, isCompleted, and calculatedPercentage.
+ */
+function getAchievementStatus(achievement, playerData) {
+    const value = getNestedProperty(playerData, achievement.statKey);
+    let statusIconClass = 'not-started';
+    let statusSymbol = '◎';
+    let progressText = '';
+    let isCompleted = false;
+    let calculatedPercentage = 0;
+
+    if (value !== undefined && value !== null) {
+        if (achievement.type === 'count' || achievement.type === 'level') {
+            if (value >= achievement.threshold) {
+                statusIconClass = 'completed';
+                statusSymbol = '✔';
+                isCompleted = true;
+                calculatedPercentage = 100;
+            } else {
+                statusIconClass = 'in-progress';
+                statusSymbol = '●';
+                calculatedPercentage = (value / achievement.threshold) * 100;
+                progressText = ` (Progress: ${formatNumber(value)}/${formatNumber(achievement.threshold)})`;
+                if (achievement.type === 'level') {
+                    progressText = ` (Current Level: ${formatNumber(value)})`;
+                }
+            }
+        } else if (achievement.type === 'boolean') {
+            if (value > 0) { // Assuming 1 for true, 0 for false for a boolean stat
+                statusIconClass = 'completed';
+                statusSymbol = '✔';
+                isCompleted = true;
+                calculatedPercentage = 100;
+            }
+        } else if (achievement.type === 'count_complex' && achievement.name === "007") {
+            const attacksWon = getNestedProperty(playerData, achievement.statKey);
+            const defendsWon = getNestedProperty(playerData, achievement.checkAlso);
+            const attacksThreshold = achievement.threshold;
+            const defendsThreshold = achievement.thresholdAlso;
+
+            if (attacksWon >= attacksThreshold && defendsWon >= defendsThreshold) {
+                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
+            } else {
+                statusIconClass = 'in-progress'; statusSymbol = '●';
+                const progressAttacks = (attacksWon / attacksThreshold) * 100;
+                const progressDefends = (defendsWon / defendsThreshold) * 100;
+                calculatedPercentage = Math.min(progressAttacks, progressDefends); // Take the lower percentage
+                progressText = ` (Attacks: ${formatNumber(attacksWon)}/${formatNumber(attacksThreshold)}, Defends: ${formatNumber(defendsWon)}/${formatNumber(defendsThreshold)})`;
+            }
+        } else if (achievement.type === 'count_time_convert') {
+            const valueInDays = value / (24 * 60 * 60); // Convert seconds to days
+             if (valueInDays >= achievement.threshold) {
+                statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
+            } else {
+                statusIconClass = 'in-progress'; statusSymbol = '●';
+                calculatedPercentage = (valueInDays / achievement.threshold) * 100;
+                progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(1))}/${formatNumber(achievement.threshold)} days)`;
+            }
+        } else if (achievement.type === 'rank') {
+             let currentRankValue = getNestedProperty(playerData, achievement.statKey);
+             if (currentRankValue === achievement.threshold) {
+                 statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
+             } else {
+                 statusIconClass = 'not-started';
+             }
+             progressText = ` (Current: ${currentRankValue || 'N/A'})`;
+             // For ranks, closeness is harder to calculate numerically, so percentage might not be meaningful
+        }
+        else if (value > 0 && !isCompleted) { // Generic check for non-zero progress for other types
+            statusIconClass = 'in-progress';
+            statusSymbol = '●';
+            progressText = ` (Current: ${formatNumber(value)})`;
+            // For general 'count' where threshold isn't clear, just show current value
+            calculatedPercentage = 1; // Indicate some progress but not quantifiable
+        }
+    }
+
+    return { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage };
+}
+
 
 /**
- * Populates the Awards Progress tab. (Temporarily shows a placeholder).
+ * Updates the display for Honors and Medals based on player data.
  * @param {object} playerData - The player data from the Torn API.
  */
-function populateAwardsProgressTab(playerData) {
-    awardsProgressList.innerHTML = '<li>Progress tracking will be implemented soon!</li>';
-    // This function is kept simple to prevent crashes. We can build this feature later.
+function updateAchievementsDisplay(playerData) {
+    clearAllLists(); // Clear previous content
+
+    const achievementLists = {
+        'honors-attacking-list': honorsAttackingList,
+        'honors-weapons-list': honorsWeaponsList,
+        'honors-chaining-list': honorsChainingList,
+
+        'medals-combat-list': medalsCombatList,
+        'medals-commitment-list': medalsCommitmentList,
+
+        'medals-crimes-list': medalsCrimesList,
+        'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
+    };
+
+    // Process all achievements and collect their statuses for sorting later
+    const allAchievementsWithStatus = [];
+
+    const processAchievements = (achievements) => {
+        achievements.forEach(achievement => {
+            const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
+            
+            // Add to the general lists
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
+                <span class="merit-details">
+                    <span class="merit-name">${achievement.name}</span> -
+                    <span class="merit-requirement">${achievement.requirement}</span>
+                    <span class="merit-progress">${progressText}</span>
+                </span>
+            `;
+            if (achievementLists[achievement.category]) {
+                achievementLists[achievement.category].appendChild(listItem);
+            } else {
+                console.warn(`Category list not found for: ${achievement.category}. Check HTML ID or allHonors/allMedals category assignment.`);
+            }
+
+            // Also add to the list for Awards Progress tab if not completed
+            if (!isCompleted) {
+                allAchievementsWithStatus.push({
+                    achievement,
+                    statusIconClass,
+                    statusSymbol,
+                    progressText,
+                    calculatedPercentage // Use this for sorting
+                });
+            }
+        });
+    };
+
+    processAchievements(allHonors);
+    processAchievements(allMedals);
+
+    // Populate the Awards Progress tab after all other lists are processed
+    populateAwardsProgressTab(allAchievementsWithStatus);
+}
+
+/**
+ * Populates the Awards Progress tab with in-progress achievements, sorted by closeness.
+ * @param {Array<object>} achievementsInPrgoress - Array of in-progress achievements from updateAchievementsDisplay.
+ */
+function populateAwardsProgressTab(achievementsInPrgoress) {
+    awardsProgressList.innerHTML = ''; // Clear previous content
+
+    if (achievementsInPrgoress.length === 0) {
+        awardsProgressList.innerHTML = '<li>No awards currently in progress. Start working on some!</li>';
+        return;
+    }
+
+    // Sort achievements: Closest to 100% completion first
+    achievementsInPrgoress.sort((a, b) => b.calculatedPercentage - a.calculatedPercentage);
+
+    achievementsInPrgoress.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+            <span class="merit-status-icon ${item.statusIconClass}">${item.statusSymbol}</span>
+            <span class="merit-details">
+                <span class="merit-name">${item.achievement.name}</span> -
+                <span class="merit-requirement">${item.achievement.requirement}</span>
+                <span class="merit-progress">${item.progressText || ''} (${item.calculatedPercentage.toFixed(1)}% complete)</span>
+            </span>
+        `;
+        awardsProgressList.appendChild(listItem);
+    });
 }
 
 
@@ -985,38 +1102,60 @@ function populateAwardsProgressTab(playerData) {
  * @param {object} playerData - The player data from the Torn API.
  */
 function populatePlayerStats(playerData) {
-    playerStatsList.innerHTML = ''; // Clear previous stats
+    const statsContainer = document.getElementById('player-stats-list');
+    statsContainer.innerHTML = ''; // Clear previous stats
 
     if (!playerData || !playerData.personalstats) {
-        playerStatsList.innerHTML = '<li>No detailed stats available.</li>';
+        statsContainer.innerHTML = '<li>No detailed stats available.</li>';
         return;
     }
 
-    // A simple map of friendly names to the keys in the personalstats object.
     const statsMapping = {
-        'Attacks Won': 'attackswon',
-        'Defends Won': 'defendswon',
-        'Total Damage Dealt': 'attackdamage',
-        'Total Critical Hits': 'attackcriticalhits',
-        'Total Respect Earned': 'respectforfaction',
-        'Crimes Committed': 'criminaloffenses',
-        'Times Jailed': 'jailed',
-        'Times Hospitalized': 'hospital',
-        'Travels Made': 'traveltimes',
-        'Revives Given': 'revives',
-        'Busts': 'peoplebusted',
-        'Strength': 'strength',
-        'Defense': 'defense',
-        'Speed': 'speed',
-        'Dexterity': 'dexterity'
+        'Attacks Won': 'personalstats.attackswon',
+        'Defends Won': 'personalstats.defendswon',
+        'Crimes Committed (Total)': 'personalstats.criminaloffenses',
+        'Items Found': 'personalstats.cityfinds',
+        'Medical Items Used': 'personalstats.medicalitemsused',
+        'Times Hospitalized': 'personalstats.hospital',
+        'Times Jailed': 'personalstats.jailed',
+        'Travels Made': 'personalstats.traveltimes',
+        'Bounties Collected': 'personalstats.bountiescollected',
+        'Busted People from Jail': 'personalstats.peoplebusted',
+        'Revives Given': 'personalstats.revives',
+        'Max Chain Hits (Personal)': 'personalstats.max_chain',
+        'Total Damage Dealt': 'personalstats.attackdamage',
+        'Total Critical Hits': 'personalstats.attackcriticalhits',
+        'Total Respect Earned': 'personalstats.respectforfaction',
+        'Networth': 'personalstats.networth',
+        'Strength': 'personalstats.strength',
+        'Defense': 'personalstats.defense',
+        'Speed': 'personalstats.speed',
+        'Dexterity': 'personalstats.dexterity',
+        'Life': 'personalstats.life',
+        'Level': 'level', // Path is direct from playerData
+        'Rank': (playerData.basic && playerData.basic.rank) ? 'basic.rank' : 'rank' // Path for rank, conditional check
     };
 
-    for (const [displayName, statKey] of Object.entries(statsMapping)) {
-        const value = playerData.personalstats[statKey];
+    for (const [displayName, statPath] of Object.entries(statsMapping)) {
+        let value;
+        // Special handling for 'Rank' as its path might be conditional
+        if (displayName === 'Rank') {
+            value = (playerData.basic && playerData.basic.rank) ? playerData.basic.rank : playerData.rank;
+        } else if (typeof statPath === 'string') {
+             value = getNestedProperty(playerData, statPath);
+        } else {
+            value = 'N/A'; // Fallback for unexpected statPath type
+        }
+
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${displayName}:</strong> <span>${formatNumber(value) || 'N/A'}</span>`;
-        playerStatsList.appendChild(li);
+        const spanId = `stat-${displayName.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}`;
+        li.innerHTML = `<strong>${displayName}:</strong> <span id="${spanId}">${typeof value === 'number' ? formatNumber(value) : (value || 'N/A')}</span>`;
+        statsContainer.appendChild(li);
     }
+    // Add total awards tracked after the loop
+    const totalAwardsLi = document.createElement('li');
+    totalAwardsLi.innerHTML = `<strong>Total Awards Tracked:</strong> <span id="total-awards-tracked">${formatNumber(allHonors.length + allMedals.length)}</span>`;
+    statsContainer.appendChild(totalAwardsLi);
 }
 
 
