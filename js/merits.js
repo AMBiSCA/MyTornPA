@@ -991,24 +991,20 @@ function updateAchievementsDisplay(playerData) {
         listItem.dataset.id = achievement.id; 
         listItem.dataset.type = type; 
 
-        // Determine if the award is owned by the API response
-        let isAwardedByApi = false;
-        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        }
-
         // Add 'awarded-by-api' to the listItem for overall row styling
-        if (isAwardedByApi) {
+        if ((type === 'honor' && userOwnedHonorsIds.has(achievement.id)) || (type === 'medal' && userOwnedMedalsIds.has(achievement.id))) {
             listItem.classList.add('awarded-by-api'); 
+            // Also add a class to the icon itself for specific styling, if needed
+            // This allows CSS to specifically target the icon when awarded
+            // We'll add 'is-awarded-icon' to the merit-status-icon if awarded
+            // This is just a flag for CSS, not for content injection.
+            // No, the CSS will use .awarded-by-api .merit-status-icon to target it.
         }
 
-        // The HTML for the item (merit-status-icon contains progress symbol, NOT the awarded tick)
+        // The HTML for the item (merit-status-icon contains progress symbol, no tick HTML here)
         listItem.innerHTML = `
             <span class="merit-status-icon ${statusIconClass}">
                 ${statusSymbol}
-                ${isAwardedByApi ? '<span class="awarded-tick-css"></span>' : ''} 
                 </span>
             <span class="merit-details">
                 <span class="merit-name">${achievement.name}</span> -
