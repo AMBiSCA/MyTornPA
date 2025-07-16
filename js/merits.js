@@ -958,6 +958,15 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
+// --- merits.js (FINALIZED updateAchievementsDisplay function for direct FA tick) ---
+
+// ... (keep all code above this function as it is, including global variables and helper functions) ...
+
+/**
+ * Updates the display for Honors and Medals based on player data.
+ * Displays a single, integrated Font Awesome tick for awarded items, replacing progress symbols.
+ * @param {object} playerData - The full player data from Torn API.
+ */
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
 
@@ -987,25 +996,37 @@ function updateAchievementsDisplay(playerData) {
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); 
 
-        // Add data-id and data-type attributes (essential for applyAwardedTicks if needed for other styling)
+        // Add data-id and data-type attributes (essential for matching)
         listItem.dataset.id = achievement.id; 
         listItem.dataset.type = type; 
 
-        // Add 'awarded-by-api' to the listItem for overall row styling
+        // Determine if the award is owned by the API response
+        let isAwardedByApi = false;
         if ((type === 'honor' && userOwnedHonorsIds.has(achievement.id)) || (type === 'medal' && userOwnedMedalsIds.has(achievement.id))) {
-            listItem.classList.add('awarded-by-api'); 
-            // Also add a class to the icon itself for specific styling, if needed
-            // This allows CSS to specifically target the icon when awarded
-            // We'll add 'is-awarded-icon' to the merit-status-icon if awarded
-            // This is just a flag for CSS, not for content injection.
-            // No, the CSS will use .awarded-by-api .merit-status-icon to target it.
+            isAwardedByApi = true;
+            listItem.classList.add('awarded-by-api'); // Keep this for overall row styling (green box)
         }
 
-        // The HTML for the item (merit-status-icon contains progress symbol, no tick HTML here)
+        // --- CRITICAL CHANGE: Determine content and class for .merit-status-icon based on awarded status ---
+        let finalStatusIconContent; // What goes inside the <span>
+        let finalStatusIconClass = statusIconClass; // What classes the <span> gets
+
+        if (isAwardedByApi) {
+            // If awarded, force the content to be the Font Awesome checkmark icon
+            finalStatusIconContent = '<i class="fas fa-check"></i>'; 
+            finalStatusIconClass = 'completed'; // Also ensure it gets the 'completed' class for green color
+        } else {
+            // If not awarded, use the regular progress symbol and class
+            finalStatusIconContent = statusSymbol;
+            // finalStatusIconClass already holds statusIconClass
+        }
+        // --- END CRITICAL CHANGE ---
+
+
         listItem.innerHTML = `
-            <span class="merit-status-icon ${statusIconClass}">
-                ${statusSymbol}
-                </span>
+            <span class="merit-status-icon ${finalStatusIconClass}">
+                ${finalStatusIconContent}
+            </span>
             <span class="merit-details">
                 <span class="merit-name">${achievement.name}</span> -
                 <span class="merit-requirement">${achievement.requirement}</span>
@@ -1023,8 +1044,8 @@ function updateAchievementsDisplay(playerData) {
         if (!isCompleted) {
             allAchievementsWithStatus.push({
                 achievement,
-                statusIconClass,
-                statusSymbol,
+                statusIconClass, // Use original statusIconClass for progress tab
+                statusSymbol,    // Use original statusSymbol for progress tab
                 progressText,
                 calculatedPercentage
             });
