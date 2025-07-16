@@ -921,7 +921,7 @@ function getAchievementStatus(achievement, playerData) {
         }
         else if (value > 0 && !isCompleted) { // Generic check for non-zero progress for other types
             statusIconClass = 'in-progress';
-            statusSymbol = '●';
+            statusSymbol = '';
             progressText = ` (Current: ${formatNumber(value)})`;
             // For general 'count' where threshold isn't clear, just show current value
             calculatedPercentage = 1; // Indicate some progress but not quantifiable
