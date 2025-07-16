@@ -42,9 +42,10 @@ const allHonors = [
     { id: 902, name: "Gone Fishing", requirement: "Be defeated by a Trout", statKey: "personalstats.defeated_by_trout", threshold: 1, category: "honors-weapons-list", type: "boolean" },
 
     // --- Attacking / General Honors ---
-    { id: 15, name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.killstreak", threshold: 10, category: "honors-attacking-list", type: "count" },
-    { id: 16, name: "Kill Streaker 2", requirement: "Achieve a 100 kill streak", statKey: "personalstats.killstreak", threshold: 100, category: "honors-attacking-list", type: "count" },
-    { id: 17, name: "Kill Streaker 3", requirement: "Achieve a 500 kill streak", statKey: "personalstats.killstreak", threshold: 500, category: "honors-attacking-list", type: "count" },
+    // --- NEW CODE ---
+{ id: 15, name: "Kill Streaker 1", requirement: "Achieve a 10 kill streak", statKey: "personalstats.bestkillstreak", threshold: 10, category: "honors-attacking-list", type: "count" },
+{ id: 16, name: "Kill Streaker 2", requirement: "Achieve a 100 kill streak", statKey: "personalstats.bestkillstreak", threshold: 100, category: "honors-attacking-list", type: "count" },
+{ id: 17, name: "Kill Streaker 3", requirement: "Achieve a 500 kill streak", statKey: "personalstats.bestkillstreak", threshold: 500, category: "honors-attacking-list", type: "count" },
     { id: 1004, name: "Wham!", requirement: "Deal over 100,000 total damage", statKey: "personalstats.attackdamage", threshold: 100000, category: "honors-attacking-list", type: "count" },
     { id: 254, name: "Flatline", requirement: "Achieve a one hit kill", statKey: "personalstats.onehitkills", threshold: 1, category: "honors-attacking-list", type: "count" },
     { id: 490, name: "Sidekick", requirement: "Assist in 250 attacks", statKey: "personalstats.attacksassisted", threshold: 250, category: "honors-attacking-list", type: "count" },
