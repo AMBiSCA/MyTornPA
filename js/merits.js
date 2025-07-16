@@ -1,16 +1,40 @@
-// --- merits.js (UPDATED allHonors and allMedals definitions) ---
+// DOM Elements
+const loadingIndicator = document.getElementById('loading-indicator');
+const errorDisplay = document.getElementById('error-display');
+const playerNameSpan = document.getElementById('player-name');
+const playerLevelSpan = document.getElementById('player-level');
+const playerTotalStatsSpan = document.getElementById('player-total-stats');
+const playerRankSpan = document.getElementById('player-rank');
+const playerNetworthSpan = document.getElementById('player-networth');
+const playerLifeSpan = document.getElementById('player-life');
+const playerAwardsSpan = document.getElementById('player-awards');
 
-// ... (keep your existing DOM Elements and Lists for dynamic content variables unchanged) ...
+const tabsContainer = document.querySelector('.tabs-container');
+const tabContents = document.querySelectorAll('.tab-pane');
 
-// --- Static Merit/Medal Data (COMPREHENSIVE LIST - VERIFY STATKEYS!) ---
+// Lists for dynamic content
+const honorsAttackingList = document.getElementById('honors-attacking-list');
+const honorsWeaponsList = document.getElementById('honors-weapons-list');
+const honorsChainingList = document.getElementById('honors-chaining-list');
+
+const medalsCombatList = document.getElementById('medals-combat-list');
+const medalsCommitmentList = document.getElementById('medals-commitment-list'); // This list will now hold both Level and Commitment Medals
+
+const medalsCrimesList = document.getElementById('medals-crimes-list');
+
+const playerStatsList = document.getElementById('player-stats-list');
+const miscAwardsList = document.getElementById('misc-awards-list'); // For miscellaneous awards in Stats Overview tab
+const awardsProgressList = document.getElementById('awards-progress-list'); // NEW: For Awards Progress tab
+
+
+// --- Static Merit/Medal Data (COMPREHENSIVE LIST with IDs) ---
 // This contains all awards from your provided wiki text, mapped to categories, statKeys, AND IDs.
-// YOU MUST VERIFY EACH statKey and threshold against your actual Torn API response.
-// Some statKeys are inferred or generalized and might need fine-tuning.
+// IDs are crucial for matching with the Torn API's awarded lists.
 const allHonors = [
     // --- Chaining Honors ---
     { id: 253, name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chains", threshold: 10, category: "honors-chaining-list", type: "count" },
     { id: 255, name: "Chainer 2", requirement: "Participate in a 100 length chain", statKey: "personalstats.chains", threshold: 100, category: "honors-chaining-list", type: "count" },
-    { id: 257, name: "Chainer 3", name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "personalstats.chains", threshold: 1000, category: "honors-chaining-list", type: "count" },
+    { id: 257, name: "Chainer 3", requirement: "Participate in a 1,000 length chain", statKey: "personalstats.chains", threshold: 1000, category: "honors-chaining-list", type: "count" },
     { id: 475, name: "Chainer 4", requirement: "Participate in a 10,000 length chain", statKey: "personalstats.chains", threshold: 10000, category: "honors-chaining-list", type: "count" },
     { id: 476, name: "Chainer 5", requirement: "Participate in a 100,000 length chain", statKey: "personalstats.chains", threshold: 100000, category: "honors-chaining-list", type: "count" },
     { id: 256, name: "Carnage", requirement: "Make a single hit that earns your faction 10 or more respect", statKey: "personalstats.best_chain_hit", threshold: 10, category: "honors-chaining-list", type: "count" },
@@ -89,7 +113,7 @@ const allHonors = [
     { id: 786, name: "Annihilation", requirement: "Deal at least 15,000 damage in a single hit", statKey: "personalstats.bestdamage", threshold: 15000, category: "honors-attacking-list", type: "count" },
     { id: 1003, name: "Kapow!", requirement: "Deal over 100,000,000 total damage", statKey: "personalstats.attackdamage", threshold: 100000000, category: "honors-attacking-list", type: "count" },
     { id: 670, name: "Giant Slayer", requirement: "Receive loot from a defeated NPC", statKey: "personalstats.giant_slayer_loots", threshold: 1, category: "honors-attacking-list", type: "count" },
-    { id: 763, name: "Bare", requirement: "Win 250 unarmored attacks or defends", statKey: "personalstats.unarmoredwon", threshold: 250, category: "honors-attacking-list", type: "count" },
+    { id: 763, name: "Bare", requirement: "Win 250 unarmored attacks or defends", statKey: "personalstats.unarmoredwon", threshold: 250, category: "misc-awards-list", type: "count" },
     { id: 488, name: "Vengeance", requirement: "Successfully perform a faction retaliation hit", statKey: "personalstats.retals", threshold: 1, category: "honors-attacking-list", type: "count" },
     { id: 719, name: "Invictus", requirement: "Successfully defend against someone who has at least double your battle stats", statKey: "personalstats.invictus_defends", threshold: 1, category: "honors-attacking-list", type: "count" },
     { id: 834, name: "Lead Salad", requirement: "Fire 100,000 rounds", statKey: "personalstats.roundsfired", threshold: 100000, category: "honors-attacking-list", type: "count" },
@@ -99,12 +123,6 @@ const allHonors = [
     { id: 838, name: "Lovestruck", requirement: "Defeat a married couple", statKey: "personalstats.lovestruck_wins", threshold: 1, category: "honors-attacking-list", type: "count" },
     { id: 843, name: "Hands Solo", requirement: "Defeat someone using only your fists on May 4th", statKey: "personalstats.hands_solo_wins", threshold: 1, category: "honors-attacking-list", type: "count" },
     { id: 414, name: "Triple Tap", requirement: "Achieve three headshots in a row", statKey: "personalstats.triple_tap", threshold: 1, category: "honors-attacking-list", type: "count" },
-
-    // --- Miscellaneous Honors (Assigned to miscAwardsList) ---
-    // Defaults (Likely not trackable directly for individual player, usually for display)
-    // These specific IDs (e.g., 687, 12) are already tied to specific honors like Lean/Pocket Money.
-    // So, I'm removing the generic "Standard Bar", "Philistine" etc., as they are not unique by ID.
-    // IDs 687, 12 etc. are already in this map with their actual names.
 
     // Camo
     { id: 39, name: "Woodland Camo", requirement: "5 Attacks Won", statKey: "personalstats.attackswon", threshold: 5, category: "misc-awards-list", type: "count" },
@@ -254,7 +272,7 @@ const allHonors = [
     { id: 163, name: "Fascination", requirement: "Stay married for 250 days", statKey: "personalstats.spousetime", threshold: 21600000, category: "misc-awards-list", type: "count_time_convert" }, // 250 days in seconds
     { id: 162, name: "Chasm", requirement: "Stay married for 750 days", statKey: "personalstats.spousetime", threshold: 64800000, category: "misc-awards-list", type: "count_time_convert" },
     { id: 166, name: "Stairway To Heaven", requirement: "Stay married for 1,500 days", statKey: "personalstats.spousetime", threshold: 129600000, category: "misc-awards-list", type: "count_time_convert" },
-    { id: 316, name: "Forgiven", requirement: "Be truly forgiven for all of your sins", statKey: "personalstats.forgiven_sins", threshold: 1, category: "misc-awards-list", type: "boolean" }, // Also under Church
+    // { id: 316, name: "Forgiven", requirement: "Be truly forgiven for all of your sins", statKey: "personalstats.forgiven_sins", threshold: 1, category: "misc-awards-list", type: "boolean" }, // Already handled above in Church
 
     // Items
     { id: 534, name: "Alcoholic", requirement: "Drink 500 bottles of alcohol", statKey: "personalstats.alcoholused", threshold: 500, category: "misc-awards-list", type: "count" },
@@ -641,33 +659,7 @@ const allMedals = [
     { id: 374, name: "Workshop Wizard", statKey: "personalstats.illegalproduction", threshold: 6000, category: "medals-crimes-list", type: "count" },
     { id: 375, name: "Synthetic Scientist", statKey: "personalstats.illegalproduction", threshold: 7500, category: "medals-crimes-list", type: "count" },
     { id: 376, name: "Production Prodigy", statKey: "personalstats.illegalproduction", threshold: 10000, category: "medals-crimes-list", type: "count" },
-    { id: 1, name: "Beginner", requirement: "Reach the rank of \"Beginner\"", statKey: "rank_text", threshold: "Beginner", category: "misc-awards-list", type: "rank" },
-    { id: 2, name: "Inexperienced", requirement: "Reach the rank of \"Inexperienced\"", statKey: "rank_text", threshold: "Inexperienced", category: "misc-awards-list", type: "rank" },
-    { id: 3, name: "Rookie", requirement: "Reach the rank of \"Rookie\"", statKey: "rank_text", threshold: "Rookie", category: "misc-awards-list", type: "rank" },
-    { id: 4, name: "Novice", requirement: "Reach the rank of \"Novice\"", statKey: "rank_text", threshold: "Novice", category: "misc-awards-list", type: "rank" },
-    { id: 5, name: "Below Average", requirement: "Reach the rank of \"Below Average\"", statKey: "rank_text", threshold: "Below Average", category: "misc-awards-list", type: "rank" },
-    { id: 6, name: "Average", requirement: "Reach the rank of \"Average\"", statKey: "rank_text", threshold: "Average", category: "misc-awards-list", type: "rank" },
-    { id: 7, name: "Reasonable", requirement: "Reach the rank of \"Reasonable\"", statKey: "rank_text", threshold: "Reasonable", category: "misc-awards-list", type: "rank" },
-    { id: 8, name: "Above Average", requirement: "Reach the rank of \"Above Average\"", statKey: "rank_text", threshold: "Above Average", category: "misc-awards-list", type: "rank" },
-    { id: 9, name: "Competent", requirement: "Reach the rank of \"Competent\"", statKey: "rank_text", threshold: "Competent", category: "misc-awards-list", type: "rank" },
-    { id: 10, name: "Highly Competent", requirement: "Reach the rank of \"Highly Competent\"", statKey: "rank_text", threshold: "Highly Competent", category: "misc-awards-list", type: "rank" },
-    { id: 11, name: "Veteran", requirement: "Reach the rank of \"Veteran\"", statKey: "rank_text", threshold: "Veteran", category: "misc-awards-list", type: "rank" },
-    { id: 12, name: "Distinguished", requirement: "Reach the rank of \"Distinguished\"", statKey: "rank_text", threshold: "Distinguished", category: "misc-awards-list", type: "rank" },
-    { id: 13, name: "Highly Distinguished", requirement: "Reach the rank of \"Highly Distinguished\"", statKey: "rank_text", threshold: "Highly Distinguished", category: "misc-awards-list", type: "rank" },
-    { id: 14, name: "Professional", requirement: "Reach the rank of \"Professional\"", statKey: "rank_text", threshold: "Professional", category: "misc-awards-list", type: "rank" },
-    { id: 15, name: "Star", requirement: "Reach the rank of \"Star\"", statKey: "rank_text", threshold: "Star", category: "misc-awards-list", type: "rank" },
-    { id: 16, name: "Master", requirement: "Reach the rank of \"Master\"", statKey: "rank_text", threshold: "Master", category: "misc-awards-list", type: "rank" },
-    { id: 17, name: "Outstanding", requirement: "Reach the rank of \"Outstanding\"", statKey: "rank_text", threshold: "Outstanding", category: "misc-awards-list", type: "rank" },
-    { id: 18, name: "Celebrity", requirement: "Reach the rank of \"Celebrity\"", statKey: "rank_text", threshold: "Celebrity", category: "misc-awards-list", type: "rank" },
-    { id: 19, name: "Supreme", requirement: "Reach the rank of \"Supreme\"", statKey: "rank_text", threshold: "Supreme", category: "misc-awards-list", type: "rank" },
-    { id: 20, name: "Idolized", requirement: "Reach the rank of \"Idolized\"", statKey: "rank_text", threshold: "Idolized", category: "misc-awards-list", type: "rank" },
-    { id: 21, name: "Champion", requirement: "Reach the rank of \"Champion\"", statKey: "rank_text", threshold: "Champion", category: "misc-awards-list", type: "rank" },
-    { id: 22, name: "Heroic", requirement: "Reach the rank of \"Heroic\"", statKey: "rank_text", threshold: "Heroic", category: "misc-awards-list", type: "rank" },
-    { id: 23, name: "Legendary", requirement: "Reach the rank of \"Legendary\"", statKey: "rank_text", threshold: "Legendary", category: "misc-awards-list", type: "rank" },
-    { id: 24, name: "Elite", requirement: "Reach the rank of \"Elite\"", statKey: "rank_text", threshold: "Elite", category: "misc-awards-list", type: "rank" },
-    { id: 25, name: "Invincible", requirement: "Reach the rank of \"Invincible\"", statKey: "rank_text", threshold: "Invincible", category: "misc-awards-list", type: "rank" },
-    
-    // Networth Medals
+
     { id: 89, name: "Apprentice", requirement: "$100,000 for 3 days", statKey: "personalstats.networth", threshold: 100000, category: "misc-awards-list", type: "count_networth_time" },
     { id: 90, name: "Entrepreneur", requirement: "$250,000 for 3 days", statKey: "personalstats.networth", threshold: 250000, category: "misc-awards-list", type: "count_networth_time" },
     { id: 91, name: "Executive", requirement: "$500,000 for 3 days", statKey: "personalstats.networth", threshold: 500000, category: "misc-awards-list", type: "count_networth_time" },
@@ -997,6 +989,11 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
+/// --- merits.js (UPDATED updateAchievementsDisplay function) ---
+
+// ... (keep all code above this function as it is, including global variables and helper functions) ...
+
+
 /**
  * Updates the display for Honors and Medals based on player data.
  * ALSO ADDS A TICK FOR AWARDS THE USER HAS AWARDED (BY ID).
@@ -1018,10 +1015,13 @@ function updateAchievementsDisplay(playerData) {
     };
 
     // Extract user's awarded IDs from the API response
-    // The Torn API returns honors as an object where keys are IDs (strings)
+    // Torn API 'honors' selection returns an object where keys are IDs (strings)
+    // Torn API 'medals' selection returns 'medals_awarded' as an array of IDs
     const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number)); // Convert keys to numbers
-    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []); // Medals are typically an array of IDs
+    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []); // Medals are already an array of IDs
 
+
+    const allAchievementsWithStatus = []; // Used for Awards Progress tab
 
     const processAndDisplay = (achievement, type) => {
         const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
@@ -1031,10 +1031,11 @@ function updateAchievementsDisplay(playerData) {
 
         // Check if the award is in the user's awarded lists and add a specific class/tick
         let isAwardedByApi = false;
-        if (type === 'honor' && ownedHonors.has(achievement.id)) {
+        // The 'type' parameter passed to this function determines if we check against honors or medals
+        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
             isAwardedByApi = true;
             listItem.classList.add('awarded-by-api'); // Add class for awarded items
-        } else if (type === 'medal' && ownedMedals.has(achievement.id)) {
+        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
             isAwardedByApi = true;
             listItem.classList.add('awarded-by-api'); // Add class for awarded items
         }
@@ -1048,9 +1049,8 @@ function updateAchievementsDisplay(playerData) {
             </span>
             ${isAwardedByApi ? '<span class="awarded-tick fas fa-check"></span>' : ''}
         `;
-        // Ensure Font Awesome (fas fa-check) is loaded in your HTML for this tick to display.
-        // Or replace fas fa-check with a simple Unicode character like '✅' or an image:
-        // `${isAwardedByApi ? '<span class="awarded-tick">✅</span>' : ''}`
+        // IMPORTANT: Ensure Font Awesome (fas fa-check) is loaded in your HTML for this tick to display.
+        // If not, replace fas fa-check with a simple Unicode character like '✅' within the string.
 
 
         if (achievementLists[achievement.category]) {
@@ -1071,14 +1071,15 @@ function updateAchievementsDisplay(playerData) {
         }
     };
 
-    // Process all honors and medals
-    const allAchievementsWithStatus = []; // Reset for Awards Progress tab
+    // Process all honors and medals. Pass 'honor' or 'medal' type to the helper.
     allHonors.forEach(ach => processAndDisplay(ach, 'honor'));
     allMedals.forEach(ach => processAndDisplay(ach, 'medal'));
 
     // Populate the Awards Progress tab after all other lists are processed
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
+
+// ... (keep all code below this function as it is, including populateAwardsProgressTab, populatePlayerStats, switchTab, and initializeMeritsPage) ...
 
 /**
  * Populates the Awards Progress tab with in-progress achievements, sorted by closeness.
