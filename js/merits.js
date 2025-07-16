@@ -1,35 +1,4 @@
-// DOM Elements
-const loadingIndicator = document.getElementById('loading-indicator');
-const errorDisplay = document.getElementById('error-display');
-const playerNameSpan = document.getElementById('player-name');
-const playerLevelSpan = document.getElementById('player-level');
-const playerTotalStatsSpan = document.getElementById('player-total-stats');
-const playerRankSpan = document.getElementById('player-rank');
-const playerNetworthSpan = document.getElementById('player-networth');
-const playerLifeSpan = document.getElementById('player-life');
-const playerAwardsSpan = document.getElementById('player-awards');
 
-const tabsContainer = document.querySelector('.tabs-container');
-const tabContents = document.querySelectorAll('.tab-pane');
-
-// Lists for dynamic content
-const honorsAttackingList = document.getElementById('honors-attacking-list');
-const honorsWeaponsList = document.getElementById('honors-weapons-list');
-const honorsChainingList = document.getElementById('honors-chaining-list');
-
-const medalsCombatList = document.getElementById('medals-combat-list');
-const medalsCommitmentList = document.getElementById('medals-commitment-list'); // This list will now hold both Level and Commitment Medals
-
-const medalsCrimesList = document.getElementById('medals-crimes-list');
-
-const playerStatsList = document.getElementById('player-stats-list');
-const miscAwardsList = document.getElementById('misc-awards-list'); // For miscellaneous awards in Stats Overview tab
-const awardsProgressList = document.getElementById('awards-progress-list'); // NEW: For Awards Progress tab
-
-
-// --- Static Merit/Medal Data (COMPREHENSIVE LIST with IDs) ---
-// This contains all awards from your provided wiki text, mapped to categories, statKeys, AND IDs.
-// IDs are crucial for matching with the Torn API's awarded lists.
 const allHonors = [
     // --- Chaining Honors ---
     { id: 253, name: "Chainer 1", requirement: "Participate in a 10 length chain", statKey: "personalstats.chains", threshold: 10, category: "honors-chaining-list", type: "count" },
