@@ -77,7 +77,7 @@ function clearAllLists() {
 
 async function fetchTornDataDirectly(apiKey) {
     if (!apiKey) throw new Error("No Torn API key found.");
-    const selections = "basic,personalstats,honors,medals";
+    const selections = "basic,personalstats,honors,medals,chain";
     const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}`;
 
     try {
