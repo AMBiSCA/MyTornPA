@@ -973,54 +973,28 @@ function updateAchievementsDisplay(playerData) {
         'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
     };
 
-    // Extract user's awarded IDs from the API response
-    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
-    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
-
-
     const allAchievementsWithStatus = []; // Used for Awards Progress tab
 
     const processAndDisplay = (achievement, type) => {
+        // Get the progress status and symbol (◎, ●, or ✔)
         const { statusIconClass, statusSymbol, progressText, isCompleted, calculatedPercentage } = getAchievementStatus(achievement, playerData);
         
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); 
 
-        // Add data-id and data-type attributes (still important for applyAwardedTicks if needed for other styling)
+        // Add data-id and data-type attributes (essential for applyAwardedTicks)
         listItem.dataset.id = achievement.id; 
         listItem.dataset.type = type; 
 
-        // Determine if the award is owned by the API response
-        let isAwardedByApi = false;
-        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-        }
-
-        // --- MODIFIED LOGIC HERE: Integrate the tick into the status icon if awarded ---
-        let finalStatusSymbol = statusSymbol;
-        let finalStatusIconClass = statusIconClass;
-
-        if (isAwardedByApi) {
-            // If awarded by API, override status symbol to be the Font Awesome tick
-            // and force status class to 'completed' for green styling.
-            finalStatusSymbol = '<i class="fas fa-check"></i>'; // Font Awesome checkmark icon
-            finalStatusIconClass = 'completed'; // Force color to green
-            listItem.classList.add('awarded-by-api'); // Keep this class for overall row styling
-        }
-        // --- END MODIFIED LOGIC ---
-
-
+        // No tick injection here, only the progress symbol
         listItem.innerHTML = `
-            <span class="merit-status-icon ${finalStatusIconClass}">${finalStatusSymbol}</span>
+            <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
             <span class="merit-details">
                 <span class="merit-name">${achievement.name}</span> -
                 <span class="merit-requirement">${achievement.requirement}</span>
                 <span class="merit-progress">${progressText}</span>
             </span>
             `;
-        // No need for <span class="awarded-tick fas fa-check"></span> here as it's now inside merit-status-icon
 
         if (achievementLists[achievement.category]) {
             achievementLists[achievement.category].appendChild(listItem);
@@ -1029,13 +1003,13 @@ function updateAchievementsDisplay(playerData) {
         }
 
         // Add to the Awards Progress tab if not completed by stat threshold
-        if (!isCompleted) { // Use original isCompleted, not affected by isAwardedByApi
+        if (!isCompleted) {
             allAchievementsWithStatus.push({
                 achievement,
-                statusIconClass, // Use original statusIconClass for progress tab
-                statusSymbol,    // Use original statusSymbol for progress tab
+                statusIconClass,
+                statusSymbol,
                 progressText,
-                calculatedPercentage // Use this for sorting
+                calculatedPercentage
             });
         }
     };
@@ -1047,6 +1021,48 @@ function updateAchievementsDisplay(playerData) {
     // Populate the Awards Progress tab after all other lists are processed
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
+
+function applyAwardedTicks(playerData) {
+    // Get the actual awarded IDs from the API response safely
+    const userOwnedHonorsIds = new Set(playerData.honors_awarded || []); 
+    const userOwnedMedalsIds = new Set(playerData.medals_awarded || []);
+
+    // Select all achievement list items created by updateAchievementsDisplay
+    document.querySelectorAll('li.achievement-item').forEach(listItem => {
+        const achievementId = parseInt(listItem.dataset.id);
+        const achievementType = listItem.dataset.type; // 'honor' or 'medal'
+
+        let isAwarded = false;
+
+        if (achievementType === 'honor' && userOwnedHonorsIds.has(achievementId)) {
+            isAwarded = true;
+        } else if (achievementType === 'medal' && userOwnedMedalsIds.has(achievementId)) {
+            isAwarded = true;
+        }
+
+        if (isAwarded) {
+            listItem.classList.add('awarded-by-api'); // Add class for CSS styling (the green box)
+
+            // Add the tick icon if it's not already there
+            let existingTick = listItem.querySelector('.awarded-tick');
+            if (!existingTick) {
+                const tickSpan = document.createElement('span');
+                tickSpan.className = 'awarded-tick'; // Just the awarded-tick class
+                tickSpan.textContent = ' ✔'; // DIRECTLY INSERT UNICODE CHECKMARK EMOJI (or '✔' if you prefer solid)
+                
+                // Append the tick inside the merit-details span
+                const meritDetailsSpan = listItem.querySelector('.merit-details');
+                if (meritDetailsSpan) {
+                    meritDetailsSpan.appendChild(tickSpan);
+                } else {
+                    listItem.appendChild(tickSpan); // Fallback if merit-details not found
+                }
+            }
+        }
+    });
+}
+
+
 
 
 
