@@ -968,6 +968,15 @@ function getAchievementStatus(achievement, playerData) {
  * ALSO ADDS A TICK FOR AWARDS THE USER HAS AWARDED (BY ID).
  * @param {object} playerData - The player data from the Torn API.
  */
+// --- merits.js (UPDATED updateAchievementsDisplay function - RESTORED SEPARATION) ---
+
+// ... (keep all code above this function as it is, including global variables and helper functions) ...
+
+/**
+ * Updates the display for Honors and Medals based on player data.
+ * This function is primarily for displaying progress status.
+ * @param {object} playerData - The player data from the Torn API.
+ */
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
 
@@ -983,13 +992,6 @@ function updateAchievementsDisplay(playerData) {
         'misc-awards-list': miscAwardsList, // Add the miscellaneous awards list
     };
 
-    // Extract user's awarded IDs from the API response
-    // Torn API 'honors' selection returns an object where keys are IDs (strings)
-    // Torn API 'medals' selection returns 'medals_awarded' as an array of IDs
-    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number)); // Convert keys to numbers
-    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []); // Medals are already an array of IDs
-
-
     const allAchievementsWithStatus = []; // Used for Awards Progress tab
 
     const processAndDisplay = (achievement, type) => {
@@ -998,16 +1000,11 @@ function updateAchievementsDisplay(playerData) {
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); // Add a general class for styling
 
-        // Check if the award is in the user's awarded lists and add a specific class/tick
-        let isAwardedByApi = false;
-        // The 'type' parameter passed to this function determines if we check against honors or medals
-        if (type === 'honor' && userOwnedHonorsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-            listItem.classList.add('awarded-by-api'); // Add class for awarded items
-        } else if (type === 'medal' && userOwnedMedalsIds.has(achievement.id)) {
-            isAwardedByApi = true;
-            listItem.classList.add('awarded-by-api'); // Add class for awarded items
-        }
+        // --- CRUCIAL FOR SEPARATION: ADD data-id and data-type ---
+        // These attributes allow the *separate* applyAwardedTicks function
+        // to find these specific elements later.
+        listItem.dataset.id = achievement.id; 
+        listItem.dataset.type = type; // 'honor' or 'medal'
 
         listItem.innerHTML = `
             <span class="merit-status-icon ${statusIconClass}">${statusSymbol}</span>
@@ -1016,11 +1013,7 @@ function updateAchievementsDisplay(playerData) {
                 <span class="merit-requirement">${achievement.requirement}</span>
                 <span class="merit-progress">${progressText}</span>
             </span>
-            ${isAwardedByApi ? '<span class="awarded-tick fas fa-check"></span>' : ''}
-        `;
-        // IMPORTANT: Ensure Font Awesome (fas fa-check) is loaded in your HTML for this tick to display.
-        // If not, replace fas fa-check with a simple Unicode character like '✅' within the string.
-
+            `;
 
         if (achievementLists[achievement.category]) {
             achievementLists[achievement.category].appendChild(listItem);
@@ -1048,7 +1041,58 @@ function updateAchievementsDisplay(playerData) {
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
 
-// Add this new function to your merits.js file
+// --- NEW SEPARATE FUNCTION: applyAwardedTicks ---
+// Add this new function immediately after updateAchievementsDisplay
+
+/**
+ * Applies a visual "tick" to awards the user has definitively been awarded (by ID).
+ * This function is separate from the progress tracking to avoid interference.
+ * It relies on updateAchievementsDisplay having added data-id and data-type attributes.
+ * @param {object} playerData - The full player data from Torn API, containing honors_awarded and medals_awarded lists.
+ */
+function applyAwardedTicks(playerData) {
+    // Get the actual awarded IDs from the API response
+    // These need to be Sets for efficient lookup
+    const userOwnedHonorsIds = new Set(Object.keys(playerData.honors || {}).map(Number)); 
+    const userOwnedMedalsIds = new Set(playerData.medals.medals_awarded || []);
+
+    // Select all achievement list items created by updateAchievementsDisplay
+    document.querySelectorAll('li.achievement-item').forEach(listItem => {
+        const achievementId = parseInt(listItem.dataset.id);
+        const achievementType = listItem.dataset.type; // 'honor' or 'medal'
+
+        let isAwarded = false;
+
+        if (achievementType === 'honor' && userOwnedHonorsIds.has(achievementId)) {
+            isAwarded = true;
+        } else if (achievementType === 'medal' && userOwnedMedalsIds.has(achievementId)) {
+            isAwarded = true;
+        }
+
+        if (isAwarded) {
+            listItem.classList.add('awarded-by-api'); // Add class for CSS styling
+
+            // Add the tick icon if it's not already there
+            let existingTick = listItem.querySelector('.awarded-tick');
+            if (!existingTick) {
+                const tickSpan = document.createElement('span');
+                tickSpan.className = 'awarded-tick fas fa-check'; // Font Awesome tick icon
+                // Alternatively, for a simple unicode tick:
+                // tickSpan.textContent = ' ✅'; // Unicode checkmark emoji
+                // tickSpan.className = 'awarded-tick'; 
+                
+                // Append the tick inside the merit-details span or directly to listItem
+                const meritDetailsSpan = listItem.querySelector('.merit-details');
+                if (meritDetailsSpan) {
+                    meritDetailsSpan.appendChild(tickSpan);
+                } else {
+                    listItem.appendChild(tickSpan); // Fallback if merit-details not found
+                }
+            }
+        }
+    });
+}
+
 
 /**
  * Applies a visual "tick" to awards the user has definitively been awarded (by ID).
