@@ -410,29 +410,65 @@ body {
 
 /* In your merits.css or global.css */
 
-/* This rule applies to the entire achievement item when it's owned */
+/* General styling for achievement items */
+.achievement-item {
+    position: relative; /* Needed for absolute positioning of tick if desired */
+}
+
+/* Rule to visually highlight the entire row/item when it's awarded */
 .achievement-item.awarded-by-api {
-    /* Example: A subtle green background or a left border */
     background-color: rgba(144, 238, 144, 0.1); /* Light green tint */
     border-left: 5px solid #008000; /* Solid green left border */
     padding-left: 10px; /* Add some padding for the border */
 }
 
-/* This rule applies specifically to the Font Awesome tick icon */
-.awarded-tick {
-    margin-left: 8px; /* Space from the achievement name/progress */
-    color: #008000; /* Darker green color for the tick */
-    font-size: 1.2em; /* Make the tick a bit larger */
-    vertical-align: middle; /* Align vertically with text */
+/* Style for the merit status icon (the circle/dot/checkmark symbol) */
+.merit-status-icon {
+    margin-right: 8px;
+    font-size: 1.1em;
+    flex-shrink: 0;
+    position: relative; /* Needed for positioning the ::after tick */
+    display: inline-flex; /* Use flex to align content if we put stuff inside */
+    align-items: center;
+    justify-content: center;
+    width: 1em; /* Give it a fixed width for consistent positioning */
+    height: 1em;
 }
 
-/* Optional: Ensure these match your desired visual state for progress indicators */
-.merit-status-icon.completed {
-    color: #008000; /* Ensure completed circle/check is green */
+/* Base colors for progress status */
+.merit-status-icon.completed { color: #008000; } /* Existing green for completed */
+.merit-status-icon.in-progress { color: #FFA500; }
+.merit-status-icon.not-started { color: #A9A9A9; }
+
+/* The new rule for the awarded tick using a pseudo-element */
+/* This will inject the Font Awesome tick icon directly into the span */
+.merit-status-icon .awarded-tick-css::after {
+    font-family: "Font Awesome 5 Free"; /* Use Font Awesome font */
+    font-weight: 900; /* For solid icons (fas) */
+    content: "\f00c"; /* Unicode for fas fa-check */
+    position: absolute; /* Position it precisely over the circle/dot */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center it */
+    font-size: 1.2em; /* Make it slightly larger than the base symbol */
+    color: #008000; /* Force tick color to green */
+    background-color: #2a2a2a; /* Match panel background to hide the underlying symbol */
+    border-radius: 50%; /* Make background round */
+    padding: 1px; /* Small padding for the background */
+    z-index: 1; /* Ensure it's above the base symbol */
 }
-.merit-status-icon.in-progress {
-    color: #FFA500; /* Orange for in-progress */
+
+/* If you want the underlying symbol to completely disappear when ticked */
+.achievement-item.awarded-by-api .merit-status-icon.completed::before,
+.achievement-item.awarded-by-api .merit-status-icon.in-progress::before,
+.achievement-item.awarded-by-api .merit-status-icon.not-started::before {
+    /* If your status symbols are pseudo-elements, hide them or make them transparent */
+    content: ''; /* Remove content of original pseudo-element */
 }
-.merit-status-icon.not-started {
-    color: #A9A9A9; /* Gray for not started */
+
+/* If the original symbols are direct text, you might need to hide them */
+.achievement-item.awarded-by-api .merit-status-icon {
+    /* This might be needed if original symbol is direct text and causes overlap */
+    /* text-indent: -9999px; */ /* Hide text off-screen */
+    /* overflow: hidden; */
 }

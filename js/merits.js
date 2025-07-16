@@ -958,15 +958,6 @@ function getAchievementStatus(achievement, playerData) {
 }
 
 
-// --- merits.js (UPDATED updateAchievementsDisplay function - Single Tick) ---
-
-// ... (keep all code above this function as it is) ...
-
-/**
- * Updates the display for Honors and Medals based on player data.
- * Displays a single, integrated tick for awarded items, replacing progress symbols.
- * @param {object} playerData - The full player data from the Torn API.
- */
 function updateAchievementsDisplay(playerData) {
     clearAllLists(); // Clear previous content
 
@@ -996,7 +987,7 @@ function updateAchievementsDisplay(playerData) {
         const listItem = document.createElement('li');
         listItem.classList.add('achievement-item'); 
 
-        // Add data-id and data-type attributes (essential for any future external lookup/styling)
+        // Add data-id and data-type attributes (essential for applyAwardedTicks if needed for other styling)
         listItem.dataset.id = achievement.id; 
         listItem.dataset.type = type; 
 
@@ -1008,29 +999,23 @@ function updateAchievementsDisplay(playerData) {
             isAwardedByApi = true;
         }
 
-        // --- MODIFIED LOGIC: Show Font Awesome tick IF AWARDED, else show progress symbol ---
-        let finalDisplayIconHtml = ''; // Will contain the HTML for the icon/symbol
-        let finalIconClass = statusIconClass; // Keep original progress class by default
-
+        // Add 'awarded-by-api' to the listItem for overall row styling
         if (isAwardedByApi) {
-            finalDisplayIconHtml = '<i class="fas fa-check"></i>'; // Font Awesome checkmark icon
-            finalIconClass = 'completed'; // Force to 'completed' color (green)
-            listItem.classList.add('awarded-by-api'); // Keep for overall row styling
-        } else {
-            finalDisplayIconHtml = statusSymbol; // Use the original progress symbol (◎, ●, or ✔)
-            // finalIconClass remains statusIconClass
+            listItem.classList.add('awarded-by-api'); 
         }
-        // --- END MODIFIED LOGIC ---
 
-
+        // The HTML for the item (merit-status-icon contains progress symbol, NOT the awarded tick)
         listItem.innerHTML = `
-            <span class="merit-status-icon ${finalIconClass}">${finalDisplayIconHtml}</span>
+            <span class="merit-status-icon ${statusIconClass}">
+                ${statusSymbol}
+                ${isAwardedByApi ? '<span class="awarded-tick-css"></span>' : ''} 
+                </span>
             <span class="merit-details">
                 <span class="merit-name">${achievement.name}</span> -
                 <span class="merit-requirement">${achievement.requirement}</span>
                 <span class="merit-progress">${progressText}</span>
             </span>
-            `;
+        `;
 
         if (achievementLists[achievement.category]) {
             achievementLists[achievement.category].appendChild(listItem);
@@ -1039,30 +1024,22 @@ function updateAchievementsDisplay(playerData) {
         }
 
         // Add to the Awards Progress tab if not completed by stat threshold
-        if (!isCompleted) { // Use original isCompleted, not affected by isAwardedByApi
+        if (!isCompleted) {
             allAchievementsWithStatus.push({
                 achievement,
-                statusIconClass, // Use original statusIconClass for progress tab
-                statusSymbol,    // Use original statusSymbol for progress tab
+                statusIconClass,
+                statusSymbol,
                 progressText,
                 calculatedPercentage
             });
         }
     };
 
-    // Process all honors and medals. Pass 'honor' or 'medal' type to the helper.
     allHonors.forEach(ach => processAndDisplay(ach, 'honor'));
     allMedals.forEach(ach => processAndDisplay(ach, 'medal'));
 
-    // Populate the Awards Progress tab after all other lists are processed
     populateAwardsProgressTab(allAchievementsWithStatus);
 }
-
-// ... (The separate applyAwardedTicks function should be completely removed from your file) ...
-
-// ... (keep all code below this function as it is) ...
-
-
 
 
 
