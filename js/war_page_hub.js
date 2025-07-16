@@ -5672,192 +5672,192 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
     // This handles all the data loading after a user logs in
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            const userData = doc.exists ? doc.data() : {};
+    if (user) {
+        const userProfileRef = db.collection('userProfiles').doc(user.uid);
+        const doc = await userProfileRef.get();
+        const userData = doc.exists ? doc.data() : {};
 
-            const apiKey = userData.tornApiKey || null;
-            const playerId = userData.tornProfileId || null;
-            currentTornUserName = userData.preferredName || 'Unknown';
+        const apiKey = userData.tornApiKey || null;
+        const playerId = userData.tornProfileId || null;
+        currentTornUserName = userData.preferredName || 'Unknown';
 
-            // Clear All War Data Button Listener (moved here to ensure 'db' is available)
-            if (clearAllWarDataBtn) {
-                clearAllWarDataBtn.addEventListener('click', async () => {
-                    const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
-                    const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
+        // Clear All War Data Button Listener (moved here to ensure 'db' is available)
+        if (clearAllWarDataBtn) {
+            clearAllWarDataBtn.addEventListener('click', async () => {
+                const confirmMessage = "Are you sure you want to clear ALL war data?\nThis will reset all war controls, the game plan, and announcements. This cannot be undone.";
+                const userConfirmed = await showCustomConfirm(confirmMessage, "Confirm Data Deletion");
 
-                    if (!userConfirmed) {
-                        return; // Stop if the user clicks 'No' or outside the box
-                    }
-
-                    const originalText = clearAllWarDataBtn.textContent;
-                    clearAllWarDataBtn.disabled = true;
-                    clearAllWarDataBtn.textContent = "Clearing...";
-
-                    // This object defines all the default/empty values
-                    const clearedData = {
-                        toggleEnlisted: false,
-                        toggleTermedWar: false,
-                        toggleTermedWinLoss: false,
-                        toggleChaining: false,
-                        toggleNoFlying: false,
-                        toggleTurtleMode: false,
-                        enemyFactionID: "",
-                        nextChainTimeInput: "",
-                        currentTeamLead: "",
-                        gamePlan: "",
-                        quickAnnouncement: "",
-                        gamePlanImageUrl: null,
-                        announcementsImageUrl: null,
-                        tab4Admins: [], // Also clear these
-                        energyTrackingMembers: [] // And these
-                    };
-
-                    try {
-                        // Update the database with the cleared data
-                        await db.collection('factionWars').doc('currentWar').set(clearedData, {
-                            merge: true
-                        });
-
-                        // Update all the input fields on the screen
-                        if (toggleEnlisted) toggleEnlisted.checked = false;
-                        if (toggleTermedWar) toggleTermedWar.checked = false;
-                        if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
-                        if (toggleChaining) toggleChaining.checked = false;
-                        if (toggleNoFlying) toggleNoFlying.checked = false;
-                        if (toggleTurtleMode) toggleTurtleMode.checked = false;
-                        if (enemyFactionIDInput) enemyFactionIDInput.value = "";
-                        if (nextChainTimeInput) nextChainTimeInput.value = "";
-                        const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
-                        if (currentTeamLeadInput) currentTeamLeadInput.value = "";
-
-                        if (gamePlanEditArea) gamePlanEditArea.value = "";
-                        if (quickAnnouncementInput) quickAnnouncementInput.value = "";
-                        if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-                        if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
-
-                        // Update the read-only display on the announcements tab
-                        populateWarStatusDisplay(clearedData);
-
-                        // Also clear the populated member checkboxes and enemy targets
-                        if (factionApiFullData && factionApiFullData.members) {
-                            populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
-                        }
-                        populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
-                        displayEnemyTargetsTable(null); // Clear the enemy targets table
-
-                        clearAllWarDataBtn.textContent = "Cleared! ✅";
-
-                    } catch (error) {
-                        console.error("Error clearing war data:", error);
-                        clearAllWarDataBtn.textContent = "Error! ❌";
-                        showCustomAlert("Failed to clear data. Please check the console.", "Error");
-                    } finally {
-                        setTimeout(() => {
-                            clearAllWarDataBtn.disabled = false;
-                            clearAllWarDataBtn.textContent = originalText;
-                        }, 2000);
-                    }
-                });
-            }
-
-            if (apiKey && playerId) {
-                userApiKey = apiKey; // Set global API key
-
-                await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
-
-                setupProgressText();
-
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
-                    factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
+                if (!userConfirmed) {
+                    return; // Stop if the user clicks 'No' or outside the box
                 }
 
-                // Initial calls to update UI
-                displayWarRoster(); // This now expects data from Firebase
-                setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
-                setupWarClaimsListener(); // Listens for claims
+                const originalText = clearAllWarDataBtn.textContent;
+                clearAllWarDataBtn.disabled = true;
+                clearAllWarDataBtn.textContent = "Clearing...";
 
-                userEnergyDisplay = document.getElementById('userEnergyDisplay');
-                onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-                onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+                // This object defines all the default/empty values
+                const clearedData = {
+                    toggleEnlisted: false,
+                    toggleTermedWar: false,
+                    toggleTermedWinLoss: false,
+                    toggleChaining: false,
+                    toggleNoFlying: false,
+                    toggleTurtleMode: false,
+                    enemyFactionID: "",
+                    nextChainTimeInput: "",
+                    currentTeamLead: "",
+                    gamePlan: "",
+                    quickAnnouncement: "",
+                    gamePlanImageUrl: null,
+                    announcementsImageUrl: null,
+                    tab4Admins: [], // Also clear these
+                    energyTrackingMembers: [] // And these
+                };
 
-                updateUserEnergyDisplay();
-                updateOnlineMemberCounts();
-                fetchAndDisplayChainData(); // Now fetches its own chain data
-                displayQuickFFTargets(userApiKey, playerId);
-                setupChatRealtimeListener(); // Sets up faction chat listener
-
-                // Attach event listeners only once
-                if (!listenersInitialized) {
-                    setupEventListeners(apiKey); // Contains generic save buttons with new robust code
-                    setupMemberClickEvents(); // For the friendly members table
-
-                    // Attach chat tab click listeners
-                    chatTabs.forEach(tab => {
-                        tab.addEventListener('click', handleChatTabClick);
+                try {
+                    // Update the database with the cleared data
+                    await db.collection('factionWars').doc('currentWar').set(clearedData, {
+                        merge: true
                     });
 
-                    // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
+                    // Update all the input fields on the screen
+                    if (toggleEnlisted) toggleEnlisted.checked = false;
+                    if (toggleTermedWar) toggleTermedWar.checked = false;
+                    if (toggleTermedWinLoss) toggleTermedWinLoss.checked = false;
+                    if (toggleChaining) toggleChaining.checked = false;
+                    if (toggleNoFlying) toggleNoFlying.checked = false;
+                    if (toggleTurtleMode) toggleTurtleMode.checked = false;
+                    if (enemyFactionIDInput) enemyFactionIDInput.value = "";
+                    if (nextChainTimeInput) nextChainTimeInput.value = "";
+                    const currentTeamLeadInput = document.getElementById('currentTeamLeadInput');
+                    if (currentTeamLeadInput) currentTeamLeadInput.value = "";
+
+                    if (gamePlanEditArea) gamePlanEditArea.value = "";
+                    if (quickAnnouncementInput) quickAnnouncementInput.value = "";
+                    if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
+                    if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
+
+                    // Update the read-only display on the announcements tab
+                    populateWarStatusDisplay(clearedData);
+
+                    // Also clear the populated member checkboxes and enemy targets
                     if (factionApiFullData && factionApiFullData.members) {
-                        setupTeamLeadAutocomplete(factionApiFullData.members);
+                        populateFriendlyMemberCheckboxes(factionApiFullData.members, [], []);
                     }
+                    populateEnemyMemberCheckboxes({}, []); // Clear enemy member checkboxes
+                    displayEnemyTargetsTable(null); // Clear the enemy targets table
 
-                    listenersInitialized = true; // Flag to prevent re-initialization
+                    clearAllWarDataBtn.textContent = "Cleared! ✅";
 
-                    // Set up interval updates
-                    setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
-                    setInterval(() => {
-                        if (userApiKey && globalEnemyFactionID) {
-                            fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
-                        }
-                    }, 15000); // Fetch enemy data every 15 seconds
-                    setInterval(() => {
-                        if (userApiKey && globalYourFactionID) {
-                            updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
-                            fetchAndDisplayChainData(); // Re-fetches primary chain data
-                        }
-                    }, 5000); // Fetch chain data every 5 seconds
-                    setInterval(() => {
-                        if (userApiKey && globalYourFactionID) {
-                            // This ensures the main data, including war score and members, is refreshed.
-                            // The populateUiComponents will also be called within this, which refreshes all sections.
-                            initializeAndLoadData(userApiKey, globalYourFactionID);
-                        }
-                    }, 300000); // Refresh all data every 5 minutes (300,000 ms)
-                    setInterval(() => {
-                        if (userApiKey) {
-                            updateUserEnergyDisplay(); // Refreshes user's energy display
-                            updateOnlineMemberCounts(); // Refreshes online member counts
-                        }
-                    }, 60000); // Update energy and online counts every 1 minute
-                    setInterval(() => {
-                        if (userApiKey && playerId) {
-                            displayQuickFFTargets(userApiKey, playerId);
-                        }
-                    }, 10000); // Refresh quick FF targets every 10 seconds
+                } catch (error) {
+                    console.error("Error clearing war data:", error);
+                    clearAllWarDataBtn.textContent = "Error! ❌";
+                    showCustomAlert("Failed to clear data. Please check the console.", "Error");
+                } finally {
+                    setTimeout(() => {
+                        clearAllWarDataBtn.disabled = false;
+                        clearAllWarDataBtn.textContent = originalText;
+                    }, 2000);
                 }
-            } else {
-                console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
-                const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-                if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-                // Reset/clear relevant UI elements if API key is missing
-                populateWarStatusDisplay({});
-                loadWarStatusForEdit({});
-                if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
-                displayEnemyTargetsTable(null);
-                populateFriendlyMemberCheckboxes({}, [], []);
-                populateEnemyMemberCheckboxes({}, []);
+            });
+        }
+
+        if (apiKey && playerId) {
+            userApiKey = apiKey; // Set global API key
+
+            await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
+
+            setupProgressText();
+
+            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+            if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
+                factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
+            }
+
+            // Initial calls to update UI
+            displayWarRoster(); // This now expects data from Firebase
+            setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
+            setupWarClaimsListener(); // Listens for claims
+
+            userEnergyDisplay = document.getElementById('userEnergyDisplay');
+            onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
+            onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
+
+            updateUserEnergyDisplay();
+            updateOnlineMemberCounts();
+            fetchAndDisplayChainData(); // Now fetches its own chain data
+            displayQuickFFTargets(userApiKey, playerId);
+            setupChatRealtimeListener(); // Sets up faction chat listener
+
+            // Attach event listeners only once
+            if (!listenersInitialized) {
+                setupEventListeners(apiKey); // Contains generic save buttons with new robust code
+                setupMemberClickEvents(); // For the friendly members table
+
+                // Attach chat tab click listeners
+                chatTabs.forEach(tab => {
+                    tab.addEventListener('click', handleChatTabClick);
+                });
+
+                // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
+                if (factionApiFullData && factionApiFullData.members) {
+                    setupTeamLeadAutocomplete(factionApiFullData.members);
+                }
+
+                listenersInitialized = true; // Flag to prevent re-initialization
+
+                // Set up interval updates
+                setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
+                setInterval(() => {
+                    if (userApiKey && globalEnemyFactionID) {
+                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
+                    }
+                }, 15000); // Fetch enemy data every 15 seconds
+                setInterval(() => {
+                    if (userApiKey && globalYourFactionID) {
+                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
+                        fetchAndDisplayChainData(); // Re-fetches primary chain data
+                    }
+                }, 5000); // Fetch chain data every 5 seconds
+                setInterval(() => {
+                    if (userApiKey && globalYourFactionID) {
+                        // This ensures the main data, including war score and members, is refreshed.
+                        // The populateUiComponents will also be called within this, which refreshes all sections.
+                        initializeAndLoadData(userApiKey, globalYourFactionID);
+                    }
+                }, 300000); // Refresh all data every 5 minutes (300,000 ms)
+                setInterval(() => {
+                    if (userApiKey) {
+                        updateUserEnergyDisplay(); // Refreshes user's energy display
+                        updateOnlineMemberCounts(); // Refreshes online member counts
+                    }
+                }, 60000); // Update energy and online counts every 1 minute
+                setInterval(() => {
+                    if (userApiKey && playerId) {
+                        displayQuickFFTargets(userApiKey, playerId);
+                    }
+                }, 10000); // Refresh quick FF targets every 10 seconds
+
+
+                // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
+                // After all setup is complete, we check the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const requestedView = urlParams.get('view');
+
+                if (requestedView === 'friendly-status') {
+                    // Find the button for the requested tab and "click" it
+                    const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
+                    if (targetButton) {
+                        targetButton.click();
+                    }
+                }
+                // --- END: NEW CODE ---
             }
         } else {
-            userApiKey = null;
-            listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
-            console.log("User not logged in.");
+            console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
             const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-            // Clear UI elements when logged out
+            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
+            // Reset/clear relevant UI elements if API key is missing
             populateWarStatusDisplay({});
             loadWarStatusForEdit({});
             if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
@@ -5865,24 +5865,39 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             displayEnemyTargetsTable(null);
             populateFriendlyMemberCheckboxes({}, [], []);
             populateEnemyMemberCheckboxes({}, []);
-            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
-            if (chatInputArea) chatInputArea.style.display = 'none';
-            if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-            if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-            if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
-            if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
-            if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
-            if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
-            if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
-            if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
-
-            // Clear any active chat listeners
-            if (unsubscribeFromChat) {
-                unsubscribeFromChat();
-                unsubscribeFromChat = null;
-            }
         }
-    });
+    } else {
+        userApiKey = null;
+        listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
+        console.log("User not logged in.");
+        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
+        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
+        // Clear UI elements when logged out
+        populateWarStatusDisplay({});
+        loadWarStatusForEdit({});
+        if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
+        if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
+        displayEnemyTargetsTable(null);
+        populateFriendlyMemberCheckboxes({}, [], []);
+        populateEnemyMemberCheckboxes({}, []);
+        if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+        if (chatInputArea) chatInputArea.style.display = 'none';
+        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
+        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
+        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
+        if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
+        if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
+        if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
+        if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
+        if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
+
+        // Clear any active chat listeners
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null;
+        }
+    }
+});
 
     // Add Friend Button Listener
     if (addFriendBtn) {
