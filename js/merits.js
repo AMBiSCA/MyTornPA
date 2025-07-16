@@ -991,6 +991,7 @@ function updateAchievementsDisplay(playerData) {
             finalDisplayIconHtml = '<i class="fas fa-check"></i>'; // Font Awesome checkmark icon
             finalIconClass = 'completed'; // Force to 'completed' color (green)
             listItem.classList.add('awarded-by-api'); // Keep for overall row styling
+			progressText = ''
         } else {
             finalDisplayIconHtml = statusSymbol;
             // finalIconClass remains statusIconClass
