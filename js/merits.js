@@ -905,7 +905,7 @@ function getAchievementStatus(achievement, playerData) {
              if (valueInDays >= achievement.threshold) {
                 statusIconClass = 'completed'; statusSymbol = '✔'; isCompleted = true; calculatedPercentage = 100;
             } else {
-                statusIconClass = 'in-progress'; statusSymbol = '●';
+                statusIconClass = 'in-progress'; statusSymbol = '';
                 calculatedPercentage = (valueInDays / achievement.threshold) * 100;
                 progressText = ` (Progress: ${formatNumber(valueInDays.toFixed(1))}/${formatNumber(achievement.threshold)} days)`;
             }
