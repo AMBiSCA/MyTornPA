@@ -653,9 +653,9 @@ const errorDisplay = document.getElementById('error-display');
 const playerNameSpan = document.getElementById('player-name');
 const playerLevelSpan = document.getElementById('player-level');
 const playerTotalStatsSpan = document.getElementById('player-total-stats');
-const playerRankSpan = document.getElementById('player-rank');
+
 const playerNetworthSpan = document.getElementById('player-networth');
-const playerLifeSpan = document.getElementById('player-life');
+
 const playerAwardsSpan = document.getElementById('player-awards');
 
 const tabsContainer = document.querySelector('.tabs-container');
@@ -865,10 +865,9 @@ function displayPlayerSummary(playerData) {
         playerNameSpan.textContent = 'N/A';
         playerLevelSpan.textContent = 'N/A';
         playerTotalStatsSpan.textContent = 'N/A';
-        playerRankSpan.textContent = 'N/A';
+
         playerNetworthSpan.textContent = 'N/A';
-        if (playerLifeSpan) {
-            playerLifeSpan.textContent = 'N/A';
+
         }
         playerAwardsSpan.textContent = 'N/A';
     }
