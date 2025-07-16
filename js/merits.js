@@ -478,25 +478,6 @@ async function initializeMeritsPage() {
     showLoading();
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
-	
-const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-const logoutButtonHeader = document.getElementById('logoutButtonHeader');
-
-if (headerButtonsContainer) {
-    headerButtonsContainer.style.display = 'flex';
-}
-if (logoutButtonHeader) {
-    logoutButtonHeader.style.display = 'inline-flex';
-    logoutButtonHeader.onclick = function() {
-        firebase.auth().signOut().then(() => {
-            console.log('User signed out');
-            window.location.href = 'home.html';
-        }).catch((error) => {
-            console.error('Sign out error', error);
-        });
-    };
-}
-// --- END SNIPPET ---
             const db = firebase.firestore();
             try {
                 const userDocRef = db.collection('userProfiles').doc(user.uid);
