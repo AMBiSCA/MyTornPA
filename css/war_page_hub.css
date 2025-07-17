@@ -4581,41 +4581,44 @@ margin-right: auto !important;
 }
 
 /* ==================================================================
-   BATTLE STATS COLOR CODING
+   BATTLE STATS COLOR CODING (V2 - All Red Theme)
    ================================================================== */
 
-/* This rule makes the stat numbers black and bold for better readability */
+/* Base style for stat cells */
 #friendly-members-table td.stat-cell {
-    color: black !important;
     font-weight: bold;
 }
 
-/* Tier 1: Very Low (e.g., < 100k) */
-.stat-tier-1 {
-    background-color: #e3f2fd; /* Very Pale Blue */
+/* Tiers 1-5 get black font */
+.stat-tier-1, .stat-tier-2, .stat-tier-3, .stat-tier-4, .stat-tier-5 {
+    color: black !important;
 }
 
-/* Tier 2: Low (e.g., 100k to 1M) */
-.stat-tier-2 {
-    background-color: #bbdefb; /* Pale Blue */
+/* Tiers 6-8 get white font for better contrast on dark red */
+.stat-tier-6, .stat-tier-7, .stat-tier-8 {
+    color: white !important;
 }
 
-/* Tier 3: Medium-Low (e.g., 1M to 10M) */
-.stat-tier-3 {
-    background-color: #64b5f6; /* Light Blue */
-}
+/* Tier 1: < 10k */
+.stat-tier-1 { background-color: #FFEBEE; } /* Hint of Pink */
 
-/* Tier 4: Medium-High (e.g., 10M to 100M) */
-.stat-tier-4 {
-    background-color: #90a4ae; /* Slate Blue */
-}
+/* Tier 2: 10k to 100k */
+.stat-tier-2 { background-color: #FFCDD2; } /* Very Pale Pink */
 
-/* Tier 5: High (e.g., 100M to 1B) */
-.stat-tier-5 {
-    background-color: #ef9a9a; /* Light Red/Pink */
-}
+/* Tier 3: 100k to 1M */
+.stat-tier-3 { background-color: #EF9A9A; } /* Light Pink */
 
-/* Tier 6: Very High (e.g., > 1B) */
-.stat-tier-6 {
-    background-color: #c62828; /* Dark Red */
-}
+/* Tier 4: 1M to 10M */
+.stat-tier-4 { background-color: #E57373; } /* Salmon / Light Red */
+
+/* Tier 5: 10M to 100M */
+.stat-tier-5 { background-color: #EF5350; } /* Coral / Orangey-Red */
+
+/* Tier 6: 100M to 200M */
+.stat-tier-6 { background-color: #F44336; } /* Standard Red */
+
+/* Tier 7: 200M to 500M */
+.stat-tier-7 { background-color: #D32F2F; } /* Darker Red (Crimson) */
+
+/* Tier 8: > 500M */
+.stat-tier-8 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */

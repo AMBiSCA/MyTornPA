@@ -6114,7 +6114,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
 /**
  * ==================================================================
- * BATTLE STATS COLOR CODING FUNCTIONS (V2 - CORRECTED)
+ * BATTLE STATS COLOR CODING FUNCTIONS (V3 - 8-Tier Red Theme)
  * ==================================================================
  */
 
@@ -6139,7 +6139,7 @@ function parseStatValue(statString) {
     return isNaN(number) ? 0 : number * multiplier;
 }
 
-// Main function to apply background AND FONT colors to the stat cells.
+// Main function to apply background colors to the stat cells.
 function applyStatColorCoding() {
     const table = document.getElementById('friendly-members-table');
     if (!table) {
@@ -6147,33 +6147,39 @@ function applyStatColorCoding() {
         return;
     }
 
-    // Selects all data cells in columns 3, 4, 5, 6, and 7 (Strength to Total).
     const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
 
     statCells.forEach(cell => {
+        // First, remove any old stat tier classes to ensure a clean slate
+        for (let i = 1; i <= 8; i++) {
+            cell.classList.remove(`stat-tier-${i}`);
+        }
+        cell.classList.remove('stat-cell');
+
         const value = parseStatValue(cell.textContent);
         let tierClass = '';
 
-        if (value >= 1000000000) {
-            tierClass = 'stat-tier-6'; // Dark Red
+        if (value >= 500000000) {
+            tierClass = 'stat-tier-8';
+        } else if (value >= 200000000) {
+            tierClass = 'stat-tier-7';
         } else if (value >= 100000000) {
-            tierClass = 'stat-tier-5'; // Light Red/Pink
+            tierClass = 'stat-tier-6';
         } else if (value >= 10000000) {
-            tierClass = 'stat-tier-4'; // Slate Blue
+            tierClass = 'stat-tier-5';
         } else if (value >= 1000000) {
-            tierClass = 'stat-tier-3'; // Light Blue
+            tierClass = 'stat-tier-4';
         } else if (value >= 100000) {
-            tierClass = 'stat-tier-2'; // Pale Blue
+            tierClass = 'stat-tier-3';
+        } else if (value >= 10000) {
+            tierClass = 'stat-tier-2';
         } else if (value > 0) {
-            tierClass = 'stat-tier-1'; // Very Pale Blue
+            tierClass = 'stat-tier-1';
         }
 
-        // Apply the classes if a tier was determined
         if (tierClass) {
             cell.classList.add(tierClass);
-            // THIS IS THE FIX for the font color. It applies the style directly.
-            cell.style.color = 'black';
-            cell.style.fontWeight = 'bold';
+            cell.classList.add('stat-cell'); // General class for stat cells
         }
     });
 }
