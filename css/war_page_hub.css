@@ -2356,31 +2356,65 @@ min-width: 320px;
 }
 
 @media (max-width: 480px) {
-    .main-content-wrapper { padding-top: 75px; }
-    #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
-    .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
-    .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
-    .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
-    .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
-        font-size: 0.7em; /* NEW: Further reduced base font size */
+    .main-content-wrapper { padding-top: 75px; }
+    #warPageHubContainer { padding: 5px; gap: 8px; } /* NEW: Reduced padding and gap */
+    .script-title { font-size: 1.4em; margin-bottom: 5px; } /* NEW: Reduced font size and margin */
+    .tab-button { font-size: 0.8em; padding: 4px 8px; } /* NEW: Further reduced font size and padding */
+    .ops-controls-grid { gap: 8px; padding: 8px; } /* NEW: Reduced gap and padding */
+    .ops-control-item { font-size: 0.8em; } /* NEW: Reduced font size */
+    .enemy-targets-header, .enemy-target-row {
+        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
+        font-size: 0.7em; /* NEW: Further reduced base font size */
+    }
+    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
+    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; } /* NEW: Adjusted padding, font size, margin */
+    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; } /* NEW: Reduced padding, gap, font size */
+    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
+        font-size: 0.8em; /* NEW: Adjusted font size */
+        padding: 4px 6px; /* NEW: Adjusted padding */
+    }
+    .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
+    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
+    .config-section input[type="text"], .config-section textarea, .config-section select {
+        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
+    }
+    textarea { min-height: 60px; } /* NEW: Reduced min-height */
+    select[multiple] { height: 100px; } /* NEW: Reduced height */
+    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
+
+    /* --- Friendly Members Table Specific Adjustments for very small screens (<= 480px) --- */
+    #friendly-status-tab #friendly-members-table th,
+    #friendly-status-tab #friendly-members-table td {
+        font-size: 0.6em !important; /* Make font even smaller */
+        padding: 2px 3px !important; /* Reduce padding even further */
     }
-    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; } /* NEW: Further reduced padding and font size */
-    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; } /* NEW: Adjusted padding, font size, margin */
-    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; } /* NEW: Reduced padding, gap, font size */
-    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
-        font-size: 0.8em; /* NEW: Adjusted font size */
-        padding: 4px 6px; /* NEW: Adjusted padding */
-    }
-    .config-section { padding: 8px; gap: 5px; } /* NEW: Reduced padding and gap */
-    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; } /* NEW: Adjusted font size and margin */
-    .config-section input[type="text"], .config-section textarea, .config-section select {
-        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px; /* NEW: Adjusted font size, padding, margin */
-    }
-    textarea { min-height: 60px; } /* NEW: Reduced min-height */
-    select[multiple] { height: 100px; } /* NEW: Reduced height */
-    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; } /* NEW: Adjusted padding, font size, margin */
+
+    /* Adjust column widths for friendly members table */
+    #friendly-status-tab #friendly-members-table th:nth-child(1),
+    #friendly-status-tab #friendly-members-table td:nth-child(1) { width: 14% !important; } /* Name - slightly wider */
+    #friendly-status-tab #friendly-members-table th:nth-child(2),
+    #friendly-status-tab #friendly-members-table td:nth-child(2) { width: 9% !important; }  /* Last Action */
+    #friendly-status-tab #friendly-members-table th:nth-child(3),
+    #friendly-status-tab #friendly-members-table td:nth-child(3) { width: 7% !important; }  /* Strength */
+    #friendly-status-tab #friendly-members-table th:nth-child(4),
+    #friendly-status-tab #friendly-members-table td:nth-child(4) { width: 7% !important; }  /* Dexterity */
+    #friendly-status-tab #friendly-members-table th:nth-child(5),
+    #friendly-status-tab #friendly-members-table td:nth-child(5) { width: 7% !important; }  /* Speed */
+    #friendly-status-tab #friendly-members-table th:nth-child(6),
+    #friendly-status-tab #friendly-members-table td:nth-child(6) { width: 7% !important; }  /* Defense */
+    #friendly-status-tab #friendly-members-table th:nth-child(7),
+    #friendly-status-tab #friendly-members-table td:nth-child(7) { width: 7% !important; }  /* Total */
+    #friendly-status-tab #friendly-members-table th:nth-child(8),
+    #friendly-status-tab #friendly-members-table td:nth-child(8) { width: 12% !important; } /* Status */
+    #friendly-status-tab #friendly-members-table th:nth-child(9),
+    #friendly-status-tab #friendly-members-table td:nth-child(9) { width: 6% !important; }  /* Nerve */
+    #friendly-status-tab #friendly-members-table th:nth-child(10),
+    #friendly-status-tab #friendly-members-table td:nth-child(10){ width: 6% !important; }  /* Energy */
+    #friendly-status-tab #friendly-members-table th:nth-child(11),
+    #friendly-status-tab #friendly-members-table td:nth-child(11){ width: 6% !important; }  /* Drug C/D */
+    #friendly-status-tab #friendly-members-table th:nth-child(12),
+    #friendly-status-tab #friendly-members-table td:nth-child(12){ width: 6% !important; }  /* Revivable? */
+
 }
 
  /*friends and enemies*/
