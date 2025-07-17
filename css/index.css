@@ -396,8 +396,8 @@ header {
     width: 100px; /* Give it a specific width, adjust as needed for your button text */
     margin: 0 auto; /* This will center the block-level button */
     font-weight: bold; /* Keep the bold text */
-	padding-top: 10px; 
-	padding-left: 5px; 
+	padding-top: 10px;	
+	padding-left: 5px;	
 	
 }
 
@@ -660,6 +660,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    order: -1;
 }
 .gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon svg {
     display: block;
@@ -1173,18 +1174,6 @@ header {
         padding: 0 10px;
     }
 	
-	.gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon {
-    height: 20px;
-    width: 20px;
-    min-width: 20px;
-    margin-right: 8px; /* Changed from 12px for better spacing with icon on left */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    order: -1; /* This moves the icon to the left */
-    margin-left: 0; /* Ensures no residual left margin */
-}
-   
     .toggle-btn {
         font-size: 0.8rem;
     }
