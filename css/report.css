@@ -42,7 +42,7 @@ footer.footer {
     flex-shrink: 0; 
 }
 
-/* Main content wrapper that sits between fixed header and footer */
+/* Main content wrapper that ts between fixed header and footer */
 .main-content-wrapper {
     flex-grow: 1; 
     box-sizing: border-box;
