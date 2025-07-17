@@ -1173,10 +1173,12 @@ header {
         padding: 0 10px;
     }
     .gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon {
-        width: 18px;
-        height: 18px;
-        margin-right: 8px;
-    }
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    order: -1; /* This moves the icon to the left */
+    margin-left: 0; /* Ensures no left margin interferes */
+}
     .gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon svg {
         height: 16px;
         width: 16px;
