@@ -168,7 +168,7 @@ CSS
     background: linear-gradient(135deg, #FFD700, #FFA500); /* Gold to Orange gradient */
     color: #333; /* Dark text for contrast */
     border: 1px solid #CC8400; /* Darker gold border */
-    box-shadow: 0 4px 10px rgba(255, 165, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3); /* Gold glow effect */
+     box-shadow: 0 4px 10px rgba(255, 165, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3); /* MODIFY THIS LINE */
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Subtle text shadow */
     transition: all 0.2s ease;
@@ -176,7 +176,7 @@ CSS
 
 .modal-actions .upgrade-membership-btn:hover {
     background: linear-gradient(135deg, #FFE033, #FFB833); /* Lighter on hover */
-    box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.5); /* MODIFY THIS LINE */
     transform: translateY(-2px); /* Slight lift */
 }
 
@@ -185,16 +185,14 @@ CSS
     box-shadow: 0 2px 5px rgba(255, 165, 0, 0.3);
 }
 
-/* Styling for the Delete Account Button (Red for Warning) */
 .modal-actions .delete-account-btn {
     background-color: #dc3545; /* Bootstrap red */
-    color: white;
+    color: black; /* Changed to black */
     border: 1px solid #bd2130; /* Darker red border */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     font-weight: bold;
     transition: all 0.2s ease;
 }
-
 .modal-actions .delete-account-btn:hover {
     background-color: #c82333; /* Slightly darker red on hover */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
