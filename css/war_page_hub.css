@@ -4587,6 +4587,187 @@ margin-right: auto !important;
     }
 }
 
+/* --- Styles for Friendly Members Table Tabs on Mobile --- */
+
+/* Container for the tab buttons */
+.friendly-table-tab-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-bottom: 10px; /* Space between buttons and table */
+    padding: 5px;
+    background-color: #2a2a2a; /* Dark background for the button bar */
+    border-radius: 8px;
+    border: 1px solid black;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Individual tab buttons */
+.friendly-table-tab-btn {
+    flex-grow: 1; /* Make buttons expand to fill space */
+    padding: 8px 12px;
+    border: 2px solid transparent; /* Default transparent border */
+    border-radius: 5px;
+    background-color: #333;
+    color: #f0f0f0;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    white-space: nowrap; /* Keep text on one line */
+    text-align: center;
+}
+
+/* Hover effect for tab buttons */
+.friendly-table-tab-btn:hover {
+    background-color: #555;
+    border-color: #00a8ff; /* Highlight on hover */
+}
+
+/* Active tab button */
+.friendly-table-tab-btn.active {
+    background-color: #00a8ff; /* Theme blue for active tab */
+    color: #1e1e1e; /* Dark text on blue */
+    border-color: #00a8ff;
+}
+
+/* Ensure the whole table container allows horizontal scroll on smaller screens */
+#friendlyMembersListContainer {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent content from wrapping inside cells */
+    /* You might want to adjust its height or min-height here too if needed */
+}
+
+/* Hide table header by default on mobile (we'll create new "headers" using JS for rows) */
+@media (max-width: 768px) {
+    /* Hide the entire header row of the friendly members table on mobile */
+    #friendly-members-table thead {
+        display: none;
+    }
+
+    /* Reset default table display properties for tbody, tr, td on mobile */
+    #friendly-members-table,
+    #friendly-members-table tbody,
+    #friendly-members-table tr {
+        display: block; /* Make them behave like block elements for stacking */
+        width: 100%; /* Take full width */
+    }
+
+    /* Style for each table row to act as a "card" container on mobile */
+    #friendly-members-table tr {
+        margin-bottom: 10px; /* Space between "cards" */
+        border: 1px solid #3a3a40; /* Border for each card */
+        border-radius: 8px; /* Rounded corners for cards */
+        background-color: #222; /* Background for each card */
+        padding: 10px; /* Internal padding for cards */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+    }
+
+    /* Style for each table cell (td) within a row on mobile */
+    #friendly-members-table td {
+        display: block; /* Stack cells vertically within their row */
+        width: 100%; /* Each cell takes full width of its row/card */
+        padding: 5px 0; /* Padding around content within cell */
+        border-bottom: 1px solid #333; /* Separator between data points in a card */
+        text-align: left; /* Align text left */
+        white-space: normal; /* Allow text to wrap within the cell */
+        overflow: visible; /* Ensure content is visible */
+        text-overflow: clip; /* Prevent ellipsis on wrapped text */
+    }
+
+    /* Remove bottom border from the last cell in each row/card */
+    #friendly-members-table tr td:last-child {
+        border-bottom: none;
+    }
+
+    /* Hide the default friendly-details-panel completely on mobile */
+    .friendly-details-panel {
+        display: none !important;
+    }
+
+    /* Re-enable the friendly-members-panel to take full width */
+    .friendly-members-panel {
+        flex: none !important;
+        width: 100% !important;
+        min-width: unset !important;
+    }
+
+    /* Make the tab buttons themselves also hide on desktop, they are only for mobile */
+    .friendly-table-tab-buttons {
+        display: flex; /* Keep it flex for mobile, but hide it entirely on desktop via the next rule */
+    }
+}
+
+/* Hide the new table tab buttons on larger screens */
+@media (min-width: 769px) {
+    .friendly-table-tab-buttons {
+        display: none;
+    }
+    /* Ensure the original table header is visible on desktop */
+    #friendly-members-table thead {
+        display: table-header-group;
+    }
+    /* Reset table row and cell display for desktop */
+    #friendly-members-table,
+    #friendly-members-table tbody,
+    #friendly-members-table tr,
+    #friendly-members-table td {
+        display: table; /* Or table-row-group, table-row, table-cell respectively */
+        width: auto;
+        /* Reset any other mobile-specific overrides */
+    }
+    #friendly-members-table td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+        border-bottom: 1px solid #3a3a40; /* Restore border */
+        padding: 5px 10px;
+    }
+    #friendly-members-table td:not(:last-child) {
+        border-right: 1px solid #303030; /* Restore vertical line */
+    }
+    /* Ensure friendly-details-panel is visible on desktop */
+    .friendly-details-panel {
+        display: flex !important; /* Restore default flex display */
+    }
+}
+
+
+/* --- CSS to control column visibility (mobile only) --- */
+/* These rules will be overridden by JavaScript to show/hide columns */
+
+@media (max-width: 768px) {
+    /* Hide all stat columns by default on mobile */
+    #friendly-members-table td:nth-child(3), /* Strength */
+    #friendly-members-table td:nth-child(4), /* Dexterity */
+    #friendly-members-table td:nth-child(5), /* Speed */
+    #friendly-members-table td:nth-child(6), /* Defense */
+    #friendly-members-table td:nth-child(7), /* Total */
+    #friendly-members-table td:nth-child(9), /* Nerve */
+    #friendly-members-table td:nth-child(10), /* Energy */
+    #friendly-members-table td:nth-child(11), /* Drug C/D */
+    #friendly-members-table td:nth-child(12) /* Revivable? */
+    {
+        display: none;
+    }
+
+    /* Always show Name, Last Action, Status columns on mobile (default Activity View) */
+    #friendly-members-table td:nth-child(1), /* Name */
+    #friendly-members-table td:nth-child(2), /* Last Action */
+    #friendly-members-table td:nth-child(8) /* Status */
+    {
+        display: block; /* Override 'display: none' from above to show them */
+    }
+
+    /* Add labels to cells when stacked on mobile */
+    #friendly-members-table td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: bold;
+        color: #e0a71a; /* Gold color for labels */
+        margin-right: 5px;
+    }
+}
+
 
 .game-plan-display img {
     width: 100%;          /* Make the image span the full width of the container */
