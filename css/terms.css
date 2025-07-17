@@ -36,15 +36,16 @@ body::before {
 .main-content-wrapper {
     flex-grow: 1;
     /* Remove overflow-y: auto; here as the main body will scroll */
-    padding-top: 90px; 
-    padding-bottom: 90px; /* Adjusted from 70px in global, review if needed */
+    padding-top: 90px; /* Adjusted from global body padding-top for fixed header */
+    padding-bottom: 90px; /* Provides space for fixed footer */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    min-height: calc(100vh - 70px - 70px); /* Adjust based on actual header/footer heights */
+    /* Ensure content pushes footer down, considering fixed header/footer heights */
+    min-height: calc(100vh - 70px - 70px); /* 100vh - header-height - footer-height */
 }
 
 .image-glow {
@@ -69,21 +70,24 @@ body::before {
 
 /* Main content container for the terms page */
 main.terms-page-content {
-    width: 90%; /* Similar to FAQ's .container width */
-    max-width: 1400px; /* Similar to FAQ's .container max-width */
-    margin-top: 15px; /* Adjust top margin for spacing from header */
+    width: 90%; 
+    max-width: 1400px;
+    margin-top: 15px; 
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
-    background-color: #222; /* Use similar background to FAQ container */
+    background-color: #222; 
     padding: 20px 40px;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 122, 204, 0.4); /* Similar shadow to FAQ container */
-    text-align: left;
+    /* NEW: 2px blue border for the outer container */
+    border: 2px solid #00a8ff; 
+    /* Adjust shadow to complement the new border */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
+    box-sizing: border-box;
     position: relative;
     z-index: 1;
-    display: flex; /* Make main content a flex container */
-    flex-direction: column; /* Stack sections vertically */
+    display: flex; 
+    flex-direction: column; 
 }
 
 /* Title styles */
@@ -93,38 +97,40 @@ main.terms-page-content h2.highlight {
     margin-bottom: 25px;
     user-select: none;
     text-align: center;
-    font-size: 2.2rem; /* Similar to FAQ title */
+    font-size: 2.2rem;
     font-weight: bold;
 }
 
 /* Grid for the main sections (Disclaimer, T&C) */
 .terms-sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); /* Similar to FAQ grid */
-    gap: 25px; /* Gap between columns */
-    margin-bottom: 25px; /* Spacing below the grid */
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 25px;
+    margin-bottom: 25px;
 }
 
 /* Individual section styling (Disclaimer, T&C, Membership, Contact) */
 .terms-section-item {
-    background-color: #272727; /* Darker background for sections, like FAQ item */
+    background-color: #272727; 
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    /* NEW: 1px blue border for inner boxes */
+    border: 1px solid #00a8ff; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Keep subtle inner shadow */
     box-sizing: border-box;
     display: flex;
-    flex-direction: column; /* Ensure content stacks vertically within the section */
-    margin-bottom: 0; /* Managed by gap in grid or explicit margin for full-width sections */
+    flex-direction: column; 
+    margin-bottom: 0; 
 }
 
 /* Style for full-width sections (e.g., Membership, Contact) */
 .terms-full-width-section, .terms-contact-section {
     grid-column: 1 / -1; /* Make these sections span all columns of the grid */
-    margin-top: 0px; /* Adjust spacing between sections within the grid */
+    margin-top: 0px; 
 }
 .terms-contact-section {
-    text-align: center; /* Center content for the contact section */
-    margin-top: 15px; /* Add some margin above contact section */
+    text-align: center;
+    margin-top: 15px; 
 }
 
 /* Section heading styles */
@@ -133,13 +139,13 @@ main.terms-page-content section h3 {
     text-align:center;
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.5rem; /* Similar to FAQ question heading */
+    font-size: 1.5rem; 
     font-weight: 600;
 }
 
 /* Paragraph and link styles */
 main.terms-page-content p {
-    font-size: 0.95rem; /* Slightly smaller for density */
+    font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 15px;
     text-align: left;
@@ -152,7 +158,7 @@ main.terms-page-content p a:hover {
     color: #3ccbff;
 }
 
-/* Footer styles (ensure these match your global.css for consistency) */
+/* Footer styles - Corrected to be fixed and match global.css */
 footer.footer {
     flex-shrink: 0;
     background-color: #222;
@@ -163,11 +169,14 @@ footer.footer {
     padding-right: 20px;
     text-align: center;
     font-size: 14px;
+    /* NEW: Fixed position for footer */
+    position: fixed; 
+    bottom: 0;
+    left: 0;
+    width: 100%; /* Ensure it spans full width */
+    /* NEW: 2px blue top border for footer */
     border-top: 2px solid #00a8ff; 
-    width: 100%;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    position: relative; /* Changed from fixed to relative to avoid overlap if content is long */
-    /* Remove bottom: 0; left: 0; if making relative, handled by main-content-wrapper min-height */
     user-select: none;
     z-index: 102;
     box-sizing: border-box;
@@ -182,12 +191,12 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles */
-@media (max-width: 900px) { /* Adjusted breakpoint for grid to collapse earlier */
+@media (max-width: 900px) {
     .terms-sections-grid {
-        grid-template-columns: 1fr; /* Stack into a single column */
+        grid-template-columns: 1fr;
     }
     main.terms-page-content {
-        max-width: 95%; /* Adjust max-width for smaller screens */
+        max-width: 95%;
         padding: 20px;
     }
 }
