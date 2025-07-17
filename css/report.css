@@ -45,7 +45,7 @@ body::before {
     align-items: center;
     position: relative;
     z-index: 1;
-    min-height: calc(100vh - 70px - 70px); 
+    min-height: calc(100vh - 80px - 70px); 
 }
 
 .image-glow {
