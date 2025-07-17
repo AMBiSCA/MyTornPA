@@ -1,7 +1,7 @@
 /* General layout from global.css applies, but some overrides here */
 html, body {
-    height: auto; 
-    min-height: 100vh; 
+    height: 100vh; /* Set html/body to full viewport height */
+    overflow: hidden; /* NEW: Hide scrollbar for the entire page */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -35,15 +35,17 @@ body::before {
 
 .main-content-wrapper {
     flex-grow: 1;
-    padding-top: 90px; 
-    padding-bottom: 90px; 
+    /* NEW: Occupy remaining height, but allow internal scrolling if needed */
+    height: calc(100vh - 70px - 70px); /* 100vh - header height - footer height */
+    overflow-y: auto; /* Allow main content wrapper to scroll if its content overflows */
+    padding-top: 90px; /* Adjusted for fixed header */
+    padding-bottom: 90px; /* Provides space for fixed footer */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    min-height: calc(100vh - 70px - 70px); 
 }
 
 .image-glow {
@@ -83,7 +85,10 @@ main.terms-page-content {
     position: relative;
     z-index: 1;
     display: flex; 
-    flex-direction: column; 
+    flex-direction: column;
+    /* NEW: Make this content box itself fill remaining height and allow internal scroll */
+    flex-grow: 1; /* Allow it to grow within main-content-wrapper */
+    overflow-y: hidden; /* NEW: This container will NOT scroll, forcing content to scroll within its children */
 }
 
 /* Title styles */
@@ -97,12 +102,16 @@ main.terms-page-content h2.highlight {
     font-weight: bold;
 }
 
-/* Grid for the top sections (Disclaimer, Terms and Conditions) - now two columns */
+/* Grid for the top sections (Disclaimer, Terms and Conditions, Membership) */
 .terms-top-sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); /* Adjusted to two columns */
+    /* NEW: Explicitly define 3 columns. minmax will shrink columns if not enough space */
+    grid-template-columns: repeat(3, minmax(280px, 1fr)); 
     gap: 25px; 
-    margin-bottom: 25px; 
+    margin-bottom: 25px;
+    flex-grow: 1; /* Allow the grid to take up available space */
+    /* NEW: This grid container will scroll if its combined content overflows its height */
+    overflow-y: hidden; 
 }
 
 /* Individual section styling (Disclaimer, T&C, Membership) */
@@ -115,13 +124,10 @@ main.terms-page-content h2.highlight {
     box-sizing: border-box;
     display: flex;
     flex-direction: column; 
-    margin-bottom: 0; 
-}
-
-/* Style for full-width sections (e.g., Membership) */
-.terms-full-width-section {
-    grid-column: 1 / -1; /* Make this section span all columns of the grid */
-    margin-top: 0; 
+    margin-bottom: 0; /* Gap is managed by grid for grid items */
+    /* NEW: Allow individual sections to scroll if their content overflows */
+    overflow-y: auto; 
+    flex-grow: 1; /* Allow content to grow and fill vertical space within the grid cell */
 }
 
 /* Section heading styles */
@@ -164,7 +170,7 @@ footer.footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    border-top: 1px solid #00a8ff; /* Corrected to 1px */
+    border-top: 1px solid #00a8ff; 
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
     user-select: none;
     z-index: 102;
@@ -180,17 +186,17 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles */
-@media (max-width: 900px) {
+/* Adjusted breakpoints to try and maintain 3 columns longer */
+@media (max-width: 1000px) { /* Adjust minmax for 2 columns */
     .terms-top-sections-grid {
-        grid-template-columns: 1fr; /* Stack into a single column on smaller screens */
-    }
-    main.terms-page-content {
-        max-width: 95%;
-        padding: 20px;
+        grid-template-columns: repeat(2, minmax(350px, 1fr)); 
     }
 }
 
 @media (max-width: 768px) {
+    .terms-top-sections-grid {
+        grid-template-columns: 1fr; /* Stack into a single column on small screens */
+    }
     main.terms-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.terms-page-content h2.highlight { font-size: 1.8rem; }
     main.terms-page-content section h3 { font-size: 1.3rem; }
