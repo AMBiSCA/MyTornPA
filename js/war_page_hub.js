@@ -215,43 +215,49 @@ function toggleFriendlyTableColumns(view) {
     const headers = friendlyMembersTable.querySelectorAll('th');
     const rows = friendlyMembersTable.querySelectorAll('tbody tr');
 
-    // Define which columns belong to which view by their index (0-indexed)
-    const viewColumns = {
-        'activity': [0, 1, 7, 8, 9, 10, 11], // Name, Last Action, Status, Nerve, Energy, Drug C/D, Revivable?
-        'battlestats': [0, 2, 3, 4, 5, 6]    // Name, Strength, Dexterity, Speed, Defense, Total
+    const columnMap = {
+        'activity': [
+            { index: 0, label: 'Name' },        // Name
+            { index: 1, label: 'Last Action' }, // Last Action
+            { index: 7, label: 'Status' },      // Status
+            { index: 8, label: 'Nerve' },       // Nerve
+            { index: 9, label: 'Energy' },      // Energy
+            { index: 10, label: 'Drug C/D' },   // Drug C/D
+            { index: 11, label: 'Revivable?' }  // Revivable?
+        ],
+        'battlestats': [
+            { index: 0, label: 'Name' },        // Name (keep Name in both views for context)
+            { index: 2, label: 'Strength' },    // Strength
+            { index: 3, label: 'Dexterity' },   // Dexterity
+            { index: 4, label: 'Speed' },       // Speed
+            { index: 5, label: 'Defense' },     // Defense
+            { index: 6, label: 'Total' }        // Total
+        ]
     };
 
-    // Define the labels for each column by its index
-    const columnLabels = [
-        'Name', 'Last Action', 'Strength', 'Dexterity', 'Speed', 'Defense', 'Total',
-        'Status', 'Nerve', 'Energy', 'Drug C/D', 'Revivable?'
-    ];
+    const columnsToShow = columnMap[view];
+    const allColumnIndices = Array.from({ length: headers.length }, (_, i) => i);
 
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        cells.forEach((cell, index) => {
-            // Check if the current cell's index is included in the columns for the active view
-            const isVisibleInCurrentView = viewColumns[view].includes(index);
+        allColumnIndices.forEach(colIndex => {
+            const cell = cells[colIndex];
+            if (!cell) return; // Skip if cell doesn't exist
 
-            // Toggle a class based on visibility
-            if (isVisibleInCurrentView) {
-                cell.classList.remove('hidden-on-mobile-view');
-                cell.setAttribute('data-label', columnLabels[index]); // Add data-label for CSS
+            const shouldShow = columnsToShow.some(col => col.index === colIndex);
+
+            // Toggle visibility
+            if (shouldShow) {
+                cell.style.display = 'block'; // Make visible (overrides mobile CSS display: none)
+                const colInfo = columnsToShow.find(col => col.index === colIndex);
+                if (colInfo && colInfo.label) {
+                    cell.setAttribute('data-label', colInfo.label); // Add data-label for CSS
+                }
             } else {
-                cell.classList.add('hidden-on-mobile-view');
-                cell.removeAttribute('data-label'); // Remove data-label when hidden
+                cell.style.display = 'none'; // Hide
+                cell.removeAttribute('data-label'); // Remove data-label
             }
         });
-    });
-
-    // Also toggle the visibility of header columns for consistency (though they will be hidden by CSS on mobile)
-    headers.forEach((header, index) => {
-        const isVisibleInCurrentView = viewColumns[view].includes(index);
-        if (isVisibleInCurrentView) {
-            header.classList.remove('hidden-on-mobile-view');
-        } else {
-            header.classList.add('hidden-on-mobile-view');
-        }
     });
 }
 
@@ -3833,9 +3839,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-		 const currentActiveViewButton = document.querySelector('.friendly-table-tab-btn.active');
-         const initialView = currentActiveViewButton ? currentActiveViewButton.dataset.view : 'activity';
-    toggleFriendlyTableColumns(initialView);
          applyStatColorCoding(); // <-- ADD THIS LINE HERE
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
@@ -5549,15 +5552,16 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
            document.addEventListener('DOMContentLoaded', () => {
-    // START OF DOMCONTENTLOADED
+    // --- START OF DOMCONTENTLOADED ---
 
-    // This block reads the URL to see if a specific tab was requested
+    // --- NEW: This block reads the URL to see if a specific tab was requested ---
     const urlParams = new URLSearchParams(window.location.search);
-    const requestedTabName = urlParams.get('view'); 
+    const requestedTabName = urlParams.get('view'); // e.g. ?view=live-faction-activity
+    // --- END NEW ---
 
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane'); 
+    const mainTabPanes = document.querySelectorAll('.tab-pane'); // This variable is declared but not directly used in the provided snippet.
 
     tabButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
@@ -5579,7 +5583,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 const user = firebase.auth().currentUser;
                 if (user && userApiKey) {
                     await updateFriendlyMembersTable(userApiKey, user.uid);
-                    // After table data is loaded, set initial column view and labels
+                    // NEW: After table data is loaded, set initial column view and labels
                     // Ensure the 'Activity / Status' button is active by default in JS as well
                     const defaultActivityButton = document.querySelector('.friendly-table-tab-btn[data-view="activity"]');
                     if (defaultActivityButton) {
@@ -5594,27 +5598,12 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     }
                 }
             }
-        });
-    });
+			
+			
 
-    // friendly table tab buttons listeners
-    friendlyTableTabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const clickedButton = event.currentTarget;
-            const viewToShow = clickedButton.dataset.view; 
 
-            // remove active class from all buttons
-            friendlyTableTabButtons.forEach(btn => btn.classList.remove('active'));
-            // add active class to clicked button
-            clickedButton.classList.add('active');
 
-            // toggle columns based on view
-            toggleFriendlyTableColumns(viewToShow);
-        });
-    });
-    // end friendly table tab buttons listeners
-
-    // RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS
+    // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
     const availabilityTab = document.getElementById('war-availability-tab');
     if (availabilityTab) {
         availabilityTab.addEventListener('click', async (event) => {
@@ -5715,9 +5704,9 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             }
         });
     }
-    // END RE-ADDED AVAILABILITY LISTENERS
+    // --- END RE-ADDED AVAILABILITY LISTENERS ---
 
-    // MODIFIED: This block now checks for the requestedTabName from the URL
+    // --- MODIFIED: This block now checks for the requestedTabName from the URL ---
     if (requestedTabName) {
         // This will take the value from the URL (e.g., 'live-faction-activity')
         // and turn it into the tab ID (e.g., 'live-faction-activity-tab') to show it.
@@ -5726,7 +5715,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         // This is the original default behavior if no specific tab is requested.
         showTab('announcements-tab');
     }
-    // END MODIFIED
+    // --- END MODIFIED ---
 
     let listenersInitialized = false;
 
@@ -5906,7 +5895,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 }, 10000); // Refresh quick FF targets every 10 seconds
 
 
-                // START: NEW CODE TO OPEN THE CORRECT TAB
+                // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
                 // After all setup is complete, we check the URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const requestedView = urlParams.get('view');
@@ -5918,7 +5907,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                         targetButton.click();
                     }
                 }
-                // END: NEW CODE
+                // --- END: NEW CODE ---
             }
         } else {
             console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
@@ -6110,7 +6099,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
 
 
-    // RESTORED IMAGE UPLOAD LISTENERS
+    // --- RESTORED IMAGE UPLOAD LISTENERS ---
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
