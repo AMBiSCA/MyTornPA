@@ -4589,9 +4589,9 @@ margin-right: auto !important;
 
 /* --- Styles for Friendly Members Table Tabs on Mobile --- */
 
-/* Container for the tab buttons */
+/* Base styling for tab buttons - hidden by default unless in mobile media query */
 .friendly-table-tab-buttons {
-    display: flex; /* Always flex on mobile */
+    display: none; /* Hide by default */
     justify-content: space-around;
     gap: 10px;
     margin-bottom: 10px; /* Space between buttons and table */
@@ -4630,94 +4630,111 @@ margin-right: auto !important;
     border-color: #00a8ff;
 }
 
-/* Ensure the whole table container allows horizontal scroll on smaller screens */
-#friendlyMembersListContainer {
-    overflow-x: auto; /* Enable horizontal scrolling */
-    /* Remove white-space: nowrap here to allow text wrap within cells. */
-    /* The JavaScript will manage column visibility. */
-}
-
+/* --- Mobile Specific Styles (768px and smaller) --- */
 @media (max-width: 768px) {
-    /* Hide the default friendly-details-panel completely on mobile */
-    .friendly-details-panel {
-        display: none !important;
+    /* Show tab buttons only on mobile */
+    .friendly-table-tab-buttons {
+        display: flex; /* Make visible as flex on mobile */
     }
 
-    /* Ensure friendly-members-panel takes full width on mobile */
+    /* Hide the original table header on mobile */
+    #friendly-members-table thead {
+        display: none;
+    }
+
+    /* Ensure the whole table container allows horizontal scroll on smaller screens */
+    #friendlyMembersListContainer {
+        overflow-x: auto; /* Enable horizontal scrolling */
+        /* It's crucial not to set width: 100% here on the container itself if content overflows */
+        /* Table itself should dictate width and scroll */
+    }
+
+    /* Ensure friendly-members-panel takes full width on mobile and hides its right-side counterpart */
     .friendly-members-panel {
         flex: none !important;
         width: 100% !important;
         min-width: unset !important;
     }
-
-    /* Style for each table row to act as a wrapper on mobile for horizontal scroll */
-    #friendly-members-table tr {
-        border-bottom: 1px solid #3a3a40; /* Separator between rows */
+    .friendly-details-panel {
+        display: none !important;
     }
 
-    /* Specific styling for cells when they are visible on mobile */
+    /* Style for each table cell (td) when it's visible on mobile */
+    /* This will be the base for all cells that are NOT hidden by JS */
     #friendly-members-table td {
-        white-space: nowrap; /* Keep text on one line, allow horizontal scroll */
-        overflow: hidden; /* Hide overflow until scrolled */
-        text-overflow: ellipsis; /* Add ellipsis for overflowing text */
-        padding: 8px 5px; /* Adjust padding for mobile cells */
-        text-align: center; /* Center content in cells */
-        font-size: 0.85em; /* Smaller font size for mobile */
+        white-space: nowrap;    /* Keep text on one line */
+        overflow: hidden;       /* Hide overflowing content */
+        text-overflow: ellipsis;/* Add ellipsis for overflowing text */
+        padding: 8px 5px;       /* Adjust padding for mobile cells */
+        text-align: center;     /* Center content in cells */
+        font-size: 0.85em;      /* Smaller font size for mobile */
+        border-bottom: 1px solid #3a3a40; /* Keep row separators */
+        min-width: 50px; /* Minimum width to prevent extreme squash */
     }
 
-    /* Add labels to cells when displayed on mobile, and the cell has data-label attribute */
+    /* Remove bottom border from the last cell in each row (visual cleanup) */
+    #friendly-members-table tr td:last-child {
+        border-bottom: none;
+    }
+
+    /* Add labels to cells only when the data-label attribute is present (set by JS) */
     #friendly-members-table td[data-label]::before {
         content: attr(data-label) ": ";
         font-weight: bold;
         color: #e0a71a; /* Gold color for labels */
         margin-right: 5px;
-        display: inline-block; /* Keep label inline with content */
+        display: inline; /* Keep label inline with content */
     }
 
-    /* Style for the hidden columns on mobile (controlled by JS) */
+    /* Class added by JavaScript to hide columns */
     #friendly-members-table th.hidden-on-mobile-view,
     #friendly-members-table td.hidden-on-mobile-view {
-        display: none;
-    }
-
-    /* Ensure default table layout for visible columns */
-    #friendly-members-table {
-        table-layout: auto; /* Allow browser to calculate widths based on content for scrolling */
-        width: 100%; /* Ensure it tries to take full width */
+        display: none !important; /* Force hide these columns on mobile */
     }
 }
 
-/* Hide the new table tab buttons on larger screens */
+/* --- Desktop Specific Styles (769px and larger) --- */
 @media (min-width: 769px) {
+    /* Hide the new table tab buttons on desktop */
     .friendly-table-tab-buttons {
         display: none;
     }
-    /* Reset any mobile-specific visibility for headers/cells on desktop */
-    #friendly-members-table th.hidden-on-mobile-view,
-    #friendly-members-table td.hidden-on-mobile-view {
-        display: table-cell; /* Re-show on desktop */
-    }
-    /* Ensure other table elements revert to default table display on desktop */
+
+    /* Ensure original table header is visible on desktop */
     #friendly-members-table thead {
         display: table-header-group;
     }
-    #friendly-members-table tbody {
-        display: table-row-group;
+    
+    /* Reset any mobile-specific hiding for header cells on desktop */
+    #friendly-members-table th.hidden-on-mobile-view {
+        display: table-cell !important; /* Force show on desktop */
     }
+
+    /* Reset row and cell display for desktop (from the HTML default) */
     #friendly-members-table tr {
         display: table-row;
+        margin-bottom: 0;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
     }
-    #friendly-members-table td,
-    #friendly-members-table th {
+    #friendly-members-table td {
         display: table-cell;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
-        /* Remove any data-label content on desktop if it somehow appears */
+        /* Remove any data-label content that might persist from mobile */
         &[data-label]::before {
             content: none;
         }
+    }
+    /* Ensure default borders between desktop cells */
+    #friendly-members-table tbody td {
+        border-right: 1px solid #303030;
+    }
+    #friendly-members-table tbody tr:last-child td {
+        border-bottom: 1px solid #3a3a40; /* Adjust as per your global table rules */
     }
 }
 
