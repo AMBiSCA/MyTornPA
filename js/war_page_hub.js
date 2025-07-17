@@ -5552,16 +5552,15 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     }
 }
            document.addEventListener('DOMContentLoaded', () => {
-    // --- START OF DOMCONTENTLOADED ---
+    // START OF DOMCONTENTLOADED
 
-    // --- NEW: This block reads the URL to see if a specific tab was requested ---
+    // This block reads the URL to see if a specific tab was requested
     const urlParams = new URLSearchParams(window.location.search);
-    const requestedTabName = urlParams.get('view'); // e.g. ?view=live-faction-activity
-    // --- END NEW ---
+    const requestedTabName = urlParams.get('view'); 
 
     // Basic tab navigation for main content tabs
     const tabButtons = document.querySelectorAll('.tab-button');
-    const mainTabPanes = document.querySelectorAll('.tab-pane'); // This variable is declared but not directly used in the provided snippet.
+    const mainTabPanes = document.querySelectorAll('.tab-pane'); 
 
     tabButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
@@ -5583,7 +5582,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 const user = firebase.auth().currentUser;
                 if (user && userApiKey) {
                     await updateFriendlyMembersTable(userApiKey, user.uid);
-                    // NEW: After table data is loaded, set initial column view and labels
+                    // After table data is loaded, set initial column view and labels
                     // Ensure the 'Activity / Status' button is active by default in JS as well
                     const defaultActivityButton = document.querySelector('.friendly-table-tab-btn[data-view="activity"]');
                     if (defaultActivityButton) {
@@ -5598,10 +5597,27 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                     }
                 }
             }
+        });
+    });
 
+    // friendly table tab buttons listeners
+    friendlyTableTabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const clickedButton = event.currentTarget;
+            const viewToShow = clickedButton.dataset.view; 
 
+            // remove active class from all buttons
+            friendlyTableTabButtons.forEach(btn => btn.classList.remove('active'));
+            // add active class to clicked button
+            clickedButton.classList.add('active');
 
-    // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
+            // toggle columns based on view
+            toggleFriendlyTableColumns(viewToShow);
+        });
+    });
+    // end friendly table tab buttons listeners
+
+    // RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS
     const availabilityTab = document.getElementById('war-availability-tab');
     if (availabilityTab) {
         availabilityTab.addEventListener('click', async (event) => {
@@ -5702,9 +5718,9 @@ async function displayQuickFFTargets(userApiKey, playerId) {
             }
         });
     }
-    // --- END RE-ADDED AVAILABILITY LISTENERS ---
+    // END RE-ADDED AVAILABILITY LISTENERS
 
-    // --- MODIFIED: This block now checks for the requestedTabName from the URL ---
+    // MODIFIED: This block now checks for the requestedTabName from the URL
     if (requestedTabName) {
         // This will take the value from the URL (e.g., 'live-faction-activity')
         // and turn it into the tab ID (e.g., 'live-faction-activity-tab') to show it.
@@ -5713,7 +5729,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         // This is the original default behavior if no specific tab is requested.
         showTab('announcements-tab');
     }
-    // --- END MODIFIED ---
+    // END MODIFIED
 
     let listenersInitialized = false;
 
@@ -5893,7 +5909,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 }, 10000); // Refresh quick FF targets every 10 seconds
 
 
-                // --- START: NEW CODE TO OPEN THE CORRECT TAB ---
+                // START: NEW CODE TO OPEN THE CORRECT TAB
                 // After all setup is complete, we check the URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const requestedView = urlParams.get('view');
@@ -5905,7 +5921,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                         targetButton.click();
                     }
                 }
-                // --- END: NEW CODE ---
+                // END: NEW CODE
             }
         } else {
             console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
@@ -6097,7 +6113,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
 
 
-    // --- RESTORED IMAGE UPLOAD LISTENERS ---
+    // RESTORED IMAGE UPLOAD LISTENERS
     const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
     const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
     const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
