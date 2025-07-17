@@ -87,7 +87,19 @@ header { width: 100%; background: #222; padding: 0 20px; display: flex; justify-
 .index-main-feature-box { width: 350px; background-color: rgba(30, 30, 30, 0.8); padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); color: #d0d0d0; border: 1px solid #00a8ff; position: absolute; top: 0px; left: -275px; z-index: 1; }
 .index-main-feature-box h2 { color: #00a8ff; margin-top: 0; border-bottom: 1px solid #00a8ff; padding-bottom: 8px; margin-bottom: 15px; font-size: 1.3rem; }
 .index-main-feature-box p { font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
-.whats-new-box { margin-top: 25px; padding: 15px 10px 20px 10px; text-align: center; }
+
+/* BEGIN FAQ BUTTON FIX */
+.whats-new-box {
+  margin-top: 25px;
+  padding: 15px 10px 20px 10px;
+  text-align: center;
+  /* Added for centering the FAQ button */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* END FAQ BUTTON FIX */
+
 .whats-new-box h4 { color: #00a8ff; font-size: 1.1rem; border-bottom: 1px solid #00a8ff; padding-bottom: 8px; margin-top: 0; margin-bottom: 15px; display: inline-block; }
 .whats-new-box ul { list-style: none; padding: 0; margin: 0 auto 15px auto; }
 .whats-new-box ul li { text-align: center; margin-bottom: 10px; }
@@ -179,20 +191,23 @@ header { width: 100%; background: #222; padding: 0 20px; display: flex; justify-
 #firebaseui-auth-container { margin-top: 25px; margin-bottom: 15px; text-align: left; }
 
 @media (max-width: 800px) {
-  .login-page-layout-container { display: flex; flex-direction: column; align-items: center; max-width: 100%; gap: 20px; min-height: unset; position: static; }
-  .index-main-feature-box, .login-container { position: static; transform: none; left: auto; top: auto; width: 90%; max-width: 500px; margin-left: auto; margin-right: auto; }
-  .index-main-feature-box { margin-top: 0; } 
-  .login-container { margin-top: 0; } 
-  .form-options-container { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .remember-me-label { width: 100%; justify-content: flex-start; }
-  .loginui-modal-content { padding: 20px 25px; max-width: 90%; } 
-  .loginui-modal-content h3 { font-size: 1.4rem; }
-  .loginui-modal-content .modal-subtitle { font-size: 0.85em; margin-bottom: 20px; }
+    .login-page-layout-container { display: flex; flex-direction: column; align-items: center; max-width: 100%; gap: 20px; min-height: unset; position: static; }
+    .index-main-feature-box, .login-container { position: static; transform: none; left: auto; top: auto; width: 90%; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .index-main-feature-box { margin-top: 0; }
+    .login-container { margin-top: 0; }
+    .form-options-container { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .remember-me-label { width: 100%; justify-content: flex-start; }
+    .loginui-modal-content { padding: 20px 25px; max-width: 90%; }
+    .loginui-modal-content h3 { font-size: 1.4rem; }
+    .loginui-modal-content .modal-subtitle { font-size: 0.85em; margin-bottom: 20px; }
 }
 @media (max-width: 768px) {
     body { padding-top: 0; padding-bottom: 0; }
-    header { height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; position: static; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    /* Removed header position:static; and flex-wrap logic here */
+    header { height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; justify-content: center; border-bottom: 3px solid #00a8ff; }
+
+    /* Removed header-left, header-center, header-right-controls width/justify/margin-bottom logic */
+
     #headerMainLogo { max-height: 50px; margin-top: 0; }
     .header-left h1 { font-size: 1.4rem; }
     .tagline { font-size: 0.7rem; }
@@ -217,21 +232,21 @@ header { width: 100%; background: #222; padding: 0 20px; display: flex; justify-
     .form-options-container { margin-bottom: 15px; }
     .popup .btn-uniform { margin: 8px 0; }
     .popup button#closeRegister.btn-uniform, .popup button#closeForgot.btn-uniform { margin-bottom: 0; }
-    .loginui-modal-content { padding: 15px 20px; } 
+    .loginui-modal-content { padding: 15px 20px; }
     .loginui-modal-content h3 { font-size: 1.3rem; }
     .loginui-modal-content .modal-actions { flex-direction: column; }
     .loginui-modal-content .modal-actions .btn { width: 100%; margin-bottom: 10px; }
     .loginui-modal-content .modal-actions .btn:last-child { margin-bottom: 0; }
 }
 .action-btn {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  min-width: 150px; /* Give buttons a minimum width */
-  text-align: center;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    min-width: 150px; /* Give buttons a minimum width */
+    text-align: center;
 }
