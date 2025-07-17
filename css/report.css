@@ -37,7 +37,7 @@ header {
     flex-shrink: 0; 
 }
 
-/* This targets the actual footer element when fixed */
+/* This targets the actual footer elent when fixed */
 footer.footer { 
     flex-shrink: 0; 
 }
