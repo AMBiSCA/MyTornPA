@@ -6,16 +6,34 @@ html, body {
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color-light, #eee); 
+	overflow: hidden;
 }
 
+/* In css/report.css */
+
+/* Correct the body padding to act as the main scrollable container buffer */
 body {
+    /* ... existing styles ... */
+    padding-top: 90px;   /* Accounts for 70px header + 20px buffer */
+    padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
+    box-sizing: border-box; /* Ensure padding is included in height calculation */
+    overflow-y: auto; /* This will be the primary scrollbar for the page's content */
+}
+
+.main-content-wrapper {
+    flex-grow: 1;
+    /* REMOVE these paddings, they cause overlap/double-padding now */
+    /* padding-top: 90px; */
+    /* padding-bottom: 90px; */
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
+    align-items: center;
     position: relative;
-	padding-top: -30px; /* Exact height of your fixed header */
-    padding-bottom: -10px;
-    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
+    z-index: 1;
+    /* This min-height calculation is no longer needed if body correctly pushes content down */
+    /* min-height: calc(100vh - 80px - 70px); */
+    min-height: 100%; /* Should now expand to fill the space provided by body's padding */
 }
 
 body::before {
@@ -35,18 +53,7 @@ body::before {
 	
 }
 
-.main-content-wrapper {
-    flex-grow: 1;
-    padding-top: 90px; 
-    padding-bottom: 90px; 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-    min-height: calc(100vh - 80px - 70px); 
-}
+
 
 .image-glow {
     position: fixed;
