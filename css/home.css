@@ -378,3 +378,149 @@ CSS
     padding-top: 10px;         /* Adds some space above the image (adjust as needed) */
     margin-bottom: 15px;       /* Adds space below the image, separating it from content below (adjust as needed) */
 }
+
+Great! I'm ready to provide the CSS for your new membershipOptionsModal. I've designed these styles to be consistent with the existing dark theme, blue accents, and overall aesthetic of your MyTornPA site, ensuring a professional and cohesive look.
+
+CSS to Add to home.css
+Please add these new CSS rules to your home.css file. A good place would be within the "Profile Setup & Personal Stats MODAL STYLES" section, or just below it, as it pertains to a new modal.
+
+CSS
+
+/* home.css */
+
+/* ... (existing CSS code) ... */
+
+/* NEW: Membership Options Modal Specific Styles */
+
+/* Base styling for the membership modal content box - inherits from .modal-content-box */
+.membership-modal {
+    max-width: 900px; /* Wider to accommodate three cards */
+    padding: 30px; /* Slightly more padding for better spacing */
+    text-align: center; /* Center align title and subtitle */
+}
+
+/* Membership Options Grid Layout */
+.membership-options-grid {
+    display: grid;
+    /* For larger screens: 3 columns of equal width */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px; /* Space between cards */
+    margin-top: 25px; /* Space below subtitle */
+    margin-bottom: 20px; /* Space above error message */
+}
+
+/* Individual Membership Option Cards */
+.membership-option-card {
+    background-color: #1e2022; /* Slightly lighter dark background for card */
+    border: 1px solid #383c42; /* Soft border */
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes button to bottom if content varies */
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.membership-option-card:hover {
+    transform: translateY(-5px); /* Subtle lift effect on hover */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+    border-color: #00a8ff; /* Highlight border on hover */
+}
+
+.membership-option-card h4 {
+    color: #8ab4f8; /* Consistent accent color for headings */
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.membership-option-card p {
+    color: #c0c0c0;
+    font-size: 0.95em;
+    line-height: 1.4;
+    margin-bottom: 10px; /* Space between paragraphs */
+}
+
+.membership-option-card .savings-info {
+    color: #FFC04D; /* Orange/Yellow for savings info */
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-bottom: 15px; /* More space before button */
+}
+
+/* Styling for buttons within membership cards - inherits from .btn, then customizes */
+.membership-select-btn {
+    margin-top: auto; /* Pushes button to the bottom of the flex container */
+    width: 100%; /* Make buttons full width of the card */
+    padding: 12px 15px;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: #007bff; /* Primary blue button */
+    border: 1px solid #0056b3;
+    color: white;
+    border-radius: 5px; /* Slightly less rounded than header buttons */
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.membership-select-btn:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-1px);
+}
+
+/* Specific styling for the Free Trial card for visual distinction */
+.free-trial-card {
+    border-color: #28a745; /* Green border */
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+.free-trial-card:hover {
+    border-color: #218838;
+    box-shadow: 0 8px 15px rgba(40, 167, 69, 0.5);
+}
+.free-trial-card .membership-select-btn {
+    background-color: #28a745; /* Green button */
+    border-color: #218838;
+}
+.free-trial-card .membership-select-btn:hover {
+    background-color: #218838;
+}
+
+/* Specific styling for the Yearly Membership card for extra prominence */
+.yearly-membership-card {
+    border-color: #FFD700; /* Gold border */
+    box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
+}
+.yearly-membership-card:hover {
+    border-color: #CC8400;
+    box-shadow: 0 8px 15px rgba(255, 215, 0, 0.6);
+}
+.yearly-membership-card .membership-select-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500); /* Gold gradient button */
+    border-color: #CC8400;
+    color: #333;
+}
+.yearly-membership-card .membership-select-btn:hover {
+    background: linear-gradient(135deg, #FFE033, #FFB833);
+}
+
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .membership-options-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+        gap: 15px;
+    }
+}
+
+@media (max-width: 580px) {
+    .membership-options-grid {
+        grid-template-columns: 1fr; /* Stack columns on small screens */
+        gap: 15px;
+    }
+    .membership-modal {
+        padding: 20px; /* Reduce padding on smaller screens */
+    }
+}
+
+/* ... (rest of your existing CSS code) ... */
