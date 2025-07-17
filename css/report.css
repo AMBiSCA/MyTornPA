@@ -1,107 +1,28 @@
-/* css/privacy.css */
-/* This file contains styles specific to the Privacy Policy page content. */
-/* General site layout, header, and footer styles are managed by global.css. */
 
-/* Basic html, body setup (assuming global.css provides the full, robust fixed header/footer handling) */
-html, body {
-    height: 100%; 
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color-light, #eee); /* Use global var */
-}
-
-body {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    position: relative;
-    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
-    min-height: 100vh; 
-}
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: grayscale(100%);
-    opacity: 0.8;
-    z-index: -1;
-}
-
-/* Header and Footer basic flex rules (assuming global.css provides their fixed positioning and heights) */
-header { 
-    flex-shrink: 0; 
-}
-footer.footer { 
-    flex-shrink: 0; 
-}
-
-/* Main content wrapper that sits between fixed header and footer */
-.main-content-wrapper {
-    flex-grow: 1; 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-    overflow-y: auto; /* Enable vertical scrolling for content overflow */
-    padding-top: 90px;    /* Accounts for fixed header height + buffer */
-    padding-bottom: 90px; /* Accounts for fixed footer height + buffer */
-    min-height: auto; 
-}
-
-.image-glow {
-    position: fixed;
-    left: -3%;
-    bottom: 0;
-    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-.image-glow-flipped {
-    position: fixed;
-    right: -3%;
-    bottom: 0;
-    transform: scaleX(-1);
-    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* Main content container for the privacy policy page - Consistent with FAQ/Terms */
-main.privacy-page-content {
+/* Main content container for the report page */
+main.report-page-content {
     width: 90%; 
     max-width: 1400px; 
-    margin-top: 15px; 
-    margin-bottom: 20px;
+    margin-top: 15px; /* Spacing from the element above it */
+    margin-bottom: 20px; /* Spacing to the element below it */
     margin-left: auto;
     margin-right: auto;
-    background-color: #222; /* Outer container background */
+    background-color: #222; 
     padding: 20px 40px;
     border-radius: 12px;
-    border: 2px solid #00a8ff; /* Outer 2px blue border */
+    border: 2px solid #00a8ff; 
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
     box-sizing: border-box;
     position: relative;
     z-index: 1;
-    display: flex; /* Make it a flex container for its children sections */
+    display: flex; 
     flex-direction: column; 
-    /* No explicit height here, allowing content to define it within the scrollable main-content-wrapper */
+    /* NEW: Removed height/min-height and overflow-y here. Rely on main-content-wrapper */
+    flex-grow: 1; /* Allow content to grow within main-content-wrapper */
 }
 
-/* Page title styles - Consistent with FAQ/Terms */
-main.privacy-page-content h2.highlight {
+/* Page title styles */
+main.report-page-content h2.page-title.highlight {
     font-size: 2.2rem; 
     font-weight: bold;
     color: var(--theme-accent-color, #00a8ff);
@@ -111,41 +32,50 @@ main.privacy-page-content h2.highlight {
     flex-shrink: 0; 
 }
 
-/* Last updated timestamp style */
-main.privacy-page-content p.last-updated {
-    font-size: 0.85rem;
-    color: #bbb;
-    text-align: center;
-    margin-top: -15px; /* Pull it closer to the title */
-    margin-bottom: 20px;
-    flex-shrink: 0;
+/* Introductory and thank-you paragraph styles */
+main.report-page-content p {
+    font-size: 0.95rem; 
+    line-height: 1.6;
+    margin-bottom: 15px;
+    text-align: left;
+    color: var(--text-color-light, #eee);
+    flex-shrink: 0; 
 }
 
-/* Privacy sections grid (for multi-column layout if desired, though content might just stack) */
-/* Apply grid directly to the sections within main.privacy-page-content */
-main.privacy-page-content section {
-    display: grid; /* Make sections a grid container for their internal content */
-    grid-template-columns: 1fr; /* Default to single column for all section content */
-    gap: 15px; /* Gap between grid items if any internal elements use grid */
+.thank-you-message {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #bbb;
+    flex-shrink: 0; 
+}
 
-    background-color: #272727; /* Inner section background, consistent with FAQ/Terms items */
+/* Grid for the three main sections */
+.report-sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 25px; 
+    margin-bottom: 25px; 
+    flex-grow: 1; /* Allow grid to grow within main content box */
+    overflow-y: auto; /* Allow the entire grid content to scroll if it overflows */
+}
+
+/* Individual section items within the grid */
+.report-section-item {
+    background-color: #272727; 
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #00a8ff; /* Inner 1px blue border */
+    border: 1px solid #00a8ff; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
     box-sizing: border-box;
-    margin-bottom: 20px; /* Space between each major section */
-    flex-grow: 1; /* Allow sections to grow within the main container */
-    overflow-y: auto; /* Allow internal scrolling for individual sections if their content overflows */
+    display: flex;
+    flex-direction: column; 
+    flex-grow: 1; 
+    overflow-y: auto; /* Allow internal scrolling for individual sections if needed */
 }
 
-/* Last section should not have bottom margin if it's the last element */
-main.privacy-page-content section:last-child {
-    margin-bottom: 0; 
-}
-
-/* Section heading styles - Consistent with FAQ/Terms */
-main.privacy-page-content section h3 {
+/* Main section heading styles */
+.report-section-item h3 {
     color: var(--theme-accent-color, #00a8ff);
     text-align: center;
     margin-top: 0;
@@ -155,26 +85,24 @@ main.privacy-page-content section h3 {
     flex-shrink: 0; 
 }
 
-/* Paragraphs within sections - Consistent with FAQ/Terms */
-main.privacy-page-content p {
-    font-size: 0.95rem; 
-    line-height: 1.6;
-    margin-bottom: 15px;
-    text-align: left;
-    color: var(--text-color-light, #eee);
+/* Sub-heading styling within sections */
+.report-section-item h4 {
+    color: #00c0ff; 
+    font-size: 1.05rem; 
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: bold; 
     flex-shrink: 0; 
 }
 
-/* List items within sections - Consistent with FAQ/Terms */
-main.privacy-page-content ul {
-    list-style-type: disc; /* Standard bullet points */
+.report-section-item ul {
+    list-style-type: disc; 
     padding-left: 20px; 
     margin-bottom: 15px;
-    flex-grow: 1; /* Allows lists to take up available vertical space */
-    overflow-y: auto; /* Allow list to scroll internally if it overflows */
+    flex-grow: 1; 
 }
 
-main.privacy-page-content ul li {
+.report-section-item ul li {
     margin-bottom: 8px; 
     font-size: 0.9rem; 
     line-height: 1.5;
@@ -182,76 +110,82 @@ main.privacy-page-content ul li {
     flex-shrink: 0; 
 }
 
-/* Links within content - Consistent with FAQ/Terms */
-main.privacy-page-content a {
+.report-section-item ul li h4 { 
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1rem; 
+}
+
+.report-section-item a {
     color: var(--theme-accent-color, #00a8ff);
     text-decoration: underline;
 }
-main.privacy-page-content a:hover {
+.report-section-item a:hover {
     color: var(--theme-accent-hover-color, #3ccbff);
 }
 
-
-/* Footer styles - Fixed and consistent */
-footer.footer {
-    flex-shrink: 0;
-    background-color: #222;
-    color: #999;
-    padding-top: 12px;
-    padding-bottom: 6px;
-    padding-left: 20px;
-    padding-right: 20px;
+.future-admin-contact-placeholder {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #4a6a8a; 
+    font-size: 0.85rem;
+    color: #bbb;
     text-align: center;
-    font-size: 14px;
-    position: fixed; 
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    border-top: 1px solid #00a8ff; 
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    user-select: none;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-shrink: 0; 
 }
-footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
-footer.footer .footer-links { margin-bottom: 4px; }
-footer.footer .footer-links a:hover { text-decoration: underline; }
+.future-admin-contact-placeholder h4 {
+    color: #ccc;
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+}
+.future-admin-contact-placeholder ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+.future-admin-contact-placeholder ul li {
+    margin-bottom: 5px;
+}
 
+/* NEW: Style for troubleshooting items to emphasize them in orange */
+.report-section-item ul li.troubleshoot-item strong {
+    color: #ffc107; /* Orange color for emphasis */
+}
 
-/* Responsive styles - Consistent with FAQ/Terms */
-/* Sections will naturally stack due to flex-direction: column on main.privacy-page-content */
-/* No specific grid required here unless you want internal sections to have their own multi-column layout */
-/* For now, sections will stack as single columns */
+/* Responsive styles */
+@media (max-width: 1100px) { 
+    .report-sections-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+    }
+}
 
 @media (max-width: 768px) {
-    main.privacy-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
-    main.privacy-page-content h2.highlight { font-size: 1.8rem; }
-    main.privacy-page-content p { font-size: 0.9rem; }
-    main.privacy-page-content section h3 { font-size: 1.3rem; }
-    main.privacy-page-content ul li { font-size: 0.85rem; }
+    .report-sections-grid {
+        grid-template-columns: 1fr; 
+    }
+    main.report-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
+    main.report-page-content h2.page-title.highlight { font-size: 1.8rem; }
+    main.report-page-content p { font-size: 0.9rem; }
     .image-glow, .image-glow-flipped { display: none; }
 }
 
 @media (max-width: 480px) {
-    main.privacy-page-content { margin: 10px; padding: 15px; }
-    main.privacy-page-content h2.highlight { font-size: 1.5rem; }
-    main.privacy-page-content p { font-size: 0.85rem; }
-    main.privacy-page-content section h3 { font-size: 1.2rem; }
-    main.privacy-page-content ul li { font-size: 0.82rem; }
+    main.report-page-content { margin: 10px; padding: 15px; }
+    main.report-page-content h2.page-title.highlight { font-size: 1.5rem; }
+    main.report-page-content p { font-size: 0.85rem; }
+    .report-section-item { padding: 12px; }
 }
 
-/* Force buttons in the header to be bold (review if global.css should handle this) */
+/* These styles are for the HEADER buttons and should ideally be in global.css */
+/* If they are not already in global.css, consider moving them there for consistency. */
 header .btn,
 header button,
 header .header-btn {
     font-weight: bold !important;
 }
 
-/* Force buttons on login/logout screens to be bold (review if global.css should handle this) */
+/* These styles are for LOGIN/LOGOUT screen buttons and should ideally be in global.css */
+/* If they are not already in global.css, consider moving them there for consistency. */
 .login-screen-wrapper .btn,
 .login-screen-wrapper button,
 .login-dialog .btn,

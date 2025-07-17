@@ -1,129 +1,270 @@
-/* politics.css - Specific styles for the Politics page */
+/* css/privacy.css */
+/* This file contains styles specific to the Privacy Policy page content. */
+/* General site layout, header, and footer styles are managed by global.css. */
 
-.politics-page-content {
-    padding: 20px;
-    /* Inherits main styling from global.css, add specific overrides or new styles below */
+/* Basic html, body setup (assuming global.css provides the full, robust fixed header/footer handling) */
+html, body {
+    height: 100%; 
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color-light, #eee); /* Use global var */
 }
 
-.politics-page-content .highlight {
+body {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
+    min-height: 100vh; 
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+    opacity: 0.8;
+    z-index: -1;
+}
+
+/* Header and Footer basic flex rules (assuming global.css provides their fixed positioning and heights) */
+header { 
+    flex-shrink: 0; 
+}
+footer.footer { 
+    flex-shrink: 0; 
+}
+
+/* Main content wrapper that sits between fixed header and footer */
+.main-content-wrapper {
+    flex-grow: 1; 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    overflow-y: auto; /* Enable vertical scrolling for content overflow */
+    padding-top: 90px;    /* Accounts for fixed header height + buffer */
+    padding-bottom: 90px; /* Accounts for fixed footer height + buffer */
+    min-height: auto; 
+}
+
+.image-glow {
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow-flipped {
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Main content container for the privacy policy page - Consistent with FAQ/Terms */
+main.privacy-page-content {
+    width: 90%; 
+    max-width: 1400px; 
+    margin-top: 15px; 
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #222; /* Outer container background */
+    padding: 20px 40px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff; /* Outer 2px blue border */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    display: flex; /* Make it a flex container for its children sections */
+    flex-direction: column; 
+    /* No explicit height here, allowing content to define it within the scrollable main-content-wrapper */
+}
+
+/* Page title styles - Consistent with FAQ/Terms */
+main.privacy-page-content h2.highlight {
+    font-size: 2.2rem; 
+    font-weight: bold;
     color: var(--theme-accent-color, #00a8ff);
-    margin-bottom: 25px;
-    text-align: center; /* As per global h2 */
-    font-weight: 600; /* As per global h2 */
-}
-
-.politics-page-content > p { /* Targeting the main introductory paragraph */
-    font-size: 1.05rem;
     text-align: center;
-    margin-bottom: 30px;
-    color: var(--text-color-normal, #d0d0d0);
-}
-
-.politics-section {
-    background-color: rgba(30, 30, 30, 0.75); /* Darker, distinct section background */
-    padding: 25px;
     margin-bottom: 25px;
-    border-radius: 10px; /* Slightly larger radius */
-    border: 1px solid rgba(0, 168, 255, 0.25);
-    box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    padding-top: 0;
+    flex-shrink: 0; 
 }
 
-.politics-section:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 12px rgba(0, 168, 255, 0.2);
+/* Last updated timestamp style */
+main.privacy-page-content p.last-updated {
+    font-size: 0.85rem;
+    color: #bbb;
+    text-align: center;
+    margin-top: -15px; /* Pull it closer to the title */
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
-.politics-section h3 {
-    color: var(--theme-accent-hover-color, #00e0ff);
-    margin-top: 0;
-    margin-bottom: 18px;
-    border-bottom: 2px solid var(--theme-accent-color, #00a8ff);
-    padding-bottom: 12px;
-    font-size: 1.4rem; /* Larger subheadings */
-    font-weight: 500;
-}
+/* Privacy sections grid (for multi-column layout if desired, though content might just stack) */
+/* Apply grid directly to the sections within main.privacy-page-content */
+main.privacy-page-content section {
+    display: grid; /* Make sections a grid container for their internal content */
+    grid-template-columns: 1fr; /* Default to single column for all section content */
+    gap: 15px; /* Gap between grid items if any internal elements use grid */
 
-.politics-section p {
-    font-size: 0.95rem; /* Slightly smaller paragraph text within sections for density */
-    line-height: 1.65;
-    color: var(--text-color-light, #eee); /* Lighter text for contrast on darker section bg */
-    margin-bottom: 12px;
-}
-
-.politics-section ul {
-    list-style: none; /* Ensured by global.css */
-    padding-left: 0; /* Ensured by global.css */
-    margin-top: 15px;
-}
-
-.politics-section ul li {
-    background-color: rgba(42, 42, 42, 0.85); /* Slightly lighter than section bg */
-    padding: 12px 18px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border-left: 4px solid var(--theme-accent-hover-color, #00e0ff);
-    color: var(--text-color-normal, #d0d0d0);
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease, border-left-color 0.2s ease;
-}
-
-.politics-section ul li:hover {
-    background-color: rgba(55, 55, 55, 0.95);
-    border-left-color: #00ffc3; /* Example of a different hover accent */
-}
-
-/* Styles for potential interactive elements like buttons or category toggles if added later */
-/*
-.politics-category-toggle {
-    display: inline-block;
-    padding: 8px 15px;
-    background-color: var(--btn-default-bg-color);
-    color: var(--btn-default-text-color);
-    border: 1px solid var(--btn-default-border-color);
-    border-radius: var(--btn-border-radius);
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.politics-category-toggle:hover {
-    background-color: rgba(0, 168, 255, 0.15);
-    border-color: var(--btn-default-hover-border-color);
-}
-
-.politics-category-content {
-    display: none; // To be shown/hidden with JavaScript
-    margin-top: 10px;
+    background-color: #272727; /* Inner section background, consistent with FAQ/Terms items */
     padding: 15px;
-    background-color: rgba(20,20,20,0.5);
-    border-radius: 5px;
+    border-radius: 8px;
+    border: 1px solid #00a8ff; /* Inner 1px blue border */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+    box-sizing: border-box;
+    margin-bottom: 20px; /* Space between each major section */
+    flex-grow: 1; /* Allow sections to grow within the main container */
+    overflow-y: auto; /* Allow internal scrolling for individual sections if their content overflows */
 }
-*/
 
-/* Responsive adjustments for politics page */
+/* Last section should not have bottom margin if it's the last element */
+main.privacy-page-content section:last-child {
+    margin-bottom: 0; 
+}
+
+/* Section heading styles - Consistent with FAQ/Terms */
+main.privacy-page-content section h3 {
+    color: var(--theme-accent-color, #00a8ff);
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem; 
+    font-weight: 600;
+    flex-shrink: 0; 
+}
+
+/* Paragraphs within sections - Consistent with FAQ/Terms */
+main.privacy-page-content p {
+    font-size: 0.95rem; 
+    line-height: 1.6;
+    margin-bottom: 15px;
+    text-align: left;
+    color: var(--text-color-light, #eee);
+    flex-shrink: 0; 
+}
+
+/* List items within sections - Consistent with FAQ/Terms */
+main.privacy-page-content ul {
+    list-style-type: disc; /* Standard bullet points */
+    padding-left: 20px; 
+    margin-bottom: 15px;
+    flex-grow: 1; /* Allows lists to take up available vertical space */
+    overflow-y: auto; /* Allow list to scroll internally if it overflows */
+}
+
+main.privacy-page-content ul li {
+    margin-bottom: 8px; 
+    font-size: 0.9rem; 
+    line-height: 1.5;
+    color: #ddd;
+    flex-shrink: 0; 
+}
+
+/* Links within content - Consistent with FAQ/Terms */
+main.privacy-page-content a {
+    color: var(--theme-accent-color, #00a8ff);
+    text-decoration: underline;
+}
+main.privacy-page-content a:hover {
+    color: var(--theme-accent-hover-color, #3ccbff);
+}
+
+
+/* Footer styles - Fixed and consistent */
+footer.footer {
+    flex-shrink: 0;
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    position: fixed; 
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid #00a8ff; 
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    user-select: none;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
+footer.footer .footer-links { margin-bottom: 4px; }
+footer.footer .footer-links a:hover { text-decoration: underline; }
+
+
+/* Responsive styles - Consistent with FAQ/Terms */
+/* Sections will naturally stack due to flex-direction: column on main.privacy-page-content */
+/* No specific grid required here unless you want internal sections to have their own multi-column layout */
+/* For now, sections will stack as single columns */
+
 @media (max-width: 768px) {
-    .politics-page-content {
-        padding: 15px;
-    }
-    .politics-page-content > p {
-        font-size: 1rem;
-        margin-bottom: 20px;
-    }
-    .politics-section {
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    .politics-section h3 {
-        font-size: 1.25rem;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-    }
-    .politics-section p {
-        font-size: 0.9rem;
-    }
-    .politics-section ul li {
-        padding: 10px 15px;
-        font-size: 0.85rem;
-    }
+    main.privacy-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
+    main.privacy-page-content h2.highlight { font-size: 1.8rem; }
+    main.privacy-page-content p { font-size: 0.9rem; }
+    main.privacy-page-content section h3 { font-size: 1.3rem; }
+    main.privacy-page-content ul li { font-size: 0.85rem; }
+    .image-glow, .image-glow-flipped { display: none; }
+}
+
+@media (max-width: 480px) {
+    main.privacy-page-content { margin: 10px; padding: 15px; }
+    main.privacy-page-content h2.highlight { font-size: 1.5rem; }
+    main.privacy-page-content p { font-size: 0.85rem; }
+    main.privacy-page-content section h3 { font-size: 1.2rem; }
+    main.privacy-page-content ul li { font-size: 0.82rem; }
+}
+
+/* Force buttons in the header to be bold (review if global.css should handle this) */
+header .btn,
+header button,
+header .header-btn {
+    font-weight: bold !important;
+}
+
+/* Force buttons on login/logout screens to be bold (review if global.css should handle this) */
+.login-screen-wrapper .btn,
+.login-screen-wrapper button,
+.login-dialog .btn,
+.login-dialog button,
+.login-page-container .btn,
+.login-page-container button,
+.btn-login,
+.logout-screen-wrapper .btn,
+.logout-screen-wrapper button,
+.logout-dialog .btn,
+.logout-dialog button,
+.logout-page-container .btn,
+.logout-page-container button,
+.btn-logout {
+    font-weight: bold !important;
 }
