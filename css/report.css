@@ -1,10 +1,10 @@
 /* General layout from global.css applies, but some overrides here */
 html, body {
-    height: 100%; /* Allow html/body to take full height of content, or fill viewport */
+    height: 100%; 
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color-light, #eee);
+    color: var(--text-color-light, #eee); 
 }
 
 body {
@@ -13,7 +13,7 @@ body {
     box-sizing: border-box;
     position: relative;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
-    min-height: 100vh; /* Ensure body stretches to fill viewport */
+    min-height: 100vh; 
 }
 
 body::before {
@@ -33,29 +33,30 @@ body::before {
 }
 
 /* This targets the actual header element (or its placeholder) when fixed */
-header { /* Assume header has position:fixed, height:70px, top:0, left:0, width:100% from global.css */
-    flex-shrink: 0; /* Prevents header from shrinking */
+header { 
+    flex-shrink: 0; 
 }
 
 /* This targets the actual footer element when fixed */
-footer.footer { /* Assume footer has position:fixed, height:70px, bottom:0, left:0, width:100% from global.css */
-    flex-shrink: 0; /* Prevents footer from shrinking */
+footer.footer { 
+    flex-shrink: 0; 
 }
 
 /* Main content wrapper that sits between fixed header and footer */
 .main-content-wrapper {
-    flex-grow: 1; /* Allows it to take all available space */
+    flex-grow: 1; 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    overflow-y: auto; /* Enable vertical scrolling for content overflow */
-    /* NEW: Add padding here to create space from the fixed header/footer */
-    padding-top: 90px;    /* Accounts for 70px header + 20px buffer */
+    overflow-y: auto; 
+    min-height: calc(100% - 160px);
+    padding-top: 90px;    /* Accounts for 70px header + 10px buffer */
     padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
-    min-height: auto; /* Let content dictate min-height, or stretch via flex-grow */
+    min-height: auto; 
+
 }
 
 .image-glow {
@@ -80,44 +81,44 @@ footer.footer { /* Assume footer has position:fixed, height:70px, bottom:0, left
 
 /* Main content container for the report page - Consistent with Terms page */
 main.report-page-content {
-    width: 90%;
-    max-width: 1400px;
-    margin-top: 15px;
+    width: 90%; 
+    max-width: 1400px; 
+    margin-top: 15px; 
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
-    background-color: #222;
+    background-color: #222; 
     padding: 20px 40px;
     border-radius: 12px;
-    border: 2px solid #00a8ff;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    border: 2px solid #00a8ff; 
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
     box-sizing: border-box;
     position: relative;
     z-index: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Ensure it takes 100% of main-content-wrapper's height for flex context */
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
 }
 
 /* Page title styles - Consistent with Terms page */
 main.report-page-content h2.page-title.highlight {
-    font-size: 2.2rem;
+    font-size: 2.2rem; 
     font-weight: bold;
     color: var(--theme-accent-color, #00a8ff);
     text-align: center;
     margin-bottom: 25px;
     padding-top: 0;
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 
 /* Introductory and thank-you paragraph styles - Consistent with Terms page */
 main.report-page-content p {
-    font-size: 0.95rem;
+    font-size: 0.95rem; 
     line-height: 1.6;
     margin-bottom: 15px;
     text-align: left;
     color: var(--text-color-light, #eee);
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 
 .thank-you-message {
@@ -125,31 +126,31 @@ main.report-page-content p {
     text-align: center;
     font-size: 0.9rem;
     color: #bbb;
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 
 /* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
 .report-sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-    margin-bottom: 25px;
-    flex-grow: 1; /* Allow grid to take up available height */
-    overflow-y: auto; /* Allow the entire grid content to scroll if it overflows */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 25px; 
+    margin-bottom: 25px; 
+    flex-grow: 1; 
+    overflow-y: auto; 
 }
 
 /* Individual section items within the grid - Consistent with Terms page */
 .report-section-item {
-    background-color: #272727;
+    background-color: #272727; 
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #00a8ff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border: 1px solid #00a8ff; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
     box-sizing: border-box;
     display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow-y: auto; /* Allow internal scrolling for individual sections if needed */
+    flex-direction: column; 
+    flex-grow: 1; 
+    overflow-y: auto; 
 }
 
 /* Main section heading styles - Consistent with Terms page */
@@ -158,40 +159,40 @@ main.report-page-content p {
     text-align: center;
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.5rem;
+    font-size: 1.5rem; 
     font-weight: 600;
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 
 /* Sub-heading styling within sections (e.g., for Email, Torn Message, Discord) */
 .report-section-item h4 {
-    color: #00c0ff;
-    font-size: 1.05rem;
+    color: #00c0ff; 
+    font-size: 1.05rem; 
     margin-top: 0;
     margin-bottom: 8px;
-    font-weight: bold;
-    flex-shrink: 0;
+    font-weight: bold; 
+    flex-shrink: 0; 
 }
 
 .report-section-item ul {
-    list-style-type: disc;
-    padding-left: 20px;
+    list-style-type: disc; 
+    padding-left: 20px; 
     margin-bottom: 15px;
-    flex-grow: 1;
+    flex-grow: 1; 
 }
 
 .report-section-item ul li {
-    margin-bottom: 8px;
-    font-size: 0.9rem;
+    margin-bottom: 8px; 
+    font-size: 0.9rem; 
     line-height: 1.5;
     color: #ddd;
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 
-.report-section-item ul li h4 {
+.report-section-item ul li h4 { 
     margin-top: 0;
     margin-bottom: 5px;
-    font-size: 1rem;
+    font-size: 1rem; 
 }
 
 .report-section-item a {
@@ -205,11 +206,11 @@ main.report-page-content p {
 .future-admin-contact-placeholder {
     margin-top: 15px;
     padding-top: 10px;
-    border-top: 1px dashed #4a6a8a;
+    border-top: 1px dashed #4a6a8a; 
     font-size: 0.85rem;
     color: #bbb;
     text-align: center;
-    flex-shrink: 0;
+    flex-shrink: 0; 
 }
 .future-admin-contact-placeholder h4 {
     color: #ccc;
@@ -237,11 +238,11 @@ footer.footer {
     padding-right: 20px;
     text-align: center;
     font-size: 14px;
-    position: fixed;
+    position: fixed; 
     bottom: 0;
     left: 0;
     width: 100%;
-    border-top: 1px solid #00a8ff;
+    border-top: 1px solid #00a8ff; 
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
     user-select: none;
     z-index: 102;
@@ -257,15 +258,15 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles */
-@media (max-width: 1100px) {
+@media (max-width: 1100px) { 
     .report-sections-grid {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
     }
 }
 
 @media (max-width: 768px) {
     .report-sections-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; 
     }
     main.report-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.report-page-content h2.page-title.highlight { font-size: 1.8rem; }
