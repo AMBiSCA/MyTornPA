@@ -1,90 +1,10 @@
-/* General layout from global.css applies, but some overrides here */
-html, body {
-    height: 100%; 
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color-light, #eee); 
-}
 
-body {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    position: relative;
-    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
-    min-height: 100vh; 
-}
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: grayscale(100%);
-    opacity: 0.8;
-    z-index: -1;
-}
-
-/* This targets the actual header element (or its placeholder) when fixed */
-header { 
-    flex-shrink: 0; 
-}
-
-/* This targets the actual footer elent when fixed */
-footer.footer { 
-    flex-shrink: 0; 
-}
-
-/* Main content wrapper that ts between fixed header and footer */
-.main-content-wrapper {
-    flex-grow: 1; 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-    overflow-y: auto; 
-    min-height: calc(100% - 1px);
-    padding-top: 90px;    /* Accounts for 70px header + 10px buffer */
-    padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
-    min-height: auto; 
-
-}
-
-.image-glow {
-    position: fixed;
-    left: -3%;
-    bottom: 0;
-    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-.image-glow-flipped {
-    position: fixed;
-    right: -3%;
-    bottom: 0;
-    transform: scaleX(-1);
-    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* Main content container for the report page - Consistent with Terms page */
+/* Main content container for the report page */
 main.report-page-content {
     width: 90%; 
     max-width: 1400px; 
-    margin-top: 15px; 
-    margin-bottom: 20px;
+    margin-top: 15px; /* Spacing from the element above it */
+    margin-bottom: 20px; /* Spacing to the element below it */
     margin-left: auto;
     margin-right: auto;
     background-color: #222; 
@@ -97,10 +17,11 @@ main.report-page-content {
     z-index: 1;
     display: flex; 
     flex-direction: column; 
-    height: 100%; 
+    /* NEW: Removed height/min-height and overflow-y here. Rely on main-content-wrapper */
+    flex-grow: 1; /* Allow content to grow within main-content-wrapper */
 }
 
-/* Page title styles - Consistent with Terms page */
+/* Page title styles */
 main.report-page-content h2.page-title.highlight {
     font-size: 2.2rem; 
     font-weight: bold;
@@ -111,7 +32,7 @@ main.report-page-content h2.page-title.highlight {
     flex-shrink: 0; 
 }
 
-/* Introductory and thank-you paragraph styles - Consistent with Terms page */
+/* Introductory and thank-you paragraph styles */
 main.report-page-content p {
     font-size: 0.95rem; 
     line-height: 1.6;
@@ -129,17 +50,17 @@ main.report-page-content p {
     flex-shrink: 0; 
 }
 
-/* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
+/* Grid for the three main sections */
 .report-sections-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
     gap: 25px; 
     margin-bottom: 25px; 
-    flex-grow: 1; 
-    overflow-y: auto; 
+    flex-grow: 1; /* Allow grid to grow within main content box */
+    overflow-y: auto; /* Allow the entire grid content to scroll if it overflows */
 }
 
-/* Individual section items within the grid - Consistent with Terms page */
+/* Individual section items within the grid */
 .report-section-item {
     background-color: #272727; 
     padding: 15px;
@@ -150,10 +71,10 @@ main.report-page-content p {
     display: flex;
     flex-direction: column; 
     flex-grow: 1; 
-    overflow-y: auto; 
+    overflow-y: auto; /* Allow internal scrolling for individual sections if needed */
 }
 
-/* Main section heading styles - Consistent with Terms page */
+/* Main section heading styles */
 .report-section-item h3 {
     color: var(--theme-accent-color, #00a8ff);
     text-align: center;
@@ -164,7 +85,7 @@ main.report-page-content p {
     flex-shrink: 0; 
 }
 
-/* Sub-heading styling within sections (e.g., for Email, Torn Message, Discord) */
+/* Sub-heading styling within sections */
 .report-section-item h4 {
     color: #00c0ff; 
     font-size: 1.05rem; 
@@ -226,36 +147,10 @@ main.report-page-content p {
     margin-bottom: 5px;
 }
 
-
-/* Footer styles - Fixed and consistent */
-footer.footer {
-    flex-shrink: 0;
-    background-color: #222;
-    color: #999;
-    padding-top: 12px;
-    padding-bottom: 6px;
-    padding-left: 20px;
-    padding-right: 20px;
-    text-align: center;
-    font-size: 14px;
-    position: fixed; 
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    border-top: 1px solid #00a8ff; 
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    user-select: none;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+/* NEW: Style for troubleshooting items to emphasize them in orange */
+.report-section-item ul li.troubleshoot-item strong {
+    color: #ffc107; /* Orange color for emphasis */
 }
-footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
-footer.footer .footer-links { margin-bottom: 4px; }
-footer.footer .footer-links a:hover { text-decoration: underline; }
-
 
 /* Responsive styles */
 @media (max-width: 1100px) { 
@@ -281,14 +176,16 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
     .report-section-item { padding: 12px; }
 }
 
-/* Force buttons in the header to be bold (review if global.css should handle this) */
+/* These styles are for the HEADER buttons and should ideally be in global.css */
+/* If they are not already in global.css, consider moving them there for consistency. */
 header .btn,
 header button,
 header .header-btn {
     font-weight: bold !important;
 }
 
-/* Force buttons on login/logout screens to be bold (review if global.css should handle this) */
+/* These styles are for LOGIN/LOGOUT screen buttons and should ideally be in global.css */
+/* If they are not already in global.css, consider moving them there for consistency. */
 .login-screen-wrapper .btn,
 .login-screen-wrapper button,
 .login-dialog .btn,
