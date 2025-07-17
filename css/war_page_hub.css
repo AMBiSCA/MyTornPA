@@ -4573,6 +4573,13 @@ margin-right: auto !important;
     /* You can apply a visual highlight to the button that launched the modal */
 }
 
+/* Hide Travel and Xanax block on mobile */
+@media (max-width: 768px) {
+    .ops-control-item.ops-control-item--actions {
+        display: none;
+    }
+}
+
 .game-plan-display img {
     width: 100%;          /* Make the image span the full width of the container */
     height: 100%;         /* Make the image span the full height of the container */
@@ -4581,44 +4588,38 @@ margin-right: auto !important;
 }
 
 /* ==================================================================
-   BATTLE STATS COLOR CODING (V2 - All Red Theme)
+   BATTLE STATS COLOR CODING (V3 - 9-Tier Final)
    ================================================================== */
 
-/* Base style for stat cells */
+/* This single rule makes the font black and bold on ALL tiers */
 #friendly-members-table td.stat-cell {
+    color: black !important;
     font-weight: bold;
 }
 
-/* Tiers 1-5 get black font */
-.stat-tier-1, .stat-tier-2, .stat-tier-3, .stat-tier-4, .stat-tier-5 {
-    color: black !important;
-}
-
-/* Tiers 6-8 get white font for better contrast on dark red */
-.stat-tier-6, .stat-tier-7, .stat-tier-8 {
-    color: white !important;
-}
-
 /* Tier 1: < 10k */
-.stat-tier-1 { background-color: #FFEBEE; } /* Hint of Pink */
+.stat-tier-1 { background-color: #F5F5F5; } /* Light Grey */
 
 /* Tier 2: 10k to 100k */
-.stat-tier-2 { background-color: #FFCDD2; } /* Very Pale Pink */
+.stat-tier-2 { background-color: #E3F2FD; } /* Pale Blue */
 
 /* Tier 3: 100k to 1M */
-.stat-tier-3 { background-color: #EF9A9A; } /* Light Pink */
+.stat-tier-3 { background-color: #BBDEFB; } /* Light Blue */
 
-/* Tier 4: 1M to 10M */
-.stat-tier-4 { background-color: #E57373; } /* Salmon / Light Red */
+/* Tier 4: 1M to 5M */
+.stat-tier-4 { background-color: #FFCDD2; } /* Light Salmon / Pinkish-Red */
 
-/* Tier 5: 10M to 100M */
-.stat-tier-5 { background-color: #EF5350; } /* Coral / Orangey-Red */
+/* Tier 5: 5M to 10M */
+.stat-tier-5 { background-color: #EF9A9A; } /* Salmon / Light Red */
 
-/* Tier 6: 100M to 200M */
-.stat-tier-6 { background-color: #F44336; } /* Standard Red */
+/* Tier 6: 10M to 100M */
+.stat-tier-6 { background-color: #E57373; } /* Coral / Orangey-Red */
 
-/* Tier 7: 200M to 500M */
-.stat-tier-7 { background-color: #D32F2F; } /* Darker Red (Crimson) */
+/* Tier 7: 100M to 200M */
+.stat-tier-7 { background-color: #F44336; } /* Standard Red */
 
-/* Tier 8: > 500M */
-.stat-tier-8 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */
+/* Tier 8: 200M to 500M */
+.stat-tier-8 { background-color: #D32F2F; } /* Darker Red (Crimson) */
+
+/* Tier 9: > 500M */
+.stat-tier-9 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */

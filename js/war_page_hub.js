@@ -6114,7 +6114,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
 /**
  * ==================================================================
- * BATTLE STATS COLOR CODING FUNCTIONS (V3 - 8-Tier Red Theme)
+ * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
  * ==================================================================
  */
 
@@ -6151,7 +6151,7 @@ function applyStatColorCoding() {
 
     statCells.forEach(cell => {
         // First, remove any old stat tier classes to ensure a clean slate
-        for (let i = 1; i <= 8; i++) {
+        for (let i = 1; i <= 9; i++) {
             cell.classList.remove(`stat-tier-${i}`);
         }
         cell.classList.remove('stat-cell');
@@ -6160,12 +6160,14 @@ function applyStatColorCoding() {
         let tierClass = '';
 
         if (value >= 500000000) {
-            tierClass = 'stat-tier-8';
+            tierClass = 'stat-tier-9';
         } else if (value >= 200000000) {
-            tierClass = 'stat-tier-7';
+            tierClass = 'stat-tier-8';
         } else if (value >= 100000000) {
-            tierClass = 'stat-tier-6';
+            tierClass = 'stat-tier-7';
         } else if (value >= 10000000) {
+            tierClass = 'stat-tier-6';
+        } else if (value >= 5000000) {
             tierClass = 'stat-tier-5';
         } else if (value >= 1000000) {
             tierClass = 'stat-tier-4';
