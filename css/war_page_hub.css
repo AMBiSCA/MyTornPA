@@ -4573,9 +4573,9 @@ margin-right: auto !important;
     /* You can apply a visual highlight to the button that launched the modal */
 }
 
-/* Hide Travel and Xanax block on mobile */
+/* Hide ALL ops-controls-grid content in the friendly-status-tab on mobile */
 @media (max-width: 768px) {
-    .ops-control-item.ops-control-item--actions {
+    #friendly-status-tab .ops-controls-grid {
         display: none;
     }
 }
