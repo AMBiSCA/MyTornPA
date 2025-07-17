@@ -1,17 +1,20 @@
 /* General layout from global.css applies, but some overrides here */
 html, body {
-    height: auto; 
-    min-height: 100vh; 
+    height: 100vh; 
+    overflow: hidden; /* Hide scrollbar for the entire page */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color-light, #eee); 
+    /* NEW: Add padding to body to prevent content from going under fixed header/footer */
+    padding-top: 80px;   /* Accounts for 70px header + 10px buffer */
+    padding-bottom: 80px; /* Accounts for 70px footer + 10px buffer */
+    box-sizing: border-box; /* Ensure padding is included in height calculation */
 }
 
 body {
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
     position: relative;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
 }
@@ -34,15 +37,18 @@ body::before {
 
 .main-content-wrapper {
     flex-grow: 1;
-    padding-top: 90px; 
-    padding-bottom: 90px; 
+    /* REMOVED: padding-top and padding-bottom moved to body */
+    /* padding-top: 90px; */ 
+    /* padding-bottom: 90px; */ 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    min-height: calc(100vh - 70px - 70px); 
+    /* NEW: min-height adjusted for padding now on body. Allows it to take remaining height */
+    min-height: 100%; /* Should fill the height provided by body's padding-top/bottom */
+    overflow-y: auto; /* This will be the primary scrollbar for the page's content */
 }
 
 .image-glow {
@@ -114,7 +120,7 @@ main.report-page-content p {
 /* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
 .report-sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 3 columns on larger screens */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
     gap: 25px; 
     margin-bottom: 25px; 
 }
@@ -130,6 +136,7 @@ main.report-page-content p {
     display: flex;
     flex-direction: column; 
     flex-grow: 1; 
+    overflow-y: auto; /* Allow internal scrolling for individual sections if needed */
 }
 
 /* Main section heading styles - Consistent with Terms page */
@@ -142,10 +149,10 @@ main.report-page-content p {
     font-weight: 600;
 }
 
-/* NEW: Sub-heading styling within sections (e.g., for Email, Torn Message, Discord) */
+/* Sub-heading styling within sections (e.g., for Email, Torn Message, Discord) */
 .report-section-item h4 {
-    color: #00c0ff; /* A slightly lighter blue than the main accent, for visual hierarchy */
-    font-size: 1.05rem; /* Slightly larger than paragraph text */
+    color: #00c0ff; 
+    font-size: 1.05rem; 
     margin-top: 0;
     margin-bottom: 8px;
     font-weight: bold; 
@@ -163,11 +170,6 @@ main.report-page-content p {
     font-size: 0.9rem; 
     line-height: 1.5;
     color: #ddd;
-}
-
-/* NEW: Style for troubleshooting items to emphasize them in orange */
-.report-section-item ul li.troubleshoot-item strong {
-    color: #ffc107; /* Orange color for emphasis */
 }
 
 .report-section-item ul li h4 { 
@@ -237,7 +239,7 @@ footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
-/* Responsive styles - Consistent with Terms page */
+/* Responsive styles */
 @media (max-width: 1100px) { 
     .report-sections-grid {
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
