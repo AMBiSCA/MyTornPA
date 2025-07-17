@@ -4591,7 +4591,7 @@ margin-right: auto !important;
 
 /* Container for the tab buttons */
 .friendly-table-tab-buttons {
-    display: flex;
+    display: flex; /* Always flex on mobile */
     justify-content: space-around;
     gap: 10px;
     margin-bottom: 10px; /* Space between buttons and table */
@@ -4633,67 +4633,57 @@ margin-right: auto !important;
 /* Ensure the whole table container allows horizontal scroll on smaller screens */
 #friendlyMembersListContainer {
     overflow-x: auto; /* Enable horizontal scrolling */
-    white-space: nowrap; /* Prevent content from wrapping inside cells */
-    /* You might want to adjust its height or min-height here too if needed */
+    /* Remove white-space: nowrap here to allow text wrap within cells. */
+    /* The JavaScript will manage column visibility. */
 }
 
-/* Hide table header by default on mobile (we'll create new "headers" using JS for rows) */
 @media (max-width: 768px) {
-    /* Hide the entire header row of the friendly members table on mobile */
-    #friendly-members-table thead {
-        display: none;
-    }
-
-    /* Reset default table display properties for tbody, tr, td on mobile */
-    #friendly-members-table,
-    #friendly-members-table tbody,
-    #friendly-members-table tr {
-        display: block; /* Make them behave like block elements for stacking */
-        width: 100%; /* Take full width */
-    }
-
-    /* Style for each table row to act as a "card" container on mobile */
-    #friendly-members-table tr {
-        margin-bottom: 10px; /* Space between "cards" */
-        border: 1px solid #3a3a40; /* Border for each card */
-        border-radius: 8px; /* Rounded corners for cards */
-        background-color: #222; /* Background for each card */
-        padding: 10px; /* Internal padding for cards */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Subtle shadow for depth */
-    }
-
-    /* Style for each table cell (td) within a row on mobile */
-    #friendly-members-table td {
-        display: block; /* Stack cells vertically within their row */
-        width: 100%; /* Each cell takes full width of its row/card */
-        padding: 5px 0; /* Padding around content within cell */
-        border-bottom: 1px solid #333; /* Separator between data points in a card */
-        text-align: left; /* Align text left */
-        white-space: normal; /* Allow text to wrap within the cell */
-        overflow: visible; /* Ensure content is visible */
-        text-overflow: clip; /* Prevent ellipsis on wrapped text */
-    }
-
-    /* Remove bottom border from the last cell in each row/card */
-    #friendly-members-table tr td:last-child {
-        border-bottom: none;
-    }
-
     /* Hide the default friendly-details-panel completely on mobile */
     .friendly-details-panel {
         display: none !important;
     }
 
-    /* Re-enable the friendly-members-panel to take full width */
+    /* Ensure friendly-members-panel takes full width on mobile */
     .friendly-members-panel {
         flex: none !important;
         width: 100% !important;
         min-width: unset !important;
     }
 
-    /* Make the tab buttons themselves also hide on desktop, they are only for mobile */
-    .friendly-table-tab-buttons {
-        display: flex; /* Keep it flex for mobile, but hide it entirely on desktop via the next rule */
+    /* Style for each table row to act as a wrapper on mobile for horizontal scroll */
+    #friendly-members-table tr {
+        border-bottom: 1px solid #3a3a40; /* Separator between rows */
+    }
+
+    /* Specific styling for cells when they are visible on mobile */
+    #friendly-members-table td {
+        white-space: nowrap; /* Keep text on one line, allow horizontal scroll */
+        overflow: hidden; /* Hide overflow until scrolled */
+        text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+        padding: 8px 5px; /* Adjust padding for mobile cells */
+        text-align: center; /* Center content in cells */
+        font-size: 0.85em; /* Smaller font size for mobile */
+    }
+
+    /* Add labels to cells when displayed on mobile, and the cell has data-label attribute */
+    #friendly-members-table td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: bold;
+        color: #e0a71a; /* Gold color for labels */
+        margin-right: 5px;
+        display: inline-block; /* Keep label inline with content */
+    }
+
+    /* Style for the hidden columns on mobile (controlled by JS) */
+    #friendly-members-table th.hidden-on-mobile-view,
+    #friendly-members-table td.hidden-on-mobile-view {
+        display: none;
+    }
+
+    /* Ensure default table layout for visible columns */
+    #friendly-members-table {
+        table-layout: auto; /* Allow browser to calculate widths based on content for scrolling */
+        width: 100%; /* Ensure it tries to take full width */
     }
 }
 
@@ -4702,69 +4692,32 @@ margin-right: auto !important;
     .friendly-table-tab-buttons {
         display: none;
     }
-    /* Ensure the original table header is visible on desktop */
+    /* Reset any mobile-specific visibility for headers/cells on desktop */
+    #friendly-members-table th.hidden-on-mobile-view,
+    #friendly-members-table td.hidden-on-mobile-view {
+        display: table-cell; /* Re-show on desktop */
+    }
+    /* Ensure other table elements revert to default table display on desktop */
     #friendly-members-table thead {
         display: table-header-group;
     }
-    /* Reset table row and cell display for desktop */
-    #friendly-members-table,
-    #friendly-members-table tbody,
-    #friendly-members-table tr,
-    #friendly-members-table td {
-        display: table; /* Or table-row-group, table-row, table-cell respectively */
-        width: auto;
-        /* Reset any other mobile-specific overrides */
+    #friendly-members-table tbody {
+        display: table-row-group;
     }
-    #friendly-members-table td {
+    #friendly-members-table tr {
+        display: table-row;
+    }
+    #friendly-members-table td,
+    #friendly-members-table th {
+        display: table-cell;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
-        border-bottom: 1px solid #3a3a40; /* Restore border */
-        padding: 5px 10px;
-    }
-    #friendly-members-table td:not(:last-child) {
-        border-right: 1px solid #303030; /* Restore vertical line */
-    }
-    /* Ensure friendly-details-panel is visible on desktop */
-    .friendly-details-panel {
-        display: flex !important; /* Restore default flex display */
-    }
-}
-
-
-/* --- CSS to control column visibility (mobile only) --- */
-/* These rules will be overridden by JavaScript to show/hide columns */
-
-@media (max-width: 768px) {
-    /* Hide all stat columns by default on mobile */
-    #friendly-members-table td:nth-child(3), /* Strength */
-    #friendly-members-table td:nth-child(4), /* Dexterity */
-    #friendly-members-table td:nth-child(5), /* Speed */
-    #friendly-members-table td:nth-child(6), /* Defense */
-    #friendly-members-table td:nth-child(7), /* Total */
-    #friendly-members-table td:nth-child(9), /* Nerve */
-    #friendly-members-table td:nth-child(10), /* Energy */
-    #friendly-members-table td:nth-child(11), /* Drug C/D */
-    #friendly-members-table td:nth-child(12) /* Revivable? */
-    {
-        display: none;
-    }
-
-    /* Always show Name, Last Action, Status columns on mobile (default Activity View) */
-    #friendly-members-table td:nth-child(1), /* Name */
-    #friendly-members-table td:nth-child(2), /* Last Action */
-    #friendly-members-table td:nth-child(8) /* Status */
-    {
-        display: block; /* Override 'display: none' from above to show them */
-    }
-
-    /* Add labels to cells when stacked on mobile */
-    #friendly-members-table td[data-label]::before {
-        content: attr(data-label) ": ";
-        font-weight: bold;
-        color: #e0a71a; /* Gold color for labels */
-        margin-right: 5px;
+        /* Remove any data-label content on desktop if it somehow appears */
+        &[data-label]::before {
+            content: none;
+        }
     }
 }
 

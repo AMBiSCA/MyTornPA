@@ -215,49 +215,43 @@ function toggleFriendlyTableColumns(view) {
     const headers = friendlyMembersTable.querySelectorAll('th');
     const rows = friendlyMembersTable.querySelectorAll('tbody tr');
 
-    const columnMap = {
-        'activity': [
-            { index: 0, label: 'Name' },        // Name
-            { index: 1, label: 'Last Action' }, // Last Action
-            { index: 7, label: 'Status' },      // Status
-            { index: 8, label: 'Nerve' },       // Nerve
-            { index: 9, label: 'Energy' },      // Energy
-            { index: 10, label: 'Drug C/D' },   // Drug C/D
-            { index: 11, label: 'Revivable?' }  // Revivable?
-        ],
-        'battlestats': [
-            { index: 0, label: 'Name' },        // Name (keep Name in both views for context)
-            { index: 2, label: 'Strength' },    // Strength
-            { index: 3, label: 'Dexterity' },   // Dexterity
-            { index: 4, label: 'Speed' },       // Speed
-            { index: 5, label: 'Defense' },     // Defense
-            { index: 6, label: 'Total' }        // Total
-        ]
+    // Define which columns belong to which view by their index (0-indexed)
+    const viewColumns = {
+        'activity': [0, 1, 7, 8, 9, 10, 11], // Name, Last Action, Status, Nerve, Energy, Drug C/D, Revivable?
+        'battlestats': [0, 2, 3, 4, 5, 6]    // Name, Strength, Dexterity, Speed, Defense, Total
     };
 
-    const columnsToShow = columnMap[view];
-    const allColumnIndices = Array.from({ length: headers.length }, (_, i) => i);
+    // Define the labels for each column by its index
+    const columnLabels = [
+        'Name', 'Last Action', 'Strength', 'Dexterity', 'Speed', 'Defense', 'Total',
+        'Status', 'Nerve', 'Energy', 'Drug C/D', 'Revivable?'
+    ];
 
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        allColumnIndices.forEach(colIndex => {
-            const cell = cells[colIndex];
-            if (!cell) return; // Skip if cell doesn't exist
+        cells.forEach((cell, index) => {
+            // Check if the current cell's index is included in the columns for the active view
+            const isVisibleInCurrentView = viewColumns[view].includes(index);
 
-            const shouldShow = columnsToShow.some(col => col.index === colIndex);
-
-            // Toggle visibility
-            if (shouldShow) {
-                cell.style.display = 'block'; // Make visible (overrides mobile CSS display: none)
-                const colInfo = columnsToShow.find(col => col.index === colIndex);
-                if (colInfo && colInfo.label) {
-                    cell.setAttribute('data-label', colInfo.label); // Add data-label for CSS
-                }
+            // Toggle a class based on visibility
+            if (isVisibleInCurrentView) {
+                cell.classList.remove('hidden-on-mobile-view');
+                cell.setAttribute('data-label', columnLabels[index]); // Add data-label for CSS
             } else {
-                cell.style.display = 'none'; // Hide
-                cell.removeAttribute('data-label'); // Remove data-label
+                cell.classList.add('hidden-on-mobile-view');
+                cell.removeAttribute('data-label'); // Remove data-label when hidden
             }
         });
+    });
+
+    // Also toggle the visibility of header columns for consistency (though they will be hidden by CSS on mobile)
+    headers.forEach((header, index) => {
+        const isVisibleInCurrentView = viewColumns[view].includes(index);
+        if (isVisibleInCurrentView) {
+            header.classList.remove('hidden-on-mobile-view');
+        } else {
+            header.classList.add('hidden-on-mobile-view');
+        }
     });
 }
 
@@ -3839,6 +3833,9 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
+		 const currentActiveViewButton = document.querySelector('.friendly-table-tab-btn.active');
+         const initialView = currentActiveViewButton ? currentActiveViewButton.dataset.view : 'activity';
+    toggleFriendlyTableColumns(initialView);
          applyStatColorCoding(); // <-- ADD THIS LINE HERE
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
