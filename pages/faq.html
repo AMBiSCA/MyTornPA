@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FAQ - MyTornPA</title> 
   <link rel="stylesheet" href="../css/global.css"> 
-  <link rel="stylesheet" href="../css/faq.css">  
+  <link rel="stylesheet" href="../css/faq.css">   
 </head>
 <body>
 
@@ -71,52 +71,14 @@
     <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
   </footer>
 
-  <div id="authModal" class="modal-overlay">
-      <div class="modal-content">
-          <button class="modal-close-btn" id="closeAuthModalBtn">&times;</button>
-          <h2>Sign Up / Login</h2>
-          <p>Please sign up or log in to access all features.</p>
-          <div id="firebaseui-auth-container"></div>
-      
-          <p style="font-size:0.8em; margin-top:15px;">By proceeding, you agree to our <a href="Terms.html">Terms</a>.</p>
-      </div>
-  </div>
-
-  <div class="modal-overlay-profile" id="profileSetupModal" style="display:none;">
-      <div class="modal-profile-setup">
-          <span class="modal-close-btn" id="closeProfileModalBtn">&times;</span>
-          <h3>Edit Your Profile</h3>
-          <p class="modal-subtitle">Update your MyTornPA preferences.</p>
-          <div class="form-group">
-              <label for="preferredName">Preferred Display Name:</label>
-              <input type="text" id="preferredName" maxlength="10" placeholder="E.g., YourTornName">
-              <span class="helper-text name-warning">Max 10 characters.</span>
-              <div class="modal-error-message" id="nameError"></div>
-          </div>
-          <div class="form-group">
-              <label for="profileSetupApiKey">Torn API Key:</label>
-              <input type="text" id="profileSetupApiKey" placeholder="Enter your Torn API Key">
-          </div>
-          <div class="form-group">
-              <label for="profileSetupProfileId">Your Torn Profile ID:</label>
-              <input type="text" id="profileSetupProfileId" placeholder="Enter your Torn User ID">
-          </div>
-          <div class="form-group checkbox-group">
-              <label for="shareFactionStatsModalToggle" class="checkbox-label-inline">
-                  <input type="checkbox" id="shareFactionStatsModalToggle">
-                  Allow Faction to see my stats via MyTornPA tools?
-              </label>
-          </div>
-          <div class="modal-error-message" id="profileSetupError"></div>
-          <div class="modal-actions">
-              <button id="skipProfileSetupBtn" class="btn">Skip/Close</button> 
-              <button id="saveProfileBtn" class="btn">Save Profile</button> 
-          </div>
-      </div>
-  </div>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="../js/firebase-init.js"></script> 
-  <script src="../js/faq.js"></script> </body>
+  
+  <script src="../js/firebase-init.js"></script>
+  
+  <script src="../js/globalheader.js"></script> 
+  
+  <script src="../js/faq.js"></script> 
+</body>
 </html>
