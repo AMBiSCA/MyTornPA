@@ -2326,153 +2326,7 @@ min-width: 320px;
     flex-direction: column; /* Ensure inner display area is stacked vertically */
 }
 
-@media (max-width: 992px) {
-    /* Main layout adjustments for medium screens */
-    #warPageHubContainer {
-        padding: 10px;
-        gap: 10px;
-    }
 
-    /* Stack panels vertically in active ops */
-    .active-ops-main-content-row {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .active-ops-left-panel,
-    .active-ops-right-panel {
-        min-width: unset;
-        width: 100%;
-    }
-
-    /* Stack panels vertically in friendly status tab */
-    .friendly-status-layout-row {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .friendly-members-panel,
-    .friendly-details-panel {
-        min-width: unset;
-        width: 100%;
-    }
-
-    /* Stack columns in war availability grid */
-    .war-availability-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* Stack columns in leader config grid */
-    .config-grid {
-        grid-template-columns: 1fr;
-        max-width: 600px;
-    }
-
-    /* Enable horizontal scrolling for the friendly members table on medium screens */
-    #friendly-status-tab .table-scroll-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        width: 100%; /* Ensures the wrapper takes full available width */
-        box-sizing: border-box;
-    }
-
-    /* This will override the 1500px width on medium/small screens */
-    #friendly-status-tab .friendly-members-panel {
-        width: 100% !important; 
-        flex: none !important; /* Keep this to prevent flex conflicts */
-    }
-
-    /* Adjust specific column widths for friendly members table to try and fit more */
-    #friendly-status-tab #friendly-members-table th:nth-child(1),
-    #friendly-status-tab #friendly-members-table td:nth-child(1) { width: 12% !important; } /* Name */
-    #friendly-status-tab #friendly-members-table th:nth-child(2),
-    #friendly-status-tab #friendly-members-table td:nth-child(2) { width: 9% !important; }  /* Last Action */
-    #friendly-status-tab #friendly-members-table th:nth-child(3),
-    #friendly-status-tab #friendly-members-table td:nth-child(3) { width: 7% !important; }  /* Strength */
-    #friendly-status-tab #friendly-members-table th:nth-child(4),
-    #friendly-status-tab #friendly-members-table td:nth-child(4) { width: 7% !important; }  /* Dexterity */
-    #friendly-status-tab #friendly-members-table th:nth-child(5),
-    #friendly-status-tab #friendly-members-table td:nth-child(5) { width: 7% !important; }  /* Speed */
-    #friendly-status-tab #friendly-members-table th:nth-child(6),
-    #friendly-status-tab #friendly-members-table td:nth-child(6) { width: 7% !important; }  /* Defense */
-    #friendly-status-tab #friendly-members-table th:nth-child(7),
-    #friendly-status-tab #friendly-members-table td:nth-child(7) { width: 7% !important; }  /* Total */
-    #friendly-status-tab #friendly-members-table th:nth-child(8),
-    #friendly-status-tab #friendly-members-table td:nth-child(8) { width: 12% !important; } /* Status */
-    #friendly-status-tab #friendly-members-table th:nth-child(9),
-    #friendly-status-tab #friendly-members-table td:nth-child(9) { width: 6% !important; }  /* Nerve */
-    #friendly-status-tab #friendly-members-table th:nth-child(10),
-    #friendly-status-tab #friendly-members-table td:nth-child(10){ width: 6% !important; }  /* Energy */
-    #friendly-status-tab #friendly-members-table th:nth-child(11),
-    #friendly-status-tab #friendly-members-table td:nth-child(11){ width: 6% !important; }  /* Drug C/D */
-    #friendly-status-tab #friendly-members-table th:nth-child(12),
-    #friendly-status-tab #friendly-members-table td:nth-child(12){ width: 6% !important; }  /* Revivable? */
-
-    /* Generic table cell adjustments for better fit */
-    .enemy-targets-table thead th, .enemy-targets-table tbody td {
-        font-size: 0.75em;
-        padding: 5px;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-content-wrapper { padding-top: 75px; }
-    #warPageHubContainer { padding: 5px; gap: 8px; }
-    .script-title { font-size: 1.4em; margin-bottom: 5px; }
-    .tab-button { font-size: 0.8em; padding: 4px 8px; }
-    .ops-controls-grid { gap: 8px; padding: 8px; }
-    .ops-control-item { font-size: 0.8em; }
-    .enemy-targets-header, .enemy-target-row {
-        grid-template-columns: 1fr 0.5fr 0.6fr 0.7fr 0.7fr 0.7fr 0.7fr;
-        font-size: 0.7em;
-    }
-    .enemy-target-row .action-btn { padding: 1px 3px; font-size: 0.65em; }
-    .alert-btn { padding: 6px 8px; font-size: 0.8em; margin-bottom: 5px; }
-    .faction-stats-summary { padding: 8px; gap: 5px; font-size: 0.8em; }
-    .friendly-member-row, #designatedAdminsList li, #watchListDisplay li {
-        font-size: 0.8em;
-        padding: 4px 6px;
-    }
-    .config-section { padding: 8px; gap: 5px; }
-    .config-section h4 { font-size: 1.2em; margin-bottom: 5px; }
-    .config-section input[type="text"], .config-section textarea, .config-section select {
-        font-size: 0.8em; padding: 4px 6px; margin-bottom: 5px;
-    }
-    textarea { min-height: 60px; }
-    select[multiple] { height: 100px; }
-    .config-section .action-btn { padding: 4px 8px; font-size: 0.8em; margin-top: 3px; }
-
-    /* Friendly Members Table Specific Adjustments for very small screens (<= 480px) */
-    #friendly-status-tab #friendly-members-table th,
-    #friendly-status-tab #friendly-members-table td {
-        font-size: 0.6em !important; /* Make font even smaller */
-        padding: 2px 3px !important; /* Reduce padding even further */
-    }
-
-    /* Adjust column widths for friendly members table */
-    #friendly-status-tab #friendly-members-table th:nth-child(1),
-    #friendly-status-tab #friendly-members-table td:nth-child(1) { width: 14% !important; } /* Name - slightly wider */
-    #friendly-status-tab #friendly-members-table th:nth-child(2),
-    #friendly-status-tab #friendly-members-table td:nth-child(2) { width: 9% !important; }  /* Last Action */
-    #friendly-status-tab #friendly-members-table th:nth-child(3),
-    #friendly-status-tab #friendly-members-table td:nth-child(3) { width: 7% !important; }  /* Strength */
-    #friendly-status-tab #friendly-members-table th:nth-child(4),
-    #friendly-status-tab #friendly-members-table td:nth-child(4) { width: 7% !important; }  /* Dexterity */
-    #friendly-status-tab #friendly-members-table th:nth-child(5),
-    #friendly-status-tab #friendly-members-table td:nth-child(5) { width: 7% !important; }  /* Speed */
-    #friendly-status-tab #friendly-members-table th:nth-child(6),
-    #friendly-status-tab #friendly-members-table td:nth-child(6) { width: 7% !important; }  /* Defense */
-    #friendly-status-tab #friendly-members-table th:nth-child(7),
-    #friendly-status-tab #friendly-members-table td:nth-child(7) { width: 7% !important; }  /* Total */
-    #friendly-status-tab #friendly-members-table th:nth-child(8),
-    #friendly-status-tab #friendly-members-table td:nth-child(8) { width: 12% !important; } /* Status */
-    #friendly-status-tab #friendly-members-table th:nth-child(9),
-    #friendly-status-tab #friendly-members-table td:nth-child(9) { width: 6% !important; }  /* Nerve */
-    #friendly-status-tab #friendly-members-table th:nth-child(10),
-    #friendly-status-tab #friendly-members-table td:nth-child(10){ width: 6% !important; }  /* Energy */
-    #friendly-status-tab #friendly-members-table th:nth-child(11),
-    #friendly-status-tab #friendly-members-table td:nth-child(11){ width: 6% !important; }  /* Drug C/D */
-    #friendly-status-tab #friendly-members-table th:nth-child(12),
-    #friendly-status-tab #friendly-members-table td:nth-child(12){ width: 6% !important; }  /* Revivable? */
-}
 
 .war-status-toggles-grid .toggle-control {
     display: flex;           /* Make each control a flex container */
@@ -2500,6 +2354,7 @@ min-width: 320px;
     margin-right: auto !important;
     margin-top: 3px !important;
 }
+
 
 
  /*friends and enemies*/
@@ -3995,7 +3850,7 @@ min-width: 320px;
     align-items: center !important;
 }
 
-/* 3. Force the Quick Targets on the right to tself the way to the right */
+/* 3. Force the Quick Targets on the right to push itself the way to the right */
 #active-ops-tab .ops-control-item.ops-quick-targets {
     margin-left: auto !important;
 }
