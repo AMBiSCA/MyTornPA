@@ -3719,6 +3719,8 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         return;
     }
 
+    
+
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
 
     try {
@@ -3814,30 +3816,27 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
 
             allRowsHtml += `
                 <tr data-id="${memberId}">
-                    <td data-label="Name"><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
-                    <td data-label="Last Action">${lastAction}</td>
-                    <td data-label="Strength">${strength}</td>
-                    <td data-label="Dexterity">${dexterity}</td>
-                    <td data-label="Speed">${speed}</td>
-                    <td data-label="Defense">${defense}</td>
-                    <td data-label="Total">${formatBattleStats(totalStats)}</td>
-                    <td data-label="Status" class="${statusClass}">${formattedStatus}</td>
-                    <td data-label="Nerve" class="nerve-text">${nerve}</td>
-                    <td data-label="Energy" class="energy-text">${energy}</td>
-                    <td data-label="Drug C/D" class="${drugCooldownClass}">${drugCooldown}</td>
-                    <td data-label="Revivable?" class="${revivableClass}">${isRevivable}</td>
+                    <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
+                    <td>${lastAction}</td>
+                <td>${strength}</td>
+<td>${dexterity}</td>
+<td>${speed}</td>
+<td>${defense}</td>
+                   <td>${formatBattleStats(totalStats)}</td>
+                    <td class="${statusClass}">${formattedStatus}</td>
+                    <td class="nerve-text">${nerve}</td>
+                    <td class="energy-text">${energy}</td>
+                    <td class="${drugCooldownClass}">${drugCooldown}</td>
+                    <td class="${revivableClass}">${isRevivable}</td>
                 </tr>
             `;
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-        
-        // Ensure default 'activity' view is applied after table is rendered
-        const currentActiveViewButton = document.querySelector('.friendly-table-tab-btn.active');
-        const initialView = currentActiveViewButton ? currentActiveViewButton.dataset.view : 'activity';
-        toggleFriendlyTableColumns(initialView);
-
-        applyStatColorCoding(); // Apply stat colors after table is rendered
+		 const currentActiveViewButton = document.querySelector('.friendly-table-tab-btn.active');
+         const initialView = currentActiveViewButton ? currentActiveViewButton.dataset.view : 'activity';
+    toggleFriendlyTableColumns(initialView);
+         applyStatColorCoding(); // <-- ADD THIS LINE HERE
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
@@ -5549,7 +5548,7 @@ async function displayQuickFFTargets(userApiKey, playerId) {
         }
     }
 }
-document.addEventListener('DOMContentLoaded', () => {
+           document.addEventListener('DOMContentLoaded', () => {
     // START OF DOMCONTENTLOADED
 
     // This block reads the URL to see if a specific tab was requested
@@ -5580,8 +5579,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const user = firebase.auth().currentUser;
                 if (user && userApiKey) {
                     await updateFriendlyMembersTable(userApiKey, user.uid);
-                    // No need to explicitly set active class or call toggleFriendlyTableColumns here,
-                    // as updateFriendlyMembersTable now handles it after rendering.
+                    // After table data is loaded, set initial column view and labels
+                    // Ensure the 'Activity / Status' button is active by default in JS as well
+                    const defaultActivityButton = document.querySelector('.friendly-table-tab-btn[data-view="activity"]');
+                    if (defaultActivityButton) {
+                        defaultActivityButton.classList.add('active'); // Ensure it's marked active
+                    }
+                    toggleFriendlyTableColumns('activity'); // Show default 'activity' columns
                 } else {
                     console.warn("User not logged in or API Key missing.");
                     const tbody = document.getElementById('friendly-members-tbody');
@@ -5825,438 +5829,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (apiKey && playerId) {
-            userApiKey = apiKey; // Set global API key
-
-            await initializeAndLoadData(apiKey, userData.faction_id); // Pass user's faction_id
-
-            setupProgressText();
-
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl && factionApiFullData && factionApiFullData.name) {
-                factionWarHubTitleEl.textContent = `${factionApiFullData.name}'s War Hub`;
-            }
-
-            // Initial calls to update UI
-            displayWarRoster(); // This now expects data from Firebase
-            setupFactionHitsListener(db, userData.faction_id); // Needs faction ID
-            setupWarClaimsListener(); // Listens for claims
-
-            userEnergyDisplay = document.getElementById('userEnergyDisplay');
-            onlineFriendlyMembersDisplay = document.getElementById('onlineFriendlyMembersDisplay');
-            onlineEnemyMembersDisplay = document.getElementById('onlineEnemyMembersDisplay');
-
-            updateUserEnergyDisplay();
-            updateOnlineMemberCounts();
-            fetchAndDisplayChainData(); // Now fetches its own chain data
-            displayQuickFFTargets(userApiKey, playerId);
-            setupChatRealtimeListener(); // Sets up faction chat listener
-
-            // Attach event listeners only once
-            if (!listenersInitialized) {
-                setupEventListeners(apiKey); // Contains generic save buttons with new robust code
-                setupMemberClickEvents(); // For the friendly members table
-
-                // Attach chat tab click listeners
-                chatTabs.forEach(tab => {
-                    tab.addEventListener('click', handleChatTabClick);
-                });
-
-                // Autocomplete for team lead (assuming allFactionMembers is available globally or fetched)
-                if (factionApiFullData && factionApiFullData.members) {
-                    setupTeamLeadAutocomplete(factionApiFullData.members);
-                }
-
-                listenersInitialized = true; // Flag to prevent re-initialization
-
-                // Set up interval updates
-                setInterval(updateAllTimers, 1000); // Updates dynamic timers (chain, war, individual)
-                setInterval(() => {
-                    if (userApiKey && globalEnemyFactionID) {
-                        fetchAndDisplayEnemyFaction(globalEnemyFactionID, userApiKey); // Updates enemy targets table
-                    }
-                }, 15000); // Fetch enemy data every 15 seconds
-                setInterval(() => {
-                    if (userApiKey && globalYourFactionID) {
-                        updateDualChainTimers(userApiKey, globalYourFactionID, globalEnemyFactionID); // Updates the smaller chain timers
-                        fetchAndDisplayChainData(); // Re-fetches primary chain data
-                    }
-                }, 5000); // Fetch chain data every 5 seconds
-                setInterval(() => {
-                    if (userApiKey && globalYourFactionID) {
-                        // This ensures the main data, including war score and members, is refreshed.
-                        // The populateUiComponents will also be called within this, which refreshes all sections.
-                        initializeAndLoadData(userApiKey, globalYourFactionID);
-                    }
-                }, 300000); // Refresh all data every 5 minutes (300,000 ms)
-                setInterval(() => {
-                    if (userApiKey) {
-                        updateUserEnergyDisplay(); // Refreshes user's energy display
-                        updateOnlineMemberCounts(); // Refreshes online member counts
-                    }
-                }, 60000); // Update energy and online counts every 1 minute
-                setInterval(() => {
-                    if (userApiKey && playerId) {
-                        displayQuickFFTargets(userApiKey, playerId);
-                    }
-                }, 10000); // Refresh quick FF targets every 10 seconds
-
-
-                // START: NEW CODE TO OPEN THE CORRECT TAB
-                // After all setup is complete, we check the URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const requestedView = urlParams.get('view');
-
-                if (requestedView === 'friendly-status') {
-                    // Find the button for the requested tab and "click" it
-                    const targetButton = document.querySelector(`.tab-button[data-tab="${requestedView}"]`);
-                    if (targetButton) {
-                        targetButton.click();
-                    }
-                }
-                // END: NEW CODE
-            }
-        } else {
-            console.warn("API key or Player ID not found. User is logged in but profile data is incomplete.");
-            const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-            if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (API Key & Player ID Needed)";
-            // Reset/clear relevant UI elements if API key is missing
-            populateWarStatusDisplay({});
-            loadWarStatusForEdit({});
-            if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
-            if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
-            displayEnemyTargetsTable(null);
-            populateFriendlyMemberCheckboxes({}, [], []);
-            populateEnemyMemberCheckboxes({}, []);
-        }
-    } else {
-        userApiKey = null;
-        listenersInitialized = false; // Reset flag so listeners are re-initialized on next login
-        console.log("User not logged in.");
-        const factionWarHubTitleEl = document.getElementById('factionWarHubTitle');
-        if (factionWarHubTitleEl) factionWarHubTitleEl.textContent = "Faction War Hub. (Please Login)";
-        // Clear UI elements when logged out
-        populateWarStatusDisplay({});
-        loadWarStatusForEdit({});
-        if (gamePlanDisplay) gamePlanDisplay.textContent = 'No game plan available.';
-        if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.textContent = 'No current announcements.';
-        displayEnemyTargetsTable(null);
-        populateFriendlyMemberCheckboxes({}, [], []);
-        populateEnemyMemberCheckboxes({}, []);
-        if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
-        if (chatInputArea) chatInputArea.style.display = 'none';
-        if (currentChainNumberDisplay) currentChainNumberDisplay.textContent = 'N/A';
-        if (chainStartedDisplay) chainStartedDisplay.textContent = 'N/A';
-        if (chainTimerDisplay) chainTimerDisplay.textContent = 'Chain Over';
-        if (enemyTargetsContainer) enemyTargetsContainer.innerHTML = '<div class="no-targets-message">Please log in and configure your war hub.</div>';
-        if (friendlyMembersTbody) friendlyMembersTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">Please log in to view faction members.</td></tr>';
-        if (document.getElementById('quickFFTargetsDisplay')) document.getElementById('quickFFTargetsDisplay').innerHTML = '<span style="color: yellow;">Login & API/ID needed for Quick Targets.</span>';
-        if (document.getElementById('rw-user-energy')) document.getElementById('rw-user-energy').textContent = 'Login';
-        if (document.getElementById('rw-user-energy_announcement')) document.getElementById('rw-user-energy_announcement').textContent = 'Login';
-
-        // Clear any active chat listeners
-        if (unsubscribeFromChat) {
-            unsubscribeFromChat();
-            unsubscribeFromChat = null;
-        }
-    }
-});
-
-    // Add Friend Button Listener
-    if (addFriendBtn) {
-        addFriendBtn.addEventListener('click', async () => {
-            const friendId = addFriendIdInput.value.trim();
-            if (!friendId) {
-                addFriendStatus.textContent = "Please enter a Torn Player ID.";
-                addFriendStatus.style.color = 'orange';
-                return;
-            }
-
-            if (!auth.currentUser) {
-                addFriendStatus.textContent = "You must be logged in to add friends.";
-                addFriendStatus.style.color = 'red';
-                return;
-            }
-
-            addFriendStatus.textContent = "Adding friend...";
-            addFriendStatus.style.color = 'white';
-            addFriendBtn.disabled = true;
-
-            try {
-                const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
-                const doc = await friendDocRef.get();
-                if (doc.exists) {
-                    addFriendStatus.textContent = "This player is already your friend.";
-                    addFriendStatus.style.color = 'orange';
-                    addFriendBtn.disabled = false;
-                    return;
-                }
-
-                await friendDocRef.set({
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                addFriendStatus.textContent = `Successfully added friend [${friendId}]!`;
-                addFriendStatus.style.color = 'lightgreen';
-                addFriendIdInput.value = '';
-                // Refresh the friends list in the Blocked People tab if it's open
-                const friendsListSectionEl = document.getElementById('friends-list-section'); // Assuming this is the parent of friendsScrollableList
-                const ignoresListSectionEl = document.getElementById('ignores-list-section'); // Assuming this is the parent of ignoresScrollableList
-                if (friendsListSectionEl && ignoresListSectionEl) {
-                    // Check if the 'Blocked People' tab is currently active before refreshing
-                    const blockedPeopleTabButton = document.querySelector('.chat-tab[data-chat-tab="blocked-people"]');
-                    if (blockedPeopleTabButton && blockedPeopleTabButton.classList.contains('active')) {
-                        populateBlockedPeopleTab(auth.currentUser.uid, friendsScrollableList, ignoresScrollableList);
-                    }
-                }
-
-            } catch (error) {
-                console.error("Error adding friend:", error);
-                addFriendStatus.textContent = `Error adding friend: ${error.message}`;
-                addFriendStatus.style.color = 'red';
-            } finally {
-                addFriendBtn.disabled = false;
-            }
-        });
-    }
-
-    // Admins Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveAdminsBtn) {
-        saveAdminsBtn.addEventListener('click', async () => {
-            if (!designatedAdminsContainer) return;
-            const originalText = saveAdminsBtn.textContent;
-            saveAdminsBtn.disabled = true;
-            saveAdminsBtn.textContent = "Saving...";
-            try {
-                const selectedAdminIds = Array.from(designatedAdminsContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    tab4Admins: selectedAdminIds
-                }, {
-                    merge: true
-                });
-                saveAdminsBtn.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving admins:", error);
-                saveAdminsBtn.textContent = "Error! ❌";
-                showCustomAlert("Failed to save admins. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveAdminsBtn.disabled = false;
-                    saveAdminsBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    // Energy Tracking Members Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveEnergyTrackMembersBtn) {
-        saveEnergyTrackMembersBtn.addEventListener('click', async () => {
-            if (!energyTrackingContainer) return;
-            const originalText = saveEnergyTrackMembersBtn.textContent;
-            saveEnergyTrackMembersBtn.disabled = true;
-            saveEnergyTrackMembersBtn.textContent = "Saving...";
-            try {
-                const selectedEnergyMemberIds = Array.from(energyTrackingContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    energyTrackingMembers: selectedEnergyMemberIds
-                }, {
-                    merge: true
-                });
-                saveEnergyTrackMembersBtn.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving energy members:", error);
-                saveEnergyTrackMembersBtn.textContent = "Error! ❌";
-                showCustomAlert("Failed to save energy tracking members. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveEnergyTrackMembersBtn.disabled = false;
-                    saveEnergyTrackMembersBtn.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-    // Big Hitter Watchlist Save Listener (added to DOMContentLoaded as a one-time setup)
-    if (saveSelectionsBtnBH) { // Assuming this is your save button for Big Hitters
-        saveSelectionsBtnBH.addEventListener('click', async () => {
-            if (!bigHitterWatchlistContainer) return;
-            const originalText = saveSelectionsBtnBH.textContent;
-            saveSelectionsBtnBH.disabled = true;
-            saveSelectionsBtnBH.textContent = "Saving...";
-            try {
-                const selectedBigHitterIds = Array.from(bigHitterWatchlistContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                await db.collection('factionWars').doc('currentWar').set({
-                    bigHitterWatchlist: selectedBigHitterIds
-                }, {
-                    merge: true
-                });
-                saveSelectionsBtnBH.textContent = "Saved! ✅";
-            } catch (error) {
-                console.error("Error saving big hitter watchlist:", error);
-                saveSelectionsBtnBH.textContent = "Error! ❌";
-                showCustomAlert("Failed to save big hitter watchlist. Check console.", "Save Error");
-            } finally {
-                setTimeout(() => {
-                    saveSelectionsBtnBH.disabled = false;
-                    saveSelectionsBtnBH.textContent = originalText;
-                }, 2000);
-            }
-        });
-    }
-
-
-
-    // RESTORED IMAGE UPLOAD LISTENERS
-    const gamePlanUploadInput = document.getElementById('gamePlanImageUpload');
-    const gamePlanUploadLabel = document.querySelector('label[for="gamePlanImageUpload"]');
-    const gamePlanDisplayDiv = document.getElementById('gamePlanDisplay');
-    if (gamePlanUploadInput && gamePlanUploadLabel && gamePlanDisplayDiv) {
-        gamePlanUploadInput.addEventListener('change', () => {
-            handleImageUpload(gamePlanUploadInput, gamePlanDisplayDiv, gamePlanUploadLabel, 'gamePlan');
-        });
-    }
-
-    const announcementUploadInput = document.getElementById('announcementImageUpload');
-    const announcementUploadLabel = document.getElementById('announcementUploadLabel');
-    const announcementDisplayDiv = document.getElementById('factionAnnouncementsDisplay');
-    if (announcementUploadInput && announcementUploadLabel && announcementDisplayDiv) {
-        announcementUploadInput.addEventListener('change', () => {
-            handleImageUpload(announcementUploadInput, announcementDisplayDiv, announcementUploadLabel, 'announcement');
-        });
-    }
-
-
-    // Clear Image Buttons
-    const clearGamePlanImageBtn = document.getElementById('clearGamePlanImageBtn');
-    if (clearGamePlanImageBtn) {
-        clearGamePlanImageBtn.addEventListener('click', async () => {
-            const confirmed = await showCustomConfirm("Are you sure you want to remove the current Game Plan image?", "Confirm Removal");
-            if (!confirmed) return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({
-                    gamePlanImageUrl: null
-                }, {
-                    merge: true
-                });
-                if (gamePlanDisplay) gamePlanDisplay.innerHTML = '<p>No game plan available.</p>';
-                alert('Game Plan image cleared!');
-            } catch (error) {
-                console.error("Error clearing game plan image:", error);
-                alert('Failed to clear image.');
-            }
-        });
-    }
-
-    const clearAnnouncementImageBtn = document.getElementById('clearAnnouncementImageBtn');
-    if (clearAnnouncementImageBtn) {
-        clearAnnouncementImageBtn.addEventListener('click', async () => {
-            const confirmed = await showCustomConfirm("Are you sure you want to remove the current Announcement image?", "Confirm Removal");
-            if (!confirmed) return;
-            try {
-                await db.collection('factionWars').doc('currentWar').set({
-                    announcementsImageUrl: null
-                }, {
-                    merge: true
-                });
-                if (factionAnnouncementsDisplay) factionAnnouncementsDisplay.innerHTML = '<p>No current announcements.</p>';
-                alert('Announcement image cleared!');
-            } catch (error) {
-                console.error("Error clearing announcement image:", error);
-                alert('Failed to clear image.');
-            }
-        });
-    }
-
-
-    // Event listener for sending faction chat messages
-    if (chatSendBtn) {
-        chatSendBtn.addEventListener('click', sendChatMessage);
-    }
-    if (chatTextInput) {
-        chatTextInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent new line in input
-                sendChatMessage();
-            }
-        });
-    }
-
-
-}); // --- END OF DOMCONTENTLOADED ---
-
-/**
- * ==================================================================
- * BATTLE STATS COLOR CODING FUNCTIONS (V4 - 9-Tier Final)
- * ==================================================================
- */
-
-// Helper function to parse a stat string into a number.
-function parseStatValue(statString) {
-    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
-        return 0;
-    }
-    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
-    let multiplier = 1;
-    if (sanitizedString.endsWith('k')) {
-        multiplier = 1000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('m')) {
-        multiplier = 1000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('b')) {
-        multiplier = 1000000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    }
-    const number = parseFloat(sanitizedString);
-    return isNaN(number) ? 0 : number * multiplier;
-}
-
-// Main function to apply background colors to the stat cells.
-function applyStatColorCoding() {
-    const table = document.getElementById('friendly-members-table');
-    if (!table) {
-        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
-        return;
-    }
-
-    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
-
-    statCells.forEach(cell => {
-        // First, remove any old stat tier classes to ensure a clean slate
-        for (let i = 1; i <= 9; i++) {
-            cell.classList.remove(`stat-tier-${i}`);
-        }
-        cell.classList.remove('stat-cell');
-
-        const value = parseStatValue(cell.textContent);
-        let tierClass = '';
-
-        if (value >= 500000000) {
-            tierClass = 'stat-tier-9';
-        } else if (value >= 200000000) {
-            tierClass = 'stat-tier-8';
-        } else if (value >= 100000000) {
-            tierClass = 'stat-tier-7';
-        } else if (value >= 10000000) {
-            tierClass = 'stat-tier-6';
-        } else if (value >= 5000000) {
-            tierClass = 'stat-tier-5';
-        } else if (value >= 1000000) {
-            tierClass = 'stat-tier-4';
-        } else if (value >= 100000) {
-            tierClass = 'stat-tier-3';
-        } else if (value >= 10000) {
-            tierClass = 'stat-tier-2';
-        } else if (value > 0) {
-            tierClass = 'stat-tier-1';
-        }
-
-        if (tierClass) {
-            cell.classList.add(tierClass);
-            cell.classList.add('stat-cell'); // General class for stat cells
-        }
-    });
-}
         if (apiKey && playerId) {
             userApiKey = apiKey; // Set global API key
 
