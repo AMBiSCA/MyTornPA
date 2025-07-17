@@ -79,10 +79,10 @@ footer.footer {
     pointer-events: none;
 }
 
-/* Main content container for the privacy policy page - Consistent with Terms/Report */
+/* Main content container for the privacy policy page - Consistent with FAQ/Terms/Report */
 main.privacy-page-content {
     width: 90%; 
-    max-width: 1000px; /* Adjusted max-width to focus content for better readability */
+    max-width: 1400px; /* Use the wider max-width for consistency with other legal pages */
     margin-top: 15px; 
     margin-bottom: 20px;
     margin-left: auto;
@@ -97,7 +97,6 @@ main.privacy-page-content {
     z-index: 1;
     display: flex; 
     flex-direction: column; 
-    /* No explicit height here, allowing content to define it within the scrollable main-content-wrapper */
 }
 
 /* Page title styles - Consistent with FAQ/Terms/Report */
@@ -121,29 +120,32 @@ main.privacy-page-content p.last-updated {
     flex-shrink: 0;
 }
 
-/* NEW: Wrapper for sections to allow consistent padding/margin */
-.privacy-sections-wrapper {
-    flex-grow: 1; /* Allows the wrapper to take available space */
-    overflow-y: auto; /* Allow the wrapper to scroll internally if content overflows */
-    padding-top: 5px; /* Small padding from the top edge of the wrapper */
-    padding-bottom: 5px; /* Small padding from the bottom edge of the wrapper */
+/* NEW: Grid container for privacy policy sections (3-column overview) */
+.privacy-policy-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Aim for 3 columns on larger screens */
+    gap: 25px; 
+    margin-bottom: 20px; 
+    flex-grow: 1; 
+    overflow-y: auto; /* Allow the grid container to scroll internally if content overflows */
 }
 
-/* Individual section styling within the wrapper */
-.privacy-overview-section {
-    background-color: #272727; /* Inner section background, consistent with FAQ/Terms/Report items */
-    padding: 20px; /* Slightly more padding for readability in a single column */
+/* Individual section styling within the grid */
+.privacy-section-item {
+    background-color: #272727; 
+    padding: 15px;
     border-radius: 8px;
-    border: 1px solid #00a8ff; /* Inner 1px blue border */
+    border: 1px solid #00a8ff; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
     box-sizing: border-box;
-    /* Removed margin-bottom here, rely on direct spacing if multiple sections were needed */
-    flex-grow: 1; /* Allows this single section to fill the wrapper */
-    overflow-y: auto; /* Allow internal scrolling for this section if its content overflows */
+    display: flex;
+    flex-direction: column; 
+    flex-grow: 1; 
+    overflow-y: auto; /* Allow internal scrolling for individual sections if their content overflows */
 }
 
 /* Section heading styles - Consistent with FAQ/Terms/Report */
-.privacy-overview-section h3 {
+.privacy-section-item h3 {
     color: var(--theme-accent-color, #00a8ff);
     text-align: center;
     margin-top: 0;
@@ -154,7 +156,7 @@ main.privacy-page-content p.last-updated {
 }
 
 /* Paragraphs within sections - Consistent with FAQ/Terms/Report */
-main.privacy-page-content p { /* Applies to main content p, not specific section p */
+.privacy-section-item p { /* Specific to paragraphs within the overview section */
     font-size: 0.95rem; 
     line-height: 1.6;
     margin-bottom: 15px;
@@ -163,24 +165,16 @@ main.privacy-page-content p { /* Applies to main content p, not specific section
     flex-shrink: 0; 
 }
 
-.privacy-overview-section p { /* Specific to paragraphs within the overview section */
-    font-size: 0.95rem; 
-    line-height: 1.6;
-    margin-bottom: 15px;
-    text-align: left;
-    color: var(--text-color-light, #eee);
-}
-
 /* List items within sections - Consistent with FAQ/Terms/Report */
-.privacy-overview-section ul {
+.privacy-section-item ul {
     list-style-type: disc; 
     padding-left: 20px; 
     margin-bottom: 15px;
     flex-grow: 1; 
-    overflow-y: auto; 
+    overflow-y: auto; /* Allow list to scroll internally if it overflows */
 }
 
-.privacy-overview-section ul li {
+.privacy-section-item ul li {
     margin-bottom: 8px; 
     font-size: 0.9rem; 
     line-height: 1.5;
@@ -189,11 +183,11 @@ main.privacy-page-content p { /* Applies to main content p, not specific section
 }
 
 /* Links within content - Consistent with FAQ/Terms/Report */
-.privacy-overview-section a {
+.privacy-section-item a {
     color: var(--theme-accent-color, #00a8ff);
     text-decoration: underline;
 }
-.privacy-overview-section a:hover {
+.privacy-section-item a:hover {
     color: var(--theme-accent-hover-color, #3ccbff);
 }
 
@@ -229,7 +223,16 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles - Consistent with FAQ/Terms/Report */
+@media (max-width: 1100px) { 
+    .privacy-policy-overview-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Adjust to 2 columns on medium screens */
+    }
+}
+
 @media (max-width: 768px) {
+    .privacy-policy-overview-grid {
+        grid-template-columns: 1fr; /* Stack into a single column on small screens */
+    }
     main.privacy-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.privacy-page-content h2.highlight { font-size: 1.8rem; }
     main.privacy-page-content p { font-size: 0.9rem; }

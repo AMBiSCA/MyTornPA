@@ -13,48 +13,43 @@
   <div class="main-content-wrapper">
     <main class="privacy-page-content">
       <h2 class="highlight">Privacy Policy</h2>
+      <p class="last-updated">Last Updated: July 18, 2025</p>
 
-      <section class="privacy-overview-section"> 
-          <h3>What We Collect & Why:</h3>
-          <ul>
-              <li><strong>Account:</strong> Email for login (Firebase Auth).</li>
-              <li><strong>Profile:</strong> Your display name, Torn Profile ID, and Torn API Key (stored in Firebase Firestore).</li>
-              <li><strong>Torn Data (via your API Key):</strong> We fetch your Torn ID, Name, Faction ID, stats, and faction details directly from the official Torn City API. Your API Key is stored securely and used by your browser for direct API calls; we do not share it.</li>
-              <li><strong>Usage Data:</strong> Anonymous, aggregated data on feature use to improve MyTornPA.</li>
-              <li><strong>Chat Messages:</strong> Messages sent via in-app chat (Faction, Private) are stored in Firebase Firestore and visible to chat participants.</li>
-          </ul>
+      <div class="privacy-policy-overview-grid">
+          <section class="privacy-section-item"> 
+              <h3>What We Collect & Why:</h3>
+              <ul>
+                  <li><strong>Account:</strong> Email for login (Firebase Auth).</li>
+                  <li><strong>Profile:</strong> Display name, Torn Profile ID, & API Key (stored in Firebase Firestore).</li>
+                  <li><strong>Torn Data (via API Key):</strong> Fetched directly from official Torn City API (Your Torn ID, Name, Faction ID, stats, faction details). API Key is securely stored and used by your browser for direct API calls; we do not share it.</li>
+                  <li><strong>Usage Data:</strong> Anonymous, aggregated data on feature use to improve MyTornPA.</li>
+                  <li><strong>Chat Messages:</strong> In-app chat messages stored in Firebase Firestore, visible to participants.</li>
+              </ul>
+          </section>
 
-          <h3>How We Use Your Information:</h3>
-          <ul>
-              <li>To manage your account and provide tools (e.g., displaying your Torn stats, tracking activity, enabling chat).</li>
-              <li>To improve MyTornPA's features and security.</li>
-          </ul>
+          <section class="privacy-section-item"> 
+              <h3>How We Use & Secure Information:</h3>
+              <ul>
+                  <li><strong>Use:</strong> To manage account, provide tools (stats, tracking, chat), improve features, & ensure security.</li>
+                  <li><strong>Storage:</strong> Data stored securely in Google's Firebase Firestore (encryption applies).</li>
+                  <li><strong>Security:</strong> API Key is securely stored & used only by your browser for Torn API calls; we do not share or sell your personal data.</li>
+              </ul>
+          </section>
 
-          <h3>Data Storage & Security:</h3>
-          <ul>
-              <li>Data is stored securely in Google's Firebase Firestore, protected by encryption.</li>
-              <li>Your Torn API Key is securely stored and used only by your browser for Torn API calls; we do not share or sell your personal data.</li>
-          </ul>
-
-          <h3>Third-Party Services:</h3>
-          <ul>
-              <li><strong>Google Firebase:</strong> For authentication and database.</li>
-              <li><strong>Torn City API:</strong> For fetching game data.</li>
-              <li><strong>PayPal:</strong> For optional donations (we do not collect payment info directly).</li>
-          </ul>
-
-          <h3>Your Rights:</h3>
-          <ul>
-              <li>Access, correct, or delete your data (via profile settings or contact us).</li>
-              <li>Withdraw consent (e.g., by removing your API key).</li>
-          </ul>
-
-          <h3>Policy Changes:</h3>
-          <ul>
-              <li>We may update this policy; significant changes will be posted here. Continued use implies acceptance.</li>
-          </ul>
-      </section> 
-    </main>
+          <section class="privacy-section-item"> 
+              <h3>Third-Party Services & Your Rights:</h3>
+              <ul>
+                  <li><strong>Google Firebase:</strong> For authentication and database.</li>
+                  <li><strong>Torn City API:</strong> For fetching game data.</li>
+                  <li><strong>PayPal:</strong> For optional donations (no payment info collected directly).</li>
+                  <li><strong>Your Rights:</strong> Access, correct, or delete your data (via profile settings or contact us). You can withdraw consent (e.g., by removing your API key).</li>
+              </ul>
+              <h3>Policy Changes:</h3>
+              <ul>
+                  <li>Policy may be updated; significant changes will be posted here. Continued use implies acceptance.</li>
+              </ul>
+          </section>
+      </div> </main>
   </div>
 
   <footer class="footer">
