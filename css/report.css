@@ -52,10 +52,11 @@ footer.footer {
     position: relative;
     z-index: 1;
     overflow-y: auto; 
-    /* CHANGED: Reduced padding-top to move the container up */
-    padding-top: 80px;    /* Accounts for 70px header + 10px buffer */
+    min-height: calc(100% - 180px);
+    padding-top: 90px;    /* Accounts for 70px header + 10px buffer */
     padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
     min-height: auto; 
+
 }
 
 .image-glow {
