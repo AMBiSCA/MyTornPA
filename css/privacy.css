@@ -8,7 +8,7 @@ html, body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color-light, #eee); /* Use global var */
+    color: var(--text-color-light, #eee); 
 }
 
 body {
@@ -79,28 +79,28 @@ footer.footer {
     pointer-events: none;
 }
 
-/* Main content container for the privacy policy page - Consistent with FAQ/Terms */
+/* Main content container for the privacy policy page - Consistent with Terms/Report */
 main.privacy-page-content {
     width: 90%; 
-    max-width: 1400px; 
+    max-width: 1000px; /* Adjusted max-width to focus content for better readability */
     margin-top: 15px; 
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
-    background-color: #222; /* Outer container background */
+    background-color: #222; 
     padding: 20px 40px;
     border-radius: 12px;
-    border: 2px solid #00a8ff; /* Outer 2px blue border */
+    border: 2px solid #00a8ff; 
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
     box-sizing: border-box;
     position: relative;
     z-index: 1;
-    display: flex; /* Make it a flex container for its children sections */
+    display: flex; 
     flex-direction: column; 
     /* No explicit height here, allowing content to define it within the scrollable main-content-wrapper */
 }
 
-/* Page title styles - Consistent with FAQ/Terms */
+/* Page title styles - Consistent with FAQ/Terms/Report */
 main.privacy-page-content h2.highlight {
     font-size: 2.2rem; 
     font-weight: bold;
@@ -116,36 +116,34 @@ main.privacy-page-content p.last-updated {
     font-size: 0.85rem;
     color: #bbb;
     text-align: center;
-    margin-top: -15px; /* Pull it closer to the title */
+    margin-top: -15px; 
     margin-bottom: 20px;
     flex-shrink: 0;
 }
 
-/* Privacy sections grid (for multi-column layout if desired, though content might just stack) */
-/* Apply grid directly to the sections within main.privacy-page-content */
-main.privacy-page-content section {
-    display: grid; /* Make sections a grid container for their internal content */
-    grid-template-columns: 1fr; /* Default to single column for all section content */
-    gap: 15px; /* Gap between grid items if any internal elements use grid */
+/* NEW: Wrapper for sections to allow consistent padding/margin */
+.privacy-sections-wrapper {
+    flex-grow: 1; /* Allows the wrapper to take available space */
+    overflow-y: auto; /* Allow the wrapper to scroll internally if content overflows */
+    padding-top: 5px; /* Small padding from the top edge of the wrapper */
+    padding-bottom: 5px; /* Small padding from the bottom edge of the wrapper */
+}
 
-    background-color: #272727; /* Inner section background, consistent with FAQ/Terms items */
-    padding: 15px;
+/* Individual section styling within the wrapper */
+.privacy-overview-section {
+    background-color: #272727; /* Inner section background, consistent with FAQ/Terms/Report items */
+    padding: 20px; /* Slightly more padding for readability in a single column */
     border-radius: 8px;
     border: 1px solid #00a8ff; /* Inner 1px blue border */
     box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
     box-sizing: border-box;
-    margin-bottom: 20px; /* Space between each major section */
-    flex-grow: 1; /* Allow sections to grow within the main container */
-    overflow-y: auto; /* Allow internal scrolling for individual sections if their content overflows */
+    /* Removed margin-bottom here, rely on direct spacing if multiple sections were needed */
+    flex-grow: 1; /* Allows this single section to fill the wrapper */
+    overflow-y: auto; /* Allow internal scrolling for this section if its content overflows */
 }
 
-/* Last section should not have bottom margin if it's the last element */
-main.privacy-page-content section:last-child {
-    margin-bottom: 0; 
-}
-
-/* Section heading styles - Consistent with FAQ/Terms */
-main.privacy-page-content section h3 {
+/* Section heading styles - Consistent with FAQ/Terms/Report */
+.privacy-overview-section h3 {
     color: var(--theme-accent-color, #00a8ff);
     text-align: center;
     margin-top: 0;
@@ -155,8 +153,8 @@ main.privacy-page-content section h3 {
     flex-shrink: 0; 
 }
 
-/* Paragraphs within sections - Consistent with FAQ/Terms */
-main.privacy-page-content p {
+/* Paragraphs within sections - Consistent with FAQ/Terms/Report */
+main.privacy-page-content p { /* Applies to main content p, not specific section p */
     font-size: 0.95rem; 
     line-height: 1.6;
     margin-bottom: 15px;
@@ -165,16 +163,24 @@ main.privacy-page-content p {
     flex-shrink: 0; 
 }
 
-/* List items within sections - Consistent with FAQ/Terms */
-main.privacy-page-content ul {
-    list-style-type: disc; /* Standard bullet points */
-    padding-left: 20px; 
+.privacy-overview-section p { /* Specific to paragraphs within the overview section */
+    font-size: 0.95rem; 
+    line-height: 1.6;
     margin-bottom: 15px;
-    flex-grow: 1; /* Allows lists to take up available vertical space */
-    overflow-y: auto; /* Allow list to scroll internally if it overflows */
+    text-align: left;
+    color: var(--text-color-light, #eee);
 }
 
-main.privacy-page-content ul li {
+/* List items within sections - Consistent with FAQ/Terms/Report */
+.privacy-overview-section ul {
+    list-style-type: disc; 
+    padding-left: 20px; 
+    margin-bottom: 15px;
+    flex-grow: 1; 
+    overflow-y: auto; 
+}
+
+.privacy-overview-section ul li {
     margin-bottom: 8px; 
     font-size: 0.9rem; 
     line-height: 1.5;
@@ -182,12 +188,12 @@ main.privacy-page-content ul li {
     flex-shrink: 0; 
 }
 
-/* Links within content - Consistent with FAQ/Terms */
-main.privacy-page-content a {
+/* Links within content - Consistent with FAQ/Terms/Report */
+.privacy-overview-section a {
     color: var(--theme-accent-color, #00a8ff);
     text-decoration: underline;
 }
-main.privacy-page-content a:hover {
+.privacy-overview-section a:hover {
     color: var(--theme-accent-hover-color, #3ccbff);
 }
 
@@ -222,11 +228,7 @@ footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
-/* Responsive styles - Consistent with FAQ/Terms */
-/* Sections will naturally stack due to flex-direction: column on main.privacy-page-content */
-/* No specific grid required here unless you want internal sections to have their own multi-column layout */
-/* For now, sections will stack as single columns */
-
+/* Responsive styles - Consistent with FAQ/Terms/Report */
 @media (max-width: 768px) {
     main.privacy-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.privacy-page-content h2.highlight { font-size: 1.8rem; }
