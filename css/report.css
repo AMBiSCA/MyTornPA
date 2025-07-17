@@ -14,7 +14,7 @@ body {
     box-sizing: border-box;
     position: relative;
 	padding-top: -10px; /* Exact height of your fixed header */
-    padding-bottom: 70px;
+    padding-bottom: -10px;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
 }
 
