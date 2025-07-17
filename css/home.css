@@ -148,6 +148,63 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     align-items: center;
 }
 
+Okay, you've updated the HTML. Now let's add the CSS to style the new "Upgrade Membership" and "Delete Account" buttons in your home.css file.
+
+CSS to Add to home.css
+You'll add these new rules to the "Profile Setup & Personal Stats MODAL STYLES" section of your home.css file, alongside other button styles.
+
+CSS
+
+/* home.css */
+
+/* ... (previous CSS code) ... */
+
+/* Profile Setup & Personal Stats MODAL STYLES (Specific to profile modals on homepage) */
+
+/* ... (existing modal-related styles) ... */
+
+/* Styling for the Upgrade Membership Button (Goldie Look) */
+.modal-actions .upgrade-membership-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500); /* Gold to Orange gradient */
+    color: #333; /* Dark text for contrast */
+    border: 1px solid #CC8400; /* Darker gold border */
+    box-shadow: 0 4px 10px rgba(255, 165, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3); /* Gold glow effect */
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Subtle text shadow */
+    transition: all 0.2s ease;
+}
+
+.modal-actions .upgrade-membership-btn:hover {
+    background: linear-gradient(135deg, #FFE033, #FFB833); /* Lighter on hover */
+    box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.5);
+    transform: translateY(-2px); /* Slight lift */
+}
+
+.modal-actions .upgrade-membership-btn:active {
+    transform: translateY(0); /* Press effect */
+    box-shadow: 0 2px 5px rgba(255, 165, 0, 0.3);
+}
+
+/* Styling for the Delete Account Button (Red for Warning) */
+.modal-actions .delete-account-btn {
+    background-color: #dc3545; /* Bootstrap red */
+    color: white;
+    border: 1px solid #bd2130; /* Darker red border */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.modal-actions .delete-account-btn:hover {
+    background-color: #c82333; /* Slightly darker red on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.modal-actions .delete-account-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
 
 
 .modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; /* Reduced from 10px */ color: #00a8ff; text-align: center; font-size: 1.4em;} /* Reduced font-size from 1.4em */
