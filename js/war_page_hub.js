@@ -6120,3 +6120,68 @@ async function displayQuickFFTargets(userApiKey, playerId) {
 
 
 }); // --- END OF DOMCONTENTLOADED ---
+
+/**
+ * ==================================================================
+ * BATTLE STATS COLOR CODING FUNCTIONS
+ * ==================================================================
+ */
+
+// Helper function to parse a stat string into a number.
+// It handles commas (e.g., "1,234,567") and suffixes (e.g., "1.23b").
+function parseStatValue(statString) {
+    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
+        return 0;
+    }
+    let sanitizedString = statString.toLowerCase().replace(/,/g, '');
+    let multiplier = 1;
+    if (sanitizedString.endsWith('k')) {
+        multiplier = 1000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('m')) {
+        multiplier = 1000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    } else if (sanitizedString.endsWith('b')) {
+        multiplier = 1000000000;
+        sanitizedString = sanitizedString.slice(0, -1);
+    }
+    const number = parseFloat(sanitizedString);
+    return isNaN(number) ? 0 : number * multiplier;
+}
+
+// Main function to apply background colors to the stat cells based on their value.
+function applyStatColorCoding() {
+    const table = document.getElementById('friendly-members-table');
+    if (!table) {
+        console.error("Color Coding Error: Could not find the table with ID 'friendly-members-table'.");
+        return;
+    }
+
+    // This selects all the data cells in columns 3, 4, 5, 6, and 7 (Strength to Total).
+    const statCells = table.querySelectorAll('tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6), tbody td:nth-child(7)');
+
+    statCells.forEach(cell => {
+        const value = parseStatValue(cell.textContent);
+        let tierClass = '';
+
+        if (value >= 1000000000) {
+            tierClass = 'stat-tier-6'; // Dark Red
+        } else if (value >= 100000000) {
+            tierClass = 'stat-tier-5'; // Light Red/Pink
+        } else if (value >= 10000000) {
+            tierClass = 'stat-tier-4'; // Slate Blue
+        } else if (value >= 1000000) {
+            tierClass = 'stat-tier-3'; // Light Blue
+        } else if (value >= 100000) {
+            tierClass = 'stat-tier-2'; // Pale Blue
+        } else if (value > 0) {
+            tierClass = 'stat-tier-1'; // Very Pale Blue
+        }
+
+        // Apply the classes if a tier was determined
+        if (tierClass) {
+            cell.classList.add(tierClass);
+            cell.classList.add('stat-cell'); // This class makes the font black
+        }
+    });
+}
