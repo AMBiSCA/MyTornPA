@@ -4579,3 +4579,43 @@ margin-right: auto !important;
     object-fit: contain;  /* This is the magic part: it scales the image to fit inside */
     border-radius: 5px;   /* Optional: Adds a nice rounded corner to the image */
 }
+
+/* ==================================================================
+   BATTLE STATS COLOR CODING
+   ================================================================== */
+
+/* This rule makes the stat numbers black and bold for better readability */
+#friendly-members-table td.stat-cell {
+    color: black !important;
+    font-weight: bold;
+}
+
+/* Tier 1: Very Low (e.g., < 100k) */
+.stat-tier-1 {
+    background-color: #e3f2fd; /* Very Pale Blue */
+}
+
+/* Tier 2: Low (e.g., 100k to 1M) */
+.stat-tier-2 {
+    background-color: #bbdefb; /* Pale Blue */
+}
+
+/* Tier 3: Medium-Low (e.g., 1M to 10M) */
+.stat-tier-3 {
+    background-color: #64b5f6; /* Light Blue */
+}
+
+/* Tier 4: Medium-High (e.g., 10M to 100M) */
+.stat-tier-4 {
+    background-color: #90a4ae; /* Slate Blue */
+}
+
+/* Tier 5: High (e.g., 100M to 1B) */
+.stat-tier-5 {
+    background-color: #ef9a9a; /* Light Red/Pink */
+}
+
+/* Tier 6: Very High (e.g., > 1B) */
+.stat-tier-6 {
+    background-color: #c62828; /* Dark Red */
+}
