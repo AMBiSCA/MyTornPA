@@ -307,3 +307,16 @@ header .header-btn {
 .btn-logout {
     font-weight: bold !important;
 }
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari, Edge, Opera) */
+body::-webkit-scrollbar {
+    width: 0 !important; /* For vertical scrollbar */
+    height: 0 !important; /* For horizontal scrollbar */
+    display: none; /* Safest way to hide it completely */
+}
+
+/* Hide scrollbar for Firefox */
+body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
