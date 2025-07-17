@@ -148,6 +148,31 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     align-items: center;
 }
 
+/* home.css */
+
+/* ... (previous CSS code) ... */
+
+/* Profile Setup & Personal Stats MODAL STYLES (Specific to profile modals on homepage) */
+/* These are kept here because they apply to a specific modal UI for profile setup on the homepage */
+.modal-overlay-profile, #personalStatsModal.modal-overlay {
+    /* ... (existing styles) ... */
+}
+
+/* Existing rule you have */
+.modal-profile-setup .form-row { display: flex; gap: 15px; /* Reduced from 20px */ margin-bottom: 10px; /* Reduced from 15px */ }
+
+/* NEW RULE: Style for a form-row that contains only one form-group, making it half-width */
+.modal-profile-setup .form-row.single-column {
+    justify-content: flex-start; /* Aligns content to the start (left) */
+}
+
+.modal-profile-setup .form-row.single-column .form-group {
+    flex: 0 0 calc(50% - 7.5px); /* Forces it to be approx half width minus half the gap */
+    max-width: calc(50% - 7.5px); /* Ensures it doesn't grow larger than half */
+}
+
+/* ... (rest of your CSS code) ... */
+
 .modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; /* Reduced from 10px */ color: #00a8ff; text-align: center; font-size: 1.4em;} /* Reduced font-size from 1.4em */
 .modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; /* Reduced from 20px */ font-weight: bold; }
 
