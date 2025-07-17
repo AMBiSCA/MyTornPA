@@ -1,7 +1,7 @@
 /* General layout from global.css applies, but some overrides here */
 html, body {
-    height: auto; /* Allow content to dictate height, remove fixed 100vh for scrolling */
-    min-height: 100vh; /* Ensure minimum height */
+    height: auto; 
+    min-height: 100vh; 
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -35,17 +35,15 @@ body::before {
 
 .main-content-wrapper {
     flex-grow: 1;
-    /* Remove overflow-y: auto; here as the main body will scroll */
-    padding-top: 90px; /* Adjusted from global body padding-top for fixed header */
-    padding-bottom: 90px; /* Provides space for fixed footer */
+    padding-top: 90px; 
+    padding-bottom: 90px; 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    /* Ensure content pushes footer down, considering fixed header/footer heights */
-    min-height: calc(100vh - 70px - 70px); /* 100vh - header-height - footer-height */
+    min-height: calc(100vh - 70px - 70px); 
 }
 
 .image-glow {
@@ -101,12 +99,14 @@ main.terms-page-content h2.highlight {
     font-weight: bold;
 }
 
-/* Grid for the main sections (Disclaimer, T&C) */
-.terms-sections-grid {
+/* NEW: Grid for the top three sections (Disclaimer, Terms, Contact) */
+.terms-top-sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-    gap: 25px;
-    margin-bottom: 25px;
+    /* On larger screens, try for 3 columns. If content gets too small, minmax will kick in. */
+    /* On smaller screens, it will stack into fewer columns based on content width. */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 25px; /* Gap between columns */
+    margin-bottom: 25px; /* Spacing below this grid */
 }
 
 /* Individual section styling (Disclaimer, T&C, Membership, Contact) */
@@ -120,17 +120,19 @@ main.terms-page-content h2.highlight {
     box-sizing: border-box;
     display: flex;
     flex-direction: column; 
-    margin-bottom: 0; 
+    margin-bottom: 0; /* Gap is managed by grid for grid items */
 }
 
-/* Style for full-width sections (e.g., Membership, Contact) */
-.terms-full-width-section, .terms-contact-section {
-    grid-column: 1 / -1; /* Make these sections span all columns of the grid */
-    margin-top: 0px; 
+/* Style for full-width sections (e.g., Membership) */
+.terms-full-width-section {
+    grid-column: 1 / -1; /* Make this section span all columns of the grid */
+    margin-top: 0; /* No top margin needed if part of terms-top-sections-grid, but this is below it */
 }
-.terms-contact-section {
-    text-align: center;
-    margin-top: 15px; 
+
+/* Special styling for the Contact Us panel when it's a grid item */
+.terms-contact-panel {
+    text-align: center; /* Center content within the contact box */
+    /* Ensure it also follows grid-column: 1 / -1 on smaller screens if needed */
 }
 
 /* Section heading styles */
@@ -173,8 +175,7 @@ footer.footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    /* CORRECTED: Reverted to 1px blue top border for footer */
-    border-top: 1px solid #00a8ff; 
+    border-top: 1px solid #00a8ff; /* Corrected to 1px */
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
     user-select: none;
     z-index: 102;
@@ -190,17 +191,17 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles */
-@media (max-width: 900px) {
-    .terms-sections-grid {
-        grid-template-columns: 1fr;
-    }
-    main.terms-page-content {
-        max-width: 95%;
-        padding: 20px;
+/* Adjust breakpoints if content needs more space before collapsing */
+@media (max-width: 1100px) { /* Adjusted breakpoint for 3 columns to collapse to 2 earlier */
+    .terms-top-sections-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Try 2 columns on medium screens */
     }
 }
 
 @media (max-width: 768px) {
+    .terms-top-sections-grid {
+        grid-template-columns: 1fr; /* Stack into a single column */
+    }
     main.terms-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.terms-page-content h2.highlight { font-size: 1.8rem; }
     main.terms-page-content section h3 { font-size: 1.3rem; }
