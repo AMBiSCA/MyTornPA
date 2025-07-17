@@ -1,25 +1,10 @@
 /* General layout from global.css applies, but some overrides here */
 html, body {
-    height: auto; 
-    min-height: 100vh; 
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-color-light, #eee); 
-	overflow: hidden;
-}
-
-/* In css/report.css */
-
-/* Correct the body padding to act as the main scrollable container buffer */
-/* General layout from global.css applies, but some overrides here */
-html, body {
     height: 100%; /* Allow html/body to take full height of content, or fill viewport */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color-light, #eee); 
-    /* NEW: Removed overflow: hidden here. We want body to potentially scroll */
 }
 
 body {
@@ -28,11 +13,7 @@ body {
     box-sizing: border-box;
     position: relative;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
-    /* NEW: Min-height ensures body stretches to fill viewport */
-    min-height: 100vh;
-    /* NEW: Remove top/bottom padding from body. Content wrapper will handle spacing for fixed elements. */
-    /* padding-top: 90px; */ 
-    /* padding-bottom: 90px; */ 
+    min-height: 100vh; /* Ensure body stretches to fill viewport */
 }
 
 body::before {
@@ -53,27 +34,23 @@ body::before {
 
 /* This targets the actual header element (or its placeholder) when fixed */
 header { /* Assume header has position:fixed, height:70px, top:0, left:0, width:100% from global.css */
-    /* If not, these would need to be re-added here or in global.css */
     flex-shrink: 0; /* Prevents header from shrinking */
 }
 
 /* This targets the actual footer element when fixed */
 footer.footer { /* Assume footer has position:fixed, height:70px, bottom:0, left:0, width:100% from global.css */
-    /* If not, these would need to be re-added here or in global.css */
     flex-shrink: 0; /* Prevents footer from shrinking */
 }
 
-
 /* Main content wrapper that sits between fixed header and footer */
 .main-content-wrapper {
-    flex-grow: 1; /* NEW: Allows it to take all available space */
+    flex-grow: 1; /* Allows it to take all available space */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    /* NEW: This is the critical change - main scrollable area */
     overflow-y: auto; /* Enable vertical scrolling for content overflow */
     /* NEW: Add padding here to create space from the fixed header/footer */
     padding-top: 90px;    /* Accounts for 70px header + 20px buffer */
@@ -119,8 +96,8 @@ main.report-page-content {
     z-index: 1;
     display: flex; 
     flex-direction: column; 
-    /* NEW: Removed fixed height/overflow from here. Let flexbox manage it. */
-    flex-grow: 1; /* Allow content to grow within the main-content-wrapper */
+    /* NEW: Ensure this element itself has a height context for its flex children */
+    height: 100%; /* Make it take 100% of main-content-wrapper's height */
 }
 
 /* Page title styles - Consistent with Terms page */
@@ -131,6 +108,7 @@ main.report-page-content h2.page-title.highlight {
     text-align: center;
     margin-bottom: 25px;
     padding-top: 0;
+    flex-shrink: 0; /* Prevent title from shrinking */
 }
 
 /* Introductory and thank-you paragraph styles - Consistent with Terms page */
@@ -140,6 +118,7 @@ main.report-page-content p {
     margin-bottom: 15px;
     text-align: left;
     color: var(--text-color-light, #eee);
+    flex-shrink: 0; /* Prevent paragraphs from shrinking */
 }
 
 .thank-you-message {
@@ -147,6 +126,7 @@ main.report-page-content p {
     text-align: center;
     font-size: 0.9rem;
     color: #bbb;
+    flex-shrink: 0; /* Prevent thank you from shrinking */
 }
 
 /* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
@@ -155,9 +135,8 @@ main.report-page-content p {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
     gap: 25px; 
     margin-bottom: 25px; 
-    flex-grow: 1; /* Allow grid to grow within main content box */
-    /* NEW: Allow grid itself to scroll internally if its content forces it to. */
-    overflow-y: auto; 
+    flex-grow: 1; /* NEW: Allow grid to take up available height */
+    overflow-y: auto; /* NEW: Allow the entire grid content to scroll if it overflows */
 }
 
 /* Individual section items within the grid - Consistent with Terms page */
@@ -171,8 +150,7 @@ main.report-page-content p {
     display: flex;
     flex-direction: column; 
     flex-grow: 1; 
-    /* NEW: Allow internal scrolling for individual sections if needed */
-    overflow-y: auto; 
+    overflow-y: auto; /* Allow internal scrolling for individual sections if needed */
 }
 
 /* Main section heading styles - Consistent with Terms page */
@@ -183,6 +161,7 @@ main.report-page-content p {
     margin-bottom: 15px;
     font-size: 1.5rem; 
     font-weight: 600;
+    flex-shrink: 0; /* Prevent heading from shrinking */
 }
 
 /* Sub-heading styling within sections (e.g., for Email, Torn Message, Discord) */
@@ -192,13 +171,15 @@ main.report-page-content p {
     margin-top: 0;
     margin-bottom: 8px;
     font-weight: bold; 
+    flex-shrink: 0; /* Prevent sub-heading from shrinking */
 }
 
 .report-section-item ul {
     list-style-type: disc; 
     padding-left: 20px; 
     margin-bottom: 15px;
-    flex-grow: 1; 
+    flex-grow: 1; /* Allow list to take up available vertical space */
+    overflow-y: auto; /* Allow UL to scroll internally if it overflows */
 }
 
 .report-section-item ul li {
@@ -206,6 +187,7 @@ main.report-page-content p {
     font-size: 0.9rem; 
     line-height: 1.5;
     color: #ddd;
+    flex-shrink: 0; /* Prevent list items from shrinking */
 }
 
 .report-section-item ul li h4 { 
@@ -229,6 +211,7 @@ main.report-page-content p {
     font-size: 0.85rem;
     color: #bbb;
     text-align: center;
+    flex-shrink: 0; /* Prevent placeholder from shrinking */
 }
 .future-admin-contact-placeholder h4 {
     color: #ccc;
@@ -276,265 +259,6 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles */
-@media (max-width: 1100px) { 
-    .report-sections-grid {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-    }
-}
-
-@media (max-width: 768px) {
-    .report-sections-grid {
-        grid-template-columns: 1fr; 
-    }
-    main.report-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
-    main.report-page-content h2.page-title.highlight { font-size: 1.8rem; }
-    main.report-page-content p { font-size: 0.9rem; }
-    .image-glow, .image-glow-flipped { display: none; }
-}
-
-@media (max-width: 480px) {
-    main.report-page-content { margin: 10px; padding: 15px; }
-    main.report-page-content h2.page-title.highlight { font-size: 1.5rem; }
-    main.report-page-content p { font-size: 0.85rem; }
-    .report-section-item { padding: 12px; }
-}
-
-/* Force buttons in the header to be bold (review if global.css should handle this) */
-header .btn,
-header button,
-header .header-btn {
-    font-weight: bold !important;
-}
-
-/* Force buttons on login/logout screens to be bold (review if global.css should handle this) */
-.login-screen-wrapper .btn,
-.login-screen-wrapper button,
-.login-dialog .btn,
-.login-dialog button,
-.login-page-container .btn,
-.login-page-container button,
-.btn-login,
-.logout-screen-wrapper .btn,
-.logout-screen-wrapper button,
-.logout-dialog .btn,
-.logout-dialog button,
-.logout-page-container .btn,
-.logout-page-container button,
-.btn-logout {
-    font-weight: bold !important;
-}
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../images/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    filter: grayscale(100%);
-    opacity: 0.8;
-    z-index: -1;
-	
-}
-
-
-
-.image-glow {
-    position: fixed;
-    left: -3%;
-    bottom: 0;
-    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-.image-glow-flipped {
-    position: fixed;
-    right: -3%;
-    bottom: 0;
-    transform: scaleX(-1);
-    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
-    width: 570px;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* Main content container for the report page - Consistent with Terms page */
-main.report-page-content {
-    width: 90%; 
-    max-width: 1400px; 
-    margin-top: 15px; 
-    margin-bottom: 20px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #222; 
-    padding: 20px 40px;
-    border-radius: 12px;
-    border: 2px solid #00a8ff; 
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
-    box-sizing: border-box;
-    position: relative;
-    z-index: 1;
-    display: flex; 
-    flex-direction: column; 
-}
-
-/* Page title styles - Consistent with Terms page */
-main.report-page-content h2.page-title.highlight {
-    font-size: 2.2rem; 
-    font-weight: bold;
-    color: var(--theme-accent-color, #00a8ff);
-    text-align: center;
-    margin-bottom: 25px;
-    padding-top: 0;
-}
-
-/* Introductory and thank-you paragraph styles - Consistent with Terms page */
-main.report-page-content p {
-    font-size: 0.95rem; 
-    line-height: 1.6;
-    margin-bottom: 15px;
-    text-align: left;
-    color: var(--text-color-light, #eee);
-}
-
-.thank-you-message {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: #bbb;
-}
-
-/* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
-.report-sections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 3 columns on larger screens */
-    gap: 25px; 
-    margin-bottom: 25px; 
-}
-
-/* Individual section items within the grid - Consistent with Terms page */
-.report-section-item {
-    background-color: #272727; 
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #00a8ff; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column; 
-    flex-grow: 1; 
-}
-
-/* Main section heading styles - Consistent with Terms page */
-.report-section-item h3 {
-    color: var(--theme-accent-color, #00a8ff);
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.5rem; 
-    font-weight: 600;
-}
-
-/* NEW: Sub-heading styling within sections (e.g., for Email, Torn Message, Discord) */
-.report-section-item h4 {
-    color: #00c0ff; /* A slightly lighter blue than the main accent, for visual hierarchy */
-    font-size: 1.05rem; /* Slightly larger than paragraph text */
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-weight: bold; 
-}
-
-.report-section-item ul {
-    list-style-type: disc; 
-    padding-left: 20px; 
-    margin-bottom: 15px;
-    flex-grow: 1; 
-}
-
-.report-section-item ul li {
-    margin-bottom: 8px; 
-    font-size: 0.9rem; 
-    line-height: 1.5;
-    color: #ddd;
-}
-
-/* NEW: Style for troubleshooting items to emphasize them in orange */
-.report-section-item ul li.troubleshoot-item strong {
-    color: #ffc107; /* Orange color for emphasis */
-}
-
-.report-section-item ul li h4 { 
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-size: 1rem; 
-}
-
-.report-section-item a {
-    color: var(--theme-accent-color, #00a8ff);
-    text-decoration: underline;
-}
-.report-section-item a:hover {
-    color: var(--theme-accent-hover-color, #3ccbff);
-}
-
-.future-admin-contact-placeholder {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #4a6a8a; 
-    font-size: 0.85rem;
-    color: #bbb;
-    text-align: center;
-}
-.future-admin-contact-placeholder h4 {
-    color: #ccc;
-    margin: 0 0 5px 0;
-    font-size: 1rem;
-}
-.future-admin-contact-placeholder ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0;
-}
-.future-admin-contact-placeholder ul li {
-    margin-bottom: 5px;
-}
-
-
-/* Footer styles - Fixed and consistent */
-footer.footer {
-    flex-shrink: 0;
-    background-color: #222;
-    color: #999;
-    padding-top: 12px;
-    padding-bottom: 6px;
-    padding-left: 20px;
-    padding-right: 20px;
-    text-align: center;
-    font-size: 14px;
-    position: fixed; 
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    border-top: 1px solid #00a8ff; 
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
-    user-select: none;
-    z-index: 102;
-    box-sizing: border-box;
-    height: 70px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
-footer.footer .footer-links { margin-bottom: 4px; }
-footer.footer .footer-links a:hover { text-decoration: underline; }
-
-
-/* Responsive styles - Consistent with Terms page */
 @media (max-width: 1100px) { 
     .report-sections-grid {
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
