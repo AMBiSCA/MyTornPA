@@ -77,9 +77,7 @@ main.terms-page-content {
     background-color: #222; 
     padding: 20px 40px;
     border-radius: 12px;
-    /* NEW: 2px blue border for the outer container */
     border: 2px solid #00a8ff; 
-    /* Adjust shadow to complement the new border */
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
     box-sizing: border-box;
     position: relative;
@@ -99,40 +97,31 @@ main.terms-page-content h2.highlight {
     font-weight: bold;
 }
 
-/* NEW: Grid for the top three sections (Disclaimer, Terms, Contact) */
+/* Grid for the top sections (Disclaimer, Terms and Conditions) - now two columns */
 .terms-top-sections-grid {
     display: grid;
-    /* On larger screens, try for 3 columns. If content gets too small, minmax will kick in. */
-    /* On smaller screens, it will stack into fewer columns based on content width. */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 25px; /* Gap between columns */
-    margin-bottom: 25px; /* Spacing below this grid */
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); /* Adjusted to two columns */
+    gap: 25px; 
+    margin-bottom: 25px; 
 }
 
-/* Individual section styling (Disclaimer, T&C, Membership, Contact) */
+/* Individual section styling (Disclaimer, T&C, Membership) */
 .terms-section-item {
     background-color: #272727; 
     padding: 15px;
     border-radius: 8px;
-    /* NEW: 1px blue border for inner boxes */
     border: 1px solid #00a8ff; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Keep subtle inner shadow */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
     box-sizing: border-box;
     display: flex;
     flex-direction: column; 
-    margin-bottom: 0; /* Gap is managed by grid for grid items */
+    margin-bottom: 0; 
 }
 
 /* Style for full-width sections (e.g., Membership) */
 .terms-full-width-section {
     grid-column: 1 / -1; /* Make this section span all columns of the grid */
-    margin-top: 0; /* No top margin needed if part of terms-top-sections-grid, but this is below it */
-}
-
-/* Special styling for the Contact Us panel when it's a grid item */
-.terms-contact-panel {
-    text-align: center; /* Center content within the contact box */
-    /* Ensure it also follows grid-column: 1 / -1 on smaller screens if needed */
+    margin-top: 0; 
 }
 
 /* Section heading styles */
@@ -160,7 +149,7 @@ main.terms-page-content p a:hover {
     color: #3ccbff;
 }
 
-/* Footer styles - Corrected to be fixed and match global.css */
+/* Footer styles - Fixed and consistent */
 footer.footer {
     flex-shrink: 0;
     background-color: #222;
@@ -191,17 +180,17 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
 /* Responsive styles */
-/* Adjust breakpoints if content needs more space before collapsing */
-@media (max-width: 1100px) { /* Adjusted breakpoint for 3 columns to collapse to 2 earlier */
+@media (max-width: 900px) {
     .terms-top-sections-grid {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Try 2 columns on medium screens */
+        grid-template-columns: 1fr; /* Stack into a single column on smaller screens */
+    }
+    main.terms-page-content {
+        max-width: 95%;
+        padding: 20px;
     }
 }
 
 @media (max-width: 768px) {
-    .terms-top-sections-grid {
-        grid-template-columns: 1fr; /* Stack into a single column */
-    }
     main.terms-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.terms-page-content h2.highlight { font-size: 1.8rem; }
     main.terms-page-content section h3 { font-size: 1.3rem; }
