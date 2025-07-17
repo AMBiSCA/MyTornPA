@@ -114,7 +114,7 @@ main.report-page-content p {
 /* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
 .report-sections-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjusted minmax to better fit 3 columns */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 3 columns on larger screens */
     gap: 25px; 
     margin-bottom: 25px; 
 }
@@ -148,7 +148,7 @@ main.report-page-content p {
     font-size: 1.05rem; /* Slightly larger than paragraph text */
     margin-top: 0;
     margin-bottom: 8px;
-    font-weight: bold; /* Make them bold as requested */
+    font-weight: bold; 
 }
 
 .report-section-item ul {
@@ -165,10 +165,15 @@ main.report-page-content p {
     color: #ddd;
 }
 
-.report-section-item ul li h4 { /* If h4 is inside li, adjust its margin/padding */
+/* NEW: Style for troubleshooting items to emphasize them in orange */
+.report-section-item ul li.troubleshoot-item strong {
+    color: #ffc107; /* Orange color for emphasis */
+}
+
+.report-section-item ul li h4 { 
     margin-top: 0;
     margin-bottom: 5px;
-    font-size: 1rem; /* Adjust if it's nested */
+    font-size: 1rem; 
 }
 
 .report-section-item a {
