@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Firebase Configuration ---
     const firebaseConfig = {
-        apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", // Replace with your actual config
+        apiKey: "AIzaSyAI5QB7LbFyndbk_khADbKb33iqLSO4EOw", 
         authDomain: "mytorn-d03ae.firebaseapp.com",
         projectId: "mytorn-d03ae",
         storageBucket: "mytorn-d03ae.appspot.com",
