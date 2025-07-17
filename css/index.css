@@ -1172,17 +1172,19 @@ header {
         font-size: 13px;
         padding: 0 10px;
     }
-    .gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 8px;
+	
+	.gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon {
+    height: 20px;
+    width: 20px;
+    min-width: 20px;
+    margin-right: 8px; /* Changed from 12px for better spacing with icon on left */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     order: -1; /* This moves the icon to the left */
-    margin-left: 0; /* Ensures no left margin interferes */
+    margin-left: 0; /* Ensures no residual left margin */
 }
-    .gsi-material-button#googleSignInButtonLogin .gsi-material-button-icon svg {
-        height: 16px;
-        width: 16px;
-    }
+   
     .toggle-btn {
         font-size: 0.8rem;
     }
