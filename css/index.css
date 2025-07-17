@@ -123,8 +123,9 @@
     order: 1;
 }
 .btn .btn-icon {
-    order: 2;
-    margin-left: 6px;
+    order: 0; /* Changed from 2 to 0 to place icon before text */
+    margin-right: 8px; /* Added/adjusted margin to create space between icon and text */
+    margin-left: 0; /* Ensure no left margin pushes it further right */
     display: inline-flex;
     align-items: center;
 }
