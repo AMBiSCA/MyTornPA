@@ -1,10 +1,11 @@
-// Global Variables
+
+// Global Variables specific to travel.js
 let allTornItems = {};
 let yataTravelData = null;
 let lastYataFetchTime = 0;
 const YATA_CACHE_DURATION = 5 * 60 * 1000;
 
-// Country Name Map
+// Country Name Map (Specific to travel.js logic)
 const countryNameMap = {
     "uni": "United Kingdom",
     "can": "Canada",
@@ -19,7 +20,7 @@ const countryNameMap = {
     "chi": "China"
 };
 
-// Item Category Map
+// Item Category Map (Specific to travel.js logic)
 const itemCategoryMap = {
     // Plushies
     "207": "Plushie", "212": "Plushie", "205": "Plushie", "206": "Plushie", "204": "Plushie",
@@ -46,7 +47,7 @@ const itemCategoryMap = {
     "411": "Special", "415": "Special", "416": "Special", "418": "Special", "431": "Special",
     "432": "Special", "426": "Special", "409": "Special", "410": "Special", "406": "Special",
     "273": "Special",
-    // Weapons
+    // Weapons (example, partial list)
     "8": "Weapon", "11": "Weapon", "20": "Weapon", "21": "Weapon", "26": "Weapon", "31": "Weapon",
     "63": "Weapon", "99": "Weapon", "108": "Weapon", "110": "Weapon", "111": "Weapon", "175": "Weapon",
     "177": "Weapon", "229": "Weapon", "230": "Weapon", "231": "Weapon", "232": "Weapon", "399": "Weapon",
@@ -55,22 +56,24 @@ const itemCategoryMap = {
     "252": "Weapon", "253": "Weapon", "262": "Weapon", "402": "Weapon", "255": "Weapon", "256": "Weapon",
     "257": "Weapon", "333": "Weapon", "391": "Weapon", "398": "Weapon", "400": "Weapon", "222": "Weapon",
     "223": "Weapon", "224": "Weapon", "233": "Weapon", "234": "Weapon", "235": "Weapon", "236": "Weapon",
-    "237": "Weapon", "238": "Weapon", "239": "Weapon", "395": "Weapon", "240": "Weapon", "241": "Weapon",
-    "242": "Weapon", "243": "Weapon", "244": "Weapon", "245": "Weapon", "246": "Weapon", "247": "Weapon",
-    "248": "Weapon", "249": "Weapon", "250": "Weapon", "251": "Weapon",
-    // Armor
+    "237": "Weapon", "238": "Weapon", "239": "Weapon", "240": "Weapon", "241": "Weapon", "242": "Weapon",
+    "243": "Weapon", "244": "Weapon", "245": "Weapon", "246": "Weapon", "247": "Weapon", "248": "Weapon",
+    "249": "Weapon", "250": "Weapon", "251": "Weapon",
+    // Armor (example, partial list)
     "50": "Armor", "107": "Armor", "178": "Armor", "640": "Armor", "641": "Armor",
     "645": "Armor", "332": "Armor", "334": "Armor", "651": "Armor", "652": "Armor",
     "653": "Armor", "654": "Armor", "430": "Armor",
-    // Clothing
+    // Clothing (example, partial list)
     "1125": "Clothing", "624": "Clothing", "625": "Clothing", "626": "Clothing",
     "623": "Clothing", "413": "Clothing", "439": "Clothing",
-    // Miscellaneous
+    // Miscellaneous (example, partial list)
     "159": "Miscellaneous", "328": "Miscellaneous", "335": "Miscellaneous",
 };
 
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("travel.js: DOMContentLoaded event fired. Initializing Travel Helper functionality.");
+
     // UI References
     const destinationSelect = document.getElementById('destination-select');
     const fetchDataBtn = document.getElementById('fetch-data-btn');
@@ -85,7 +88,30 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTornApiKey = null;
 
     // Helper Functions
-    
+    function showLoading() {
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        if (errorDisplay) errorDisplay.style.display = 'none';
+    }
+
+    function hideLoading() {
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+    }
+
+    function showError(message) {
+        if (errorDisplay) {
+            errorDisplay.textContent = `Error: ${message}`;
+            errorDisplay.style.display = 'block';
+        }
+        hideLoading();
+    }
+
+    function clearError() {
+        if (errorDisplay) {
+            errorDisplay.textContent = '';
+            errorDisplay.style.display = 'none';
+        }
+    }
+
     // Fetch All Torn Items
     async function fetchAllTornItems(apiKey) {
         if (Object.keys(allTornItems).length > 0) {
@@ -187,97 +213,98 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function displayItemsForCountry(selectedCountryId, apiKey) {
-    itemListDiv.innerHTML = '';
-    loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
-    errorDisplay.textContent = '';
+        itemListDiv.innerHTML = '';
+        loadingIndicator.textContent = 'Fetching item details and Torn City prices...';
+        errorDisplay.textContent = '';
 
-    const yataData = await fetchYATATravelData();
-    if (!yataData) {
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        const yataData = await fetchYATATravelData();
+        if (!yataData) {
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    const travelCapacity = parseInt(travelCapacityInput.value, 10);
-    if (isNaN(travelCapacity) || travelCapacity <= 0) {
-        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        const travelCapacity = parseInt(travelCapacityInput.value, 10);
+        if (isNaN(travelCapacity) || travelCapacity <= 0) {
+            errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    const countryData = yataData.stocks[selectedCountryId];
-    if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
-        itemListDiv.innerHTML = `<p>No live item data available for this country from YATA.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        const countryData = yataData.stocks[selectedCountryId];
+        if (!countryData || !countryData.stocks || countryData.stocks.length === 0) {
+            itemListDiv.innerHTML = `<p>No live item data available for this country from YATA.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    let itemsToProcess = countryData.stocks.map(itemInfo => ({
-        itemId: itemInfo.id,
-        name: itemInfo.name,
-        foreignPrice: itemInfo.cost,
-        foreignStock: itemInfo.quantity,
-        category: itemCategoryMap[itemInfo.id] || 'Other',
-    }));
+        let itemsToProcess = countryData.stocks.map(itemInfo => ({
+            itemId: itemInfo.id,
+            name: itemInfo.name,
+            foreignPrice: itemInfo.cost,
+            foreignStock: itemInfo.quantity,
+            category: itemCategoryMap[itemInfo.id] || 'Other',
+        }));
 
-    const selectedCategory = categoryFilterSelect.value;
-    if (selectedCategory !== 'all') {
-        itemsToProcess = itemsToProcess.filter(item => item.category === selectedCategory);
-    }
+        const selectedCategory = categoryFilterSelect.value;
+        if (selectedCategory !== 'all') {
+            itemsToProcess = itemsToProcess.filter(item => item.category === selectedCategory);
+        }
 
-    if (itemsToProcess.length === 0) {
-        itemListDiv.innerHTML = `<p>No items found for the selected category in this country.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
-    
-    const itemsToDisplay = await Promise.all(itemsToProcess.map(async (itemData) => {
-        const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
-        const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
-        const canCarry = Math.min(itemData.foreignStock, travelCapacity);
-        const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
-        const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
+        if (itemsToProcess.length === 0) {
+            itemListDiv.innerHTML = `<p>No items found for the selected category in this country.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+        
+        const itemsToDisplay = await Promise.all(itemsToProcess.map(async (itemData) => {
+            const tornCityPrice = await fetchTornCityItemPrice(itemData.itemId, apiKey);
+            const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - itemData.foreignPrice : 'N/A';
+            const canCarry = Math.min(itemData.foreignStock, travelCapacity);
+            const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : 'N/A';
+            const imageUrl = `https://www.torn.com/images/items/${itemData.itemId}/large.png`;
 
-        return {
-            id: itemData.itemId,
-            name: itemData.name,
-            image: imageUrl,
-            foreignPrice: itemData.foreignPrice,
-            foreignStock: itemData.foreignStock,
-            tornCityPrice: tornCityPrice,
-            profitPerItem: profitPerItem,
-            totalPotentialProfit: totalPotentialProfit,
-            canCarry: canCarry,
-            category: itemData.category,
-        };
-    }));
+            return {
+                id: itemData.itemId,
+                name: itemData.name,
+                image: imageUrl,
+                foreignPrice: itemData.foreignPrice,
+                foreignStock: itemData.foreignStock,
+                tornCityPrice: tornCityPrice,
+                profitPerItem: profitPerItem,
+                totalPotentialProfit: totalPotentialProfit,
+                canCarry: canCarry,
+                category: itemData.category,
+            };
+        }));
 
-    itemsToDisplay.sort((a, b) => {
-        const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
-        const profitB = typeof b.profitPerItem === 'number' ? b.profitPerItem : -Infinity;
-        return profitB - profitA;
-    });
+        itemsToDisplay.sort((a, b) => {
+            const profitA = typeof a.profitPerItem === 'number' ? a.profitPerItem : -Infinity;
+            const profitB = typeof b.profitPerItem === 'number' ? b.profitB : -Infinity;
+            return profitB - profitA;
+        });
 
-    itemsToDisplay.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.classList.add('item-card');
-        itemCard.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
-            <div class="item-info">
-                <h3>${item.name} (${item.category})</h3>
-                <div class="item-stats">
-                    <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
-                    <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
-                    <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
-                    <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+        itemListDiv.innerHTML = '';
+        filteredItems.forEach(item => { // This line is referring to filteredItems from the search function, not itemsToDisplay
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('item-card');
+            itemCard.innerHTML = `
+                <img src="${item.image}" alt="${item.name}">
+                <div class="item-info">
+                    <h3>${item.name} (${item.category})</h3>
+                    <div class="item-stats">
+                        <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
+                        <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
+                        <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
+                        <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+                    </div>
+                    <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
                 </div>
-                <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
-            </div>
-        `;
-        itemListDiv.appendChild(itemCard);
-    });
+            `;
+            itemListDiv.appendChild(itemCard);
+        });
 
-    loadingIndicator.style.display = 'none';
-}
+        loadingIndicator.style.display = 'none';
+    }
 
     // Fetch Torn City Price
     async function fetchTornCityItemPrice(itemId, apiKey) {
@@ -323,260 +350,272 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-  async function searchItemsAndDisplayResults(searchQuery, apiKey) {
-    itemListDiv.innerHTML = '';
-    loadingIndicator.textContent = `Searching for "${searchQuery}" and fetching prices...`;
-    errorDisplay.textContent = '';
-    selectedCountryNameSpan.textContent = `Search results for "${searchQuery}"`;
+    async function searchItemsAndDisplayResults(searchQuery, apiKey) {
+        itemListDiv.innerHTML = '';
+        loadingIndicator.textContent = `Searching for "${searchQuery}" and fetching prices...`;
+        errorDisplay.textContent = '';
+        selectedCountryNameSpan.textContent = `Search results for "${searchQuery}"`;
 
-    const yataData = await fetchYATATravelData();
-    if (!yataData) {
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        const yataData = await fetchYATATravelData();
+        if (!yataData) {
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    const travelCapacity = parseInt(travelCapacityInput.value, 10);
-    if (isNaN(travelCapacity) || travelCapacity <= 0) {
-        errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        const travelCapacity = parseInt(travelCapacityInput.value, 10);
+        if (isNaN(travelCapacity) || travelCapacity <= 0) {
+            errorDisplay.textContent = 'Please enter a valid positive number for your travel capacity.';
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    const matchedItems = [];
-    const lowerCaseSearchQuery = searchQuery.toLowerCase();
-    
-    // Store the best profit item for each unique item ID
-    const bestProfitItems = {}; // { itemId: { itemData, totalPotentialProfit } }
+        const matchedItems = [];
+        const lowerCaseSearchQuery = searchQuery.toLowerCase();
+        
+        // Store the best profit item for each unique item ID
+        const bestProfitItems = {}; // { itemId: { itemData, totalPotentialProfit } }
 
-    for (const countryCode in yataData.stocks) {
-        if (yataData.stocks.hasOwnProperty(countryCode)) {
-            const country = yataData.stocks[countryCode];
-            const countryName = countryNameMap[countryCode] || countryCode;
-            for (const itemInfo of country.stocks) {
-                if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
-                    // Temporarily store item data with its country
-                    const currentItemData = {
-                        itemId: itemInfo.id,
-                        name: itemInfo.name,
-                        foreignPrice: itemInfo.cost,
-                        foreignStock: itemInfo.quantity,
-                        countryName: countryName,
-                        category: itemCategoryMap[itemInfo.id] || 'Other',
-                    };
+        for (const countryCode in yataData.stocks) {
+            if (yataData.stocks.hasOwnProperty(countryCode)) {
+                const country = yataData.stocks[countryCode];
+                const countryName = countryNameMap[countryCode] || countryCode;
+                for (const itemInfo of country.stocks) {
+                    if (itemInfo.name.toLowerCase().includes(lowerCaseSearchQuery)) {
+                        // Temporarily store item data with its country
+                        const currentItemData = {
+                            itemId: itemInfo.id,
+                            name: itemInfo.name,
+                            foreignPrice: itemInfo.cost,
+                            foreignStock: itemInfo.quantity,
+                            countryName: countryName,
+                            category: itemCategoryMap[itemInfo.id] || 'Other',
+                        };
 
-                    // Fetch Torn City price for this item
-                    const tornCityPrice = await fetchTornCityItemPrice(currentItemData.itemId, apiKey);
-                    const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - currentItemData.foreignPrice : -Infinity;
-                    const canCarry = Math.min(currentItemData.foreignStock, travelCapacity);
-                    const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : -Infinity;
-                    const imageUrl = `https://www.torn.com/images/items/${currentItemData.itemId}/large.png`; // Define imageUrl here
+                        // Fetch Torn City price for this item
+                        const tornCityPrice = await fetchTornCityItemPrice(currentItemData.itemId, apiKey);
+                        const profitPerItem = (tornCityPrice !== null) ? tornCityPrice - currentItemData.foreignPrice : -Infinity;
+                        const canCarry = Math.min(currentItemData.foreignStock, travelCapacity);
+                        const totalPotentialProfit = (typeof profitPerItem === 'number') ? profitPerItem * canCarry : -Infinity;
+                        const imageUrl = `https://www.torn.com/images/items/${currentItemData.itemId}/large.png`; // Define imageUrl here
 
-                    // Only consider if profit is positive and foreign stock > 0
-                    if (profitPerItem > 0 && currentItemData.foreignStock > 0) {
-                        // Check if this item is already in bestProfitItems and if the current profit is better
-                        if (!bestProfitItems[currentItemData.itemId] || totalPotentialProfit > bestProfitItems[currentItemData.itemId].totalPotentialProfit) {
-                            bestProfitItems[currentItemData.itemId] = {
-                                ...currentItemData,
-                                image: imageUrl, // *** ADDED THIS LINE ***
-                                tornCityPrice: tornCityPrice,
-                                profitPerItem: profitPerItem,
-                                totalPotentialProfit: totalPotentialProfit,
-                                canCarry: canCarry,
-                            };
+                        // Only consider if profit is positive and foreign stock > 0
+                        if (profitPerItem > 0 && currentItemData.foreignStock > 0) {
+                            // Check if this item is already in bestProfitItems and if the current profit is better
+                            if (!bestProfitItems[currentItemData.itemId] || totalPotentialProfit > bestProfitItems[currentItemData.itemId].totalPotentialProfit) {
+                                bestProfitItems[currentItemData.itemId] = {
+                                    ...currentItemData,
+                                    image: imageUrl, // *** ADDED THIS LINE ***
+                                    tornCityPrice: tornCityPrice,
+                                    profitPerItem: profitPerItem,
+                                    totalPotentialProfit: totalPotentialProfit,
+                                    canCarry: canCarry,
+                                };
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    // Convert bestProfitItems object back into an array for sorting and display
-    for (const itemId in bestProfitItems) {
-        matchedItems.push(bestProfitItems[itemId]);
-    }
+        // Convert bestProfitItems object back into an array for sorting and display
+        for (const itemId in bestProfitItems) {
+            matchedItems.push(bestProfitItems[itemId]);
+        }
 
-    if (matchedItems.length === 0) {
-        itemListDiv.innerHTML = `<p>No profitable items found matching "${searchQuery}" in any country or no stock available.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        if (matchedItems.length === 0) {
+            itemListDiv.innerHTML = `<p>No profitable items found matching "${searchQuery}" in any country or no stock available.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    const selectedCategory = categoryFilterSelect.value;
-    let filteredItems = matchedItems;
-    if (selectedCategory !== 'all') {
-        filteredItems = matchedItems.filter(item => item.category === selectedCategory);
-    }
+        const selectedCategory = categoryFilterSelect.value;
+        let filteredItems = matchedItems;
+        if (selectedCategory !== 'all') {
+            filteredItems = matchedItems.filter(item => item.category === selectedCategory);
+        }
 
-    if (filteredItems.length === 0) {
-        itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" for the selected category.</p>`;
-        loadingIndicator.style.display = 'none';
-        return;
-    }
+        if (filteredItems.length === 0) {
+            itemListDiv.innerHTML = `<p>No items found matching "${searchQuery}" for the selected category.</p>`;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
 
-    // Sort by total potential profit in descending order
-    filteredItems.sort((a, b) => {
-        const profitA = typeof a.totalPotentialProfit === 'number' ? a.totalPotentialProfit : -Infinity;
-        const profitB = typeof b.totalPotentialProfit === 'number' ? b.totalPotentialProfit : -Infinity;
-        return profitB - profitA;
-    });
-
-    itemListDiv.innerHTML = '';
-    filteredItems.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.classList.add('item-card');
-        itemCard.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
-            <div class="item-info">
-                <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
-                <div class="item-stats">
-                    <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
-                    <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
-                    <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
-                    <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
-                </div>
-                <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
-            </div>
-        `;
-        itemListDiv.appendChild(itemCard);
-    });
-
-    loadingIndicator.style.display = 'none';
-}
-    // Firebase Authentication
-    if (typeof auth !== 'undefined' && auth && typeof db !== 'undefined' && db) {
-        auth.onAuthStateChanged(async function(user) {
-            
-            // Header logic has been removed as requested.
-
-            if (user) {
-                console.log("User logged in:", user.uid);
-                const userDocRef = firebase.firestore().collection('userProfiles').doc(user.uid);
-                try {
-                    const doc = await userDocRef.get();
-                    if (doc.exists) {
-                        const userData = doc.data();
-                        currentTornApiKey = userData.tornApiKey || null;
-                        console.log("Fetched Torn API Key from Firebase:", currentTornApiKey);
-
-                        if (currentTornApiKey) {
-                            errorDisplay.textContent = '';
-                            loadingIndicator.textContent = 'Fetching essential data...';
-                            
-                            await fetchAllTornItems(currentTornApiKey);
-                            await fetchAndPopulateDestinations();
-
-                            if (destinationSelect.value) {
-                                const selectedCountryId = destinationSelect.value;
-                                selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-                                await displayItemsForCountry(selectedCountryId, currentTornApiKey);
-                            } else {
-                                selectedCountryNameSpan.textContent = 'Selected Country';
-                                itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
-                            }
-                            loadingIndicator.style.display = 'none';
-
-                        } else {
-                            errorDisplay.textContent = 'No Torn API Key found in your profile. Please add it in your settings.';
-                            loadingIndicator.style.display = 'none';
-                        }
-                    } else {
-                        errorDisplay.textContent = 'User profile not found in database.';
-                        console.error("User profile not found for UID:", user.uid);
-                        loadingIndicator.style.display = 'none';
-                    }
-                } catch (error) {
-                    errorDisplay.textContent = 'Error fetching user profile: ' + error.message;
-                    console.error('Error fetching user profile from Firestore:', error);
-                    loadingIndicator.style.display = 'none';
-                }
-            } else {
-                currentTornApiKey = null;
-                errorDisplay.textContent = 'You must be logged in to use the Travel Helper. Please log in.';
-                loadingIndicator.style.display = 'none';
-                itemListDiv.innerHTML = '<p>Please log in to use the Travel Helper.</p>';
-                destinationSelect.innerHTML = '<option value="">-- Log in to load destinations --</option>';
-            }
+        // Sort by total potential profit in descending order
+        filteredItems.sort((a, b) => {
+            const profitA = typeof a.totalPotentialProfit === 'number' ? a.totalPotentialProfit : -Infinity;
+            const profitB = typeof b.totalPotentialProfit === 'number' ? b.totalPotentialProfit : -Infinity;
+            return profitB - profitA;
         });
 
-    } else {
-        console.warn("Firebase auth or firestore object is not available.");
-        errorDisplay.textContent = "Firebase is not initialized.";
+        itemListDiv.innerHTML = '';
+        filteredItems.forEach(item => {
+            const itemCard = document.createElement('div');
+            itemCard.classList.add('item-card');
+            itemCard.innerHTML = `
+                <img src="${item.image}" alt="${item.name}">
+                <div class="item-info">
+                    <h3>${item.name} (${item.category}) in ${item.countryName}</h3>
+                    <div class="item-stats">
+                        <span><strong>Foreign Price:</strong> $${item.foreignPrice.toLocaleString()}</span>
+                        <span><strong>Torn City Price:</strong> ${item.tornCityPrice !== null ? '$' + item.tornCityPrice.toLocaleString() : 'N/A'}</span>
+                        <span><strong>Foreign Stock:</strong> ${item.foreignStock.toLocaleString()}</span>
+                        <span><strong>Profit per item:</strong> ${typeof item.profitPerItem === 'number' ? '$' + item.profitPerItem.toLocaleString() : 'N/A'}</span>
+                    </div>
+                    <p class="profit-summary">You can carry: ${item.canCarry} items (Potential profit: ${typeof item.totalPotentialProfit === 'number' ? '$' + item.totalPotentialProfit.toLocaleString() : 'N/A'})</p>
+                </div>
+            `;
+            itemListDiv.appendChild(itemCard);
+        });
+
         loadingIndicator.style.display = 'none';
     }
-
-
-    // Event Listeners
-    fetchDataBtn.addEventListener('click', async () => {
-        if (!currentTornApiKey) {
-            errorDisplay.textContent = 'No Torn API Key available.';
-            return;
-        }
-        errorDisplay.textContent = '';
-        loadingIndicator.textContent = 'Refetching travel data...';
-
-        await fetchAllTornItems(currentTornApiKey);
-        await fetchAndPopulateDestinations();
-
-        if (destinationSelect.value) {
-            const selectedCountryId = destinationSelect.value;
-            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
-        } else {
-            selectedCountryNameSpan.textContent = 'Selected Country';
-            itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
-        }
-        loadingIndicator.style.display = 'none';
-    });
     
-    itemSearchInput.addEventListener('input', async () => {
-        const searchQuery = itemSearchInput.value.trim();
-        const apiKey = currentTornApiKey;
-        if (searchQuery === '') {
+    // Initialization Function
+    async function initializeTravelPage() {
+        clearError();
+        showLoading();
+
+        // Get the API key from Firebase user profile
+        if (typeof firebase !== 'undefined' && firebase.auth && firebase.firestore) {
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (user) {
+                    try {
+                        const userProfileDoc = await firebase.firestore().collection('userProfiles').doc(user.uid).get();
+                        if (userProfileDoc.exists) {
+                            const userData = userProfileDoc.data();
+                            currentTornApiKey = userData.tornApiKey || null;
+                            console.log("Travel.js: Torn API Key loaded from Firestore:", currentTornApiKey ? "Yes" : "No");
+
+                            if (currentTornApiKey) {
+                                errorDisplay.textContent = '';
+                                loadingIndicator.textContent = 'Fetching essential data...';
+                                
+                                await fetchAllTornItems(currentTornApiKey);
+                                await fetchAndPopulateDestinations();
+
+                                if (destinationSelect.value) { // If a default destination is set
+                                    const selectedCountryId = destinationSelect.value;
+                                    selectedCountryNameSpan.textContent = countryNameMap[selectedCountryId] || 'Selected Country';
+                                    await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+                                } else {
+                                    selectedCountryNameSpan.textContent = 'Selected Country';
+                                    itemListDiv.innerHTML = '<p>Select a destination to see items, or search for an item.</p>';
+                                }
+                                hideLoading();
+
+                            } else {
+                                showError('No Torn API Key found in your profile. Please add it in your settings to use this tool.');
+                                hideLoading();
+                            }
+                        } else {
+                            showError('User profile not found in database.');
+                            console.error("User profile not found for UID:", user.uid);
+                            hideLoading();
+                        }
+                    } catch (error) {
+                        showError(`Error fetching user profile or API key: ${error.message}`);
+                        console.error('Error fetching user profile from Firestore:', error);
+                        hideLoading();
+                    }
+                } else {
+                    currentTornApiKey = null;
+                    showError('You must be logged in to use the Travel Helper. Please log in.');
+                    hideLoading();
+                    itemListDiv.innerHTML = '<p>Please log in to use the Travel Helper.</p>';
+                    destinationSelect.innerHTML = '<option value="">-- Log in to load destinations --</option>';
+                }
+            });
+
+        } else {
+            console.warn("Firebase objects (auth or firestore) are not available.");
+            showError("Firebase is not initialized. Please check your script imports.");
+            hideLoading();
+        }
+    }
+
+    // Event Listeners (specific to travel.js)
+    if (fetchDataBtn) {
+        fetchDataBtn.addEventListener('click', async () => {
             const selectedCountryId = destinationSelect.value;
-            if (selectedCountryId && apiKey) {
-                selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-                await displayItemsForCountry(selectedCountryId, apiKey);
+            if (!currentTornApiKey) {
+                showError('No Torn API Key available.');
+                return;
+            }
+            if (!selectedCountryId) {
+                showError('Please select a destination country.');
+                return;
+            }
+            clearError();
+            showLoading();
+            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+        });
+    }
+    
+    if (itemSearchInput) {
+        itemSearchInput.addEventListener('input', async () => {
+            const searchQuery = itemSearchInput.value.trim();
+            if (searchQuery === '') {
+                const selectedCountryId = destinationSelect.value;
+                if (selectedCountryId && currentTornApiKey) {
+                    selectedCountryNameSpan.textContent = countryNameMap[selectedCountryId] || 'Selected Country';
+                    await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+                } else {
+                    selectedCountryNameSpan.textContent = 'Selected Country';
+                    itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
+                }
+                clearError();
+                return;
+            }
+            if (!currentTornApiKey) {
+                showError('No Torn API Key available for search.');
+                return;
+            }
+            await searchItemsAndDisplayResults(searchQuery, currentTornApiKey);
+        });
+    }
+
+    if (destinationSelect) {
+        destinationSelect.addEventListener('change', async () => {
+            const selectedCountryId = destinationSelect.value;
+            if (!currentTornApiKey) {
+                showError('No Torn API Key available.');
+                destinationSelect.value = ""; // Reset dropdown if no key
+                return;
+            }
+
+            if (selectedCountryId) {
+                clearError();
+                selectedCountryNameSpan.textContent = countryNameMap[selectedCountryId] || 'Selected Country';
+                await displayItemsForCountry(selectedCountryId, currentTornApiKey);
             } else {
                 selectedCountryNameSpan.textContent = 'Selected Country';
-                itemListDiv.innerHTML = '<p>Select a destination or search for an item to see details.</p>';
+                itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
             }
-            return;
-        }
-        if (!apiKey) {
-            errorDisplay.textContent = 'No Torn API Key available.';
-            return;
-        }
-        await searchItemsAndDisplayResults(searchQuery, apiKey);
-    });
+        });
+    }
 
-    destinationSelect.addEventListener('change', async () => {
-        const selectedCountryId = destinationSelect.value;
-        if (!currentTornApiKey) {
-            errorDisplay.textContent = 'No Torn API Key available.';
-            destinationSelect.value = "";
-            return;
-        }
+    if (categoryFilterSelect) {
+        categoryFilterSelect.addEventListener('change', async () => {
+            const searchQuery = itemSearchInput.value.trim();
+            if (searchQuery) { // If search query is active, re-filter search results
+                if (currentTornApiKey) {
+                    await searchItemsAndDisplayResults(searchQuery, currentTornApiKey);
+                } else {
+                    showError('No Torn API Key available for filtering search results.');
+                }
+            } else { // Otherwise, re-filter country-specific items
+                const selectedCountryId = destinationSelect.value;
+                if (selectedCountryId && currentTornApiKey) {
+                    await displayItemsForCountry(selectedCountryId, currentTornApiKey);
+                } else if (selectedCountryId) {
+                    showError('No Torn API Key available for filtering country items.');
+                } else {
+                    itemListDiv.innerHTML = '<p>Select a destination or search for an item to filter results.</p>';
+                }
+            }
+        });
+    }
 
-        if (selectedCountryId) {
-            selectedCountryNameSpan.textContent = destinationSelect.options[destinationSelect.selectedIndex].textContent;
-            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
-        } else {
-            selectedCountryNameSpan.textContent = 'Selected Country';
-            itemListDiv.innerHTML = '<p>Select a destination to see items.</p>';
-        }
-    });
-
-    categoryFilterSelect.addEventListener('change', async () => {
-        const selectedCountryId = destinationSelect.value;
-        if (!currentTornApiKey) {
-            errorDisplay.textContent = 'No Torn API Key available.';
-            categoryFilterSelect.value = "all";
-            return;
-        }
-
-        if (selectedCountryId) {
-            await displayItemsForCountry(selectedCountryId, currentTornApiKey);
-        }
-    });
-
+    // Run initialization when the DOM is fully loaded
+    initializeTravelPage();
 });
