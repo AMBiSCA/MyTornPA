@@ -11,68 +11,11 @@
 
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/merits.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 
-    <header>
-        <div class="header-left">
-            <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
-                <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
-            </a>
-        </div>
-        <div class="header-center">
-            <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
-        </div>
-        <div class="header-right-controls">
-            <div class="header-user-display js-hidden-initially" id="logged-in-user-display">
-            </div>
-
-            <a href="https://www.torn.com/index.php" class="header-text-link js-hidden-initially" target="_blank" rel="noopener noreferrer">Torn City - Homepage&nbsp;🏙️</a>
-
-            <div class="header-buttons js-hidden-initially" id="headerButtonsContainer">
-                <button class="btn" id="homeButtonHeader" onclick="window.location.href='home.html'">
-                    <span class="btn-text">Home:</span><span class="btn-icon">🏠</span>
-                </button>
-
-                <div class="dropdown" id="usefulLinksDropdownContainer">
-                    <button class="btn header-btn" id="usefulLinksBtn">
-                        <span class="btn-text">Useful Links:</span>
-                        <span class="btn-icon">🔗 🔽</span>
-                    </button>
-                    <div class="dropdown-content" id="usefulLinksDropdown">
-                        <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City - Homepage</a>
-                        <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key</a>
-                        <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key</a>
-                        <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
-                        <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
-                        <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
-                        <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
-                        <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
-                        <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
-                        <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
-                    </div>
-                </div>
-
-                <div class="dropdown" id="contactUsDropdownContainer">
-                    <button class="btn dropdown-toggle" id="contactUsBtn">
-                        <span class="btn-text">Contact:</span><span class="btn-icon">💬 🔽</span>
-                    </button>
-                    <div class="dropdown-content" id="contactUsDropdown">
-                        <a href="report.html">Report an Issue</a>
-                        <a href="#">Live Chat (Soon™)</a>
-                        <a href="FAQ.html">F.A.Q</a>
-                    </div>
-                </div>
-
-                <button class="btn" id="logoutButtonHeader">
-                    <span class="btn-text">Logout:</span><span class="btn-icon">🚪</span>
-                </button>
-            </div>
-
-            <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
-        </div>
-    </header>
+    <div id="global-header-placeholder"></div> 
 
     <div class="main-content-wrapper">
         <main class="page-specific-content-area">
@@ -84,7 +27,7 @@
 
             <div class="merits-layout-container">
                 <div class="player-summary-section">
-                   <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Total Stats: <span id="player-total-stats">N/A</span> | Networth: <span id="player-networth">N/A</span> | Awards: <span id="player-awards">N/A</span></p>
+                    <p>Player: <span id="player-name">N/A</span> | Level: <span id="player-level">N/A</span> | Total Stats: <span id="player-total-stats">N/A</span> | Networth: <span id="player-networth">N/A</span> | Awards: <span id="player-awards">N/A</span></p>
                 </div>
 
                 <div class="tabs-container">
@@ -99,17 +42,17 @@
                             <div class="merit-category-panel">
                                 <h3>Attacking / General Honors</h3>
                                 <ul id="honors-attacking-list">
-                                    </ul>
+                                </ul>
                             </div>
                             <div class="merit-category-panel">
                                 <h3>Weapons Honors</h3>
                                 <ul id="honors-weapons-list">
-                                    </ul>
+                                </ul>
                             </div>
                             <div class="merit-category-panel">
                                 <h3>Chaining Honors</h3>
                                 <ul id="honors-chaining-list">
-                                    </ul>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -119,17 +62,17 @@
                             <div class="merit-category-panel">
                                 <h3>Combat Medals</h3>
                                 <ul id="medals-combat-list">
-                                    </ul>
+                                </ul>
                             </div>
                             <div class="merit-category-panel">
                                 <h3>Level / Commitment Medals</h3>
                                 <ul id="medals-commitment-list">
-                                    </ul>
+                                </ul>
                             </div>
                             <div class="merit-category-panel">
                                 <h3>Crimes Medals</h3>
                                 <ul id="medals-crimes-list">
-                                    </ul>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -139,12 +82,12 @@
                             <div class="merit-category-panel full-width">
                                 <h3>Player Stats Overview</h3>
                                 <ul id="player-stats-list">
-                                    </ul>
+                                </ul>
                             </div>
                             <div class="merit-category-panel full-width">
                                 <h3>Miscellaneous Awards</h3>
                                 <ul id="misc-awards-list">
-                                    </ul>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -154,7 +97,7 @@
                             <div class="merit-category-panel full-width">
                                 <h3>Awards Close to Achieving</h3>
                                 <ul id="awards-progress-list">
-                                    </ul>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -179,5 +122,6 @@
 
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
-    <script src="../js/merits.js"></script> </body>
+    <script src="../js/merits.js"></script> 
+</body>
 </html>
