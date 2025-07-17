@@ -129,8 +129,6 @@ const removeDiscordWebhookBtn = document.getElementById('removeDiscordWebhookBtn
 const discordWebhookEditArea = document.getElementById('discordWebhookEditArea'); // The modal's content box
 const discordWebhookModalOverlay = document.getElementById('discordWebhookModalOverlay'); // NEW: The full-screen overlay
 const clearAllWarDataBtn = document.getElementById('clearAllWarDataBtn');
-const friendlyTableTabButtons = document.querySelectorAll('.friendly-table-tab-btn');
-const friendlyMembersTable = document.getElementById('friendly-members-table');
 const DEFAULT_PROFILE_ICONS = [
     '../../images/account.png',
     '../../images/avatar-design.png',
@@ -205,62 +203,6 @@ async function processProfileFetchQueue() {
     console.log("Profile fetch queue finished processing.");
 }
 
-
-function toggleFriendlyTableColumns(view) {
-    if (!friendlyMembersTable) {
-        console.error("Friendly members table not found for column toggling.");
-        return;
-    }
-
-    const headers = friendlyMembersTable.querySelectorAll('th');
-    const rows = friendlyMembersTable.querySelectorAll('tbody tr');
-
-    const columnMap = {
-        'activity': [
-            { index: 0, label: 'Name' },        // Name
-            { index: 1, label: 'Last Action' }, // Last Action
-            { index: 7, label: 'Status' },      // Status
-            { index: 8, label: 'Nerve' },       // Nerve
-            { index: 9, label: 'Energy' },      // Energy
-            { index: 10, label: 'Drug C/D' },   // Drug C/D
-            { index: 11, label: 'Revivable?' }  // Revivable?
-        ],
-        'battlestats': [
-            { index: 0, label: 'Name' },        // Name (keep Name in both views for context)
-            { index: 2, label: 'Strength' },    // Strength
-            { index: 3, label: 'Dexterity' },   // Dexterity
-            { index: 4, label: 'Speed' },       // Speed
-            { index: 5, label: 'Defense' },     // Defense
-            { index: 6, label: 'Total' }        // Total
-        ]
-    };
-
-    const columnsToShow = columnMap[view];
-    const allColumnIndices = Array.from({ length: headers.length }, (_, i) => i);
-
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        allColumnIndices.forEach(colIndex => {
-            const cell = cells[colIndex];
-            if (!cell) return; // Skip if cell doesn't exist
-
-            const shouldShow = columnsToShow.some(col => col.index === colIndex);
-
-            // Toggle visibility
-            if (shouldShow) {
-                cell.style.display = 'block'; // Make visible (overrides mobile CSS display: none)
-                const colInfo = columnsToShow.find(col => col.index === colIndex);
-                if (colInfo && colInfo.label) {
-                    cell.setAttribute('data-label', colInfo.label); // Add data-label for CSS
-                }
-            } else {
-                cell.style.display = 'none'; // Hide
-                cell.removeAttribute('data-label'); // Remove data-label
-            }
-        });
-    });
-}
-
 // Replace your entire handleChatTabClick function with this updated code
 // Replace your entire handleChatTabClick function with this updated code
 function handleChatTabClick(event) {
@@ -300,8 +242,8 @@ function handleChatTabClick(event) {
         mainChatScrollWrapper.style.overflowX = 'hidden'; // Keep horizontal hidden if generally unwanted
     }
     // --- END NEW CRITICAL FIX ---
-	
-	 
+
+
     switch (targetTab) {
         case 'faction-chat':
             chatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>';
@@ -5583,23 +5525,16 @@ async function displayQuickFFTargets(userApiKey, playerId) {
                 const user = firebase.auth().currentUser;
                 if (user && userApiKey) {
                     await updateFriendlyMembersTable(userApiKey, user.uid);
-                    // NEW: After table data is loaded, set initial column view and labels
-                    // Ensure the 'Activity / Status' button is active by default in JS as well
-                    const defaultActivityButton = document.querySelector('.friendly-table-tab-btn[data-view="activity"]');
-                    if (defaultActivityButton) {
-                        defaultActivityButton.classList.add('active'); // Ensure it's marked active
-                    }
-                    toggleFriendlyTableColumns('activity'); // Show default 'activity' columns
                 } else {
                     console.warn("User not logged in or API Key missing.");
                     const tbody = document.getElementById('friendly-members-tbody');
                     if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
                     }
                 }
             }
-			
-			
+        });
+    });
 
 
 
