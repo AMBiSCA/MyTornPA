@@ -152,18 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (usefulLinksBtn) usefulLinksBtn.style.display = 'inline-flex';
                     if (contactUsBtn) contactUsBtn.style.display = 'inline-flex';
                     if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                    if (loggedInUserDisplay) {
-                        loggedInUserDisplay.style.display = 'block';
-                        // Populate with user info if available from firebase-init.js or here
-                        // Example: window.currentUserData?.preferredName || user.email.split('@')[0];
-                        if (window.currentUserData && window.currentUserData.preferredName) {
-                             loggedInUserDisplay.textContent = `Profile: ${window.currentUserData.preferredName}`;
-                        } else if (user.email) {
-                            loggedInUserDisplay.textContent = `Profile: ${user.email.split('@')[0]}`;
-                        } else {
-                            loggedInUserDisplay.textContent = `Profile: Logged In`;
-                        }
-                    }
+                    
                     
                     // Home button: show if not on home page
                     if (homeButtonHeader && !isHomePage) {
