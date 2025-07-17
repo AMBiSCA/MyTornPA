@@ -169,18 +169,17 @@ footer.footer {
     padding-right: 20px;
     text-align: center;
     font-size: 14px;
-    /* NEW: Fixed position for footer */
     position: fixed; 
     bottom: 0;
     left: 0;
-    width: 100%; /* Ensure it spans full width */
-    /* NEW: 2px blue top border for footer */
-    border-top: 2px solid #00a8ff; 
+    width: 100%;
+    /* CORRECTED: Reverted to 1px blue top border for footer */
+    border-top: 1px solid #00a8ff; 
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
     user-select: none;
     z-index: 102;
     box-sizing: border-box;
-    height: 70px; /* Match global footer height */
+    height: 70px;
     display: flex;
     flex-direction: column;
     justify-content: center;
