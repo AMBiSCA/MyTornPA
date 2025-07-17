@@ -89,12 +89,7 @@ header { width: 100%; background: #222; padding: 0 20px; display: flex; justify-
 .index-main-feature-box h2 { color: #00a8ff; margin-top: 0; border-bottom: 1px solid #00a8ff; padding-bottom: 8px; margin-bottom: 15px; font-size: 1.3rem; }
 .index-main-feature-box p { font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
 
-/* BEGIN FAQ BUTTON FIX */
-.whats-new-box {
-  margin-top: 25px;
-  padding: 15px 10px 20px 10px;
-  text-align: center; /* Keeping text-align for other potential inline content within this box */
-}
+
 
 .btn-faq.btn-uniform {
   display: block; /* Change to block to allow margin: auto to work effectively for centering */
@@ -347,7 +342,6 @@ header { width: 100%; background: #222; padding: 0 20px; display: flex; justify-
 .gsi-material-button#googleSignInButtonLogin .gsi-material-button-contents { vertical-align: middle; font-weight: bold; color: #e3e3e3; line-height: normal; }
 #loginBtn.btn-uniform { margin-top: 15px; margin-bottom: 12px; }
 #loginBtn.btn-uniform .btn-text { font-weight: bold; } /* NEW: Make Login with Email button text bold */
-.btn-faq.btn-uniform { display: inline-flex; width: auto; margin: 0px auto 0 auto; }
 .index-main-feature-box .btn-faq .btn-text { font-weight: bold; } /* NEW: Make FAQ button text bold */
 .login-form-links { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; width: 100%; }
 .toggle-btn { background: none; border: none; color: #00a2ff; font-size: 0.85rem; text-decoration: underline; padding: 5px 3px; cursor: pointer; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; line-height: 1; text-align: center; transition: color 0.2s ease; }
