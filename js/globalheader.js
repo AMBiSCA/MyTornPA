@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const headerPlaceholder = document.getElementById('global-header-placeholder');
             
             if (headerPlaceholder) {
-                // Insert the fetched HTML into the placeholder
+                // Insert the tched HTML into the placeholder
                 headerPlaceholder.innerHTML = html;
                 console.log("globalheader.js: Global header HTML loaded successfully into placeholder.");
 
