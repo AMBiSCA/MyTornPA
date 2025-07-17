@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const preferredNameInput = document.getElementById('preferredName');
     const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
     const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
-    const profileSetupTornStatsApiKeyInput = document.getElementById('profileSetupTornStatsApiKey');
+    // Removed as per user request: const profileSetupTornStatsApiKeyInput = document.getElementById('profileSetupTornStatsApiKey');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     const skipProfileSetupBtn = document.getElementById('skipProfileSetupBtn');
     const nameErrorEl = document.getElementById('nameError');
@@ -92,6 +92,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+
+    // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
+    const membershipOptionsModal = document.getElementById('membershipOptionsModal');
+    const closeMembershipOptionsBtn = document.getElementById('closeMembershipOptionsBtn');
+    const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
+    const buySoloMembershipBtn = document.getElementById('buySoloMembershipBtn');
+    const buyYearlyMembershipBtn = document.getElementById('buyYearlyMembershipBtn');
+    const freeTrialConfirmationModal = document.getElementById('freeTrialConfirmationModal');
+    const closeFreeTrialConfirmationBtn = document.getElementById('closeFreeTrialConfirmationBtn');
+    const confirmFreeTrialYesBtn = document.getElementById('confirmFreeTrialYesBtn');
+    const confirmFreeTrialNoBtn = document.getElementById('confirmFreeTrialNoBtn');
+    // END NEW DOM ELEMENTS
 
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
@@ -636,17 +650,17 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                         this.checked = false;
                     });
                 }
-          } else {
-                if (personalStatsModal) personalStatsModal.classList.remove('visible');
-            }
+           } else {
+                if (personalStatsModal) personalStatsModal.classList.remove('visible');
+            }
         });
     }
 
    closePersonalStatsModalBtn.addEventListener('click', function() {
-            console.log("Personal Stats Modal close button clicked.");
-            personalStatsModal.classList.remove('visible');
-            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-        });
+            console.log("Personal Stats Modal close button clicked.");
+            personalStatsModal.classList.remove('visible');
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        });
 
     if (shareFactionStatsToggleDashboard && auth && db) {
         shareFactionStatsToggleDashboard.addEventListener('change', async function() {
@@ -675,7 +689,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
                     if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
                     if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
-                    if(profileSetupTornStatsApiKeyInput) profileSetupTornStatsApiKeyInput.value = data.tornStatsApiKey || '';
+                    // Removed as per user request: if(profileSetupTornStatsApiKeyInput) profileSetupTornStatsApiKeyInput.value = data.tornStatsApiKey || '';
                     if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
                 } else { if(preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0,10); }
             } catch (err) { console.error("Error fetching profile for edit:", err); if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile."; }
@@ -696,7 +710,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 preferredName: preferredNameVal,
                 tornApiKey: profileSetupApiKeyInput.value.trim() || null,
                 tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
-                tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
+                // Removed as per user request: tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
                 profileSetupComplete: true,
                 shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
             };
@@ -828,5 +842,124 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         const content = this.nextElementSibling; if (content) content.classList.toggle('open'); });
     });
 
+    // --- NEW: Membership Modals JavaScript ---
+
+    // Function to hide any open modal overlays
+    function hideAllModalOverlays() {
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.style.display = 'none';
+        });
+    }
+
+    // 1. Upgrade Membership Button opens Membership Options Modal
+    if (upgradeMembershipBtn && membershipOptionsModal) {
+        upgradeMembershipBtn.addEventListener('click', () => {
+            console.log("Upgrade Membership button clicked. Opening Membership Options Modal.");
+            hideAllModalOverlays(); // Ensure other modals are closed
+            membershipOptionsModal.style.display = 'flex';
+        });
+    }
+
+    // 2. Close button for Membership Options Modal
+    if (closeMembershipOptionsBtn && membershipOptionsModal) {
+        closeMembershipOptionsBtn.addEventListener('click', () => {
+            console.log("Close Membership Options button clicked.");
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
+
+    // 3. Click outside to close Membership Options Modal
+    if (membershipOptionsModal) {
+        membershipOptionsModal.addEventListener('click', (event) => {
+            if (event.target === membershipOptionsModal) {
+                console.log("Clicked outside Membership Options Modal. Closing.");
+                membershipOptionsModal.style.display = 'none';
+            }
+        });
+    }
+
+    // 4. Start Free Trial Button opens Free Trial Confirmation Modal
+    if (startFreeTrialBtn && freeTrialConfirmationModal && membershipOptionsModal) {
+        startFreeTrialBtn.addEventListener('click', () => {
+            console.log("Start Free Trial button clicked. Opening Free Trial Confirmation Modal.");
+            membershipOptionsModal.style.display = 'none'; // Close the options modal first
+            freeTrialConfirmationModal.style.display = 'flex';
+        });
+    }
+
+    // 5. Close button for Free Trial Confirmation Modal
+    if (closeFreeTrialConfirmationBtn && freeTrialConfirmationModal) {
+        closeFreeTrialConfirmationBtn.addEventListener('click', () => {
+            console.log("Close Free Trial Confirmation button clicked.");
+            freeTrialConfirmationModal.style.display = 'none';
+        });
+    }
+
+    // 6. Click outside to close Free Trial Confirmation Modal
+    if (freeTrialConfirmationModal) {
+        freeTrialConfirmationModal.addEventListener('click', (event) => {
+            if (event.target === freeTrialConfirmationModal) {
+                console.log("Clicked outside Free Trial Confirmation Modal. Closing.");
+                freeTrialConfirmationModal.style.display = 'none';
+            }
+        });
+    }
+
+    // 7. 'Yes' button in Free Trial Confirmation Modal
+    if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
+        confirmFreeTrialYesBtn.addEventListener('click', () => {
+            console.log("Confirm Free Trial 'Yes' clicked.");
+            // --- Placeholder for your Free Trial Activation Logic ---
+            alert("Free Trial will be activated! (Functionality to be implemented later)");
+            // After activation logic, close the modal
+            freeTrialConfirmationModal.style.display = 'none';
+        });
+    }
+
+    // 8. 'No' button in Free Trial Confirmation Modal
+    if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
+        confirmFreeTrialNoBtn.addEventListener('click', () => {
+            console.log("Confirm Free Trial 'No' clicked. Closing modal.");
+            freeTrialConfirmationModal.style.display = 'none';
+            // Optionally, you could re-open the membership options modal here if desired:
+            // membershipOptionsModal.style.display = 'flex';
+        });
+    }
+
+    // 9. Solo Membership Button (from options modal)
+    if (buySoloMembershipBtn && membershipOptionsModal) {
+        buySoloMembershipBtn.addEventListener('click', () => {
+            console.log("Solo Membership button clicked.");
+            // --- Placeholder for Solo Membership Payment/Enrollment Logic ---
+            alert("Proceeding to Solo Membership (15 Xanax/Month) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
+
+    // 10. Yearly Membership Button (from options modal)
+    if (buyYearlyMembershipBtn && membershipOptionsModal) {
+        buyYearlyMembershipBtn.addEventListener('click', () => {
+            console.log("Yearly Membership button clicked.");
+            // --- Placeholder for Yearly Membership Payment/Enrollment Logic ---
+            alert("Proceeding to Yearly Membership (150 Xanax/Year) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
+
+    // 11. Delete Account Button (from profile setup modal)
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', () => {
+            console.log("Delete Account button clicked.");
+            // --- Placeholder for Delete Account Confirmation/Logic ---
+            alert("Delete Account functionality will be implemented here. (Requires confirmation step!)");
+            // You'll likely want another confirmation modal here before proceeding.
+            // For now, it just alerts.
+        });
+    }
+
+    // --- END Membership Modals JavaScript ---
+
     console.log("home.js: All initial event listeners and setup attempts complete.");
-});
+}); // End of DOMContentLoaded
