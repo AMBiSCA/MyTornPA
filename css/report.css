@@ -52,7 +52,7 @@ footer.footer {
     position: relative;
     z-index: 1;
     overflow-y: auto; 
-    min-height: calc(100% - 160px);
+    min-height: calc(100% - 1px);
     padding-top: 90px;    /* Accounts for 70px header + 10px buffer */
     padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
     min-height: auto; 
