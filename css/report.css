@@ -83,7 +83,7 @@ main.report-page-content {
     width: 90%; 
     max-width: 1400px; 
     /* NEW: Reduced margin-top to pull the entire box up */
-    margin-top: 15px; /* Minimal margin from the top edge of main-content-wrapper */
+    margin-top: 10px; /* Minimal margin from the top edge of main-content-wrapper */
     margin-bottom: 20px; 
     margin-left: auto;
     margin-right: auto;
