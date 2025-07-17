@@ -65,19 +65,19 @@ body::before {
     pointer-events: none;
 }
 
-/* Main content container for the report page */
+/* Main content container for the report page - Consistent with Terms page */
 main.report-page-content {
-    width: 90%; /* Similar to Terms and FAQ container widths */
-    max-width: 1400px; /* Similar to Terms and FAQ container max-widths */
+    width: 90%; 
+    max-width: 1400px; /* Consistent max-width */
     margin-top: 15px; 
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
-    background-color: #222; /* Similar background to Terms and FAQ container */
+    background-color: #222; /* Consistent background */
     padding: 20px 40px;
     border-radius: 12px;
-    border: 2px solid #00a8ff; /* 2px blue border for the outer container */
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); /* Adjusted shadow */
+    border: 2px solid #00a8ff; /* Consistent 2px blue border */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); /* Consistent shadow */
     box-sizing: border-box;
     position: relative;
     z-index: 1;
@@ -85,9 +85,9 @@ main.report-page-content {
     flex-direction: column; 
 }
 
-/* Page title styles */
+/* Page title styles - Consistent with Terms page */
 main.report-page-content h2.page-title.highlight {
-    font-size: 2.2rem; /* Similar to FAQ and Terms titles */
+    font-size: 2.2rem; 
     font-weight: bold;
     color: var(--theme-accent-color, #00a8ff);
     text-align: center;
@@ -95,9 +95,9 @@ main.report-page-content h2.page-title.highlight {
     padding-top: 0;
 }
 
-/* Introductory and thank-you paragraph styles */
+/* Introductory and thank-you paragraph styles - Consistent with Terms page */
 main.report-page-content p {
-    font-size: 0.95rem; /* Consistent with Terms page paragraphs */
+    font-size: 0.95rem; 
     line-height: 1.6;
     margin-bottom: 15px;
     text-align: left;
@@ -111,27 +111,25 @@ main.report-page-content p {
     color: #bbb;
 }
 
-/* NEW: Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) */
+/* Grid for the three main sections (How to Reach, Common Issues, Feature Suggestions) - Consistent with Terms page */
 .report-sections-grid {
     display: grid;
-    /* On larger screens, try for 3 columns. Adjust minmax as needed for content to fit */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 25px; /* Gap between columns */
-    margin-bottom: 25px; /* Spacing below this grid */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 3 columns on larger screens */
+    gap: 25px; 
+    margin-bottom: 25px; 
 }
 
-/* Individual section items within the grid */
+/* Individual section items within the grid - Consistent with Terms page */
 .report-section-item {
-    background-color: #272727; /* Darker background, similar to Terms/FAQ items */
+    background-color: #272727; 
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #00a8ff; /* 1px blue border for inner boxes */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Subtle inner shadow */
+    border: 1px solid #00a8ff; /* Consistent 1px blue border */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
     box-sizing: border-box;
     display: flex;
-    flex-direction: column; /* Stack content vertically within the section */
-    /* Ensure content grows to fill vertical space if sibling sections are taller */
-    flex-grow: 1; 
+    flex-direction: column; 
+    flex-grow: 1; /* Allows sections to expand and align vertically */
 }
 
 .report-section-item h3 {
@@ -139,20 +137,20 @@ main.report-page-content p {
     text-align: center;
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.5rem; /* Consistent heading size */
+    font-size: 1.5rem; 
     font-weight: 600;
 }
 
 .report-section-item ul {
     list-style-type: disc; /* Use standard bullet points */
-    padding-left: 20px; /* Indent bullet points */
+    padding-left: 20px; 
     margin-bottom: 15px;
-    flex-grow: 1; /* Allow list to take up vertical space */
+    flex-grow: 1; /* Allows lists to take up available vertical space */
 }
 
 .report-section-item ul li {
-    margin-bottom: 8px; /* Spacing between list items */
-    font-size: 0.9rem; /* Consistent font size */
+    margin-bottom: 8px; 
+    font-size: 0.9rem; 
     line-height: 1.5;
     color: #ddd;
 }
@@ -168,7 +166,7 @@ main.report-page-content p {
 .future-admin-contact-placeholder {
     margin-top: 15px;
     padding-top: 10px;
-    border-top: 1px dashed #4a6a8a; /* Subtle separator */
+    border-top: 1px dashed #4a6a8a; 
     font-size: 0.85rem;
     color: #bbb;
     text-align: center;
@@ -188,7 +186,7 @@ main.report-page-content p {
 }
 
 
-/* Footer styles - Fixed and consistent */
+/* Footer styles - Fixed and consistent with Terms page */
 footer.footer {
     flex-shrink: 0;
     background-color: #222;
@@ -203,7 +201,7 @@ footer.footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    border-top: 1px solid #00a8ff; 
+    border-top: 1px solid #00a8ff; /* Consistent 1px blue top border */
     box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
     user-select: none;
     z-index: 102;
@@ -218,8 +216,8 @@ footer.footer .footer-links { margin-bottom: 4px; }
 footer.footer .footer-links a:hover { text-decoration: underline; }
 
 
-/* Responsive styles */
-@media (max-width: 1100px) { /* Adjust breakpoint for 3 columns to collapse to 2 */
+/* Responsive styles - Consistent with Terms page */
+@media (max-width: 1100px) { 
     .report-sections-grid {
         grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
     }
@@ -227,7 +225,7 @@ footer.footer .footer-links a:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
     .report-sections-grid {
-        grid-template-columns: 1fr; /* Stack into a single column on small screens */
+        grid-template-columns: 1fr; 
     }
     main.report-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
     main.report-page-content h2.page-title.highlight { font-size: 1.8rem; }
