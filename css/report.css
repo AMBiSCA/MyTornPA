@@ -1,19 +1,20 @@
 /* General layout from global.css applies, but some overrides here */
 html, body {
-    height: 100%; /* Ensure html/body take full height available */
+    height: 100%; /* Ensures html/body take up full browser window height */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color-light, #eee); 
+    overflow: hidden; /* Prevent html/body scrollbars, we will manage scroll on specific elements */
 }
 
 body {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Arranges children (fixed header, main wrapper, fixed footer) vertically */
     box-sizing: border-box;
     position: relative;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
-    min-height: 100vh; /* Ensure body stretches to fill viewport */
+    min-height: 100vh; /* Ensures body always fills viewport height */
 }
 
 body::before {
@@ -32,29 +33,33 @@ body::before {
     z-index: -1;
 }
 
-/* This targets the actual header element (or its placeholder) when fixed */
-header { /* Assume header has position:fixed, height:70px, top:0, left:0, width:100% from global.css */
-    flex-shrink: 0; /* Prevents header from shrinking */
+/* Header and Footer basic flex rules (assuming global.css provides their fixed positioning and heights) */
+/* These are just flex-shrink to prevent them from compressing if main-content-wrapper is large */
+header { 
+    flex-shrink: 0; 
 }
-
-/* This targets the actual footer element when fixed */
-footer.footer { /* Assume footer has position:fixed, height:70px, bottom:0, left:0, width:100% from global.css */
-    flex-shrink: 0; /* Prevents footer from shrinking */
+footer.footer { 
+    flex-shrink: 0; 
 }
 
 /* Main content wrapper that sits between fixed header and footer */
 .main-content-wrapper {
-    flex-grow: 1; /* Allows it to take all available space */
+    flex-grow: 1; /* Allows it to take all available vertical space */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     z-index: 1;
-    overflow-y: auto; /* Enable vertical scrolling for content overflow here */
+    /* THIS IS THE PRIMARY SCROLLABLE AREA FOR THE PAGE CONTENT */
+    overflow-y: auto; /* Enable vertical scrolling if content within this wrapper overflows */
+    
+    /* Padding to create space for the fixed header/footer */
+    /* This padding is now explicitly for the scrollable content within this wrapper */
     padding-top: 90px;    /* Accounts for 70px header + 20px buffer */
     padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
-    min-height: auto; /* Let content dictate min-height, or stretch via flex-grow */
+    
+    min-height: auto; /* Let content dictate min-height, as flex-grow:1 handles vertical fill */
 }
 
 .image-glow {
@@ -81,8 +86,8 @@ footer.footer { /* Assume footer has position:fixed, height:70px, bottom:0, left
 main.report-page-content {
     width: 90%; 
     max-width: 1400px; 
-    margin-top: 15px; 
-    margin-bottom: 20px;
+    margin-top: 0; /* Adjusted: Padding on main-content-wrapper provides space. Remove outer margins. */
+    margin-bottom: 0; /* Adjusted: Padding on main-content-wrapper provides space. Remove outer margins. */
     margin-left: auto;
     margin-right: auto;
     background-color: #222; 
@@ -95,19 +100,9 @@ main.report-page-content {
     z-index: 1;
     display: flex; 
     flex-direction: column; 
-    /* NEW: Explicitly limit height to ensure it fits and allows inner scroll */
-    max-height: calc(100vh - 70px - 70px - 90px - 90px - 15px - 20px); 
-    /* This calculation accounts for:
-       100vh (viewport height)
-       - 70px (header height)
-       - 70px (footer height)
-       - 90px (main-content-wrapper padding-top)
-       - 90px (main-content-wrapper padding-bottom)
-       - 15px (main.report-page-content margin-top)
-       - 20px (main.report-page-content margin-bottom)
-       This means the .report-sections-grid inside it should now correctly scroll.
-    */
-    overflow-y: hidden; /* This box itself won't scroll, its children will */
+    /* NEW: Removed height: 100%; as it was causing conflict. Let content dictate height. */
+    height: auto; 
+    flex-grow: 1; /* Allow to grow within main-content-wrapper, but content can overflow its own boundaries */
 }
 
 /* Page title styles - Consistent with Terms page */
@@ -145,8 +140,9 @@ main.report-page-content p {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
     gap: 25px; 
     margin-bottom: 25px; 
-    flex-grow: 1; 
-    overflow-y: auto; /* This grid container will now scroll if its content overflows */
+    flex-grow: 1; /* Allow grid to grow within main content box */
+    /* NEW: Removed overflow-y: auto here. Let individual sections handle their own scroll */
+    overflow-y: visible; /* Ensure content is visible within the grid, not cut off by grid itself */
 }
 
 /* Individual section items within the grid - Consistent with Terms page */
