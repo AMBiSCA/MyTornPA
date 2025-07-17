@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Determine the correct path to globalheader.html
         // Adjust this path if your structure is different.
         // Assuming globalheader.html is in a 'components' folder, one level up from 'js'
-        const headerPath = '../components/globalheader.html'; 
+        const headerPath = '../pages/globalheader.html'; // Changed from '../components/globalheader.html'
 
         try {
             const response = await fetch(headerPath);
