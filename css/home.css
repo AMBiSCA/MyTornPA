@@ -124,11 +124,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; color: #00a8ff; text-align: center; font-size: 1.4em; }
 .modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; font-weight: bold; }
 .modal-profile-setup .modal-close-btn {
-    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #4dffff;
+    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #00a8ff;
     cursor: pointer; line-height: 1; padding: 0; background: none; border: none; z-index: 10;
     transition: color 0.2s ease;
 }
-.modal-profile-setup .modal-close-btn:hover { color: #00a8ff; }
+.modal-profile-setup .modal-close-btn:hover { color: #4dffff; }
 .modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
 .modal-actions .btn { font-weight: bold; }
 
@@ -139,7 +139,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     background: none; border: none; padding: 0; line-height: 1; cursor: pointer; z-index: 10;
     transition: color 0.2s ease;
 }
-#closePersonalStatsDialogBtn:hover { color: #00a8ff; }
+#closePersonalStatsDialogBtn:hover { color: #4dffff; }
 #personalStatsModalBody h4 { margin: 15px 0 8px 0; color: #8ab4f8; border-bottom: 1px solid #555; text-align: center; padding-bottom: 5px; font-size: 1.1em; font-weight: 600;}
 #personalStatsModalBody h4:first-child { margin-top: 0; }
 #personalStatsModalBody p { margin: 5px 0 8px 5px; line-height: 1.5; font-size: 0.9em; text-align: center; }
@@ -202,7 +202,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .membership-option-card:hover {
-    transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); border-color: #00a8ff;
+    transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); border-color: black;
 }
 .membership-option-card h4 {
     color: #8ab4f8;
