@@ -1037,7 +1037,7 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
 
         const membershipInfo = {
             membershipType: 'trial',
-            membershipEndTime: trialEndTime
+            membershipEndTime: trialEndTime,
             hasUsedTrial: true
         };
 
