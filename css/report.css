@@ -345,6 +345,9 @@ html, body {
   overflow-y: auto;
 }
 
+body::-webkit-scrollbar {
+  display: none;
+}
 
 .main-content-wrapper {
   height: auto;
