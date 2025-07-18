@@ -137,7 +137,6 @@ main.report-page-content p {
     gap: 25px; 
     /* NEW: Reduced margin-bottom to pull footer closer */
     margin-bottom: 15px; /* Reduce gap below the grid */
-    flex-grow: 1; 
     overflow-y: auto; 
 }
 
