@@ -124,7 +124,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; color: #00a8ff; text-align: center; font-size: 1.4em; }
 .modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; font-weight: bold; }
 .modal-profile-setup .modal-close-btn {
-    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #00a8ff;
+    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #4dffff;
     cursor: pointer; line-height: 1; padding: 0; background: none; border: none; z-index: 10;
     transition: color 0.2s ease;
 }
