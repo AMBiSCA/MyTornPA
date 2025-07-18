@@ -122,7 +122,7 @@ if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hide
 if(goToProfileBtn) {
     goToProfileBtn.addEventListener('click', () => {
         hideSubscribePrompt();
-        membershipOptionsModal.style.display = 'flex';
+        showProfileSetupModal(); // This function should already exist in your code
     });
 }
 
@@ -1038,7 +1038,6 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
         const membershipInfo = {
             membershipType: 'trial',
             membershipEndTime: trialEndTime
-		    hasUsedTrial: true
         };
 
         try {
