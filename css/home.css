@@ -246,6 +246,25 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     color: #4dffff; 
 }
 
+/* --- Styling for the Profile Image in the Personal Stats Modal --- */
+
+.member-detail-profile-image-modal {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;  /* This makes the image a circle */
+    object-fit: cover;
+    border: 2px solid #00a8ff;
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+}
+
+/* This centers the container that holds the image */
+.member-header-top-row.center-content-flex {
+    display: flex;
+    justify-content: center; /* This centers the image horizontally */
+    padding-top: 10px;
+    margin-bottom: 15px;
+}
+
 .membership-select-btn {
     margin-top: auto;
     width: 100%;
@@ -341,7 +360,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 }
 
 #subscribePromptModal .modal-close-button:hover {
-    color: #ffffff;
+    color: #4dffff;
 }
 
 /* Style the icon in the title */
