@@ -324,3 +324,7 @@ header .header-btn {
   display: none;             /* For Chrome, Safari, and Opera */
 }
 
+.main-content-wrapper {
+  overflow: hidden;
+}
+
