@@ -131,12 +131,13 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     opacity: 1; /* <-- ADD THIS LINE */
     box-sizing: border-box;
 }
+
 #personalStatsModal.visible {
     display: flex; /* Or 'block', depending on your desired layout for centering */
 }
 .modal-profile-setup, #personalStatsModal .modal-content-box {
     background-color: #181a1b; 
-    padding: 20px 25px; /* Reduced from 25px 30px */ 
+    padding: 20px 25px; /* Reduced fr 25px 30px */ 
     border-radius: 10px; 
     width: 100%;
     position: relative; color: #e0e0e0; border: 1px solid #007bff;
