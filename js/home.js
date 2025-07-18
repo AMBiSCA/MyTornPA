@@ -794,117 +794,267 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         });
     }
 
-  if (auth) {
-    auth.onAuthStateChanged(async function(user) {
-        console.log('Auth State Changed. User:', user ? user.uid : 'No user');
-        const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
-        const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+    if (auth) {
+        auth.onAuthStateChanged(async function(user) {
+            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
+            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
+            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
-        if (user) {
-            // --- User is signed IN ---
-            if (mainHomepageContent) mainHomepageContent.style.display = 'block';
-            if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-            if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-            if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+            if (user) {
+                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
-            let userDisplayName = "User",
-                showSetup = true,
-                firstTip = false,
-                profile = null;
-            if (db) {
-                try {
-                    const doc = await db.collection('userProfiles').doc(user.uid).get();
-                    profile = doc.exists ? doc.data() : null;
+                let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
+                if (db) {
+                    try {
+                        const doc = await db.collection('userProfiles').doc(user.uid).get();
+                        profile = doc.exists ? doc.data() : null;
+						
+						// ... inside onAuthStateChanged, after fetching the profile
+profile = doc.exists ? doc.data() : null;
 
-                    // --- Check for an active membership and start the countdown ---
-                    if (profile && profile.membershipEndTime) {
-                        const membershipInfo = {
-                            membershipType: profile.membershipType,
-                            membershipEndTime: profile.membershipEndTime
-                        };
-                        // If the membership is still active, start the timer
-                        if (membershipInfo.membershipEndTime > Date.now()) {
-                            startMembershipCountdown(membershipInfo);
-                        }
-                    }
+// START: Add this new block
+// --- Check for an active membership and start the countdown ---
+if (profile && profile.membershipEndTime) {
+    const membershipInfo = {
+        membershipType: profile.membershipType,
+        membershipEndTime: profile.membershipEndTime
+    };
+    // If the membership is still active, start the timer
+    if (membershipInfo.membershipEndTime > Date.now()) {
+        startMembershipCountdown(membershipInfo);
+    }
+}
 
-                    if (profile && profile.preferredName && profile.profileSetupComplete) {
-                        userDisplayName = profile.preferredName;
-                        showSetup = false;
-                        if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
-                        if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
-                            lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
-                            lastLogonInfoEl.style.display = 'block';
-                            if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-                            lastActiveTimeoutId = setTimeout(() => { if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
-                        } else if (lastLogonInfoEl) {
-                            lastLogonValueEl.textContent = "Welcome!";
-                            lastLogonInfoEl.style.display = 'block';
-                        }
-                        db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                        if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                    } else {
-                        userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-                    }
-                } catch (e) {
-                    console.error("Error fetching profile on auth change:", e);
-                    userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-                }
-            } else {
-                userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-            }
-            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
-            if (showSetup) {
-                if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
-                if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-                showProfileSetupModal();
-                clearQuickStats();
-                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
-            } else {
-                if (firstTip) {
-                    displayRandomTip();
-                    localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                } else if (tornTipPlaceholderEl) {
-                    tornTipPlaceholderEl.style.display = 'none';
-                }
-                if (profile && profile.tornApiKey) {
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
-                    fetchAllRequiredData(user, db);
-                } else {
+                        if (profile && profile.preferredName && profile.profileSetupComplete) {
+                            userDisplayName = profile.preferredName; showSetup = false;
+                            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
+                            if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
+                                lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
+                                lastLogonInfoEl.style.display = 'block';
+                                if(lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                                lastActiveTimeoutId = setTimeout(() => { if(lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                            } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
+                            db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                            if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+                        } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                    } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
+                if (showSetup) {
+                    if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
+                    if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+                    showProfileSetupModal(); clearQuickStats();
                     if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    clearQuickStats();
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+                } else {
+                    if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                    else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
+                    if (profile && profile.tornApiKey) {
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+                        fetchAllRequiredData(user, db);
+                    } else {
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                        clearQuickStats();
+                        if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
+                    }
+                }
+
+            } else { // User is signed out
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+                if (mainHomepageContent) mainHomepageContent.style.display = 'none';
+                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+
+                clearQuickStats();
+                if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+                if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+
+                const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
+                const currentPath = window.location.pathname.toLowerCase();
+                const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
+
+                if (!isPublicPage) {
+                    console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
+                    window.location.href = '../index.html';
+                } else {
+                    console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
                 }
             }
+        });
+    } else { console.error("Firebase auth object not available for auth state listener."); }
 
-        } else {
-            // --- User is signed OUT ---
-            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-            if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-            if (mainHomepageContent) mainHomepageContent.style.display = 'none';
-            if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+    if (logoutButtonHeader && auth) {
+        logoutButtonHeader.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log('User signed out.');
+            }).catch(error => {
+                console.error('Sign out error:', error);
+            });
+        });
+    }
 
-            clearQuickStats();
-            if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
-            if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+    document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function() { this.classList.toggle('active');
+        const content = this.nextElementSibling; if (content) content.classList.toggle('open'); });
+    });
 
-            const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
-            const currentPath = window.location.pathname.toLowerCase();
-            const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
+    // --- NEW: Membership Modals JavaScript ---
 
-            if (!isPublicPage) {
-                console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
-                window.location.href = '../index.html';
-            } else {
-                console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+    // Function to hide any open modal overlays
+    function hideAllModalOverlays() {
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (upgradeMembershipBtn && membershipOptionsModal && profileSetupModal) {
+    upgradeMembershipBtn.addEventListener('click', () => {
+        console.log("Hiding profile modal and showing membership modal.");
+        
+        // Directly hide the profile modal by its ID
+        profileSetupModal.style.display = 'none'; 
+        
+        // Directly show the new membership modal by its ID
+        membershipOptionsModal.style.display = 'flex'; 
+    });
+}
+    // 2. Close button for Membership Options Modal
+    if (closeMembershipOptionsBtn && membershipOptionsModal) {
+        closeMembershipOptionsBtn.addEventListener('click', () => {
+            console.log("Close Membership Options button clicked.");
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
+
+    // 3. Click outside to close Membership Options Modal
+    if (membershipOptionsModal) {
+        membershipOptionsModal.addEventListener('click', (event) => {
+            if (event.target === membershipOptionsModal) {
+                console.log("Clicked outside Membership Options Modal. Closing.");
+                membershipOptionsModal.style.display = 'none';
             }
+        });
+    }
+
+    // 4. Start Free Trial Button opens Free Trial Confirmation Modal
+    if (startFreeTrialBtn && freeTrialConfirmationModal && membershipOptionsModal) {
+        startFreeTrialBtn.addEventListener('click', () => {
+            console.log("Start Free Trial button clicked. Opening Free Trial Confirmation Modal.");
+            membershipOptionsModal.style.display = 'none'; // Close the options modal first
+            freeTrialConfirmationModal.style.display = 'flex';
+        });
+    }
+
+    // 5. Close button for Free Trial Confirmation Modal
+    if (closeFreeTrialConfirmationBtn && freeTrialConfirmationModal) {
+        closeFreeTrialConfirmationBtn.addEventListener('click', () => {
+            console.log("Close Free Trial Confirmation button clicked.");
+            freeTrialConfirmationModal.style.display = 'none';
+        });
+    }
+
+    // 6. Click outside to close Free Trial Confirmation Modal
+    if (freeTrialConfirmationModal) {
+        freeTrialConfirmationModal.addEventListener('click', (event) => {
+            if (event.target === freeTrialConfirmationModal) {
+                console.log("Clicked outside Free Trial Confirmation Modal. Closing.");
+                freeTrialConfirmationModal.style.display = 'none';
+            }
+        });
+    }
+
+    // 7. 'Yes' button in Free Trial Confirmation Modal
+if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
+    confirmFreeTrialYesBtn.addEventListener('click', async () => {
+        console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
+        
+        const user = auth.currentUser;
+        if (!user) {
+            console.error("User not logged in. Cannot start trial.");
+            // Optionally show an error message to the user here
+            return;
+        }
+
+        // Set the end time to 7 days from now
+        const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+        const membershipInfo = {
+            membershipType: 'trial',
+            membershipEndTime: trialEndTime
+        };
+
+        try {
+            // Get a reference to the user's profile document
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            
+            // Update the document with the new membership fields
+            await userProfileRef.update(membershipInfo);
+            
+            console.log("Successfully saved trial info to Firebase.");
+
+            // Hide the confirmation modal
+            freeTrialConfirmationModal.style.display = 'none';
+
+            // Start the countdown timer with the new info
+            startMembershipCountdown(membershipInfo);
+
+        } catch (error) {
+            console.error("Error saving trial info to Firebase:", error);
+            // Optionally show an error message to the user here
         }
     });
-} else {
-    console.error("Firebase auth object not available for auth state listener.");
 }
+    // 8. 'No' button in Free Trial Confirmation Modal
+    if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
+        confirmFreeTrialNoBtn.addEventListener('click', () => {
+            console.log("Confirm Free Trial 'No' clicked. Closing modal.");
+            freeTrialConfirmationModal.style.display = 'none';
+            // Optionally, you could re-open the membership options modal here if desired:
+            // membershipOptionsModal.style.display = 'flex';
+        });
+    }
+
+    // 9. Solo Membership Button (from options modal)
+    if (buySoloMembershipBtn && membershipOptionsModal) {
+        buySoloMembershipBtn.addEventListener('click', () => {
+            console.log("Solo Membership button clicked.");
+            // --- Placeholder for Solo Membership Payment/Enrollment Logic ---
+            alert("Proceeding to Solo Membership (15 Xanax/Month) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
+
+    // 10. Yearly Membership Button (from options modal)
+    if (buyYearlyMembershipBtn && membershipOptionsModal) {
+        buyYearlyMembershipBtn.addEventListener('click', () => {
+            console.log("Yearly Membership button clicked.");
+            // --- Placeholder for Yearly Membership Payment/Enrollment Logic ---
+            alert("Proceeding to Yearly Membership (150 Xanax/Year) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
+
+    // 11. Delete Account Button (from profile setup modal)
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', () => {
+            console.log("Delete Account button clicked.");
+            // --- Placeholder for Delete Account Confirmation/Logic ---
+            alert("Delete Account functionality will be implemented here. (Requires confirmation step!)");
+            // You'll likely want another confirmation modal here before proceeding.
+            // For now, it just alerts.
+        });
+    }
+
+  
+
+    console.log("home.js: All initial event listeners and setup attempts complete.");
+}); // End of DOMContentLoaded
