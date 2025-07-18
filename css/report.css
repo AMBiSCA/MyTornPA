@@ -42,21 +42,19 @@ footer.footer {
     flex-shrink: 0; 
 }
 
-/* Main content wrapper that sits between fixed header and footer */
+/* ADD THIS BLOCK */
 .main-content-wrapper {
-    flex-grow: 1; 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-    overflow-y: auto; /* Enable vertical scrolling for content overflow here */
-    /* NEW: Reduced padding-top to move content higher */
-    padding-top: 70px;    /* Accounts exactly for 70px header, no extra buffer here */
-    padding-bottom: 90px; /* Accounts for 70px footer + 20px buffer */
-    min-height: auto; 
+  overflow-y: auto;            /* This allows vertical scrolling */
+  -ms-overflow-style: none;    /* Hides scrollbar for IE and Edge */
+  scrollbar-width: none;       /* Hides scrollbar for Firefox */
+  /* ...make sure your other original styles for this wrapper are still here... */
 }
+
+/* AND ADD THIS BLOCK */
+.main-content-wrapper::-webkit-scrollbar {
+  display: none;               /* Hides scrollbar for Chrome, Safari, and Opera */
+}
+
 
 .image-glow {
     position: fixed;
