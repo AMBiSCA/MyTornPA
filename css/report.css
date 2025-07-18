@@ -338,39 +338,38 @@ header .header-btn {
 
 /* Add this entire block to the VERY END of the report page's CSS */
 
+/* REPLACE your entire existing @media block with this one */
+
 @media (max-width: 768px) {
- 
-html, body {
-  height: auto;
-  overflow-y: auto;
-}
 
-body::-webkit-scrollbar {
-  display: none;
-}
+  /* --- SCROLLING & LAYOUT FIXES --- */
 
-.main-content-wrapper {
-  height: auto;
-  overflow-y: visible;
-  /* Adjust padding for mobile scrolling */
-  padding-top: 80px;
-  padding-bottom: 80px;
-}
-  /* 1. Allow the main container to grow with its content */
-  main.report-page-content {
+  /* 1. Let the page scroll and hide the scrollbar on all browsers */
+  html, body {
     height: auto;
+    overflow-y: auto;
+    -ms-overflow-style: none;  /* Hides scrollbar on IE/Edge */
+    scrollbar-width: none;     /* Hides scrollbar on Firefox */
   }
 
-  /* 2. Stop the grid and boxes from being constrained */
-  .report-sections-grid {
-    overflow-y: visible;
-    flex-grow: 0;
+  /* 2. Hides scrollbar on Chrome, Safari, and Opera */
+  body::-webkit-scrollbar {
+    display: none;
   }
 
-  /* 3. Force the individual boxes to have a natural height */
+  /* 3. Stop the main content areas from having fixed heights */
+  .main-content-wrapper,
+  main.report-page-content,
+  .report-sections-grid,
   .report-section-item {
+    height: auto;
     overflow-y: visible;
     flex-grow: 0;
-    height: auto;
+  }
+
+  /* 4. Adjust padding for a better mobile view */
+  .main-content-wrapper {
+    padding-top: 80px;
+    padding-bottom: 80px;
   }
 }
