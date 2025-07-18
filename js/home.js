@@ -851,15 +851,17 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         });
     }
 
-    // 1. Upgrade Membership Button opens Membership Options Modal
-    if (upgradeMembershipBtn && membershipOptionsModal) {
-        upgradeMembershipBtn.addEventListener('click', () => {
-            console.log("Upgrade Membership button clicked. Opening Membership Options Modal.");
-            hideAllModalOverlays(); // Ensure other modals are closed
-            membershipOptionsModal.style.display = 'flex';
-        });
-    }
-
+    if (upgradeMembershipBtn && membershipOptionsModal && profileSetupModal) {
+    upgradeMembershipBtn.addEventListener('click', () => {
+        console.log("Hiding profile modal and showing membership modal.");
+        
+        // Directly hide the profile modal by its ID
+        profileSetupModal.style.display = 'none'; 
+        
+        // Directly show the new membership modal by its ID
+        membershipOptionsModal.style.display = 'flex'; 
+    });
+}
     // 2. Close button for Membership Options Modal
     if (closeMembershipOptionsBtn && membershipOptionsModal) {
         closeMembershipOptionsBtn.addEventListener('click', () => {
