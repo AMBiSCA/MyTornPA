@@ -105,7 +105,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeFreeTrialConfirmationBtn = document.getElementById('closeFreeTrialConfirmationBtn');
     const confirmFreeTrialYesBtn = document.getElementById('confirmFreeTrialYesBtn');
     const confirmFreeTrialNoBtn = document.getElementById('confirmFreeTrialNoBtn');
-    // END NEW DOM ELEMENTS
+	const subscribePromptModal = document.getElementById('subscribePromptModal');
+const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
+const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
+const goToProfileBtn = document.getElementById('goToProfileBtn');
+
+// Function to hide the subscribe prompt
+const hideSubscribePrompt = () => {
+    if (subscribePromptModal) {
+        subscribePromptModal.style.display = 'none';
+    }
+};
+ if(closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
+if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
+
+// Make the 'View Memberships' button open the profile modal
+if(goToProfileBtn) {
+    goToProfileBtn.addEventListener('click', () => {
+        hideSubscribePrompt();
+        showProfileSetupModal(); // This function should already exist in your code
+    });
+}
 
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
@@ -718,6 +738,32 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
             } catch (error) { console.error("Error updating faction share preference:", error); }
         });
     }
+	
+	function setupMemberOnlyLinks(profile) {
+    const memberLinks = document.querySelectorAll('.member-only');
+    const subscribeModal = document.getElementById('subscribePromptModal');
+
+    // First, determine if the user is an active member
+    const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
+
+    // Loop through every link that is marked as 'member-only'
+    memberLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            // If the user is NOT a member...
+            if (!isMember) {
+                // 1. Stop the browser from navigating to the link's href
+                event.preventDefault();
+                console.log("Non-member clicked a restricted link. Showing prompt.");
+                
+                // 2. Show the 'Please Subscribe' popup
+                if (subscribeModal) {
+                    subscribeModal.style.display = 'flex';
+                }
+            }
+            // If the user IS a member, this code does nothing, and the link works normally.
+        });
+    });
+}
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }

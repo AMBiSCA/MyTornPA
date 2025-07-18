@@ -114,47 +114,45 @@
             </div>
 
             <section id="toolsSection" class="tools-column home-section styled-container">
-                <h2 class="section-title">🧰🧭 Explore Your Tools.️🧭🧰</h2>
-                <div class="tool-category-section">
-                    <h4 class="tool-category-header">⭐🔥 Most Popular! 🔥⭐</h4>
-                    <div class="tool-buttons-grid">
-                              <a href="fairfight.html" class="btn tool-item-button">Fair Fight Targets.</a>
-                        <a href="FactionPeeper.html" class="btn tool-item-button">Faction Members Overview.</a>
-                        <a href="activitywatch.html" class="btn tool-item-button">Faction Activity Monitor.</a>
-                       <a href="war_page_hub.html" class="btn tool-item-button">Faction War Hub.</a>
-                        <a href="recruitment.html" class="btn tool-item-button">Faction Recruiment.</a>
-                    </div>
-                </div>
-                <div class="tool-category-section">
-                    <h4 class="tool-category-header">📈 Player Development. 📊 </h4>
-                    <div class="tool-buttons-grid">
-                        <a href="gymgain.html" class="btn tool-item-button">Character Progression.</a>
-                        <a href="merits.html" class="btn tool-item-button">Merit/Honor Tracker.</a>
-                        <a href="war_page_hub.html?view=friendly-status" class="btn tool-item-button">Faction BattleStats Overview.</a>
-                    </div>
-                </div>
-                <div class="tool-category-section">
-                    <h4 class="tool-category-header">👥 Faction Operations. 👥</h4>
-                    <div class="tool-buttons-grid">
-                        <a href="factionpeeper.html" class="btn tool-item-button">Faction Members Overview..</a>
-                        <a href="activitywatch.html" class="btn tool-item-button">Faction Activity Monitor.</a>
-                        <a href="war_page_hub.html" class="btn tool-item-button">Faction War Hub.</a>
-						<a href="factionoverview.html" class="btn tool-item-button">Faction Financials.</a>
-                        <a href="recruitment.html" class="btn tool-item-button">Faction Recruitment.</a>
-                        <a href="fairfight.html" class="btn tool-item-button">Fair Fight Targets.</a>
-                    </div>
-                </div>
-                <div class="tool-category-section">
-                    <h4 class="tool-category-header">⚖️ General Utilities & Market. ⚖️ </h4>
-                    <div class="tool-buttons-grid">
-                        <a href="travel.html" class="btn tool-item-button">Travel Helper.</a>
-                        <a href="market-pulse.html" class="btn tool-item-button">Item Market Watcher.</a>
-                        <a href="eventcalendar.html" class="btn tool-item-button">Event Calendar.</a>
-                    </div>
-                </div>
-            </section>
+    <h2 class="section-title">🧰🧭 Explore Your Tools.️🧭🧰</h2>
+    <div class="tool-category-section">
+        <h4 class="tool-category-header">⭐🔥 Most Popular! 🔥⭐</h4>
+        <div class="tool-buttons-grid">
+            <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets.</a>
+            <a href="FactionPeeper.html" class="btn tool-item-button member-only">Faction Members Overview.</a>
+            <a href="activitywatch.html" class="btn tool-item-button member-only">Faction Activity Monitor.</a>
+            <a href="war_page_hub.html" class="btn tool-item-button member-only">Faction War Hub.</a>
+            <a href="recruitment.html" class="btn tool-item-button member-only">Faction Recruiment.</a>
         </div>
     </div>
+    <div class="tool-category-section">
+        <h4 class="tool-category-header">📈 Player Development. 📊 </h4>
+        <div class="tool-buttons-grid">
+            <a href="gymgain.html" class="btn tool-item-button member-only">Character Progression.</a>
+            <a href="merits.html" class="btn tool-item-button">Merit/Honor Tracker.</a>
+            <a href="war_page_hub.html?view=friendly-status" class="btn tool-item-button member-only">Faction BattleStats Overview.</a>
+        </div>
+    </div>
+    <div class="tool-category-section">
+        <h4 class="tool-category-header">👥 Faction Operations. 👥</h4>
+        <div class="tool-buttons-grid">
+            <a href="factionpeeper.html" class="btn tool-item-button member-only">Faction Members Overview..</a>
+            <a href="activitywatch.html" class="btn tool-item-button member-only">Faction Activity Monitor.</a>
+            <a href="war_page_hub.html" class="btn tool-item-button member-only">Faction War Hub.</a>
+            <a href="factionoverview.html" class="btn tool-item-button member-only">Faction Financials.</a>
+            <a href="recruitment.html" class="btn tool-item-button member-only">Faction Recruitment.</a>
+            <a href="fairfight.html" class="btn tool-item-button member-only">Fair Fight Targets.</a>
+        </div>
+    </div>
+    <div class="tool-category-section">
+        <h4 class="tool-category-header">⚖️ General Utilities & Market. ⚖️ </h4>
+        <div class="tool-buttons-grid">
+            <a href="travel.html" class="btn tool-item-button">Travel Helper.</a>
+            <a href="market-pulse.html" class="btn tool-item-button member-only">Item Market Watcher.</a>
+            <a href="eventcalendar.html" class="btn tool-item-button">Event Calendar.</a>
+        </div>
+    </div>
+</section>
 
     <div class="modal-overlay-profile" id="profileSetupModal">
         <div class="modal-profile-setup">
@@ -268,6 +266,19 @@
             <div class="modal-error-message" id="freeTrialConfirmationError"></div>
         </div>
     </div>
+	
+	<div class="modal-overlay" id="subscribePromptModal">
+    <div class="modal-content-box confirmation-modal">
+        <span class="modal-close-button" id="closeSubscribePromptBtn">&times;</span>
+        <h3><span class="btn-icon">💎</span> Membership Required</h3>
+        <p>To access this feature, a Solo or Faction membership is required.</p>
+        <p style="font-size: 0.9em; color: #ccc;">Please choose a plan from your profile settings.</p>
+        <div class="confirmation-actions">
+            <button id="goToProfileBtn" class="btn membership-select-btn">View Memberships</button>
+            <button id="closeSubscribeModalBtn" class="btn btn-confirm-no">Close</button>
+        </div>
+    </div>
+</div>
 
   <footer class="footer">
     <div class="footer-links">

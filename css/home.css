@@ -289,7 +289,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .trial-countdown-container {
   display: none; /* Hidden by default, JS will show it */
   margin-top: 0px;
-  margin-left: 120px;
+  margin-left: 100px;
   padding: 8px 12px;
   background-color: #1e2022;        /* Dark background like the cards */
   border: 1px solid #00a8ff;         /* Site's accent blue border */
@@ -300,6 +300,37 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
   text-align: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   white-space: nowrap; /* Prevents the text from wrapping onto two lines */
+}
+
+/* === Styling for the "Subscribe Prompt" Modal === */
+
+/* Position the 'X' close button in the new modal */
+#subscribePromptModal .modal-close-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 2.2em;
+    color: #00a8ff;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+#subscribePromptModal .modal-close-button:hover {
+    color: #ffffff;
+}
+
+/* Style the icon in the title */
+#subscribePromptModal h3 .btn-icon {
+    margin-right: 8px;
+}
+
+/* Optional: Make the two buttons in the prompt have the same width */
+#subscribePromptModal .confirmation-actions .btn {
+    min-width: 150px;
 }
 
 /* === MODAL STYLES END === */
