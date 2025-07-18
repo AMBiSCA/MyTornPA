@@ -140,6 +140,13 @@ main.report-page-content p {
     overflow-y: auto; 
 }
 
+/* Add this entire block to the bottom of your CSS file */
+.report-section-item {
+  height: auto !important;
+  flex-grow: 0 !important;
+  overflow-y: visible !important;
+}
+
 /* Individual section items within the grid - Consistent with Terms page */
 .report-section-item {
     background-color: #272727; 
