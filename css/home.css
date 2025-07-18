@@ -182,7 +182,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
         "solo-yearly  faction-yearly";
 }
 
-/* Assigning each card to its named area in the grid n */
+/* Assigning each card to its named area in the gr-id n */
 .card-free-trial {
     grid-area: free-trial;
     justify-self: center;
