@@ -8,7 +8,7 @@
     padding-bottom: 5px; /* Reduced from 8px */ border-bottom: 1px solid #00a8ff;
 }
 .tool-buttons-grid { display: flex; flex-wrap: wrap; gap: 5px; /* Reduced from 8px 10px */ justify-content: center; }
-/* This specific size/border-radius for too items is unique to the homepage grid */
+/* This specific size/border-radius for too items is unie to the homepage grid */
 .tool-buttons-grid .btn.tool-item-button { /* Relies on .btn from global.css for base, then overrides */
     margin: 0; padding: 0 12px; height: 34px; font-size: 13px; border-radius: 17px;
 }
