@@ -244,7 +244,49 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .btn-confirm-no:hover { background-color: #c82333; transform: translateY(-1px); }
 .btn-confirm-no:active { transform: translateY(0); }
 
+
+/* === Styling Upgrades for Membership Modal === */
+
+/* 1. Position and color the 'X' close button */
+.membership-modal .modal-close-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 2.2em;
+    color: #00a8ff; /* Site's accent blue */
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.membership-modal .modal-close-button:hover {
+    color: #ffffff; /* Make it white on hover */
+}
+
+/* 2. Color the main title blue */
+.membership-modal h3 {
+    color: #00a8ff; /* Site's accent blue */
+}
+
+/* 3. Add blue borders and glow to the monthly cards */
+.card-solo-monthly,
+.card-faction-monthly {
+    border-color: #007bff; /* A nice primary blue */
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+/* 4. Make the blue border darker on hover for a nice effect */
+.card-solo-monthly:hover,
+.card-faction-monthly:hover {
+    border-color: #0056b3; 
+    box-shadow: 0 8px 15px rgba(0, 123, 255, 0.5);
+}
 /* === MODAL STYLES END === */
+
+
 
 
 /* === RESPONSIVE STYLES === */
@@ -290,3 +332,4 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     .confirmation-actions { flex-direction: column; gap: 10px; }
     .btn-confirm-yes, .btn-confirm-no { width: 100%; }
 }
+
