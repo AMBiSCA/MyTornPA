@@ -131,13 +131,37 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
     opacity: 1; /* <-- ADD THIS LINE */
     box-sizing: border-box;
 }
-
 #personalStatsModal.visible {
     display: flex; /* Or 'block', depending on your desired layout for centering */
 }
+
+/* NEW: Custom Grid Layout for Membership Modal */
+.membership-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    gap: 20px;
+    /* This visually maps out your desired layout */
+    grid-template-areas:
+        "free-trial   free-trial"
+        "solo-monthly faction-monthly"
+        "solo-yearly  faction-yearly";
+}
+
+/* --- Assigning each card to its named area in the grid --- */
+.card-free-trial {
+    grid-area: free-trial;
+    justify-self: center; /* Ensures the card itself is centered */
+    width: 100%;
+    max-width: 350px; /* Optional: keeps the top card from being too wide */
+}
+
+.card-solo-monthly    { grid-area: solo-monthly; }
+.card-solo-yearly     { grid-area: solo-yearly; }
+.card-faction-monthly { grid-area: faction-monthly; }
+.card-faction-yearly  { grid-area: faction-yearly; }
 .modal-profile-setup, #personalStatsModal .modal-content-box {
     background-color: #181a1b; 
-    padding: 20px 25px; /* Reduced fr 25px 30px */ 
+    padding: 20px 25px; /* Reduced from 25px 30px */ 
     border-radius: 10px; 
     width: 100%;
     position: relative; color: #e0e0e0; border: 1px solid #007bff;
@@ -324,7 +348,20 @@ CSS
     display: block;
 }
 
-
+/* Optional: If you want text below the icon on the FAB itself (uncomment HTML span too) */
+/*
+.btn-fab .fab-text {
+    font-size: 9px; 
+    display: block; 
+    margin-top: 1px;
+    line-height: 1.1;
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+*/
 
 /* Dropdown content for the FAB */
 .fab-dropdown-content {
@@ -375,30 +412,19 @@ CSS
     margin-bottom: 15px;       /* Adds space below the image, separating it from content below (adjust as needed) */
 }
 
-/* NEW: Custom Grid Layout for Membership Modal */
-.membership-options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
-    gap: 20px;
-    /* This visually maps out your desired layout */
-    grid-template-areas:
-        "free-trial   free-trial"
-        "solo-monthly faction-monthly"
-        "solo-yearly  faction-yearly";
-}
+Great! I'm ready to provide the CSS for your new membershipOptionsModal. I've designed these styles to be consistent with the existing dark theme, blue accents, and overall aesthetic of your MyTornPA site, ensuring a professional and cohesive look.
 
-/* --- Assigning each card to its named area in the grid --- */
-.card-free-trial {
-    grid-area: free-trial;
-    justify-self: center; /* Ensures the card itself is centered */
-    width: 100%;
-    max-width: 350px; /* Optional: keeps the top card from being too wide */
-}
+CSS to Add to home.css
+Please add these new CSS rules to your home.css file. A good place would be within the "Profile Setup & Personal Stats MODAL STYLES" section, or just below it, as it pertains to a new modal.
 
-.card-solo-monthly    { grid-area: solo-monthly; }
-.card-solo-yearly     { grid-area: solo-yearly; }
-.card-faction-monthly { grid-area: faction-monthly; }
-.card-faction-yearly  { grid-area: faction-yearly; }
+CSS
+
+/* home.css */
+
+/* ... (existing CSS code) ... */
+
+/* NEW: Membership Options Modal Specific Styles */
+
 /* Base styling for the membership modal content box - inherits from .modal-content-box */
 .membership-modal {
     max-width: 900px; /* Wider to accommodate three cards */
@@ -406,7 +432,15 @@ CSS
     text-align: center; /* Center align title and subtitle */
 }
 
-
+/* Membership Options Grid Layout */
+.membership-options-grid {
+    display: grid;
+    /* For larger screens: 3 columns of equal width */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px; /* Space between cards */
+    margin-top: 25px; /* Space below subtitle */
+    margin-bottom: 20px; /* Space above error message */
+}
 
 /* Individual Membership Option Cards */
 .membership-option-card {
