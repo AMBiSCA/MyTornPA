@@ -204,7 +204,15 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .membership-option-card:hover {
     transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); border-color: #00a8ff;
 }
-.membership-option-card h4 { color: #8ab4f8; font-size: 1.3em; margin-top: 0; margin-bottom: 10px; }
+.membership-option-card h4 {
+    color: #8ab4f8;
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 10px;
+    display: flex; /* ADD THIS */
+    justify-content: center; /* ADD THIS */
+    align-items: center; /* ADD THIS */
+}
 .membership-option-card p { color: #c0c0c0; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; }
 .membership-option-card .savings-info { color: #FFC04D; font-weight: bold; font-size: 0.9em; margin-bottom: 15px; }
 
