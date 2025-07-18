@@ -121,8 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let activeCooldownIntervals = {};
     let activeCooldownEndTimes = {};
     let lastActiveTimeoutId = null;
-
-    function formatTimeRemaining(secs) {
+    let membershipCountdownInterval = null;
+    
+	function formatTimeRemaining(secs) {
         if (secs <= 0) return "OK 😊";
         const h = Math.floor(secs / 3600);
         const m = Math.floor((secs % 3600) / 60);
@@ -225,6 +226,53 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+	
+	function startMembershipCountdown() {
+    // Clear any existing timer to prevent multiple timers running
+    if (membershipCountdownInterval) {
+        clearInterval(membershipCountdownInterval);
+    }
+
+    const countdownContainer = document.getElementById('trialCountdownContainer');
+    const membershipInfoJSON = localStorage.getItem('membershipInfo');
+
+    // If the container element or the saved info doesn't exist, stop.
+    if (!countdownContainer || !membershipInfoJSON) {
+        return;
+    }
+
+    const membershipInfo = JSON.parse(membershipInfoJSON);
+
+    // Function to update the timer text, runs every second
+    const updateTimer = () => {
+        const remainingTime = membershipInfo.endTime - Date.now();
+
+        // When the timer runs out...
+        if (remainingTime <= 0) {
+            clearInterval(membershipCountdownInterval); // Stop the timer
+            countdownContainer.style.display = 'none'; // Hide the box
+            localStorage.removeItem('membershipInfo'); // Clean up the stored data
+            return;
+        }
+
+        // Calculate days, hours, minutes, and seconds
+        const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+        
+        // Determine the label based on the type we saved
+        const label = membershipInfo.type === 'trial' ? 'Free Trial' : 'Membership';
+        
+        // Update the text in the box
+        countdownContainer.textContent = `${label}: ${days}d ${hours}h ${minutes}m`;
+        
+        // Make sure the box is visible
+        countdownContainer.style.display = 'block';
+    };
+
+    updateTimer(); // Run it once immediately
+    membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
+}
 
     function clearQuickStats() {
         console.log("home.js: Clearing quick stats.");
@@ -908,16 +956,29 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 
     // 7. 'Yes' button in Free Trial Confirmation Modal
-    if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
-        confirmFreeTrialYesBtn.addEventListener('click', () => {
-            console.log("Confirm Free Trial 'Yes' clicked.");
-            // --- Placeholder for your Free Trial Activation Logic ---
-            alert("Free Trial will be activated! (Functionality to be implemented later)");
-            // After activation logic, close the modal
-            freeTrialConfirmationModal.style.display = 'none';
-        });
-    }
+     if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
+    confirmFreeTrialYesBtn.addEventListener('click', () => {
+        console.log("Confirm Free Trial 'Yes' clicked.");
 
+        // Set the end time to 7 days from now
+        const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+        // Create an object to store the membership info
+        const membershipInfo = {
+            type: 'trial',
+            endTime: trialEndTime
+        };
+
+        // Save the info to the browser's local storage as a string
+        localStorage.setItem('membershipInfo', JSON.stringify(membershipInfo));
+
+        // Hide the confirmation modal
+        freeTrialConfirmationModal.style.display = 'none';
+
+        // Start the countdown timer (we will write this function next)
+        startMembershipCountdown();
+    });
+}
     // 8. 'No' button in Free Trial Confirmation Modal
     if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
         confirmFreeTrialNoBtn.addEventListener('click', () => {
@@ -961,7 +1022,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         });
     }
 
-    // --- END Membership Modals JavaScript ---
+  startMembershipCountdown();
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded

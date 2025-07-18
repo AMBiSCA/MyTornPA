@@ -263,7 +263,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 }
 
 .membership-modal .modal-close-button:hover {
-    color: #ffffff; /* Make it white on hover */
+    color:  #00a8ff; /* Make it white on hover */
 }
 
 /* 2. Color the main title blue */
@@ -284,6 +284,23 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     border-color: #0056b3; 
     box-shadow: 0 8px 15px rgba(0, 123, 255, 0.5);
 }
+
+/* === Trial & Membership Countdown Timer Box === */
+.trial-countdown-container {
+  display: none; /* Hidden by default, JS will show it */
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #1e2022;        /* Dark background like the cards */
+  border: 1px solid #00a8ff;         /* Site's accent blue border */
+  border-radius: 6px;
+  color: #FFC04D;                   /* Gold text for contrast and importance */
+  font-size: 0.9em;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  white-space: nowrap; /* Prevents the text from wrapping onto two lines */
+}
+
 /* === MODAL STYLES END === */
 
 
