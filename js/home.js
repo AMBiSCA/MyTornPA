@@ -964,15 +964,26 @@ setupMemberOnlyLinks(profile); //
         });
     }
 
-    if (upgradeMembershipBtn && membershipOptionsModal && profileSetupModal) {
+    if (upgradeMembershipBtn) {
     upgradeMembershipBtn.addEventListener('click', () => {
-        console.log("Hiding profile modal and showing membership modal.");
-        
-        // Directly hide the profile modal by its ID
-        profileSetupModal.style.display = 'none'; 
-        
-        // Directly show the new membership modal by its ID
-        membershipOptionsModal.style.display = 'flex'; 
+        const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
+
+        // Check the globally available profile for the flag
+        if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
+            // If the flag is true, disable the button and change its text
+            startFreeTrialBtn.disabled = true;
+            startFreeTrialBtn.textContent = 'Free Trial Used';
+        } else {
+            // Otherwise, make sure the button is enabled and has its original text
+            startFreeTrialBtn.disabled = false;
+            startFreeTrialBtn.textContent = 'Start Your Free Trial';
+        }
+
+        // Now, hide the profile modal and show the membership options
+        hideProfileSetupModal();
+        if (membershipOptionsModal) {
+            membershipOptionsModal.style.display = 'flex';
+        }
     });
 }
     // 2. Close button for Membership Options Modal
@@ -1038,6 +1049,7 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
         const membershipInfo = {
             membershipType: 'trial',
             membershipEndTime: trialEndTime
+		    hasUsedTrial: true
         };
 
         try {
