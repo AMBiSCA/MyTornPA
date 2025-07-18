@@ -134,31 +134,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 #personalStatsModal.visible {
     display: flex; /* Or 'block', depending on your desired layout for centering */
 }
-
-/* NEW: Custom Grid Layout for Membership Modal */
-.membership-options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
-    gap: 20px;
-    /* This visually maps out your desired layout */
-    grid-template-areas:
-        "free-trial   free-trial"
-        "solo-monthly faction-monthly"
-        "solo-yearly  faction-yearly";
-}
-
-/* --- Assigning each card to its named area in the grid --- */
-.card-free-trial {
-    grid-area: free-trial;
-    justify-self: center; /* Ensures the card itself is centered */
-    width: 100%;
-    max-width: 350px; /* Optional: keeps the top card from being too wide */
-}
-
-.card-solo-monthly    { grid-area: solo-monthly; }
-.card-solo-yearly     { grid-area: solo-yearly; }
-.card-faction-monthly { grid-area: faction-monthly; }
-.card-faction-yearly  { grid-area: faction-yearly; }
 .modal-profile-setup, #personalStatsModal .modal-content-box {
     background-color: #181a1b; 
     padding: 20px 25px; /* Reduced from 25px 30px */ 
