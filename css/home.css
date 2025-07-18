@@ -209,9 +209,18 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .membership-option-card .savings-info { color: #FFC04D; font-weight: bold; font-size: 0.9em; margin-bottom: 15px; }
 
 /* Buttons inside membership cards */
+/* Styling for buttons within membership cards - inherits from .btn, then customizes */
 .membership-select-btn {
-    margin-top: auto; width: 100%; padding: 12px 15px; font-size: 1em; font-weight: bold;
-    background-color: #007bff; border: 1px solid #0056b3; color: white; border-radius: 5px;
+    margin-top: auto; /* Pushes button to the bottom of the flex container */
+    width: 100%; /* Make buttons full width of the card */
+    padding: 12px 15px;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: #007bff; /* Primary blue button */
+    border: 1px solid #0056b3;
+    color: black; /* CHANGED THIS LINE */
+    text-align: center; /* ADDED THIS LINE */
+    border-radius: 5px; /* Slightly less rounded than header buttons */
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
 .membership-select-btn:hover { background-color: #0056b3; transform: translateY(-1px); }
@@ -219,7 +228,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* Special Card Variants */
 .free-trial-card { border-color: #28a745; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3); }
 .free-trial-card:hover { border-color: #218838; box-shadow: 0 8px 15px rgba(40, 167, 69, 0.5); }
-.free-trial-card .membership-select-btn { background-color: #28a745; border-color: #218838; }
+.free-trial-card .membership-select-btn { background-color: #28a745; border-color: #218838; color: black; }
 .free-trial-card .membership-select-btn:hover { background-color: #218838; }
 
 .yearly-membership-card { border-color: #FFD700; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
