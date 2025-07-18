@@ -328,3 +328,10 @@ header .header-btn {
   overflow: hidden;
 }
 
+/* Add this new rule */
+@media (min-width: 769px) {
+  .main-content-wrapper {
+    overflow: hidden; /* This turns scrolling OFF for desktop */
+  }
+}
+
