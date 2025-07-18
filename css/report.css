@@ -339,10 +339,20 @@ header .header-btn {
 /* Add this entire block to the VERY END of the report page's CSS */
 
 @media (max-width: 768px) {
-  /*
-    This whole block only applies to screens 768px or smaller (phones).
-  */
+ 
+html, body {
+  height: auto;
+  overflow-y: auto;
+}
 
+
+.main-content-wrapper {
+  height: auto;
+  overflow-y: visible;
+  /* Adjust padding for mobile scrolling */
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
   /* 1. Allow the main container to grow with its content */
   main.report-page-content {
     height: auto;
