@@ -140,12 +140,7 @@ main.report-page-content p {
     overflow-y: auto; 
 }
 
-/* Add this entire block to the bottom of your CSS file */
-.report-section-item {
-  height: auto !important;
-  flex-grow: 0 !important;
-  overflow-y: visible !important;
-}
+
 
 /* Individual section items within the grid - Consistent with Terms page */
 .report-section-item {
@@ -341,3 +336,28 @@ header .header-btn {
   }
 }
 
+/* Add this entire block to the VERY END of the report page's CSS */
+
+@media (max-width: 768px) {
+  /*
+    This whole block only applies to screens 768px or smaller (phones).
+  */
+
+  /* 1. Allow the main container to grow with its content */
+  main.report-page-content {
+    height: auto;
+  }
+
+  /* 2. Stop the grid and boxes from being constrained */
+  .report-sections-grid {
+    overflow-y: visible;
+    flex-grow: 0;
+  }
+
+  /* 3. Force the individual boxes to have a natural height */
+  .report-section-item {
+    overflow-y: visible;
+    flex-grow: 0;
+    height: auto;
+  }
+}
