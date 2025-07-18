@@ -308,3 +308,19 @@ header .header-btn {
     font-weight: bold !important;
 }
 
+@media (min-width: 769px) {
+  .report-section-item {
+    overflow-y: hidden;
+  }
+}
+
+/* Hides scrollbar visuals but keeps scroll functionality */
+.main-content-wrapper {
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+  scrollbar-width: none;     /* For Firefox */
+}
+
+.main-content-wrapper::-webkit-scrollbar {
+  display: none;             /* For Chrome, Safari, and Opera */
+}
+
