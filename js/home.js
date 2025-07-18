@@ -1,4 +1,3 @@
-// js/home.js
 document.addEventListener('DOMContentLoaded', function() {
     console.log("home.js: DOMContentLoaded event fired. All systems go (hopefully)!");
 
@@ -875,6 +874,9 @@ if (profile && profile.membershipEndTime) {
         startMembershipCountdown(membershipInfo);
     }
 }
+
+// --- Activate the gatekeeper for member-only links ---
+setupMemberOnlyLinks(profile); //
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
                             userDisplayName = profile.preferredName; showSetup = false;
