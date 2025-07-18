@@ -141,9 +141,7 @@ if(goToProfileBtn) {
     let activeCooldownEndTimes = {};
     let lastActiveTimeoutId = null;
     let membershipCountdownInterval = null;
-    let currentUserProfile = null;
-	currentUserProfile = profile;
-	
+    
 	function formatTimeRemaining(secs) {
         if (secs <= 0) return "OK 😊";
         const h = Math.floor(secs / 3600);
@@ -966,26 +964,15 @@ setupMemberOnlyLinks(profile); //
         });
     }
 
-    if (upgradeMembershipBtn) {
+    if (upgradeMembershipBtn && membershipOptionsModal && profileSetupModal) {
     upgradeMembershipBtn.addEventListener('click', () => {
-        const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
-
-        // Check the globally available profile for the flag
-        if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
-            // If the flag is true, disable the button and change its text
-            startFreeTrialBtn.disabled = true;
-            startFreeTrialBtn.textContent = 'Free Trial Used';
-        } else {
-            // Otherwise, make sure the button is enabled and has its original text
-            startFreeTrialBtn.disabled = false;
-            startFreeTrialBtn.textContent = 'Start Your Free Trial';
-        }
-
-        // Now, hide the profile modal and show the membership options
-        hideProfileSetupModal();
-        if (membershipOptionsModal) {
-            membershipOptionsModal.style.display = 'flex';
-        }
+        console.log("Hiding profile modal and showing membership modal.");
+        
+        // Directly hide the profile modal by its ID
+        profileSetupModal.style.display = 'none'; 
+        
+        // Directly show the new membership modal by its ID
+        membershipOptionsModal.style.display = 'flex'; 
     });
 }
     // 2. Close button for Membership Options Modal
