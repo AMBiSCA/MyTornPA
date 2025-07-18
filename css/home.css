@@ -116,7 +116,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 
 /* Profile Setup & Personal Stats MODAL STYLES (Specific to profile modals on homepage) */
 /* These are kept here because they apply to a specific modal UI for profile setup on the homepage */
-.modal-overlay-profile, #personalStatsModal.modal-overlay {
+.modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.85); 
     z-index: 10000; display: none; 
