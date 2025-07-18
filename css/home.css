@@ -324,20 +324,7 @@ CSS
     display: block;
 }
 
-/* Optional: If you want text below the icon on the FAB itself (uncomment HTML span too) */
-/*
-.btn-fab .fab-text {
-    font-size: 9px; 
-    display: block; 
-    margin-top: 1px;
-    line-height: 1.1;
-    position: absolute;
-    bottom: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-}
-*/
+
 
 /* Dropdown content for the FAB */
 .fab-dropdown-content {
@@ -412,7 +399,7 @@ CSS
 .membership-options-grid {
     display: grid;
     /* For larger screens: 3 columns of equal width */
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px; /* Space between cards */
     margin-top: 25px; /* Space below subtitle */
     margin-bottom: 20px; /* Space above error message */
