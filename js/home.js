@@ -122,7 +122,7 @@ if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hide
 if(goToProfileBtn) {
     goToProfileBtn.addEventListener('click', () => {
         hideSubscribePrompt();
-        showProfileSetupModal(); // This function should already exist in your code
+        membershipOptionsModal.style.display = 'flex';
     });
 }
 
