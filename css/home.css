@@ -216,20 +216,20 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .membership-option-card p { color: #c0c0c0; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; }
 .membership-option-card .savings-info { color: #FFC04D; font-weight: bold; font-size: 0.9em; margin-bottom: 15px; }
 
-/* Buttons inside membership cards */
-/* Styling for buttons within membership cards - inherits from .btn, then customizes */
 .membership-select-btn {
-    margin-top: auto; /* Pushes button to the bottom of the flex container */
-    width: 100%; /* Make buttons full width of the card */
+    margin-top: auto;
+    width: 100%;
     padding: 12px 15px;
     font-size: 1em;
     font-weight: bold;
     background-color: #007bff; /* Primary blue button */
     border: 1px solid #0056b3;
-    color: black; /* CHANGED THIS LINE */
-    text-align: center; /* ADDED THIS LINE */
-    border-radius: 5px; /* Slightly less rounded than header buttons */
+    color: black; 
+    border-radius: 5px;
     transition: background-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .membership-select-btn:hover { background-color: #0056b3; transform: translateY(-1px); }
 
