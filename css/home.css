@@ -289,6 +289,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .trial-countdown-container {
   display: none; /* Hidden by default, JS will show it */
   margin-top: 10px;
+  margin-left: 30px;
   padding: 8px 12px;
   background-color: #1e2022;        /* Dark background like the cards */
   border: 1px solid #00a8ff;         /* Site's accent blue border */
