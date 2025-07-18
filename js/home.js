@@ -738,31 +738,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
         });
     }
 	
-	function setupMemberOnlyLinks(profile) {
-    const memberLinks = document.querySelectorAll('.member-only');
-    const subscribeModal = document.getElementById('subscribePromptModal');
-
-    // First, determine if the user is an active member
-    const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
-
-    // Loop through every link that is marked as 'member-only'
-    memberLinks.forEach(link => {
-        link.addEventListener('click', (event) => {
-            // If the user is NOT a member...
-            if (!isMember) {
-                // 1. Stop the browser from navigating to the link's href
-                event.preventDefault();
-                console.log("Non-member clicked a restricted link. Showing prompt.");
-                
-                // 2. Show the 'Please Subscribe' popup
-                if (subscribeModal) {
-                    subscribeModal.style.display = 'flex';
-                }
-            }
-            // If the user IS a member, this code does nothing, and the link works normally.
-        });
-    });
-}
+	
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
@@ -873,6 +849,32 @@ if (profile && profile.membershipEndTime) {
     if (membershipInfo.membershipEndTime > Date.now()) {
         startMembershipCountdown(membershipInfo);
     }
+}
+
+function setupMemberOnlyLinks(profile) {
+    const memberLinks = document.querySelectorAll('.member-only');
+    const subscribeModal = document.getElementById('subscribePromptModal');
+
+    // First, determine if the user is an active member
+    const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
+
+    // Loop through every link that is marked as 'member-only'
+    memberLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            // If the user is NOT a member...
+            if (!isMember) {
+                // 1. Stop the browser from navigating to the link's href
+                event.preventDefault();
+                console.log("Non-member clicked a restricted link. Showing prompt.");
+                
+                // 2. Show the 'Please Subscribe' popup
+                if (subscribeModal) {
+                    subscribeModal.style.display = 'flex';
+                }
+            }
+            // If the user IS a member, this code does nothing, and the link works normally.
+        });
+    });
 }
 
 // --- Activate the gatekeeper for member-only links ---
