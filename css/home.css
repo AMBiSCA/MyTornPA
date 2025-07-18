@@ -216,6 +216,36 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .membership-option-card p { color: #c0c0c0; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; }
 .membership-option-card .savings-info { color: #FFC04D; font-weight: bold; font-size: 0.9em; margin-bottom: 15px; }
 
+/* --- Override card hover border to be black --- */
+.membership-options-grid .membership-option-card:hover {
+    border: 1px solid black;
+}
+
+/* === Unified Style for ALL Modal 'X' Close Buttons === */
+
+.modal-close-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 2.2em;
+    color: #00a8ff; /* Default blue color */
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.modal-close-button:hover {
+    color: #ffffff; /* White color on hover */
+}
+
+/* NEW: Lighter blue color when you click the button */
+.modal-close-button:active {
+    color: #4dffff; 
+}
+
 .membership-select-btn {
     margin-top: auto;
     width: 100%;
@@ -261,32 +291,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .btn-confirm-no:hover { background-color: #c82333; transform: translateY(-1px); }
 .btn-confirm-no:active { transform: translateY(0); }
 
-
-/* === Styling Upgrades for Membership Modal === */
-
-/* 1. Position and color the 'X' close button */
-.membership-modal .modal-close-button {
-    position: absolute;
-    top: 12px;
-    right: 15px;
-    font-size: 2.2em;
-    color: #00a8ff; /* Site's accent blue */
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.2s ease;
-    padding: 0;
-    background: none;
-    border: none;
-}
-
-.membership-modal .modal-close-button:hover {
-    color:  #00a8ff; /* Make it white on hover */
-}
-
-/* 2. Color the main title blue */
-.membership-modal h3 {
-    color: #00a8ff; /* Site's accent blue */
-}
 
 /* 3. Add blue borders and glow to the monthly cards */
 .card-solo-monthly,
