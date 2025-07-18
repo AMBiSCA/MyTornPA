@@ -1,102 +1,84 @@
-/* mysite/css/home.css - Specific Styles for the Homepage (Cleaned & Final with Tighter Spacing) */
+/* mysite/css/home.css - Specific Styles for the Homepage */
 
-/* Tool Section Styles (These are specific to the home page's layout and components) */
-.tool-category-section { width: 100%; margin-bottom: 8px; /* Reduced from 15px */ }
+/* Tool Section Styles */
+.tool-category-section { width: 100%; margin-bottom: 8px; }
 .tool-category-header {
     display: flex; justify-content: center; align-items: center; color: #8ab4f8;
-    font-size: 1.15em; font-weight: 600; text-align: center; margin-bottom: 8px; /* Reduced from 15px */
-    padding-bottom: 5px; /* Reduced from 8px */ border-bottom: 1px solid #00a8ff;
+    font-size: 1.15em; font-weight: 600; text-align: center; margin-bottom: 8px;
+    padding-bottom: 5px; border-bottom: 1px solid #00a8ff;
 }
-.tool-buttons-grid { display: flex; flex-wrap: wrap; gap: 5px; /* Reduced from 8px 10px */ justify-content: center; }
-/* This specific size/border-radius for too items is unie to the homepage grid */
-.tool-buttons-grid .btn.tool-item-button { /* Relies on .btn from global.css for base, then overrides */
+.tool-buttons-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.tool-buttons-grid .btn.tool-item-button {
     margin: 0; padding: 0 12px; height: 34px; font-size: 13px; border-radius: 17px;
 }
 
-/* General Styled Container (Used on homepage) */
+/* General Styled Container */
 .styled-container {
     border: 1px solid #383c42; background-color: rgba(19, 19, 20, 0.75);
-    padding: 15px; /* Reduced from 20px */ border-radius: 8px; margin-bottom: 15px; /* Reduced from 25px */ box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* Homepage Layout (These are specific to the home page's structure) */
+/* Homepage Layout */
 .homepage-content-wrapper {
-    width: 100%; 
-    padding: 10px; 
-    margin-top: 20px; /* Adjusted from 60px to push content up higher */
-    display: flex; 
-    flex-direction: column;
-    align-items: center; 
-    box-sizing: border-box;
-    overflow-y: auto; 
-    height: auto; /* IMPORTANT: Changed from fixed calc(100vh - ...) to auto to remove unnecessary scroll */
+    width: 100%; padding: 10px; margin-top: 20px; display: flex;
+    flex-direction: column; align-items: center; box-sizing: border-box;
+    overflow-y: auto; height: auto;
 }
 .welcome-block-area {
-    width: 80%; 
-    max-width: 900px; 
-    border: 1px solid #00a8ff; background-color: rgba(19, 19, 20, 0.8);
-    text-align: center; padding: 10px; /* Reduced from 15px */ margin: 10px auto; /* Reduced from 15px */ 
+    width: 80%; max-width: 900px; border: 1px solid #00a8ff;
+    background-color: rgba(19, 19, 20, 0.8); text-align: center;
+    padding: 10px; margin: 10px auto;
     box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
 }
-.welcome-block-area h2#welcomeMessage { font-size: 1.8em; color: #fff; margin-top: 0; margin-bottom: 5px; /* Reduced from 8px */ }
-#factionHuddleMessage { margin-top: 5px; /* Reduced from 10px */ font-style: italic; color: #c0c0c0; font-size: 0.95em; }
+.welcome-block-area h2#welcomeMessage { font-size: 1.8em; color: #fff; margin-top: 0; margin-bottom: 5px; }
+#factionHuddleMessage { margin-top: 5px; font-style: italic; color: #c0c0c0; font-size: 0.95em; }
 
 .stats-tools-flex-container {
     display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;
-    max-width: 1300px; 
-    gap: 10px; /* Reduced from 20px */ margin-left: auto; margin-right: auto;
+    max-width: 1300px; gap: 10px; margin-left: auto; margin-right: auto;
 }
-.stats-column { 
-    display: flex; flex-direction: column;
-    flex: 1 1 500px; 
-    min-width: 300px; 
+.stats-column {
+    display: flex; flex-direction: column; flex: 1 1 500px; min-width: 300px;
     box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
-    border-radius: 8px; border: 1px solid #00a8ff; padding: 15px; box-sizing: border-box;
-    align-self: flex-start;
+    border-radius: 8px; border: 1px solid #00a8ff; padding: 15px;
+    box-sizing: border-box; align-self: flex-start;
 }
-.tools-column { 
-    display: flex; flex-direction: column;
-    flex: 2 1 60%; 
-    min-width: 300px;
+.tools-column {
+    display: flex; flex-direction: column; flex: 2 1 60%; min-width: 300px;
     box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
     border-radius: 8px; border: 1px solid #00a8ff; padding: 15px; box-sizing: border-box;
 }
 .stats-column .section-title, .tools-column .section-title {
-    color: #8ab4f8; text-align: center; font-size: 1.3em; 
-    margin-bottom: 8px; /* Reduced from 15px */ width: 100%; padding-bottom: 5px; /* Reduced from 8px */
+    color: #8ab4f8; text-align: center; font-size: 1.3em;
+    margin-bottom: 8px; width: 100%; padding-bottom: 5px;
     border-bottom: 1px solid #00a8ff; font-weight: bold;
 }
 .quick-stats-inner-box {
-    background-color: rgba(0,0,0,0.35); padding:10px; /* Reduced from 15px */ border-radius:6px;
+    background-color: rgba(0,0,0,0.35); padding:10px; border-radius:6px;
     border:1px solid #383c42; width:100%; box-sizing: border-box;
 }
 
-.dashboard-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 8px; /* Reduced from 10px */ 
-    margin-bottom: 10px; /* Reduced from 15px */ 
+.dashboard-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 10px;
 }
 .dash-item {
-    background-color:#2c2f33; padding:8px 10px; /* Reduced from 10px 12px */ border-radius:6px; font-size:0.85em; 
+    background-color:#2c2f33; padding:8px 10px; border-radius:6px; font-size:0.85em;
     display:flex; justify-content:space-between; align-items:center;
     border:1px solid #444950; min-height:34px; box-sizing: border-box;
 }
-.dash-item-label { font-weight:bold; margin-right:5px; /* Reduced from 8px */ color:inherit; flex-shrink: 0; }
-.dash-item span.value { margin-left:auto; padding-left:5px; /* Reduced from 8px */ text-align:right; color: #00a8ff; }
+.dash-item-label { font-weight:bold; margin-right:5px; color:inherit; flex-shrink: 0; }
+.dash-item span.value { margin-left:auto; padding-left:5px; text-align:right; color: #00a8ff; }
 
-.dashboard-feature-toggle label, 
-label[for="togglePersonalStatsCheckbox"].dash-item { 
+label[for="togglePersonalStatsCheckbox"].dash-item {
     width:100%; display: flex; align-items:center; cursor:pointer;
-    font-weight:bold; color:inherit; font-size:inherit; 
-    justify-content:flex-start;
+    font-weight:bold; color:inherit; font-size:inherit; justify-content:flex-start;
 }
-input[type="checkbox"]#togglePersonalStatsCheckbox, 
-.dashboard-feature-toggle input[type="checkbox"] {
+input[type="checkbox"]#togglePersonalStatsCheckbox {
     margin-right:8px; transform:scale(1.05); accent-color:#00a8ff; flex-shrink: 0;
 }
-.error-message-centered { color: red; text-align: center; margin-top: 5px; min-height: 1em; } /* Reduced from 10px */
-.share-stats-time-container { display: flex; flex-direction: column; align-items: center; gap: 5px; /* Reduced from 8px */ margin-top: 10px; /* Reduced from 15px */ width: 100%; }
+.error-message-centered { color: red; text-align: center; margin-top: 5px; min-height: 1em; }
+.share-stats-time-container { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 10px; width: 100%; }
 #tornTimeContainer {
     font-size: 0.8em; color: #00a8ff; background-color: rgba(0,0,0,0.4);
     padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', Courier, monospace;
@@ -106,498 +88,205 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 .api-key-message-centered { font-size:0.8em; text-align:center; margin-top:5px; color:#FFC04D; }
 
 /* Stat value specific colors */
-.stat-value-green { color: #28a745 !important; font-weight: bold; }
-.stat-value-yellow { color: #ffc107 !important; font-weight: bold; }
-.stat-value-red { color: #dc3545 !important; font-weight: bold; }
-.stat-value-blue { color: #007bff !important; font-weight: bold; }
-.stat-value-orange { color: #fd7e14 !important; font-weight: bold; }
-.stat-value-ok { color: #28a745 !important; font-weight: bold; }
-.stat-value-cooldown-active { color: #e9c46a !important; font-weight: bold; }
+.stat-value-green { color: #28a745 !important; }
+.stat-value-yellow { color: #ffc107 !important; }
+.stat-value-red { color: #dc3545 !important; }
+.stat-value-blue { color: #007bff !important; }
+.stat-value-orange { color: #fd7e14 !important; }
+.stat-value-ok { color: #28a745 !important; }
+.stat-value-cooldown-active { color: #e9c46a !important; }
+.stat-value-green, .stat-value-yellow, .stat-value-red, .stat-value-blue, .stat-value-orange, .stat-value-ok, .stat-value-cooldown-active { font-weight: bold; }
 
+/* === MODAL STYLES START === */
+
+/* Base Overlay for All Modals */
 .modal-overlay-profile, #personalStatsModal.modal-overlay, #membershipOptionsModal, #freeTrialConfirmationModal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    z-index: 10000;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-    opacity: 1; /* <-- ADD THIS LINE */
-    box-sizing: border-box;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85);
+    z-index: 10000; display: none; justify-content: center; align-items: center;
+    padding: 15px; opacity: 1; box-sizing: border-box;
 }
 
-#personalStatsModal.visible {
-    display: flex; /* Or 'block', depending on your desired layout for centering */
-}
-.modal-profile-setup, #personalStatsModal .modal-content-box {
-    background-color: #181a1b; 
-    padding: 20px 25px; /* Reduced fr 25px 30px */ 
-    border-radius: 10px; 
-    width: 100%;
-    position: relative; color: #e0e0e0; border: 1px solid #007bff;
-    border-top: 4px solid #00a8ff; 
-    box-shadow: 0 8px 30px rgba(0,0,0,0.75); 
+#personalStatsModal.visible { display: flex; }
+
+/* Base Content Box for All Modals */
+.modal-profile-setup, #personalStatsModal .modal-content-box, .membership-modal, .confirmation-modal {
+    background-color: #181a1b; padding: 20px 25px; border-radius: 10px;
+    width: 100%; position: relative; color: #e0e0e0; border: 1px solid #007bff;
+    border-top: 4px solid #00a8ff; box-shadow: 0 8px 30px rgba(0,0,0,0.75);
     max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
 }
 
-	
+/* Profile Setup Modal Specifics */
 .modal-profile-setup { max-width: 750px; }
-.modal-profile-setup .form-row { display: flex; gap: 15px; /* Reduced from 20px */ margin-bottom: 10px; /* Reduced from 15px */ }
+.modal-profile-setup .form-row { display: flex; gap: 15px; margin-bottom: 10px; }
 .modal-profile-setup .form-row .form-group { flex: 1; margin-bottom: 0; }
-#personalStatsModal .modal-content-box { max-width: 650px; }
-
-#personalStatsModal {
-    justify-content: center;
-    align-items: center;
-}
-
-Okay, you've updated the HTML. Now let's add the CSS to style the new "Upgrade Membership" and "Delete Account" buttons in your home.css file.
-
-CSS to Add to home.css
-You'll add these new rules to the "Profile Setup & Personal Stats MODAL STYLES" section of your home.css file, alongside other button styles.
-
-CSS
-
-/* home.css */
-
-/* ... (previous CSS code) ... */
-
-/* Profile Setup & Personal Stats MODAL STYLES (Specific to profile modals on homepage) */
-
-/* ... (existing modal-related styles) ... */
-
-/* Styling for the Upgrade Membership Button (Goldie Look) */
-.modal-actions .upgrade-membership-btn {
-    background: linear-gradient(135deg, #FFD700, #FFA500); /* Gold to Orange gradient */
-    color: #333; /* Dark text for contrast */
-    border: 1px solid #CC8400; /* Darker gold border */
-     box-shadow: 0 4px 10px rgba(255, 165, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3); /* MODIFY THIS LINE */
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Subtle text shadow */
-    transition: all 0.2s ease;
-}
-
-.modal-actions .upgrade-membership-btn:hover {
-    background: linear-gradient(135deg, #FFE033, #FFB833); /* Lighter on hover */
-    box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.5); /* MODIFY THIS LINE */
-    transform: translateY(-2px); /* Slight lift */
-}
-
-.modal-actions .upgrade-membership-btn:active {
-    transform: translateY(0); /* Press effect */
-    box-shadow: 0 2px 5px rgba(255, 165, 0, 0.3);
-}
-
-.modal-actions .delete-account-btn {
-    background-color: #dc3545; /* Bootstrap red */
-    color: black; /* Changed to black */
-    border: 1px solid #bd2130; /* Darker red border */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    font-weight: bold;
-    transition: all 0.2s ease;
-}
-.modal-actions .delete-account-btn:hover {
-    background-color: #c82333; /* Slightly darker red on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transform: translateY(-1px);
-}
-
-.modal-actions .delete-account-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-
-.modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; /* Reduced from 10px */ color: #00a8ff; text-align: center; font-size: 1.4em;} /* Reduced font-size from 1.4em */
-.modal-profile-setup .form-row.single-column {
-    justify-content: flex-start; /* Aligns content to the start (left) */
-}
-
-.modal-profile-setup .form-row.single-column .form-group {
-    flex: 0 0 calc(50% - 7.5px); /* Forces it to be approx half width minus half the gap */
-    max-width: calc(50% - 7.5px); /* Ensures it doesn't grow larger than half */
-}
-.modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; /* Reduced from 20px */ font-weight: bold; }
-
+.modal-profile-setup h3 { margin-top: 0; margin-bottom: 8px; color: #00a8ff; text-align: center; font-size: 1.4em; }
+.modal-profile-setup .modal-subtitle { font-size: 0.9em; color: #bbb; text-align: center; margin-top: 0; margin-bottom: 15px; font-weight: bold; }
 .modal-profile-setup .modal-close-btn {
-    position: absolute; top: 8px; /* Reduced from 12px */ right: 10px; /* Reduced from 15px */ font-size: 2.2em; color: #00a8ff;
+    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #00a8ff;
     cursor: pointer; line-height: 1; padding: 0; background: none; border: none; z-index: 10;
     transition: color 0.2s ease;
 }
-.modal-profile-setup .modal-close-btn:hover { color: #00a8ff; } 
+.modal-profile-setup .modal-close-btn:hover { color: #00a8ff; }
+.modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+.modal-actions .btn { font-weight: bold; }
 
-#closePersonalStatsDialogBtn { /* Specific close button for personal stats dialog */
-    position: absolute; top: 8px; /* Reduced from 12px */ right: 10px; /* Reduced from 15px */ font-size: 2.2em; color: #00a8ff;
+/* Personal Stats Modal Specifics */
+#personalStatsModal .modal-content-box { max-width: 650px; }
+#closePersonalStatsDialogBtn {
+    position: absolute; top: 8px; right: 10px; font-size: 2.2em; color: #00a8ff;
     background: none; border: none; padding: 0; line-height: 1; cursor: pointer; z-index: 10;
-    transition: color 0.2s ease; 
+    transition: color 0.2s ease;
 }
 #closePersonalStatsDialogBtn:hover { color: #00a8ff; }
+#personalStatsModalBody h4 { margin: 15px 0 8px 0; color: #8ab4f8; border-bottom: 1px solid #555; text-align: center; padding-bottom: 5px; font-size: 1.1em; font-weight: 600;}
+#personalStatsModalBody h4:first-child { margin-top: 0; }
+#personalStatsModalBody p { margin: 5px 0 8px 5px; line-height: 1.5; font-size: 0.9em; text-align: center; }
+#personalStatsModalBody p strong { color: #c5c5c5; display: inline-block; margin-right: 8px; font-weight:500; }
+#personalStatsModalBody p span.stat-value-api { color: #34c9eb; font-weight: 500; }
+#personalStatsModalBody p span.sub-detail { font-size: 0.75em; color: #888; margin-left: 5px; font-style: italic; }
 
-
-.form-group { margin-bottom: 20px; /* Reduced from 15px */ }
-.form-group label { display: block; margin-bottom: 5px; /* Reduced from 8px */ font-weight: bold; font-size:0.9em; color: #b0b0b0;}
-.form-group input[type="text"], .form-group input[type="password"] { width: 100%; padding: 10px 12px; /* Reduced from 12px 14px */ border-radius: 4px; border: 1px solid #3a3a3a; background-color: #2c2f33; color: #e0e0e0; box-sizing: border-box; font-size: 0.95em; }
-.form-group input[type="text"]:focus, .form-group input[type="password"]:focus { border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2); }
-.modal-error-message { color: #ff6b6b; font-size: 0.8em; /* Reduced from 0.85em */ margin-top: 5px; min-height: 1.2em; text-align: left;}
-.helper-text { font-size: 0.75em; /* Reduced from 0.8em */ color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
-
-.checkbox-group { text-align: left; margin-bottom: 15px;  }
+/* Form Group Styles (Used in Profile Modal) */
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size:0.9em; color: #b0b0b0;}
+.form-group input[type="text"], .form-group input[type="password"] {
+    width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid #3a3a3a;
+    background-color: #2c2f33; color: #e0e0e0; box-sizing: border-box; font-size: 0.95em;
+}
+.form-group input[type="text"]:focus, .form-group input[type="password"]:focus {
+    border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
+}
+.modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
+.helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
+.checkbox-group { text-align: left; margin-bottom: 15px; }
 .checkbox-label-inline { display: flex; align-items: center; font-size: 0.9em; margin-bottom: 5px; color: #ccc;}
 .checkbox-label-inline input[type="checkbox"] { margin-right: 8px; transform: scale(1.1); accent-color:#00a8ff;}
-
 .modal-profile-setup .form-group a,
 .modal-profile-setup .checkbox-label-inline a { color: #00a8ff; text-decoration: none;}
 .modal-profile-setup .form-group a:hover,
 .modal-profile-setup .checkbox-label-inline a:hover { text-decoration: underline;}
 
-.modal-actions { margin-top: -45px; /* Reduced from -50px, more positive to move buttons down slightly */ display: flex; justify-content: flex-end; gap: 10px; /* Reduced from 12px */ }
-.modal-actions .btn { font-weight: bold; } /* Changed from .btn-uniform to .btn */
-#personalStatsModalBody h4 { margin-top: 15px; /* Reduced from 20px */ margin-bottom: 8px; /* Reduced from 10px */ color: #8ab4f8; border-bottom: 1px solid #555; text-align: center; padding-bottom: 5px; /* Reduced from 8px */ font-size: 1.1em; /* Reduced from 1.15em */ font-weight: 600;}
-#personalStatsModalBody h4:first-child { margin-top: 0; }
-#personalStatsModalBody p { margin: 5px 0 8px 5px; /* Reduced from 8px 0 12px 5px */ line-height: 1.5; /* Reduced from 1.6 */ font-size: 0.9em; text-align: center; }
-#personalStatsModalBody p strong { color: #c5c5c5;  display: inline-block; margin-right: 8px; font-weight:500; }
-#personalStatsModalBody p span.stat-value-api { color: #34c9eb; font-weight: 500; } 
-#personalStatsModalBody p span.sub-detail { font-size: 0.75em; /* Reduced from 0.8em */ color: #888; margin-left: 5px; font-style: italic; }
+/* --- Membership & Confirmation Modal Styles --- */
+.membership-modal { max-width: 900px; padding: 30px; text-align: center; }
+.confirmation-modal { max-width: 450px; padding: 25px; text-align: center; }
 
-@media (max-width: 960px) {
-    .stats-tools-flex-container { flex-direction: column; align-items: center; gap: 15px; /* Reduced from 20px */ }
-    .stats-column, .tools-column { flex-basis: auto; width: 100%; max-width: 600px; margin-left:0; }
-    .welcome-block-area { width: 90%; }
-}
-@media (max-width: 480px) {
-    .dashboard-grid { grid-template-columns: 1fr; } 
-    .welcome-block-area h2#welcomeMessage { font-size: 1.3em; /* Reduced from 1.4em */ }
-    .welcome-block-area, .stats-column, .tools-column { padding: 15px 10px;} 
-    .homepage-content-wrapper { padding:5px; /* Reduced from 10px */ }
-    #personalStatsModal .modal-content-box, .modal-profile-setup { width: 98%; padding: 10px 15px; /* Reduced from 15px 20px */ } 
-    #personalStatsModalBody p strong { min-width: 100px; /* Reduced from 110px */ } 
-    #personalStatsModalBody p { font-size: 0.85em; /* Reduced from 0.9em */ }
-}
-/* Contact Us Floating Action Button (FAB) Styles */
-#contactFabContainer {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    z-index: 1050; /* Ensure it's above most other content */
-}
-
-.fab-dropdown-container { /* Wrapper for positioning dropdown relative to FAB */
-    position: relative; 
-}
-
-.btn-fab {
-    background-color: #00a8ff; /* Your primary accent blue */
-    color: white;
-    border: none;
-    border-radius: 50%; /* Circular button */
-    width: 56px;  /* Standard FAB size */
-    height: 56px; /* Standard FAB size */
-    font-size: 24px; /* Icon size */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-    padding: 0;
-    line-height: 1; /* For better vertical centering of text icon */
-}
-
-.btn-fab:hover {
-    background-color: #007ecc; /* Slightly darker blue on hover */
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
-    transform: translateY(-2px); /* Slight lift on hover */
-}
-
-.btn-fab:active {
-    transform: translateY(0px); /* Remove lift on active */
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-}
-
-.btn-fab .fab-icon {
-    display: block;
-}
-
-
-
-/* Dropdown content for the FAB */
-.fab-dropdown-content {
-    display: none; /* Hidden by default */
-    position: absolute;
-    bottom: 65px; /* Position above the FAB (56px height + ~9px margin) */
-    right: 0;
-    background-color: #1e1e1e; /* Consistent dark background */
-    min-width: 230px; /* Adjust as needed */
-    box-shadow: 0px -4px 15px rgba(0,0,0,0.4); /* Shadow upwards */
-    z-index: -1; /* Behind the button initially, JS will handle display */
-    border-radius: 8px;
-    border: 1px solid #00a8ff; /* Theme border */
-    overflow: hidden; /* Respect border-radius for links */
-}
-
-.fab-dropdown-content a {
-    color: #d0d0d0;
-    padding: 12px 18px;
-    text-decoration: none;
-    display: block;
-    font-size: 0.95rem; /* Slightly larger for readability */
-    text-align: left;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    white-space: nowrap;
-}
-
-.fab-dropdown-content a:hover {
-    background-color: #333333;
-    color: #00c0ff;
-}
-.member-detail-profile-image-modal {
-    width: 75px;          /* Sets the width of the image */
-    height: 75px;         /* Sets the height of the image (keep same as width for circular) */
-    border-radius: 50%;   /* Makes the image perfectly circular */
-    object-fit: cover;    /* Ensures the image covers the area without distortion */
-    border: 2px solid #00a8ff; /* Optional: adds a blue border */
-    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5); /* Optional: adds a subtle blue glow */
-}
-
-/* Adjust the container of the profile image for positioning */
-/* This ensures the image is centered horizontally and aligned to the top vertically */
-.member-header-top-row.center-content-flex {
-    display: flex;             /* Enables flexbox for alignment */
-    justify-content: center;   /* Horizontally centers the image */
-    align-items: flex-start;   /* Aligns the image to the top of its container */
-    padding-top: 10px;         /* Adds some space above the image (adjust as needed) */
-    margin-bottom: 15px;       /* Adds space below the image, separating it from content below (adjust as needed) */
-}
-
-Great! I'm ready to provide the CSS for your new membershipOptionsModal. I've designed these styles to be consistent with the existing dark theme, blue accents, and overall aesthetic of your MyTornPA site, ensuring a professional and cohesive look.
-
-CSS to Add to home.css
-Please add these new CSS rules to your home.css file. A good place would be within the "Profile Setup & Personal Stats MODAL STYLES" section, or just below it, as it pertains to a new modal.
-
-CSS
-
-/* home.css */
-
-/* ... (existing CSS code) ... */
-
-/* NEW: Membership Options Modal Specific Styles */
-
-/* Base styling for the membership modal content box - inherits from .modal-content-box */
-.membership-modal {
-    max-width: 900px; /* Wider to accommodate three cards */
-    padding: 30px; /* Slightly more padding for better spacing */
-    text-align: center; /* Center align title and subtitle */
-}
-
-/* Membership Options Grid Layout */
+/* Custom Grid Layout for Membership Modal */
 .membership-options-grid {
     display: grid;
-    /* For larger screens: 3 columns of equal width */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px; /* Space between cards */
-    margin-top: 25px; /* Space below subtitle */
-    margin-bottom: 20px; /* Space above error message */
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    grid-template-areas:
+        "free-trial   free-trial"
+        "solo-monthly faction-monthly"
+        "solo-yearly  faction-yearly";
 }
 
-/* Individual Membership Option Cards */
+/* Assigning each card to its named area in the grid */
+.card-free-trial {
+    grid-area: free-trial;
+    justify-self: center;
+    width: 100%;
+    max-width: 350px;
+}
+.card-solo-monthly    { grid-area: solo-monthly; }
+.card-solo-yearly     { grid-area: solo-yearly; }
+.card-faction-monthly { grid-area: faction-monthly; }
+.card-faction-yearly  { grid-area: faction-yearly; }
+
+/* Individual Membership Option Card Styles */
 .membership-option-card {
-    background-color: #1e2022; /* Slightly lighter dark background for card */
-    border: 1px solid #383c42; /* Soft border */
-    border-radius: 8px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Pushes button to bottom if content varies */
-    align-items: center;
+    background-color: #1e2022; border: 1px solid #383c42; border-radius: 8px; padding: 20px;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-
 .membership-option-card:hover {
-    transform: translateY(-5px); /* Subtle lift effect on hover */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-    border-color: #00a8ff; /* Highlight border on hover */
+    transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); border-color: #00a8ff;
 }
+.membership-option-card h4 { color: #8ab4f8; font-size: 1.3em; margin-top: 0; margin-bottom: 10px; }
+.membership-option-card p { color: #c0c0c0; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; }
+.membership-option-card .savings-info { color: #FFC04D; font-weight: bold; font-size: 0.9em; margin-bottom: 15px; }
 
-.membership-option-card h4 {
-    color: #8ab4f8; /* Consistent accent color for headings */
-    font-size: 1.3em;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.membership-option-card p {
-    color: #c0c0c0;
-    font-size: 0.95em;
-    line-height: 1.4;
-    margin-bottom: 10px; /* Space between paragraphs */
-}
-
-.membership-option-card .savings-info {
-    color: #FFC04D; /* Orange/Yellow for savings info */
-    font-weight: bold;
-    font-size: 0.9em;
-    margin-bottom: 15px; /* More space before button */
-}
-
-/* Styling for buttons within membership cards - inherits from .btn, then customizes */
+/* Buttons inside membership cards */
 .membership-select-btn {
-    margin-top: auto; /* Pushes button to the bottom of the flex container */
-    width: 100%; /* Make buttons full width of the card */
-    padding: 12px 15px;
-    font-size: 1em;
-    font-weight: bold;
-    background-color: #007bff; /* Primary blue button */
-    border: 1px solid #0056b3;
-    color: white;
-    border-radius: 5px; /* Slightly less rounded than header buttons */
+    margin-top: auto; width: 100%; padding: 12px 15px; font-size: 1em; font-weight: bold;
+    background-color: #007bff; border: 1px solid #0056b3; color: white; border-radius: 5px;
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
+.membership-select-btn:hover { background-color: #0056b3; transform: translateY(-1px); }
 
-.membership-select-btn:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-1px);
-}
+/* Special Card Variants */
+.free-trial-card { border-color: #28a745; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3); }
+.free-trial-card:hover { border-color: #218838; box-shadow: 0 8px 15px rgba(40, 167, 69, 0.5); }
+.free-trial-card .membership-select-btn { background-color: #28a745; border-color: #218838; }
+.free-trial-card .membership-select-btn:hover { background-color: #218838; }
 
-/* Specific styling for the Free Trial card for visual distinction */
-.free-trial-card {
-    border-color: #28a745; /* Green border */
-    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-}
-.free-trial-card:hover {
-    border-color: #218838;
-    box-shadow: 0 8px 15px rgba(40, 167, 69, 0.5);
-}
-.free-trial-card .membership-select-btn {
-    background-color: #28a745; /* Green button */
-    border-color: #218838;
-}
-.free-trial-card .membership-select-btn:hover {
-    background-color: #218838;
-}
-
-/* Specific styling for the Yearly Membership card for extra prominence */
-.yearly-membership-card {
-    border-color: #FFD700; /* Gold border */
-    box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
-}
-.yearly-membership-card:hover {
-    border-color: #CC8400;
-    box-shadow: 0 8px 15px rgba(255, 215, 0, 0.6);
-}
+.yearly-membership-card { border-color: #FFD700; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
+.yearly-membership-card:hover { border-color: #CC8400; box-shadow: 0 8px 15px rgba(255, 215, 0, 0.6); }
 .yearly-membership-card .membership-select-btn {
-    background: linear-gradient(135deg, #FFD700, #FFA500); /* Gold gradient button */
-    border-color: #CC8400;
-    color: #333;
+    background: linear-gradient(135deg, #FFD700, #FFA500); border-color: #CC8400; color: #333;
 }
-.yearly-membership-card .membership-select-btn:hover {
-    background: linear-gradient(135deg, #FFE033, #FFB833);
+.yearly-membership-card .membership-select-btn:hover { background: linear-gradient(135deg, #FFE033, #FFB833); }
+
+/* Confirmation Modal Buttons */
+.confirmation-actions { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+.btn-confirm-yes {
+    background-color: #28a745; color: black; border: 1px solid #000; font-weight: bold;
+    padding: 10px 25px; border-radius: 5px; transition: background-color 0.2s ease, transform 0.1s ease;
 }
+.btn-confirm-yes:hover { background-color: #218838; transform: translateY(-1px); }
+.btn-confirm-yes:active { transform: translateY(0); }
+.btn-confirm-no {
+    background-color: #dc3545; color: black; border: 1px solid #000; font-weight: bold;
+    padding: 10px 25px; border-radius: 5px; transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.btn-confirm-no:hover { background-color: #c82333; transform: translateY(-1px); }
+.btn-confirm-no:active { transform: translateY(0); }
+
+/* === MODAL STYLES END === */
 
 
-/* Media Queries for Responsiveness */
+/* === RESPONSIVE STYLES === */
+@media (max-width: 960px) {
+    .stats-tools-flex-container { flex-direction: column; align-items: center; gap: 15px; }
+    .stats-column, .tools-column { flex-basis: auto; width: 100%; max-width: 600px; margin-left:0; }
+    .welcome-block-area { width: 90%; }
+}
+
 @media (max-width: 768px) {
+    /* The new grid layout is naturally responsive, but we can adjust the gap */
     .membership-options-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
         gap: 15px;
     }
 }
 
 @media (max-width: 580px) {
+    /* On small screens, stack all membership cards vertically */
     .membership-options-grid {
-        grid-template-columns: 1fr; /* Stack columns on small screens */
-        gap: 15px;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "free-trial"
+            "solo-monthly"
+            "solo-yearly"
+            "faction-monthly"
+            "faction-yearly";
     }
-    .membership-modal {
-        padding: 20px; /* Reduce padding on smaller screens */
+    .card-free-trial {
+        max-width: 100%; /* Allow it to be full width when stacked */
     }
+    .membership-modal { padding: 20px; }
 }
 
-.confirmation-modal {
-    max-width: 450px; /* Smaller width for a confirmation pop-up */
-    padding: 25px; /* Consistent padding */
-    text-align: center;
-}
-
-.confirmation-modal h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #00a8ff; /* Consistent heading color */
-    font-size: 1.3em;
-}
-
-.confirmation-modal p {
-    color: #c0c0c0;
-    font-size: 1em;
-    line-height: 1.5;
-    margin-bottom: 20px; /* Space above buttons */
-}
-
-/* Container for Yes/No buttons */
-.confirmation-actions {
-    display: flex;
-    justify-content: center; /* Center the buttons */
-    gap: 15px; /* Space between buttons */
-    margin-top: 15px; /* Space above the button group */
-}
-
-/* Styling for the 'Yes' button (Green with Black Text) */
-.btn-confirm-yes {
-    background-color: #28a745; /* Green */
-    color: black; /* Black text as requested */
-    border: 1px solid #000; /* 1px black border as requested */
-    font-weight: bold;
-    padding: 10px 25px; /* Good padding for clickability */
-    border-radius: 5px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.btn-confirm-yes:hover {
-    background-color: #218838; /* Slightly darker green on hover */
-    transform: translateY(-1px);
-}
-
-.btn-confirm-yes:active {
-    transform: translateY(0);
-}
-
-/* Styling for the 'No' button (Red with Black Text) */
-.btn-confirm-no {
-    background-color: #dc3545; /* Red */
-    color: black; /* Black text as requested */
-    border: 1px solid #000; /* 1px black border as requested */
-    font-weight: bold;
-    padding: 10px 25px;
-    border-radius: 5px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.btn-confirm-no:hover {
-    background-color: #c82333; /* Slightly darker red on hover */
-    transform: translateY(-1px);
-}
-
-.btn-confirm-no:active {
-    transform: translateY(0);
-}
-
-/* Media Query for smaller screens for the confirmation modal */
 @media (max-width: 480px) {
-    .confirmation-modal {
-        width: 95%; /* Adjust width on very small screens */
-        padding: 15px;
-    }
-    .confirmation-actions {
-        flex-direction: column; /* Stack buttons vertically on very small screens */
-        gap: 10px;
-    }
-    .btn-confirm-yes, .btn-confirm-no {
-        width: 100%; /* Make them full width when stacked */
-    }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .welcome-block-area h2#welcomeMessage { font-size: 1.3em; }
+    .welcome-block-area, .stats-column, .tools-column { padding: 15px 10px;}
+    .homepage-content-wrapper { padding:5px; }
+    #personalStatsModal .modal-content-box, .modal-profile-setup { width: 98%; padding: 10px 15px; }
+    #personalStatsModalBody p strong { min-width: 100px; }
+    #personalStatsModalBody p { font-size: 0.85em; }
+    .confirmation-modal { width: 95%; padding: 15px; }
+    .confirmation-actions { flex-direction: column; gap: 10px; }
+    .btn-confirm-yes, .btn-confirm-no { width: 100%; }
 }
