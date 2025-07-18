@@ -208,47 +208,41 @@
         </div>
     </div>
 
-   <div class="modal-overlay" id="membershipOptionsModal">
-        <div class="modal-content-box membership-modal">
-            <span class="modal-close-button" id="closeMembershipOptionsBtn">&times;</span>
-            <h3>Choose Your Membership!</h3>
-            <p class="modal-subtitle">Unlock advanced features and support MyTornPA.</p>
+  <div class="membership-options-grid">
+    <div class="membership-option-card free-trial-card card-free-trial">
+        <h4>🚀 1 Week Free Trial</h4>
+        <p>Experience all features, no commitment!</p>
+        <button class="btn membership-select-btn" id="startFreeTrialBtn">Start Your Free Trial</button>
+    </div>
 
-            <div class="membership-options-grid">
-                <div class="membership-option-card free-trial-card">
-                    <h4>🚀 1 Week Free Trial</h4>
-                    <p>Experience all features, no commitment!</p>
-                    <button class="btn membership-select-btn" id="startFreeTrialBtn">Start Your Free Trial</button>
-                </div>
+    <div class="membership-option-card solo-membership-card card-solo-monthly">
+        <h4>💎 Solo Membership</h4>
+        <p>15 Xanax / Month</p>
+        <p class="savings-info">Billed monthly.</p>
+        <button class="btn membership-select-btn" id="buySoloMembershipBtn">Get Solo Membership</button>
+    </div>
 
-                <div class="membership-option-card solo-membership-card">
-                    <h4>💎 Solo Membership</h4>
-                    <p>15 Xanax / Month</p>
-                    <p class="savings-info">Billed monthly.</p>
-                    <button class="btn membership-select-btn" id="buySoloMembershipBtn">Get Solo Membership</button>
-                </div>
+    <div class="membership-option-card yearly-membership-card card-solo-yearly">
+        <h4>🌟 Solo Yearly Membership</h4>
+        <p>150 Xanax / Year</p>
+        <p class="savings-info">**Save 30 Xanax per year!**</p>
+        <button class="btn membership-select-btn" id="buyYearlyMembershipBtn">Go Yearly & Save!</button>
+    </div>
 
-                <div class="membership-option-card yearly-membership-card">
-                    <h4>🌟 Yearly Membership</h4>
-                    <p>150 Xanax / Year</p>
-                    <p class="savings-info">**Save 30 Xanax per year!**</p> <button class="btn membership-select-btn" id="buyYearlyMembershipBtn">Go Yearly & Save!</button>
-                </div>
+    <div class="membership-option-card card-faction-monthly">
+        <h4>👥 Faction Membership</h4>
+        <p>50 Xanax / Month</p>
+        <p class="savings-info">Billed monthly.</p>
+        <button class="btn membership-select-btn" id="buyFactionMonthlyBtn">Get Faction Monthly</button>
+    </div>
 
-           <div class="membership-option-card">
-               <h4>👥 Faction Membership</h4>
-               <p>50 Xanax / Month</p>
-               <p class="savings-info">Billed monthly.</p>
-               <button class="btn membership-select-btn" id="buyFactionMonthlyBtn">Get Faction Monthly</button>
-           </div>
-
-           <div class="membership-option-card yearly-membership-card">
-               <h4>🌟 Faction Yearly</h4>
-               <p>500 Xanax / Year</p>
-               <p class="savings-info">**Save 100 Xanax per year!**</p>
-               <button class="btn membership-select-btn" id="buyFactionYearlyBtn">Go Faction Yearly & Save!</button>
-           </div>         
-
-            </div>
+    <div class="membership-option-card yearly-membership-card card-faction-yearly">
+        <h4>🌟 Faction Yearly</h4>
+        <p>500 Xanax / Year</p>
+        <p class="savings-info">**Save 100 Xanax per year!**</p>
+        <button class="btn membership-select-btn" id="buyFactionYearlyBtn">Go Faction Yearly & Save!</button>
+    </div>
+</div>
 
             <div class="modal-error-message" id="membershipOptionsError"></div>
         </div>
