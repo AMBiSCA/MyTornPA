@@ -114,14 +114,22 @@ input[type="checkbox"]#togglePersonalStatsCheckbox,
 .stat-value-ok { color: #28a745 !important; font-weight: bold; }
 .stat-value-cooldown-active { color: #e9c46a !important; font-weight: bold; }
 
-/* Profile Setup & Personal Stats MODAL STYLES (Specific to profile modals on homepage) */
-/* These are kept here because they apply to a specific modal UI for profile setup on the homepage */
 .modal-overlay-profile, #personalStatsModal.modal-overlay, #membershipOptionsModal, #freeTrialConfirmationModal {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.85); 
-    z-index: 10000; display: none; 
-    justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;
-
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    opacity: 1; /* <-- ADD THIS LINE */
+    box-sizing: border-box;
 }
 #personalStatsModal.visible {
     display: flex; /* Or 'block', depending on your desired layout for centering */
