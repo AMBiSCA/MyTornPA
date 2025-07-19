@@ -840,14 +840,15 @@ if (termsCheckbox && !termsCheckbox.checked) {
                 }
 
                 await userProfileRef.set(profileDataToSave, { merge: true });
-                if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
-                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
-                hideProfileSetupModal();
-                if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-                
-                if (profileDataToSave.tornApiKey) {
+        if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
+        if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
+        if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+        else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
+        hideProfileSetupModal();
+        updateToolLinksAccess(profileDataToSave); // Add this line to instantly update the links
+        if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+        
+        if (profileDataToSave.tornApiKey) {
                     fetchAllRequiredData(user, db);
                 } else {
                     clearQuickStats();
