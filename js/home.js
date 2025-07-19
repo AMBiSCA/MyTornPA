@@ -845,7 +845,9 @@ if (termsCheckbox && !termsCheckbox.checked) {
         if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
         else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
         hideProfileSetupModal();
-        updateToolLinksAccess(profileDataToSave); // Add this line to instantly update the links
+        const updatedProfile = { ...currentUserProfile, ...profileDataToSave };
+// Now, update the links with the full data
+updateToolLinksAccess(updatedProfile);
         if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
         
         if (profileDataToSave.tornApiKey) {
