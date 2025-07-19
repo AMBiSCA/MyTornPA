@@ -975,6 +975,7 @@ if (termsCheckbox && !termsCheckbox.checked) {
         });
     }
 // ADD THIS ENTIRE NEW BLOCK
+// REPLACE your existing toolsSection listener with this full block
 const toolsSection = document.getElementById('toolsSection');
 if (toolsSection) {
     toolsSection.addEventListener('click', function(event) {
@@ -984,31 +985,30 @@ if (toolsSection) {
             return; // Exit if the click wasn't on a tool link
         }
 
-        // Use the most up-to-date user profile, which we store in currentUserProfile
-        const profile = currentUserProfile; 
-		console.log("3. Profile at moment of click:", profile); // <-- ADD THIS
-        if (!profile) {
-            event.preventDefault(); // Should not happen, but a good safeguard
-            return;
-        }
+        const profile = currentUserProfile;
+        console.log("Profile at moment of click:", profile);
 
-        const hasAgreedToTerms = profile.termsAgreed === true;
-        const isMember = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+        // --- START OF THE FIX ---
+        // A user without a profile is treated as someone who hasn't agreed to terms.
+        // We check if the profile exists *before* trying to read properties from it.
+        const hasAgreedToTerms = profile ? profile.termsAgreed === true : false;
+        const isMember = profile ? (profile.membershipEndTime && profile.membershipEndTime > Date.now()) : false;
+        // --- END OF THE FIX ---
+        
         const needsMembership = link.classList.contains('member-only');
         
         // --- Apply Click Rules ---
         if (!hasAgreedToTerms) {
-            console.log("Link blocked: Terms not agreed.");
+            console.log("Link blocked: Terms not agreed (or profile is missing).");
             event.preventDefault(); // Stop the link from working
-            if (termsPromptModal) termsPromptModal.style.display = 'flex'; // Show the new terms prompt
+            if (termsPromptModal) termsPromptModal.style.display = 'flex'; // Show the terms prompt
         } else if (needsMembership && !isMember) {
             console.log("Link blocked: Membership required.");
             event.preventDefault(); // Stop the link from working
             const subscribeModal = document.getElementById('subscribePromptModal');
             if (subscribeModal) subscribeModal.style.display = 'flex';
         }
-        // If neither of the above rules apply, the code does nothing,
-        // and the link will navigate to its destination normally.
+        // If neither rule applies, the link works normally.
     });
 }
     if (auth) {
