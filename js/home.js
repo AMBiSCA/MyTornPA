@@ -817,92 +817,110 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Save Profile Button Listener (Corrected with wobble and terms check)
-    if (saveProfileBtn && auth && db) {
+    if (saveProfileBtn && auth && db) { // Keep the initial check
     saveProfileBtn.addEventListener('click', async () => {
-        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-            if (termsAgreementErrorEl) { // Show the terms-specific error message
-                termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                termsAgreementErrorEl.style.display = 'block'; // Show the element
+        // Essential: Re-verify auth and db are available just before the async operation
+        if (!auth || !auth.currentUser || !db) {
+            console.error("Save Profile: Firebase Auth or Firestore not available.");
+            if (profileSetupErrorEl) {
+                profileSetupErrorEl.textContent = 'System error: Please try again or refresh the page.';
             }
-            // (Remove the wobble-animation class addition here if you're not using the wobble effect at all)
-            // If you ARE keeping the wobble CSS but it's not showing, leave the .classList.add('wobble-animation') line.
+            return; // Stop if Firebase isn't fully ready
+        }
+
+        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+            if (profileSetupErrorEl) {
+                profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
+            }
+            if (termsAgreementErrorEl) {
+                termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
+                termsAgreementErrorEl.style.display = 'block';
+            }
+            const termsLabel = document.querySelector('.checkbox-label-inline');
+            if (termsLabel) {
+                termsLabel.classList.add('wobble-animation');
+                termsLabel.addEventListener('animationend', () => {
+                    termsLabel.classList.remove('wobble-animation');
+                }, { once: true });
+            }
             return;
         }
-        // ... (rest of the saveProfileBtn code) ...
+
+        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Missing required profile fields.';
+            return;
+        }
+
+        if (nameErrorEl) nameErrorEl.textContent = '';
+        if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; // Clear general error
+
+        const preferredNameVal = preferredNameInput.value.trim();
+        if (!preferredNameVal) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
+            return;
+        }
+        if (preferredNameVal.length > 10) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
+            return;
+        }
+        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
+            return;
+        }
+
+        const user = auth.currentUser; // user is guaranteed not null here due to the check at the top
+        const profileDataToSave = {
+            preferredName: preferredNameVal,
+            tornApiKey: profileSetupApiKeyInput.value.trim() || null,
+            tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
+            profileSetupComplete: true,
+            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+            termsAgreed: termsAgreementCheckbox.checked
+        };
+
+        try {
+            // Problem line context starts here
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const currentDoc = await userProfileRef.get(); // This line
+
+            if (!currentDoc.exists) {
+                profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            await userProfileRef.set(profileDataToSave, { merge: true });
+            if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
+            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
+            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
+                displayRandomTip();
+                localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
+            } else if (tornTipPlaceholderEl) {
+                tornTipPlaceholderEl.style.display = 'none';
+            }
+            hideProfileSetupModal();
+            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+
+            if (profileDataToSave.tornApiKey) {
+                fetchAllRequiredData(user, db);
+            } else {
+                clearQuickStats();
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+            }
+
+        } catch (error) {
+            console.error("Error saving profile: ", error);
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = `Error saving: ${error.message}`;
+        }
     });
 }
-            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.';
-                return;
-            }
-            if (nameErrorEl) nameErrorEl.textContent = '';
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-            const preferredNameVal = preferredNameInput.value.trim();
-            if (!preferredNameVal) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
-                return;
-            }
-            if (preferredNameVal.length > 10) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
-                return;
-            }
-            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
-                return;
-            }
-            const user = auth.currentUser;
-            const profileDataToSave = {
-                preferredName: preferredNameVal,
-                tornApiKey: profileSetupApiKeyInput.value.trim() || null,
-                tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
-                profileSetupComplete: true,
-                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-                termsAgreed: termsAgreementCheckbox.checked
-            };
-
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                const currentDoc = await userProfileRef.get();
-
-                if (!currentDoc.exists) {
-                    profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
-                }
-
-                if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                    profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                    profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                }
-
-                await userProfileRef.set(profileDataToSave, { merge: true });
-                if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
-                    displayRandomTip();
-                    localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                } else if (tornTipPlaceholderEl) {
-                    tornTipPlaceholderEl.style.display = 'none';
-                }
-                hideProfileSetupModal();
-                if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-
-                if (profileDataToSave.tornApiKey) {
-                    fetchAllRequiredData(user, db);
-                } else {
-                    clearQuickStats();
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
-                }
-
-            } catch (error) {
-                console.error("Error saving profile: ", error);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving.";
-            }
-        });
-    }
 
     if (auth) {
-        auth.onAuthStateChanged(async function(user) { // ADD 'async' here
+        auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
             const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
