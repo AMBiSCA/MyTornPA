@@ -868,8 +868,8 @@ if (termsCheckbox && !termsCheckbox.checked) {
         else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
         hideProfileSetupModal();
         const updatedProfile = { ...currentUserProfile, ...profileDataToSave };
-// Now, update the links with the full data
-updateToolLinksAccess(updatedProfile);
+        currentUserProfile = updatedProfile;
+        updateToolLinksAccess(updatedProfile);
         if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
         
         if (profileDataToSave.tornApiKey) {
