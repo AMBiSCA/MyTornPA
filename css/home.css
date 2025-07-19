@@ -161,6 +161,14 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .form-group input[type="text"]:focus, .form-group input[type="password"]:focus {
     border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
 }
+
+#profileSetupApiKey {
+    display: block; /* Override default inline-block to allow margin: auto */
+    width: 80%;     /* Adjust this percentage as you like, or use a fixed pixel width */
+    max-width: 400px; /* Ensures it doesn't get too wide on large screens */
+    margin: 0 auto; /* Centers the block-level element horizontally */
+}
+
 .modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
 .helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
 
