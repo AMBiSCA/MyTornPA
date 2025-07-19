@@ -429,7 +429,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 }
 
 @media (max-width: 768px) {
-    /* The new grid layout is naturally responsive, but we can adjust the gap */
+    /* The new grid layout s naturally responsive, but we can adjust the gap */
     .membership-options-grid {
         gap: 15px;
     }

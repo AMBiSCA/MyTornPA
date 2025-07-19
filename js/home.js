@@ -933,8 +933,8 @@ if (toolsSection) {
         if (!hasAgreedToTerms) {
             console.log("Link blocked: Terms not agreed.");
             event.preventDefault(); // Stop the link from working
-         if (termsPromptModal) termsPromptModal.style.display = 'flex'; // Show the NEW prompt
-} else if (needsMembership && !isMember) {
+            showProfileSetupModal(); // Show the profile modal
+        } else if (needsMembership && !isMember) {
             console.log("Link blocked: Membership required.");
             event.preventDefault(); // Stop the link from working
             const subscribeModal = document.getElementById('subscribePromptModal');
