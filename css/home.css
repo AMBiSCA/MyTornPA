@@ -147,9 +147,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 #personalStatsModalBody p span.stat-value-api { color: #34c9eb; font-weight: 500; }
 #personalStatsModalBody p span.sub-detail { font-size: 0.75em; color: #888; margin-left: 5px; font-style: italic; }
 
-/* mysite/css/home.css - Specific Styles for the Homepage */
-
-/* ... (previous CSS) ... */
 
 /* Form Group Styles (Used in Profile Modal) */
 .form-group { margin-bottom: 20px; }
@@ -161,9 +158,20 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .form-group input[type="text"]:focus, .form-group input[type="password"]:focus {
     border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
 }
+
+/* NEW: Style for the API Key form group to match width of inputs above and center it */
+.form-group.api-key-input-group { /* You'll need to add this class to the HTML for the API key's form-group */
+    max-width: 350px; /* Adjust this value to match the desired width of the inputs above */
+    margin: 0 auto 20px auto; /* Centers the block and keeps the bottom margin */
+}
+
+/* Ensure the input inside this specific group still fills its container */
+.form-group.api-key-input-group input[type="text"] {
+    width: 100%; /* Ensures the input fills the new max-width */
+}
+
 .modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
 .helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
-
 /* Modified CSS for .checkbox-group */
 .checkbox-group {
     /* Change text-align from left to center */
