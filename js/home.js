@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
     // Removed as per user request: const profileSetupTornStatsApiKeyInput = document.getElementById('profileSetupTornStatsApiKey');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
-    const skipProfileSetupBtn = document.getElementById('skipProfileSetupBtn');
     const nameErrorEl = document.getElementById('nameError');
     const profileSetupErrorEl = document.getElementById('profileSetupError');
     const apiKeyMessageEl = document.getElementById('apiKeyMessage');
@@ -745,7 +744,6 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
     function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
-    if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
     if (headerEditProfileBtn && auth && db) {
