@@ -149,6 +149,47 @@ if(goToProfileFromTermsPromptBtn) {
     });
 }
 
+// --- Dropdown Menu Logic ---
+// This handles both 'Useful Links' and 'Contact' dropdowns
+
+const allDropdowns = [
+    { button: usefulLinksBtn, content: usefulLinksDropdown },
+    { button: headerContactUsBtn, content: headerContactUsDropdown }
+];
+
+allDropdowns.forEach(dropdown => {
+    if (dropdown.button && dropdown.content) {
+        // When a dropdown button is clicked...
+        dropdown.button.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevents the window click listener from firing immediately
+
+            const isAlreadyOpen = dropdown.content.style.display === 'block';
+
+            // First, close all other dropdowns to avoid overlap
+            allDropdowns.forEach(otherDropdown => {
+                if (otherDropdown.content !== dropdown.content) {
+                    otherDropdown.content.style.display = 'none';
+                }
+            });
+
+            // Then, toggle the visibility of the one that was clicked
+            dropdown.content.style.display = isAlreadyOpen ? 'none' : 'block';
+        });
+    }
+});
+
+// Add a single listener to the window to close any open dropdown when clicking elsewhere
+window.addEventListener('click', (event) => {
+    allDropdowns.forEach(dropdown => {
+        // If a dropdown is open AND the click was not on its button...
+        if (dropdown.content && dropdown.content.style.display === 'block' && !dropdown.button.contains(event.target)) {
+            // ...hide it.
+            dropdown.content.style.display = 'none';
+        }
+    });
+});
+
+
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
     // --- Torn Tips ---
