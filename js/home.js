@@ -869,6 +869,7 @@ if (termsCheckbox && !termsCheckbox.checked) {
         hideProfileSetupModal();
         const updatedProfile = { ...currentUserProfile, ...profileDataToSave };
         currentUserProfile = updatedProfile;
+		console.log("2. Profile updated after save:", currentUserProfile); // <-- ADD THIS
         updateToolLinksAccess(updatedProfile);
         if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
         
@@ -895,6 +896,7 @@ if (toolsSection) {
 
         // Use the most up-to-date user profile, which we store in currentUserProfile
         const profile = currentUserProfile; 
+		console.log("3. Profile at moment of click:", profile); // <-- ADD THIS
         if (!profile) {
             event.preventDefault(); // Should not happen, but a good safeguard
             return;
@@ -939,6 +941,7 @@ if (toolsSection) {
                         const doc = await db.collection('userProfiles').doc(user.uid).get();
                         profile = doc.exists ? doc.data() : null;
 						currentUserProfile = profile;
+						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
 						
 						// ... inside onAuthStateChanged, after fetching the profile
 profile = doc.exists ? doc.data() : null;
