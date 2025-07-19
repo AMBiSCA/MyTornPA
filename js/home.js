@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // IMPORTANT: Clear and hide the terms-specific error message
         if (termsAgreementErrorEl) {
             termsAgreementErrorEl.textContent = '';
-            termsAgreementErrorEl.style.display = 'none'; // Ensure it's hidden
+            termsAgreementErrorEl.classList.add('hidden'); // <<< ADD THIS LINE
         }
     }
 
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Also hide terms error when modal hides
             if (termsAgreementErrorEl) {
                 termsAgreementErrorEl.textContent = '';
-                termsAgreementErrorEl.style.display = 'none';
+                termsAgreementErrorEl.classList.add('hidden'); // <<< ADD THIS LINE
             }
         }
     }
@@ -820,7 +820,7 @@ window.addEventListener('click', function() {
                 // Modified: Ensure termsAgreementErrorEl is shown
                 if (termsAgreementErrorEl) {
                     termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
-                    termsAgreementErrorEl.style.display = 'block'; // THIS LINE MAKES IT VISIBLE
+                     termsAgreementErrorEl.classList.remove('hidden');
                 }
                 const termsLabel = document.querySelector('.checkbox-label-inline');
                 if (termsLabel) {
@@ -880,7 +880,7 @@ window.addEventListener('click', function() {
                 // Modified: Use termsAgreementErrorEl and set display: 'block'
                 if (termsAgreementErrorEl) {
                     termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                    termsAgreementErrorEl.style.display = 'block'; // THIS LINE MAKES IT VISIBLE
+                    termsAgreementErrorEl.classList.remove('hidden');
                 }
                 // Clear general error if it was used for this
                 if (profileSetupErrorEl) {
