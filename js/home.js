@@ -248,6 +248,51 @@ if(goToProfileBtn) {
         }
     }
 	
+	function updateToolLinksAccess(profile) {
+    const toolLinks = document.querySelectorAll('.tool-item-button');
+    const subscribeModal = document.getElementById('subscribePromptModal');
+
+    const hasAgreedToTerms = profile?.termsAgreed === true;
+    const isMember = profile?.membershipEndTime && profile.membershipEndTime > Date.now();
+
+    toolLinks.forEach(link => {
+        const isRestrictedByTerms = !hasAgreedToTerms;
+        const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
+
+        // The safest way to remove any old click listeners is to re-create the link element.
+        const oldLink = link;
+        const newLink = oldLink.cloneNode(true);
+        oldLink.parentNode.replaceChild(newLink, oldLink);
+        
+        // --- Apply Rules ---
+
+        // RULE 1: If terms are not agreed, block the link and open the profile.
+        if (isRestrictedByTerms) {
+            newLink.classList.add('disabled-link'); // Make it look disabled.
+            newLink.addEventListener('click', (event) => {
+                event.preventDefault(); // Stop the link from going to the page.
+                console.log("Link blocked: Terms not agreed.");
+                showProfileSetupModal(); // Open the profile so they can agree.
+            });
+        } 
+        // RULE 2: If it's a member-only link and they are not a member, block it.
+        // (This only runs if they passed the terms check).
+        else if (isRestrictedByMembership) {
+            newLink.classList.add('disabled-link'); // Make it look disabled.
+            newLink.addEventListener('click', (event) => {
+                event.preventDefault(); // Stop the link from going to the page.
+                console.log("Link blocked: Membership required.");
+                if (subscribeModal) subscribeModal.style.display = 'flex'; // Show subscribe popup.
+            });
+        }
+        // RULE 3: If no rules apply, the link is active and works normally.
+        else {
+            newLink.classList.remove('disabled-link');
+        }
+    });
+}
+
+	
 	function startMembershipCountdown(membershipInfo) {
     // Clear any existing timer to prevent multiple timers running
     if (membershipCountdownInterval) {
@@ -899,49 +944,6 @@ if (profile && profile.membershipEndTime) {
     }
 }
 
-function updateToolLinksAccess(profile) {
-    const toolLinks = document.querySelectorAll('.tool-item-button');
-    const subscribeModal = document.getElementById('subscribePromptModal');
-
-    const hasAgreedToTerms = profile?.termsAgreed === true;
-    const isMember = profile?.membershipEndTime && profile.membershipEndTime > Date.now();
-
-    toolLinks.forEach(link => {
-        const isRestrictedByTerms = !hasAgreedToTerms;
-        const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
-
-        // The safest way to remove any old click listeners is to re-create the link element.
-        const oldLink = link;
-        const newLink = oldLink.cloneNode(true);
-        oldLink.parentNode.replaceChild(newLink, oldLink);
-        
-        // --- Apply Rules ---
-
-        // RULE 1: If terms are not agreed, block the link and open the profile.
-        if (isRestrictedByTerms) {
-            newLink.classList.add('disabled-link'); // Make it look disabled.
-            newLink.addEventListener('click', (event) => {
-                event.preventDefault(); // Stop the link from going to the page.
-                console.log("Link blocked: Terms not agreed.");
-                showProfileSetupModal(); // Open the profile so they can agree.
-            });
-        } 
-        // RULE 2: If it's a member-only link and they are not a member, block it.
-        // (This only runs if they passed the terms check).
-        else if (isRestrictedByMembership) {
-            newLink.classList.add('disabled-link'); // Make it look disabled.
-            newLink.addEventListener('click', (event) => {
-                event.preventDefault(); // Stop the link from going to the page.
-                console.log("Link blocked: Membership required.");
-                if (subscribeModal) subscribeModal.style.display = 'flex'; // Show subscribe popup.
-            });
-        }
-        // RULE 3: If no rules apply, the link is active and works normally.
-        else {
-            newLink.classList.remove('disabled-link');
-        }
-    });
-}
 
 
 // --- Activate the gatekeeper for member-only links ---
