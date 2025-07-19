@@ -932,8 +932,8 @@ if (toolsSection) {
         // --- Apply Click Rules ---
         if (!hasAgreedToTerms) {
             console.log("Link blocked: Terms not agreed.");
-            if (termsPromptModal) termsPromptModal.style.display = 'flex'; // Show the new terms prompt 
-            showProfileSetupModal(); // Show the profile modal
+            event.preventDefault(); // Stop the link from working
+            if (termsPromptModal) termsPromptModal.style.display = 'flex'; // Show the new terms prompt
         } else if (needsMembership && !isMember) {
             console.log("Link blocked: Membership required.");
             event.preventDefault(); // Stop the link from working
