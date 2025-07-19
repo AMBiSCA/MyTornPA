@@ -803,6 +803,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                 // Removed as per user request: tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
                 profileSetupComplete: true,
                 shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+				termsAgreed: termsAgreementCheckbox.checked // <--- ADD THIS LINE if you want to store agreement status
             };
 
             try {
