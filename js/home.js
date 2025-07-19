@@ -860,40 +860,152 @@ if (termsCheckbox && !termsCheckbox.checked) {
     }
 
     if (auth) {
-        auth.onAuthStateChanged(async function(user) {
-            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
-            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
-            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+    auth.onAuthStateChanged(async function(user) {
+        console.log('Auth State Changed. User:', user ? user.uid : 'No user');
+        const currentPath = window.location.pathname.toLowerCase();
 
-            if (user) {
-                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+        // Define your explicitly public paths (case-insensitive check)
+        const publicPaths = [
+            '/index.html',
+            '/signup.html',
+            '/terms.html',
+            '/privacy.html', // Make sure you have a privacy policy page
+            '/faq.html',
+            '/' // Root path, e.g., mytornpa.com/
+        ].map(path => path.toLowerCase());
 
-                let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
-                if (db) {
-                    try {
-                        const doc = await db.collection('userProfiles').doc(user.uid).get();
-                        profile = doc.exists ? doc.data() : null;
-						currentUserProfile = profile;
-						
-						// ... inside onAuthStateChanged, after fetching the profile
-profile = doc.exists ? doc.data() : null;
+        // Check if the current page is one of the public pages
+        const isPublicPage = publicPaths.some(p => currentPath.endsWith(p) || currentPath.includes(p)); // Added .includes() for more robust matching
 
-// START: Add this new block
-// --- Check for an active membership and start the countdown ---
-if (profile && profile.membershipEndTime) {
-    const membershipInfo = {
-        membershipType: profile.membershipType,
-        membershipEndTime: profile.membershipEndTime
-    };
-    // If the membership is still active, start the timer
-    if (membershipInfo.membershipEndTime > Date.now()) {
-        startMembershipCountdown(membershipInfo);
-    }
+        const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+        const isHomePage = currentPath.includes('home.html') || currentPath.endsWith('/');
+
+        if (user) {
+            // User is signed in
+            let profile = null;
+            let profileSetupComplete = false;
+
+            if (db) {
+                try {
+                    const doc = await db.collection('userProfiles').doc(user.uid).get();
+                    profile = doc.exists ? doc.data() : null;
+                    currentUserProfile = profile; // Update global variable
+
+                    if (profile && profile.profileSetupComplete === true) {
+                        profileSetupComplete = true;
+                    } else {
+                        // If profile data is missing or setup is not complete
+                        console.log("Authenticated user's profile setup is not complete.");
+                    }
+
+                } catch (e) {
+                    console.error("Error fetching user profile on auth change:", e);
+                    // Assume profile setup not complete if there's an error fetching
+                    profileSetupComplete = false;
+                }
+            } else {
+                console.error("Firebase Auth object not available for profile check. Assuming incomplete profile.");
+                profileSetupComplete = false; // Cannot verify profile, so assume not complete
+            }
+
+            // --- Access Control for Authenticated Users with Incomplete Profile ---
+            // If user is authenticated but profile setup is NOT complete,
+            // and they are trying to access a page other than 'home.html' (where setup modal is)
+            if (!profileSetupComplete && !(isHomePage)) { // Simplified check for home page
+                console.warn("Authenticated user with incomplete profile tried to access a restricted page. Redirecting to home.html.");
+                window.location.href = '../home.html'; // Assuming home.html is one level up
+                return; // Stop further execution
+            }
+
+            // Normal UI updates for authenticated users
+            if (mainHomepageContent) mainHomepageContent.style.display = 'block';
+            if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+            if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+            if (homeButtonFooter) homeButtonFooter.style.display = isHomePage ? 'none' : 'inline-block';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+
+            let userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
+            let firstTip = false;
+
+            // Update welcome message and handle profile setup modal
+            if (profile && profile.preferredName && profile.profileSetupComplete) {
+                userDisplayName = profile.preferredName;
+                // If profile is complete, ensure modal is hidden
+                hideProfileSetupModal();
+                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
+                if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
+                    lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
+                    lastLogonInfoEl.style.display = 'block';
+                    if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                    lastActiveTimeoutId = setTimeout(() => { if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
+                db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+            } else {
+                // Profile is not complete (or doesn't exist)
+                userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
+                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Please complete your profile.`;
+                if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+                showProfileSetupModal(); // Force display the profile setup modal
+                clearQuickStats();
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+            }
+
+            // Handle membership countdown
+            if (profile && profile.membershipEndTime) {
+                const membershipInfo = {
+                    membershipType: profile.membershipType,
+                    membershipEndTime: profile.membershipEndTime
+                };
+                if (membershipInfo.membershipEndTime > Date.now()) {
+                    startMembershipCountdown(membershipInfo);
+                }
+            }
+
+            // Activate the gatekeeper for member-only links
+            setupMemberOnlyLinks(profile);
+
+            // Fetch data if API key exists and profile setup is complete
+            if (profile && profile.tornApiKey && profileSetupComplete) {
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+                fetchAllRequiredData(user, db);
+            } else if (profileSetupComplete) { // Profile complete, but no API key
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                clearQuickStats();
+                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+            }
+
+        } else {
+            // User is signed out
+
+            // --- Access Control for Unauthenticated Users ---
+            // If not a public page, redirect to index.html
+            if (!isPublicPage) {
+                console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', currentPath);
+                window.location.href = '../index.html'; // Adjust path if needed, assuming index.html is one level up
+                return; // Stop further execution
+            }
+
+            // Normal UI updates for signed out users (only applies to public pages)
+            if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+            if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+            if (mainHomepageContent) mainHomepageContent.style.display = 'none';
+            if (homeButtonFooter) homeButtonFooter.style.display = isHomePage ? 'none' : 'inline-block';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+            if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+
+            clearQuickStats();
+            if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+            if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+
+            console.log('User NOT signed in. On a public page. No redirect needed:', currentPath);
+        }
+    });
+} else {
+    console.error("Firebase auth object not available for auth state listener. Critical error.");
+    // Optionally display a critical error message to the user if Firebase auth isn't loading
 }
 
 function setupMemberOnlyLinks(profile) {
