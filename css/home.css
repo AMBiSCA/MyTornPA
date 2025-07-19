@@ -284,12 +284,12 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 /* Special Card Variants */
 .free-trial-card { border-color: #28a745; box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3); }
-.free-trial-card:hover { border: 1px solid black; box-shadow: 0 8px 15px rgba(40, 167, 69, 0.5); }
+.free-trial-card:hover { border-color: #218838; box-shadow: 0 8px 15px rgba(40, 167, 69, 0.5); }
 .free-trial-card .membership-select-btn { background-color: #28a745; border-color: #218838; color: black; }
 .free-trial-card .membership-select-btn:hover { background-color: #218838; }
 
 .yearly-membership-card { border-color: #FFD700; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
-.yearly-membership-card:hover { border-color: 1px solid black; box-shadow: 0 8px 15px rgba(255, 215, 0, 0.6); }
+.yearly-membership-card:hover { border-color: #CC8400; box-shadow: 0 8px 15px rgba(255, 215, 0, 0.6); }
 .yearly-membership-card .membership-select-btn {
     background: linear-gradient(135deg, #FFD700, #FFA500); border-color: #CC8400; color: #333;
 }
@@ -321,7 +321,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* 4. Make the blue border darker on hover for a nice effect */
 .card-solo-monthly:hover,
 .card-faction-monthly:hover {
-    border-color: 1px solid black; 
+    border-color: #0056b3; 
     box-shadow: 0 8px 15px rgba(0, 123, 255, 0.5);
 }
 
