@@ -176,7 +176,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .checkbox-group {
     /* Change text-align from left to center */
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 1px;
 }
 
 .checkbox-label-inline {
