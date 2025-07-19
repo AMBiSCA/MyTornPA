@@ -767,7 +767,12 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 	
 	
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; setProfileModalButtonStates();  }
+    function showProfileSetupModal() {
+    if (profileSetupModal) { // This curly brace opens the block for the 'if' statement
+        profileSetupModal.style.display = 'flex';
+        setProfileModalButtonStates(); // This line is now safely inside the 'if' block
+    } // This curly brace closes the block for the 'if' statement
+}
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
@@ -792,57 +797,94 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 
     if (saveProfileBtn && auth && db) {
-        saveProfileBtn.addEventListener('click', async () => {
-            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) { if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.'; return; }
-            if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-            const preferredNameVal = preferredNameInput.value.trim();
-            if (!preferredNameVal) { if (nameErrorEl) nameErrorEl.textContent = 'Name required.'; return; }
-            if (preferredNameVal.length > 10) { if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.'; return; }
-            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) { if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.'; return; }
-            const user = auth.currentUser;
-            const profileDataToSave = {
-                preferredName: preferredNameVal,
-                tornApiKey: profileSetupApiKeyInput.value.trim() || null,
-                tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
-                // Removed as per user request: tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
-                profileSetupComplete: true,
-                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-				termsAgreed: termsAgreementCheckbox.checked // <--- ADD THIS LINE if you want to store agreement status
-            };
+    saveProfileBtn.addEventListener('click', async () => {
+        // --- START New Code for Terms Agreement Check and Wobble ---
+        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+            if (profileSetupErrorEl) {
+                profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
+            }
+            // Get the parent label of the checkbox to apply the wobble effect
+            const termsLabel = document.querySelector('.checkbox-label-inline');
+            if (termsLabel) {
+                termsLabel.classList.add('wobble-animation');
+                // Remove the animation class after it completes to allow re-triggering
+                termsLabel.addEventListener('animationend', () => {
+                    termsLabel.classList.remove('wobble-animation');
+                }, { once: true }); // { once: true } ensures the event listener is removed after it fires once
+            }
+            return; // Stop the function if terms are not agreed
+        }
+        // --- END New Code for Terms Agreement Check and Wobble ---
 
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                const currentDoc = await userProfileRef.get();
+        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.';
+            return;
+        }
+        if (nameErrorEl) nameErrorEl.textContent = '';
+        if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
+        const preferredNameVal = preferredNameInput.value.trim();
+        if (!preferredNameVal) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
+            return;
+        }
+        if (preferredNameVal.length > 10) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
+            return;
+        }
+        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
+            return;
+        }
+        const user = auth.currentUser;
+        const profileDataToSave = {
+            preferredName: preferredNameVal,
+            tornApiKey: profileSetupApiKeyInput.value.trim() || null,
+            tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
+            // Removed as per user request: tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
+            profileSetupComplete: true,
+            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+            termsAgreed: termsAgreementCheckbox.checked // <--- This line saves the agreement status to Firestore
+        };
 
-                if (!currentDoc.exists) {
-                    profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
-                }
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const currentDoc = await userProfileRef.get();
 
-                if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                    profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                    profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                }
+            if (!currentDoc.exists) {
+                profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
 
-                await userProfileRef.set(profileDataToSave, { merge: true });
-                if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
-                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
-                hideProfileSetupModal();
-                if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-                
-                if (profileDataToSave.tornApiKey) {
-                    fetchAllRequiredData(user, db);
-                } else {
-                    clearQuickStats();
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
-                }
+            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
 
-            } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
-        });
-    }
+            await userProfileRef.set(profileDataToSave, { merge: true });
+            if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
+            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
+            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
+                displayRandomTip();
+                localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
+            } else if (tornTipPlaceholderEl) {
+                tornTipPlaceholderEl.style.display = 'none';
+            }
+            hideProfileSetupModal();
+            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
 
+            if (profileDataToSave.tornApiKey) {
+                fetchAllRequiredData(user, db);
+            } else {
+                clearQuickStats();
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+            }
+
+        } catch (error) {
+            console.error("Error saving profile: ", error);
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving.";
+        }
+    });
+}
     if (auth) {
         auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');

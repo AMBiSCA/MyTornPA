@@ -375,7 +375,25 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 /* === MODAL STYLES END === */
 
+/* Helper class to completely hide an element */
+.hidden-by-js {
+    display: none !important;
+}
 
+@keyframes wobble {
+	0% { transform: translateX(0); }
+    15% { transform: translateX(-5px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-5px); }
+    60% { transform: translateX(5px); }
+    75% { transform: translateX(-2px); }
+    90% { transform: translateX(2px); }
+    100% { transform: translateX(0); }
+}
+
+.wobble-animation {
+    animation: wobble 0.6s ease-in-out;
+}
 
 
 /* === RESPONSIVE STYLES === */
