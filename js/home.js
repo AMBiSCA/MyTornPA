@@ -798,17 +798,17 @@ if (headerEditProfileBtn && auth && db) {
         const user = auth.currentUser;
         if (!user || !db) return;
 
-        // --- NEW/MODIFIED: Clear and temporarily change type to trick autofill ---
+        // --- NEW/MODIFIED: Clear and prepare input fields ---
         if(preferredNameInput) preferredNameInput.value = '';
         if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
         if(termsCheckbox) termsCheckbox.checked = false;
         if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
 
-        // Temporarily change input type to "password" or "hidden" to prevent autofill
-        // from applying to it before we load our data.
+        // Reset Torn Profile ID input: clear, make writable, and set type to text
         if (profileSetupProfileIdInput) {
-            profileSetupProfileIdInput.type = 'password'; // Or 'hidden'
-            profileSetupProfileIdInput.value = ''; // Ensure it's clear
+            profileSetupProfileIdInput.value = ''; // Ensure it's empty
+            profileSetupProfileIdInput.removeAttribute('readonly'); // Make it writable temporarily
+            profileSetupProfileIdInput.type = 'text'; // Ensure it's text
         }
         // --- END NEW/MODIFIED ---
 
@@ -823,15 +823,24 @@ if (headerEditProfileBtn && auth && db) {
                 if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
                 if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
                 
-                // --- MODIFIED: Use a setTimeout for TornProfileId to combat autofill ---
+                // --- MODIFIED: Handle TornProfileId with robustness ---
                 if(profileSetupProfileIdInput) {
-                    // Restore type to 'text' AFTER autofill has likely occurred (or been tricked)
-                    profileSetupProfileIdInput.type = 'text';
-
-                    // Use setTimeout to allow browser autofill to complete first, then set correct value
+                    const tornId = data.tornProfileId ? String(data.tornProfileId) : '';
+                    
+                    // Directly set the value immediately after fetching data
+                    // then immediately make it readonly again.
+                    profileSetupProfileIdInput.value = tornId;
+                    profileSetupProfileIdInput.setAttribute('readonly', 'readonly'); // Make it readonly after setting value
+                    
+                    // If, for some reason, the value isn't sticking even after direct assignment,
+                    // we can add a tiny delay to re-set it, but try without first.
+                    // If you still see the email, uncomment the setTimeout below and comment out the two lines above (value set and setAttribute)
+                    /*
                     setTimeout(() => {
-                        profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
-                    }, 50); // A small delay, like 50ms, is often enough
+                        profileSetupProfileIdInput.value = tornId;
+                        profileSetupProfileIdInput.setAttribute('readonly', 'readonly');
+                    }, 10); // A tiny delay for extreme cases
+                    */
                 }
                 // --- END MODIFICATION ---
 
@@ -843,21 +852,23 @@ if (headerEditProfileBtn && auth && db) {
                 if(preferredNameInput && user.displayName) {
                     preferredNameInput.value = user.displayName.substring(0,10);
                 }
-                // Ensure Torn Profile ID input is 'text' even if no profile and remains empty
+                // If no profile, ensure Torn Profile ID input is text and remains empty and readonly
                 if (profileSetupProfileIdInput) {
-                    profileSetupProfileIdInput.type = 'text';
                     profileSetupProfileIdInput.value = '';
+                    profileSetupProfileIdInput.type = 'text'; // Ensure type is text
+                    profileSetupProfileIdInput.setAttribute('readonly', 'readonly'); // Ensure it's readonly
                 }
             }
         } catch (err) {
             console.error("Error fetching profile for edit:", err);
             if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-            // If there's an error, still ensure fields are cleared and type is correct
+            // If there's an error, still ensure fields are cleared and type/readonly are correct
             if(preferredNameInput) preferredNameInput.value = '';
             if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
             if(profileSetupProfileIdInput) {
-                profileSetupProfileIdInput.type = 'text';
                 profileSetupProfileIdInput.value = '';
+                profileSetupProfileIdInput.type = 'text';
+                profileSetupProfileIdInput.setAttribute('readonly', 'readonly');
             }
             if(termsCheckbox) termsCheckbox.checked = false;
             if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
