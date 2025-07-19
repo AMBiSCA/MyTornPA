@@ -961,27 +961,27 @@ if (toolsSection) {
                 let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
                 if (db) {
                     try {
-                        const doc = await db.collection('userProfiles').doc(user.uid).get();
-                        profile = doc.exists ? doc.data() : null;
-						currentUserProfile = profile;
-						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
-						
-						// ... inside onAuthStateChanged, after fetching the profile
-profile = doc.exists ? doc.data() : null;
+    const doc = await db.collection('userProfiles').doc(user.uid).get();
+    profile = doc.exists ? doc.data() : null;
+    currentUserProfile = profile;
+    console.log("1. Profile loaded on page start:", currentUserProfile);
 
-// START: Add this new block
-// --- Check for an active membership and start the countdown ---
-if (profile && profile.membershipEndTime) {
-    const membershipInfo = {
-        membershipType: profile.membershipType,
-        membershipEndTime: profile.membershipEndTime
-    };
-    // If the membership is still active, start the timer
-    if (membershipInfo.membershipEndTime > Date.now()) {
-        startMembershipCountdown(membershipInfo);
+    // --- Check for an active membership and start the countdown ---
+    if (profile && profile.membershipEndTime) {
+        const membershipInfo = {
+            membershipType: profile.membershipType,
+            membershipEndTime: profile.membershipEndTime
+        };
+        if (membershipInfo.membershipEndTime > Date.now()) {
+            startMembershipCountdown(membershipInfo);
+        }
     }
-}
 
+    // --- Activate the gatekeeper for tool links ---
+    updateToolLinksAccess(profile);
+
+    if (profile && profile.preferredName && profile.profileSetupComplete) {
+    //...
 
 
 // --- Activate the gatekeeper for member-only links ---
