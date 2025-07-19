@@ -160,7 +160,15 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
 .helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
 .checkbox-group { text-align: left; margin-bottom: 15px; }
-.checkbox-label-inline { display: flex; align-items: center; font-size: 0.9em; margin-bottom: 5px; color: #ccc;}
+.checkbox-label-inline {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    color: #ccc;
+    /* Add this line to center horizontally */
+    justify-content: center;
+}
 .checkbox-label-inline input[type="checkbox"] { margin-right: 8px; transform: scale(1.1); accent-color:#00a8ff;}
 .modal-profile-setup .form-group a,
 .modal-profile-setup .checkbox-label-inline a { color: #00a8ff; text-decoration: none;}
