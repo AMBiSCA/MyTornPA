@@ -163,48 +163,24 @@ if(goToProfileBtn) {
 	
 	function updateToolLinksAccess(profile) {
     const toolLinks = document.querySelectorAll('.tool-item-button');
-    const subscribeModal = document.getElementById('subscribePromptModal');
+    // If there's no profile for some reason, do nothing.
+    if (!profile) return;
 
-    const hasAgreedToTerms = profile?.termsAgreed === true;
-    const isMember = profile?.membershipEndTime && profile.membershipEndTime > Date.now();
+    const hasAgreedToTerms = profile.termsAgreed === true;
+    const isMember = profile.membershipEndTime && profile.membershipEndTime > Date.now();
 
     toolLinks.forEach(link => {
         const isRestrictedByTerms = !hasAgreedToTerms;
         const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
 
-        // The safest way to remove any old click listeners is to re-create the link element.
-        const oldLink = link;
-        const newLink = oldLink.cloneNode(true);
-        oldLink.parentNode.replaceChild(newLink, oldLink);
-        
-        // --- Apply Rules ---
-
-        // RULE 1: If terms are not agreed, block the link and open the profile.
-        if (isRestrictedByTerms) {
-            newLink.classList.add('disabled-link'); // Make it look disabled.
-            newLink.addEventListener('click', (event) => {
-                event.preventDefault(); // Stop the link from going to the page.
-                console.log("Link blocked: Terms not agreed.");
-                showProfileSetupModal(); // Open the profile so they can agree.
-            });
-        } 
-        // RULE 2: If it's a member-only link and they are not a member, block it.
-        // (This only runs if they passed the terms check).
-        else if (isRestrictedByMembership) {
-            newLink.classList.add('disabled-link'); // Make it look disabled.
-            newLink.addEventListener('click', (event) => {
-                event.preventDefault(); // Stop the link from going to the page.
-                console.log("Link blocked: Membership required.");
-                if (subscribeModal) subscribeModal.style.display = 'flex'; // Show subscribe popup.
-            });
-        }
-        // RULE 3: If no rules apply, the link is active and works normally.
-        else {
-            newLink.classList.remove('disabled-link');
+        // Visually disable the link if either rule applies
+        if (isRestrictedByTerms || isRestrictedByMembership) {
+            link.classList.add('disabled-link');
+        } else {
+            link.classList.remove('disabled-link');
         }
     });
 }
-
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
@@ -907,7 +883,42 @@ updateToolLinksAccess(updatedProfile);
             } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
         });
     }
+// ADD THIS ENTIRE NEW BLOCK
+const toolsSection = document.getElementById('toolsSection');
+if (toolsSection) {
+    toolsSection.addEventListener('click', function(event) {
+        // Find the actual link that was clicked on
+        const link = event.target.closest('.tool-item-button');
+        if (!link) {
+            return; // Exit if the click wasn't on a tool link
+        }
 
+        // Use the most up-to-date user profile, which we store in currentUserProfile
+        const profile = currentUserProfile; 
+        if (!profile) {
+            event.preventDefault(); // Should not happen, but a good safeguard
+            return;
+        }
+
+        const hasAgreedToTerms = profile.termsAgreed === true;
+        const isMember = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+        const needsMembership = link.classList.contains('member-only');
+        
+        // --- Apply Click Rules ---
+        if (!hasAgreedToTerms) {
+            console.log("Link blocked: Terms not agreed.");
+            event.preventDefault(); // Stop the link from working
+            showProfileSetupModal(); // Show the profile modal
+        } else if (needsMembership && !isMember) {
+            console.log("Link blocked: Membership required.");
+            event.preventDefault(); // Stop the link from working
+            const subscribeModal = document.getElementById('subscribePromptModal');
+            if (subscribeModal) subscribeModal.style.display = 'flex';
+        }
+        // If neither of the above rules apply, the code does nothing,
+        // and the link will navigate to its destination normally.
+    });
+}
     if (auth) {
         auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
