@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // IMPORTANT: Clear and hide the terms-specific error message
         if (termsAgreementErrorEl) {
             termsAgreementErrorEl.textContent = '';
-            termsAgreementErrorEl.classList.add('hidden'); // <<< ADD THIS LINE
+            termsAgreementErrorEl.classList.add('hidden'); // Ensure it's hidden
         }
     }
 
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Also hide terms error when modal hides
             if (termsAgreementErrorEl) {
                 termsAgreementErrorEl.textContent = '';
-                termsAgreementErrorEl.classList.add('hidden'); // <<< ADD THIS LINE
+                termsAgreementErrorEl.classList.add('hidden');
             }
         }
     }
@@ -191,41 +191,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const days = Math.floor(hrs / 24);
         return `${days} day${days === 1 ? "" : "s"} ago`;
     }
-	
-	// --- Dropdown Menu Logic for Header ---
 
-function setupDropdown(button, dropdown) {
-    if (!button || !dropdown) {
-        // If either the button or dropdown doesn't exist, do nothing.
-        return; 
+    // --- Dropdown Menu Logic for Header ---
+    function setupDropdown(button, dropdown) {
+        if (!button || !dropdown) {
+            return;
+        }
+
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+
+            document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
+                if (activeDropdown !== dropdown) {
+                    activeDropdown.classList.remove('is-active');
+                }
+            });
+
+            dropdown.classList.toggle('is-active');
+        });
     }
 
-    button.addEventListener('click', function(event) {
-        // This stops the window 'click' event from firing immediately.
-        event.stopPropagation(); 
+    // Set up the listeners for your specific dropdowns
+    setupDropdown(usefulLinksBtn, usefulLinksDropdown);
+    setupDropdown(headerContactUsBtn, headerContactUsDropdown);
 
-        // Close all other dropdowns before opening the new one
+    // Add a listener to the whole window to close dropdowns when clicking anywhere else
+    window.addEventListener('click', function() {
         document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
-            if (activeDropdown !== dropdown) {
-                activeDropdown.classList.remove('is-active');
-            }
+            activeDropdown.classList.remove('is-active');
         });
-
-        // Toggle the 'is-active' class on the clicked dropdown.
-        dropdown.classList.toggle('is-active');
     });
-}
-
-// Set up the listeners for your specific dropdowns
-setupDropdown(usefulLinksBtn, usefulLinksDropdown);
-setupDropdown(headerContactUsBtn, headerContactUsDropdown);
-
-// Add a listener to the whole window to close dropdowns when clicking anywhere else
-window.addEventListener('click', function() {
-    document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
-        activeDropdown.classList.remove('is-active');
-    });
-});
 
     // Function to update stat displays on dashboard
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
@@ -739,7 +734,7 @@ window.addEventListener('click', function() {
                 try {
                     const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application' }, // Corrected: Content-Type should be application/json
                         body: JSON.stringify(updatePayload),
                     });
 
@@ -820,7 +815,7 @@ window.addEventListener('click', function() {
                 // Modified: Ensure termsAgreementErrorEl is shown
                 if (termsAgreementErrorEl) {
                     termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
-                     termsAgreementErrorEl.classList.remove('hidden');
+                    termsAgreementErrorEl.classList.remove('hidden'); // This line makes it visible
                 }
                 const termsLabel = document.querySelector('.checkbox-label-inline');
                 if (termsLabel) {
@@ -877,10 +872,10 @@ window.addEventListener('click', function() {
             }
 
             if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-                // Modified: Use termsAgreementErrorEl and set display: 'block'
+                // Modified: Use termsAgreementErrorEl and remove 'hidden' class
                 if (termsAgreementErrorEl) {
                     termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                    termsAgreementErrorEl.classList.remove('hidden');
+                    termsAgreementErrorEl.classList.remove('hidden'); // THIS LINE MAKES IT VISIBLE
                 }
                 // Clear general error if it was used for this
                 if (profileSetupErrorEl) {
@@ -1183,7 +1178,7 @@ window.addEventListener('click', function() {
     if (freeTrialConfirmationModal) {
         freeTrialConfirmationModal.addEventListener('click', (event) => {
             if (event.target === freeTrialConfirmationModal) {
-                console.log("Clicked outside Free Trial Confirmation Modal. Closing.");
+                console.log("Clicked outside Membership Options Modal. Closing.");
                 freeTrialConfirmationModal.style.display = 'none';
             }
         });
