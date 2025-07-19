@@ -370,6 +370,16 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     opacity: 0 !important; /* Forces the pseudo-element to be invisible when disabled */
 }
 
+.terms-error-message {
+    color: #ff6b6b; /* Red color for error */
+    font-size: 0.85em; /* Slightly larger than general error message for prominence */
+    margin-top: 5px; /* Space above the message */
+    min-height: 1.2em; /* Ensures space even when empty */
+    text-align: center; /* Center the text */
+    font-weight: bold; /* Make it bold */
+    display: none; /* Hidden by default, JavaScript will show it */
+}
+
 /* === Styling for the "Subscribe Prompt" Modal === */
 
 /* Position the 'X' close button in the new modal */

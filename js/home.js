@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
-
+    const termsAgreementErrorEl = document.getElementById('termsAgreementError');
     // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
@@ -117,29 +117,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to handle disabling/enabling profile modal buttons based on terms agreement
-    function setProfileModalButtonStates() {
-        if (saveProfileBtn) {
-            saveProfileBtn.disabled = !termsAgreementCheckbox.checked;
-            saveProfileBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        if (skipProfileSetupBtn) {
-            skipProfileSetupBtn.disabled = !termsAgreementCheckbox.checked;
-            skipProfileSetupBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        if (upgradeMembershipBtn) {
-            upgradeMembershipBtn.disabled = !termsAgreementCheckbox.checked;
-            upgradeMembershipBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        if (deleteAccountBtn) {
-            deleteAccountBtn.disabled = !termsAgreementCheckbox.checked;
-            deleteAccountBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        // Clear the error message when the checkbox state changes
-        if (profileSetupErrorEl) {
-            profileSetupErrorEl.textContent = '';
-        }
+   function setProfileModalButtonStates() {
+    if (saveProfileBtn) {
+        saveProfileBtn.disabled = !termsAgreementCheckbox.checked;
+        saveProfileBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
     }
+    if (skipProfileSetupBtn) {
+        skipProfileSetupBtn.disabled = !termsAgreementCheckbox.checked;
+        skipProfileSetupBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
+    }
+    if (upgradeMembershipBtn) {
+        upgradeMembershipBtn.disabled = !termsAgreementCheckbox.checked;
+        upgradeMembershipBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
+    }
+    if (deleteAccountBtn) {
+        deleteAccountBtn.disabled = !termsAgreementCheckbox.checked;
+        deleteAccountBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
+    }
+    // Clear the general modal error message
+    if (profileSetupErrorEl) {
+        profileSetupErrorEl.textContent = '';
+    }
+    // !! NEW: Clear the terms-specific error message !!
+    if (termsAgreementErrorEl) {
+        termsAgreementErrorEl.textContent = '';
+        termsAgreementErrorEl.style.display = 'none'; // Ensure it's hidden
+    }
+}
 
     // Function to show the profile setup modal
     function showProfileSetupModal() {
@@ -768,25 +772,20 @@ document.addEventListener('DOMContentLoaded', function() {
         termsAgreementCheckbox.addEventListener('change', setProfileModalButtonStates);
     }
 
-    // Event listener for the Skip for Now button (Corrected with wobble and terms check)
-    if (skipProfileSetupBtn) {
-        skipProfileSetupBtn.addEventListener('click', () => {
-            if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-                if (profileSetupErrorEl) {
-                    profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
-                }
-                const termsLabel = document.querySelector('.checkbox-label-inline');
-                if (termsLabel) {
-                    termsLabel.classList.add('wobble-animation');
-                    termsLabel.addEventListener('animationend', () => {
-                        termsLabel.classList.remove('wobble-animation');
-                    }, { once: true });
-                }
-                return;
+ if (skipProfileSetupBtn) {
+    skipProfileSetupBtn.addEventListener('click', () => {
+        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+            if (termsAgreementErrorEl) { // Show the terms-specific error message
+                termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
+                termsAgreementErrorEl.style.display = 'block'; // Show the element
             }
-            hideProfileSetupModal();
-        });
-    }
+            // (Remove the wobble-animation class addition here if you're not using the wobble effect at all)
+            // If you ARE keeping the wobble CSS but it's not showing, leave the .classList.add('wobble-animation') line.
+            return;
+        }
+        hideProfileSetupModal();
+    });
+}
 
     // Event listener for closing the profile modal
     if (closeProfileModalBtn && profileSetupModal) {
@@ -820,21 +819,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save Profile Button Listener (Corrected with wobble and terms check)
     if (saveProfileBtn && auth && db) {
-        saveProfileBtn.addEventListener('click', async () => {
-            if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-                if (profileSetupErrorEl) {
-                    profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                }
-                const termsLabel = document.querySelector('.checkbox-label-inline');
-                if (termsLabel) {
-                    termsLabel.classList.add('wobble-animation');
-                    termsLabel.addEventListener('animationend', () => {
-                        termsLabel.classList.remove('wobble-animation');
-                    }, { once: true });
-                }
-                return;
+    saveProfileBtn.addEventListener('click', async () => {
+        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+            if (termsAgreementErrorEl) { // Show the terms-specific error message
+                termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
+                termsAgreementErrorEl.style.display = 'block'; // Show the element
             }
-
+            // (Remove the wobble-animation class addition here if you're not using the wobble effect at all)
+            // If you ARE keeping the wobble CSS but it's not showing, leave the .classList.add('wobble-animation') line.
+            return;
+        }
+        // ... (rest of the saveProfileBtn code) ...
+    });
+}
             if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
                 if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.';
                 return;
