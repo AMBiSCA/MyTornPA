@@ -147,8 +147,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 #personalStatsModalBody p span.stat-value-api { color: #34c9eb; font-weight: 500; }
 #personalStatsModalBody p span.sub-detail { font-size: 0.75em; color: #888; margin-left: 5px; font-style: italic; }
 
-
-/* Form Group Styles (Used in Profile Modal) */
 .form-group { margin-bottom: 20px; }
 .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size:0.9em; color: #b0b0b0;}
 .form-group input[type="text"], .form-group input[type="password"] {
@@ -159,23 +157,24 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     border-color: #00a8ff; background-color: #33373c; box-shadow: 0 0 0 2px rgba(0, 168, 255, 0.2);
 }
 
-/* NEW: Style for the API Key form group to match width of inputs above and center it */
-.form-group.api-key-input-group { /* You'll need to add this class to the HTML for the API key's form-group */
-    max-width: 350px; /* Adjust this value to match the desired width of the inputs above */
-    margin: 0 auto 20px auto; /* Centers the block and keeps the bottom margin */
+/* MODIFIED: Style for the API Key form group to match width of inputs above and center it */
+.form-group.api-key-input-group {
+    max-width: 350px; /* This sets the maximum width. Adjust if the inputs above are a different size. */
+    margin: 0 auto 20px auto; /* Centers the block horizontally and adds bottom margin */
+    /* ADD THIS LINE: Prevents the flex item from stretching and centers it vertically on the cross axis */
+    align-self: center;
 }
 
 /* Ensure the input inside this specific group still fills its container */
 .form-group.api-key-input-group input[type="text"] {
-    width: 100%; /* Ensures the input fills the new max-width */
+    width: 100%; /* Ensures the input fills the new max-width set on its parent */
 }
 
 .modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
 .helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
 /* Modified CSS for .checkbox-group */
 .checkbox-group {
-    /* Change text-align from left to center */
-    text-align: center;
+    text-align: center; /* Centers the "I have read and agree..." line */
     margin-bottom: 15px;
 }
 
@@ -185,8 +184,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     font-size: 0.9em;
     margin-bottom: 5px;
     color: #ccc;
-    /* Remove or keep this, it centers the flex items WITHIN the checkbox-label-inline.
-       If the label itself isn't full width, this won't center it within the modal. */
+    /* You can remove or keep 'justify-content: center;' here.
+       'text-align: center;' on the parent '.checkbox-group' is usually sufficient. */
     /* justify-content: center; */
 }
 .checkbox-label-inline input[type="checkbox"] { margin-right: 8px; transform: scale(1.1); accent-color:#00a8ff;}
@@ -195,7 +194,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .modal-profile-setup .form-group a:hover,
 .modal-profile-setup .checkbox-label-inline a:hover { text-decoration: underline;}
 
-/* ... (rest of your CSS) ... */
 
 /* --- Membership & Confirmation Modal Styles --- */
 .membership-modal { max-width: 900px; padding: 30px; text-align: center; }
