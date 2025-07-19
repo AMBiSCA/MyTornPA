@@ -774,7 +774,27 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     } // This curly brace closes the block for the 'if' statement
 }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
-    if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
+    if (skipProfileSetupBtn) {
+    skipProfileSetupBtn.addEventListener('click', () => {
+        // --- START Code for Terms Agreement Check for Skip Button ---
+        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+            if (profileSetupErrorEl) {
+                profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
+            }
+            // Add wobble effect
+            const termsLabel = document.querySelector('.checkbox-label-inline');
+            if (termsLabel) {
+                termsLabel.classList.add('wobble-animation');
+                termsLabel.addEventListener('animationend', () => {
+                    termsLabel.classList.remove('wobble-animation');
+                }, { once: true });
+            }
+            return; // Prevent skipping
+        }
+        // --- END Code for Terms Agreement Check for Skip Button ---
+        hideProfileSetupModal();
+    });
+}
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
     if (headerEditProfileBtn && auth && db) {
