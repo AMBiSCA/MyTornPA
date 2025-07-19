@@ -108,7 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
 const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
 const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
 const goToProfileBtn = document.getElementById('goToProfileBtn');
-
+const termsCheckbox = document.getElementById('termsAgreementProfileModal');
+// ... other DOM elements
 // Function to hide the subscribe prompt
 const hideSubscribePrompt = () => {
     if (subscribePromptModal) {
@@ -768,6 +769,49 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 
     if (saveProfileBtn && auth && db) {
         saveProfileBtn.addEventListener('click', async () => {
+			// --- START: NEW VALIDATION FOR TERMS CHECKBOX ---
+let termsErrorEl = document.getElementById('termsError'); // Try to get existing error element
+
+// Create the error message element if it doesn't exist
+if (!termsErrorEl) {
+    termsErrorEl = document.createElement('p');
+    termsErrorEl.id = 'termsError'; // Assign a unique ID for the error message
+    termsErrorEl.style.color = 'red';
+    termsErrorEl.style.fontSize = '0.9em';
+    termsErrorEl.style.marginTop = '5px'; // Adjust spacing as needed
+    termsErrorEl.style.marginBottom = '10px'; // Add some bottom margin
+
+    // Find the element *after* which the error message should be inserted.
+    // This assumes your checkbox is directly contained in a form group or similar.
+    // We'll insert it after the checkbox itself, so it appears below it.
+    if (termsCheckbox) {
+        termsCheckbox.parentNode.insertBefore(termsErrorEl, termsCheckbox.nextSibling);
+    } else {
+        console.warn("Terms checkbox (id='termsAgreementProfileModal') not found. Cannot place error message.");
+        // As a fallback, you might append it to a general error area or the modal body
+        // if you absolutely cannot modify HTML structure around the checkbox.
+    }
+}
+// Hide any previous error message before checking
+termsErrorEl.textContent = '';
+termsErrorEl.style.display = 'none';
+
+// Validate terms checkbox
+if (termsCheckbox && !termsCheckbox.checked) {
+    termsErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
+    termsErrorEl.style.display = 'block'; // Make it visible
+
+    // Hide the error after 5 seconds
+    setTimeout(() => {
+        if (termsErrorEl) { // Check if element still exists before trying to hide
+            termsErrorEl.style.display = 'none';
+            termsErrorEl.textContent = ''; // Clear text
+        }
+    }, 5000); // 5 seconds
+
+    return; // Stop the function here if validation fails
+}
+// --- END: NEW VALIDATION FOR TERMS CHECKBOX ---
             if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) { if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.'; return; }
             if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
             const preferredNameVal = preferredNameInput.value.trim();
