@@ -165,7 +165,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 #profileSetupApiKey {
     display: block; /* Override default inline-block to allow margin: auto */
     width: 80%;     /* Adjust this percentage as you like, or use a fixed pixel width */
-    max-width: 400px; /* Ensures it doesn't get too wide on large screens */
+    max-width: 400px; /* Ensures it doesn't get too on large screens */
     margin: 0 auto; /* Centers the block-level element horizontally */
 }
 
@@ -176,7 +176,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .checkbox-group {
     /* Change text-align from left to center */
     text-align: center;
-    margin-bottom: 1px;
+    margin-bottom: -4px;
 }
 
 .checkbox-label-inline {
