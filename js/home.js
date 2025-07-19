@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+    const termsAgreementErrorEl = document.getElementById('termsAgreementError');
 
     // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
@@ -89,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
     const goToProfileBtn = document.getElementById('goToProfileBtn');
     const termsAgreementCheckbox = document.getElementById('termsAgreementProfileModal');
-    const termsAgreementErrorEl = document.getElementById('termsAgreementError'); // Corrected: ensure this is here
 
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
@@ -779,446 +779,448 @@ document.addEventListener('DOMContentLoaded', function() {
         termsAgreementCheckbox.addEventListener('change', setProfileModalButtonStates);
     }
 
- if (skipProfileSetupBtn) {
-    skipProfileSetupBtn.addEventListener('click', () => {
-        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-            if (termsAgreementErrorEl) { // Show the terms-specific error message
-                termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
-                termsAgreementErrorEl.style.display = 'block'; // Show the element
-            }
-            const termsLabel = document.querySelector('.checkbox-label-inline');
-            if (termsLabel) {
-                termsLabel.classList.add('wobble-animation');
-                termsLabel.addEventListener('animationend', () => {
-                    termsLabel.classList.remove('wobble-animation');
-                }, { once: true });
-            }
-            return;
-        }
-        hideProfileSetupModal();
-    });
-}
+    if (skipProfileSetupBtn) {
+        skipProfileSetupBtn.addEventListener('click', () => {
+            if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+                // Modified: Ensure termsAgreementErrorEl is shown
+                if (termsAgreementErrorEl) {
+                    termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
+                    termsAgreementErrorEl.style.display = 'block'; // THIS LINE MAKES IT VISIBLE
+                }
+                const termsLabel = document.querySelector('.checkbox-label-inline');
+                if (termsLabel) {
+                    termsLabel.classList.add('wobble-animation');
+                    termsLabel.addEventListener('animationend', () => {
+                        termsLabel.classList.remove('wobble-animation');
+                    }, { once: true });
+                }
+                return;
+            }
+            hideProfileSetupModal();
+        });
+    }
 
-    // Event listener for closing the profile modal
-    if (closeProfileModalBtn && profileSetupModal) {
-        closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
-    }
+    // Event listener for closing the profile modal
+    if (closeProfileModalBtn && profileSetupModal) {
+        closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
+    }
 
-    // Event listener for opening the profile modal via header button
-    if (headerEditProfileBtn && auth && db) {
-        headerEditProfileBtn.addEventListener('click', async function(event) {
-            event.preventDefault();
-            const user = auth.currentUser;
-            if (!user || !db) return;
-            try {
-                const doc = await db.collection('userProfiles').doc(user.uid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (preferredNameInput) preferredNameInput.value = data.preferredName || '';
-                    if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
-                    if (profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
-                    if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
-                } else {
-                    if (preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0, 10);
-                }
-            } catch (err) {
-                console.error("Error fetching profile for edit:", err);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-            }
-            showProfileSetupModal(); // This will now correctly call setProfileModalButtonStates()
-        });
-    }
+    // Event listener for opening the profile modal via header button
+    if (headerEditProfileBtn && auth && db) {
+        headerEditProfileBtn.addEventListener('click', async function(event) {
+            event.preventDefault();
+            const user = auth.currentUser;
+            if (!user || !db) return;
+            try {
+                const doc = await db.collection('userProfiles').doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (preferredNameInput) preferredNameInput.value = data.preferredName || '';
+                    if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                    if (profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
+                    if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
+                } else {
+                    if (preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0, 10);
+                }
+            } catch (err) {
+                console.error("Error fetching profile for edit:", err);
+                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
+            }
+            showProfileSetupModal(); // This will now correctly call setProfileModalButtonStates()
+        });
+    }
 
-    if (saveProfileBtn && auth && db) { // Keep the initial check
-    saveProfileBtn.addEventListener('click', async () => {
-        // Essential: Re-verify auth and db are available just before the async operation
-        if (!auth || !auth.currentUser || !db) {
-            console.error("Save Profile: Firebase Auth or Firestore not available.");
-            if (profileSetupErrorEl) {
-                profileSetupErrorEl.textContent = 'System error: Please try again or refresh the page.';
-            }
-            return; // Stop if Firebase isn't fully ready
-        }
+    if (saveProfileBtn && auth && db) { // Keep the initial check
+        saveProfileBtn.addEventListener('click', async () => {
+            // Essential: Re-verify auth and db are available just before the async operation
+            if (!auth || !auth.currentUser || !db) {
+                console.error("Save Profile: Firebase Auth or Firestore not available.");
+                if (profileSetupErrorEl) {
+                    profileSetupErrorEl.textContent = 'System error: Please try again or refresh the page.';
+                }
+                return; // Stop if Firebase isn't fully ready
+            }
 
-        if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-            if (profileSetupErrorEl) {
-                profileSetupErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-            }
-            if (termsAgreementErrorEl) {
-                termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                termsAgreementErrorEl.style.display = 'block';
-            }
-            const termsLabel = document.querySelector('.checkbox-label-inline');
-            if (termsLabel) {
-                termsLabel.classList.add('wobble-animation');
-                termsLabel.addEventListener('animationend', () => {
-                    termsLabel.classList.remove('wobble-animation');
-                }, { once: true });
-            }
-            return;
-        }
+            if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
+                // Modified: Use termsAgreementErrorEl and set display: 'block'
+                if (termsAgreementErrorEl) {
+                    termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
+                    termsAgreementErrorEl.style.display = 'block'; // THIS LINE MAKES IT VISIBLE
+                }
+                // Clear general error if it was used for this
+                if (profileSetupErrorEl) {
+                    profileSetupErrorEl.textContent = '';
+                }
+                const termsLabel = document.querySelector('.checkbox-label-inline');
+                if (termsLabel) {
+                    termsLabel.classList.add('wobble-animation');
+                    termsLabel.addEventListener('animationend', () => {
+                        termsLabel.classList.remove('wobble-animation');
+                    }, { once: true });
+                }
+                return;
+            }
 
-        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Missing required profile fields.';
-            return;
-        }
+            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput) {
+                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Missing required profile fields.';
+                return;
+            }
 
-        if (nameErrorEl) nameErrorEl.textContent = '';
-        if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; // Clear general error
+            if (nameErrorEl) nameErrorEl.textContent = '';
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; // Clear general error
 
-        const preferredNameVal = preferredNameInput.value.trim();
-        if (!preferredNameVal) {
-            if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
-            return;
-        }
-        if (preferredNameVal.length > 10) {
-            if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
-            return;
-        }
-        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-            if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
-            return;
-        }
+            const preferredNameVal = preferredNameInput.value.trim();
+            if (!preferredNameVal) {
+                if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
+                return;
+            }
+            if (preferredNameVal.length > 10) {
+                if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
+                return;
+            }
+            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
+                if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
+                return;
+            }
 
-        const user = auth.currentUser; // user is guaranteed not null here due to the check at the top
-        const profileDataToSave = {
-            preferredName: preferredNameVal,
-            tornApiKey: profileSetupApiKeyInput.value.trim() || null,
-            tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
-            profileSetupComplete: true,
-            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-            termsAgreed: termsAgreementCheckbox.checked
-        };
+            const user = auth.currentUser;
+            const profileDataToSave = {
+                preferredName: preferredNameVal,
+                tornApiKey: profileSetupApiKeyInput.value.trim() || null,
+                tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
+                profileSetupComplete: true,
+                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+                termsAgreed: termsAgreementCheckbox.checked
+            };
 
-        try {
-            // Problem line context starts here
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const currentDoc = await userProfileRef.get(); // This line
+            try {
+                const userProfileRef = db.collection('userProfiles').doc(user.uid);
+                const currentDoc = await userProfileRef.get();
 
-            if (!currentDoc.exists) {
-                profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
-            }
+                if (!currentDoc.exists) {
+                    profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
+                }
 
-            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-            }
+                if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                    profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                    profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                }
 
-            await userProfileRef.set(profileDataToSave, { merge: true });
-            if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
-                displayRandomTip();
-                localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-            } else if (tornTipPlaceholderEl) {
-                tornTipPlaceholderEl.style.display = 'none';
-            }
-            hideProfileSetupModal();
-            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+                await userProfileRef.set(profileDataToSave, { merge: true });
+                if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
+                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
+                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
+                    displayRandomTip();
+                    localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
+                } else if (tornTipPlaceholderEl) {
+                    tornTipPlaceholderEl.style.display = 'none';
+                }
+                hideProfileSetupModal();
+                if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
 
-            if (profileDataToSave.tornApiKey) {
-                fetchAllRequiredData(user, db);
-            } else {
-                clearQuickStats();
-                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
-            }
+                if (profileDataToSave.tornApiKey) {
+                    fetchAllRequiredData(user, db);
+                } else {
+                    clearQuickStats();
+                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+                }
 
-        } catch (error) {
-            console.error("Error saving profile: ", error);
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = `Error saving: ${error.message}`;
-        }
-    });
-}
+            } catch (error) {
+                console.error("Error saving profile: ", error);
+                if (profileSetupErrorEl) profileSetupErrorEl.textContent = `Error saving: ${error.message}`;
+            }
+        });
+    }
 
-    if (auth) {
-        auth.onAuthStateChanged(async function(user) {
-            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
-            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
-            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+    if (auth) {
+        auth.onAuthStateChanged(async function(user) { // Corrected: async function
+            console.log('Auth State Changed. User:', user ? user.uid : 'No user');
+            const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
+            const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
-            if (user) {
-                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
+            if (user) {
+                if (mainHomepageContent) mainHomepageContent.style.display = 'block';
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
+                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
+                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
-                let userDisplayName = "User",
-                    showSetup = true,
-                    firstTip = false,
-                    profile = null;
-                if (db) {
-                    try {
-                        const doc = await db.collection('userProfiles').doc(user.uid).get();
-                        profile = doc.exists ? doc.data() : null;
-                        currentUserProfile = profile;
+                let userDisplayName = "User",
+                    showSetup = true,
+                    firstTip = false,
+                    profile = null;
+                if (db) {
+                    try {
+                        const doc = await db.collection('userProfiles').doc(user.uid).get();
+                        profile = doc.exists ? doc.data() : null;
+                        currentUserProfile = profile;
 
-                        if (profile && profile.membershipEndTime) {
-                            const membershipInfo = {
-                                membershipType: profile.membershipType,
-                                membershipEndTime: profile.membershipEndTime
-                            };
-                            if (membershipInfo.membershipEndTime > Date.now()) {
-                                startMembershipCountdown(membershipInfo);
-                            }
-                        }
+                        if (profile && profile.membershipEndTime) {
+                            const membershipInfo = {
+                                membershipType: profile.membershipType,
+                                membershipEndTime: profile.membershipEndTime
+                            };
+                            if (membershipInfo.membershipEndTime > Date.now()) {
+                                startMembershipCountdown(membershipInfo);
+                            }
+                        }
 
-                        function setupMemberOnlyLinks(profile) {
-                            const memberLinks = document.querySelectorAll('.member-only');
-                            const subscribeModal = document.getElementById('subscribePromptModal');
+                        function setupMemberOnlyLinks(profile) {
+                            const memberLinks = document.querySelectorAll('.member-only');
+                            const subscribeModal = document.getElementById('subscribePromptModal');
 
-                            const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
+                            const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
 
-                            memberLinks.forEach(link => {
-                                link.addEventListener('click', (event) => {
-                                    if (!isMember) {
-                                        event.preventDefault();
-                                        console.log("Non-member clicked a restricted link. Showing prompt.");
-                                        if (subscribeModal) {
-                                            subscribeModal.style.display = 'flex';
-                                        }
-                                    }
-                                });
-                            });
-                        }
+                            memberLinks.forEach(link => {
+                                link.addEventListener('click', (event) => {
+                                    if (!isMember) {
+                                        event.preventDefault();
+                                        console.log("Non-member clicked a restricted link. Showing prompt.");
+                                        if (subscribeModal) {
+                                            subscribeModal.style.display = 'flex';
+                                        }
+                                    }
+                                });
+                            });
+                        }
 
-                        setupMemberOnlyLinks(profile);
+                        setupMemberOnlyLinks(profile);
 
-                        if (profile && profile.preferredName && profile.profileSetupComplete) {
-                            userDisplayName = profile.preferredName;
-                            showSetup = false;
-                            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
-                            if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
-                                lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
-                                lastLogonInfoEl.style.display = 'block';
-                                if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-                                lastActiveTimeoutId = setTimeout(() => { if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
-                            } else if (lastLogonInfoEl) {
-                                lastLogonValueEl.textContent = "Welcome!";
-                                lastLogonInfoEl.style.display = 'block';
-                            }
-                            db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                        } else { userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User"; }
-                    } catch (e) {
-                        console.error("Error fetching profile on auth change:", e);
-                        userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-                    }
-                } else { userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User"; }
-                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
-                if (showSetup) {
-                    if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
-                    if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-                    showProfileSetupModal();
-                    clearQuickStats();
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
-                } else {
-                    if (firstTip) {
-                        displayRandomTip();
-                        localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                    } else if (tornTipPlaceholderEl) {
-                        tornTipPlaceholderEl.style.display = 'none';
-                    }
-                    if (profile && profile.tornApiKey) {
-                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
-                        fetchAllRequiredData(user, db);
-                    } else {
-                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                        clearQuickStats();
-                        if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
-                    }
-                }
+                        if (profile && profile.preferredName && profile.profileSetupComplete) {
+                            userDisplayName = profile.preferredName;
+                            showSetup = false;
+                            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
+                            if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
+                                lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
+                                lastLogonInfoEl.style.display = 'block';
+                                if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                                lastActiveTimeoutId = setTimeout(() => { if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                            } else if (lastLogonInfoEl) {
+                                lastLogonValueEl.textContent = "Welcome!";
+                                lastLogonInfoEl.style.display = 'block';
+                            }
+                            db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
+                            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+                        } else { userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User"; }
+                    } catch (e) {
+                        console.error("Error fetching profile on auth change:", e);
+                        userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
+                    }
+                } else { userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User"; }
+                if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
+                if (showSetup) {
+                    if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
+                    if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+                    showProfileSetupModal();
+                    clearQuickStats();
+                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+                } else {
+                    if (firstTip) {
+                        displayRandomTip();
+                        localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
+                    } else if (tornTipPlaceholderEl) {
+                        tornTipPlaceholderEl.style.display = 'none';
+                    }
+                    if (profile && profile.tornApiKey) {
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+                        fetchAllRequiredData(user, db);
+                    } else {
+                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                        clearQuickStats();
+                        if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
+                    }
+                }
 
-            } else { // User is signed out
-                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
-                if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
-                if (mainHomepageContent) mainHomepageContent.style.display = 'none';
-                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
-                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
+            } else { // User is signed out
+                if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
+                if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
+                if (mainHomepageContent) mainHomepageContent.style.display = 'none';
+                if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
+                if (logoutButtonHeader) logoutButtonHeader.style.display = 'none';
+                if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = 'inline-flex';
 
-                clearQuickStats();
-                if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
-                if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
+                clearQuickStats();
+                if (welcomeMessageEl) welcomeMessageEl.textContent = 'Please sign in or sign up to use MyTornPA!';
+                if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
 
-                const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
-                const currentPath = window.location.pathname.toLowerCase();
-                const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
+                const nonAuthPaths = ['/index.html', '/signup.html', '/terms.html', '/faq.html'];
+                const currentPath = window.location.pathname.toLowerCase();
+                const isPublicPage = nonAuthPaths.some(p => currentPath.endsWith(p)) || currentPath === '/' || currentPath === '/mytornpa/' || currentPath === '/mytornpa/index.html';
 
-                if (!isPublicPage) {
-                    console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
-                    window.location.href = '../index.html';
-                } else {
-                    console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
-                }
-            }
-        });
-    } else { console.error("Firebase auth object not available for auth state listener."); }
+                if (!isPublicPage) {
+                    console.log('User NOT signed in AND on a protected page. Redirecting to index.html from:', window.location.pathname);
+                    window.location.href = '../index.html';
+                } else {
+                    console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+                }
+            }
+        });
+    } else { console.error("Firebase auth object not available for auth state listener."); }
 
-    if (logoutButtonHeader && auth) {
-        logoutButtonHeader.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                console.log('User signed out.');
-            }).catch(error => {
-                console.error('Sign out error:', error);
-            });
-        });
-    }
+    if (logoutButtonHeader && auth) {
+        logoutButtonHeader.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log('User signed out.');
+            }).catch(error => {
+                console.error('Sign out error:', error);
+            });
+        });
+    }
 
-    document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const content = this.nextElementSibling;
-            if (content) content.classList.toggle('open');
-        });
-    });
+    document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+            if (content) content.classList.toggle('open');
+        });
+    });
 
-    // --- NEW: Membership Modals JavaScript ---
+    // --- NEW: Membership Modals JavaScript ---
 
-    // Function to hide any open modal overlays
-    function hideAllModalOverlays() {
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.style.display = 'none';
-        });
-    }
+    // Function to hide any open modal overlays
+    function hideAllModalOverlays() {
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.style.display = 'none';
+        });
+    }
 
-    if (upgradeMembershipBtn) { // Changed to check directly, assuming membershipOptionsModal exists
-        upgradeMembershipBtn.addEventListener('click', () => {
-            console.log("Hiding profile modal and showing membership modal.");
+    if (upgradeMembershipBtn) { // Changed to check directly, assuming membershipOptionsModal exists
+        upgradeMembershipBtn.addEventListener('click', () => {
+            console.log("Hiding profile modal and showing membership modal.");
 
-            const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
+            const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
 
-            // Check the globally available profile for the flag
-            if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
-                // If the flag is true, disable the button and change its text
-                startFreeTrialBtn.disabled = true;
-                startFreeTrialBtn.textContent = 'Free Trial Used';
-            } else {
-                // Otherwise, make sure the button is enabled and has its original text
-                startFreeTrialBtn.disabled = false;
-                startFreeTrialBtn.textContent = 'Start Your Free Trial';
-            }
+            // Check the globally available profile for the flag
+            if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
+                // If the flag is true, disable the button and change its text
+                startFreeTrialBtn.disabled = true;
+                startFreeTrialBtn.textContent = 'Free Trial Used';
+            } else {
+                // Otherwise, make sure the button is enabled and has its original text
+                startFreeTrialBtn.disabled = false;
+                startFreeTrialBtn.textContent = 'Start Your Free Trial';
+            }
 
-            if (profileSetupModal) profileSetupModal.style.display = 'none';
-            if (membershipOptionsModal) membershipOptionsModal.style.display = 'flex';
-        });
-    }
+            if (profileSetupModal) profileSetupModal.style.display = 'none';
+            if (membershipOptionsModal) membershipOptionsModal.style.display = 'flex';
+        });
+    }
 
-    // 2. Close button for Membership Options Modal
-    if (closeMembershipOptionsBtn && membershipOptionsModal) {
-        closeMembershipOptionsBtn.addEventListener('click', () => {
-            console.log("Close Membership Options button clicked.");
-            membershipOptionsModal.style.display = 'none';
-        });
-    }
+    // 2. Close button for Membership Options Modal
+    if (closeMembershipOptionsBtn && membershipOptionsModal) {
+        closeMembershipOptionsBtn.addEventListener('click', () => {
+            console.log("Close Membership Options button clicked.");
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
 
-    // 3. Click outside to close Membership Options Modal
-    if (membershipOptionsModal) {
-        membershipOptionsModal.addEventListener('click', (event) => {
-            if (event.target === membershipOptionsModal) {
-                console.log("Clicked outside Membership Options Modal. Closing.");
-                membershipOptionsModal.style.display = 'none';
-            }
-        });
-    }
+    // 3. Click outside to close Membership Options Modal
+    if (membershipOptionsModal) {
+        membershipOptionsModal.addEventListener('click', (event) => {
+            if (event.target === membershipOptionsModal) {
+                console.log("Clicked outside Membership Options Modal. Closing.");
+                membershipOptionsModal.style.display = 'none';
+            }
+        });
+    }
 
-    // 4. Start Free Trial Button opens Free Trial Confirmation Modal
-    if (startFreeTrialBtn && freeTrialConfirmationModal && membershipOptionsModal) {
-        startFreeTrialBtn.addEventListener('click', () => {
-            console.log("Start Free Trial button clicked. Opening Free Trial Confirmation Modal.");
-            membershipOptionsModal.style.display = 'none'; // Close the options modal first
-            freeTrialConfirmationModal.style.display = 'flex';
-        });
-    }
+    // 4. Start Free Trial Button opens Free Trial Confirmation Modal
+    if (startFreeTrialBtn && freeTrialConfirmationModal && membershipOptionsModal) {
+        startFreeTrialBtn.addEventListener('click', () => {
+            console.log("Start Free Trial button clicked. Opening Free Trial Confirmation Modal.");
+            membershipOptionsModal.style.display = 'none'; // Close the options modal first
+            freeTrialConfirmationModal.style.display = 'flex';
+        });
+    }
 
-    // 5. Close button for Free Trial Confirmation Modal
-    if (closeFreeTrialConfirmationBtn && freeTrialConfirmationModal) {
-        closeFreeTrialConfirmationBtn.addEventListener('click', () => {
-            console.log("Close Free Trial Confirmation button clicked.");
-            freeTrialConfirmationModal.style.display = 'none';
-        });
-    }
+    // 5. Close button for Free Trial Confirmation Modal
+    if (closeFreeTrialConfirmationBtn && freeTrialConfirmationModal) {
+        closeFreeTrialConfirmationBtn.addEventListener('click', () => {
+            console.log("Close Free Trial Confirmation button clicked.");
+            freeTrialConfirmationModal.style.display = 'none';
+        });
+    }
 
-    // 6. Click outside to close Free Trial Confirmation Modal
-    if (freeTrialConfirmationModal) {
-        freeTrialConfirmationModal.addEventListener('click', (event) => {
-            if (event.target === freeTrialConfirmationModal) {
-                console.log("Clicked outside Free Trial Confirmation Modal. Closing.");
-                freeTrialConfirmationModal.style.display = 'none';
-            }
-        });
-    }
+    // 6. Click outside to close Free Trial Confirmation Modal
+    if (freeTrialConfirmationModal) {
+        freeTrialConfirmationModal.addEventListener('click', (event) => {
+            if (event.target === freeTrialConfirmationModal) {
+                console.log("Clicked outside Free Trial Confirmation Modal. Closing.");
+                freeTrialConfirmationModal.style.display = 'none';
+            }
+        });
+    }
 
-    // 7. 'Yes' button in Free Trial Confirmation Modal
-    if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
-        confirmFreeTrialYesBtn.addEventListener('click', async () => {
-            console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
+    // 7. 'Yes' button in Free Trial Confirmation Modal
+    if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
+        confirmFreeTrialYesBtn.addEventListener('click', async () => {
+            console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
 
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("User not logged in. Cannot start trial.");
-                return;
-            }
+            const user = auth.currentUser;
+            if (!user) {
+                console.error("User not logged in. Cannot start trial.");
+                return;
+            }
 
-            const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
+            const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
-            const membershipInfo = {
-                membershipType: 'trial',
-                membershipEndTime: trialEndTime,
-                hasUsedTrial: true
-            };
+            const membershipInfo = {
+                membershipType: 'trial',
+                membershipEndTime: trialEndTime,
+                hasUsedTrial: true
+            };
 
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                await userProfileRef.update(membershipInfo);
+            try {
+                const userProfileRef = db.collection('userProfiles').doc(user.uid);
+                await userProfileRef.update(membershipInfo);
 
-                console.log("Successfully saved trial info to Firebase.");
+                console.log("Successfully saved trial info to Firebase.");
 
-                freeTrialConfirmationModal.style.display = 'none';
-                startMembershipCountdown(membershipInfo);
+                freeTrialConfirmationModal.style.display = 'none';
+                startMembershipCountdown(membershipInfo);
 
-            } catch (error) {
-                console.error("Error saving trial info to Firebase:", error);
-            }
-        });
-    }
+            } catch (error) {
+                console.error("Error saving trial info to Firebase:", error);
+            }
+        });
+    }
 
-    // 8. 'No' button in Free Trial Confirmation Modal
-    if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
-        confirmFreeTrialNoBtn.addEventListener('click', () => {
-            console.log("Confirm Free Trial 'No' clicked. Closing modal.");
-            freeTrialConfirmationModal.style.display = 'none';
-        });
-    }
+    // 8. 'No' button in Free Trial Confirmation Modal
+    if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
+        confirmFreeTrialNoBtn.addEventListener('click', () => {
+            console.log("Confirm Free Trial 'No' clicked. Closing modal.");
+            freeTrialConfirmationModal.style.display = 'none';
+        });
+    }
 
-    // 9. Solo Membership Button (from options modal)
-    if (buySoloMembershipBtn && membershipOptionsModal) {
-        buySoloMembershipBtn.addEventListener('click', () => {
-            console.log("Solo Membership button clicked.");
-            alert("Proceeding to Solo Membership (15 Xanax/Month) payment. (Functionality to be implemented later)");
-            membershipOptionsModal.style.display = 'none';
-        });
-    }
+    // 9. Solo Membership Button (from options modal)
+    if (buySoloMembershipBtn && membershipOptionsModal) {
+        buySoloMembershipBtn.addEventListener('click', () => {
+            console.log("Solo Membership button clicked.");
+            alert("Proceeding to Solo Membership (15 Xanax/Month) payment. (Functionality to be implemented later)");
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
 
-    // 10. Yearly Membership Button (from options modal)
-    if (buyYearlyMembershipBtn && membershipOptionsModal) {
-        buyYearlyMembershipBtn.addEventListener('click', () => {
-            console.log("Yearly Membership button clicked.");
-            alert("Proceeding to Yearly Membership (150 Xanax/Year) payment. (Functionality to be implemented later)");
-            membershipOptionsModal.style.display = 'none';
-        });
-    }
+    // 10. Yearly Membership Button (from options modal)
+    if (buyYearlyMembershipBtn && membershipOptionsModal) {
+        buyYearlyMembershipBtn.addEventListener('click', () => {
+            console.log("Yearly Membership button clicked.");
+            alert("Proceeding to Yearly Membership (150 Xanax/Year) payment. (Functionality to be implemented later)");
+            membershipOptionsModal.style.display = 'none';
+        });
+    }
 
-    // 11. Delete Account Button (from profile setup modal)
-    if (deleteAccountBtn) {
-        deleteAccountBtn.addEventListener('click', () => {
-            console.log("Delete Account button clicked.");
-            alert("Delete Account functionality will be implemented here. (Requires confirmation step!)");
-        });
-    }
+    // 11. Delete Account Button (from profile setup modal)
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', () => {
+            console.log("Delete Account button clicked.");
+            alert("Delete Account functionality will be implemented here. (Requires confirmation step!)");
+        });
+    }
 
-    console.log("home.js: All initial event listeners and setup attempts complete.");
+    console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded
