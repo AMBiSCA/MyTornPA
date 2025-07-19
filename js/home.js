@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
 const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
 const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
 const goToProfileBtn = document.getElementById('goToProfileBtn');
+const termsAgreementCheckbox = document.getElementById('termsAgreementProfileModal');
 
 // Function to hide the subscribe prompt
 const hideSubscribePrompt = () => {
@@ -247,6 +248,26 @@ if(goToProfileBtn) {
             }
         }
     }
+	
+	function setProfileModalButtonStates() {
+    if (saveProfileBtn) {
+        saveProfileBtn.disabled = !termsAgreementCheckbox.checked;
+        saveProfileBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked); // Optional: add a class for styling disabled state
+    }
+    if (skipProfileSetupBtn) {
+        skipProfileSetupBtn.disabled = !termsAgreementCheckbox.checked;
+        skipProfileSetupBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked); // Optional: add a class for styling disabled state
+    }
+    // You might also want to disable upgradeMembershipBtn and deleteAccountBtn if they are part of the profile setup flow:
+    if (upgradeMembershipBtn) {
+        upgradeMembershipBtn.disabled = !termsAgreementCheckbox.checked;
+        upgradeMembershipBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
+    }
+    if (deleteAccountBtn) {
+        deleteAccountBtn.disabled = !termsAgreementCheckbox.checked;
+        deleteAccountBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
+    }
+}
 	
 	function startMembershipCountdown(membershipInfo) {
     // Clear any existing timer to prevent multiple timers running
@@ -742,7 +763,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
 	
 	
 
-    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; setProfileModalButtonStates();  }
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
@@ -967,29 +988,15 @@ setupMemberOnlyLinks(profile); //
         });
     }
 
-    if (upgradeMembershipBtn) {
+    if (upgradeMembershipBtn && membershipOptionsModal && profileSetupModal) {
     upgradeMembershipBtn.addEventListener('click', () => {
-        // Find the entire free trial card element
-        const freeTrialCard = document.querySelector('.card-free-trial');
+        console.log("Hiding profile modal and showing membership modal.");
         
-        // Check the globally available profile for the flag
-        if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
-            // If trial has been used, HIDE the entire card
-            if (freeTrialCard) {
-                freeTrialCard.classList.add('hidden-by-js');
-            }
-        } else {
-            // Otherwise, make sure the card is VISIBLE for new users
-            if (freeTrialCard) {
-                freeTrialCard.classList.remove('hidden-by-js');
-            }
-        }
-
-        // Now, hide the profile modal and show the membership options
-        hideProfileSetupModal();
-        if (membershipOptionsModal) {
-            membershipOptionsModal.style.display = 'flex';
-        }
+        // Directly hide the profile modal by its ID
+        profileSetupModal.style.display = 'none'; 
+        
+        // Directly show the new membership modal by its ID
+        membershipOptionsModal.style.display = 'flex'; 
     });
 }
     // 2. Close button for Membership Options Modal
