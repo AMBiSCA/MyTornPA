@@ -418,7 +418,90 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 /* === MODAL STYLES END === */
 
+/* --- NEW: Specific Styling for the "Terms Prompt" Modal --- */
+#termsPromptModal {
+    /* The display: none; is initially set inline in HTML, JS will change it to 'flex' */
+    /* This rule primarily ensures it uses the shared modal overlay styles */
+}
 
+#termsPromptModal .modal-content-box {
+    /* Inherits most styles from .modal-content-box and .confirmation-modal,
+       but you can override or fine-tune here if needed for this specific modal. */
+    max-width: 450px; /* Matching your other confirmation modals */
+    padding: 25px; /* Matching your other confirmation modals */
+}
+
+#termsPromptModal h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #00a8ff; /* Your site's accent blue */
+    text-align: center;
+    font-size: 1.4em;
+    display: flex; /* To align icon and text */
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Space between icon and text */
+}
+
+#termsPromptModal h3 .btn-icon {
+    font-size: 1.2em; /* Adjust icon size if needed */
+    line-height: 1;
+}
+
+#termsPromptModal p {
+    color: #e0e0e0; /* Light text for readability */
+    font-size: 0.95em;
+    line-height: 1.4;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#termsPromptModal p[style="font-size: 0.9em; color: #ccc;"] {
+    /* Targets the specific helper text like "You can do this in your profile settings." */
+    font-size: 0.85em !important; /* Make it slightly smaller */
+    color: #b0b0b0 !important; /* Slightly darker grey for less prominence */
+    margin-top: -10px; /* Pull it closer to the paragraph above */
+    margin-bottom: 20px;
+}
+
+#termsPromptModal .confirmation-actions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    gap: 10px; /* Space between stacked buttons */
+}
+
+#termsPromptModal .confirmation-actions .btn {
+    width: 100%; /* Make buttons full width when stacked */
+    padding: 12px 15px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Specific button styles for clarity */
+#termsPromptModal #goToProfileFromTermsPromptBtn { /* "Open Profile Settings" */
+    background-color: #00a8ff; /* Your site's accent blue */
+    border: 1px solid #007bff;
+    color: black;
+}
+
+#termsPromptModal #goToProfileFromTermsPromptBtn:hover {
+    background-color: #007bff;
+    transform: translateY(-1px);
+}
+
+#termsPromptModal #closeTermsModalBtn { /* "Close" button */
+    background-color: #6c757d; /* A neutral grey */
+    border: 1px solid #5a6268;
+    color: black;
+}
+
+#termsPromptModal #closeTermsModalBtn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
 
 
 /* === RESPONSIVE STYLES === */
