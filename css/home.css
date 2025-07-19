@@ -100,7 +100,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 /* === MODAL STYLES START === */
 
 /* Base Overlay for All Modals */
-.modal-overlay-profile, #personalStatsModal.modal-overlay, #membershipOptionsModal, #freeTrialConfirmationModal, #subscribePromptModal {
+.modal-overlay-profile, #personalStatsModal.modal-overlay, #membershipOptionsModal, #freeTrialConfirmationModal, #subscribePromptModal, #termsPromptModal {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85);
     z-index: 10000; display: none; justify-content: center; align-items: center;
