@@ -1138,7 +1138,8 @@ updateToolLinksAccess(profile);; //
         });
     }
 
-    if (upgradeMembershipBtn) {
+    // Locate this block in your home.js
+if (upgradeMembershipBtn) {
     upgradeMembershipBtn.addEventListener('click', () => {
         // Find the entire free trial card element by its unique class
         const freeTrialCard = document.querySelector('.card-free-trial');
@@ -1147,12 +1148,12 @@ updateToolLinksAccess(profile);; //
         if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
             // If trial has been used, HIDE the entire card
             if (freeTrialCard) {
-                freeTrialCard.classList.add('hidden-by-js');
+                freeTrialCard.classList.add('hidden-by-js'); // Add a class to hide it
             }
         } else {
-            // Otherwise, make sure the card is VISIBLE for new users
+            // Otherwise, make sure the card is VISIBLE for new users (if it was hidden before)
             if (freeTrialCard) {
-                freeTrialCard.classList.remove('hidden-by-js');
+                freeTrialCard.classList.remove('hidden-by-js'); // Remove class to show it
             }
         }
 
