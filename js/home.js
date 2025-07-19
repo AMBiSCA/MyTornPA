@@ -1176,6 +1176,9 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
 
             // Start the countdown timer with the new info
             startMembershipCountdown(membershipInfo);
+			
+			// >>> ADD THIS LINE TO REFRESH THE PAGE <<<
+            location.reload(); 
 
         } catch (error) {
             console.error("Error saving trial info to Firebase:", error);
