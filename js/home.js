@@ -757,7 +757,7 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
                     if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
                     if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
                     if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
-                    // Removed as per user request: if(profileSetupTornStatsApiKeyInput) profileSetupTornStatsApiKeyInput.value = data.tornStatsApiKey || '';
+                    if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true; // Add this line
                     if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
                 } else { if(preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0,10); }
             } catch (err) { console.error("Error fetching profile for edit:", err); if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile."; }
