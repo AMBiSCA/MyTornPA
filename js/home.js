@@ -791,24 +791,62 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
-    if (headerEditProfileBtn && auth && db) {
-        headerEditProfileBtn.addEventListener('click', async function(event) {
-            event.preventDefault();
-            const user = auth.currentUser; if (!user || !db) return;
-            try {
-                const doc = await db.collection('userProfiles').doc(user.uid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
-                    if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
-                    if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
-                    if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true; // Add this line
-                    if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
-                } else { if(preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0,10); }
-            } catch (err) { console.error("Error fetching profile for edit:", err); if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile."; }
-            showProfileSetupModal();
-        });
-    }
+    // Locate this block in your home.js
+if (headerEditProfileBtn && auth && db) {
+    headerEditProfileBtn.addEventListener('click', async function(event) {
+        event.preventDefault();
+        const user = auth.currentUser;
+        if (!user || !db) return;
+
+        // Ensure fields are cleared BEFORE attempting to populate,
+        // to prevent old/incorrect values from lingering.
+        if(preferredNameInput) preferredNameInput.value = '';
+        if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
+        if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = ''; // Crucially clear this one!
+        if(termsCheckbox) termsCheckbox.checked = false;
+        if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
+
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get(); // Fetch the current user profile
+
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // Populate fields ONLY with data from Firebase
+                if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
+                if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                
+                // --- THIS IS THE KEY MODIFICATION FOR tornProfileId ---
+                // Assign tornProfileId directly. If it's undefined or null, it will default to empty string.
+                if(profileSetupProfileIdInput) {
+                    profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+                }
+                // --- END KEY MODIFICATION ---
+
+                if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
+
+            } else {
+                // If no profile exists, set preferredName from Firebase displayName (if available)
+                if(preferredNameInput && user.displayName) {
+                    preferredNameInput.value = user.displayName.substring(0,10);
+                }
+                // No Torn ID to set if profile doesn't exist, so it remains cleared by initial reset.
+            }
+        } catch (err) {
+            console.error("Error fetching profile for edit:", err);
+            if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
+            // If there's an error, still ensure fields are cleared
+            if(preferredNameInput) preferredNameInput.value = '';
+            if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
+            if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = '';
+            if(termsCheckbox) termsCheckbox.checked = false;
+            if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
+        }
+        showProfileSetupModal(); // Show the modal after attempting to populate it
+    });
+}
 
     if (saveProfileBtn && auth && db) {
         saveProfileBtn.addEventListener('click', async () => {
