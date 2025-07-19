@@ -969,17 +969,20 @@ setupMemberOnlyLinks(profile); //
 
     if (upgradeMembershipBtn) {
     upgradeMembershipBtn.addEventListener('click', () => {
-        const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
-
+        // Find the entire free trial card element
+        const freeTrialCard = document.querySelector('.card-free-trial');
+        
         // Check the globally available profile for the flag
         if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
-            // If the flag is true, disable the button and change its text
-            startFreeTrialBtn.disabled = true;
-            startFreeTrialBtn.textContent = 'Free Trial Used';
+            // If trial has been used, HIDE the entire card
+            if (freeTrialCard) {
+                freeTrialCard.classList.add('hidden-by-js');
+            }
         } else {
-            // Otherwise, make sure the button is enabled and has its original text
-            startFreeTrialBtn.disabled = false;
-            startFreeTrialBtn.textContent = 'Start Your Free Trial';
+            // Otherwise, make sure the card is VISIBLE
+            if (freeTrialCard) {
+                freeTrialCard.classList.remove('hidden-by-js');
+            }
         }
 
         // Now, hide the profile modal and show the membership options
