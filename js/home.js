@@ -902,7 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (auth) {
-        auth.onAuthStateChanged(async function(user) {
+        auth.onAuthStateChanged(async function(user) { // ADD 'async' here
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
             const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
