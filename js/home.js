@@ -127,6 +127,10 @@ if(goToProfileBtn) {
     });
 }
 
+if (termsAgreementCheckbox) {
+    termsAgreementCheckbox.addEventListener('change', setProfileModalButtonStates);
+}
+
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
     // --- Torn Tips ---
