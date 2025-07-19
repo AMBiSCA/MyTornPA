@@ -940,34 +940,9 @@ function updateToolLinksAccess(profile) {
     });
 }
 
-function setupMemberOnlyLinks(profile) {
-    const memberLinks = document.querySelectorAll('.member-only');
-    const subscribeModal = document.getElementById('subscribePromptModal');
-
-    // First, determine if the user is an active member
-    const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
-
-    // Loop through every link that is marked as 'member-only'
-    memberLinks.forEach(link => {
-        link.addEventListener('click', (event) => {
-            // If the user is NOT a member...
-            if (!isMember) {
-                // 1. Stop the browser from navigating to the link's href
-                event.preventDefault();
-                console.log("Non-member clicked a restricted link. Showing prompt.");
-                
-                // 2. Show the 'Please Subscribe' popup
-                if (subscribeModal) {
-                    subscribeModal.style.display = 'flex';
-                }
-            }
-            // If the user IS a member, this code does nothing, and the link works normally.
-        });
-    });
-}
 
 // --- Activate the gatekeeper for member-only links ---
-setupMemberOnlyLinks(profile); //
+updateToolLinksAccess(profile);; //
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
                             userDisplayName = profile.preferredName; showSetup = false;
