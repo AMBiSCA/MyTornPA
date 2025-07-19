@@ -348,6 +348,11 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .btn-confirm-no:hover { background-color: #c82333; transform: translateY(-1px); }
 .btn-confirm-no:active { transform: translateY(0); }
 
+.disabled-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: all !important; /* This makes sure our JS click still works */
+}
 
 /* 3. Add blue borders and glow to the monthly cards */
 .card-solo-monthly,
