@@ -126,6 +126,29 @@ if(goToProfileBtn) {
     });
 }
 
+// --- Logic for the new Terms Prompt Modal ---
+const termsPromptModal = document.getElementById('termsPromptModal');
+const closeTermsPromptBtn = document.getElementById('closeTermsPromptBtn');
+const closeTermsModalBtn = document.getElementById('closeTermsModalBtn');
+const goToProfileFromTermsPromptBtn = document.getElementById('goToProfileFromTermsPromptBtn');
+
+// Function to close the new modal
+const hideTermsPrompt = () => {
+    if (termsPromptModal) {
+        termsPromptModal.style.display = 'none';
+    }
+};
+
+// Attach listeners to the new modal's buttons
+if(closeTermsPromptBtn) closeTermsPromptBtn.addEventListener('click', hideTermsPrompt);
+if(closeTermsModalBtn) closeTermsModalBtn.addEventListener('click', hideTermsPrompt);
+if(goToProfileFromTermsPromptBtn) {
+    goToProfileFromTermsPromptBtn.addEventListener('click', () => {
+        hideTermsPrompt();
+        showProfileSetupModal(); // This opens the main profile settings
+    });
+}
+
     const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
 
     // --- Torn Tips ---
