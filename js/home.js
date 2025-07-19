@@ -798,13 +798,19 @@ if (headerEditProfileBtn && auth && db) {
         const user = auth.currentUser;
         if (!user || !db) return;
 
-        // Ensure fields are cleared BEFORE attempting to populate,
-        // to prevent old/incorrect values from lingering.
+        // --- NEW/MODIFIED: Clear and temporarily change type to trick autofill ---
         if(preferredNameInput) preferredNameInput.value = '';
         if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
-        if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = ''; // Crucially clear this one!
         if(termsCheckbox) termsCheckbox.checked = false;
         if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
+
+        // Temporarily change input type to "password" or "hidden" to prevent autofill
+        // from applying to it before we load our data.
+        if (profileSetupProfileIdInput) {
+            profileSetupProfileIdInput.type = 'password'; // Or 'hidden'
+            profileSetupProfileIdInput.value = ''; // Ensure it's clear
+        }
+        // --- END NEW/MODIFIED ---
 
         try {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -817,12 +823,17 @@ if (headerEditProfileBtn && auth && db) {
                 if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
                 if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
                 
-                // --- THIS IS THE KEY MODIFICATION FOR tornProfileId ---
-                // Assign tornProfileId directly. If it's undefined or null, it will default to empty string.
+                // --- MODIFIED: Use a setTimeout for TornProfileId to combat autofill ---
                 if(profileSetupProfileIdInput) {
-                    profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+                    // Restore type to 'text' AFTER autofill has likely occurred (or been tricked)
+                    profileSetupProfileIdInput.type = 'text';
+
+                    // Use setTimeout to allow browser autofill to complete first, then set correct value
+                    setTimeout(() => {
+                        profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+                    }, 50); // A small delay, like 50ms, is often enough
                 }
-                // --- END KEY MODIFICATION ---
+                // --- END MODIFICATION ---
 
                 if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
                 if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
@@ -832,15 +843,22 @@ if (headerEditProfileBtn && auth && db) {
                 if(preferredNameInput && user.displayName) {
                     preferredNameInput.value = user.displayName.substring(0,10);
                 }
-                // No Torn ID to set if profile doesn't exist, so it remains cleared by initial reset.
+                // Ensure Torn Profile ID input is 'text' even if no profile and remains empty
+                if (profileSetupProfileIdInput) {
+                    profileSetupProfileIdInput.type = 'text';
+                    profileSetupProfileIdInput.value = '';
+                }
             }
         } catch (err) {
             console.error("Error fetching profile for edit:", err);
             if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-            // If there's an error, still ensure fields are cleared
+            // If there's an error, still ensure fields are cleared and type is correct
             if(preferredNameInput) preferredNameInput.value = '';
             if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
-            if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = '';
+            if(profileSetupProfileIdInput) {
+                profileSetupProfileIdInput.type = 'text';
+                profileSetupProfileIdInput.value = '';
+            }
             if(termsCheckbox) termsCheckbox.checked = false;
             if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
         }
