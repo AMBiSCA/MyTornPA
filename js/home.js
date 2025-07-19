@@ -191,6 +191,41 @@ document.addEventListener('DOMContentLoaded', function() {
         const days = Math.floor(hrs / 24);
         return `${days} day${days === 1 ? "" : "s"} ago`;
     }
+	
+	// --- Dropdown Menu Logic for Header ---
+
+function setupDropdown(button, dropdown) {
+    if (!button || !dropdown) {
+        // If either the button or dropdown doesn't exist, do nothing.
+        return; 
+    }
+
+    button.addEventListener('click', function(event) {
+        // This stops the window 'click' event from firing immediately.
+        event.stopPropagation(); 
+
+        // Close all other dropdowns before opening the new one
+        document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
+            if (activeDropdown !== dropdown) {
+                activeDropdown.classList.remove('is-active');
+            }
+        });
+
+        // Toggle the 'is-active' class on the clicked dropdown.
+        dropdown.classList.toggle('is-active');
+    });
+}
+
+// Set up the listeners for your specific dropdowns
+setupDropdown(usefulLinksBtn, usefulLinksDropdown);
+setupDropdown(headerContactUsBtn, headerContactUsDropdown);
+
+// Add a listener to the whole window to close dropdowns when clicking anywhere else
+window.addEventListener('click', function() {
+    document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
+        activeDropdown.classList.remove('is-active');
+    });
+});
 
     // Function to update stat displays on dashboard
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
