@@ -969,7 +969,7 @@ setupMemberOnlyLinks(profile); //
 
     if (upgradeMembershipBtn) {
     upgradeMembershipBtn.addEventListener('click', () => {
-        // Find the entire free trial card element
+        // Find the entire free trial card element by its unique class
         const freeTrialCard = document.querySelector('.card-free-trial');
         
         // Check the globally available profile for the flag
@@ -979,7 +979,7 @@ setupMemberOnlyLinks(profile); //
                 freeTrialCard.classList.add('hidden-by-js');
             }
         } else {
-            // Otherwise, make sure the card is VISIBLE
+            // Otherwise, make sure the card is VISIBLE for new users
             if (freeTrialCard) {
                 freeTrialCard.classList.remove('hidden-by-js');
             }
