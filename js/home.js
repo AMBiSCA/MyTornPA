@@ -969,7 +969,7 @@ setupMemberOnlyLinks(profile); //
 
     if (upgradeMembershipBtn) {
     upgradeMembershipBtn.addEventListener('click', () => {
-        // Find the entire free trial card element by its unique class
+        // Find the entire free trial card element
         const freeTrialCard = document.querySelector('.card-free-trial');
         
         // Check the globally available profile for the flag
