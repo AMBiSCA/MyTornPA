@@ -36,70 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!db) console.error("home.js: Firestore (db) could not be initialized.");
     if (!auth) console.error("home.js: Firebase Auth (auth) could not be initialized.");
 
-    // --- DOM Element Getters ---
-    const usefulLinksBtn = document.getElementById('usefulLinksBtn');
-    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
-    const headerContactUsBtn = document.getElementById('headerContactUsBtn');
-    const headerContactUsDropdown = document.getElementById('headerContactUsDropdown');
-    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
-    const headerButtonsContainer = document.getElementById('headerButtonsContainer');
-    const signUpButtonHeader = document.getElementById('signUpButtonHeader');
-    const homeButtonFooter = document.getElementById('homeButtonFooter');
-    const logoutButtonHeader = document.getElementById('logoutButtonHeader');
-    const mainHomepageContent = document.getElementById('mainHomepageContent');
-    const welcomeMessageEl = document.getElementById('welcomeMessage');
-    const tornTipPlaceholderEl = document.getElementById('tornTipPlaceholder');
-    const profileSetupModal = document.getElementById('profileSetupModal');
-    const preferredNameInput = document.getElementById('preferredName');
-    const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
-    const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
-    const saveProfileBtn = document.getElementById('saveProfileBtn');
-    const skipProfileSetupBtn = document.getElementById('skipProfileSetupBtn');
-    const nameErrorEl = document.getElementById('nameError');
-    const profileSetupErrorEl = document.getElementById('profileSetupError');
-    const apiKeyMessageEl = document.getElementById('apiKeyMessage');
-    const tornTimePlaceholder = document.getElementById('tornTimePlaceholder');
-    const lastLogonValueEl = document.getElementById('lastLogonValue');
-    const lastLogonInfoEl = document.getElementById('lastLogonInfo');
-    const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
-    const shareFactionStatsModalToggle = document.getElementById('shareFactionStatsModalToggle');
-    const shareFactionStatsToggleDashboard = document.getElementById('shareFactionStatsToggleDashboard');
-    const togglePersonalStatsCheckbox = document.getElementById('togglePersonalStatsCheckbox');
-    const personalStatsModal = document.getElementById('personalStatsModal');
-    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
-    const closePersonalStatsModalBtn = document.getElementById('closePersonalStatsDialogBtn');
-    const personalStatsLabel = document.getElementById('personalStatsLabel');
-    const authModal = document.getElementById('authModal');
-    const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
-    const termsAgreementErrorEl = document.getElementById('termsAgreementError');
-
-    // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
-    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-    const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
-    const membershipOptionsModal = document.getElementById('membershipOptionsModal');
-    const closeMembershipOptionsBtn = document.getElementById('closeMembershipOptionsBtn');
-    const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
-    const buySoloMembershipBtn = document.getElementById('buySoloMembershipBtn');
-    const buyYearlyMembershipBtn = document.getElementById('buyYearlyMembershipBtn');
-    const freeTrialConfirmationModal = document.getElementById('freeTrialConfirmationModal');
-    const closeFreeTrialConfirmationBtn = document.getElementById('closeFreeTrialConfirmationBtn');
-    const confirmFreeTrialYesBtn = document.getElementById('confirmFreeTrialYesBtn');
-    const confirmFreeTrialNoBtn = document.getElementById('confirmFreeTrialNoBtn');
-    const subscribePromptModal = document.getElementById('subscribePromptModal');
-    const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
-    const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
-    const goToProfileBtn = document.getElementById('goToProfileBtn');
-    const termsAgreementCheckbox = document.getElementById('termsAgreementProfileModal');
-
-    const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
-
-    let activeCooldownIntervals = {};
-    let activeCooldownEndTimes = {};
-    let lastActiveTimeoutId = null;
-    let membershipCountdownInterval = null;
-    let currentUserProfile = null; // Used for hasUsedTrial check for membership
-
-    // --- Modal Control Functions (Cleaned and consolidated) ---
+    // --- Modal Control Functions ---
     function openAuthModal() {
         const authModal = document.getElementById('authModal');
         if (authModal) {
@@ -118,59 +55,96 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to handle disabling/enabling profile modal buttons based on terms agreement
-    function setProfileModalButtonStates() {
-        if (saveProfileBtn) {
-            saveProfileBtn.disabled = !termsAgreementCheckbox.checked;
-            saveProfileBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        if (skipProfileSetupBtn) {
-            skipProfileSetupBtn.disabled = !termsAgreementCheckbox.checked;
-            skipProfileSetupBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        if (upgradeMembershipBtn) {
-            upgradeMembershipBtn.disabled = !termsAgreementCheckbox.checked;
-            upgradeMembershipBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        if (deleteAccountBtn) {
-            deleteAccountBtn.disabled = !termsAgreementCheckbox.checked;
-            deleteAccountBtn.classList.toggle('disabled-btn', !termsAgreementCheckbox.checked);
-        }
-        // Clear the general modal error message
-        if (profileSetupErrorEl) {
-            profileSetupErrorEl.textContent = '';
-        }
-        // IMPORTANT: Clear and hide the terms-specific error message
-        if (termsAgreementErrorEl) {
-            termsAgreementErrorEl.textContent = '';
-            termsAgreementErrorEl.classList.add('hidden'); // Ensure it's hidden
-        }
-    }
+    // --- DOM Element Getters ---
+    const usefulLinksBtn = document.getElementById('usefulLinksBtn');
+    const usefulLinksDropdown = document.getElementById('usefulLinksDropdown');
+    const headerContactUsBtn = document.getElementById('headerContactUsBtn');
+    const headerContactUsDropdown = document.getElementById('headerContactUsDropdown');
+    const headerEditProfileBtn = document.getElementById('headerEditProfileBtn');
+    const headerButtonsContainer = document.getElementById('headerButtonsContainer');
+    const signUpButtonHeader = document.getElementById('signUpButtonHeader');
+    const homeButtonFooter = document.getElementById('homeButtonFooter');
+    const logoutButtonHeader = document.getElementById('logoutButtonHeader');
+    const mainHomepageContent = document.getElementById('mainHomepageContent');
+    const welcomeMessageEl = document.getElementById('welcomeMessage');
+    const tornTipPlaceholderEl = document.getElementById('tornTipPlaceholder');
+    const profileSetupModal = document.getElementById('profileSetupModal');
+    const preferredNameInput = document.getElementById('preferredName');
+    const profileSetupApiKeyInput = document.getElementById('profileSetupApiKey');
+    const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
+    // Removed as per user request: const profileSetupTornStatsApiKeyInput = document.getElementById('profileSetupTornStatsApiKey');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const skipProfileSetupBtn = document.getElementById('skipProfileSetupBtn');
+    const nameErrorEl = document.getElementById('nameError');
+    const profileSetupErrorEl = document.getElementById('profileSetupError');
+    const apiKeyMessageEl = document.getElementById('apiKeyMessage');
+    const tornTimePlaceholder = document.getElementById('tornTimePlaceholder');
+    const lastLogonValueEl = document.getElementById('lastLogonValue');
+    const lastLogonInfoEl = document.getElementById('lastLogonInfo');
+    const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
+    const shareFactionStatsModalToggle = document.getElementById('shareFactionStatsModalToggle');
+    const shareFactionStatsToggleDashboard = document.getElementById('shareFactionStatsToggleDashboard');
+    const togglePersonalStatsCheckbox = document.getElementById('togglePersonalStatsCheckbox');
+    const personalStatsModal = document.getElementById('personalStatsModal');
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
+    const closePersonalStatsModalBtn = document.getElementById('closePersonalStatsDialogBtn');
+    const personalStatsLabel = document.getElementById('personalStatsLabel');
+    const authModal = document.getElementById('authModal');
+    const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
 
-    // Function to show the profile setup modal
-    function showProfileSetupModal() {
-        if (profileSetupModal) {
-            profileSetupModal.style.display = 'flex';
-            setProfileModalButtonStates(); // Set initial button states when modal opens
-        }
-    }
+    // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
+    const membershipOptionsModal = document.getElementById('membershipOptionsModal');
+    const closeMembershipOptionsBtn = document.getElementById('closeMembershipOptionsBtn');
+    const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
+    const buySoloMembershipBtn = document.getElementById('buySoloMembershipBtn');
+    const buyYearlyMembershipBtn = document.getElementById('buyYearlyMembershipBtn');
+    const freeTrialConfirmationModal = document.getElementById('freeTrialConfirmationModal');
+    const closeFreeTrialConfirmationBtn = document.getElementById('closeFreeTrialConfirmationBtn');
+    const confirmFreeTrialYesBtn = document.getElementById('confirmFreeTrialYesBtn');
+    const confirmFreeTrialNoBtn = document.getElementById('confirmFreeTrialNoBtn');
+	const subscribePromptModal = document.getElementById('subscribePromptModal');
+const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn');
+const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
+const goToProfileBtn = document.getElementById('goToProfileBtn');
 
-    // Function to hide the profile setup modal
-    function hideProfileSetupModal() {
-        if (profileSetupModal) {
-            profileSetupModal.style.display = 'none';
-            if (nameErrorEl) nameErrorEl.textContent = '';
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-            // Also hide terms error when modal hides
-            if (termsAgreementErrorEl) {
-                termsAgreementErrorEl.textContent = '';
-                termsAgreementErrorEl.classList.add('hidden');
-            }
-        }
+// Function to hide the subscribe prompt
+const hideSubscribePrompt = () => {
+    if (subscribePromptModal) {
+        subscribePromptModal.style.display = 'none';
     }
+};
+ if(closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
+if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
 
-    // Function to format time remaining for cooldowns/timers
-    function formatTimeRemaining(secs) {
+// Make the 'View Memberships' button open the profile modal
+if(goToProfileBtn) {
+    goToProfileBtn.addEventListener('click', () => {
+        hideSubscribePrompt();
+        membershipOptionsModal.style.display = 'flex';
+    });
+}
+
+    const nameBlocklist = ["admin", "moderator", "root", "idiot", "system", "support"];
+
+    // --- Torn Tips ---
+    const uselessTornTips = ["Always check your six.", "Flying is 90% waiting.", "A Xanax a day..."];
+    function displayRandomTip() { if (tornTipPlaceholderEl) { const tip = uselessTornTips[Math.floor(Math.random() * uselessTornTips.length)]; tornTipPlaceholderEl.textContent = "Torn Tip: " + tip; tornTipPlaceholderEl.style.display = 'block'; } }
+
+    // --- Torn Time ---
+    function updateTornTime() { if (tornTimePlaceholder) { const now = new Date(); tornTimePlaceholder.textContent = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')}`; } }
+    if (tornTimePlaceholder) { updateTornTime(); setInterval(updateTornTime, 1000); }
+
+    // --- Cooldowns and Timers ---
+    let activeCooldownIntervals = {};
+    let activeCooldownEndTimes = {};
+    let lastActiveTimeoutId = null;
+    let membershipCountdownInterval = null;
+    let currentUserProfile = null;
+
+	
+	function formatTimeRemaining(secs) {
         if (secs <= 0) return "OK 😊";
         const h = Math.floor(secs / 3600);
         const m = Math.floor((secs % 3600) / 60);
@@ -178,57 +152,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    // Function to format time ago for last logon
     function formatTimeAgo(tsSecs) {
         if (!tsSecs || tsSecs <= 0) return "a while ago";
         const diff = Math.floor(Date.now() / 1000) - tsSecs;
-        if (diff < 2) return "just now";
-        if (diff < 60) return `${diff} sec ago`;
-        const mins = Math.floor(diff / 60);
-        if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
-        const hrs = Math.floor(mins / 60);
-        if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
-        const days = Math.floor(hrs / 24);
-        return `${days} day${days === 1 ? "" : "s"} ago`;
+        if (diff < 2) return "just now"; if (diff < 60) return `${diff} sec ago`;
+        const mins = Math.floor(diff / 60); if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
+        const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+        const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
     }
 
-    // --- Dropdown Menu Logic for Header ---
-    function setupDropdown(button, dropdown) {
-        if (!button || !dropdown) {
-            return;
-        }
-
-        button.addEventListener('click', function(event) {
-            event.stopPropagation();
-
-            document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
-                if (activeDropdown !== dropdown) {
-                    activeDropdown.classList.remove('is-active');
-                }
-            });
-
-            dropdown.classList.toggle('is-active');
-        });
-    }
-
-    // Set up the listeners for your specific dropdowns
-    setupDropdown(usefulLinksBtn, usefulLinksDropdown);
-    setupDropdown(headerContactUsBtn, headerContactUsDropdown);
-
-    // Add a listener to the whole window to close dropdowns when clicking anywhere else
-    window.addEventListener('click', function() {
-        document.querySelectorAll('.header-dropdown.is-active').forEach(function(activeDropdown) {
-            activeDropdown.classList.remove('is-active');
-        });
-    });
-
-    // Function to update stat displays on dashboard
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
         if (activeCooldownIntervals[elementId]) clearInterval(activeCooldownIntervals[elementId]);
-        delete activeCooldownIntervals[elementId];
-        delete activeCooldownEndTimes[elementId];
+        delete activeCooldownIntervals[elementId]; delete activeCooldownEndTimes[elementId];
         element.className = 'value';
         const classesToRemove = ["stat-value-green", "stat-value-yellow", "stat-value-red", "stat-value-blue", "stat-value-orange", "stat-value-ok", "stat-value-cooldown-active"];
         element.classList.remove(...classesToRemove);
@@ -258,8 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             element.classList.add("stat-value-ok");
                         }
                         clearInterval(activeCooldownIntervals[elementId]);
-                        delete activeCooldownIntervals[elementId];
-                        delete activeCooldownEndTimes[elementId];
+                        delete activeCooldownIntervals[elementId]; delete activeCooldownEndTimes[elementId];
                     } else {
                         const remaining = endTime - nowSeconds;
                         let displayValue = formatTimeRemaining(remaining);
@@ -311,278 +247,272 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+	
+	function startMembershipCountdown(membershipInfo) {
+    // Clear any existing timer to prevent multiple timers running
+    if (membershipCountdownInterval) {
+        clearInterval(membershipCountdownInterval);
+    }
 
-    function startMembershipCountdown(membershipInfo) {
-        // Clear any existing timer to prevent multiple timers running
-        if (membershipCountdownInterval) {
-            clearInterval(membershipCountdownInterval);
-        }
+    const countdownContainer = document.getElementById('trialCountdownContainer');
 
-        const countdownContainer = document.getElementById('trialCountdownContainer');
+    // If the container element is missing, or if no valid info was passed to the function, stop.
+    if (!countdownContainer || !membershipInfo || !membershipInfo.membershipEndTime) {
+        if(countdownContainer) countdownContainer.style.display = 'none'; // Ensure it's hidden
+        return;
+    }
+    
+    // Function to update the timer text, runs every second
+    const updateTimer = () => {
+        const remainingTime = membershipInfo.membershipEndTime - Date.now();
 
-        // If the container element is missing, or if no valid info was passed to the function, stop.
-        if (!countdownContainer || !membershipInfo || !membershipInfo.membershipEndTime) {
-            if (countdownContainer) countdownContainer.style.display = 'none'; // Ensure it's hidden
+        // When the timer runs out...
+        if (remainingTime <= 0) {
+            clearInterval(membershipCountdownInterval); // Stop the timer
+            countdownContainer.style.display = 'none'; // Hide the box
+            // We don't need to clear localStorage anymore, the data is in Firebase.
             return;
         }
 
-        // Function to update the timer text, runs every second
-        const updateTimer = () => {
-            const remainingTime = membershipInfo.membershipEndTime - Date.now();
+        // Calculate days, hours, and minutes
+        const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+        
+        // Determine the label based on the new property name from Firebase
+        const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
+        
+        // Update the text in the box
+        countdownContainer.textContent = `${label}: ${days}d ${hours}h ${minutes}m`;
+        
+        // Make sure the box is visible
+        countdownContainer.style.display = 'block';
+    };
 
-            // When the timer runs out...
-            if (remainingTime <= 0) {
-                clearInterval(membershipCountdownInterval); // Stop the timer
-                countdownContainer.style.display = 'none'; // Hide the box
-                return;
-            }
-
-            // Calculate days, hours, and minutes
-            const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-
-            // Determine the label based on the new property name from Firebase
-            const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
-
-            // Update the text in the box
-            countdownContainer.textContent = `${label}: ${days}d ${hours}h ${minutes}m`;
-
-            // Make sure the box is visible
-            countdownContainer.style.display = 'block';
-        };
-
-        updateTimer(); // Run it once immediately
-        membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
-    }
+    updateTimer(); // Run it once immediately
+    membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
+}
 
     function clearQuickStats() {
         console.log("home.js: Clearing quick stats.");
-        updateStatDisplay("nerveStat", "--", "--");
-        updateStatDisplay("energyStat", "--", "--");
-        updateStatDisplay("happyStat", "--", "--");
-        updateStatDisplay("lifeStat", "--", "--");
+        updateStatDisplay("nerveStat", "--", "--"); updateStatDisplay("energyStat", "--", "--");
+        updateStatDisplay("happyStat", "--", "--"); updateStatDisplay("lifeStat", "--", "--");
         updateStatDisplay("travelStatus", null, null, false, "N/A");
         updateStatDisplay("hospitalStat", null, null, false, "N/A");
         const cooldownIds = ["drugCooldownStat", "boosterCooldownStat"];
         cooldownIds.forEach(id => updateStatDisplay(id, 0, 0, true, 0));
-        const errorEl = document.getElementById('quickStatsError');
-        if (errorEl) errorEl.textContent = '';
+        const errorEl = document.getElementById('quickStatsError'); if (errorEl) errorEl.textContent = '';
         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-        if (togglePersonalStatsCheckbox) {
-            togglePersonalStatsCheckbox.disabled = true;
-            togglePersonalStatsCheckbox.checked = false;
-        }
+        if (togglePersonalStatsCheckbox) { togglePersonalStatsCheckbox.disabled = true; togglePersonalStatsCheckbox.checked = false; }
         if (personalStatsModal) personalStatsModal.classList.remove('visible');
-        if (shareFactionStatsToggleDashboard) {
-            shareFactionStatsToggleDashboard.disabled = true;
-            shareFactionStatsToggleDashboard.checked = false;
-        }
+        if (shareFactionStatsToggleDashboard) { shareFactionStatsToggleDashboard.disabled = true; shareFactionStatsToggleDashboard.checked = false; }
         if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none';
-        if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-        lastActiveTimeoutId = null;
+        if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId); lastActiveTimeoutId = null;
     }
 
-    async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
-        console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
+   // Replace your entire fetchDataForPersonalStatsModal function with this updated code
+// Replace your entire fetchDataForPersonalStatsModal function with this updated code
+async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
+    console.log(`[DEBUG] Initiating fetch for Personal Stats Modal with API Key: "${apiKey ? 'Provided' : 'Missing'}"`);
 
-        const personalStatsModal = document.getElementById('personalStatsModal');
-        const personalStatsModalBody = document.getElementById('personalStatsModalBody');
+    const personalStatsModal = document.getElementById('personalStatsModal');
+    const personalStatsModalBody = document.getElementById('personalStatsModalBody');
 
-        if (!personalStatsModal || !personalStatsModalBody) {
-            console.error("HTML Error: Personal Stats Modal elements not found!");
-            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-            return;
-        }
-
-        personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
-        personalStatsModal.classList.add('visible');
-
-        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
-        const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
-
-        function formatTcpAnniversaryDate(dateObject) {
-            if (!dateObject) return 'N/A';
-            let jsDate;
-            if (dateObject instanceof Date) {
-                jsDate = dateObject;
-            } else if (dateObject && typeof dateObject.toDate === 'function') {
-                jsDate = dateObject.toDate();
-            } else {
-                return 'N/A';
-            }
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return jsDate.toLocaleDateString(undefined, options);
-        }
-
-        try {
-            console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`);
-            const response = await fetch(apiUrl);
-            console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
-            const data = await response.json();
-            console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
-
-            if (!response.ok) {
-                const errorData = data || { message: "Failed to parse API error response." };
-                console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
-                let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
-                throw new Error(errorMessage);
-            }
-            if (data.error) {
-                console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
-                if (data.error.code === 2 || data.error.code === 10) {
-                    throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
-                } else {
-                    throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-                }
-            }
-
-            if (!data || Object.keys(data).length === 0) {
-                throw new Error("Failed to retrieve any meaningful data after API call.");
-            }
-
-            // --- Data to send to Netlify function (this remains comprehensive for saving) ---
-            const userId = data.player_id;
-            if (userId) {
-                const userDataToSave = {
-                    name: data.name || null,
-                    tornProfileId: data.player_id || null,
-                    profile_image: data.profile_image || null,
-                    level: data.level || null,
-                    rank: data.rank || null,
-                    age: data.age || null,
-                    gender: data.gender || null,
-                    role: data.role || null,
-                    donator: data.donator || false,
-                    revivable: data.revivable || null,
-                    signup_date: data.signup || null,
-                    last_action_timestamp: data.last_action?.timestamp || null,
-                    faction_id: data.faction?.faction_id || null,
-                    faction_name: data.faction?.faction_name || null,
-                    faction_tag: data.faction?.faction_tag || null,
-                    faction_position: data.faction?.position || null,
-                    nerve: data.nerve || {},
-                    energy: data.energy || {},
-                    happy: data.happy || {},
-                    life: data.life || {},
-                    status: data.status || {},
-                    traveling: data.status?.state === 'Traveling' || false,
-                    hospitalized: data.status?.state === 'Hospital' || false,
-                    cooldowns: data.cooldowns || {},
-                    personalstats: data.personalstats || {},
-                    battlestats: data.battlestats || {},
-                    workstats: data.workstats || {},
-                    awards: data.awards || null,
-                    basicicons: data.basicicons || null,
-                    chain: data.chain || null,
-                    competition: data.competition || null,
-                    enemies: data.enemies || null,
-                    friends: data.friends || null,
-                    job: data.job || null,
-                    karma: data.karma || null,
-                    married: data.married || null,
-                    property: data.property || null,
-                    property_id: data.property_id || null,
-                    states: data.states || {},
-                    travel: data.travel || {},
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
-                console.log(`[DEBUG] userDataToSave.profile_image:`, userDataToSave.profile_image);
-
-                try {
-                    // Call the Netlify Function to securely save ALL data to Firestore
-                    const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-faction', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            uid: auth.currentUser.uid,
-                            tornPlayerId: String(userId),
-                            userData: userDataToSave
-                        }),
-                    });
-
-                    if (!netlifyFunctionResponse.ok) {
-                        const errorDetails = await netlifyFunctionResponse.json();
-                        throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
-                    }
-
-                    console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
-                } catch (functionError) {
-                    console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
-                }
-            } else {
-                console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
-            }
-
-            // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
-            let htmlContent = '<h4>User Information</h4>';
-            htmlContent += `
-                <div class="member-detail-header">
-                    <div class="member-header-top-row center-content-flex">
-                        ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
-                    </div>
-                </div>`;
-            htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
-            htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
-            htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
-
-            let xanaxDisplay = 'N/A';
-            if (data.personalstats && data.personalstats.xantaken !== undefined) {
-                xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
-            }
-            htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
-
-            const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
-            htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
-
-            htmlContent += '<h4>Battle Stats</h4>';
-            if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
-                const bsStrength = data.strength || data.battlestats?.strength;
-                const bsDefense = data.defense || data.battlestats?.defense;
-                const bsSpeed = data.speed || data.battlestats?.speed;
-                const bsDexterity = data.dexterity || data.battlestats?.dexterity;
-
-                const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
-                const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
-                const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
-                const dexterityModifier = data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0;
-
-                const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
-                const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
-                const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
-                const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
-
-                const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpd + bsDexterity);
-
-                htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
-            } else {
-                htmlContent += '<p>Battle stats data not available.</p>';
-                console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
-            }
-
-            htmlContent += '<h4>Work Stats</h4>';
-            if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
-                htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
-                htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${(data.endurance || data.workstats?.endurance).toLocaleString()}</span></p>`;
-            } else {
-                htmlContent += '<p>Work stats data not available.</p>';
-                console.warn("[DEBUG] Work stats (manual_labor, intelligence, endurance) not found directly in API response data or within 'workstats' object, or are not numbers.");
-            }
-
-            personalStatsModalBody.innerHTML = htmlContent;
-        } catch (error) {
-            console.error("Error fetching/displaying personal stats in modal:", error);
-            personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
-        }
+    if (!personalStatsModal || !personalStatsModalBody) {
+        console.error("HTML Error: Personal Stats Modal elements not found!");
+        if(togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        return;
     }
 
+    personalStatsModalBody.innerHTML = '<p>Loading your detailed stats...</p>';
+    personalStatsModal.classList.add('visible');
+
+    const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars"; // Keep all selections to fetch data
+    const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_Modal`;
+
+    function formatTcpAnniversaryDate(dateObject) {
+        if (!dateObject) return 'N/A';
+        let jsDate;
+        if (dateObject instanceof Date) {
+            jsDate = dateObject;
+        } else if (dateObject && typeof dateObject.toDate === 'function') {
+            jsDate = dateObject.toDate();
+        } else {
+            return 'N/A';
+        }
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return jsDate.toLocaleDateString(undefined, options);
+    }
+
+    try {
+        console.log(`[DEBUG] Final API URL for Personal Stats Modal: ${apiUrl}`);
+        const response = await fetch(apiUrl);
+        console.log(`[DEBUG] Torn API HTTP Response Status for Personal Stats Modal: ${response.status} ${response.statusText}`);
+        const data = await response.json();
+        console.log(`[DEBUG] Full Torn API Response Data for Personal Stats Modal:`, data);
+
+        if (!response.ok) {
+            const errorData = data || { message: "Failed to parse API error response." };
+            console.error(`[DEBUG] Torn API HTTP Error details for Personal Stats Modal:`, errorData);
+            let errorMessage = `API Error ${response.status}: ${errorData?.error?.error || response.statusText}`;
+            throw new Error(errorMessage);
+        }
+        if (data.error) {
+            console.error(`[DEBUG] Torn API Data Error details for Personal Stats Modal:`, data.error);
+            if (data.error.code === 2 || data.error.code === 10) {
+                throw new Error(`The member's API key is invalid or lacks sufficient permissions. (Error: ${data.error.error})`);
+            } else {
+                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+            }
+        }
+
+        if (!data || Object.keys(data).length === 0) {
+            throw new Error("Failed to retrieve any meaningful data after API call.");
+        }
+
+        // --- Data to send to Netlify function (this remains comprehensive for saving) ---
+        const userId = data.player_id;
+        if (userId) {
+            const userDataToSave = {
+                name: data.name || null,
+                tornProfileId: data.player_id || null,
+                profile_image: data.profile_image || null,
+                level: data.level || null,
+                rank: data.rank || null,
+                age: data.age || null,
+                gender: data.gender || null,
+                role: data.role || null,
+                donator: data.donator || false,
+                revivable: data.revivable || null,
+                signup_date: data.signup || null,
+                last_action_timestamp: data.last_action?.timestamp || null,
+                faction_id: data.faction?.faction_id || null,
+                faction_name: data.faction?.faction_name || null,
+                faction_tag: data.faction?.faction_tag || null,
+                faction_position: data.faction?.position || null,
+                nerve: data.nerve || {},
+                energy: data.energy || {},
+                happy: data.happy || {},
+                life: data.life || {},
+                status: data.status || {},
+                traveling: data.status?.state === 'Traveling' || false,
+                hospitalized: data.status?.state === 'Hospital' || false,
+                cooldowns: data.cooldowns || {},
+                personalstats: data.personalstats || {},
+                battlestats: data.battlestats || {},
+                workstats: data.workstats || {},
+                awards: data.awards || null,
+                basicicons: data.basicicons || null,
+                chain: data.chain || null,
+                competition: data.competition || null,
+                enemies: data.enemies || null,
+                friends: data.friends || null,
+                job: data.job || null,
+                karma: data.karma || null,
+                married: data.married || null,
+                property: data.property || null,
+                property_id: data.property_id || null,
+                states: data.states || {},
+                travel: data.travel || {},
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            console.log(`[DEBUG] Prepared user data for Netlify Function:`, userDataToSave);
+            console.log(`[DEBUG] userDataToSave.profile_image:`, userDataToSave.profile_image);
+
+            try {
+                // Call the Netlify Function to securely save ALL data to Firestore
+                const netlifyFunctionResponse = await fetch('/.netlify/functions/update-user-faction', { // Changed to update-user-faction
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid: auth.currentUser.uid, // Firebase UID
+                        tornPlayerId: String(userId), // Torn Player ID
+                        userData: userDataToSave // Send the whole comprehensive object
+                    }),
+                });
+
+                if (!netlifyFunctionResponse.ok) {
+                    const errorDetails = await netlifyFunctionResponse.json();
+                    throw new Error(`Netlify Function Error: ${netlifyFunctionResponse.status} - ${errorDetails.error || 'Unknown error'}`);
+                }
+
+                console.log(`[DEBUG] Successfully sent user ${userId} data to Netlify Function.`);
+            } catch (functionError) {
+                console.error(`[ERROR] Failed to send user ${userId} data to Netlify Function:`, functionError);
+            }
+        } else {
+            console.warn("[WARN] User ID not found in Torn API response. Cannot send data to Netlify Function.");
+        }
+        // --- End: Call Netlify Function for Secure Firebase Storage ---
+
+
+        // --- HTML Content Generation (ONLY displaying requested fields in the modal) ---
+        let htmlContent = '<h4>User Information</h4>';
+		htmlContent += `
+            <div class="member-detail-header">
+                <div class="member-header-top-row center-content-flex">
+                    ${data.profile_image ? `<img src="${data.profile_image}" alt="${data.name}" class="member-detail-profile-image-modal">` : ''}
+                </div>
+            </div>`;
+        htmlContent += `<p><strong>Name:</strong> <span class="stat-value-api">${data.name || 'N/A'}</span></p>`;
+        htmlContent += `<p><strong>User ID:</strong> <span class="stat-value-api">${data.player_id || data.userID || 'N/A'}</span></p>`;
+        htmlContent += `<p><strong>Level:</strong> <span class="stat-value-api">${data.level || 'N/A'}</span></p>`;
+
+        let xanaxDisplay = 'N/A';
+        if (data.personalstats && data.personalstats.xantaken !== undefined) {
+            xanaxDisplay = typeof data.personalstats.xantaken === 'number' ? data.personalstats.xantaken.toLocaleString() : data.personalstats.xantaken;
+        }
+        htmlContent += `<p><strong>Xanax Used:</strong> <span class="stat-value-api">${xanaxDisplay}</span></p>`;
+
+        const tcpAnniversaryDateVal = firestoreProfileData ? firestoreProfileData.tcpRegisteredAt : null;
+        htmlContent += `<p><strong>TCP Anniversary:</strong> <span class="stat-value-api">${formatTcpAnniversaryDate(tcpAnniversaryDateVal)}</span></p>`;
+
+        htmlContent += '<h4>Battle Stats</h4>';
+        if (typeof data.strength === 'number' || typeof data.battlestats?.strength === 'number') {
+            const bsStrength = data.strength || data.battlestats?.strength;
+            const bsDefense = data.defense || data.battlestats?.defense;
+            const bsSpeed = data.speed || data.battlestats?.speed;
+            const bsDexterity = data.dexterity || data.battlestats?.dexterity;
+            
+            const strengthModifier = data.strength_modifier || data.battlestats?.strength_modifier || 0;
+            const defenseModifier = data.defense_modifier || data.battlestats?.defense_modifier || 0;
+            const speedModifier = data.speed_modifier || data.battlestats?.speed_modifier || 0;
+            const dexterityModifier = data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0;
+
+            const effStr = Math.floor(bsStrength * (1 + strengthModifier / 100));
+            const effDef = Math.floor(bsDefense * (1 + defenseModifier / 100));
+            const effSpd = Math.floor(bsSpeed * (1 + speedModifier / 100));
+            const effDex = Math.floor(bsDexterity * (1 + dexterityModifier / 100));
+            
+            const totalBs = data.total || data.battlestats?.total || (bsStrength + bsDefense + bsSpd + bsDexterity);
+
+            htmlContent += `<p><strong>Strength:</strong> <span class="stat-value-api">${bsStrength.toLocaleString()}</span> <span class="sub-detail">(Mod: ${strengthModifier}%) Eff: ${effStr.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Defense:</strong> <span class="stat-value-api">${bsDefense.toLocaleString()}</span> <span class="sub-detail">(Mod: ${defenseModifier}%) Eff: ${effDef.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Speed:</strong> <span class="stat-value-api">${bsSpeed.toLocaleString()}</span> <span class="sub-detail">(Mod: ${speedModifier}%) Eff: ${effSpd.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Dexterity:</strong> <span class="stat-value-api">${bsDexterity.toLocaleString()}</span> <span class="sub-detail">(Mod: ${dexterityModifier}%) Eff: ${effDex.toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Total:</strong> <span class="stat-value-api">${totalBs.toLocaleString()}</span></p>`;
+        } else {
+            htmlContent += '<p>Battle stats data not available.</p>';
+            console.warn("[DEBUG] Battle stats (strength, defense, speed, dexterity) not found directly in API response data or within 'battlestats' object, or are not numbers.");
+        }
+
+        htmlContent += '<h4>Work Stats</h4>';
+        if (typeof data.manual_labor === 'number' || typeof data.workstats?.manual_labor === 'number') {
+            htmlContent += `<p><strong>Manual Labor:</strong> <span class="stat-value-api">${(data.manual_labor || data.workstats?.manual_labor).toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Intelligence:</strong> <span class="stat-value-api">${(data.intelligence || data.workstats?.intelligence).toLocaleString()}</span></p>`;
+            htmlContent += `<p><strong>Endurance:</strong> <span class="stat-value-api">${(data.endurance || data.workstats?.endurance).toLocaleString()}</span></p>`;
+        } else {
+            htmlContent += '<p>Work stats data not available.</p>';
+            console.warn("[DEBUG] Work stats (manual_labor, intelligence, endurance) not found directly in API response data or within 'workstats' object, or are not numbers.");
+        }
+
+        personalStatsModalBody.innerHTML = htmlContent;
+    } catch (error) {
+        console.error("Error fetching/displaying personal stats in modal:", error);
+        personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
+    }
+}
     async function fetchAllRequiredData(user, dbInstance) {
         if (!user || !dbInstance) {
             console.error("fetchAllRequiredData: User or DB not provided.");
@@ -717,40 +647,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
+            // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
+            // It safely checks for the nested faction object and uses the correct property names.
             const factionData = data?.profile?.faction || data?.faction || null;
-
+            
             if (factionData) {
-                const updatePayload = {
-                    uid: user.uid,
-                    faction_id: factionData.faction_id ?? null,
-                    faction_name: factionData.faction_name ?? null,
-                    position: factionData.position ?? null,
-                    profile_image: data.profile_image || null,
-                    name: data.name || null,
-                    tornProfileId: String(data.player_id || '')
-                };
-                console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
+   const updatePayload = {
+    uid: user.uid, // User's Firebase UID
+    faction_id: factionData.faction_id ?? null,
+    faction_name: factionData.faction_name ?? null,
+    position: factionData.position ?? null,
+    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
+    profile_image: data.profile_image || null,
+    name: data.name || null,
+    // THIS LINE IS NOW FIXED
+    tornProfileId: String(data.player_id || '') 
+    // --- END NEW ---
+};
+    console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
-                try {
-                    const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application' }, // Corrected: Content-Type should be application/json
-                        body: JSON.stringify(updatePayload),
-                    });
+    try {
+        const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatePayload),
+        });
 
-                    if (!factionUpdateResponse.ok) {
-                        const errorData = await factionUpdateResponse.json().catch(() => ({}));
-                        throw new Error(errorData.error || `HTTP error! Status: ${factionUpdateResponse.status}`);
-                    }
-                    const responseData = await factionUpdateResponse.json();
-                    console.log('Faction & Profile data update successful:', responseData.message);
+        if (!factionUpdateResponse.ok) {
+            const errorData = await factionUpdateResponse.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error! Status: ${factionUpdateResponse.status}`);
+        }
+        const responseData = await factionUpdateResponse.json();
+        console.log('Faction & Profile data update successful:', responseData.message);
 
-                } catch (error) {
-                    console.error('Faction & Profile data update via Netlify function failed:', error.message);
-                }
-            } else {
-                console.warn("No faction data found in API response to send to Netlify function.");
-            }
+    } catch (error) {
+        console.error('Faction & Profile data update via Netlify function failed:', error.message);
+    }
+} else {
+    // This 'else' block handles cases where no faction data is found, ensure it still clears errors
+    console.warn("No faction data found in API response to send to Netlify function.");
+    // Optionally, if you have a specific UI error display for this, update it here.
+}
 
         } catch (error) {
             console.error("Error in fetchAllRequiredData:", error);
@@ -769,7 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (doc.exists && doc.data().tornApiKey) {
                             fetchDataForPersonalStatsModal(doc.data().tornApiKey, doc.data());
                         } else {
-                            if (personalStatsModalBody) {
+                           if (personalStatsModalBody) {
                                 personalStatsModalBody.innerHTML = '<p style="color:orange;">API Key needed. Please set it in your profile.</p>';
                                 personalStatsModal.style.display = 'flex';
                             }
@@ -780,147 +717,71 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.checked = false;
                     });
                 }
-            } else {
+           } else {
                 if (personalStatsModal) personalStatsModal.classList.remove('visible');
             }
         });
     }
 
-    closePersonalStatsModalBtn.addEventListener('click', function() {
-        console.log("Personal Stats Modal close button clicked.");
-        personalStatsModal.classList.remove('visible');
-        if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
-    });
+   closePersonalStatsModalBtn.addEventListener('click', function() {
+            console.log("Personal Stats Modal close button clicked.");
+            personalStatsModal.classList.remove('visible');
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.checked = false;
+        });
 
     if (shareFactionStatsToggleDashboard && auth && db) {
         shareFactionStatsToggleDashboard.addEventListener('change', async function() {
-            const user = auth.currentUser;
-            if (!user || !db) return;
+            const user = auth.currentUser; if (!user || !db) return;
             try {
                 await db.collection('userProfiles').doc(user.uid).set({ shareFactionStats: this.checked }, { merge: true });
                 console.log("Faction share preference updated:", this.checked);
-                if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = this.checked;
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = this.checked;
             } catch (error) { console.error("Error updating faction share preference:", error); }
         });
     }
+	
+	
 
-    // Event listener for the terms checkbox
-    if (termsAgreementCheckbox) {
-        termsAgreementCheckbox.addEventListener('change', setProfileModalButtonStates);
-    }
+    function showProfileSetupModal() { if (profileSetupModal) profileSetupModal.style.display = 'flex'; }
+    function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
+    if (skipProfileSetupBtn) skipProfileSetupBtn.addEventListener('click', hideProfileSetupModal);
+    if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
-    if (skipProfileSetupBtn) {
-        skipProfileSetupBtn.addEventListener('click', () => {
-            if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-                // Modified: Ensure termsAgreementErrorEl is shown
-                if (termsAgreementErrorEl) {
-                    termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy to skip or save.';
-                    termsAgreementErrorEl.classList.remove('hidden'); // This line makes it visible
-                }
-                const termsLabel = document.querySelector('.checkbox-label-inline');
-                if (termsLabel) {
-                    termsLabel.classList.add('wobble-animation');
-                    termsLabel.addEventListener('animationend', () => {
-                        termsLabel.classList.remove('wobble-animation');
-                    }, { once: true });
-                }
-                return;
-            }
-            hideProfileSetupModal();
-        });
-    }
-
-    // Event listener for closing the profile modal
-    if (closeProfileModalBtn && profileSetupModal) {
-        closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
-    }
-
-    // Event listener for opening the profile modal via header button
     if (headerEditProfileBtn && auth && db) {
         headerEditProfileBtn.addEventListener('click', async function(event) {
             event.preventDefault();
-            const user = auth.currentUser;
-            if (!user || !db) return;
+            const user = auth.currentUser; if (!user || !db) return;
             try {
                 const doc = await db.collection('userProfiles').doc(user.uid).get();
                 if (doc.exists) {
                     const data = doc.data();
-                    if (preferredNameInput) preferredNameInput.value = data.preferredName || '';
-                    if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
-                    if (profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
-                    if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
-                } else {
-                    if (preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0, 10);
-                }
-            } catch (err) {
-                console.error("Error fetching profile for edit:", err);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-            }
-            showProfileSetupModal(); // This will now correctly call setProfileModalButtonStates()
+                    if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
+                    if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                    if(profileSetupProfileIdInput) profileSetupProfileIdInput.value = data.tornProfileId || '';
+                    // Removed as per user request: if(profileSetupTornStatsApiKeyInput) profileSetupTornStatsApiKeyInput.value = data.tornStatsApiKey || '';
+                    if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
+                } else { if(preferredNameInput && user.displayName) preferredNameInput.value = user.displayName.substring(0,10); }
+            } catch (err) { console.error("Error fetching profile for edit:", err); if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile."; }
+            showProfileSetupModal();
         });
     }
 
-    if (saveProfileBtn && auth && db) { // Keep the initial check
+    if (saveProfileBtn && auth && db) {
         saveProfileBtn.addEventListener('click', async () => {
-            // Essential: Re-verify auth and db are available just before the async operation
-            if (!auth || !auth.currentUser || !db) {
-                console.error("Save Profile: Firebase Auth or Firestore not available.");
-                if (profileSetupErrorEl) {
-                    profileSetupErrorEl.textContent = 'System error: Please try again or refresh the page.';
-                }
-                return; // Stop if Firebase isn't fully ready
-            }
-
-            if (termsAgreementCheckbox && !termsAgreementCheckbox.checked) {
-                // Modified: Use termsAgreementErrorEl and remove 'hidden' class
-                if (termsAgreementErrorEl) {
-                    termsAgreementErrorEl.textContent = 'You must agree to the Terms of Service and Privacy Policy.';
-                    termsAgreementErrorEl.classList.remove('hidden'); // THIS LINE MAKES IT VISIBLE
-                }
-                // Clear general error if it was used for this
-                if (profileSetupErrorEl) {
-                    profileSetupErrorEl.textContent = '';
-                }
-                const termsLabel = document.querySelector('.checkbox-label-inline');
-                if (termsLabel) {
-                    termsLabel.classList.add('wobble-animation');
-                    termsLabel.addEventListener('animationend', () => {
-                        termsLabel.classList.remove('wobble-animation');
-                    }, { once: true });
-                }
-                return;
-            }
-
-            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput) {
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Missing required profile fields.';
-                return;
-            }
-
-            if (nameErrorEl) nameErrorEl.textContent = '';
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; // Clear general error
-
+            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) { if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.'; return; }
+            if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
             const preferredNameVal = preferredNameInput.value.trim();
-            if (!preferredNameVal) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
-                return;
-            }
-            if (preferredNameVal.length > 10) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
-                return;
-            }
-            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-                if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
-                return;
-            }
-
+            if (!preferredNameVal) { if (nameErrorEl) nameErrorEl.textContent = 'Name required.'; return; }
+            if (preferredNameVal.length > 10) { if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.'; return; }
+            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) { if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.'; return; }
             const user = auth.currentUser;
             const profileDataToSave = {
                 preferredName: preferredNameVal,
                 tornApiKey: profileSetupApiKeyInput.value.trim() || null,
                 tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
+                // Removed as per user request: tornStatsApiKey: profileSetupTornStatsApiKeyInput.value.trim() || null,
                 profileSetupComplete: true,
                 shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-                termsAgreed: termsAgreementCheckbox.checked
             };
 
             try {
@@ -939,32 +800,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 await userProfileRef.set(profileDataToSave, { merge: true });
                 if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
-                    displayRandomTip();
-                    localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                } else if (tornTipPlaceholderEl) {
-                    tornTipPlaceholderEl.style.display = 'none';
-                }
+                if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                 hideProfileSetupModal();
                 if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-
+                
                 if (profileDataToSave.tornApiKey) {
                     fetchAllRequiredData(user, db);
                 } else {
                     clearQuickStats();
                     if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
                 }
 
-            } catch (error) {
-                console.error("Error saving profile: ", error);
-                if (profileSetupErrorEl) profileSetupErrorEl.textContent = `Error saving: ${error.message}`;
-            }
+            } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
         });
     }
 
     if (auth) {
-        auth.onAuthStateChanged(async function(user) { // Corrected: async function
+        auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
             const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
@@ -977,90 +831,89 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
                 if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
-                let userDisplayName = "User",
-                    showSetup = true,
-                    firstTip = false,
-                    profile = null;
+                let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
                 if (db) {
                     try {
                         const doc = await db.collection('userProfiles').doc(user.uid).get();
                         profile = doc.exists ? doc.data() : null;
-                        currentUserProfile = profile;
+						currentUserProfile = profile;
+						
+						// ... inside onAuthStateChanged, after fetching the profile
+profile = doc.exists ? doc.data() : null;
 
-                        if (profile && profile.membershipEndTime) {
-                            const membershipInfo = {
-                                membershipType: profile.membershipType,
-                                membershipEndTime: profile.membershipEndTime
-                            };
-                            if (membershipInfo.membershipEndTime > Date.now()) {
-                                startMembershipCountdown(membershipInfo);
-                            }
-                        }
+// START: Add this new block
+// --- Check for an active membership and start the countdown ---
+if (profile && profile.membershipEndTime) {
+    const membershipInfo = {
+        membershipType: profile.membershipType,
+        membershipEndTime: profile.membershipEndTime
+    };
+    // If the membership is still active, start the timer
+    if (membershipInfo.membershipEndTime > Date.now()) {
+        startMembershipCountdown(membershipInfo);
+    }
+}
 
-                        function setupMemberOnlyLinks(profile) {
-                            const memberLinks = document.querySelectorAll('.member-only');
-                            const subscribeModal = document.getElementById('subscribePromptModal');
+function setupMemberOnlyLinks(profile) {
+    const memberLinks = document.querySelectorAll('.member-only');
+    const subscribeModal = document.getElementById('subscribePromptModal');
 
-                            const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
+    // First, determine if the user is an active member
+    const isMember = profile && profile.membershipEndTime && profile.membershipEndTime > Date.now();
 
-                            memberLinks.forEach(link => {
-                                link.addEventListener('click', (event) => {
-                                    if (!isMember) {
-                                        event.preventDefault();
-                                        console.log("Non-member clicked a restricted link. Showing prompt.");
-                                        if (subscribeModal) {
-                                            subscribeModal.style.display = 'flex';
-                                        }
-                                    }
-                                });
-                            });
-                        }
+    // Loop through every link that is marked as 'member-only'
+    memberLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            // If the user is NOT a member...
+            if (!isMember) {
+                // 1. Stop the browser from navigating to the link's href
+                event.preventDefault();
+                console.log("Non-member clicked a restricted link. Showing prompt.");
+                
+                // 2. Show the 'Please Subscribe' popup
+                if (subscribeModal) {
+                    subscribeModal.style.display = 'flex';
+                }
+            }
+            // If the user IS a member, this code does nothing, and the link works normally.
+        });
+    });
+}
 
-                        setupMemberOnlyLinks(profile);
+// --- Activate the gatekeeper for member-only links ---
+setupMemberOnlyLinks(profile); //
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
-                            userDisplayName = profile.preferredName;
-                            showSetup = false;
+                            userDisplayName = profile.preferredName; showSetup = false;
                             if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') firstTip = true;
                             if (profile.lastLoginTimestamp && lastLogonValueEl && lastLogonInfoEl) {
                                 lastLogonValueEl.textContent = formatTimeAgo(profile.lastLoginTimestamp.seconds);
                                 lastLogonInfoEl.style.display = 'block';
-                                if (lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
-                                lastActiveTimeoutId = setTimeout(() => { if (lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
-                            } else if (lastLogonInfoEl) {
-                                lastLogonValueEl.textContent = "Welcome!";
-                                lastLogonInfoEl.style.display = 'block';
-                            }
+                                if(lastActiveTimeoutId) clearTimeout(lastActiveTimeoutId);
+                                lastActiveTimeoutId = setTimeout(() => { if(lastLogonInfoEl) lastLogonInfoEl.style.display = 'none'; }, 120000);
+                            } else if (lastLogonInfoEl) { lastLogonValueEl.textContent = "Welcome!"; lastLogonInfoEl.style.display = 'block'; }
                             db.collection('userProfiles').doc(user.uid).update({ lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp() }).catch(console.error);
-                            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
-                        } else { userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User"; }
-                    } catch (e) {
-                        console.error("Error fetching profile on auth change:", e);
-                        userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User";
-                    }
-                } else { userDisplayName = user.displayName ? user.displayName.substring(0, 10) : "User"; }
+                            if(shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profile.shareFactionStats === true;
+                        } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                    } catch (e) { console.error("Error fetching profile on auth change:", e); userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
+                } else { userDisplayName = user.displayName ? user.displayName.substring(0,10) : "User"; }
                 if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${userDisplayName}!`;
                 if (showSetup) {
                     if (welcomeMessageEl && (!profile || !profile.preferredName)) welcomeMessageEl.textContent = `Welcome, ${userDisplayName}! Setup profile.`;
                     if (tornTipPlaceholderEl) tornTipPlaceholderEl.style.display = 'none';
-                    showProfileSetupModal();
-                    clearQuickStats();
+                    showProfileSetupModal(); clearQuickStats();
                     if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
+                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'Please complete profile for stats.';
                 } else {
-                    if (firstTip) {
-                        displayRandomTip();
-                        localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-                    } else if (tornTipPlaceholderEl) {
-                        tornTipPlaceholderEl.style.display = 'none';
-                    }
+                    if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
+                    else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                     if (profile && profile.tornApiKey) {
                         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
                         fetchAllRequiredData(user, db);
                     } else {
                         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
                         clearQuickStats();
-                        if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
+                        if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured. Set in profile.';
                     }
                 }
 
@@ -1101,11 +954,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const content = this.nextElementSibling;
-            if (content) content.classList.toggle('open');
-        });
+        toggle.addEventListener('click', function() { this.classList.toggle('active');
+        const content = this.nextElementSibling; if (content) content.classList.toggle('open'); });
     });
 
     // --- NEW: Membership Modals JavaScript ---
@@ -1117,28 +967,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (upgradeMembershipBtn) { // Changed to check directly, assuming membershipOptionsModal exists
-        upgradeMembershipBtn.addEventListener('click', () => {
-            console.log("Hiding profile modal and showing membership modal.");
-
-            const startFreeTrialBtn = document.getElementById('startFreeTrialBtn');
-
-            // Check the globally available profile for the flag
-            if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
-                // If the flag is true, disable the button and change its text
-                startFreeTrialBtn.disabled = true;
-                startFreeTrialBtn.textContent = 'Free Trial Used';
-            } else {
-                // Otherwise, make sure the button is enabled and has its original text
-                startFreeTrialBtn.disabled = false;
-                startFreeTrialBtn.textContent = 'Start Your Free Trial';
+    if (upgradeMembershipBtn) {
+    upgradeMembershipBtn.addEventListener('click', () => {
+        // Find the entire free trial card element by its unique class
+        const freeTrialCard = document.querySelector('.card-free-trial');
+        
+        // Check the globally available profile for the flag
+        if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
+            // If trial has been used, HIDE the entire card
+            if (freeTrialCard) {
+                freeTrialCard.classList.add('hidden-by-js');
             }
+        } else {
+            // Otherwise, make sure the card is VISIBLE for new users
+            if (freeTrialCard) {
+                freeTrialCard.classList.remove('hidden-by-js');
+            }
+        }
 
-            if (profileSetupModal) profileSetupModal.style.display = 'none';
-            if (membershipOptionsModal) membershipOptionsModal.style.display = 'flex';
-        });
-    }
-
+        // Now, hide the profile modal and show the membership options
+        hideProfileSetupModal();
+        if (membershipOptionsModal) {
+            membershipOptionsModal.style.display = 'flex';
+        }
+    });
+}
     // 2. Close button for Membership Options Modal
     if (closeMembershipOptionsBtn && membershipOptionsModal) {
         closeMembershipOptionsBtn.addEventListener('click', () => {
@@ -1178,51 +1031,61 @@ document.addEventListener('DOMContentLoaded', function() {
     if (freeTrialConfirmationModal) {
         freeTrialConfirmationModal.addEventListener('click', (event) => {
             if (event.target === freeTrialConfirmationModal) {
-                console.log("Clicked outside Membership Options Modal. Closing.");
+                console.log("Clicked outside Free Trial Confirmation Modal. Closing.");
                 freeTrialConfirmationModal.style.display = 'none';
             }
         });
     }
 
     // 7. 'Yes' button in Free Trial Confirmation Modal
-    if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
-        confirmFreeTrialYesBtn.addEventListener('click', async () => {
-            console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
+if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
+    confirmFreeTrialYesBtn.addEventListener('click', async () => {
+        console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
+        
+        const user = auth.currentUser;
+        if (!user) {
+            console.error("User not logged in. Cannot start trial.");
+            // Optionally show an error message to the user here
+            return;
+        }
 
-            const user = auth.currentUser;
-            if (!user) {
-                console.error("User not logged in. Cannot start trial.");
-                return;
-            }
+        // Set the end time to 7 days from now
+        const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
-            const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        const membershipInfo = {
+            membershipType: 'trial',
+            membershipEndTime: trialEndTime,
+            hasUsedTrial: true
+        };
 
-            const membershipInfo = {
-                membershipType: 'trial',
-                membershipEndTime: trialEndTime,
-                hasUsedTrial: true
-            };
+        try {
+            // Get a reference to the user's profile document
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            
+            // Update the document with the new membership fields
+            await userProfileRef.update(membershipInfo);
+            
+            console.log("Successfully saved trial info to Firebase.");
 
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                await userProfileRef.update(membershipInfo);
+            // Hide the confirmation modal
+            freeTrialConfirmationModal.style.display = 'none';
 
-                console.log("Successfully saved trial info to Firebase.");
+            // Start the countdown timer with the new info
+            startMembershipCountdown(membershipInfo);
 
-                freeTrialConfirmationModal.style.display = 'none';
-                startMembershipCountdown(membershipInfo);
-
-            } catch (error) {
-                console.error("Error saving trial info to Firebase:", error);
-            }
-        });
-    }
-
+        } catch (error) {
+            console.error("Error saving trial info to Firebase:", error);
+            // Optionally show an error message to the user here
+        }
+    });
+}
     // 8. 'No' button in Free Trial Confirmation Modal
     if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
         confirmFreeTrialNoBtn.addEventListener('click', () => {
             console.log("Confirm Free Trial 'No' clicked. Closing modal.");
             freeTrialConfirmationModal.style.display = 'none';
+            // Optionally, you could re-open the membership options modal here if desired:
+            // membershipOptionsModal.style.display = 'flex';
         });
     }
 
@@ -1230,7 +1093,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (buySoloMembershipBtn && membershipOptionsModal) {
         buySoloMembershipBtn.addEventListener('click', () => {
             console.log("Solo Membership button clicked.");
+            // --- Placeholder for Solo Membership Payment/Enrollment Logic ---
             alert("Proceeding to Solo Membership (15 Xanax/Month) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
             membershipOptionsModal.style.display = 'none';
         });
     }
@@ -1239,7 +1104,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (buyYearlyMembershipBtn && membershipOptionsModal) {
         buyYearlyMembershipBtn.addEventListener('click', () => {
             console.log("Yearly Membership button clicked.");
+            // --- Placeholder for Yearly Membership Payment/Enrollment Logic ---
             alert("Proceeding to Yearly Membership (150 Xanax/Year) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
             membershipOptionsModal.style.display = 'none';
         });
     }
@@ -1248,9 +1115,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', () => {
             console.log("Delete Account button clicked.");
+            // --- Placeholder for Delete Account Confirmation/Logic ---
             alert("Delete Account functionality will be implemented here. (Requires confirmation step!)");
+            // You'll likely want another confirmation modal here before proceeding.
+            // For now, it just alerts.
         });
     }
+
+  
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded

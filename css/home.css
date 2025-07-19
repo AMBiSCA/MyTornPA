@@ -1,6 +1,6 @@
 /* mysite/css/home.css - Specific Styles for the Homepage */
 
-/* Tool Section Styles */
+/* Tool Sion Styles */
 .tool-category-section { width: 100%; margin-bottom: 8px; }
 .tool-category-header {
     display: flex; justify-content: center; align-items: center; color: #8ab4f8;
@@ -160,7 +160,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 .modal-error-message { color: #ff6b6b; font-size: 0.8em; margin-top: 5px; min-height: 1.2em; text-align: left;}
 .helper-text { font-size: 0.75em; color: #fd7e14; margin-top: 5px; display:block; margin-bottom: 15px; }
 .checkbox-group { text-align: left; margin-bottom: 15px; }
-.checkbox-label-inline { display: flex; align-items: center; justify-content: center; font-size: 0.9em; margin-bottom: 5px; color: #ccc;}
+.checkbox-label-inline { display: flex; align-items: center; font-size: 0.9em; margin-bottom: 5px; color: #ccc;}
 .checkbox-label-inline input[type="checkbox"] { margin-right: 8px; transform: scale(1.1); accent-color:#00a8ff;}
 .modal-profile-setup .form-group a,
 .modal-profile-setup .checkbox-label-inline a { color: #00a8ff; text-decoration: none;}
@@ -342,37 +342,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
   white-space: nowrap; /* Prevents the text from wrapping onto two lines */
 }
 
-@keyframes wobble {
-    0%, 100% { transform: translateX(0); } /* Start and end at original position */
-    20% { transform: translateX(-5px); }
-    40% { transform: translateX(5px); }
-    60% { transform: translateX(-5px); }
-    80% { transform: translateX(5px); }
-}
-
-.wobble-animation {
-    animation: wobble 0.6s ease-in-out;
-}
-
-
-
-/* Add this at the VERY END of your home.css file */
-.terms-error-message {
-    color: #ff6b6b !important; /* Force red color */
-    font-size: 0.85em !important; /* Force font size */
-    margin-top: 5px !important;
-    min-height: 1.2em !important;
-    text-align: center !important;
-    font-weight: bold !important;
-    /* IMPORTANT: Ensure display is block when needed, override any other 'display' */
-    display: block !important; /* <-- This is the key line to force visibility */
-}
-
-/* Add this also for when it should be hidden */
-.terms-error-message.hidden {
-    display: none !important;
-}
-
 /* === Styling for the "Subscribe Prompt" Modal === */
 
 /* Position the 'X' close button in the new modal */
@@ -406,10 +375,8 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
 
 /* === MODAL STYLES END === */
 
-/* Helper class to completely hide an element */
-.hidden-by-js {
-    display: none !important;
-}
+
+
 
 /* === RESPONSIVE STYLES === */
 @media (max-width: 960px) {
