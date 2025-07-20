@@ -27,10 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const reportEnemyFactionMemberSelect = document.getElementById('reportEnemyFactionMemberSelect');
     const generateCustomReportBtn = document.getElementById('generateCustomReportBtn'); // This is the "Generate & Download Report" button
     const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
-	const myFactionNameDisplay = document.getElementById('myFactionNameDisplay');
-    const enemyFactionNameDisplay = document.getElementById('enemyFactionNameDisplay');
-    const myFactionMembersDisplay = document.getElementById('myFactionMembersDisplay');
-    const enemyFactionMembersDisplay = document.getElementById('enemyFactionMembersDisplay');
+	const factionNameDisplay = document.getElementById('factionNameDisplay');
+    const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
 
 
     // --- 2. Global Variables & State ---
@@ -362,64 +360,65 @@ document.addEventListener('DOMContentLoaded', function() {
         updateIndividualCharts();
     }
 
-    async function fetchAndProcessFactionActivity() {
-        updateStatus("Running.", 'info', "Fetching data...");
-        try {
-            const myFid = myFactionIDInput.value.trim();
-            const enFid = enemyFactionIDInput.value.trim();
+    // REPLACE your entire fetchAndProcessFactionActivity function with this one
+async function fetchAndProcessFactionActivity() {
+    updateStatus("Running.", 'info', "Fetching data...");
+    try {
+        const myFid = myFactionIDInput.value.trim();
+        const enFid = enemyFactionIDInput.value.trim();
 
-            // Add an explicit check here too, in case this function is called directly
-            // without going through the start button click listener.
-            if (myFid === '' && enFid === '') {
-                updateStatus("Error.", 'error', "Cannot fetch without Faction IDs.");
-                stopButton.click(); // Stop any running interval
-                return; // Exit the function
-            }
-
-            const myUrl = `https://api.torn.com/faction/${myFid}?selections=basic&key=${tornApiKey}`;
-            const myResp = await fetchTornApi(myUrl);
-            const myData = processFactionDataFromTornApi(myFid, myResp);
-            const enUrl = `https://api.torn.com/faction/${enFid}?selections=basic&key=${tornApiKey}`;
-            const enResp = await fetchTornApi(enUrl);
-            const enData = processFactionDataFromTornApi(enFid, enResp);
-            const now = new Date();
-            lastRefreshTimeDisplay.textContent = formatTimestamp(now);
-            const myActive = myData.members.filter(m => m.active === 1).length;
-            const enActive = enData.members.filter(m => m.active === 1).length;
-            myFactionNameDisplay.textContent = myData.factionName;
-            enemyFactionNameDisplay.textContent = enData.factionName;
-            myFactionMembersDisplay.textContent = myData.members.length;
-            enemyFactionMembersDisplay.textContent = enData.members.length;
-            const rec = {
-                timestamp: now.getTime(),
-                formattedTime: formatTimestamp(now),
-                myFaction: {
-                    id: myFid,
-                    name: myData.factionName,
-                    totalMembers: myData.members.length,
-                    activeMembers: myActive,
-                    individuals: myData.members,
-                },
-                enemyFaction: {
-                    id: enFid,
-                    name: enData.factionName,
-                    totalMembers: enData.members.length,
-                    activeMembers: enActive,
-                    individuals: enData.members,
-                },
-                activityDifference: myActive - enActive
-            };
-            historicalData.push(rec);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(historicalData));
-            updateStatus("Running.", 'success', "Data refreshed.");
-            updateCharts();
-            populateIndividualComparisonDropdowns(myData.members, enData.members, myData.factionName, enData.factionName);
-        } catch (e) {
-            console.error("Error in fetch/process:", e);
-            updateStatus("Error.", 'error', e.message);
+        if (myFid === '' && enFid === '') {
+            updateStatus("Error.", 'error', "Cannot fetch without Faction IDs.");
             stopButton.click();
+            return;
         }
+
+        const myUrl = `https://api.torn.com/faction/${myFid}?selections=basic&key=${tornApiKey}`;
+        const myResp = await fetchTornApi(myUrl);
+        const myData = processFactionDataFromTornApi(myFid, myResp);
+        const enUrl = `https://api.torn.com/faction/${enFid}?selections=basic&key=${tornApiKey}`;
+        const enResp = await fetchTornApi(enUrl);
+        const enData = processFactionDataFromTornApi(enFid, enResp);
+        const now = new Date();
+        lastRefreshTimeDisplay.textContent = formatTimestamp(now);
+        const myActive = myData.members.filter(m => m.active === 1).length;
+        const enActive = enData.members.filter(m => m.active === 1).length;
+
+        // --- CORRECTED SECTION ---
+        factionNameDisplay.innerHTML = `<div class="aligned-info"><span class="align-right">${myData.factionName}</span> <span class="separator">|</span> <span class="align-left">${enData.factionName}</span></div>`;
+        totalMembersMyFactionDisplay.innerHTML = `<div class="aligned-info"><span class="align-right">${myData.members.length}</span> <span class="separator">|</span> <span class="align-left">${enData.members.length}</span></div>`;
+        // The two incorrect lines that were here are now removed.
+
+        const rec = {
+            timestamp: now.getTime(),
+            formattedTime: formatTimestamp(now),
+            myFaction: {
+                id: myFid,
+                name: myData.factionName,
+                totalMembers: myData.members.length,
+                activeMembers: myActive,
+                individuals: myData.members,
+            },
+            enemyFaction: {
+                id: enFid,
+                name: enData.factionName,
+                totalMembers: enData.members.length,
+                activeMembers: enActive,
+                individuals: enData.members,
+            },
+            activityDifference: myActive - enActive
+        };
+        historicalData.push(rec);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(historicalData));
+        updateStatus("Running.", 'success', "Data refreshed.");
+        updateCharts();
+        populateIndividualComparisonDropdowns(myData.members, enData.members, myData.factionName, enData.factionName);
+    } catch (e) {
+        console.error("Error in fetch/process:", e);
+        updateStatus("Error.", 'error', e.message);
+        stopButton.click();
     }
+}
 
     function enterRunningState(sessionState) {
         if (fetchInterval) clearInterval(fetchInterval);
