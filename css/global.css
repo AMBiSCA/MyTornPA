@@ -365,7 +365,26 @@ ul li:last-child { border-bottom: none; }
     color: var(--btn-close-hover-color, #00e0ff);
 }
 
+/* Add to your global.css file */
 
+/* Styles for the main confirmation buttons */
+.btn-confirm-yes {
+  background-color: #28a745; /* A standard green for 'OK' */
+  color: white;
+}
+
+.btn-confirm-yes:hover {
+  background-color: #218838;
+}
+
+.btn-confirm-no {
+  background-color: #dc3545; /* A standard red for 'Cancel' */
+  color: white;
+}
+
+.btn-confirm-no:hover {
+  background-color: #c82333;
+}
 
 
 #firebaseui-auth-container {

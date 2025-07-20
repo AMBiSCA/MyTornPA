@@ -1050,23 +1050,33 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(SKIP_CONFIRM_KEY, e.target.checked);
     });
     
-    confirmClearBtn.addEventListener('click', () => {
-        const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
-        if (skipConfirmation || confirm("Are you sure you want to clear all historical data? This cannot be undone.")) {
-            enterStoppedState();
-            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear all historical data from localStorage
-            historicalData = [];
-            destroyCharts();
-            updateStatus("Ready.", 'info', "All data cleared.");
-            factionNameDisplay.textContent = '';
-            totalMembersMyFactionDisplay.textContent = '';
-            // START NEW CORRECTION: Clear lastRefreshTimeDisplay on clear data
-            lastRefreshTimeDisplay.textContent = '';
-            // END NEW CORRECTION
-            populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
-            closeReportModal();
-        }
-    });
+    // REPLACE your existing confirmClearBtn event listener with this full block
+  confirmClearBtn.addEventListener('click', async () => { // <-- Function is now async
+    const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
+    
+    let userDidConfirm = false; // We'll store the user's choice here
+
+    if (skipConfirmation) {
+        userDidConfirm = true;
+    } else {
+        // This line now calls your new, stylish modal and waits for the user's answer
+        userDidConfirm = await showGlobalConfirm("Are you sure you want to clear all historical data? This cannot be undone.");
+    }
+
+    // If the user clicked "OK" (or had skipping enabled), the code below will run
+    if (userDidConfirm) {
+        enterStoppedState();
+        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear all historical data from localStorage
+        historicalData = [];
+        destroyCharts();
+        updateStatus("Ready.", 'info', "All data cleared.");
+        factionNameDisplay.textContent = '';
+        totalMembersMyFactionDisplay.textContent = '';
+        lastRefreshTimeDisplay.textContent = '';
+        populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
+        closeReportModal();
+    }
+});
     
     // Run Initial Setup
     init();
