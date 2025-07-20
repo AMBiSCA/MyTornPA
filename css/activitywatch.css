@@ -666,6 +666,11 @@ ul li:last-child { border-bottom: none; }
     color: #666; /* A more subtle separator color */
 }
 
+/* Add this rule to make the new container span two columns */
+.faction-info-wrapper {
+    grid-column: span 2;
+}
+
 @media (max-width: 1200px) {
     #activityPeeperContainer {
         padding: 15px;
