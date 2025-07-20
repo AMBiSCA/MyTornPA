@@ -633,6 +633,39 @@ ul li:last-child { border-bottom: none; }
     margin-top: -15px;
 }
 
+/* --- Faction Info Grid for Alignment --- */
+.faction-info-grid {
+    display: grid;
+    /* Four columns: Label, My Data, Separator, Enemy Data */
+    grid-template-columns: auto 1fr auto 1fr;
+    align-items: center; /* Vertically center-aligns everything in a row */
+    gap: 5px 15px;       /* 5px space between rows, 15px between columns */
+    margin-bottom: 20px; /* Adds some space below the whole block */
+}
+
+.faction-info-grid .info-label {
+    font-weight: bold;
+    color: #00a8ff; /* Theme color */
+}
+
+.faction-info-grid .info-value {
+    font-size: 1.1em;
+}
+
+.faction-info-grid .text-right {
+    text-align: right;
+}
+
+.faction-info-grid .text-left {
+    text-align: left;
+}
+
+.faction-info-grid .info-separator {
+    text-align: center;
+    font-size: 1.5em;
+    color: #666; /* A more subtle separator color */
+}
+
 @media (max-width: 1200px) {
     #activityPeeperContainer {
         padding: 15px;

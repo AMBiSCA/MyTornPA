@@ -8,8 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const startButton = document.getElementById('startButton');
     const stopButton = document.getElementById('stopButton');
     const clearDataButton = document.getElementById('clearDataButton');
-    const factionNameDisplay = document.getElementById('factionNameDisplay');
-    const totalMembersMyFactionDisplay = document.getElementById('totalMembersMyFaction');
     const compareUser1Select = document.getElementById('compareUser1');
     const compareUser2Select = document.getElementById('compareUser2');
     const stopTimerHoursSelect = document.getElementById('stopTimerHours');
@@ -29,6 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const reportEnemyFactionMemberSelect = document.getElementById('reportEnemyFactionMemberSelect');
     const generateCustomReportBtn = document.getElementById('generateCustomReportBtn'); // This is the "Generate & Download Report" button
     const compareTwoIndividualsBtn = document.getElementById('compareTwoIndividualsBtn');
+	const myFactionNameDisplay = document.getElementById('myFactionNameDisplay');
+    const enemyFactionNameDisplay = document.getElementById('enemyFactionNameDisplay');
+    const myFactionMembersDisplay = document.getElementById('myFactionMembersDisplay');
+    const enemyFactionMembersDisplay = document.getElementById('enemyFactionMembersDisplay');
 
 
     // --- 2. Global Variables & State ---
@@ -384,8 +386,10 @@ document.addEventListener('DOMContentLoaded', function() {
             lastRefreshTimeDisplay.textContent = formatTimestamp(now);
             const myActive = myData.members.filter(m => m.active === 1).length;
             const enActive = enData.members.filter(m => m.active === 1).length;
-            factionNameDisplay.textContent = `${myData.factionName} | ${enData.factionName}`;
-            totalMembersMyFactionDisplay.textContent = `${myData.members.length} | ${enData.members.length}`;
+            myFactionNameDisplay.textContent = myData.factionName;
+            enemyFactionNameDisplay.textContent = enData.factionName;
+            myFactionMembersDisplay.textContent = myData.members.length;
+            enemyFactionMembersDisplay.textContent = enData.members.length;
             const rec = {
                 timestamp: now.getTime(),
                 formattedTime: formatTimestamp(now),

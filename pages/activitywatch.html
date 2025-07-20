@@ -35,14 +35,17 @@
                     <label>Status:</label>
                     <span id="statusDisplay">Ready.</span>
                 </div>
-                <div class="control-grid-item" id="factionNameGroup">
-                    <label>Faction Name:</label>
-                    <span id="factionNameDisplay"></span>
-                </div>
-                <div class="control-grid-item" id="totalMembersGroup">
-                    <label>Total Members:</label>
-                    <span id="totalMembersMyFaction"></span>
-                </div>
+               <div class="faction-info-grid">
+    <div class="info-label">Faction Name:</div>
+    <div id="myFactionNameDisplay" class="info-value text-right">--</div>
+    <div class="info-separator">|</div>
+    <div id="enemyFactionNameDisplay" class="info-value text-left">--</div>
+
+    <div class="info-label">Total Members:</div>
+    <div id="myFactionMembersDisplay" class="info-value text-right">--</div>
+    <div class="info-separator">|</div>
+    <div id="enemyFactionMembersDisplay" class="info-value text-left">--</div>
+</div>
                 <div class="control-grid-item" id="actionButtonsGroup">
                     <button id="startButton" class="action-btn start-btn">Start.</button>
                     <button id="stopButton" class="action-btn stop-btn">Stop.</button>
