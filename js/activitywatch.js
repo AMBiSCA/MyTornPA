@@ -1050,24 +1050,26 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(SKIP_CONFIRM_KEY, e.target.checked);
     });
     
-    // REPLACE your existing confirmClearBtn event listener with this full block
+    // REPLACE your existing confirmClearBtn event listener with this debugging version
 confirmClearBtn.addEventListener('click', async () => {
+    console.log("1. 'Clear Data' button clicked.");
     const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
-
     let userDidConfirm = false;
 
     if (skipConfirmation) {
+        console.log("2. Skipping confirmation because the box is checked.");
         userDidConfirm = true;
     } else {
-        // --- FIX PART 1: Hide the first modal ---
-        closeReportModal(); // Hide the "Session Complete" modal first
+        console.log("2. Confirmation needed. Closing first modal.");
+        closeReportModal();
 
-        // Now, show the new global confirmation modal and wait for the answer
+        console.log("3. Calling showGlobalConfirm and waiting for a response...");
         userDidConfirm = await showGlobalConfirm("Are you sure you want to clear all historical data? This cannot be undone.");
+        console.log("4. showGlobalConfirm responded with:", userDidConfirm);
     }
 
     if (userDidConfirm) {
-        // The data clearing logic remains the same
+        console.log("5. User confirmed. Clearing data now.");
         enterStoppedState();
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         historicalData = [];
@@ -1077,9 +1079,8 @@ confirmClearBtn.addEventListener('click', async () => {
         totalMembersMyFactionDisplay.textContent = '';
         lastRefreshTimeDisplay.textContent = '';
         populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
-        // No need to call closeReportModal() again, as it's already closed.
     } else {
-        // --- FIX PART 2: Re-open the first modal if the user cancels ---
+        console.log("5. User cancelled. Re-opening first modal.");
         openReportModal();
     }
 });
