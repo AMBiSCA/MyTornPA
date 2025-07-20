@@ -1051,22 +1051,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // REPLACE your existing confirmClearBtn event listener with this full block
-  confirmClearBtn.addEventListener('click', async () => { // <-- Function is now async
+confirmClearBtn.addEventListener('click', async () => {
     const skipConfirmation = localStorage.getItem(SKIP_CONFIRM_KEY) === 'true';
-    
-    let userDidConfirm = false; // We'll store the user's choice here
+
+    let userDidConfirm = false;
 
     if (skipConfirmation) {
         userDidConfirm = true;
     } else {
-        // This line now calls your new, stylish modal and waits for the user's answer
+        // --- FIX PART 1: Hide the first modal ---
+        closeReportModal(); // Hide the "Session Complete" modal first
+
+        // Now, show the new global confirmation modal and wait for the answer
         userDidConfirm = await showGlobalConfirm("Are you sure you want to clear all historical data? This cannot be undone.");
     }
 
-    // If the user clicked "OK" (or had skipping enabled), the code below will run
     if (userDidConfirm) {
+        // The data clearing logic remains the same
         enterStoppedState();
-        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear all historical data from localStorage
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
         historicalData = [];
         destroyCharts();
         updateStatus("Ready.", 'info', "All data cleared.");
@@ -1074,7 +1077,10 @@ document.addEventListener('DOMContentLoaded', function() {
         totalMembersMyFactionDisplay.textContent = '';
         lastRefreshTimeDisplay.textContent = '';
         populateIndividualComparisonDropdowns([], [], "My Faction", "Enemy Faction");
-        closeReportModal();
+        // No need to call closeReportModal() again, as it's already closed.
+    } else {
+        // --- FIX PART 2: Re-open the first modal if the user cancels ---
+        openReportModal();
     }
 });
     
