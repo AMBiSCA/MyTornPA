@@ -481,47 +481,12 @@ ul li:last-child { border-bottom: none; }
     position: relative;
     top: -10px;
 }
-#myFactionIDGroup { grid-column: 1; grid-row: 1; align-items: flex-start; max-width: 108px; }
-#factionNameGroup {
-    grid-column: 2;
-    grid-row: 1;
-    align-items: center;
-    margin-left: -160px;
-    margin-top: -5px;
-}
-#compareIndividualsGroup {
-    grid-column: 3;
-    grid-row: 3 / span 2;
-    align-items: flex-end;
-    justify-content: flex-end;
-    margin-top: -25px;
-}
 
-#enemyFactionIDGroup { grid-column: 1; grid-row: 2; align-items: flex-start; max-width: 130px; margin-top: -7px; }
-#totalMembersGroup {
-    grid-column: 2;
-    grid-row: 2;
-    align-items: center;
-    margin-left: -160px;
-    margin-top: -18px;
-}
-#actionButtonsGroup { grid-column: 2; grid-row: 3; align-items: center; margin-left: -160px; margin-top: -24px; }
-
-#activityIntervalGroup { grid-column: 1; grid-row: 3; align-items: flex-start; max-width: 165px; margin-top: -7px; }
-#statusGroup {
-    grid-column: 1;
-    grid-row: 4;
-    align-items: flex-start;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 5px;
-    margin-top: -5px;
-}
-#lastRefreshGroup { grid-column: 2; grid-row: 4; align-items: center; margin-left: -160px; margin-top: -45px; }
 #statusDisplay {
     background-color: transparent !important;
 }
+
+
     
 
 .control-grid-item label {
@@ -556,19 +521,44 @@ ul li:last-child { border-bottom: none; }
     text-align: left;
 }
 
-#totalMembersGroup .control-grid-item { flex-direction: row; justify-content: space-between; }
-#totalMembersGroup label { text-align: left; flex-grow: 0; }
-#totalMembersGroup span { text-align: right; flex-grow: 0; }
+/* === REPLACE WITH THIS CLEAN VERSION === */
 
-#factionNameGroup label { text-align: center; margin-left: -6px;  }
-#factionNameGroup #factionNameDisplay { text-align: center; margin-left: -5px; }
+/* --- Column 1 Items --- */
+#myFactionIDGroup      { grid-column: 1; grid-row: 1; }
+#enemyFactionIDGroup   { grid-column: 1; grid-row: 2; }
+#activityIntervalGroup { grid-column: 1; grid-row: 3; }
+#statusGroup           { grid-column: 1; grid-row: 4; }
 
-#actionButtonsGroup {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+/* --- Column 2 Items --- */
+#factionNameGroup    { grid-column: 2; grid-row: 1; }
+#totalMembersGroup   { grid-column: 2; grid-row: 2; }
+#actionButtonsGroup  { grid-column: 2; grid-row: 3; }
+#lastRefreshGroup    { grid-column: 2; grid-row: 4; }
+
+/* --- Column 3 Items --- */
+#stopTimerGroup          { grid-column: 3; grid-row: 1 / span 2; }
+#compareIndividualsGroup { grid-column: 3; grid-row: 3 / span 2; }
+
+/* --- This rule aligns everything in the center column --- */
+#factionNameGroup,
+#totalMembersGroup,
+#actionButtonsGroup,
+#lastRefreshGroup {
+    justify-self: center;
+    width: 100%;
 }
+
+/* This rule aligns the items in the right-hand column */
+#stopTimerGroup,
+#compareIndividualsGroup {
+    justify-self: end;
+    align-content: end;
+    text-align: right;
+}
+
+
+
+
 .action-btn {
     padding: 8px 15px;
     border-radius: 5px;
