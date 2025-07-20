@@ -147,17 +147,60 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   if (showPasswordCheckbox && passwordInput) { showPasswordCheckbox.addEventListener('change', function() { passwordInput.type = this.checked ? 'text' : 'password'; });}
-  if (whatsNewListElement) { const allUtilities = [
-    { text: "Faction BattleStats Overview", href: "pages/war_page_hub.html?view=friendly-status", title: "Know Your Enemy (Or Friend?)", message: "Our Battle Stat Peeper: See their stats before you see the 'Attack Lost' screen. Knowledge is power... or a good reason to run." },
-    { text: "Faction Activity Monitor", href: "pages/activitywatch.html", title: "Who's *Actually* Active?", message: "Is your faction a well-oiled war machine or just a collection of expert chat loggers? Our Activity Peeper tries to tell the difference." },
-    { text: "Faction Members Overview", href: "pages/FactionPeeper.html", title: "The Faction Dossier", message: "Get the dirt! Level, age, 'vitamin' usage... Our Faction People Peeper gives you the lowdown. Don't mention where you heard it." },
-    { text: "Event Calendar", href: "pages/eventcalendar.html", title: "Upcoming: Events Calendar!", message: "Never again miss... uh... whatever important Torn event is happening! Our new Events Calendar is coming soon to organize your chaos." },
-    { text: "Merit/Honor Tracker", href: "pages/merits.html", title: "Merit Badge Collector", message: "Baffled by Honours? Mystified by Merits? Our guide will show you what you're missing out on (and how to feel slightly superior)." },
-    { text: "Item Market Watcher", href: "pages/market-pulse.html", title: "The (Alleged) Item Watcher", message: "Keep an 'eye' on certain... 'things'. Our Item Watcher is here. Use responsibly. Or don't. We're not your lawyer." },
-    { text: "Travel Helper", href: "pages/travel.html", title: "Globetrotter's Ledger", message: "Are your exotic trips actually funding your empire, or just your expensive postcard collection? Our Travel Profit Monitor spills the beans." },
-    { text: "Fair Fight Targets", href: "pages/fairfight.html", title: "Find Your Next Target", message: "Looking for a fair fight? This tool helps you find targets at your level." },
-    { text: "Character Progression", href: "pages/gymgain.html", title: "Track Your Gains", message: "Monitor your character's gym gains and progression over time." }
-];
+  // REPLACE the entire block in your index.js, from "if (whatsNewListElement)" to its final closing brace "}"
+if (whatsNewListElement) {
+    const allUtilities = [
+        { text: "Faction BattleStats Overview", href: "pages/war_page_hub.html?view=friendly-status", title: "Know Your Enemy (Or Friend?)", message: "Our Battle Stat Peeper: See their stats before you see the 'Attack Lost' screen. Knowledge is power... or a good reason to run." },
+        { text: "Faction Activity Monitor", href: "pages/activitywatch.html", title: "Who's *Actually* Active?", message: "Is your faction a well-oiled war machine or just a collection of expert chat loggers? Our Activity Peeper tries to tell the difference." },
+        { text: "Faction Members Overview", href: "pages/FactionPeeper.html", title: "The Faction Dossier", message: "Get the dirt! Level, age, 'vitamin' usage... Our Faction People Peeper gives you the lowdown. Don't mention where you heard it." },
+        { text: "Event Calendar", href: "pages/eventcalendar.html", title: "Upcoming: Events Calendar!", message: "Never again miss... uh... whatever important Torn event is happening! Our new Events Calendar is coming soon to organize your chaos." },
+        { text: "Merit/Honor Tracker", href: "pages/merits.html", title: "Merit Badge Collector", message: "Baffled by Honours? Mystified by Merits? Our guide will show you what you're missing out on (and how to feel slightly superior)." },
+        { text: "Item Market Watcher", href: "pages/market-pulse.html", title: "The (Alleged) Item Watcher", message: "Keep an 'eye' on certain... 'things'. Our Item Watcher is here. Use responsibly. Or don't. We're not your lawyer." },
+        { text: "Travel Helper", href: "pages/travel.html", title: "Globetrotter's Ledger", message: "Are your exotic trips actually funding your empire, or just your expensive postcard collection? Our Travel Profit Monitor spills the beans." },
+        { text: "Fair Fight Targets", href: "pages/fairfight.html", title: "Find Your Next Target", message: "Looking for a fair fight? This tool helps you find targets at your level." },
+        { text: "Character Progression", href: "pages/gymgain.html", title: "Track Your Gains", message: "Monitor your character's gym gains and progression over time." }
+    ];
+
+    if (allUtilities.length > 0) {
+        function getRandomUtilities(utilitiesArray, count) {
+            if (count > utilitiesArray.length) return [...utilitiesArray];
+            const shuffled = [...utilitiesArray].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+        const utilitiesToShow = getRandomUtilities(allUtilities, 2);
+        whatsNewListElement.innerHTML = ''; // This clears the "Loading..." message
+        utilitiesToShow.forEach(utility => {
+            const listItem = document.createElement('li');
+            const linkItem = document.createElement('a');
+            
+            // This now links to the correct page
+            linkItem.href = utility.href; 
+            
+            linkItem.classList.add('whats-new-item');
+            linkItem.textContent = utility.text;
+            
+            // This part still adds the pop-up info, which is a nice touch!
+            linkItem.setAttribute('data-title', utility.title);
+            linkItem.setAttribute('data-message', utility.message);
+            linkItem.addEventListener('click', (e) => {
+                // We prevent the link from navigating ONLY if we want to show the alert.
+                // If you want them to be direct links, you can remove this click listener.
+                e.preventDefault(); 
+                if (customAlertTitleEl && customAlertMessageEl && customAlertOverlay) {
+                    customAlertTitleEl.textContent = linkItem.dataset.title || 'Notification';
+                    customAlertMessageEl.textContent = linkItem.dataset.message || 'No details provided.';
+                    customAlertOverlay.style.display = 'flex';
+                }
+            });
+            listItem.appendChild(linkItem);
+            whatsNewListElement.appendChild(listItem);
+        });
+    } else {
+        whatsNewListElement.innerHTML = '<li>No new features to show right now!</li>';
+    }
+} else {
+    console.warn("Element with ID 'whats-new-list' not found.");
+}
   if (tornTipElement) {
     const allTornTips = [
       "Read the tutorial. Seriously. It's the only free advice you'll get that isn't a scam.",
