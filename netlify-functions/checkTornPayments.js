@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
         const events = data.events;
         for (const eventId in events) {
             const eventText = events[eventId].event;
-            const paymentMatch = eventText.match(/You were sent (\d+)x Xanax from .* \[(\d+)]/);
+            const paymentMatch = eventText.match(/You were sent (\d+)x Xanax from .*?XID=(\d+)/);
 
             if (paymentMatch) {
                 const amount = paymentMatch[1];
