@@ -368,8 +368,8 @@ window.addEventListener('click', (event) => {
         // Determine the label based on the new property name from Firebase
         const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
         
-        // Update the text in the box
-        countdownContainer.textContent = `${label}: ${days}d ${hours}h ${minutes}m`;
+        // --- THIS IS THE ONLY LINE THAT HAS CHANGED ---
+        countdownContainer.textContent = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
         
         // Make sure the box is visible
         countdownContainer.style.display = 'block';
