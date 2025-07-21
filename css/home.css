@@ -539,6 +539,15 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     transform: scale(0.95); /* A subtle "press down" effect */
 }
 
+/* Styling for the new faction warning text inside the membership card */
+.faction-warning-text {
+    color: #ff6b6b; /* A nice, visible red color */
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-top: -5px; /* Pulls it a bit closer to the text above */
+    margin-bottom: 15px; /* Adds some space before the numbered list */
+}
+
 
 /* === RESPONSIVE STYLES === */
 @media (max-width: 960px) {
