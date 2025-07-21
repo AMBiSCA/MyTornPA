@@ -1372,7 +1372,42 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
         }
     });
 	
-	
+	// --- NEW: Logic for the Faction Membership Warning Modal (with protective wrapper) ---
+    (function() {
+        const factionWarningModal = document.getElementById('factionWarningModal');
+        const closeFactionWarningBtn = document.getElementById('closeFactionWarningBtn');
+        const cancelFactionPurchaseBtn = document.getElementById('cancelFactionPurchaseBtn');
+        const confirmFactionPurchaseBtn = document.getElementById('confirmFactionPurchaseBtn');
+        
+        const factionMonthBtn = document.getElementById('goToTornFactionMonthBtn');
+        const factionYearBtn = document.getElementById('goToTornFactionYearBtn');
+
+        // This function will show the warning modal
+        const showWarning = (event) => {
+            event.preventDefault(); // Stop the link from opening immediately
+            if (membershipOptionsModal) membershipOptionsModal.style.display = 'none';
+            if (factionWarningModal) factionWarningModal.style.display = 'flex';
+        };
+
+        if (factionMonthBtn) factionMonthBtn.addEventListener('click', showWarning);
+        if (factionYearBtn) factionYearBtn.addEventListener('click', showWarning);
+
+        // This function will hide the warning and show the main options again
+        const hideWarningAndShowOptions = () => {
+            if (factionWarningModal) factionWarningModal.style.display = 'none';
+            if (membershipOptionsModal) membershipOptionsModal.style.display = 'flex';
+        };
+
+        if (cancelFactionPurchaseBtn) cancelFactionPurchaseBtn.addEventListener('click', hideWarningAndShowOptions);
+        if (closeFactionWarningBtn) closeFactionWarningBtn.addEventListener('click', hideWarningAndShowOptions);
+
+        // Also hide the warning if they click the final "Continue" button
+        if (confirmFactionPurchaseBtn) {
+            confirmFactionPurchaseBtn.addEventListener('click', () => {
+                if (factionWarningModal) factionWarningModal.style.display = 'none';
+            });
+        }
+    })();
   
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
