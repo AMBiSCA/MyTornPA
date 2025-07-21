@@ -265,7 +265,7 @@
                         </li>
                     </ol>
                 </div>
-                <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
+                <a href="https://www.torn.com/item.php" target="_blank" id="goToTornFactionMonthBtn" class="btn membership-select-btn">Go to Torn Items</a>
             </div>
             
             <div class="membership-option-card yearly-membership-card card-faction-yearly">
@@ -281,7 +281,7 @@
                         </li>
                     </ol>
                 </div>
-                <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
+                <a href="https://www.torn.com/item.php" target="_blank" id="goToTornFactionYearBtn" class="btn membership-select-btn">Go to Torn Items</a>
             </div>
         </div>
 
@@ -338,6 +338,18 @@
         <div class="modal-actions">
             <button id="goToProfileFromTermsPromptBtn" class="button is-primary">Go to Profile</button>
             <button id="closeTermsModalBtn" class="button">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="factionWarningModal">
+    <div class="modal-content-box confirmation-modal">
+        <span class="modal-close-button" id="closeFactionWarningBtn">&times;</span>
+        <h3>⚠️ Faction Membership Confirmation</h3>
+        <p>Please confirm that you are a Leader or Co-Leader of your faction. Activating this will grant membership to your **entire faction**.</p>
+        <div class="confirmation-actions">
+            <a href="https://www.torn.com/item.php" target="_blank" id="confirmFactionPurchaseBtn" class="btn membership-select-btn">Continue to Torn</a>
+            <button id="cancelFactionPurchaseBtn" class="btn btn-confirm-no">Cancel</button>
         </div>
     </div>
 </div>
