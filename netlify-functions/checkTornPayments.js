@@ -3,39 +3,31 @@ const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 
 // --- CONFIGURATION ---
-// Initialize Firebase Admin SDK
-// This part is special: it decodes your Base64 credential and gets the project ID
 const serviceAccountString = Buffer.from(process.env.FIREBASE_CREDENTIALS_BASE64, 'base64').toString('utf8');
 const serviceAccount = JSON.parse(serviceAccountString);
 const projectId = serviceAccount.project_id;
 
-// Initialize the app if it's not already initialized
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: `https://${projectId}.firebaseio.com`,
   });
 }
-
 const db = admin.firestore();
 
-// Get the Torn API key from your Netlify settings
 const MY_API_KEY = process.env.TORN_API_KEY; 
 const TORN_API_URL = `https://api.torn.com/user/?selections=events&key=${MY_API_KEY}`;
 
 const MEMBERSHIP_PLANS = {
-    "15": { durationDays: 30, type: "solo" },
-    "150": { durationDays: 365, type: "solo" },
-    "40": { durationDays: 30, type: "faction" },
-    "400": { durationDays: 365, type: "faction" },
+    // --- UPDATED: Added a 'type' property to each plan ---
+    "15": { durationDays: 30, type: "solo_monthly" },
+    "150": { durationDays: 365, type: "solo_yearly" },
+    "40": { durationDays: 30, type: "faction_monthly" },
+    "400": { durationDays: 365, type: "faction_yearly" },
 };
 
 // --- THE MAIN HANDLER ---
-// This is the main body of the Netlify Function
 exports.handler = async (event, context) => {
-    // We can add a secret to the URL to prevent random people from running it
-    // For now, let's keep it simple.
-
     console.log("Running scheduled payment check...");
     
     try {
@@ -64,11 +56,7 @@ exports.handler = async (event, context) => {
             }
         }
         
-        // Return a success message
-        return {
-            statusCode: 200,
-            body: "Check completed successfully."
-        };
+        return { statusCode: 200, body: "Check completed successfully." };
 
     } catch (error) {
         console.error("An unhandled error occurred:", error);
@@ -77,7 +65,7 @@ exports.handler = async (event, context) => {
 };
 
 
-// --- DATABASE HELPER FUNCTIONS (These are exactly the same as before) ---
+// --- DATABASE HELPER FUNCTIONS ---
 async function isNewTransaction(eventId) {
     const eventRef = db.collection("processedTornEvents").doc(String(eventId));
     const doc = await eventRef.get();
@@ -89,6 +77,7 @@ async function logProcessedTransaction(eventId) {
     await eventRef.set({ processedAt: new Date() });
 }
 
+// --- THIS FUNCTION IS THE ONE WITH THE FIX ---
 async function activateMembership(senderTornId, amount) {
     const plan = MEMBERSHIP_PLANS[amount];
     
@@ -96,10 +85,16 @@ async function activateMembership(senderTornId, amount) {
     const expiryDate = new Date(now);
     expiryDate.setDate(now.getDate() + plan.durationDays);
     const newMembershipEndTime = expiryDate.getTime();
+    
+    // This is the data we will save to the database
+    const updateData = {
+        membershipEndTime: newMembershipEndTime,
+        membershipType: plan.type // <-- THIS IS THE NEW, IMPORTANT LINE
+    };
 
     const usersRef = db.collection("userProfiles");
 
-    if (plan.type === "solo") {
+    if (plan.type.startsWith("solo")) { // Check if it's a solo plan
         const userQuery = usersRef.where("tornProfileId", "==", senderTornId).limit(1);
         const userSnapshot = await userQuery.get();
         if (userSnapshot.empty) {
@@ -107,9 +102,9 @@ async function activateMembership(senderTornId, amount) {
             return;
         }
         const userDocRef = userSnapshot.docs[0].ref;
-        await userDocRef.update({ membershipEndTime: newMembershipEndTime });
+        await userDocRef.update(updateData); // Update with both fields
 
-    } else if (plan.type === "faction") {
+    } else if (plan.type.startsWith("faction")) { // Check if it's a faction plan
         const payingUserQuery = usersRef.where("tornProfileId", "==", senderTornId).limit(1);
         const payingUserSnapshot = await payingUserQuery.get();
 
@@ -129,7 +124,7 @@ async function activateMembership(senderTornId, amount) {
 
         const batch = db.batch();
         factionSnapshot.forEach((doc) => {
-            batch.update(doc.ref, { membershipEndTime: newMembershipEndTime });
+            batch.update(doc.ref, updateData); // Update with both fields
         });
         await batch.commit();
         console.log(`Activated membership for ${factionSnapshot.size} users in faction ${factionId}`);
