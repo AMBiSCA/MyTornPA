@@ -356,20 +356,31 @@ window.addEventListener('click', (event) => {
         if (remainingTime <= 0) {
             clearInterval(membershipCountdownInterval); // Stop the timer
             countdownContainer.style.display = 'none'; // Hide the box
-            // We don't need to clear localStorage anymore, the data is in Firebase.
             return;
         }
 
-        // Calculate days, hours, and minutes
-        const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-        
-        // Determine the label based on the new property name from Firebase
+        // --- NEW LOGIC STARTS HERE ---
+
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
         const label = membershipInfo.membershipType === 'trial' ? 'Free Trial' : 'Membership';
+        let countdownText = '';
+
+        if (remainingTime > thirtyDaysInMs) {
+            // If MORE than 30 days are left, show only the total number of days
+            const days = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+            countdownText = `${label} ends in: ${days} days`;
+
+        } else {
+            // If 30 days or LESS are left, show the detailed d h m countdown
+            const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
+        }
         
-        // --- THIS IS THE ONLY LINE THAT HAS CHANGED ---
-        countdownContainer.textContent = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
+        countdownContainer.textContent = countdownText;
+
+        // --- NEW LOGIC ENDS HERE ---
         
         // Make sure the box is visible
         countdownContainer.style.display = 'block';
