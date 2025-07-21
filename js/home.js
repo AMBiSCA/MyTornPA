@@ -90,7 +90,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
-
+    // --- NEW: Logic for the Faction Membership Warning Modal ---
+    const factionWarningModal = document.getElementById('factionWarningModal');
+    const closeFactionWarningBtn = document.getElementById('closeFactionWarningBtn');
+    const cancelFactionPurchaseBtn = document.getElementById('cancelFactionPurchaseBtn');
+    const confirmFactionPurchaseBtn = document.getElementById('confirmFactionPurchaseBtn');
+    
+    // The "Go to Torn Items" buttons for the faction cards
+    const factionMonthBtn = document.getElementById('goToTornFactionMonthBtn');
+    const factionYearBtn = document.getElementById('goToTornFactionYearBtn');
     // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
@@ -1372,16 +1380,6 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
         }
     });
 	
-	// --- NEW: Logic for the Faction Membership Warning Modal ---
-    const factionWarningModal = document.getElementById('factionWarningModal');
-    const closeFactionWarningBtn = document.getElementById('closeFactionWarningBtn');
-    const cancelFactionPurchaseBtn = document.getElementById('cancelFactionPurchaseBtn');
-    const confirmFactionPurchaseBtn = document.getElementById('confirmFactionPurchaseBtn');
-    
-    // The "Go to Torn Items" buttons for the faction cards
-    const factionMonthBtn = document.getElementById('goToTornFactionMonthBtn');
-    const factionYearBtn = document.getElementById('goToTornFactionYearBtn');
-
     const showWarning = (event) => {
         event.preventDefault(); // Stop the link from opening immediately
         if (membershipOptionsModal) membershipOptionsModal.style.display = 'none'; // Hide the main modal
