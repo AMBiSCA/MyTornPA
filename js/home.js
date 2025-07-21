@@ -929,104 +929,143 @@ if (headerEditProfileBtn && auth && db) {
     });
 }
 
-    if (saveProfileBtn && auth && db) {
-        saveProfileBtn.addEventListener('click', async () => {
-			// --- START: NEW VALIDATION FOR TERMS CHECKBOX ---
-let termsErrorEl = document.getElementById('termsError'); // Try to get existing error element
+   if (saveProfileBtn && auth && db) {
+    saveProfileBtn.addEventListener('click', async () => {
+        // --- START: NEW VALIDATION FOR TERMS CHECKBOX ---
+        let termsErrorEl = document.getElementById('termsError'); // Try to get existing error element
 
-// Create the error message element if it doesn't exist
-if (!termsErrorEl) {
-    termsErrorEl = document.createElement('p');
-    termsErrorEl.id = 'termsError'; // Assign a unique ID for the error message
-    termsErrorEl.style.color = 'red';
-    termsErrorEl.style.fontSize = '0.9em';
-    termsErrorEl.style.marginTop = '5px'; // Adjust spacing as needed
-    termsErrorEl.style.marginBottom = '10px'; // Add some bottom margin
+        // Create the error message element if it doesn't exist
+        if (!termsErrorEl) {
+            termsErrorEl = document.createElement('p');
+            termsErrorEl.id = 'termsError'; // Assign a unique ID for the error message
+            termsErrorEl.style.color = 'red';
+            termsErrorEl.style.fontSize = '0.9em';
+            termsErrorEl.style.marginTop = '5px'; // Adjust spacing as needed
+            termsErrorEl.style.marginBottom = '10px'; // Add some bottom margin
 
-    // Find the element *after* which the error message should be inserted.
-    // This assumes your checkbox is directly contained in a form group or similar.
-    // We'll insert it after the checkbox itself, so it appears below it.
-    if (termsCheckbox) {
-        termsCheckbox.parentNode.insertBefore(termsErrorEl, termsCheckbox.nextSibling);
-    } else {
-        console.warn("Terms checkbox (id='termsAgreementProfileModal') not found. Cannot place error message.");
-        // As a fallback, you might append it to a general error area or the modal body
-        // if you absolutely cannot modify HTML structure around the checkbox.
-    }
-}
-// Hide any previous error message before checking
-termsErrorEl.textContent = '';
-termsErrorEl.style.display = 'none';
-
-// Validate terms checkbox
-if (termsCheckbox && !termsCheckbox.checked) {
-    termsErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
-    termsErrorEl.style.display = 'block'; // Make it visible
-
-    // Hide the error after 5 seconds
-    setTimeout(() => {
-        if (termsErrorEl) { // Check if element still exists before trying to hide
-            termsErrorEl.style.display = 'none';
-            termsErrorEl.textContent = ''; // Clear text
+            if (termsCheckbox) {
+                termsCheckbox.parentNode.insertBefore(termsErrorEl, termsCheckbox.nextSibling);
+            } else {
+                console.warn("Terms checkbox (id='termsAgreementProfileModal') not found. Cannot place error message.");
+            }
         }
-    }, 5000); // 5 seconds
+        // Hide any previous error message before checking
+        termsErrorEl.textContent = '';
+        termsErrorEl.style.display = 'none';
 
-    return; // Stop the function here if validation fails
-}
-// --- END: NEW VALIDATION FOR TERMS CHECKBOX ---
-            if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) { if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.'; return; }
-            if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-            const preferredNameVal = preferredNameInput.value.trim();
-            if (!preferredNameVal) { if (nameErrorEl) nameErrorEl.textContent = 'Name required.'; return; }
-            if (preferredNameVal.length > 10) { if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.'; return; }
-            if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) { if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.'; return; }
-            const user = auth.currentUser;
-            const profileDataToSave = {
-                preferredName: preferredNameVal,
-                tornApiKey: profileSetupApiKeyInput.value.trim() || null,
-                tornProfileId: String(profileSetupProfileIdInput.value.trim() || ''),
-                termsAgreed: termsCheckbox ? termsCheckbox.checked : false, // Add this line
-                profileSetupComplete: true,
-                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-            };
+        // Validate terms checkbox
+        if (termsCheckbox && !termsCheckbox.checked) {
+            termsErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
+            termsErrorEl.style.display = 'block'; // Make it visible
 
-            try {
-                const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                const currentDoc = await userProfileRef.get();
-
-                if (!currentDoc.exists) {
-                    profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
+            setTimeout(() => {
+                if (termsErrorEl) { // Check if element still exists before trying to hide
+                    termsErrorEl.style.display = 'none';
+                    termsErrorEl.textContent = ''; // Clear text
                 }
+            }, 5000); // 5 seconds
 
-                if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                    profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                    profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-                }
+            return; // Stop the function here if validation fails
+        }
+        // --- END: NEW VALIDATION FOR TERMS CHECKBOX ---
 
-                await userProfileRef.set(profileDataToSave, { merge: true });
-        if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-        if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-        if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
-        else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
-        hideProfileSetupModal();
-        const updatedProfile = { ...currentUserProfile, ...profileDataToSave };
-        currentUserProfile = updatedProfile;
-		console.log("2. Profile updated after save:", currentUserProfile); // <-- ADD THIS
-        updateToolLinksAccess(updatedProfile);
-        if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.';
+            return;
+        }
+        // Clear previous error messages
+        if (nameErrorEl) nameErrorEl.textContent = '';
+        if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
+
+        const preferredNameVal = preferredNameInput.value.trim();
+        const apiKeyVal = profileSetupApiKeyInput.value.trim();
+        const profileIdVal = profileSetupProfileIdInput.value.trim();
+
+
+        // --- Name Validation ---
+        if (!preferredNameVal) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
+            return;
+        }
+        if (preferredNameVal.length > 10) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
+            return;
+        }
+        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
+            if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
+            return;
+        }
         
-        if (profileDataToSave.tornApiKey) {
-                    fetchAllRequiredData(user, db);
-                } else {
-                    clearQuickStats();
-                    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                    if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
-                }
+        // --- REQUIRED FIELD VALIDATION (MODIFIED) ---
+        if (!apiKeyVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
+            return; // Stop execution
+        }
+        if (!profileIdVal) {
+             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
+             return; // Stop execution
+        }
+        // --- END OF VALIDATION ---
 
-            } catch (error) { console.error("Error saving profile: ", error); if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving."; }
-        });
-    }
-// ADD THIS ENTIRE NEW BLOCK
+        const user = auth.currentUser;
+        const profileDataToSave = {
+            preferredName: preferredNameVal,
+            tornApiKey: apiKeyVal, // Use the validated value, no longer optional
+            tornProfileId: String(profileIdVal), // Use the validated value, no longer optional
+            termsAgreed: termsCheckbox ? termsCheckbox.checked : false,
+            profileSetupComplete: true,
+            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+        };
+
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const currentDoc = await userProfileRef.get();
+
+            if (!currentDoc.exists) {
+                profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            await userProfileRef.set(profileDataToSave, {
+                merge: true
+            });
+            if (user.displayName !== preferredNameVal) await user.updateProfile({
+                displayName: preferredNameVal
+            });
+            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
+            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
+                displayRandomTip();
+                localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
+            } else if (tornTipPlaceholderEl) {
+                tornTipPlaceholderEl.style.display = 'none';
+            }
+            hideProfileSetupModal();
+            const updatedProfile = { ...currentUserProfile,
+                ...profileDataToSave
+            };
+            currentUserProfile = updatedProfile;
+            console.log("2. Profile updated after save:", currentUserProfile); // <-- ADD THIS
+            updateToolLinksAccess(updatedProfile);
+            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
+
+            if (profileDataToSave.tornApiKey) {
+                fetchAllRequiredData(user, db);
+            } else {
+                clearQuickStats();
+                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
+                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+            }
+
+        } catch (error) {
+            console.error("Error saving profile: ", error);
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving.";
+        }
+    });
+}
 // REPLACE your existing toolsSection listener with this full block
 const toolsSection = document.getElementById('toolsSection');
 if (toolsSection) {
