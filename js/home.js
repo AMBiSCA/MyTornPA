@@ -1337,7 +1337,40 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
             // For now, it just alerts.
         });
     }
+	
+	
+// --- NEW: Logic for the "Copy" buttons in the Membership Modal ---
+    document.addEventListener('click', function(event) {
 
+        // Check if the clicked element is one of our copy buttons
+        if (event.target.matches('.copy-btn')) {
+            
+            // Find the ID of the text we need to copy from the button's 'data-copy-target' attribute
+            const targetId = event.target.dataset.copyTarget;
+            const targetElement = document.getElementById(targetId);
+
+            if (targetElement) {
+                // Get the text content (e.g., "AMBiSCA [2662550]")
+                const textToCopy = targetElement.textContent;
+
+                // Use the modern navigator.clipboard API to copy the text
+                navigator.clipboard.writeText(textToCopy.trim()).then(() => {
+                    
+                    // --- Provide feedback to the user ---
+                    const originalText = event.target.textContent; // "Copy"
+                    event.target.textContent = 'Copied!'; // Change button text
+                    
+                    // Change it back to "Copy" after 2 seconds
+                    setTimeout(() => {
+                        event.target.textContent = originalText;
+                    }, 2000);
+
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            }
+        }
+    });
   
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
