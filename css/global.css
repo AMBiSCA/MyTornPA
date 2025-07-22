@@ -424,7 +424,6 @@ ul li:last-child { border-bottom: none; }
 #firebaseui-auth-container {
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
-
 /* ======================================= */
 /* ======== CHAT SYSTEM STYLES =========== */
 /* ======================================= */
@@ -478,17 +477,12 @@ ul li:last-child { border-bottom: none; }
 
 /* A utility class to hide elements */
 .hidden {
-    display: none !important;
+    display: none !important; /* Use !important to ensure it overrides other display properties */
 }
 
 /* ======================================= */
 /* ====== NEW TAB SYSTEM STYLES ========== */
 /* ======================================= */
-
-/* Utility class to hide elements */
-.hidden {
-    display: none !important; /* Use !important to ensure it overrides other display properties */
-}
 
 /* Main container for the tab buttons */
 .chat-main-tabs-container {
@@ -545,9 +539,8 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* Specific styling for Faction and War chat panels */
-/* Combined both as they share the same layout requirements */
 #faction-chat-panel,
-#war-chat-panel { /* ADDED #war-chat-panel HERE */
+#war-chat-panel {
     display: flex;
     flex-direction: column;
     height: 100%; /* Ensures they fill the parent height */
@@ -588,9 +581,8 @@ ul li:last-child { border-bottom: none; }
 
 
 /* We need to make sure the chat-display-area and input are sized correctly now */
-/* Combined both display areas as they share the same styling */
 #chat-display-area, /* Faction chat display area */
-#war-chat-display-area { /* ADDED #war-chat-display-area HERE */
+#war-chat-display-area {
     flex-grow: 1; /* This makes the message area take up all available space */
     padding: 10px;
     overflow-y: auto;
@@ -652,16 +644,25 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* ------------------------------------- */
-/* Friends Panel Specific Styles        */
+/* Friends Panel Specific Styles         */
 /* ------------------------------------- */
+
+/* Ensure friends-panel is a flex container and takes full height */
+#friends-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #0d1b2a; /* Added background for visibility */
+}
 
 .friends-panel-subtabs {
     display: flex;
-    justify-content: flex-start; /* Align tabs to the start */
+    justify-content: flex-start;
     background-color: #1b263b;
     padding: 5px;
     border-bottom: 1px solid #415a77;
     flex-shrink: 0;
+    flex-wrap: wrap; /* Allow sub-tabs to wrap */
 }
 
 .friends-panel-subtabs .sub-tab-button {
@@ -672,7 +673,7 @@ ul li:last-child { border-bottom: none; }
     cursor: pointer;
     font-size: 0.9em;
     border-radius: 3px;
-    margin-right: 5px; /* Space between sub-tabs */
+    margin-right: 5px;
     transition: background-color 0.2s;
 }
 
@@ -709,13 +710,13 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px; /* Adjust as needed for icon size */
+    width: 30px;
 }
 
 .friends-panel-content {
-    flex-grow: 1; /* Allows content area to take remaining space */
+    flex-grow: 1;
     padding: 10px;
-    overflow-y: auto; /* Enable scrolling for content */
+    overflow-y: auto;
     background-color: #0d1b2a;
     color: #e0e1dd;
 }
