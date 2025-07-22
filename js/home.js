@@ -225,19 +225,31 @@ window.addEventListener('click', (event) => {
         const days = Math.floor(hrs / 24); return `${days} day${days === 1 ? "" : "s"} ago`;
     }
 	
-	function updateToolLinksAccess(profile) {
+async function updateToolLinksAccess(profile) {
     const toolLinks = document.querySelectorAll('.tool-item-button');
-    // If there's no profile for some reason, do nothing.
-    if (!profile) return;
+    if (!profile) {
+        toolLinks.forEach(link => {
+            if (link.classList.contains('member-only')) {
+                link.classList.add('disabled-link');
+            }
+        });
+        return;
+    }
+
+    // --- MODIFIED MEMBERSHIP CHECK ---
+    const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+    const hasPersonalComp = profile.hasFreeAccess === true;
+    const hasFactionComp = await isFactionComped(profile, db); // Check the leader's status
+
+    const isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
+    // --- END MODIFICATION ---
 
     const hasAgreedToTerms = profile.termsAgreed === true;
-    const isMember = profile.membershipEndTime && profile.membershipEndTime > Date.now();
 
     toolLinks.forEach(link => {
         const isRestrictedByTerms = !hasAgreedToTerms;
         const isRestrictedByMembership = link.classList.contains('member-only') && !isMember;
 
-        // Visually disable the link if either rule applies
         if (isRestrictedByTerms || isRestrictedByMembership) {
             link.classList.add('disabled-link');
         } else {
@@ -983,42 +995,38 @@ if (headerEditProfileBtn && auth && db) {
     });
 }
 
-
-
-// REPLACE your existing toolsSection listener with this full block
 const toolsSection = document.getElementById('toolsSection');
 if (toolsSection) {
-    toolsSection.addEventListener('click', function(event) {
-        // Find the actual link that was clicked on
+    toolsSection.addEventListener('click', async function(event) { // Note: now async
         const link = event.target.closest('.tool-item-button');
         if (!link) {
-            return; // Exit if the click wasn't on a tool link
+            return;
         }
 
         const profile = currentUserProfile;
-        console.log("Profile at moment of click:", profile);
+        
+        // --- MODIFIED MEMBERSHIP CHECK ---
+        let isMember = false;
+        if (profile) {
+            const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+            const hasPersonalComp = profile.hasFreeAccess === true;
+            const hasFactionComp = await isFactionComped(profile, db); // Check the leader's status
 
-        // --- START OF THE FIX ---
-        // A user without a profile is treated as someone who hasn't agreed to terms.
-        // We check if the profile exists *before* trying to read properties from it.
+            isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
+        }
+        // --- END MODIFICATION ---
+
         const hasAgreedToTerms = profile ? profile.termsAgreed === true : false;
-        const isMember = profile ? (profile.membershipEndTime && profile.membershipEndTime > Date.now()) : false;
-        // --- END OF THE FIX ---
-        
         const needsMembership = link.classList.contains('member-only');
-        
-        // --- Apply Click Rules ---
+
         if (!hasAgreedToTerms) {
-            console.log("Link blocked: Terms not agreed (or profile is missing).");
-            event.preventDefault(); // Stop the link from working
-            if (termsPromptModal) termsPromptModal.style.display = 'flex'; // Show the terms prompt
+            event.preventDefault();
+            if (termsPromptModal) termsPromptModal.style.display = 'flex';
         } else if (needsMembership && !isMember) {
-            console.log("Link blocked: Membership required.");
-            event.preventDefault(); // Stop the link from working
+            event.preventDefault();
             const subscribeModal = document.getElementById('subscribePromptModal');
             if (subscribeModal) subscribeModal.style.display = 'flex';
         }
-        // If neither rule applies, the link works normally.
     });
 }
     if (auth) {
@@ -1306,6 +1314,8 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
             // For now, it just alerts.
         });
     }
+	
+	
 	
 	
 // --- NEW: Logic for the "Copy" buttons in the Membership Modal ---
