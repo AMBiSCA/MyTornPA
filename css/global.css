@@ -465,36 +465,89 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    width: 300px;
-    height: 400px;
+    width: 350px; /* A little wider for tabs */
+    height: 450px; /* A little taller */
     background-color: #1b263b;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevents content from spilling out */
 }
 
-#chat-window-header {
-    padding: 10px;
-    background-color: #0d1b2a;
-    color: #e0e1dd;
-    font-weight: bold;
+/* A utility class to hide elements */
+.hidden {
+    display: none !important;
+}
+
+/* ======================================= */
+/* ====== NEW TAB SYSTEM STYLES ========== */
+/* ======================================= */
+
+/* Main container for the tab buttons */
+.chat-main-tabs-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-between; /* This pushes the two inner containers apart */
+    background-color: #0d1b2a;
+    padding: 3px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents the tab bar from shrinking */
 }
 
-#close-chat-button {
-    background: none;
-    border: none;
+#dynamic-tabs-container,
+#static-tabs-container {
+    display: flex; /* Makes tabs inside sit side-by-side */
+    gap: 3px; /* Space between tabs */
+}
+
+/* Individual tab buttons */
+.chat-tab {
+    background-color: #1b263b;
+    border: 1px solid #415a77;
     color: #e0e1dd;
-    font-size: 20px;
+    padding: 8px 12px;
     cursor: pointer;
+    font-size: 16px; /* Adjust icon size */
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
-.chat-messages-scroll-wrapper {
-    flex-grow: 1; 
+.chat-tab:hover {
+    background-color: #415a77;
+}
+
+/* Style for the currently active tab */
+.chat-tab.active {
+    background-color: #3a506b;
+    border-bottom: 1px solid #5bc0de;
+    color: #fff;
+}
+
+/* Main container for all tab content panels */
+.chat-panels-container {
+    flex-grow: 1;
+    position: relative;
+    display: flex; 
+    flex-direction: column;
+}
+
+.chat-panel {
+    width: 100%;
+    height: 100%;
+    display: flex; 
+    flex-direction: column;
+}
+
+/* We need to make sure the chat-display-area and input are sized correctly now */
+#faction-chat-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#chat-display-area {
+    flex-grow: 1; /* This makes the message area take up all available space */
     padding: 10px;
     overflow-y: auto; 
     color: #e0e1dd;
@@ -504,6 +557,7 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     padding: 10px;
     border-top: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents input from shrinking */
 }
 
 .chat-text-input {
@@ -521,11 +575,6 @@ ul li:last-child { border-bottom: none; }
     cursor: pointer;
 }
 
-/* A utility class to hide elements */
-.hidden {
-    display: none !important;
-}
-
 /* Styles for individual messages */
 .chat-message {
     margin-bottom: 8px;
@@ -541,7 +590,7 @@ ul li:last-child { border-bottom: none; }
 
 .chat-sender {
     font-weight: bold;
-    color: #a9c5de; /* A slightly lighter blue for the sender's name */
+    color: #a9c5de; 
     margin-right: 6px;
 }
 
