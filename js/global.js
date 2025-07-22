@@ -73,6 +73,29 @@ function initializeGlobals() {
                 const friendsPanelContent = document.querySelector('#friends-panel .friends-panel-content');
                 const recentlyMetSubTab = document.querySelector('.sub-tab-button[data-subtab="recently-met"]');
                 const factionMembersSubTab = document.querySelector('.sub-tab-button[data-subtab="faction-members"]');
+const DEFAULT_PROFILE_ICONS = [
+    '../../images/account.png',
+    '../../images/avatar-design.png',
+    '../../images/boy.png',
+    '../../images/boys.png',
+    '../../images/boysy.png',
+    '../../images/business-man.png',
+    '../../images/customer-service.png',
+	'../../images/circle.png',
+    '../../images/display-pic.png',
+    '../../images/man.png', // The outline man icon
+    '../../images/man3w.png', // The black & white outline man
+    '../../images/mans.png',
+    '../../images/men.png', // The mostly black icon. Review if suitable.
+    '../../images/office-man.png',
+    '../../images/bussiness-man.png',
+    '../../images/piccy.png', // The dark silhouette head. Review if suitable.
+    '../../images/profile.png', // The black square. Review if suitable.
+    '../../images/user.png', // The blue gradient circular user.
+    '../../images/user2.png', // The black square. Review if suitable.
+    '../../images/user-image-with-black-background.png',
+    '../../images/working.png'
+];
 
 
                 // --- Helper to open a specific chat panel and hide others ---
@@ -407,22 +430,18 @@ function initializeGlobals() {
     }
 } // END of initializeGlobals function
 
-
 async function populateRecentlyMetTab(targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Recently Met tab.");
         return;
     }
 
-    // Set a simple loading message without the extra title
     targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
 
     try {
-        // Step 1: Fetch the last 5 wars to get their IDs
-        // Ensure userApiKey and globalYourFactionID are accessible.
-        // They should be populated from window.userTornApiKey and window.currentUserFactionId respectively.
         const userApiKey = window.userTornApiKey;
         const globalYourFactionID = window.currentUserFactionId;
+        const db = firebase.firestore(); // Ensure db is accessible
 
         if (!userApiKey || !globalYourFactionID) {
             targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">API key or Faction ID not available. Please log in.</p>`;
@@ -441,14 +460,12 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             return;
         }
 
-        // Step 2: Fetch detailed reports for those wars
         targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
         const reportPromises = wars.map(war =>
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
 
-        // Step 3: Aggregate and deduplicate all opponents
         const opponentsMap = new Map();
         warReports.forEach(reportData => {
             const report = reportData.rankedwarreport;
@@ -458,7 +475,8 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             if (opponentFaction && opponentFaction.members) {
                 opponentFaction.members.forEach(member => {
                     if (!opponentsMap.has(member.id)) {
-                        opponentsMap.set(member.id, { id: member.id, name: member.name });
+                        // Store full member object including name, and potentially rank if available from API
+                        opponentsMap.set(member.id, { id: member.id, name: member.name, position: 'Opponent' }); // Default position for display
                     }
                 });
             }
@@ -470,64 +488,131 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             return;
         }
 
-        // Step 4: Check registration status in chunks
-        const registeredUserIds = new Set();
+        // Fetch registered user profile images from 'users' collection
+        const registeredUsersData = new Map();
         const chunkSize = 30;
-        const db = firebase.firestore(); // Access Firestore here
         for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
             const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
-            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
+            const querySnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get();
             querySnapshot.forEach(doc => {
-                registeredUserIds.add(doc.data().tornProfileId);
+                registeredUsersData.set(doc.id, doc.data());
             });
         }
 
-        // Step 5: Build the final HTML grid
         const membersListContainer = document.createElement('div');
-        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
-
-        // Define DEFAULT_PROFILE_ICONS if it's not defined globally elsewhere
-        const DEFAULT_PROFILE_ICONS = ['../../images/default_profile_icon.png']; // Add more paths if you have other default icons
+        membersListContainer.className = 'members-list-container';
 
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
-            const isRegistered = registeredUserIds.has(String(opponent.id));
-            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
-            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
+            const tornPlayerId = String(opponent.id);
+            const memberName = opponent.name || `Unknown (${tornPlayerId})`;
+            // For recently met, we don't have a 'rank' from your Torn API fetch,
+            // so using 'Opponent' or an empty string. If Torn API for war reports
+            // provides rank, use opponent.position instead.
+            const memberRank = opponent.position || ''; // Use 'Opponent' if you want a label for all of them
+            const registeredUserData = registeredUsersData.get(tornPlayerId);
+            const profilePic = registeredUserData?.profile_image || DEFAULT_PROFILE_ICONS[0]; // Use first default if no custom pic
 
             let messageButton;
-            if (isRegistered) {
-                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
-            } else {
-                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
+            if (registeredUserData) { // If registered on MyTornPA, allow internal message
+                messageButton = `<button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message on MyTornPA">✉️</button>`;
+            } else { // Otherwise, link to Torn's message system
+                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${tornPlayerId}`;
                 messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
 
+            // You'll need `auth` object for the click listener below, ensure it's accessible.
+            // Since populateRecentlyMetTab is outside initializeGlobals, you need to pass `auth` or get it globally.
+            // For now, I'm assuming it's available in the scope where this function runs or can be passed.
+            // If not, you might need to refactor `initializeGlobals` to expose `auth` via `window`.
+
             cardsHtml += `
                 <div class="member-item">
-                    <div class="member-identity">
-                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
-                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
+                    <div class="member-info-left">
+                        <span class="member-rank">${memberRank}</span>
+                        <div class="member-identity">
+                            <img src="${profilePic}" alt="${memberName}'s profile pic" class="member-profile-pic">
+                            <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="member-name">${memberName} [${tornPlayerId}]</a>
+                        </div>
                     </div>
                     <div class="member-actions">
-                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                        <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">👤<span class="plus-sign">+</span></button>
                         ${messageButton}
+                        <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
                     </div>
                 </div>
             `;
         }
 
         membersListContainer.innerHTML = cardsHtml;
-        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
+        targetDisplayElement.innerHTML = '';
         targetDisplayElement.appendChild(membersListContainer);
+
+        // Add event listeners for the dynamically created buttons
+        membersListContainer.addEventListener('click', async (event) => {
+            const clickedButton = event.target.closest('button');
+            const clickedLink = event.target.closest('a.profile-link-button');
+
+            const element = clickedButton || clickedLink;
+            if (!element) return;
+
+            const memberId = element.dataset.memberId;
+            // You will need to ensure 'auth' is available here, e.g., pass it to the function or make it global.
+            // For now, assuming it's available.
+            if (!memberId || !firebase.auth().currentUser) return; // Use firebase.auth() if 'auth' isn't directly in scope
+
+            const currentUserId = firebase.auth().currentUser.uid; // Use firebase.auth()
+            const friendDocRef = firebase.firestore().collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId); // Use firebase.firestore()
+
+            if (element.classList.contains('add-member-button')) {
+                try {
+                    await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    console.log(`Added friend: ${memberId}`);
+                    // Re-populate to update friend status
+                    populateRecentlyMetTab(targetDisplayElement);
+                } catch (error) {
+                    console.error("Error adding friend:", error);
+                    alert("Failed to add friend. See console for details.");
+                }
+            } else if (element.classList.contains('remove-friend-button')) {
+                // Assuming showCustomConfirm is available globally
+                const userConfirmed = await showCustomConfirm(`Are you sure you want to remove ${memberId} from your friends list?`, "Confirm Friend Removal");
+                if (!userConfirmed) return;
+                try {
+                    await friendDocRef.delete();
+                    console.log(`Removed friend: ${memberId}`);
+                    // Re-populate to update friend status
+                    populateRecentlyMetTab(targetDisplayElement);
+                } catch (error) {
+                    console.error("Error removing friend:", error);
+                    alert("Failed to remove friend. See console for details.");
+                }
+            } else if (element.classList.contains('message-button') && registeredUsersData.has(memberId)) {
+                console.log(`Message button clicked for member ID: ${memberId}. Switching to private chat.`);
+                const privateChatTabButton = document.querySelector('.chat-tab[data-tab-target="private-chat-panel"]'); // Corrected data-tab-target
+                if (privateChatTabButton) {
+                    privateChatTabButton.click();
+                    setTimeout(() => {
+                        if (typeof selectPrivateChat === 'function') {
+                            selectPrivateChat(memberId);
+                        } else {
+                            console.warn("selectPrivateChat function not available.");
+                            alert("Private chat functionality is not fully loaded. Please try again or refresh.");
+                        }
+                    }, 100);
+                } else {
+                    console.warn("Private Chat tab button not found. Cannot switch tab.");
+                    // Fallback to Torn messages if internal private chat not ready or button not found
+                    window.open(`https://www.torn.com/messages.php#/p=compose&XID=${memberId}`, '_blank');
+                }
+            }
+        });
 
     } catch (error) {
         console.error("Error populating Recently Met tab:", error);
         targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
     }
 }
-
-
 // This function must also be outside initializeGlobals but in the same script file
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     const db = firebase.firestore();
