@@ -425,78 +425,204 @@ ul li:last-child { border-bottom: none; }
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
 
-/* ======================================= */
-/* ====== FRIENDS PANEL STYLES =========== */
-/* ======================================= */
+/* Global Chat System Positioning */
+#tornpa-chat-system {
+    position: fixed; /* Makes the element position relative to the viewport */
+    bottom: 20px; /* Adjust as needed, e.g., 20px from the bottom */
+    right: 20px; /* Adjust as needed, e.g., 20px from the right */
+    z-index: 1000; /* Ensures it appears above other content */
+    display: flex; /* Use flexbox to arrange the collapsed bar and window */
+    flex-direction: column; /* Stack them vertically */
+    align-items: flex-end; /* Align items to the right */
+}
 
-/* This makes the Friends panel lay out its contents vertically */
-#friends-panel {
-    padding: 0; /* Remove padding to allow content to go edge-to-edge */
+/* Collapsed Chat Bar Styling */
+#chat-bar-collapsed {
+    background-color: #333; /* Dark background */
+    color: #fff; /* White text/icons */
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 10px; /* Space between icons */
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+#chat-bar-collapsed:hover {
+    background-color: #555;
+}
+
+.chat-bar-icon {
+    font-size: 24px;
+    line-height: 1; /* Helps with vertical alignment of emojis */
+}
+
+/* Chat Window Styling */
+#chat-window {
+    width: 300px; /* Adjust desired width */
+    height: 400px; /* Adjust desired height */
+    background-color: #222; /* Dark background for chat window */
+    border: 1px solid #00aaff; /* Blue border */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Hide overflowing content */
+    margin-top: 10px; /* Space between collapsed bar and window when open */
+    /* Position at the same bottom/right as the collapsed bar, but shifted up/left if needed */
 }
 
-/* Container for the sub-tab buttons */
-.friends-panel-subtabs {
+#chat-window.hidden {
+    display: none; /* Hide the chat window when collapsed */
+}
+
+/* Main Chat Tabs Container */
+.chat-main-tabs-container {
     display: flex;
-    background-color: #0d1b2a;
+    justify-content: space-between;
+    background-color: #1a1a1a;
     padding: 5px;
-    gap: 5px;
-    flex-shrink: 0;
+    border-bottom: 1px solid #00aaff;
 }
 
-.sub-tab-button {
-    flex-grow: 1; /* Makes all buttons share the space equally */
-    background-color: #1b263b;
-    border: 1px solid #415a77;
-    color: #e0e1dd;
-    padding: 6px;
+#static-tabs-container {
+    display: flex;
+}
+
+.chat-tab {
+    background-color: #333;
+    color: #eee;
+    border: none;
+    padding: 8px 12px;
     cursor: pointer;
-    font-size: 12px;
-    border-radius: 3px;
-    text-align: center;
+    margin-right: 5px;
+    border-radius: 5px;
+    font-size: 16px;
     transition: background-color 0.2s;
 }
 
-.sub-tab-button:hover {
-    background-color: #415a77;
+.chat-tab:last-child {
+    margin-right: 0;
 }
 
-.sub-tab-button.active {
-    background-color: #3a506b;
+.chat-tab:hover {
+    background-color: #444;
+}
+
+.chat-tab.active {
+    background-color: #00aaff;
     color: #fff;
 }
 
-/* Container for the search bar */
-.friends-panel-search {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    border-bottom: 1px solid #415a77;
-    background-color: #121e2c;
-    flex-shrink: 0;
+/* Chat Panels Container */
+.chat-panels-container {
+    flex-grow: 1; /* Allows panels to take available space */
+    padding: 10px;
+    overflow-y: auto; /* Enable scrolling for chat messages */
+    position: relative; /* For absolute positioning of sub-elements if needed */
 }
 
-.search-input {
-    flex-grow: 1;
-    border: 1px solid #778da9;
-    background-color: #e0e1dd;
-    color: #0d1b2a;
-    padding: 6px 10px;
-    border-radius: 3px;
+.chat-panel {
+    display: none; /* All panels hidden by default, JS shows active one */
+    height: 100%; /* Take full height of parent */
+    width: 100%; /* Take full width of parent */
+}
+
+.chat-panel.active {
+    display: block; /* Show the active panel */
+}
+
+/* Chat Display Area (for messages) */
+#chat-display-area {
+    height: calc(100% - 50px); /* Adjust based on input area height */
+    overflow-y: auto;
+    padding: 5px;
+    display: flex; /* Use flex for messages to push to bottom */
+    flex-direction: column;
+    justify-content: flex-end; /* Messages stick to the bottom */
+}
+
+.chat-message {
+    margin-bottom: 5px;
+    word-wrap: break-word;
+}
+
+.chat-timestamp {
+    color: #888;
+    font-size: 0.8em;
+    margin-right: 5px;
+}
+
+.chat-sender {
+    color: #00aaff;
+    font-weight: bold;
+}
+
+.chat-text {
+    color: #ddd;
+}
+
+/* Chat Input Area */
+.chat-input-area {
+    padding: 10px;
+    border-top: 1px solid #00aaff;
+    display: flex;
+    flex-direction: column; /* Stack quick links and input */
+    gap: 5px;
+}
+
+.quick-links-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quick-links-label {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.chat-input-buttons-top {
+    display: flex;
+    gap: 5px;
+}
+
+.chat-action-btn {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
     font-size: 14px;
 }
 
-.search-icon {
-    font-size: 18px;
-    margin-left: 8px;
-    cursor: pointer;
+.chat-action-btn:hover {
+    background-color: #666;
 }
 
-/* Container for the lists of users */
-.friends-panel-content {
+.chat-text-input {
     flex-grow: 1;
-    overflow-y: auto; /* Adds a scrollbar if the content is too long */
+    padding: 8px;
+    border: 1px solid #00aaff;
+    border-radius: 4px;
+    background-color: #333;
+    color: #fff;
+}
+
+.chat-send-btn {
+    background-color: #00aaff;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chat-send-btn:hover {
+    background-color: #0088cc;
 }
 
 @media (max-width: 768px) {
