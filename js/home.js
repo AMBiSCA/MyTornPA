@@ -902,88 +902,64 @@ if (headerEditProfileBtn && auth && db) {
 
    if (saveProfileBtn && auth && db) {
     saveProfileBtn.addEventListener('click', async () => {
-        // --- START: NEW VALIDATION FOR TERMS CHECKBOX ---
-        let termsErrorEl = document.getElementById('termsError'); // Try to get existing error element
-
-        // Create the error message element if it doesn't exist
-        if (!termsErrorEl) {
-            termsErrorEl = document.createElement('p');
-            termsErrorEl.id = 'termsError'; // Assign a unique ID for the error message
-            termsErrorEl.style.color = 'red';
-            termsErrorEl.style.fontSize = '0.9em';
-            termsErrorEl.style.marginTop = '5px'; // Adjust spacing as needed
-            termsErrorEl.style.marginBottom = '10px'; // Add some bottom margin
-
-            if (termsCheckbox) {
-                termsCheckbox.parentNode.insertBefore(termsErrorEl, termsCheckbox.nextSibling);
-            } else {
-                console.warn("Terms checkbox (id='termsAgreementProfileModal') not found. Cannot place error message.");
-            }
-        }
-        // Hide any previous error message before checking
-        termsErrorEl.textContent = '';
-        termsErrorEl.style.display = 'none';
-
-        // Validate terms checkbox
-        if (termsCheckbox && !termsCheckbox.checked) {
-            termsErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
-            termsErrorEl.style.display = 'block'; // Make it visible
-
-            setTimeout(() => {
-                if (termsErrorEl) { // Check if element still exists before trying to hide
-                    termsErrorEl.style.display = 'none';
-                    termsErrorEl.textContent = ''; // Clear text
-                }
-            }, 5000); // 5 seconds
-
-            return; // Stop the function here if validation fails
-        }
-        // --- END: NEW VALIDATION FOR TERMS CHECKBOX ---
-
-        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error.';
-            return;
-        }
-        // Clear previous error messages
-        if (nameErrorEl) nameErrorEl.textContent = '';
+        // Define the single, central element for all profile modal errors
+        const profileSetupErrorEl = document.getElementById('profileSetupError');
+        
+        // --- Start Validation ---
+        // First, clear any previous error messages
         if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
 
+        // 1. Validate Terms Checkbox
+        if (termsCheckbox && !termsCheckbox.checked) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
+            return; // Stop the function
+        }
+        
+        // 2. Check that form elements exist
+        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error. Please refresh and try again.';
+            return;
+        }
+
+        // Get form values
         const preferredNameVal = preferredNameInput.value.trim();
         const apiKeyVal = profileSetupApiKeyInput.value.trim();
         const profileIdVal = profileSetupProfileIdInput.value.trim();
 
-
-        // --- Name Validation ---
+        // 3. Validate Preferred Name
         if (!preferredNameVal) {
-            if (nameErrorEl) nameErrorEl.textContent = 'Name required.';
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Preferred Display Name is a required field.';
             return;
         }
         if (preferredNameVal.length > 10) {
-            if (nameErrorEl) nameErrorEl.textContent = 'Max 10 chars.';
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Display Name cannot be more than 10 characters.';
             return;
         }
         if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-            if (nameErrorEl) nameErrorEl.textContent = 'Name not allowed.';
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'The chosen Display Name is not allowed.';
             return;
         }
-        
-        // --- REQUIRED FIELD VALIDATION (MODIFIED) ---
+
+        // 4. Validate API Key
         if (!apiKeyVal) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
-            return; // Stop execution
+            return;
         }
+
+        // 5. Validate Torn Profile ID
         if (!profileIdVal) {
-             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
-             return; // Stop execution
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
+            return;
         }
-        // --- END OF VALIDATION ---
+        // --- End of Validation ---
+
 
         const user = auth.currentUser;
         const profileDataToSave = {
             preferredName: preferredNameVal,
-            tornApiKey: apiKeyVal, // Use the validated value, no longer optional
-            tornProfileId: String(profileIdVal), // Use the validated value, no longer optional
-            termsAgreed: termsCheckbox ? termsCheckbox.checked : false,
+            tornApiKey: apiKeyVal,
+            tornProfileId: String(profileIdVal),
+            termsAgreed: termsCheckbox.checked,
             profileSetupComplete: true,
             shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
         };
@@ -1001,12 +977,8 @@ if (headerEditProfileBtn && auth && db) {
                 profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
             }
 
-            await userProfileRef.set(profileDataToSave, {
-                merge: true
-            });
-            if (user.displayName !== preferredNameVal) await user.updateProfile({
-                displayName: preferredNameVal
-            });
+            await userProfileRef.set(profileDataToSave, { merge: true });
+            if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
             if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
             if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
                 displayRandomTip();
@@ -1015,25 +987,23 @@ if (headerEditProfileBtn && auth && db) {
                 tornTipPlaceholderEl.style.display = 'none';
             }
             hideProfileSetupModal();
-            const updatedProfile = { ...currentUserProfile,
-                ...profileDataToSave
-            };
+            const updatedProfile = { ...currentUserProfile, ...profileDataTosave };
             currentUserProfile = updatedProfile;
-            console.log("2. Profile updated after save:", currentUserProfile); // <-- ADD THIS
+            console.log("2. Profile updated after save:", currentUserProfile);
             updateToolLinksAccess(updatedProfile);
             if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-
+            
             if (profileDataToSave.tornApiKey) {
                 fetchAllRequiredData(user, db);
             } else {
                 clearQuickStats();
                 if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                if (document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+                if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
             }
 
         } catch (error) {
             console.error("Error saving profile: ", error);
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving.";
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving profile. Please try again.";
         }
     });
 }
