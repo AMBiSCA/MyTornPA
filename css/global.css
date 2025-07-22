@@ -589,6 +589,30 @@ ul li:last-child { border-bottom: none; }
     color: #e0e1dd;
 }
 
+/* Styles for the chat display area scrollbar */
+#chat-display-area::-webkit-scrollbar,
+#war-chat-display-area::-webkit-scrollbar {
+    width: 8px; /* Or 10px if you prefer a slightly wider one */
+}
+
+#chat-display-area::-webkit-scrollbar-track,
+#war-chat-display-area::-webkit-scrollbar-track {
+    background: #1b263b; /* Background of the scrollbar track, slightly darker than the chat area */
+    border-radius: 10px;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb,
+#war-chat-display-area::-webkit-scrollbar-thumb {
+    background-color: #415a77; /* Color of the scrollbar thumb */
+    border-radius: 10px;
+    border: 2px solid #1b263b; /* Border around the thumb to match background */
+}
+
+#chat-display-area::-webkit-scrollbar-thumb:hover,
+#war-chat-display-area::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de; /* Lighter color on hover */
+}
+
 .chat-input-area {
     display: flex;
     padding: 10px;
