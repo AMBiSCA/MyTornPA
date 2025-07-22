@@ -1,5 +1,28 @@
-// global.js
-// This file contains global JavaScript functions and initialization for MyTornPA.
+
+const DEFAULT_PROFILE_ICONS = [
+    '../../images/account.png',
+    '../../images/avatar-design.png',
+    '../../images/boy.png',
+    '../../images/boys.png',
+    '../../images/boysy.png',
+    '../../images/business-man.png',
+    '../../images/customer-service.png',
+    '../../images/circle.png',
+    '../../images/display-pic.png',
+    '../../images/man.png',
+    '../../images/man3w.png',
+    '../../images/mans.png',
+    '../../images/men.png',
+    '../../images/office-man.png',
+    '../../images/bussiness-man.png',
+    '../../images/piccy.png',
+    '../../images/profile.png',
+    '../../images/user.png',
+    '../../images/user2.png',
+    '../../images/user-image-with-black-background.png',
+    '../../images/working.png'
+];
+
 
 function initializeGlobals() {
     // ---- Firebase Setup ----
@@ -15,7 +38,6 @@ function initializeGlobals() {
 
     // ---- Torn API Base URL (Made global via window later for functions outside this scope) ----
     const TORN_API_BASE_URL = 'https://api.torn.com/v2';
-
 
     // ---- Load the Footer ----
     // This should ideally be outside initializeGlobals if it causes issues,
@@ -73,29 +95,7 @@ function initializeGlobals() {
                 const friendsPanelContent = document.querySelector('#friends-panel .friends-panel-content');
                 const recentlyMetSubTab = document.querySelector('.sub-tab-button[data-subtab="recently-met"]');
                 const factionMembersSubTab = document.querySelector('.sub-tab-button[data-subtab="faction-members"]');
-const DEFAULT_PROFILE_ICONS = [
-    '../../images/account.png',
-    '../../images/avatar-design.png',
-    '../../images/boy.png',
-    '../../images/boys.png',
-    '../../images/boysy.png',
-    '../../images/business-man.png',
-    '../../images/customer-service.png',
-	'../../images/circle.png',
-    '../../images/display-pic.png',
-    '../../images/man.png', // The outline man icon
-    '../../images/man3w.png', // The black & white outline man
-    '../../images/mans.png',
-    '../../images/men.png', // The mostly black icon. Review if suitable.
-    '../../images/office-man.png',
-    '../../images/bussiness-man.png',
-    '../../images/piccy.png', // The dark silhouette head. Review if suitable.
-    '../../images/profile.png', // The black square. Review if suitable.
-    '../../images/user.png', // The blue gradient circular user.
-    '../../images/user2.png', // The black square. Review if suitable.
-    '../../images/user-image-with-black-background.png',
-    '../../images/working.png'
-];
+
 
 
                 // --- Helper to open a specific chat panel and hide others ---
