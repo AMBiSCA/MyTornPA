@@ -485,6 +485,11 @@ ul li:last-child { border-bottom: none; }
 /* ====== NEW TAB SYSTEM STYLES ========== */
 /* ======================================= */
 
+/* Utility class to hide elements */
+.hidden {
+    display: none !important; /* Use !important to ensure it overrides other display properties */
+}
+
 /* Main container for the tab buttons */
 .chat-main-tabs-container {
     display: flex;
@@ -528,28 +533,67 @@ ul li:last-child { border-bottom: none; }
 .chat-panels-container {
     flex-grow: 1;
     position: relative;
-    display: flex; 
+    display: flex;
     flex-direction: column;
 }
 
 .chat-panel {
     width: 100%;
     height: 100%;
-    display: flex; 
-    flex-direction: column;
+    display: flex;
+    flex-direction: column; /* Ensure panels are column flex containers */
 }
 
-/* We need to make sure the chat-display-area and input are sized correctly now */
-#faction-chat-panel {
+/* Specific styling for Faction and War chat panels */
+/* Combined both as they share the same layout requirements */
+#faction-chat-panel,
+#war-chat-panel { /* ADDED #war-chat-panel HERE */
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100%; /* Ensures they fill the parent height */
 }
 
-#chat-display-area {
+/* Styles for the chat header (title and minimize button) */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #1b263b;
+    border-bottom: 1px solid #415a77;
+    color: #e0e1dd;
+    font-weight: bold;
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.chat-title {
+    font-size: 1.1em;
+}
+
+.minimize-chat-btn {
+    background: none;
+    border: 1px solid #778da9;
+    color: #e0e1dd;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.minimize-chat-btn:hover {
+    background-color: #778da9;
+    color: #0d1b2a;
+}
+
+
+/* We need to make sure the chat-display-area and input are sized correctly now */
+/* Combined both display areas as they share the same styling */
+#chat-display-area, /* Faction chat display area */
+#war-chat-display-area { /* ADDED #war-chat-display-area HERE */
     flex-grow: 1; /* This makes the message area take up all available space */
     padding: 10px;
-    overflow-y: auto; 
+    overflow-y: auto;
     color: #e0e1dd;
 }
 
@@ -573,6 +617,15 @@ ul li:last-child { border-bottom: none; }
     margin-left: 10px;
     padding: 5px 10px;
     cursor: pointer;
+    background-color: #5bc0de; /* Example button color */
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.chat-send-btn:hover {
+    background-color: #4a9ecf;
 }
 
 /* Styles for individual messages */
@@ -590,7 +643,7 @@ ul li:last-child { border-bottom: none; }
 
 .chat-sender {
     font-weight: bold;
-    color: #a9c5de; 
+    color: #a9c5de;
     margin-right: 6px;
 }
 
@@ -598,6 +651,74 @@ ul li:last-child { border-bottom: none; }
     color: #e0e1dd;
 }
 
+/* ------------------------------------- */
+/* Friends Panel Specific Styles        */
+/* ------------------------------------- */
+
+.friends-panel-subtabs {
+    display: flex;
+    justify-content: flex-start; /* Align tabs to the start */
+    background-color: #1b263b;
+    padding: 5px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0;
+}
+
+.friends-panel-subtabs .sub-tab-button {
+    background-color: #2e435a;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    border-radius: 3px;
+    margin-right: 5px; /* Space between sub-tabs */
+    transition: background-color 0.2s;
+}
+
+.friends-panel-subtabs .sub-tab-button:hover {
+    background-color: #415a77;
+}
+
+.friends-panel-subtabs .sub-tab-button.active {
+    background-color: #3a506b;
+    color: #fff;
+    border-bottom: 1px solid #5bc0de;
+}
+
+.friends-panel-search {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #415a77;
+    background-color: #1b263b;
+    flex-shrink: 0;
+}
+
+.friends-panel-search .search-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+.friends-panel-search .search-icon {
+    color: #e0e1dd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; /* Adjust as needed for icon size */
+}
+
+.friends-panel-content {
+    flex-grow: 1; /* Allows content area to take remaining space */
+    padding: 10px;
+    overflow-y: auto; /* Enable scrolling for content */
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+}
 @media (max-width: 768px) {
 
   /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
