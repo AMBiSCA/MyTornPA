@@ -425,6 +425,96 @@ ul li:last-child { border-bottom: none; }
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
 
+/* ======================================= */
+/* ======== CHAT SYSTEM STYLES =========== */
+/* ======================================= */
+
+#tornpa-chat-system {
+    /* This makes it stick to the bottom right of the screen */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000; /* Ensures it sits on top of other content */
+    font-family: Arial, sans-serif;
+}
+
+/* --- Collapsed Chat Bar Styles --- */
+#chat-bar-collapsed {
+    width: 200px;
+    padding: 10px;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* --- Expanded Chat Window Styles --- */
+#chat-window {
+    width: 300px;
+    height: 400px;
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-window-header {
+    padding: 10px;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#close-chat-button {
+    background: none;
+    border: none;
+    color: #e0e1dd;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.chat-messages-scroll-wrapper {
+    flex-grow: 1; 
+    padding: 10px;
+    overflow-y: auto; 
+    color: #e0e1dd;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+}
+
+.chat-text-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.chat-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+/* A utility class to hide elements */
+.hidden {
+    display: none !important;
+}
+
 @media (max-width: 768px) {
 
   /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
