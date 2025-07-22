@@ -1,4 +1,3 @@
-
 const DEFAULT_PROFILE_ICONS = [
     '../../images/account.png',
     '../../images/avatar-design.png',
@@ -23,25 +22,20 @@ const DEFAULT_PROFILE_ICONS = [
     '../../images/working.png'
 ];
 
-
 function initializeGlobals() {
     // ---- Firebase Setup ----
-    // Ensure Firebase is initialized globally or passed into functions that need it.
-    // Assuming 'firebase' object is available globally from Firebase SDK script.
     const db = firebase.firestore();
     const auth = firebase.auth();
-    let chatMessagesCollection = null; // Unused in current architecture, but kept for context
+    let chatMessagesCollection = null;
     let unsubscribeFromChat = null;
     let currentTornUserName = 'Unknown';
     let currentUserFactionId = null;
     let userTornApiKey = null;
 
-    // ---- Torn API Base URL (Made global via window later for functions outside this scope) ----
+    // ---- Torn API Base URL ----
     const TORN_API_BASE_URL = 'https://api.torn.com/v2';
 
     // ---- Load the Footer ----
-    // This should ideally be outside initializeGlobals if it causes issues,
-    // but typically fetch calls are fine within init functions if placeholders exist.
     fetch('globalfooter.html')
         .then(response => response.text())
         .then(data => {
@@ -75,11 +69,17 @@ function initializeGlobals() {
                 const openNotificationsIcon = document.getElementById('open-notifications-icon');
                 const openSettingsIcon = document.getElementById('open-settings-icon');
 
+                // NEW: Alliance Chat icon reference
+                const openAllianceChatIcon = document.getElementById('open-alliance-chat-icon');
+
                 const factionChatPanel = document.getElementById('faction-chat-panel');
                 const warChatPanel = document.getElementById('war-chat-panel');
                 const friendsPanel = document.getElementById('friends-panel');
                 const notificationsPanel = document.getElementById('notifications-panel');
                 const settingsPanel = document.getElementById('settings-panel');
+
+                // NEW: Alliance Chat panel reference
+                const allianceChatPanel = document.getElementById('alliance-chat-panel');
 
                 const minimizeChatBtns = document.querySelectorAll('.minimize-chat-btn');
 
@@ -92,17 +92,25 @@ function initializeGlobals() {
                 const warChatTextInput = warChatPanel.querySelector('.chat-text-input');
                 const warChatSendBtn = warChatPanel.querySelector('.chat-send-btn');
 
+                // NEW: Alliance Chat input and send button references
+                const allianceChatTextInput = allianceChatPanel.querySelector('.chat-text-input');
+                const allianceChatSendBtn = allianceChatPanel.querySelector('.chat-send-btn');
+
+
                 const friendsPanelContent = document.querySelector('#friends-panel .friends-panel-content');
                 const recentlyMetSubTab = document.querySelector('.sub-tab-button[data-subtab="recently-met"]');
                 const factionMembersSubTab = document.querySelector('.sub-tab-button[data-subtab="faction-members"]');
-
+                // NEW: Friends sub-tab references
+                const recentChatsSubTab = document.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                const friendListSubTab = document.querySelector('.sub-tab-button[data-subtab="friend-list"]');
+                const ignoreListSubTab = document.querySelector('.sub-tab-button[data-subtab="ignore-list"]');
 
 
                 // --- Helper to open a specific chat panel and hide others ---
                 function openChatPanel(panelToShow) {
                     if (chatWindow) chatWindow.classList.remove('hidden');
                     if (chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs when window opens
 
                     allPanels.forEach(p => p.classList.add('hidden'));
                     if (panelToShow) panelToShow.classList.remove('hidden');
@@ -117,6 +125,15 @@ function initializeGlobals() {
                     });
                 }
 
+                // NEW: Alliance Chat collapsed icon listener
+                if (openAllianceChatIcon) {
+                    openAllianceChatIcon.addEventListener('click', () => {
+                        openChatPanel(allianceChatPanel);
+                        if (allianceChatTextInput) allianceChatTextInput.focus();
+                        setupChatRealtimeListener('alliance'); // Assuming 'alliance' collection type
+                    });
+                }
+
                 if (openWarChatIcon) {
                     openWarChatIcon.addEventListener('click', () => {
                         openChatPanel(warChatPanel);
@@ -128,12 +145,10 @@ function initializeGlobals() {
                 if (openFriendsIcon) {
                     openFriendsIcon.addEventListener('click', () => {
                         openChatPanel(friendsPanel);
-                        const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
-                        const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
-
-                        friendsSubTabs.forEach(t => t.classList.remove('active'));
+                        // When friends icon is clicked, activate the default sub-tab (Recent Chats)
                         if (recentChatsSubTab) {
-                            recentChatsSubTab.classList.add('active');
+                            recentChatsSubTab.click(); // This triggers the sub-tab's own listener
+                        } else {
                             friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
                         }
                     });
@@ -156,170 +171,127 @@ function initializeGlobals() {
                     btn.addEventListener('click', () => {
                         if (chatWindow) chatWindow.classList.add('hidden');
                         if (chatBarCollapsed) chatBarCollapsed.classList.remove('hidden');
+                        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden'); // Hide main tabs too
                     });
                 });
 
-                // --- Tab Switching Logic for main tabs (if still in use) ---
-               Yes, that makes perfect sense! You want to ensure all the sub-tabs within the "Friends" panel (recent-chats, recently-met, faction-members, friend-list, ignore-list) activate correctly when clicked.
+                // --- Tab Switching Logic for main tabs ---
+                allTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetPanelId = tab.dataset.tabTarget;
+                        const targetPanel = document.getElementById(targetPanelId);
 
-You've got a correct if (recentChatsSubTab) block with its event listener now, but you also have an entire duplicate switch (targetPanelId) block at the bottom of the allTabs.forEach loop. This duplicate is causing issues because JavaScript is trying to interpret it as a new switch block, but it's not structured correctly, leading to unexpected behavior and errors.
+                        // Remove active from all main tabs and hide all panels
+                        allTabs.forEach(t => t.classList.remove('active'));
+                        allPanels.forEach(p => p.classList.add('hidden'));
 
-We need to:
+                        // Set the clicked main tab as active and show its panel
+                        tab.classList.add('active');
+                        if (targetPanel) {
+                            targetPanel.classList.remove('hidden');
+                        }
 
-Remove the duplicate switch (targetPanelId) block that starts after the first switch (around line 181 in the code you just provided).
+                        // Handle specific panel logic after it's shown
+                        switch (targetPanelId) {
+                            case 'friends-panel':
+                                // Automatically click the "Recent Chats" sub-tab when the "Friends" main tab is opened
+                                if (recentChatsSubTab) {
+                                    recentChatsSubTab.click(); // Triggers the dedicated listener below
+                                } else {
+                                    friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content could not load.</p>`;
+                                }
+                                break;
 
-Add event listeners for friend-list and ignore-list sub-tabs, similar to recentlyMetSubTab and factionMembersSubTab.
+                            case 'alliance-chat-panel': // Case for the new Alliance Chat main tab
+                                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
+                                setupChatRealtimeListener('alliance');
+                                if (allianceChatTextInput) allianceChatTextInput.focus();
+                                break;
 
-Here's the complete and corrected allTabs.forEach loop and the additional sub-tab event listeners within your fetch('globalchat.html').then(data => { ... }) block.
+                            case 'faction-chat-panel':
+                                if (factionChatTextInput) factionChatTextInput.focus();
+                                setupChatRealtimeListener('faction');
+                                break;
 
-Please replace your entire existing allTabs.forEach loop and the sub-tab event listeners below it with the following code:
+                            case 'war-chat-panel':
+                                if (warChatTextInput) warChatTextInput.focus();
+                                setupChatRealtimeListener('war');
+                                break;
 
-JavaScript
+                            // No default needed here, as panels will be hidden by default unless a specific case matches.
+                        }
+                    });
+                });
 
-// global.js (within the fetch('globalchat.html').then(data => { ... }) block)
+                // --- Individual Sub-Tab Event Listeners for Friends Panel ---
+                // These handle direct clicks on the sub-tab buttons within the Friends panel.
 
-// ... (your existing DOM element references and initial setup) ...
-
-// --- Tab Switching Logic for main tabs (if still in use) ---
-allTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const targetPanelId = tab.dataset.tabTarget;
-        const targetPanel = document.getElementById(targetPanelId);
-
-        // Always remove active from all main tabs and hide all panels first
-        allTabs.forEach(t => t.classList.remove('active'));
-        allPanels.forEach(p => p.classList.add('hidden'));
-
-        // Set the clicked main tab as active and show its panel
-        tab.classList.add('active');
-        if (targetPanel) {
-            targetPanel.classList.remove('hidden');
-        }
-
-        // Handle specific panel logic after it's shown
-        switch (targetPanelId) {
-            case 'friends-panel':
-                // Get references to all sub-tabs and their content area
-                const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
-                const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
-                const recentlyMetSubTabInSwitch = friendsPanel.querySelector('.sub-tab-button[data-subtab="recently-met"]'); // Need local reference if used here
-                const factionMembersSubTabInSwitch = friendsPanel.querySelector('.sub-tab-button[data-subtab="faction-members"]'); // Need local reference
-                const friendListSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="friend-list"]');
-                const ignoreListSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="ignore-list"]');
-
-
-                // Ensure all sub-tabs are inactive visually when the main friends panel is first opened
-                friendsSubTabs.forEach(t => t.classList.remove('active'));
-
-                // *** IMPORTANT: Automatically click the "Recent Chats" sub-tab when the main "Friends" tab is opened ***
-                // This ensures "Recent Chats" is the default view for the Friends panel.
                 if (recentChatsSubTab) {
-                    recentChatsSubTab.click(); // This will trigger the dedicated listener for recentChatsSubTab below
-                } else {
-                    friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content could not load.</p>`;
+                    recentChatsSubTab.addEventListener('click', () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        recentChatsSubTab.classList.add('active');
+                        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
+                        // TODO: Implement actual loadRecentPrivateChats(friendsPanelContent);
+                    });
                 }
-                break;
 
-            case 'alliance-chat-panel': // Case for the new Alliance Chat main tab
-                const allianceChatTextInput = document.getElementById('alliance-chat-text-input');
-                const allianceChatSendBtn = document.getElementById('alliance-chat-send-btn');
-                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance'); // Assuming 'alliance' collection type
-                setupChatRealtimeListener('alliance'); // Set up listener for alliance chat
-                if (allianceChatTextInput) allianceChatTextInput.focus();
-                break;
+                if (recentlyMetSubTab) {
+                    recentlyMetSubTab.addEventListener('click', () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        recentlyMetSubTab.classList.add('active');
+                        populateRecentlyMetTab(friendsPanelContent);
+                    });
+                }
 
-            case 'faction-chat-panel':
-                // Re-focus input and set up listener when Faction Chat tab is clicked
-                if (factionChatTextInput) factionChatTextInput.focus();
-                setupChatRealtimeListener('faction');
-                break;
+                if (factionMembersSubTab) {
+                    factionMembersSubTab.addEventListener('click', async () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        factionMembersSubTab.classList.add('active');
 
-            case 'war-chat-panel':
-                // Re-focus input and set up listener when War Chat tab is clicked
-                if (warChatTextInput) warChatTextInput.focus();
-                setupChatRealtimeListener('war');
-                break;
+                        if (!currentUserFactionId || !userTornApiKey) {
+                            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
+                            return;
+                        }
 
-            // No default needed here, as panels will be hidden by default unless a specific case matches.
-        }
-    });
-});
+                        friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members...</p>`;
+                        try {
+                            const response = await fetch(`${TORN_API_BASE_URL}/faction/${currentUserFactionId}?selections=members&key=${userTornApiKey}`);
+                            const data = await response.json();
+                            if (data.members) {
+                                displayFactionMembersInChatTab(data.members, friendsPanelContent);
+                            } else {
+                                friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error: Could not retrieve faction members. Check API key or faction ID. ${data.error ? data.error.message : ''}</p>`;
+                                console.error("Error fetching faction members:", data);
+                            }
+                        } catch (error) {
+                            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Network Error: Failed to fetch faction members.</p>`;
+                            console.error("Network error fetching faction members:", error);
+                        }
+                    });
+                }
 
+                // NEW: Event Listener for Friend List Sub-Tab
+                if (friendListSubTab) {
+                    friendListSubTab.addEventListener('click', async () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        friendListSubTab.classList.add('active');
+                        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your friend list...</p>`;
+                        // TODO: Implement loadFriendList(friendsPanelContent);
+                        console.log("Friend List tab clicked!");
+                    });
+                }
 
-// --- Individual Sub-Tab Event Listeners for Friends Panel ---
-// These listeners handle clicks directly on the sub-tab buttons within the Friends panel.
-// They MUST remain outside the allTabs.forEach loop.
+                // NEW: Event Listener for Ignore List Sub-Tab
+                if (ignoreListSubTab) {
+                    ignoreListSubTab.addEventListener('click', async () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        ignoreListSubTab.classList.add('active');
+                        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your ignore list...</p>`;
+                        // TODO: Implement loadIgnoreList(friendsPanelContent);
+                        console.log("Ignore List tab clicked!");
+                    });
+                }
 
-if (recentChatsSubTab) {
-    recentChatsSubTab.addEventListener('click', () => {
-        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-        recentChatsSubTab.classList.add('active');
-        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
-        // If you have actual recent chat loading logic, call it here, e.g.:
-        // loadRecentPrivateChats(friendsPanelContent);
-    });
-}
-
-if (recentlyMetSubTab) {
-    recentlyMetSubTab.addEventListener('click', () => {
-        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-        recentlyMetSubTab.classList.add('active');
-        populateRecentlyMetTab(friendsPanelContent);
-    });
-}
-
-if (factionMembersSubTab) {
-    factionMembersSubTab.addEventListener('click', async () => {
-        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-        factionMembersSubTab.classList.add('active');
-
-        if (!currentUserFactionId || !userTornApiKey) {
-            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
-            return;
-        }
-
-        friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members...</p>`;
-        try {
-            const response = await fetch(`${TORN_API_BASE_URL}/faction/${currentUserFactionId}?selections=members&key=${userTornApiKey}`);
-            const data = await response.json();
-            if (data.members) {
-                displayFactionMembersInChatTab(data.members, friendsPanelContent);
-            } else {
-                friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error: Could not retrieve faction members. Check API key or faction ID. ${data.error ? data.error.message : ''}</p>`;
-                console.error("Error fetching faction members:", data);
-            }
-        } catch (error) {
-            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Network Error: Failed to fetch faction members.</p>`;
-            console.error("Network error fetching faction members:", error);
-        }
-    });
-}
-
-// *** NEW: Event Listener for Friend List Sub-Tab ***
-const friendListSubTab = document.querySelector('.sub-tab-button[data-subtab="friend-list"]');
-if (friendListSubTab) {
-    friendListSubTab.addEventListener('click', async () => {
-        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-        friendListSubTab.classList.add('active');
-        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your friend list...</p>`;
-        // Here you would call your function to load the actual friend list from Firebase
-        // For example: await loadFriendList(friendsPanelContent);
-        console.log("Friend List tab clicked!");
-    });
-}
-
-// *** NEW: Event Listener for Ignore List Sub-Tab ***
-const ignoreListSubTab = document.querySelector('.sub-tab-button[data-subtab="ignore-list"]');
-if (ignoreListSubTab) {
-    ignoreListSubTab.addEventListener('click', async () => {
-        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-        ignoreListSubTab.classList.add('active');
-        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your ignore list...</p>`;
-        // Here you would call your function to load the actual ignore list from Firebase
-        // For example: await loadIgnoreList(friendsPanelContent);
-        console.log("Ignore List tab clicked!");
-    });
-}
 
                 // --- Send Message Logic ---
                 function setupMessageSending(textInput, sendBtn, collectionType) {
@@ -340,6 +312,9 @@ if (ignoreListSubTab) {
 
                 setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
                 setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
+                // NEW: Setup message sending for alliance chat
+                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
+
 
             } else {
                 console.error("global.js: Error: #chat-system-placeholder element not found for loading chat HTML.");
@@ -378,7 +353,7 @@ if (ignoreListSubTab) {
             if (unsubscribeFromChat) unsubscribeFromChat();
             chatMessagesCollection = null;
             currentUserFactionId = null;
-            userTornApiKey = null; // Clear API key on logout
+            currentUserFactionId = null; // Clear API key on logout
             // Clear globals on logout
             window.currentUserFactionId = null;
             window.userTornApiKey = null;
@@ -386,9 +361,11 @@ if (ignoreListSubTab) {
 
             const chatDisplayAreaFaction = document.getElementById('chat-display-area');
             const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
+            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area'); // NEW: Alliance Chat display area
 
             if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
             if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
+            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>'; // NEW: Alliance Chat message
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
@@ -427,6 +404,17 @@ if (ignoreListSubTab) {
         } else if (collectionType === 'war') {
             targetCollection = db.collection('warChats').doc('currentWar').collection('messages');
             console.log(`Attempting to send message to war chat path: warChats/currentWar/messages`);
+        } else if (collectionType === 'alliance') { // NEW: Alliance chat collection
+            // You need a way to determine the alliance ID.
+            // For example, if you store it in userProfile or have a specific doc for alliances.
+            // For now, let's assume a fixed 'defaultAlliance' ID for testing, or derive it from currentUserFactionId.
+            // Example: db.collection('alliances').doc(currentUserFactionId).collection('messages');
+            // Or if a single global alliance chat: db.collection('allianceChats').doc('globalAlliance').collection('messages');
+            // For demonstration, let's use a placeholder 'yourAllianceId' that needs to be properly defined.
+            // This is a critical point: how do you identify the specific alliance chat?
+            const allianceId = 'defaultAllianceChat'; // <<-- IMPORTANT: Replace with actual alliance ID logic
+            targetCollection = db.collection('allianceChats').doc(allianceId).collection('messages');
+            console.log(`Attempting to send message to alliance chat path: allianceChats/${allianceId}/messages`);
         }
 
         if (!targetCollection) {
@@ -508,7 +496,35 @@ if (ignoreListSubTab) {
                     });
             }
 
-        } else {
+        } else if (type === 'alliance' && auth.currentUser) { // NEW: Alliance chat listener
+            // You need a way to determine the alliance ID for the current user.
+            // This is a critical step for your application logic.
+            // Example: Get alliance ID from userProfile, or a global config.
+            // For now, using a placeholder 'defaultAllianceChat'.
+            const allianceId = 'defaultAllianceChat'; // <<-- IMPORTANT: Replace with actual alliance ID logic
+
+            collectionRef = db.collection('allianceChats').doc(allianceId).collection('messages');
+            displayAreaId = 'alliance-chat-display-area';
+            chatDisplayArea = document.getElementById(displayAreaId);
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading alliance messages...</p>';
+            console.log(`Setting up alliance chat listener for path: allianceChats/${allianceId}/messages`);
+
+            if (collectionRef) {
+                unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
+                    .onSnapshot(snapshot => {
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = '';
+                        if (snapshot.empty) {
+                            if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No alliance messages yet.</p>`;
+                            return;
+                        }
+                        snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId));
+                    }, error => {
+                        console.error("Error listening to alliance chat messages:", error);
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading alliance messages.</p>`;
+                    });
+            }
+        }
+        else {
             console.warn("Unknown chat type or user not logged in for real-time listener.");
         }
     }
@@ -590,32 +606,31 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         for (const opponent of opponentsMap.values()) {
             const tornPlayerId = String(opponent.id);
             const memberName = opponent.name || `Unknown (${tornPlayerId})`;
-            // For recently met, we don't have a 'rank' from your Torn API fetch,
-            // so using 'Opponent' or an empty string. If Torn API for war reports
-            // provides rank, use opponent.position instead.
-            const memberRank = opponent.position || ''; // Use 'Opponent' if you want a label for all of them
+            const memberRank = opponent.position || '';
             const registeredUserData = registeredUsersData.get(tornPlayerId);
-            const profilePic = registeredUserData?.profile_image || DEFAULT_PROFILE_ICONS[0]; // Use first default if no custom pic
+            let profilePicUrl;
+
+            if (registeredUserData && registeredUserData.profile_image) {
+                profilePicUrl = registeredUserData.profile_image;
+            } else {
+                const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+                profilePicUrl = DEFAULT_PROFILE_ICONS[randomIndex];
+            }
 
             let messageButton;
-            if (registeredUserData) { // If registered on MyTornPA, allow internal message
+            if (registeredUserData) {
                 messageButton = `<button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message on MyTornPA">✉️</button>`;
-            } else { // Otherwise, link to Torn's message system
+            } else {
                 const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${tornPlayerId}`;
                 messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
-
-            // You'll need `auth` object for the click listener below, ensure it's accessible.
-            // Since populateRecentlyMetTab is outside initializeGlobals, you need to pass `auth` or get it globally.
-            // For now, I'm assuming it's available in the scope where this function runs or can be passed.
-            // If not, you might need to refactor `initializeGlobals` to expose `auth` via `window`.
 
             cardsHtml += `
                 <div class="member-item">
                     <div class="member-info-left">
                         <span class="member-rank">${memberRank}</span>
                         <div class="member-identity">
-                            <img src="${profilePic}" alt="${memberName}'s profile pic" class="member-profile-pic">
+                            <img src="${profilePicUrl}" alt="${memberName}'s profile pic" class="member-profile-pic">
                             <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="member-name">${memberName} [${tornPlayerId}]</a>
                         </div>
                     </div>
@@ -632,7 +647,9 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         targetDisplayElement.innerHTML = '';
         targetDisplayElement.appendChild(membersListContainer);
 
-        // Add event listeners for the dynamically created buttons
+        const authInstance = firebase.auth();
+        const dbInstance = firebase.firestore();
+
         membersListContainer.addEventListener('click', async (event) => {
             const clickedButton = event.target.closest('button');
             const clickedLink = event.target.closest('a.profile-link-button');
@@ -641,31 +658,26 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             if (!element) return;
 
             const memberId = element.dataset.memberId;
-            // You will need to ensure 'auth' is available here, e.g., pass it to the function or make it global.
-            // For now, assuming it's available.
-            if (!memberId || !firebase.auth().currentUser) return; // Use firebase.auth() if 'auth' isn't directly in scope
+            if (!memberId || !authInstance.currentUser) return;
 
-            const currentUserId = firebase.auth().currentUser.uid; // Use firebase.auth()
-            const friendDocRef = firebase.firestore().collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId); // Use firebase.firestore()
+            const currentUserId = authInstance.currentUser.uid;
+            const friendDocRef = dbInstance.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId);
 
             if (element.classList.contains('add-member-button')) {
                 try {
                     await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     console.log(`Added friend: ${memberId}`);
-                    // Re-populate to update friend status
                     populateRecentlyMetTab(targetDisplayElement);
                 } catch (error) {
                     console.error("Error adding friend:", error);
                     alert("Failed to add friend. See console for details.");
                 }
             } else if (element.classList.contains('remove-friend-button')) {
-                // Assuming showCustomConfirm is available globally
                 const userConfirmed = await showCustomConfirm(`Are you sure you want to remove ${memberId} from your friends list?`, "Confirm Friend Removal");
                 if (!userConfirmed) return;
                 try {
                     await friendDocRef.delete();
                     console.log(`Removed friend: ${memberId}`);
-                    // Re-populate to update friend status
                     populateRecentlyMetTab(targetDisplayElement);
                 } catch (error) {
                     console.error("Error removing friend:", error);
@@ -673,7 +685,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 }
             } else if (element.classList.contains('message-button') && registeredUsersData.has(memberId)) {
                 console.log(`Message button clicked for member ID: ${memberId}. Switching to private chat.`);
-                const privateChatTabButton = document.querySelector('.chat-tab[data-tab-target="private-chat-panel"]'); // Corrected data-tab-target
+                const privateChatTabButton = document.querySelector('.chat-tab[data-tab-target="private-chat-panel"]');
                 if (privateChatTabButton) {
                     privateChatTabButton.click();
                     setTimeout(() => {
@@ -686,7 +698,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                     }, 100);
                 } else {
                     console.warn("Private Chat tab button not found. Cannot switch tab.");
-                    // Fallback to Torn messages if internal private chat not ready or button not found
                     window.open(`https://www.torn.com/messages.php#/p=compose&XID=${memberId}`, '_blank');
                 }
             }
@@ -697,11 +708,11 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
     }
 }
-// This function must also be outside initializeGlobals but in the same script file
+
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
     const db = firebase.firestore();
     const auth = firebase.auth();
-    const TORN_API_BASE_URL_GLOBAL = window.TORN_API_BASE_URL; // Access from global window object
+    const TORN_API_BASE_URL_GLOBAL = window.TORN_API_BASE_URL;
 
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for faction members list.");
