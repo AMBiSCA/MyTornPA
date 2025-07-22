@@ -236,6 +236,16 @@ function initializeGlobals() {
                         }
                     });
                 }
+				
+				if (recentChatsSubTab) {
+    recentChatsSubTab.addEventListener('click', () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        recentChatsSubTab.classList.add('active');
+        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
+        // If you have actual recent chat loading logic, call it here instead of just the placeholder text.
+        // For example: loadRecentPrivateChats(friendsPanelContent);
+    });
+}
 
                 // --- Send Message Logic ---
                 function setupMessageSending(textInput, sendBtn, collectionType) {
