@@ -117,6 +117,14 @@ function initializeGlobals() {
                     });
                 }
 				
+				if (recentChatsSubTab) {
+    recentChatsSubTab.addEventListener('click', () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        recentChatsSubTab.classList.add('active');
+        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
+       
+    });
+}
 
                 if (openWarChatIcon) {
                     openWarChatIcon.addEventListener('click', () => {

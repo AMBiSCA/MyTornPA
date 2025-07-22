@@ -435,12 +435,11 @@ ul li:last-child { border-bottom: none; }
     right: 0px;  /* Keep your current right position for the *overall system* */
     z-index: 1000; /* This z-index is for the entire chat system */
     font-family: Arial, sans-serif;
-    /* ADDED/UPDATED: This makes the overall system a flex container for its children */
+    /* ADD these two properties to allow stacking context for its children */
     display: flex;
     flex-direction: column;
-    align-items: flex-end; /* Aligns content (collapsed bar, expanded window) to the right */
+    align-items: flex-end; /* Aligns contents to the right */
 }
-
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
     width: auto; /* Allow width to be flexible */
@@ -452,10 +451,11 @@ ul li:last-child { border-bottom: none; }
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     display: flex;
     gap: 5px;
-    position: relative; /* Ensure z-index works */
-    z-index: 1001; /* Higher than overall system, lower than expanded window */
+    /* ADD these properties */
+    position: relative; /* Essential for z-index to work against siblings */
+    z-index: 1001; /* Higher z-index than the overall system but lower than expanded window initially */
+    margin-top: 5px; /* Add a small gap if needed, or adjust positioning of chat window */
 }
-
 .chat-bar-icon {
     cursor: pointer;
     font-size: 20px;
@@ -476,28 +476,14 @@ ul li:last-child { border-bottom: none; }
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    flex-direction: column; /* Still a column flex container internally */
+    display: flex;
+    flex-direction: column;
     overflow: hidden; /* Prevents content from spilling out */
-
-    /* UPDATED: Initial state - hidden by default, not affecting layout */
-    display: none; /* Hide by default */
-    
-    /* These will be applied when it's visible via .chat-window.active */
-    position: absolute; /* Position relative to #tornpa-chat-system */
-    bottom: calc(100% + 5px); /* Position above the collapsed bar + 5px gap */
-    right: 0; /* Align with the right edge of #tornpa-chat-system */
-    z-index: 1002; /* Higher z-index to appear on top */
 }
 
-/* A utility class to hide elements - Keep this as is for other elements */
+/* A utility class to hide elements */
 .hidden {
     display: none !important; /* Use !important to ensure it overrides other display properties */
-}
-
-/* ADDED: New class for when #chat-window is explicitly shown */
-#chat-window.active {
-    display: flex; /* Make it visible and use flex layout */
-    /* All other positioning/z-index properties are already on #chat-window */
 }
 
 /* ======================================= */
