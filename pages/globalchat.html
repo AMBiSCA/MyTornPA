@@ -1,0 +1,34 @@
+<div id="tornpa-chat-system">
+    <div id="chat-bar-collapsed">
+        <div id="open-chat-icon" class="chat-bar-icon" title="Chat">💬</div>
+        <div id="open-friends-icon" class="chat-bar-icon" title="Friends">👥</div>
+        <div id="open-notifications-icon" class="chat-bar-icon" title="Notifications">🔔</div>
+        <div id="open-settings-icon" class="chat-bar-icon" title="Settings">⚙️</div>
+    </div>
+
+    <div id="chat-window" class="hidden">
+        <div class="chat-main-tabs-container">
+            <div id="dynamic-tabs-container"></div> 
+            <div id="static-tabs-container">
+                <button class="chat-tab active" data-tab-target="faction-chat-panel" title="Faction Chat">💬</button>
+                <button class="chat-tab" data-tab-target="war-chat-panel" title="War Chat">⚔️</button>
+                <button class="chat-tab" data-tab-target="friends-panel" title="Friends">👥</button>
+                <button class="chat-tab" data-tab-target="notifications-panel" title="Notifications">🔔</button>
+                <button class="chat-tab" data-tab-target="settings-panel" title="Settings">⚙️</button>
+            </div>
+        </div>
+        <div class="chat-panels-container">
+            <div id="faction-chat-panel" class="chat-panel active">
+                <div id="chat-display-area" class="chat-messages-scroll-wrapper"></div>
+                <div id="chat-input-area" class="chat-input-area">
+                    <input type="text" class="chat-text-input" placeholder="Type your message...">
+                    <button class="chat-send-btn">Send</button>
+                </div>
+            </div>
+            <div id="war-chat-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>War Chat</h3></div>
+            <div id="friends-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Friends Panel</h3></div>
+            <div id="notifications-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Notifications</h3></div>
+            <div id="settings-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Settings</h3></div>
+        </div>
+    </div>
+</div>
