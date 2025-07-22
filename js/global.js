@@ -217,13 +217,21 @@ function initializeGlobals() {
                 const userData = doc.data();
                 currentUserFactionId = String(userData.faction_id);
                 currentTornUserName = userData.preferredName || 'Unknown User';
-                userTornApiKey = userData.torn_api_key; // Fetch API key from user profile
+                // FIX: Corrected casing to match Firebase field 'tornApiKey'
+                userTornApiKey = userData.tornApiKey; // <--- This line was changed
+                // Make globals accessible to functions outside this scope
+                window.currentUserFactionId = currentUserFactionId;
+                window.userTornApiKey = userTornApiKey;
+
 
                 console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}`);
             } else {
                 console.warn("User profile not found for authenticated user:", user.uid);
                 currentUserFactionId = null;
                 userTornApiKey = null;
+                // Clear globals on logout/missing profile
+                window.currentUserFactionId = null;
+                window.userTornApiKey = null;
             }
         } else {
             // User is signed out
@@ -231,6 +239,10 @@ function initializeGlobals() {
             chatMessagesCollection = null;
             currentUserFactionId = null;
             userTornApiKey = null; // Clear API key on logout
+            // Clear globals on logout
+            window.currentUserFactionId = null;
+            window.userTornApiKey = null;
+
             const chatDisplayAreaFaction = document.getElementById('chat-display-area');
             const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
 
@@ -422,8 +434,8 @@ function initializeGlobals() {
             // Filter out the current user's own ID
             if (currentUser && currentUser.uid) {
                 const currentUserTornIdDoc = await db.collection('userProfiles').doc(currentUser.uid).get();
-                if(currentUserTornIdDoc.exists && currentUserTornIdDoc.data().torn_id) {
-                    playerIdsInWars.delete(String(currentUserTornIdDoc.data().torn_id));
+                if(currentUserTornIdDoc.exists && currentUserTornIdDoc.data().tornProfileId) { // Check tornProfileId
+                    playerIdsInWars.delete(String(currentUserTornIdDoc.data().tornProfileId));
                 }
             }
 
@@ -572,6 +584,10 @@ function initializeGlobals() {
 }
 
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
+    // Access db and auth from the global firebase object if they aren't directly passed
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for faction members list.");
         return;
@@ -580,8 +596,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
 
     // Get the current user's friends list first
     let friendsSet = new Set();
-    const currentUser = firebase.auth().currentUser; // Access auth here from firebase context
-    const db = firebase.firestore(); // Access db here from firebase context
+    const currentUser = auth.currentUser;
     if (currentUser) {
         try {
             const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
@@ -682,18 +697,19 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         if (!element) return;
 
         const memberId = element.dataset.memberId;
-        if (!memberId || !firebase.auth().currentUser) return; // Use firebase.auth() here
+        if (!memberId || !auth.currentUser) return; // Use auth here
 
-        const currentUserId = firebase.auth().currentUser.uid;
-        const friendDocRef = firebase.firestore().collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId); // Use firebase.firestore() here
+        const currentUserId = auth.currentUser.uid;
+        const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId); // Use db here
 
         if (element.classList.contains('add-member-button')) {
             try {
                 await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
                 console.log(`Added friend: ${memberId}`);
                 // Re-render to update button state. Need to re-fetch faction members data.
-                if (window.currentUserFactionId && window.userTornApiKey) { // Access globals from window or pass them
-                     const response = await fetch(`${TORN_API_BASE_URL}/faction/${window.currentUserFactionId}?selections=members&key=${window.userTornApiKey}`);
+                if (window.currentUserFactionId && window.userTornApiKey) { // Access globals from window
+                     const TORN_API_BASE_URL_LOCAL = 'https://api.torn.com/v2'; // Redeclare if not truly global
+                     const response = await fetch(`${TORN_API_BASE_URL_LOCAL}/faction/${window.currentUserFactionId}?selections=members&key=${window.userTornApiKey}`);
                      const data = await response.json();
                      if (data.members) {
                          displayFactionMembersInChatTab(data.members, targetDisplayElement);
@@ -710,8 +726,9 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 await friendDocRef.delete();
                 console.log(`Removed friend: ${memberId}`);
                 // Re-render to update button state. Need to re-fetch faction members data.
-                if (window.currentUserFactionId && window.userTornApiKey) { // Access globals from window or pass them
-                    const response = await fetch(`${TORN_API_BASE_URL}/faction/${window.currentUserFactionId}?selections=members&key=${window.userTornApiKey}`);
+                if (window.currentUserFactionId && window.userTornApiKey) { // Access globals from window
+                    const TORN_API_BASE_URL_LOCAL = 'https://api.torn.com/v2'; // Redeclare if not truly global
+                    const response = await fetch(`${TORN_API_BASE_URL_LOCAL}/faction/${window.currentUserFactionId}?selections=members&key=${window.userTornApiKey}`);
                     const data = await response.json();
                     if (data.members) {
                         displayFactionMembersInChatTab(data.members, targetDisplayElement);
