@@ -365,6 +365,15 @@
     background: transparent !important;
 }
 
+/* --- New Attempt: Hiding potential pseudo-elements causing the dot --- */
+
+/* This targets any ::before or ::after elements on links within your table */
+.recruitment-table td a::before,
+.recruitment-table td a::after {
+    display: none !important;
+    content: "" !important;
+}
+
 .btn {
     /* You might have these in global.css or war_page_hub.css already */
     background-color: #333;
