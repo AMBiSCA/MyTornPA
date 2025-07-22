@@ -484,8 +484,14 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    width: 350px; /* A little wider for tabs */
-    height: 450px; /* A little taller */
+    /* --- NEW POSITIONING RULES --- */
+    position: absolute; /* This lifts the window out of the normal layout flow. */
+    bottom: 45px;       /* This positions it 45px from the bottom, right above your icon bar. */
+    right: 0;           /* This aligns it to the right edge. */
+
+    /* --- UNCHANGED STYLES --- */
+    width: 350px;
+    height: 450px;
     background-color: #1b263b;
     border: 1px solid #415a77;
     border-radius: 5px;
@@ -493,7 +499,6 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     flex-direction: column;
     overflow: hidden; /* Prevents content from spilling out */
-    /* Position is handled by parent #tornpa-chat-system now, no need for individual positioning here */
 }
 
 /* A utility class to hide elements */
