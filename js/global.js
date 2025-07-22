@@ -1,8 +1,24 @@
 // This function will run when the script is loaded
 function initializeGlobals() {
-    // ... (rest of your existing code) ...
+    // ---- Firebase Setup ----
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    let chatMessagesCollection = null;
+    let unsubscribeFromChat = null;
+    let currentTornUserName = 'Unknown';
 
-    fetch('globalchat.html')
+    // ---- Load the Footer ----
+    // RE-ADDED THIS SECTION
+    fetch('globalfooter.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('footer-container').innerHTML = data;
+        })
+        .catch(error => console.error('Error loading global footer:', error));
+    // END OF RE-ADDED SECTION
+
+    // ---- Load the Chat System ----
+    fetch('globalchat.html') // <-- CHANGED FILENAME HERE
         .then(response => response.text())
         .then(data => {
             document.getElementById('chat-system-placeholder').innerHTML = data;
@@ -13,13 +29,13 @@ function initializeGlobals() {
             
             const openFactionChatIcon = document.getElementById('open-faction-chat-icon');
             const openWarChatIcon = document.getElementById('open-war-chat-icon');
-            const openFriendsIcon = document.getElementById('open-friends-icon'); // The icon you are clicking
+            const openFriendsIcon = document.getElementById('open-friends-icon');
             const openNotificationsIcon = document.getElementById('open-notifications-icon');
             const openSettingsIcon = document.getElementById('open-settings-icon');
 
             const factionChatPanel = document.getElementById('faction-chat-panel');
             const warChatPanel = document.getElementById('war-chat-panel');
-            const friendsPanel = document.getElementById('friends-panel'); // The panel you want to show
+            const friendsPanel = document.getElementById('friends-panel');
             const notificationsPanel = document.getElementById('notifications-panel');
             const settingsPanel = document.getElementById('settings-panel');
 
@@ -83,13 +99,6 @@ function initializeGlobals() {
                     
                     friendsSubTabs.forEach(t => t.classList.remove('active'));
                     if (recentChatsSubTab) recentChatsSubTab.classList.add('active');
-
-                    // You might also need to load content into friends-panel-content here
-                    // For example:
-                    // if (friendsPanel.querySelector('.friends-panel-content')) {
-                    //     friendsPanel.querySelector('.friends-panel-content').innerHTML = '<p>Loading recent chats...</p>';
-                    //     // Add actual logic to load recent chats data
-                    // }
                 });
             }
 
@@ -122,7 +131,6 @@ function initializeGlobals() {
             });
 
             // --- Tab Switching Logic for main tabs (Friends, Notifications, Settings) ---
-            // This part should be fine as it handles clicks on the main tabs once the chat window is open
             allTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     const targetPanelId = tab.dataset.tabTarget;
@@ -134,21 +142,16 @@ function initializeGlobals() {
                         tab.classList.add('active');
                         if (targetPanel) targetPanel.classList.remove('hidden');
                         
-                        // Ensure main tabs are visible for these panels
                         if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
 
-                        // Activate the first sub-tab when switching to Friends panel via main tab click
                         if (targetPanelId === 'friends-panel') {
                             const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
                             const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
                             friendsSubTabs.forEach(t => t.classList.remove('active'));
                             if (recentChatsSubTab) recentChatsSubTab.classList.add('active');
-                            // You might also need to trigger content loading here
                         }
 
                     } else {
-                        // This block handles if Faction or War chat is somehow selected via main tabs
-                        // (though the intended flow is via the collapsed bar icons)
                         if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
                         allTabs.forEach(t => t.classList.remove('active'));
                         tab.classList.add('active');
@@ -187,7 +190,141 @@ function initializeGlobals() {
         })
         .catch(error => console.error('Error loading global chat:', error));
 
-    // ... (rest of your existing code for authentication and chat functions) ...
+    // ---- AUTHENTICATION LISTENER ----
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get();
+            if (doc.exists) {
+                const userData = doc.data();
+                const factionId = userData.faction_id;
+                currentTornUserName = userData.preferredName || 'Unknown User';
+            }
+        } else {
+            if (unsubscribeFromChat) unsubscribeFromChat();
+            chatMessagesCollection = null;
+            const chatDisplayAreaFaction = document.getElementById('chat-display-area');
+            const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
+
+            if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
+            if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
+        }
+    });
+
+    // ---- CORE CHAT FUNCTIONS ----
+    function displayChatMessage(messageObj, chatDisplayAreaId) {
+        const chatDisplayArea = document.getElementById(chatDisplayAreaId);
+        if (!chatDisplayArea) return;
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+        const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const senderName = messageObj.sender || 'Unknown';
+        const messageText = messageObj.text || '';
+        messageElement.innerHTML = `<span class="chat-timestamp">[${timestamp}]</span> <span class="chat-sender">${senderName}:</span> <span class="chat-text">${messageText}</span>`;
+        chatDisplayArea.appendChild(messageElement);
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
+    }
+
+    async function sendChatMessage(textInput, collectionType) {
+        if (!textInput || !auth.currentUser) return;
+        const messageText = textInput.value.trim();
+        if (messageText === '') return;
+        
+        let targetCollection = null;
+        if (collectionType === 'faction' && auth.currentUser.uid) {
+            const userProfileRef = db.collection('userProfiles').doc(auth.currentUser.uid);
+            const doc = await userProfileRef.get();
+            if (doc.exists && doc.data().faction_id) {
+                targetCollection = db.collection('factionChats').doc(String(doc.data().faction_id)).collection('messages');
+            } else {
+                console.warn("Faction ID not found for current user. Cannot send faction chat message.");
+                return;
+            }
+        } else if (collectionType === 'war') {
+            targetCollection = db.collection('warChats').doc('currentWar').collection('messages');
+        }
+
+        if (!targetCollection) {
+            console.error("No valid chat collection determined for sending message.");
+            return;
+        }
+
+        const messageObj = {
+            senderId: auth.currentUser.uid,
+            sender: currentTornUserName,
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        try {
+            await targetCollection.add(messageObj);
+            textInput.value = '';
+            textInput.focus();
+        } catch (error) {
+            console.error(`Error sending ${collectionType} message to Firebase:`, error);
+        }
+    }
+
+    function setupChatRealtimeListener(type) {
+        let chatDisplayArea = null;
+        let collectionRef = null;
+
+        if (unsubscribeFromChat) unsubscribeFromChat();
+
+        if (type === 'faction' && auth.currentUser) {
+            db.collection('userProfiles').doc(auth.currentUser.uid).get().then(doc => {
+                if (doc.exists && doc.data().faction_id) {
+                    collectionRef = db.collection('factionChats').doc(String(doc.data().faction_id)).collection('messages');
+                    chatDisplayArea = document.getElementById('chat-display-area');
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading faction messages...</p>';
+                    
+                    if (collectionRef) {
+                        unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
+                            .onSnapshot(snapshot => {
+                                if (chatDisplayArea) chatDisplayArea.innerHTML = '';
+                                if (snapshot.empty) {
+                                    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No faction messages yet.</p>`;
+                                    return;
+                                }
+                                snapshot.forEach(doc => displayChatMessage(doc.data(), 'chat-display-area'));
+                            }, error => {
+                                console.error("Error listening to faction chat messages:", error);
+                                if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading faction messages.</p>`;
+                            });
+                    }
+                } else {
+                    chatDisplayArea = document.getElementById('chat-display-area');
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat.</p>';
+                }
+            }).catch(error => {
+                console.error("Error fetching user profile for faction chat:", error);
+                chatDisplayArea = document.getElementById('chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error accessing faction chat.</p>`;
+            });
+
+        } else if (type === 'war') {
+            collectionRef = db.collection('warChats').doc('currentWar').collection('messages');
+            chatDisplayArea = document.getElementById('war-chat-display-area');
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading war messages...</p>';
+
+            if (collectionRef) {
+                unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
+                    .onSnapshot(snapshot => {
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = '';
+                        if (snapshot.empty) {
+                            if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No war messages yet.</p>`;
+                            return;
+                        }
+                        snapshot.forEach(doc => displayChatMessage(doc.data(), 'war-chat-display-area'));
+                    }, error => {
+                        console.error("Error listening to war chat messages:", error);
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading war messages.</p>`;
+                    });
+            }
+
+        } else {
+            console.warn("Unknown chat type or user not logged in for real-time listener.");
+        }
+    }
 }
 
 // Run the main initialization function
