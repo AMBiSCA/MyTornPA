@@ -35,7 +35,7 @@ function initializeGlobals() {
             // Get specific chat panels
             const factionChatPanel = document.getElementById('faction-chat-panel');
             const warChatPanel = document.getElementById('war-chat-panel');
-            const friendsPanel = document.getElementById('friends-panel'); // This is the overall container for friends
+            const friendsPanel = document.getElementById('friends-panel');
             const notificationsPanel = document.getElementById('notifications-panel');
             const settingsPanel = document.getElementById('settings-panel');
 
@@ -44,8 +44,7 @@ function initializeGlobals() {
 
             // Get all chat panels and tabs for easy iteration
             const allPanels = document.querySelectorAll('.chat-panel');
-            const allTabs = document.querySelectorAll('.chat-tab'); // These are the main chat window tabs
-
+            const allTabs = document.querySelectorAll('.chat-tab');
 
             // Input and send buttons for Faction Chat
             const factionChatTextInput = factionChatPanel.querySelector('.chat-text-input');
@@ -71,7 +70,7 @@ function initializeGlobals() {
                 openFactionChatIcon.addEventListener('click', () => {
                     openChatPanel(factionChatPanel);
                     if (factionChatTextInput) factionChatTextInput.focus();
-                    setupChatRealtimeListener('faction');
+                    setupChatRealtimeListener('faction'); // Call listener setup
                 });
             }
 
@@ -79,176 +78,34 @@ function initializeGlobals() {
                 openWarChatIcon.addEventListener('click', () => {
                     openChatPanel(warChatPanel);
                     if (warChatTextInput) warChatTextInput.focus();
-                    setupChatRealtimeListener('war');
+                    setupChatRealtimeListener('war'); // Call listener setup
                 });
             }
 
-            // --- REVISED: Friends Icon Click Listener (Person Icon) ---
             if (openFriendsIcon) {
                 openFriendsIcon.addEventListener('click', () => {
-                    openChatPanel(friendsPanel); // Show the main friendsPanel
-
-                    // Inject the internal structure for Friends/Blocked People sub-tabs
-                    friendsPanel.innerHTML = `
-                        <div class="friends-panel-content-wrapper">
-                            <div class="friends-panel-subtabs">
-                                <button class="sub-tab-button active" data-subtab="recent-chats">Recent Chats</button>
-                                <button class="sub-tab-button" data-subtab="friends-list">Friends List</button>
-                                <button class="sub-tab-button" data-subtab="ignores-list">Ignores</button>
-                            </div>
-
-                            <div id="friendsSubTabContent" class="sub-tab-content">
-                                </div>
-                        </div>
-                    `;
-
-                    // Get references to the newly injected elements
-                    const friendsSubTabContent = document.getElementById('friendsSubTabContent');
-                    const subTabButtons = friendsPanel.querySelectorAll('.sub-tab-button');
-
-                    // Set up event listeners for the new sub-tabs within the friendsPanel
-                    subTabButtons.forEach(button => {
-                        button.addEventListener('click', async (e) => {
-                            // Remove 'active' from all sub-tab buttons
-                            subTabButtons.forEach(btn => btn.classList.remove('active'));
-                            // Add 'active' to the clicked sub-tab button
-                            e.currentTarget.classList.add('active');
-
-                            const targetSubtab = e.currentTarget.dataset.subtab;
-                            friendsSubTabContent.innerHTML = '<p style="text-align:center; padding: 10px;">Loading...</p>'; // Show loading
-
-                            switch (targetSubtab) {
-                                case 'recent-chats':
-                                    friendsSubTabContent.innerHTML = `
-                                        <div class="private-chat-layout-panels full-width">
-                                            <div class="recent-chats-panel full-width">
-                                                <div class="panel-header">Recent Chats</div>
-                                                <div class="recent-chats-list-scroll-wrapper">
-                                                    <ul id="recentChatsList" class="recent-chats-list">
-                                                        <li class="chat-item loading-message">Loading recent chats...</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div class="selected-chat-panel" style="display:none;"> 
-                                                <div id="selectedChatHeader" class="panel-header">Select a Chat</div>
-                                                <div class="selected-chat-messages-scroll-wrapper">
-                                                    <div id="selectedChatDisplay" class="chat-display-area">
-                                                        <p class="message-placeholder">Click a chat on the left to start messaging.</p>
-                                                    </div>
-                                                </div>
-                                                <div class="selected-chat-input-area">
-                                                    <input type="text" id="privateChatMessageInput" class="chat-text-input" placeholder="Type your private message...">
-                                                    <button id="sendPrivateMessageBtn" class="chat-send-btn">Send</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `;
-                                    setTimeout(() => {
-                                        initPrivateChatTabEventListeners(); // Re-initialize listeners for private chat elements
-                                        loadRecentChats(); // Load actual recent chats
-                                    }, 0);
-                                    break;
-                                case 'friends-list':
-                                    // Inject friends list HTML into sub-tab content area
-                                    friendsSubTabContent.innerHTML = `
-                                        <div class="friends-list-section full-width">
-                                            <div class="header-box">
-                                                <b>Your Friends</b>
-                                            </div>
-                                            <div class="search-bar">
-                                                <input type="text" id="friendsSearchInput" placeholder="Search friends...">
-                                                <span class="search-icon">🔍</span>
-                                            </div>
-                                            <div id="friendsScrollableList" class="scrollable-list">
-                                                <p style="text-align:center; padding: 10px;">Loading your friends list...</p>
-                                            </div>
-                                            <div class="add-friend-section">
-                                                <input type="text" id="addFriendIdInput" placeholder="Torn ID to add">
-                                                <button id="addFriendBtn">Add Friend</button>
-                                                <span id="addFriendStatus" class="status-message"></span>
-                                            </div>
-                                        </div>
-                                    `;
-                                    // Call fetchAndDisplayFriends to populate the list
-                                    const friendsScrollableListElement = document.getElementById('friendsScrollableList');
-                                    if (friendsScrollableListElement) { // Check if element exists after injection
-                                        if (auth.currentUser) {
-                                            // The fetchAndDisplayFriends function expects `friendsTbody` to display data.
-                                            // You need to decide if you want to reuse that table structure, or adapt it
-                                            // to render into `friendsScrollableListElement`.
-                                            // For simplicity, let's just use populateBlockedPeopleTab for now as it uses the list structure
-                                            // This might duplicate efforts but ensures something shows up.
-                                            populateBlockedPeopleTab(auth.currentUser.uid, friendsScrollableListElement, document.createElement('div')); // Pass a dummy for ignoresListEl
-                                        } else {
-                                            friendsScrollableListElement.innerHTML = `<p style="text-align:center; padding: 10px; color: yellow;">Please log in to view friends.</p>`;
-                                        }
-                                    }
-                                    // Re-attach listener for add friend button (it's globally defined in DOMContentLoaded)
-                                    const addFriendBtnEl = document.getElementById('addFriendBtn');
-                                    if (addFriendBtnEl) {
-                                        // Remove previous listener if exists to prevent duplicates
-                                        addFriendBtnEl.removeEventListener('click', handleAddFriendWrapper); 
-                                        addFriendBtnEl.addEventListener('click', handleAddFriendWrapper);
-                                    }
-                                    break;
-                                case 'ignores-list':
-                                    // Inject ignores list HTML into sub-tab content area
-                                    friendsSubTabContent.innerHTML = `
-                                        <div class="ignores-list-section full-width">
-                                            <div class="header-box">
-                                                <b>Ignores / Blocked</b>
-                                            </div>
-                                            <div class="search-bar">
-                                                <input type="text" id="ignoresSearchInput" placeholder="Add Profile/Faction ID">
-                                                <span class="search-icon">🔍</span>
-                                            </div>
-                                            <div id="ignoresScrollableList" class="scrollable-list">
-                                                <p style="text-align:center; padding: 10px;">Loading ignores...</p>
-                                            </div>
-                                            <div class="add-ignore-section">
-                                                </div>
-                                        </div>
-                                    `;
-                                    // Populate dummy ignores or real ones if you implement them
-                                    const ignoresScrollableListElement = document.getElementById('ignoresScrollableList');
-                                    if (ignoresScrollableListElement) {
-                                        // Reuse populateBlockedPeopleTab for ignores, passing a dummy for friends list
-                                        populateBlockedPeopleTab(auth.currentUser.uid, document.createElement('div'), ignoresScrollableListElement);
-                                    }
-                                    break;
-                            }
-                        });
-                    });
-
-                    // Initially click the "Recent Chats" sub-tab to load its content by default
-                    const initialSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
-                    if (initialSubTab) {
-                        initialSubTab.click(); // Programmatically click to load content
+                    openChatPanel(friendsPanel);
+                    const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
+                    const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                    
+                    friendsSubTabs.forEach(t => t.classList.remove('active'));
+                    if (recentChatsSubTab) {
+                        recentChatsSubTab.classList.add('active');
                     }
                 });
             }
-            // --- END REVISED: Friends Icon Click Listener ---
 
-            // --- REVISED: Notifications Icon Click Listener (Bell Icon) ---
             if (openNotificationsIcon) {
                 openNotificationsIcon.addEventListener('click', () => {
                     openChatPanel(notificationsPanel);
-                    // Call the function that populates NotificationsPanel content if needed
-                    // Example: populateNotificationsTab(notificationsPanel);
-                    // If content is static HTML already in globalchat.html, no further action here.
                 });
             }
-            // --- END REVISED: Notifications Icon Click Listener ---
 
-            // --- REVISED: Settings Icon Click Listener (Gear Icon) ---
             if (openSettingsIcon) {
                 openSettingsIcon.addEventListener('click', () => {
                     openChatPanel(settingsPanel);
-                    // Call the function that populates SettingsPanel content
-                    populateSettingsTab(settingsPanel); // Use settingsPanel directly as targetDisplayElement
                 });
             }
-            // --- END REVISED: Settings Icon Click Listener ---
             
             // --- Minimize Button Logic ---
             minimizeChatBtns.forEach(btn => {
@@ -270,10 +127,11 @@ function initializeGlobals() {
                     if (targetPanel) targetPanel.classList.remove('hidden');
                     
                     if (targetPanelId === 'friends-panel') {
-                        // If friends-panel is opened via main tabs, simulate click on its default sub-tab
-                        const initialSubTab = friendsPanel.querySelector('.friends-panel-subtabs .sub-tab-button[data-subtab="recent-chats"]');
-                        if (initialSubTab) {
-                            initialSubTab.click();
+                        const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
+                        const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                        friendsSubTabs.forEach(t => t.classList.remove('active'));
+                        if (recentChatsSubTab) {
+                            recentChatsSubTab.classList.add('active');
                         }
                     }
                 });
@@ -452,57 +310,174 @@ function initializeGlobals() {
             console.warn("Unknown chat type or user not logged in for real-time listener.");
         }
     }
+}
 
-    // New helper function for adding friend logic (to be called by the add friend button in Friends List sub-tab)
-    async function handleAddFriendWrapper(event) {
-        const friendId = document.getElementById('addFriendIdInput').value.trim();
-        const addFriendStatusEl = document.getElementById('addFriendStatus');
+async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for faction members list.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
 
-        if (!friendId) {
-            if (addFriendStatusEl) { addFriendStatusEl.textContent = "Please enter a Torn Player ID."; addFriendStatusEl.style.color = 'orange'; }
-            return;
-        }
-
-        if (!auth.currentUser) {
-            if (addFriendStatusEl) { addFriendStatusEl.textContent = "You must be logged in to add friends."; addFriendStatusEl.style.color = 'red'; }
-            return;
-        }
-
-        if (addFriendStatusEl) { addFriendStatusEl.textContent = "Adding friend..."; addFriendStatusEl.style.color = 'white'; }
-        event.currentTarget.disabled = true; // Disable the button clicked
-
+    // Get the current user's friends list first
+    let friendsSet = new Set();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
         try {
-            const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
-            const doc = await friendDocRef.get();
-            if (doc.exists) {
-                if (addFriendStatusEl) { addFriendStatusEl.textContent = "This player is already your friend."; addFriendStatusEl.style.color = 'orange'; }
-                return;
-            }
-
-            await friendDocRef.set({
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            if (addFriendStatusEl) { addFriendStatusEl.textContent = `Successfully added friend [${friendId}]!`; addFriendStatusEl.style.color = 'lightgreen'; }
-            document.getElementById('addFriendIdInput').value = '';
-
-            // Refresh the friends list in the current view if it's the friends-list subtab
-            const friendsSubTabContent = document.getElementById('friendsSubTabContent');
-            if (friendsSubTabContent) {
-                 const friendsScrollableListElement = friendsSubTabContent.querySelector('#friendsScrollableList');
-                 if (friendsScrollableListElement) {
-                     // Re-populate the friends list using the established function
-                     populateBlockedPeopleTab(auth.currentUser.uid, friendsScrollableListElement, document.createElement('div'));
-                 }
-            }
-
+            const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+            friendsSnapshot.forEach(doc => friendsSet.add(doc.id));
         } catch (error) {
-            console.error("Error adding friend:", error);
-            if (addFriendStatusEl) { addFriendStatusEl.textContent = `Error adding friend: ${error.message}`; addFriendStatusEl.style.color = 'red'; }
-        } finally {
-            event.currentTarget.disabled = false; // Re-enable the button
+            console.error("Error fetching friends list for faction members tab:", error);
         }
     }
+
+    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
+        return;
+    }
+
+    const membersArray = Object.values(factionMembersApiData);
+    // Include more ranks if they exist in your Torn faction setup
+    const rankOrder = { "Leader": 0, "Co-leader": 1, "Council": 2, "Right Hand": 3, "Left Hand": 4, "Captain": 5, "Lieutenant": 6, "Sergeant": 7, "Corporal": 8, "Recruit": 9, "Applicant": 10, "Member": 99 };
+    membersArray.sort((a, b) => {
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
+        if (orderA !== orderB) { return orderA - orderB; }
+        return a.name.localeCompare(b.name);
+    });
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.classList.add('members-list-container');
+    targetDisplayElement.innerHTML = ''; // Clear loading message
+    targetDisplayElement.appendChild(membersListContainer);
+
+    for (const member of membersArray) {
+        const tornPlayerId = String(member.id); // Ensure ID is a string for consistency
+        const memberName = member.name || `Unknown (${tornPlayerId})`;
+        const memberRank = member.position || 'Member';
+        const isFriend = friendsSet.has(tornPlayerId);
+
+        // --- Simplified: NO hospital/traveling logic here for basic list ---
+        // These variables are no longer used for direct display in this simplified HTML
+        // const lastActionText = member.last_action ? formatRelativeTime(member.last_action.timestamp) : 'N/A';
+        // let statusText = member.status ? member.status.description : 'Unknown';
+        // let statusClass = 'member-status-okay'; // Default class, not directly used in simplified HTML structure below
+
+        // --- Generate Action Buttons (Add/Remove Friend, Message, Torn Profile Link) ---
+        let actionButtonHtml = '';
+        if (isFriend) {
+            actionButtonHtml = `
+                <button class="remove-friend-button" data-member-id="${tornPlayerId}" title="Remove Friend">
+                    👤<span class="plus-sign">-</span>
+                </button>
+            `;
+        } else {
+            actionButtonHtml = `
+                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                    👤<span class="plus-sign">+</span>
+                </button>
+            `;
+        }
+        
+        const memberItemDiv = document.createElement('div');
+        memberItemDiv.classList.add('member-item');
+        if (memberRank === "Leader" || memberRank === "Co-leader") {
+            memberItemDiv.classList.add('leader-member'); // Keep special styling for leaders
+        }
+
+        // The HTML structure is simplified to remove status/last action details
+        memberItemDiv.innerHTML = `
+            <div class="member-info-left">
+                <span class="member-rank">${memberRank}</span>
+                <div class="member-identity">
+                    <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                    <span class="member-name">${memberName}</span>
+                </div>
+            </div>
+            <div class="member-actions">
+                ${actionButtonHtml}
+                <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+                <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
+            </div>
+        `;
+        
+        membersListContainer.appendChild(memberItemDiv);
+
+        // Fetch profile picture from Firebase 'users' collection (async, won't block display)
+        (async () => {
+            try {
+                const docRef = db.collection('users').doc(tornPlayerId); // Assuming tornPlayerId is document ID here
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    const firebaseMemberData = docSnap.data();
+                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                    if (imgElement) imgElement.src = profileImageUrl;
+                }
+            } catch (error) {
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
+            }
+        })();
+    }
+
+    // Add event listeners for the dynamically created buttons (add/remove friend, message)
+    membersListContainer.addEventListener('click', async (event) => {
+        const clickedButton = event.target.closest('button');
+        const clickedLink = event.target.closest('a.profile-link-button'); // Also listen for the new link button
+
+        const element = clickedButton || clickedLink; // Use the clicked button or link
+        if (!element) return;
+
+        const memberId = element.dataset.memberId;
+        if (!memberId || !auth.currentUser) return;
+
+        const currentUserId = auth.currentUser.uid;
+        const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId);
+
+        if (element.classList.contains('add-member-button')) {
+            try {
+                await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                console.log(`Added friend: ${memberId}`);
+                // Re-render to update button state
+                displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement);
+            } catch (error) {
+                console.error("Error adding friend:", error);
+                alert("Failed to add friend. See console for details.");
+            }
+        } else if (element.classList.contains('remove-friend-button')) {
+            const userConfirmed = await showCustomConfirm(`Are you sure you want to remove ${memberId} from your friends list?`, "Confirm Friend Removal");
+            if (!userConfirmed) return;
+            try {
+                await friendDocRef.delete();
+                console.log(`Removed friend: ${memberId}`);
+                // Re-render to update button state
+                displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement);
+            } catch (error) {
+                console.error("Error removing friend:", error);
+                alert("Failed to remove friend. See console for details.");
+            }
+        } else if (element.classList.contains('message-button')) {
+            console.log(`Message button clicked for member ID: ${memberId}. Switching to private chat.`);
+            const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
+            if (privateChatTabButton) {
+                // Manually trigger the click event on the private chat tab
+                privateChatTabButton.click(); 
+                // Wait a moment for the tab content to load, then select the chat
+                setTimeout(() => {
+                    if (typeof selectPrivateChat === 'function') {
+                        selectPrivateChat(memberId);
+                    } else {
+                        console.warn("selectPrivateChat function not available.");
+                        alert("Private chat functionality is not fully loaded. Please try again or refresh.");
+                    }
+                }, 100); // Small delay to allow UI to render
+            } else {
+                console.warn("Private Chat tab button not found. Cannot switch tab.");
+                window.open(`https://www.torn.com/messages.php#/p=compose&XID=${memberId}`, '_blank');
+            }
+        }
+        // No specific action needed for profile-link-button as it's an <a> tag with target="_blank"
+    });
 }
 
 // Run the main initialization function
