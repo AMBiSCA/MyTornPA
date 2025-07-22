@@ -1,58 +1,36 @@
 // This function will run when the script is loaded
 function initializeGlobals() {
-    // ---- Firebase Setup ----
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    let chatMessagesCollection = null;
-    let unsubscribeFromChat = null;
-    let currentTornUserName = 'Unknown';
+    // ... (rest of your existing code) ...
 
-    // ---- Load the Footer ----
-    fetch('globalfooter.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('footer-container').innerHTML = data;
-        })
-        .catch(error => console.error('Error loading global footer:', error));
-
-    // ---- Load the Chat System ----
-    fetch('globalchat.html') // <-- CHANGED FILENAME HERE
+    fetch('globalchat.html')
         .then(response => response.text())
         .then(data => {
             document.getElementById('chat-system-placeholder').innerHTML = data;
             
-            // All the event listeners for the chat now live inside this fetch,
-            // so they only run after the chat HTML has been loaded.
             const chatBarCollapsed = document.getElementById('chat-bar-collapsed');
             const chatWindow = document.getElementById('chat-window');
-            const chatMainTabsContainer = document.querySelector('.chat-main-tabs-container'); // Get the main tabs container
+            const chatMainTabsContainer = document.querySelector('.chat-main-tabs-container');
             
-            // Get specific chat icons from the collapsed bar
             const openFactionChatIcon = document.getElementById('open-faction-chat-icon');
             const openWarChatIcon = document.getElementById('open-war-chat-icon');
-            const openFriendsIcon = document.getElementById('open-friends-icon');
+            const openFriendsIcon = document.getElementById('open-friends-icon'); // The icon you are clicking
             const openNotificationsIcon = document.getElementById('open-notifications-icon');
             const openSettingsIcon = document.getElementById('open-settings-icon');
 
-            // Get specific chat panels
             const factionChatPanel = document.getElementById('faction-chat-panel');
             const warChatPanel = document.getElementById('war-chat-panel');
-            const friendsPanel = document.getElementById('friends-panel');
+            const friendsPanel = document.getElementById('friends-panel'); // The panel you want to show
             const notificationsPanel = document.getElementById('notifications-panel');
             const settingsPanel = document.getElementById('settings-panel');
 
-            // Get minimize buttons (newly added in HTML)
             const minimizeChatBtns = document.querySelectorAll('.minimize-chat-btn');
 
-            // Get all chat panels and tabs for easy iteration
             const allPanels = document.querySelectorAll('.chat-panel');
-            const allTabs = document.querySelectorAll('.chat-tab'); // Still needed for tab switching logic for Friends/Notifications/Settings
+            const allTabs = document.querySelectorAll('.chat-tab');
 
-            // Input and send buttons for Faction Chat
             const factionChatTextInput = factionChatPanel.querySelector('.chat-text-input');
             const factionChatSendBtn = factionChatPanel.querySelector('.chat-send-btn');
 
-            // Input and send buttons for War Chat (assuming they exist now in HTML)
             const warChatTextInput = warChatPanel.querySelector('.chat-text-input');
             const warChatSendBtn = warChatPanel.querySelector('.chat-send-btn');
 
@@ -72,10 +50,9 @@ function initializeGlobals() {
             if (openFactionChatIcon) {
                 openFactionChatIcon.addEventListener('click', () => {
                     openChatPanel(factionChatPanel);
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden'); // Ensure main tabs are hidden
-                    // You might want to focus the input here
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
                     if (factionChatTextInput) factionChatTextInput.focus();
-                    setupChatRealtimeListener('faction'); // Pass 'faction' to differentiate if needed later
+                    setupChatRealtimeListener('faction');
                 });
             }
 
@@ -83,20 +60,36 @@ function initializeGlobals() {
             if (openWarChatIcon) {
                 openWarChatIcon.addEventListener('click', () => {
                     openChatPanel(warChatPanel);
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden'); // Ensure main tabs are hidden
-                    if (warChatTextInput) warChatTextInput.focus(); // Focus war chat input
-                    setupChatRealtimeListener('war'); // Pass 'war' to differentiate if needed later
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
+                    if (warChatTextInput) warChatTextInput.focus();
+                    setupChatRealtimeListener('war');
                 });
             }
 
-            // Friends Icon Click
+            // Friends Icon Click - THIS IS THE SECTION WE ARE UPDATING
             if (openFriendsIcon) {
                 openFriendsIcon.addEventListener('click', () => {
-                    openChatPanel(friendsPanel);
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs for Friends, Notifications, Settings
-                    // Activate the Friends tab visually if necessary
+                    openChatPanel(friendsPanel); // Ensure the friendsPanel is opened
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs
+                    
+                    // Also ensure the correct *main* tab is active (the Friends tab itself)
                     allTabs.forEach(t => t.classList.remove('active'));
-                    document.querySelector('[data-tab-target="friends-panel"]').classList.add('active');
+                    const friendsMainTab = document.querySelector('.chat-tab[data-tab-target="friends-panel"]');
+                    if (friendsMainTab) friendsMainTab.classList.add('active');
+
+                    // And ensure the first sub-tab ('Recent Chats') within friends panel is active
+                    const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
+                    const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                    
+                    friendsSubTabs.forEach(t => t.classList.remove('active'));
+                    if (recentChatsSubTab) recentChatsSubTab.classList.add('active');
+
+                    // You might also need to load content into friends-panel-content here
+                    // For example:
+                    // if (friendsPanel.querySelector('.friends-panel-content')) {
+                    //     friendsPanel.querySelector('.friends-panel-content').innerHTML = '<p>Loading recent chats...</p>';
+                    //     // Add actual logic to load recent chats data
+                    // }
                 });
             }
 
@@ -104,7 +97,7 @@ function initializeGlobals() {
             if (openNotificationsIcon) {
                 openNotificationsIcon.addEventListener('click', () => {
                     openChatPanel(notificationsPanel);
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
                     allTabs.forEach(t => t.classList.remove('active'));
                     document.querySelector('[data-tab-target="notifications-panel"]').classList.add('active');
                 });
@@ -114,7 +107,7 @@ function initializeGlobals() {
             if (openSettingsIcon) {
                 openSettingsIcon.addEventListener('click', () => {
                     openChatPanel(settingsPanel);
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
                     allTabs.forEach(t => t.classList.remove('active'));
                     document.querySelector('[data-tab-target="settings-panel"]').classList.add('active');
                 });
@@ -129,24 +122,43 @@ function initializeGlobals() {
             });
 
             // --- Tab Switching Logic for main tabs (Friends, Notifications, Settings) ---
+            // This part should be fine as it handles clicks on the main tabs once the chat window is open
             allTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     const targetPanelId = tab.dataset.tabTarget;
                     const targetPanel = document.getElementById(targetPanelId);
 
-                    // Only handle switching if it's one of the panels meant to be under main tabs
                     if (['friends-panel', 'notifications-panel', 'settings-panel'].includes(targetPanelId)) {
                         allTabs.forEach(t => t.classList.remove('active'));
                         allPanels.forEach(p => p.classList.add('hidden'));
                         tab.classList.add('active');
                         if (targetPanel) targetPanel.classList.remove('hidden');
                         
-                        // Re-hide main tabs if Faction or War chat is somehow selected via this listener
-                        // (Though with the new logic, this block will only apply to friends/notifications/settings)
-                        if (targetPanelId === 'faction-chat-panel' || targetPanelId === 'war-chat-panel') {
-                             if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
-                        } else {
-                            if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
+                        // Ensure main tabs are visible for these panels
+                        if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
+
+                        // Activate the first sub-tab when switching to Friends panel via main tab click
+                        if (targetPanelId === 'friends-panel') {
+                            const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
+                            const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                            friendsSubTabs.forEach(t => t.classList.remove('active'));
+                            if (recentChatsSubTab) recentChatsSubTab.classList.add('active');
+                            // You might also need to trigger content loading here
+                        }
+
+                    } else {
+                        // This block handles if Faction or War chat is somehow selected via main tabs
+                        // (though the intended flow is via the collapsed bar icons)
+                        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
+                        allTabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        allPanels.forEach(p => p.classList.add('hidden'));
+                        if (targetPanel) targetPanel.classList.remove('hidden');
+
+                        if (targetPanelId === 'faction-chat-panel') {
+                            setupChatRealtimeListener('faction');
+                        } else if (targetPanelId === 'war-chat-panel') {
+                            setupChatRealtimeListener('war');
                         }
                     }
                 });
@@ -155,12 +167,12 @@ function initializeGlobals() {
             // --- Send Message Logic (now applies to respective chat inputs) ---
             function setupMessageSending(textInput, sendBtn, collectionType) {
                 if (sendBtn) {
-                    sendBtn.onclick = async () => { // Use onclick to allow reassignment
+                    sendBtn.onclick = async () => {
                         await sendChatMessage(textInput, collectionType);
                     };
                 }
                 if (textInput) {
-                    textInput.onkeydown = async (event) => { // Use onkeydown to allow reassignment
+                    textInput.onkeydown = async (event) => {
                         if (event.key === 'Enter') {
                             event.preventDefault();
                             await sendChatMessage(textInput, collectionType);
@@ -169,158 +181,13 @@ function initializeGlobals() {
                 }
             }
             
-            // Initial setup for faction chat send
             setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
-            // Initial setup for war chat send (assuming it now exists)
             setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
 
         })
         .catch(error => console.error('Error loading global chat:', error));
 
-    // ---- AUTHENTICATION LISTENER ----
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            if (doc.exists) {
-                const userData = doc.data();
-                const factionId = userData.faction_id;
-                currentTornUserName = userData.preferredName || 'Unknown User';
-                // No immediate setupChatRealtimeListener call here, it's triggered by icon clicks
-            }
-        } else {
-            if (unsubscribeFromChat) unsubscribeFromChat();
-            chatMessagesCollection = null;
-            const chatDisplayAreaFaction = document.getElementById('chat-display-area'); // For faction chat
-            const chatDisplayAreaWar = document.getElementById('war-chat-display-area'); // For war chat
-
-            if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
-            if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
-        }
-    });
-
-    // ---- CORE CHAT FUNCTIONS ----
-    function displayChatMessage(messageObj, chatDisplayAreaId) {
-        const chatDisplayArea = document.getElementById(chatDisplayAreaId);
-        if (!chatDisplayArea) return;
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('chat-message');
-        const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const senderName = messageObj.sender || 'Unknown';
-        const messageText = messageObj.text || '';
-        messageElement.innerHTML = `<span class="chat-timestamp">[${timestamp}]</span> <span class="chat-sender">${senderName}:</span> <span class="chat-text">${messageText}</span>`;
-        chatDisplayArea.appendChild(messageElement);
-        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
-    }
-
-    async function sendChatMessage(textInput, collectionType) {
-        if (!textInput || !auth.currentUser) return; // Removed chatMessagesCollection check here
-        const messageText = textInput.value.trim();
-        if (messageText === '') return;
-        
-        // Determine which collection to use based on collectionType
-        let targetCollection = null;
-        if (collectionType === 'faction' && auth.currentUser.uid) { // Ensure factionId is available
-            const userProfileRef = db.collection('userProfiles').doc(auth.currentUser.uid);
-            const doc = await userProfileRef.get();
-            if (doc.exists && doc.data().faction_id) {
-                targetCollection = db.collection('factionChats').doc(String(doc.data().faction_id)).collection('messages');
-            } else {
-                console.warn("Faction ID not found for current user. Cannot send faction chat message.");
-                return;
-            }
-        } else if (collectionType === 'war') {
-            // For war chat, you'll need to define how to get the 'war' collection reference
-            // This might involve a specific war ID or a general war chat collection.
-            // For now, I'll put a placeholder. You'll need to adjust this.
-            targetCollection = db.collection('warChats').doc('currentWar').collection('messages'); // Placeholder
-        }
-
-        if (!targetCollection) {
-            console.error("No valid chat collection determined for sending message.");
-            return;
-        }
-
-        const messageObj = {
-            senderId: auth.currentUser.uid,
-            sender: currentTornUserName,
-            text: messageText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        try {
-            await targetCollection.add(messageObj);
-            textInput.value = '';
-            textInput.focus();
-        } catch (error) {
-            console.error(`Error sending ${collectionType} message to Firebase:`, error);
-        }
-    }
-
-    // Modified to accept a type parameter to distinguish between faction and war chat
-    function setupChatRealtimeListener(type) {
-        let chatDisplayArea = null;
-        let collectionRef = null;
-
-        if (unsubscribeFromChat) unsubscribeFromChat(); // Unsubscribe from previous listener
-
-        if (type === 'faction' && auth.currentUser) {
-            // Re-fetch factionId to ensure it's current
-            db.collection('userProfiles').doc(auth.currentUser.uid).get().then(doc => {
-                if (doc.exists && doc.data().faction_id) {
-                    collectionRef = db.collection('factionChats').doc(String(doc.data().faction_id)).collection('messages');
-                    chatDisplayArea = document.getElementById('chat-display-area'); // Faction chat display area
-                    if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading faction messages...</p>';
-                    
-                    if (collectionRef) {
-                        unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
-                            .onSnapshot(snapshot => {
-                                if (chatDisplayArea) chatDisplayArea.innerHTML = '';
-                                if (snapshot.empty) {
-                                    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No faction messages yet.</p>`;
-                                    return;
-                                }
-                                snapshot.forEach(doc => displayChatMessage(doc.data(), 'chat-display-area'));
-                            }, error => {
-                                console.error("Error listening to faction chat messages:", error);
-                                if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading faction messages.</p>`;
-                            });
-                    }
-                } else {
-                    chatDisplayArea = document.getElementById('chat-display-area');
-                    if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat.</p>';
-                }
-            }).catch(error => {
-                console.error("Error fetching user profile for faction chat:", error);
-                chatDisplayArea = document.getElementById('chat-display-area');
-                if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error accessing faction chat.</p>`;
-            });
-
-        } else if (type === 'war') {
-            // For war chat, you'll need to define the correct collection reference
-            // For now, using a placeholder.
-            collectionRef = db.collection('warChats').doc('currentWar').collection('messages'); // Placeholder
-            chatDisplayArea = document.getElementById('war-chat-display-area'); // War chat display area
-            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading war messages...</p>';
-
-            if (collectionRef) {
-                unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
-                    .onSnapshot(snapshot => {
-                        if (chatDisplayArea) chatDisplayArea.innerHTML = '';
-                        if (snapshot.empty) {
-                            if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No war messages yet.</p>`;
-                            return;
-                        }
-                        snapshot.forEach(doc => displayChatMessage(doc.data(), 'war-chat-display-area'));
-                    }, error => {
-                        console.error("Error listening to war chat messages:", error);
-                        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading war messages.</p>`;
-                    });
-            }
-
-        } else {
-            console.warn("Unknown chat type or user not logged in for real-time listener.");
-        }
-    }
+    // ... (rest of your existing code for authentication and chat functions) ...
 }
 
 // Run the main initialization function
