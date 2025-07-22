@@ -1,16 +1,15 @@
 <div id="tornpa-chat-system">
     <div id="chat-bar-collapsed">
 	
-        <div id="open-faction-chat-icon" class="chat-bar-icon" title="Chat">💬</div>
-		<div id="open-war-chat-icon" class="chat-bar-icon" title="Chat">⚔️</div>
+        <div id="open-faction-chat-icon" class="chat-bar-icon" title="faction-Chat">🤝</div>
+		<div id="open-war-chat-icon" class="chat-bar-icon" title="war-Chat">⚔️</div>
         <div id="open-friends-icon" class="chat-bar-icon" title="Friends">👥</div>
         <div id="open-notifications-icon" class="chat-bar-icon" title="Notifications">🔔</div>
         <div id="open-settings-icon" class="chat-bar-icon" title="Settings">⚙️</div>
     </div>
 
     <div id="chat-window" class="hidden">
-        <div class="chat-main-tabs-container">
-            <div id="dynamic-tabs-container"></div> 
+        <div class="chat-main-tabs-container hidden"> <div id="dynamic-tabs-container"></div> 
             <div id="static-tabs-container">
                 <button class="chat-tab active" data-tab-target="faction-chat-panel" title="Faction Chat">💬</button>
                 <button class="chat-tab" data-tab-target="war-chat-panel" title="War Chat">⚔️</button>
@@ -22,6 +21,9 @@
 
         <div class="chat-panels-container">
             <div id="faction-chat-panel" class="chat-panel active">
+                <div class="chat-header"> <span class="chat-title">Faction Chat</span>
+                    <button class="minimize-chat-btn">-</button>
+                </div>
                 <div id="chat-display-area" class="chat-messages-scroll-wrapper"></div>
                 <div id="chat-input-area" class="chat-input-area">
                     <input type="text" class="chat-text-input" placeholder="Type your message...">
@@ -29,14 +31,22 @@
                 </div>
             </div>
 
-            <div id="war-chat-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>War Chat</h3></div>
+            <div id="war-chat-panel" class="chat-panel hidden">
+                <div class="chat-header"> <span class="chat-title">War Chat</span>
+                    <button class="minimize-chat-btn">-</button>
+                </div>
+                <div id="war-chat-display-area" class="chat-messages-scroll-wrapper"></div>
+                <div id="war-chat-input-area" class="chat-input-area">
+                    <input type="text" class="chat-text-input" placeholder="Type your message...">
+                    <button class="chat-send-btn">Send</button>
+                </div>
+            </div>
 
             <div id="friends-panel" class="chat-panel hidden">
                 <div class="friends-panel-subtabs">
                     <button class="sub-tab-button active" data-subtab="recent-chats">Recent Chats</button>
                     <button class="sub-tab-button" data-subtab="recently-met">Recently Met</button>
-                    <button class="sub-tab-button" data-subtab="friend-list">Friend List</button>
-                    <button class="sub-tab-button" data-subtab="faction-members">Faction</button>
+                    <button class="sub-tab-button" data-subtab="faction-members">Faction</button> <button class="sub-tab-button" data-subtab="friend-list">Friend List</button>
                     <button class="sub-tab-button" data-subtab="ignore-list">Ignore</button>
                 </div>
                 <div class="friends-panel-search">
