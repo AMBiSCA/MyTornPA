@@ -5,7 +5,7 @@ html, body {
     height: 100%; /* CHANGED: Use 100% instead of 100vh for more flexible height */
     margin: 0;
     padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scrollbar from overflow */
+    overflow-x: hidden; /* Prevent horizoal scrollbar from overflow */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #eee; /* Default text color for the whole site */
 }
@@ -425,204 +425,177 @@ ul li:last-child { border-bottom: none; }
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
 
-/* Global Chat System Positioning */
+/* ======================================= */
+/* ======== CHAT SYSTEM STYLES =========== */
+/* ======================================= */
+
 #tornpa-chat-system {
-    position: fixed; /* Makes the element position relative to the viewport */
-    bottom: 20px; /* Adjust as needed, e.g., 20px from the bottom */
-    right: 20px; /* Adjust as needed, e.g., 20px from the right */
-    z-index: 1000; /* Ensures it appears above other content */
-    display: flex; /* Use flexbox to arrange the collapsed bar and window */
-    flex-direction: column; /* Stack them vertically */
-    align-items: flex-end; /* Align items to the right */
+    /* This makes it stick to the bottom right of the screen */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000; /* Ensures it sits on top of other content */
+    font-family: Arial, sans-serif;
 }
 
-/* Collapsed Chat Bar Styling */
+/* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    background-color: #333; /* Dark background */
-    color: #fff; /* White text/icons */
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    gap: 10px; /* Space between icons */
-    transition: all 0.3s ease; /* Smooth transition */
-}
-
-#chat-bar-collapsed:hover {
-    background-color: #555;
+    width: auto; /* Allow width to be flexible */
+    padding: 5px;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    display: flex; /* This is the key change to show icons side-by-side */
+    gap: 5px; /* Adds a small space between icons */
 }
 
 .chat-bar-icon {
-    font-size: 24px;
-    line-height: 1; /* Helps with vertical alignment of emojis */
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
 }
 
-/* Chat Window Styling */
+.chat-bar-icon:hover {
+    background-color: #415a77;
+}
+
+/* --- Expanded Chat Window Styles --- */
 #chat-window {
-    width: 300px; /* Adjust desired width */
-    height: 400px; /* Adjust desired height */
-    background-color: #222; /* Dark background for chat window */
-    border: 1px solid #00aaff; /* Blue border */
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    width: 350px; /* A little wider for tabs */
+    height: 450px; /* A little taller */
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Hide overflowing content */
-    margin-top: 10px; /* Space between collapsed bar and window when open */
-    /* Position at the same bottom/right as the collapsed bar, but shifted up/left if needed */
+    overflow: hidden; /* Prevents content from spilling out */
 }
 
-#chat-window.hidden {
-    display: none; /* Hide the chat window when collapsed */
+/* A utility class to hide elements */
+.hidden {
+    display: none !important;
 }
 
-/* Main Chat Tabs Container */
+/* ======================================= */
+/* ====== NEW TAB SYSTEM STYLES ========== */
+/* ======================================= */
+
+/* Main container for the tab buttons */
 .chat-main-tabs-container {
     display: flex;
-    justify-content: space-between;
-    background-color: #1a1a1a;
-    padding: 5px;
-    border-bottom: 1px solid #00aaff;
+    justify-content: space-between; /* This pushes the two inner containers apart */
+    background-color: #0d1b2a;
+    padding: 3px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents the tab bar from shrinking */
 }
 
+#dynamic-tabs-container,
 #static-tabs-container {
-    display: flex;
+    display: flex; /* Makes tabs inside sit side-by-side */
+    gap: 3px; /* Space between tabs */
 }
 
+/* Individual tab buttons */
 .chat-tab {
-    background-color: #333;
-    color: #eee;
-    border: none;
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
     padding: 8px 12px;
     cursor: pointer;
-    margin-right: 5px;
-    border-radius: 5px;
-    font-size: 16px;
+    font-size: 16px; /* Adjust icon size */
+    border-radius: 4px;
     transition: background-color 0.2s;
 }
 
-.chat-tab:last-child {
-    margin-right: 0;
-}
-
 .chat-tab:hover {
-    background-color: #444;
+    background-color: #415a77;
 }
 
+/* Style for the currently active tab */
 .chat-tab.active {
-    background-color: #00aaff;
+    background-color: #3a506b;
+    border-bottom: 1px solid #5bc0de;
     color: #fff;
 }
 
-/* Chat Panels Container */
+/* Main container for all tab content panels */
 .chat-panels-container {
-    flex-grow: 1; /* Allows panels to take available space */
-    padding: 10px;
-    overflow-y: auto; /* Enable scrolling for chat messages */
-    position: relative; /* For absolute positioning of sub-elements if needed */
+    flex-grow: 1;
+    position: relative;
+    display: flex; 
+    flex-direction: column;
 }
 
 .chat-panel {
-    display: none; /* All panels hidden by default, JS shows active one */
-    height: 100%; /* Take full height of parent */
-    width: 100%; /* Take full width of parent */
-}
-
-.chat-panel.active {
-    display: block; /* Show the active panel */
-}
-
-/* Chat Display Area (for messages) */
-#chat-display-area {
-    height: calc(100% - 50px); /* Adjust based on input area height */
-    overflow-y: auto;
-    padding: 5px;
-    display: flex; /* Use flex for messages to push to bottom */
+    width: 100%;
+    height: 100%;
+    display: flex; 
     flex-direction: column;
-    justify-content: flex-end; /* Messages stick to the bottom */
 }
 
-.chat-message {
-    margin-bottom: 5px;
-    word-wrap: break-word;
+/* We need to make sure the chat-display-area and input are sized correctly now */
+#faction-chat-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-.chat-timestamp {
-    color: #888;
-    font-size: 0.8em;
-    margin-right: 5px;
-}
-
-.chat-sender {
-    color: #00aaff;
-    font-weight: bold;
-}
-
-.chat-text {
-    color: #ddd;
-}
-
-/* Chat Input Area */
-.chat-input-area {
+#chat-display-area {
+    flex-grow: 1; /* This makes the message area take up all available space */
     padding: 10px;
-    border-top: 1px solid #00aaff;
+    overflow-y: auto; 
+    color: #e0e1dd;
+}
+
+.chat-input-area {
     display: flex;
-    flex-direction: column; /* Stack quick links and input */
-    gap: 5px;
-}
-
-.quick-links-container {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.quick-links-label {
-    color: #888;
-    font-size: 0.9em;
-}
-
-.chat-input-buttons-top {
-    display: flex;
-    gap: 5px;
-}
-
-.chat-action-btn {
-    background-color: #444;
-    color: #fff;
-    border: none;
-    padding: 5px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.chat-action-btn:hover {
-    background-color: #666;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents input from shrinking */
 }
 
 .chat-text-input {
     flex-grow: 1;
-    padding: 8px;
-    border: 1px solid #00aaff;
-    border-radius: 4px;
-    background-color: #333;
-    color: #fff;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
 }
 
 .chat-send-btn {
-    background-color: #00aaff;
-    color: #fff;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
+    margin-left: 10px;
+    padding: 5px 10px;
     cursor: pointer;
-    transition: background-color 0.2s;
 }
 
-.chat-send-btn:hover {
-    background-color: #0088cc;
+/* Styles for individual messages */
+.chat-message {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-timestamp {
+    color: #778da9;
+    margin-right: 6px;
+    font-size: 0.9em;
+}
+
+.chat-sender {
+    font-weight: bold;
+    color: #a9c5de; 
+    margin-right: 6px;
+}
+
+.chat-text {
+    color: #e0e1dd;
 }
 
 @media (max-width: 768px) {
