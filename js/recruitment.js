@@ -164,8 +164,6 @@ async function removeSelfFromRecruitment() {
         
         await listingDocRef.delete();
 
-        alert("Your listing has been successfully removed.");
-        console.log("Player listing removed for user:", auth.currentUser.uid);
 
         // Refresh the player list to show the change
         displayPlayersSeekingFactions();
@@ -234,38 +232,7 @@ async function displayPlayersSeekingFactions() {
     }
 }
 
-async function unadvertiseFaction() {
-    console.log("Attempting to un-advertise faction.");
-    if (!auth.currentUser || !currentUserIsLeader) {
-        alert("You must be a logged-in faction leader to do this.");
-        return;
-    }
 
-    const factionId = currentUserData?.faction_id;
-    if (!factionId) {
-        alert("Could not find your faction ID in your profile.");
-        return;
-    }
-
-    // Disable the button to prevent multiple clicks
-    advertiseFactionButton.disabled = true;
-    advertiseFactionButton.textContent = 'Removing...';
-
-    try {
-        const docRef = db.collection('recruitingFactions').doc(String(factionId));
-        await docRef.delete();
-
-        alert("Your faction's advertisement has been successfully removed.");
-        console.log("Faction advertisement removed for faction ID:", factionId);
-
-        // Refresh the faction list to show the change
-        displayFactionsSeekingMembers();
-
-    } catch (error) {
-        console.error("Error removing faction advertisement:", error);
-        alert(`Failed to remove your advertisement: ${error.message}`);
-    }
-}
 
 async function advertiseFaction() {
     console.log("Attempting to advertise faction.");
