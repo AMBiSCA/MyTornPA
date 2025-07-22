@@ -900,115 +900,7 @@ if (headerEditProfileBtn && auth && db) {
     });
 }
 
-   if (saveProfileBtn && auth && db) {
-    saveProfileBtn.addEventListener('click', async () => {
-        // Define the single, central element for all profile modal errors
-        const profileSetupErrorEl = document.getElementById('profileSetupError');
-        
-        // --- Start Validation ---
-        // First, clear any previous error messages
-        if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
-
-        // 1. Validate Terms Checkbox
-        if (termsCheckbox && !termsCheckbox.checked) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
-            return; // Stop the function
-        }
-        
-        // 2. Check that form elements exist
-        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error. Please refresh and try again.';
-            return;
-        }
-
-        // Get form values
-        const preferredNameVal = preferredNameInput.value.trim();
-        const apiKeyVal = profileSetupApiKeyInput.value.trim();
-        const profileIdVal = profileSetupProfileIdInput.value.trim();
-
-        // 3. Validate Preferred Name
-        if (!preferredNameVal) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Preferred Display Name is a required field.';
-            return;
-        }
-        if (preferredNameVal.length > 10) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Display Name cannot be more than 10 characters.';
-            return;
-        }
-        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'The chosen Display Name is not allowed.';
-            return;
-        }
-
-        // 4. Validate API Key
-        if (!apiKeyVal) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
-            return;
-        }
-
-        // 5. Validate Torn Profile ID
-        if (!profileIdVal) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
-            return;
-        }
-        // --- End of Validation ---
-
-
-        const user = auth.currentUser;
-        const profileDataToSave = {
-            preferredName: preferredNameVal,
-            tornApiKey: apiKeyVal,
-            tornProfileId: String(profileIdVal),
-            termsAgreed: termsCheckbox.checked,
-            profileSetupComplete: true,
-            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-        };
-
-        try {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const currentDoc = await userProfileRef.get();
-
-            if (!currentDoc.exists) {
-                profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
-            }
-
-            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-            }
-
-            await userProfileRef.set(profileDataToSave, { merge: true });
-            if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
-                displayRandomTip();
-                localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-            } else if (tornTipPlaceholderEl) {
-                tornTipPlaceholderEl.style.display = 'none';
-            }
-            hideProfileSetupModal();
-            const updatedProfile = { ...currentUserProfile, ...profileDataTosave };
-            currentUserProfile = updatedProfile;
-            console.log("2. Profile updated after save:", currentUserProfile);
-            updateToolLinksAccess(updatedProfile);
-            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-            
-            if (profileDataToSave.tornApiKey) {
-                fetchAllRequiredData(user, db);
-            } else {
-                clearQuickStats();
-                if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
-                if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
-            }
-
-        } catch (error) {
-            console.error("Error saving profile: ", error);
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving profile. Please try again.";
-        }
-    });
-}
-
-if (saveProfileBtn && auth && db) {
+  if (saveProfileBtn && auth && db) {
     saveProfileBtn.addEventListener('click', async () => {
         const profileSetupErrorEl = document.getElementById('profileSetupError');
         if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
@@ -1074,33 +966,16 @@ if (saveProfileBtn && auth && db) {
             }
 
             await userProfileRef.set(profileDataToSave, { merge: true });
-            if (user.displayName !== preferredNameVal) await user.updateProfile({ displayName: preferredNameVal });
-            if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome back, ${preferredNameVal}!`;
-            if (localStorage.getItem(`hasSeenWelcomeTip_${user.uid}`) !== 'true') {
-                displayRandomTip();
-                localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true');
-            } else if (tornTipPlaceholderEl) {
-                tornTipPlaceholderEl.style.display = 'none';
-            }
-            hideProfileSetupModal();
-            const updatedProfile = { ...currentUserProfile, ...profileDataToSave };
-            currentUserProfile = updatedProfile;
-            console.log("2. Profile updated after save:", currentUserProfile);
-            updateToolLinksAccess(updatedProfile);
-            if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.checked = profileDataToSave.shareFactionStats;
-            
-            // --- THIS IS THE NEW PART ---
-            // After saving, trigger the full data sync in the background.
+
+            // We still call this to do the background data save
             if (profileDataToSave.tornApiKey) {
-                console.log("Profile saved. Triggering full background data sync...");
-                await triggerFullDataSync(profileDataToSave.tornApiKey);
-                // Now refresh the dashboard with the new data
-                fetchAllRequiredData(user, db); 
-            } else {
-                clearQuickStats();
-                if(document.getElementById('quickStatsError')) document.getElementById('quickStatsError').textContent = 'API Key not configured.';
+                await fetchAllRequiredData(user, db);
             }
-            // --- END OF NEW PART ---
+            
+            // --- SOLUTION ---
+            // This will force a page reload after everything is saved,
+            // ensuring all new data is displayed correctly.
+            location.reload();
 
         } catch (error) {
             console.error("Error saving profile: ", error);
@@ -1108,6 +983,8 @@ if (saveProfileBtn && auth && db) {
         }
     });
 }
+
+
 
 // REPLACE your existing toolsSection listener with this full block
 const toolsSection = document.getElementById('toolsSection');
