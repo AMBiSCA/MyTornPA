@@ -843,90 +843,61 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     function hideProfileSetupModal() { if (profileSetupModal) { profileSetupModal.style.display = 'none'; if (nameErrorEl) nameErrorEl.textContent = ''; if (profileSetupErrorEl) profileSetupErrorEl.textContent = ''; } }
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
-    // Locate this block in your home.js
+ // Locate this block in your home.js and replace it completely.
 if (headerEditProfileBtn && auth && db) {
-    headerEditProfileBtn.addEventListener('click', async function(event) {
-        event.preventDefault();
-        const user = auth.currentUser;
-        if (!user || !db) return;
+    headerEditProfileBtn.addEventListener('click', async function(event) {
+        event.preventDefault();
+        const user = auth.currentUser;
+        if (!user || !db) return;
 
-        // --- NEW/MODIFIED: Clear and prepare input fields ---
-        if(preferredNameInput) preferredNameInput.value = '';
-        if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
-        if(termsCheckbox) termsCheckbox.checked = false;
-        if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
+        // --- Prepare input fields ---
+        if(preferredNameInput) preferredNameInput.value = '';
+        if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
+        if(termsCheckbox) termsCheckbox.checked = false;
+        if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
 
-        // Reset Torn Profile ID input: clear, make writable, and set type to text
-        if (profileSetupProfileIdInput) {
-            profileSetupProfileIdInput.value = ''; // Ensure it's empty
-            profileSetupProfileIdInput.removeAttribute('readonly'); // Make it writable temporarily
-            profileSetupProfileIdInput.type = 'text'; // Ensure it's text
-        }
-        // --- END NEW/MODIFIED ---
+        // --- MODIFIED: We no longer make the Profile ID field read-only ---
+        if (profileSetupProfileIdInput) {
+            profileSetupProfileIdInput.value = ''; // Clear the value
+            profileSetupProfileIdInput.removeAttribute('readonly'); // Ensure it is NOT readonly
+            profileSetupProfileIdInput.type = 'text'; // Ensure it's a text field
+        }
+        // --- END MODIFICATION ---
 
-        try {
-            const userProfileRef = db.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get(); // Fetch the current user profile
+        try {
+            const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const doc = await userProfileRef.get(); // Fetch the current user profile
 
-            if (doc.exists) {
-                const data = doc.data();
-                
-                // Populate fields ONLY with data from Firebase
-                if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
-                if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
-                
-                // --- MODIFIED: Handle TornProfileId with robustness ---
-                if(profileSetupProfileIdInput) {
-                    const tornId = data.tornProfileId ? String(data.tornProfileId) : '';
-                    
-                    // Directly set the value immediately after fetching data
-                    // then immediately make it readonly again.
-                    profileSetupProfileIdInput.value = tornId;
-                    profileSetupProfileIdInput.setAttribute('readonly', 'readonly'); // Make it readonly after setting value
-                    
-                    // If, for some reason, the value isn't sticking even after direct assignment,
-                    // we can add a tiny delay to re-set it, but try without first.
-                    // If you still see the email, uncomment the setTimeout below and comment out the two lines above (value set and setAttribute)
-                    /*
-                    setTimeout(() => {
-                        profileSetupProfileIdInput.value = tornId;
-                        profileSetupProfileIdInput.setAttribute('readonly', 'readonly');
-                    }, 10); // A tiny delay for extreme cases
-                    */
-                }
-                // --- END MODIFICATION ---
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // Populate fields with data from Firebase
+                if(preferredNameInput) preferredNameInput.value = data.preferredName || '';
+                if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
+                
+                // --- MODIFIED: Populate TornProfileId but DO NOT make it readonly ---
+                if(profileSetupProfileIdInput) {
+                    profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+                    // The line that set it to readonly here has been removed.
+                }
+                // --- END MODIFICATION ---
 
-                if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
-                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
+                if(termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
+                if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
 
-            } else {
-                // If no profile exists, set preferredName from Firebase displayName (if available)
-                if(preferredNameInput && user.displayName) {
-                    preferredNameInput.value = user.displayName.substring(0,10);
-                }
-                // If no profile, ensure Torn Profile ID input is text and remains empty and readonly
-                if (profileSetupProfileIdInput) {
-                    profileSetupProfileIdInput.value = '';
-                    profileSetupProfileIdInput.type = 'text'; // Ensure type is text
-                    profileSetupProfileIdInput.setAttribute('readonly', 'readonly'); // Ensure it's readonly
-                }
-            }
-        } catch (err) {
-            console.error("Error fetching profile for edit:", err);
-            if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
-            // If there's an error, still ensure fields are cleared and type/readonly are correct
-            if(preferredNameInput) preferredNameInput.value = '';
-            if(profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
-            if(profileSetupProfileIdInput) {
-                profileSetupProfileIdInput.value = '';
-                profileSetupProfileIdInput.type = 'text';
-                profileSetupProfileIdInput.setAttribute('readonly', 'readonly');
-            }
-            if(termsCheckbox) termsCheckbox.checked = false;
-            if(shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
-        }
-        showProfileSetupModal(); // Show the modal after attempting to populate it
-    });
+            } else {
+                // If no profile exists, set preferredName from Firebase displayName (if available)
+                if(preferredNameInput && user.displayName) {
+                    preferredNameInput.value = user.displayName.substring(0,10);
+                }
+                // We don't need to do anything to the profile ID input here, it's already cleared and writable.
+            }
+        } catch (err) {
+            console.error("Error fetching profile for edit:", err);
+            if(profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
+        }
+        showProfileSetupModal(); // Show the modal after attempting to populate it
+    });
 }
 
    if (saveProfileBtn && auth && db) {
