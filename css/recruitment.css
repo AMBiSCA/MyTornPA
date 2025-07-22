@@ -355,23 +355,12 @@
     border-color: #a52714;
 }
 
-/* Fix for blue dot artifact next to buttons in tables */
-.recruitment-table td a {
-    /* Remove any shadow that might be leaking from the link tag */
-    box-shadow: none !important;
-    text-shadow: none !important;
-    
-    /* Also ensure the link itself has no background */
-    background: transparent !important;
-}
+/* --- FIX: Remove the default browser focus ring on custom buttons --- */
 
-/* --- New Attempt: Hiding potential pseudo-elements causing the dot --- */
-
-/* This targets any ::before or ::after elements on links within your table */
-.recruitment-table td a::before,
-.recruitment-table td a::after {
-    display: none !important;
-    content: "" !important;
+.action-button:focus,
+.action-button:active {
+    outline: none !important;
+    box-shadow: none !important; 
 }
 
 .btn {
