@@ -312,31 +312,7 @@
         padding: 5px 10px;
         font-size: 0.85em;
     }
-    /* Further header/footer adjustments */
-    .main-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    .main-header nav {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    .main-header nav a {
-        margin: 5px;
-    }
-    .header-right-controls {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .header-buttons {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    .header-buttons .btn {
-        margin: 5px;
-    }
+    
 }
 
 @media (max-width: 480px) {
@@ -366,23 +342,7 @@
         width: 100%; /* Force buttons to stack vertically */
         margin-right: 0; /* Remove horizontal margin */
     }
-    /* Header/Footer adjustments for very small screens */
-    .main-header .logo {
-        font-size: 1.5em;
-    }
-    .main-header nav a {
-        font-size: 0.9em;
-        margin: 3px;
-    }
-    .header-buttons .btn {
-        font-size: 0.9em;
-        padding: 6px 10px;
-    }
-    .footer-links a {
-        font-size: 0.85em;
-        margin: 0 5px;
-    }
-}
+    /* Header/Footer adjustments for very small screens */    
 
 /* Style for the 'Remove Listing' button to make it red */
 .action-button.remove {
