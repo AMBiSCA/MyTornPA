@@ -431,7 +431,7 @@ ul li:last-child { border-bottom: none; }
 #tornpa-chat-system {
     /* This makes it stick to the bottom right of the screen */
     position: fixed;
-    bottom: 19px;
+    bottom: 18px;
     right: 0px;
     z-index: 1000; /* Ensures it sits on top of other content */
     font-family: Arial, sans-serif;
