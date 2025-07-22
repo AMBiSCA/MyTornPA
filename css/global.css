@@ -443,21 +443,24 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* --- Collapsed Chat Bar Styles --- */
+/* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    width: auto; /* Allow width to be flexible based on content */
+    order: 2; /* <--- ADD THIS LINE */
+
+    /* Your existing styles below should remain unchanged */
+    width: auto;
     padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex; /* Display icons side-by-side */
-    gap: 5px; /* Space between icons */
-    margin-bottom: 5px; /* Space between collapsed bar and expanded window */
-    cursor: pointer; /* Indicate it's clickable */
-    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover */
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .chat-bar-icon {
     font-size: 20px;
     padding: 5px 8px;
