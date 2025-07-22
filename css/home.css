@@ -546,6 +546,17 @@ input[type="checkbox"]#togglePersonalStatsCheckbox {
     transform: scale(0.95); /* A subtle "press down" effect */
 }
 
+/*
+ This style targets the central error message container in the profile modal.
+ It makes ALL profile errors centered, bold, and red.
+*/
+#profileSetupError {
+  text-align: center; /* This is the line that will center the text. */
+  font-weight: bold;  /* This will make the font thicker, like you wanted. */
+  color: #ff5555;     /* This sets a nice, visible red color. */
+  width: 100%;        /* Ensures the text centers properly within the available space. */
+}
+
 
 
 /* === RESPONSIVE STYLES === */
