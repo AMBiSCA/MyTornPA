@@ -424,22 +424,21 @@ ul li:last-child { border-bottom: none; }
 #firebaseui-auth-container {
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
-/* ======================================= */
-/* ======== CHAT SYSTEM STYLES =========== */
-/* ======================================= */
-
 #tornpa-chat-system {
     /* This makes it stick to the bottom right of the screen */
     position: fixed;
-    bottom: 18px;
-    right: 0px;
+    bottom: 18px; /* Slightly off the very bottom to match your screenshot */
+    right: 0px;  /* Flush with the right edge */
     z-index: 1000; /* Ensures it sits on top of other content */
     font-family: Arial, sans-serif;
+    display: flex; /* Changed to flex to properly position chat-bar-collapsed above chat-window */
+    flex-direction: column; /* Stack children vertically */
+    align-items: flex-end; /* Align children (collapsed bar, window) to the right */
 }
 
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    width: auto; /* Allow width to be flexible */
+    width: auto; /* Allow width to be flexible based on content */
     padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
@@ -448,18 +447,35 @@ ul li:last-child { border-bottom: none; }
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     display: flex; /* This is the key change to show icons side-by-side */
     gap: 5px; /* Adds a small space between icons */
+    margin-bottom: 5px; /* Space between collapsed bar and expanded window */
+    cursor: pointer; /* Indicate it's clickable */
 }
 
 .chat-bar-icon {
-    cursor: pointer;
+    /* Removed cursor here, now on parent #chat-bar-collapsed for the whole bar */
     font-size: 20px;
     padding: 5px 8px;
     border-radius: 3px;
     transition: background-color 0.2s ease;
+    display: flex; /* Allows text and icon to be inline-flex */
+    align-items: center; /* Vertically align icon and text */
+    justify-content: center; /* Horizontally center */
 }
 
-.chat-bar-icon:hover {
-    background-color: #415a77;
+.chat-bar-icon .chat-icon-text {
+    font-size: 0.8em; /* Make text slightly smaller than icon */
+    margin-left: 5px; /* Space between icon and text */
+    display: none; /* Hide text by default in collapsed bar to save space */
+}
+
+/* Optional: Show text on hover for individual icons if desired, but removed for compact bar */
+/* .chat-bar-icon:hover .chat-icon-text { display: inline; } */
+
+#chat-bar-collapsed:hover {
+    background-color: #415a77; /* Hover for the entire bar */
+}
+#chat-bar-collapsed:hover .chat-bar-icon .chat-icon-text {
+    display: inline; /* Show text on hover of the entire collapsed bar */
 }
 
 /* --- Expanded Chat Window Styles --- */
@@ -473,6 +489,7 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     flex-direction: column;
     overflow: hidden; /* Prevents content from spilling out */
+    /* Position is handled by parent #tornpa-chat-system now */
 }
 
 /* A utility class to hide elements */
@@ -492,6 +509,7 @@ ul li:last-child { border-bottom: none; }
     padding: 3px;
     border-bottom: 1px solid #415a77;
     flex-shrink: 0; /* Prevents the tab bar from shrinking */
+    width: 100%; /* Ensure it spans the full width of the chat window */
 }
 
 #dynamic-tabs-container,
@@ -510,6 +528,7 @@ ul li:last-child { border-bottom: none; }
     font-size: 16px; /* Adjust icon size */
     border-radius: 4px;
     transition: background-color 0.2s;
+    line-height: 1; /* Helps vertical alignment of icons */
 }
 
 .chat-tab:hover {
@@ -538,8 +557,9 @@ ul li:last-child { border-bottom: none; }
     flex-direction: column; /* Ensure panels are column flex containers */
 }
 
-/* Specific styling for Faction and War chat panels */
+/* Specific styling for Faction, Alliance, and War chat panels */
 #faction-chat-panel,
+#alliance-chat-panel, /* NEW: Alliance chat panel */
 #war-chat-panel {
     display: flex;
     flex-direction: column;
@@ -582,6 +602,7 @@ ul li:last-child { border-bottom: none; }
 
 /* We need to make sure the chat-display-area and input are sized correctly now */
 #chat-display-area, /* Faction chat display area */
+#alliance-chat-display-area, /* NEW: Alliance chat display area */
 #war-chat-display-area {
     flex-grow: 1; /* This makes the message area take up all available space */
     padding: 10px;
@@ -591,17 +612,20 @@ ul li:last-child { border-bottom: none; }
 
 /* Styles for the chat display area scrollbar */
 #chat-display-area::-webkit-scrollbar,
+#alliance-chat-display-area::-webkit-scrollbar, /* NEW: Alliance chat scrollbar */
 #war-chat-display-area::-webkit-scrollbar {
     width: 8px; /* Or 10px if you prefer a slightly wider one */
 }
 
 #chat-display-area::-webkit-scrollbar-track,
+#alliance-chat-display-area::-webkit-scrollbar-track, /* NEW: Alliance chat scrollbar track */
 #war-chat-display-area::-webkit-scrollbar-track {
     background: #1b263b; /* Background of the scrollbar track, slightly darker than the chat area */
     border-radius: 10px;
 }
 
 #chat-display-area::-webkit-scrollbar-thumb,
+#alliance-chat-display-area::-webkit-scrollbar-thumb, /* NEW: Alliance chat scrollbar thumb */
 #war-chat-display-area::-webkit-scrollbar-thumb {
     background-color: #415a77; /* Color of the scrollbar thumb */
     border-radius: 10px;
@@ -609,6 +633,7 @@ ul li:last-child { border-bottom: none; }
 }
 
 #chat-display-area::-webkit-scrollbar-thumb:hover,
+#alliance-chat-display-area::-webkit-scrollbar-thumb:hover, /* NEW: Alliance chat scrollbar thumb hover */
 #war-chat-display-area::-webkit-scrollbar-thumb:hover {
     background-color: #5bc0de; /* Lighter color on hover */
 }
@@ -664,199 +689,6 @@ ul li:last-child { border-bottom: none; }
 }
 
 .chat-text {
-    color: #e0e1dd;
-}
-
-/* New or updated rules for a compact, single-line member display */
-
-.friends-panel-content .members-list-container {
-    padding: 5px; /* Add some padding around the whole list */
-    display: flex; /* Make the container a flex container */
-    flex-direction: column; /* Stack member items vertically */
-    gap: 2px; /* Small gap between individual member lines */
-}
-
-.friends-panel-content .member-item {
-    display: flex; /* Use flexbox for each member item */
-    align-items: center; /* Vertically align items in the middle */
-    justify-content: space-between; /* Space out content and action buttons */
-    padding: 4px 8px; /* Reduce padding to make it more compact */
-    border-bottom: 1px solid #333; /* Light separator between entries */
-    background-color: #2a2a2a; /* Slightly lighter background for each row */
-    font-size: 0.9em; /* Slightly smaller font size */
-    flex-wrap: nowrap; /* Prevent wrapping of content within the member item */
-    min-height: 30px; /* Ensure a minimum height for consistency */
-}
-
-.friends-panel-content .member-item:last-child {
-    border-bottom: none; /* No border for the last item */
-}
-
-.friends-panel-content .member-info-left {
-    display: flex; /* Use flexbox for the left side (rank, identity) */
-    align-items: center;
-    flex-grow: 1; /* Allow this section to grow */
-    overflow: hidden; /* Hide overflow if text is too long */
-    white-space: nowrap; /* Prevent text wrapping here */
-}
-
-.friends-panel-content .member-rank {
-    font-size: 0.75em; /* Smaller font for rank */
-    color: #bbb; /* Lighter color for rank */
-    margin-right: 8px; /* Space between rank and identity */
-    flex-shrink: 0; /* Prevent rank from shrinking */
-    max-width: 100px; /* Limit rank width if needed */
-    text-overflow: ellipsis; /* Add ellipsis for long ranks */
-    overflow: hidden;
-}
-
-.friends-panel-content .member-identity {
-    display: flex; /* Flex for profile pic and name */
-    align-items: center;
-    gap: 5px; /* Space between pic and name */
-    overflow: hidden; /* Hide overflow for name */
-    white-space: nowrap; /* Prevent name wrapping */
-    flex-grow: 1; /* Allow identity to grow */
-}
-
-.friends-panel-content .member-profile-pic {
-    width: 24px; /* Smaller profile picture */
-    height: 24px; /* Smaller profile picture */
-    border-radius: 4px; /* Slightly rounded corners */
-    object-fit: cover; /* Ensure image covers the area */
-    flex-shrink: 0; /* Prevent image from shrinking */
-}
-
-.friends-panel-content .member-name {
-    font-weight: bold;
-    color: #eee; /* Brighter color for name */
-    text-overflow: ellipsis; /* Add ellipsis for long names */
-    overflow: hidden;
-    flex-grow: 1; /* Allow name to grow */
-}
-
-.friends-panel-content .member-actions {
-    display: flex; /* Flex for action buttons */
-    align-items: center;
-    gap: 3px; /* Smaller gap between buttons */
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-}
-
-.friends-panel-content .item-button {
-    background-color: #444; /* Darker button background */
-    color: #fff;
-    border: 1px solid #555;
-    padding: 3px 6px; /* Smaller padding for buttons */
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.8em; /* Smaller font for buttons */
-    line-height: 1; /* Adjust line height for vertical alignment */
-    text-decoration: none; /* Remove underline for link button */
-    display: inline-flex; /* Use flex for button content, especially for icon+text */
-    align-items: center; /* Center content vertically */
-    justify-content: center; /* Center content horizontally */
-    min-width: 25px; /* Minimum width for small icons */
-    min-height: 25px; /* Minimum height for small icons */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-.friends-panel-content .item-button:hover {
-    background-color: #555; /* Hover effect */
-}
-
-.friends-panel-content .add-member-button,
-.friends-panel-content .remove-friend-button {
-    position: relative;
-    padding: 3px 6px; /* Adjust padding for icon buttons */
-    font-size: 1.1em; /* Larger icon size */
-    line-height: 1;
-}
-
-.friends-panel-content .add-member-button .plus-sign,
-.friends-panel-content .remove-friend-button .plus-sign {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.7em; /* Smaller +/- sign */
-    font-weight: bold;
-}
-
-/* ------------------------------------- */
-/* Friends Panel Specific Styles         */
-/* ------------------------------------- */
-
-/* Ensure friends-panel is a flex container and takes full height */
-#friends-panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background-color: #0d1b2a; /* Added background for visibility */
-}
-
-.friends-panel-subtabs {
-    display: flex;
-    justify-content: flex-start;
-    background-color: #1b263b;
-    padding: 5px;
-    border-bottom: 1px solid #415a77;
-    flex-shrink: 0;
-    flex-wrap: wrap; /* Allow sub-tabs to wrap */
-}
-
-.friends-panel-subtabs .sub-tab-button {
-    background-color: #2e435a;
-    border: 1px solid #415a77;
-    color: #e0e1dd;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 0.9em;
-    border-radius: 3px;
-    margin-right: 5px;
-    transition: background-color 0.2s;
-}
-
-.friends-panel-subtabs .sub-tab-button:hover {
-    background-color: #415a77;
-}
-
-.friends-panel-subtabs .sub-tab-button.active {
-    background-color: #3a506b;
-    color: #fff;
-    border-bottom: 1px solid #5bc0de;
-}
-
-.friends-panel-search {
-    display: flex;
-    padding: 10px;
-    border-bottom: 1px solid #415a77;
-    background-color: #1b263b;
-    flex-shrink: 0;
-}
-
-.friends-panel-search .search-input {
-    flex-grow: 1;
-    border: 1px solid #778da9;
-    background-color: #e0e1dd;
-    color: #0d1b2a;
-    padding: 5px;
-    border-radius: 3px;
-    margin-right: 5px;
-}
-
-.friends-panel-search .search-icon {
-    color: #e0e1dd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-}
-
-.friends-panel-content {
-    flex-grow: 1;
-    padding: 10px;
-    overflow-y: auto;
-    background-color: #0d1b2a;
     color: #e0e1dd;
 }
 
@@ -983,6 +815,84 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* ------------------------------------- */
+/* Friends Panel Specific Styles        */
+/* ------------------------------------- */
+
+/* Ensure friends-panel is a flex container and takes full height */
+#friends-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #0d1b2a; /* Added background for visibility */
+}
+
+.friends-panel-subtabs {
+    display: flex;
+    justify-content: flex-start;
+    background-color: #1b263b;
+    padding: 5px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0;
+    flex-wrap: wrap; /* Allow sub-tabs to wrap */
+}
+
+.friends-panel-subtabs .sub-tab-button {
+    background-color: #2e435a;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    border-radius: 3px;
+    margin-right: 5px;
+    transition: background-color 0.2s;
+}
+
+.friends-panel-subtabs .sub-tab-button:hover {
+    background-color: #415a77;
+}
+
+.friends-panel-subtabs .sub-tab-button.active {
+    background-color: #3a506b;
+    color: #fff;
+    border-bottom: 1px solid #5bc0de;
+}
+
+.friends-panel-search {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #415a77;
+    background-color: #1b263b;
+    flex-shrink: 0;
+}
+
+.friends-panel-search .search-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+.friends-panel-search .search-icon {
+    color: #e0e1dd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+}
+
+.friends-panel-content {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+}
+
+/* ------------------------------------- */
 /* Notifications Panel Specific Styles   */
 /* ------------------------------------- */
 
@@ -1013,8 +923,8 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     flex-direction: column;
     /* You mentioned "half screen" - for now, they'll expand to fill available space.
-       If you want strict half-screen, we'd need more complex flex-basis or grid,
-       but this column layout makes more sense for varying notification counts. */
+        If you want strict half-screen, we'd need more complex flex-basis or grid,
+        but this column layout makes more sense for varying notification counts. */
 }
 
 .notification-section h4 {
@@ -1274,6 +1184,40 @@ input:checked + .slider:before {
     background: #5bc0de;
 }
 
+
+@media (max-width: 768px) {
+
+  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
+  html, body {
+    height: auto;
+    overflow-y: auto;       /* Enables page scrolling */
+    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
+    scrollbar-width: none;      /* Hides scrollbar on Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none;              /* Hides scrollbar on Chrome/Safari */
+  }
+  /* --- END OF ADDED CODE --- */
+
+
+  /* Your existing global mobile styles */
+  body { padding-top: 0; padding-bottom: 0; }
+  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+  #usefulLinksBtn { display: none; } /* Hides 'Useful Links' button on mobile */
+  .header-left h1 { font-size: 1.4rem; }
+  .tagline { font-size: 0.7rem; }
+  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+}
+
+@media (max-width: 480px) {
+  /* Mobile specific adjustments within the media queries */
+}
 
 @media (max-width: 768px) {
 
