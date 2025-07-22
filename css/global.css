@@ -431,15 +431,12 @@ ul li:last-child { border-bottom: none; }
 #tornpa-chat-system {
     /* This makes it stick to the bottom right of the screen */
     position: fixed;
-    bottom: 18px; /* Keep your current bottom position for the *overall system* */
-    right: 0px;  /* Keep your current right position for the *overall system* */
-    z-index: 1000; /* This z-index is for the entire chat system */
+    bottom: 18px;
+    right: 0px;
+    z-index: 1000; /* Ensures it sits on top of other content */
     font-family: Arial, sans-serif;
-    /* ADD these two properties to allow stacking context for its children */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end; /* Aligns contents to the right */
 }
+
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
     width: auto; /* Allow width to be flexible */
@@ -449,13 +446,10 @@ ul li:last-child { border-bottom: none; }
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex;
-    gap: 5px;
-    /* ADD these properties */
-    position: relative; /* Essential for z-index to work against siblings */
-    z-index: 1001; /* Higher z-index than the overall system but lower than expanded window initially */
-    margin-top: 5px; /* Add a small gap if needed, or adjust positioning of chat window */
+    display: flex; /* This is the key change to show icons side-by-side */
+    gap: 5px; /* Adds a small space between icons */
 }
+
 .chat-bar-icon {
     cursor: pointer;
     font-size: 20px;
