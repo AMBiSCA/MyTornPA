@@ -720,6 +720,93 @@ ul li:last-child { border-bottom: none; }
     background-color: #0d1b2a;
     color: #e0e1dd;
 }
+
+/* ------------------------------------- */
+/* Notifications Panel Specific Styles   */
+/* ------------------------------------- */
+
+/* Ensure notifications-panel is a flex column container */
+#notifications-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Important to make its children flex properly */
+    background-color: #0d1b2a; /* Consistent background */
+}
+
+/* Wrapper for the notification sections */
+.notifications-content-wrapper {
+    flex-grow: 1; /* Allow this wrapper to take up available space */
+    display: flex;
+    flex-direction: column; /* Arrange sections vertically */
+    padding: 10px; /* Overall padding inside the panel */
+    gap: 15px; /* Space between notification sections */
+    overflow-y: auto; /* Allow scrolling if total content overflows wrapper */
+}
+
+/* Individual notification sections */
+.notification-section {
+    background-color: #1b263b; /* Slightly lighter background for sections */
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    /* You mentioned "half screen" - for now, they'll expand to fill available space.
+       If you want strict half-screen, we'd need more complex flex-basis or grid,
+       but this column layout makes more sense for varying notification counts. */
+}
+
+.notification-section h4 {
+    color: #a9c5de; /* Heading color */
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #3a506b;
+    font-size: 1em;
+}
+
+/* Container for the list of actual notifications within each section */
+.notification-list {
+    flex-grow: 1; /* Allows the list to take up remaining space in its section */
+    color: #e0e1dd; /* Text color for notifications */
+    font-size: 0.9em;
+    line-height: 1.4;
+    max-height: 150px; /* Example: set a max height for scrolling within a section */
+    overflow-y: auto; /* Enable scrolling for individual notification lists */
+    padding-right: 5px; /* Add some padding for scrollbar if present */
+}
+
+/* Style for individual notification items (if you add them dynamically) */
+.notification-item {
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(65, 90, 119, 0.3); /* Light dashed separator */
+}
+
+.notification-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+/* Optional: Scrollbar styling for notification lists */
+.notification-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #0d1b2a;
+    border-radius: 10px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #415a77;
+    border-radius: 10px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #5bc0de;
+}
+
+
 @media (max-width: 768px) {
 
   /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */

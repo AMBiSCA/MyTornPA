@@ -59,7 +59,33 @@
     </div>
 </div>
 
-            <div id="notifications-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Notifications</h3></div>
+            <div id="notifications-panel" class="chat-panel hidden">
+    <div class="chat-header"> <span class="chat-title">Notifications</span>
+        <button class="minimize-chat-btn">-</button>
+    </div>
+    <div class="notifications-content-wrapper">
+        <div class="notification-section site-notifications">
+            <h4>Site Notifications 🌐</h4>
+            <div class="notification-list" id="site-notification-list">
+                <p>No new site notifications.</p>
+                </div>
+        </div>
+
+        <div class="notification-section friend-notifications">
+            <h4>Friend Notifications 👥</h4>
+            <div class="notification-list" id="friend-notification-list">
+                <p>No new friend notifications.</p>
+                </div>
+        </div>
+
+        <div class="notification-section general-notifications">
+            <h4>Other Notifications 🔔</h4>
+            <div class="notification-list" id="general-notification-list">
+                <p>No other notifications.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div id="settings-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Settings</h3></div>
         </div>
