@@ -390,7 +390,6 @@ function initializeGlobals() {
 
 
 // --- UPDATED FUNCTION: Fetch Recently Met Players (War Participants) ---
-// This function must be outside initializeGlobals but in the same script file
 async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiKey) {
     // Access global variables using window prefix
     const TORN_API_BASE_URL = window.TORN_API_BASE_URL;
@@ -413,6 +412,26 @@ async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiK
     console.log("DEBUG: Current time (UTC):", new Date().toISOString());
 
     try {
+        // Step 0: Get current faction members' Torn IDs
+        const currentFactionMembers = new Set();
+        try {
+            const ownFactionMembersUrl = `${TORN_API_BASE_URL}/faction/${userFactionId}?selections=members&key=${apiKey}`;
+            console.log("DEBUG: Fetching current faction members for filtering:", ownFactionMembersUrl);
+            const ownFactionResponse = await fetch(ownFactionMembersUrl);
+            const ownFactionData = await ownFactionResponse.json();
+            if (ownFactionData.members) {
+                Object.values(ownFactionData.members).forEach(member => {
+                    currentFactionMembers.add(String(member.id));
+                });
+                console.log("DEBUG: Current faction member IDs for filtering:", Array.from(currentFactionMembers));
+            } else if (ownFactionData.error) {
+                console.warn(`Torn API Error fetching current faction members for filtering: ${ownFactionData.error.message}`);
+            }
+        } catch (error) {
+            console.error("Error fetching current faction members for filtering:", error);
+        }
+
+
         // Step 1: Fetch ranked wars for the user's faction
         const warApiUrl = `${TORN_API_BASE_URL}/faction/${userFactionId}?selections=rankedwars&key=${apiKey}`;
         console.log("DEBUG: Fetching ranked wars from:", warApiUrl);
@@ -433,14 +452,14 @@ async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiK
 
         console.log("DEBUG: Recent wars to process (first 3):", recentWars);
 
-        // Map over wars and collect enemy faction IDs
         recentWars.forEach(war => {
             if (war.factions) {
-                // Factions within rankedwars is an object, not an array, so iterate its values
                 Object.values(war.factions).forEach(faction => {
                     if (String(faction.id) !== String(userFactionId)) {
                         enemyFactionIdsInRecentWars.add(String(faction.id));
                         console.log("DEBUG: Found enemy faction ID:", faction.id, "Name:", faction.name);
+                    } else {
+                        console.log("DEBUG: Skipping own faction ID in war:", faction.id, "Name:", faction.name);
                     }
                 });
             }
@@ -453,7 +472,7 @@ async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiK
             return;
         }
 
-        const allEnemyPlayerIds = new Set();
+        const allOpponentPlayerIds = new Set(); // Renamed for clarity: these are IDs from opponent factions
         const factionFetchPromises = Array.from(enemyFactionIdsInRecentWars).map(async (enemyFactionId) => {
             const enemyFactionMembersUrl = `${TORN_API_BASE_URL}/faction/${enemyFactionId}?selections=members&key=${apiKey}`;
             console.log("DEBUG: Fetching members for enemy faction:", enemyFactionMembersUrl);
@@ -464,7 +483,12 @@ async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiK
 
             if (enemyFactionData.members) {
                 for (const playerId in enemyFactionData.members) {
-                    allEnemyPlayerIds.add(playerId);
+                    // CRITICAL FIX: Only add player if they are NOT in your current faction
+                    if (!currentFactionMembers.has(playerId)) {
+                         allOpponentPlayerIds.add(playerId);
+                    } else {
+                        console.log(`DEBUG: Skipping player ${playerId} as they are in current faction.`);
+                    }
                 }
             } else if (enemyFactionData.error) {
                 console.warn(`Torn API Error fetching members for enemy faction ${enemyFactionId}: ${enemyFactionData.error.message}`);
@@ -473,27 +497,44 @@ async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiK
 
         await Promise.all(factionFetchPromises);
 
-        console.log("DEBUG: All unique enemy player IDs collected (before filtering self):", Array.from(allEnemyPlayerIds));
+        // Debugging after collecting all opponent player IDs
+        console.log("DEBUG: All unique opponent player IDs collected (before self-filter if any):", Array.from(allOpponentPlayerIds));
 
-        let currentUserTornId = null;
+        // Get current user's friends list first (for button rendering)
+        let friendsSet = new Set();
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            try {
+                const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+                friendsSnapshot.forEach(doc => friendsSet.add(doc.id));
+            } catch (error) {
+                console.error("Error fetching friends list for 'recently met' tab:", error);
+            }
+        }
+
+        // Removed the filter for current user's own Torn ID because we already filtered out
+        // anyone who is in your current faction in Step 0. If your tornProfileId is in currentFactionMembers,
+        // it would have already been excluded. This makes the logic cleaner.
+        let currentUserTornId = null; // Still fetch for logging, but not for filtering allOpponentPlayerIds
         if (currentUser && currentUser.uid) {
             const currentUserTornIdDoc = await db.collection('userProfiles').doc(currentUser.uid).get();
             if(currentUserTornIdDoc.exists && currentUserTornIdDoc.data().tornProfileId) {
                 currentUserTornId = String(currentUserTornIdDoc.data().tornProfileId);
                 console.log("DEBUG: Current user's Torn Profile ID:", currentUserTornId);
-                allEnemyPlayerIds.delete(currentUserTornId); // Filter out current user's own ID
+                // No longer delete here, as it should already be handled by currentFactionMembers filter
             }
         }
-        console.log("DEBUG: All unique enemy player IDs after filtering self:", Array.from(allEnemyPlayerIds));
+        console.log("DEBUG: All unique opponent player IDs after thorough filtering:", Array.from(allOpponentPlayerIds));
+        console.log("DEBUG: Final allOpponentPlayerIds.size before check:", allOpponentPlayerIds.size);
 
 
-        if (allEnemyPlayerIds.size === 0) {
-            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No other recent ranked war participants found.</p>`;
+        if (allOpponentPlayerIds.size === 0) {
+            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No other recent ranked war participants found who are not currently in your faction.</p>`;
             return;
         }
 
         // Step 3: Fetch player names for these IDs (using a single API call for efficiency)
-        const playerIdsToFetch = Array.from(allEnemyPlayerIds).join(',');
+        const playerIdsToFetch = Array.from(allOpponentPlayerIds).join(',');
         const playersApiUrl = `${TORN_API_BASE_URL}/user/${playerIdsToFetch}?selections=basic&key=${apiKey}`;
         console.log("DEBUG: Fetching player names from:", playersApiUrl);
         const playersResponse = await fetch(playersApiUrl);
@@ -555,7 +596,6 @@ async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiK
             `;
             recentlyMetListContainer.appendChild(playerItemDiv);
 
-            // Fetch profile picture from Firebase 'users' collection (async, won't block display)
             (async () => {
                 try {
                     const docRef = db.collection('users').doc(tornPlayerId);
