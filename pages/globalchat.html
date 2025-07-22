@@ -9,7 +9,8 @@
     </div>
 
     <div id="chat-window" class="hidden">
-        <div class="chat-main-tabs-container hidden"> <div id="dynamic-tabs-container"></div> 
+        <div class="chat-main-tabs-container hidden">
+            <div id="dynamic-tabs-container"></div> 
             <div id="static-tabs-container">
                 <button class="chat-tab active" data-tab-target="faction-chat-panel" title="Faction Chat">💬</button>
                 <button class="chat-tab" data-tab-target="war-chat-panel" title="War Chat">⚔️</button>
@@ -21,7 +22,8 @@
 
         <div class="chat-panels-container">
             <div id="faction-chat-panel" class="chat-panel active">
-                <div class="chat-header"> <span class="chat-title">Faction Chat</span>
+                <div class="chat-header">
+                    <span class="chat-title">Faction Chat</span>
                     <button class="minimize-chat-btn">-</button>
                 </div>
                 <div id="chat-display-area" class="chat-messages-scroll-wrapper"></div>
@@ -32,7 +34,8 @@
             </div>
 
             <div id="war-chat-panel" class="chat-panel hidden">
-                <div class="chat-header"> <span class="chat-title">War Chat</span>
+                <div class="chat-header">
+                    <span class="chat-title">War Chat</span>
                     <button class="minimize-chat-btn">-</button>
                 </div>
                 <div id="war-chat-display-area" class="chat-messages-scroll-wrapper"></div>
@@ -42,52 +45,60 @@
                 </div>
             </div>
 
-           <div id="friends-panel" class="chat-panel hidden">
-    <div class="friends-panel-subtabs">
-        <button class="sub-tab-button active" data-subtab="recent-chats" title="Recent Chats">✉️</button>
-        <button class="sub-tab-button" data-subtab="recently-met" title="Recently Met">👋</button>
-        <button class="sub-tab-button" data-subtab="faction-members" title="Faction Members">🏰</button>
-        <button class="sub-tab-button" data-subtab="friend-list" title="Friend List">👤</button>
-        <button class="sub-tab-button" data-subtab="ignore-list" title="Ignore List">🚫</button>
-    </div>
-    <div class="friends-panel-search">
-        <input type="text" class="search-input" placeholder="Search by player name...">
-        <span class="search-icon">🔍</span>
-    </div>
-    <div class="friends-panel-content">
-        <p style="text-align: center; color: #888; padding-top: 20px;">Content will be loaded here.</p>
-    </div>
-</div>
+            <div id="friends-panel" class="chat-panel hidden">
+                <div class="chat-header"> <span class="chat-title">Friends</span>
+                    <button class="minimize-chat-btn">-</button>
+                </div>
+                <div class="friends-panel-subtabs">
+                    <button class="sub-tab-button active" data-subtab="recent-chats" title="Recent Chats">✉️</button>
+                    <button class="sub-tab-button" data-subtab="recently-met" title="Recently Met">👋</button>
+                    <button class="sub-tab-button" data-subtab="faction-members" title="Faction Members">🏰</button>
+                    <button class="sub-tab-button" data-subtab="friend-list" title="Friend List">👤</button>
+                    <button class="sub-tab-button" data-subtab="ignore-list" title="Ignore List">🚫</button>
+                </div>
+                <div class="friends-panel-search">
+                    <input type="text" class="search-input" placeholder="Search by player name...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="friends-panel-content">
+                    <p style="text-align: center; color: #888; padding-top: 20px;">Content will be loaded here.</p>
+                </div>
+            </div>
 
             <div id="notifications-panel" class="chat-panel hidden">
-    <div class="chat-header"> <span class="chat-title">Notifications</span>
-        <button class="minimize-chat-btn">-</button>
-    </div>
-    <div class="notifications-content-wrapper">
-        <div class="notification-section site-notifications">
-            <h4>Site Notifications 🌐</h4>
-            <div class="notification-list" id="site-notification-list">
-                <p>No new site notifications.</p>
+                <div class="chat-header"> <span class="chat-title">Notifications</span>
+                    <button class="minimize-chat-btn">-</button>
                 </div>
-        </div>
-
-        <div class="notification-section friend-notifications">
-            <h4>Friend Notifications 👥</h4>
-            <div class="notification-list" id="friend-notification-list">
-                <p>No new friend notifications.</p>
+                <div class="notifications-content-wrapper">
+                    <div class="notification-section site-notifications">
+                        <h4>Site Notifications 🌐</h4>
+                        <div class="notification-list" id="site-notification-list">
+                            <p>No new site notifications.</p>
+                        </div>
+                    </div>
+                    <div class="notification-section friend-notifications">
+                        <h4>Friend Notifications 👥</h4>
+                        <div class="notification-list" id="friend-notification-list">
+                            <p>No new friend notifications.</p>
+                        </div>
+                    </div>
+                    <div class="notification-section general-notifications">
+                        <h4>Other Notifications 🔔</h4>
+                        <div class="notification-list" id="general-notification-list">
+                            <p>No other notifications.</p>
+                        </div>
+                    </div>
                 </div>
-        </div>
-
-        <div class="notification-section general-notifications">
-            <h4>Other Notifications 🔔</h4>
-            <div class="notification-list" id="general-notification-list">
-                <p>No other notifications.</p>
             </div>
-        </div>
-    </div>
-</div>
 
-            <div id="settings-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Settings</h3></div>
+            <div id="settings-panel" class="chat-panel hidden">
+                <div class="chat-header"> <span class="chat-title">Settings</span>
+                    <button class="minimize-chat-btn">-</button>
+                </div>
+                <div style="padding:20px; color:white;">
+                    <h3>Settings content will go here.</h3>
+                </div>
+            </div>
         </div>
     </div>
 </div>
