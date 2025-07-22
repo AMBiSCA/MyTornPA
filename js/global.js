@@ -1,4 +1,3 @@
-
 const DEFAULT_PROFILE_ICONS = [
     '../../images/account.png',
     '../../images/avatar-design.png',
@@ -116,8 +115,6 @@ function initializeGlobals() {
                         setupChatRealtimeListener('faction');
                     });
                 }
-				
-				
 
                 if (openWarChatIcon) {
                     openWarChatIcon.addEventListener('click', () => {
