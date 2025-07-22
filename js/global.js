@@ -69,6 +69,7 @@ let saveAllSettingsButton = null;
 let closeAllPrivateChatsBtn = null;
 let deleteAllPrivateMessagesBtn = null;
 
+
 // --- CONSTANTS (ONLY CHAT-RELATED) ---
 const MAX_MESSAGES_VISIBLE = 7; // For chat display area messages
 const REMOVAL_DELAY_MS = 500;
@@ -86,21 +87,8 @@ const memberProfileCache = {}; // Cache for profile images
 function initializeGlobals() {
     console.log("initializeGlobals: Script loaded, starting chat system setup...");
 
-    // 1. Load the Footer HTML into its placeholder (RE-ADDED THIS)
-    fetch('globalfooter.html')
-        .then(response => response.text())
-        .then(data => {
-            const footerContainer = document.getElementById('footer-container');
-            if (footerContainer) {
-                footerContainer.innerHTML = data;
-                console.log("initializeGlobals: Footer loaded.");
-            } else {
-                console.error("initializeGlobals: Could not find 'footer-container' to load footer HTML.");
-            }
-        })
-        .catch(error => console.error('initializeGlobals: Error loading global footer:', error));
-
-    // 2. Load the Chat System HTML into its placeholder
+    // 1. Load the Chat System HTML into its placeholder
+    // This is crucial because all chat DOM element references depend on this HTML being present.
     fetch('globalchat.html')
         .then(response => response.text())
         .then(data => {
@@ -166,191 +154,6 @@ function initializeGlobals() {
     // and will manage user-specific data fetching (like faction ID for chat).
 }
 
-
-// ==========================================================================================
-// HELPER FUNCTIONS (Place these outside initializeGlobals but within global.js)
-// These functions are generally useful utilities used by chat functions.
-// ==========================================================================================
-
-function countFactionMembers(membersObject) {
-    if (!membersObject) return 0;
-    return typeof membersObject.total === 'number' ? membersObject.total : Object.keys(membersObject).length;
-}
-
-// NOTE: `processProfileFetchQueue` is usually for broader profile fetching, often outside of core chat.
-// If your chat's member list or private chat profile images need this, keep it.
-// If `displayFactionMembersInChatTab` directly fetches via Firebase 'users' collection, this might be redundant.
-async function processProfileFetchQueue() {
-    // This is a minimal placeholder to prevent errors if called.
-    // Full logic for fetching profile images should be here if needed by chat.
-    console.log("[Stub] processProfileFetchQueue called. (Verify if needed by chat)");
-}
-
-function updateMemberItemDisplay(itemElement, profileImageUrl) {
-    const imgElement = itemElement.querySelector('.member-profile-pic');
-    if (imgElement) {
-        imgElement.src = profileImageUrl;
-    }
-}
-
-function formatBattleStats(num) {
-    if (isNaN(num) || num === 0) return '0';
-    if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'b';
-    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'm';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
-    return num.toLocaleString();
-}
-
-// Dummy profanity filter if not defined elsewhere. IMPORTANT: Implement real filtering.
-function filterProfanity(text) {
-    return text;
-}
-
-function showCustomConfirm(message, title = "Confirm") {
-    return new Promise((resolve) => {
-        const overlay = document.createElement('div');
-        const alertBox = document.createElement('div');
-        const titleEl = document.createElement('h4');
-        const messageEl = document.createElement('p');
-        const buttonWrapper = document.createElement('div');
-        const yesBtn = document.createElement('button');
-        const noBtn = document.createElement('button');
-        Object.assign(overlay.style, { position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '2000', backdropFilter: 'blur(5px)' });
-        Object.assign(alertBox.style, { background: '#1e2a38', padding: '25px 30px', borderRadius: '8px', border: '1px solid #4a6a8a', boxShadow: '0 5px 20px rgba(0, 0, 0, 0.6)', textAlign: 'center', width: '90%', maxWidth: '450px', color: '#ecf0f1' });
-        Object.assign(titleEl.style, { margin: '0 0 15px 0', color: '#e0a71a', fontSize: '1.4em', fontWeight: '600' });
-        Object.assign(messageEl.style, { margin: '0 0 25px 0', fontSize: '1.1em', lineHeight: '1.6', whiteSpace: 'pre-wrap' });
-        Object.assign(buttonWrapper.style, { display: 'flex', justifyContent: 'center', gap: '15px' });
-        Object.assign(yesBtn.style, { backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', padding: '10px 25px', fontSize: '1em', cursor: 'pointer', fontWeight: 'bold' });
-        Object.assign(noBtn.style, { backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', padding: '10px 25px', fontSize: '1em', cursor: 'pointer', fontWeight: 'bold' });
-        titleEl.textContent = title; messageEl.textContent = message; yesBtn.textContent = 'Yes, Clear It'; noBtn.textContent = 'No, Cancel';
-        const closeModal = (resolution) => { document.body.removeChild(overlay); resolve(resolution); };
-        yesBtn.onclick = () => closeModal(true); noBtn.onclick = () => closeModal(false);
-        overlay.onclick = (event) => { if (event.target === overlay) closeModal(false); };
-        buttonWrapper.appendChild(noBtn); buttonWrapper.appendChild(yesBtn); alertBox.appendChild(titleEl); alertBox.appendChild(messageEl); alertBox.appendChild(buttonWrapper); overlay.appendChild(alertBox); document.body.appendChild(overlay);
-    });
-}
-
-function showCustomAlert(message, title = "Alert") {
-    const overlay = document.createElement('div');
-    const alertBox = document.createElement('div');
-    const titleEl = document.createElement('h4');
-    const messageEl = document.createElement('p');
-    const closeBtn = document.createElement('button');
-    Object.assign(overlay.style, { position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: '2000', backdropFilter: 'blur(5px)' });
-    Object.assign(alertBox.style, { background: '#1e2a38', padding: '25px 30px', borderRadius: '8px', border: '1px solid #4a6a8a', boxShadow: '0 5px 20px rgba(0, 0, 0, 0.6)', textAlign: 'center', width: '90%', maxWidth: '450px', color: '#ecf0f1' });
-    Object.assign(titleEl.style, { margin: '0 0 15px 0', color: '#3498db', fontSize: '1.4em', fontWeight: '600' });
-    Object.assign(messageEl.style, { margin: '0 0 25px 0', fontSize: '1.1em', lineHeight: '1.6' });
-    Object.assign(closeBtn.style, { backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '5px', padding: '10px 20px', fontSize: '1em', cursor: 'pointer', transition: 'background-color 0.2s ease' });
-    closeBtn.onmouseover = () => { closeBtn.style.backgroundColor = '#2980b9'; }; closeBtn.onmouseout = () => { closeBtn.style.backgroundColor = '#3498db'; };
-    titleEl.textContent = title; messageEl.textContent = message; closeBtn.textContent = 'OK';
-    const closeModal = () => { document.body.removeChild(overlay); };
-    closeBtn.onclick = closeModal; overlay.onclick = (event) => { if (event.target === overlay) { closeModal(); } };
-    alertBox.appendChild(titleEl); alertBox.appendChild(messageEl); alertBox.appendChild(closeBtn); overlay.appendChild(alertBox); document.body.appendChild(overlay);
-}
-
-function formatTime(seconds) {
-    if (seconds <= 0) return 'Over';
-    const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); const s = Math.floor(seconds % 60);
-    let result = ''; if (h > 0) result += `${h}h `; if (m > 0) result += `${m}m `; if (s > 0) result += `${s}s`; return result.trim();
-}
-
-function formatTornTime(timestamp) {
-    const date = new Date(timestamp * 1000); const hours = String(date.getUTCHours()).padStart(2, '0'); const minutes = String(date.getUTCMinutes()).padStart(2, '0'); const seconds = String(date.getUTCSeconds()).padStart(2, '0'); return `${hours}:${minutes}:${seconds}`;
-}
-
-function formatRelativeTime(timestampInSeconds) {
-    if (!timestampInSeconds || timestampInSeconds === 0) { return "N/A"; }
-    const now = Math.floor(Date.now() / 1000); const diffSeconds = now - timestampInSeconds;
-    if (diffSeconds < 60) { return "Now"; } else if (diffSeconds < 3600) { const minutes = Math.floor(diffSeconds / 60); return `${minutes} min${minutes === 1 ? '' : 's'} ago`; } else if (diffSeconds < 86400) { const hours = Math.floor(diffSeconds / 3600); return `${hours} hour${hours === 1 ? '' : 's'} ago`; } else { const days = Math.floor(diffSeconds / 86400); return `${days} day${days === 1 ? '' : 's'} ago`; }
-}
-
-function formatDuration(seconds) {
-    if (seconds < 0) seconds = 0;
-    const days = Math.floor(seconds / 86400); seconds %= 86400; const hours = Math.floor(seconds / 3600); seconds %= 3600; const minutes = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60);
-    const paddedHours = String(hours).padStart(2, '0'); const paddedMinutes = String(minutes).padStart(2, '0'); const paddedSecs = String(secs).padStart(2, '0');
-    return `${days}:${paddedHours}:${paddedMinutes}:${paddedSecs}`;
-}
-
-function isOnlineWithin59Seconds(relativeTimeStr) {
-    if (relativeTimeStr === "Now") { return true; }
-    const match = relativeTimeStr.match(/(\d+) second(?:s)? ago/); if (match) { const seconds = parseInt(match[1], 10); return seconds <= 59; } return false;
-}
-
-function toggleScrollIndicatorVisibility() {
-    // This function assumes a generic scroll wrapper for chat and an indicator element.
-    // Ensure these IDs exist in your globalchat.html if you want this feature.
-    const scrollWrapper = document.querySelector('.chat-messages-scroll-wrapper');
-    const scrollIndicator = document.getElementById('scrollUpIndicator');
-
-    if (!scrollIndicator || !scrollWrapper) { return; }
-    
-    // Assign to global variable `scrollUpIndicatorEl` only once to attach event listener
-    if (!scrollUpIndicatorEl) {
-        scrollUpIndicatorEl = scrollIndicator;
-        scrollUpIndicatorEl.addEventListener('click', () => {
-            if (scrollWrapper) { scrollWrapper.scrollTop = 0; }
-        });
-    }
-    const atTop = scrollWrapper.scrollTop <= 5;
-    const hasOverflow = scrollWrapper.scrollHeight > scrollWrapper.clientHeight;
-    if (hasOverflow && !atTop) { scrollIndicator.classList.add('visible'); } else { scrollIndicator.classList.remove('visible'); }
-}
-
-function handleChatScroll() {
-    toggleScrollIndicatorVisibility();
-}
-
-function areTargetSetsIdentical(set1, set2) {
-    if (set1.length !== set2.length) { return false; }
-    if (set1.length === 0) { return true; }
-    const sortedSet1 = [...set1].sort(); const sortedSet2 = [...set2].sort();
-    for (let i = 0; i < sortedSet1.length; i++) { if (sortedSet1[i] !== sortedSet2[i]) { return false; } } return true;
-}
-
-function rgbToHex(r, g, b) {
-    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-}
-
-function get_ff_colour(value) {
-    let r, g, b;
-    if (value <= 1) { r = 0x28; g = 0x28; b = 0xc6; } else if (value <= 3) { const t = (value - 1) / 2; r = 0x28; g = Math.round(0x28 + (0xc6 - 0x28) * t); b = Math.round(0xc6 - (0xc6 - 0x28) * t); } else if (value <= 5) { const t = (value - 3) / 2; r = Math.round(0x28 + (0xc6 - 0x28) * t); g = Math.round(0xc6 - (0xc6 - 0x28) * t); b = 0x28; } else { r = 0xc6; g = 0x28; b = 0x28; } return rgbToHex(r, g, b);
-}
-
-function get_difficulty_text(ff) {
-    if (ff <= 1) return "Extremely easy"; else if (ff <= 2) return "Easy"; else if (ff <= 3.5) return "Moderately difficult"; else if (ff <= 4.5) return "Difficult"; else return "May be impossible";
-}
-
-function parseStatValue(statString) {
-    if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') { return 0; }
-    let sanitizedString = statString.toLowerCase().replace(/,/g, ''); let multiplier = 1;
-    if (sanitizedString.endsWith('k')) { multiplier = 1000; sanitizedString = sanitizedString.slice(0, -1); } else if (sanitizedString.endsWith('m')) { multiplier = 1000000; sanitizedString = sanitizedString.slice(0, -1); } else if (sanitizedString.endsWith('b')) { multiplier = 1000000000; sanitizedString = sanitizedString.slice(0, -1); }
-    const number = parseFloat(sanitizedString); return isNaN(number) ? 0 : number * multiplier;
-}
-
-// `applyStatColorCoding` expects a tableBodyElement. Ensure it's called with the correct tbody for dynamically loaded tables.
-function applyStatColorCoding(tableBodyElement) {
-    if (!tableBodyElement) { console.error("Color Coding Error: Table body element not provided to applyStatColorCoding."); return; }
-    const statCells = tableBodyElement.querySelectorAll('td:nth-child(3), td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7)');
-    statCells.forEach(cell => {
-        for (let i = 1; i <= 9; i++) { cell.classList.remove(`stat-tier-${i}`); } cell.classList.remove('stat-cell');
-        const value = parseStatValue(cell.textContent); let tierClass = '';
-        if (value >= 500000000) { tierClass = 'stat-tier-9'; } else if (value >= 200000000) { tierClass = 'stat-tier-8'; } else if (value >= 100000000) { tierClass = 'stat-tier-7'; } else if (value >= 10000000) { tierClass = 'stat-tier-6'; } else if (value >= 5000000) { tierClass = 'stat-tier-5'; } else if (value >= 1000000) { tierClass = 'stat-tier-4'; } else if (value >= 100000) { tierClass = 'stat-tier-3'; } else if (value >= 10000) { tierClass = 'stat-tier-2'; } else if (value > 0) { tierClass = 'stat-tier-1'; }
-        if (tierClass) { cell.classList.add(tierClass); cell.classList.add('stat-cell'); }
-    });
-}
-
-function updateChainProgress(currentHits, progressBarElement, textElementId) {
-    // This is a stub for a function that likely handles visual progress bars for chaining.
-    // If your globalchat.html doesn't contain elements with these IDs/structure for chain progress,
-    // this function is essentially a no-op but prevents errors if called.
-    console.log(`[Stub] updateChainProgress called for hits: ${currentHits}. (Verify if needed by chat or other system)`);
-}
-
-function setupProgressText() {
-    // This is a stub for a function that likely sets up visual elements for chain progress.
-    console.log("[Stub] setupProgressText called. (Verify if needed by chat or other system)");
-}
-
 // ==========================================================================================
 // CHAT SYSTEM CORE FUNCTIONS
 // These are the main functions that drive the chat's behavior.
@@ -359,44 +162,60 @@ function setupProgressText() {
 // MODIFIED: handleChatTabClick to manage new chat-panel structure
 function handleChatTabClick(event) {
     const clickedTabButton = event.currentTarget;
-    const targetPanelId = clickedTabButton.dataset.tabTarget;
+    const targetPanelId = clickedTabButton.dataset.tabTarget; // e.g., 'faction-chat-panel'
 
     console.log(`[Chat Tab Debug] Clicked main chat tab: ${targetPanelId}`);
 
+    // Remove 'active' from all main chat tab buttons and panels
     if (chatTabButtons) chatTabButtons.forEach(button => button.classList.remove('active'));
     if (chatPanels) chatPanels.forEach(panel => panel.classList.remove('active'));
     if (chatPanels) chatPanels.forEach(panel => panel.classList.add('hidden'));
 
+    // Add 'active' to the clicked tab button and show its corresponding panel
     const targetPanel = document.getElementById(targetPanelId);
     if (targetPanel) {
         clickedTabButton.classList.add('active');
         targetPanel.classList.remove('hidden');
         targetPanel.classList.add('active');
     } else {
-        console.error(`HTML Error: Chat panel with ID '${targetPanelId}' not found.`); return;
+        console.error(`HTML Error: Chat panel with ID '${targetPanelId}' not found.`);
+        return;
     }
 
-    if (unsubscribeFromChat) { unsubscribeFromChat(); unsubscribeFromChat = null; console.log("Unsubscribed from previous faction/war chat listener (main tab switch)."); }
-    if (unsubscribeFromPrivateChat) { unsubscribeFromPrivateChat(); unsubscribeFromPrivateChat = null; console.log("Unsubscribed from previous private chat listener (main tab switch)."); }
+    // Unsubscribe from any active real-time chat listener
+    if (unsubscribeFromChat) {
+        unsubscribeFromChat();
+        unsubscribeFromChat = null;
+        console.log("Unsubscribed from previous faction/war chat listener (main tab switch).");
+    }
+    if (unsubscribeFromPrivateChat) {
+        unsubscribeFromPrivateChat();
+        unsubscribeFromPrivateChat = null;
+        console.log("Unsubscribed from previous private chat listener (main tab switch).");
+    }
 
+    // Configure specific panels based on the selected tab
     switch (targetPanelId) {
         case 'faction-chat-panel':
             const factionChatDisplayArea = targetPanel.querySelector('.chat-messages-scroll-wrapper');
             if (factionChatDisplayArea) { factionChatDisplayArea.innerHTML = '<p>Loading Faction Chat messages...</p>'; }
-            setupChatRealtimeListener('faction');
+            setupChatRealtimeListener('faction'); // Initialize faction chat listener
             break;
 
         case 'war-chat-panel':
             const warChatDisplayArea = targetPanel.querySelector('.chat-messages-scroll-wrapper');
             if (warChatDisplayArea) { warChatDisplayArea.innerHTML = `<p>Welcome to War Chat!</p><p>Functionality not implemented yet.</p>`; }
-            setupChatRealtimeListener('war');
+            setupChatRealtimeListener('war'); // Initialize war chat listener
             break;
 
         case 'friends-panel':
             if (friendsPanelContent) { friendsPanelContent.innerHTML = '<p style="text-align: center; color: #888; padding-top: 20px;">Loading friends content...</p>'; }
             const defaultFriendsSubTabButton = document.querySelector('.friends-panel-subtabs .sub-tab-button[data-subtab="recent-chats"]');
-            if (defaultFriendsSubTabButton) { handleFriendsSubTabClick({ currentTarget: defaultFriendsSubTabButton }); }
-            else { console.error("Default 'Recent Chats' sub-tab button not found."); }
+            if (defaultFriendsSubTabButton) {
+                handleFriendsSubTabClick({ currentTarget: defaultFriendsSubTabButton });
+            } else {
+                 console.error("Default 'Recent Chats' sub-tab button not found.");
+            }
             break;
 
         case 'notifications-panel':
@@ -411,7 +230,7 @@ function handleChatTabClick(event) {
             break;
 
         case 'settings-panel':
-            setupSettingsPanel();
+            setupSettingsPanel(); // Load and apply settings
             break;
 
         default:
@@ -468,17 +287,17 @@ async function handleFriendsSubTabClick(event) {
             break;
 
         case 'recently-met':
+            // Need a userApiKey for this. Assume it's available or provided by main app.
             if (userApiKey) { populateRecentlyMetTab(friendsPanelContent); }
             else { friendsPanelContent.innerHTML = '<p style="text-align:center; padding: 20px; color: yellow;">API Key needed to view recently met players.</p>'; }
             break;
 
         case 'faction-members':
-            // factionApiFullData should be populated by your main app's data loading (e.g., in war_hub.js)
             if (factionApiFullData && factionApiFullData.members) {
                 friendsPanelContent.innerHTML = `<h3>Faction Members</h3><p>Loading faction member data...</p>`;
                 displayFactionMembersInChatTab(factionApiFullData.members, friendsPanelContent);
             } else {
-                 friendsPanelContent.innerHTML = '<p style="text-align:center; padding: 20px; color: yellow;">Faction data not loaded. Please log in with your API key in the main app.</p>';
+                 friendsPanelContent.innerHTML = '<p style="text-align:center; padding: 20px; color: yellow;">Faction data not loaded. Please log in with your API key.</p>';
             }
             break;
 
@@ -494,7 +313,7 @@ async function handleFriendsSubTabClick(event) {
                          <table class="friendly-members-table">
                             <thead>
                                 <tr>
-                                    <th>Name (ID)</th><th>Level</th><th>Last Action</th><th>Str</th><th>Dex</th>
+                                    <th>Name (ID)</th><th>Last Action</th><th>Str</th><th>Dex</th>
                                     <th>Spd</th><th>Def</th><th>Total</th><th>Status</th>
                                     <th>Nerve</th><th>Energy</th><th>Drug CD</th><th>Revivable</th>
                                 </tr>
@@ -514,8 +333,8 @@ async function handleFriendsSubTabClick(event) {
                     await addFriendLogic(friendId, newAddFriendIdInput, newAddFriendBtn, newAddFriendStatus);
                 });
             }
-            if (auth.currentUser && userApiKey) { populateFriendListTab(friendsPanelContent); }
-            else { friendsPanelContent.querySelector('#friends-tbody').innerHTML = '<tr><td colspan="12" style="text-align:center; color: yellow;">Please log in with your API Key to view friend stats.</td></tr>'; }
+            if (auth.currentUser) { populateFriendListTab(friendsPanelContent); }
+            else { friendsPanelContent.querySelector('#friends-tbody').innerHTML = '<tr><td colspan="12" style="text-align:center; color: yellow;">Please log in to view friend stats.</td></tr>'; }
             break;
 
         case 'ignore-list':
@@ -534,7 +353,7 @@ async function handleFriendsSubTabClick(event) {
             const addIgnoreInput = friendsPanelContent.querySelector('#addIgnoreInput');
             const addIgnoreIcon = friendsPanelContent.querySelector('.add-ignore-icon');
             if (addIgnoreIcon) {
-                addIgnoreIcon.addEventListener('click', () => { showCustomAlert('Add ignore functionality to be implemented!', "Not Implemented"); console.log('Attempting to add ignore:', addIgnoreInput.value); });
+                addIgnoreIcon.addEventListener('click', () => { alert('Add ignore functionality to be implemented!'); console.log('Attempting to add ignore:', addIgnoreInput.value); });
             }
             break;
 
@@ -548,7 +367,8 @@ async function handleFriendsSubTabClick(event) {
 // NEW FUNCTION: Helper to encapsulate add friend logic for dynamic buttons (used by Faction Members and Recently Met)
 async function addFriendLogic(friendId, inputElement, buttonElement, statusElement) {
     if (!friendId || !auth.currentUser) {
-        if (statusElement) { statusElement.textContent = "Please log in and/or enter a Torn Player ID."; statusElement.style.color = 'red'; } return;
+        if (statusElement) { statusElement.textContent = "Please log in and/or enter a Torn Player ID."; statusElement.style.color = 'red'; }
+        return;
     }
     if (statusElement) { statusElement.textContent = "Adding friend..."; statusElement.style.color = 'white'; }
     if (buttonElement) buttonElement.disabled = true;
@@ -557,7 +377,8 @@ async function addFriendLogic(friendId, inputElement, buttonElement, statusEleme
         const friendDocRef = db.collection('userProfiles').doc(auth.currentUser.uid).collection('friends').doc(friendId);
         const doc = await friendDocRef.get();
         if (doc.exists) {
-            if (statusElement) { statusElement.textContent = "This player is already your friend."; statusElement.style.color = 'orange'; } return;
+            if (statusElement) { statusElement.textContent = "This player is already your friend."; statusElement.style.color = 'orange'; }
+            return;
         }
         await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
         if (statusElement) { statusElement.textContent = `Successfully added friend [${friendId}]!`; statusElement.style.color = 'lightgreen'; }
@@ -578,9 +399,6 @@ async function addFriendLogic(friendId, inputElement, buttonElement, statusEleme
 }
 
 // MODIFIED: sendClaimChatMessage (assumes chatMessagesCollection and currentTornUserName are global)
-// This function would typically be triggered by non-chat UI in your war_hub.js,
-// but it sends messages *into* the chat system, so it needs `chatMessagesCollection`.
-// It is kept here as a function that interacts with the chat.
 async function sendClaimChatMessage(claimerName, targetName, chainNumber, customMessage = null) {
     if (!chatMessagesCollection || !auth.currentUser) { console.warn("Cannot send claim/unclaim message: Firebase collection or user not available."); return; }
     const messageText = customMessage || `📢 ${claimerName} has claimed ${targetName} as hit #${chainNumber}!`;
@@ -588,8 +406,7 @@ async function sendClaimChatMessage(claimerName, targetName, chainNumber, custom
     const messageObj = { senderId: auth.currentUser.uid, sender: "Chain Alert:", text: filteredMessage, timestamp: firebase.firestore.FieldValue.serverTimestamp(), type: 'claim_notification' };
     try {
         await chatMessagesCollection.add(messageObj);
-        // Assuming displayChatMessage can handle being called with the faction chat's display area ID
-        displayChatMessage(messageObj, factionChatPanel?.querySelector('.chat-messages-scroll-wrapper')?.id);
+        displayChatMessage(messageObj, factionChatPanel.querySelector('.chat-messages-scroll-wrapper').id);
     } catch (error) { console.error("Error sending claim/unclaim message to Firebase:", error); }
 }
 
@@ -896,13 +713,13 @@ function setupChatRealtimeListener(type) {
 // NEW FUNCTION: Toggles the main chat window visibility
 function toggleChatWindowVisibility(forceHide = false) {
     if (forceHide) { // If forceHide is true, always hide
-        if (chatWindow) chatWindow.classList.add('hidden');
-        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
-        if (chatBarCollapsed) chatBarCollapsed.classList.remove('hidden');
+        chatWindow.classList.add('hidden');
+        chatMainTabsContainer.classList.add('hidden');
+        chatBarCollapsed.classList.remove('hidden');
     } else { // Otherwise, toggle normally
-        if (chatWindow) chatWindow.classList.toggle('hidden');
-        if (chatMainTabsContainer) chatMainTabsContainer.classList.toggle('hidden');
-        if (chatBarCollapsed) chatBarCollapsed.classList.toggle('hidden');
+        chatWindow.classList.toggle('hidden');
+        chatMainTabsContainer.classList.toggle('hidden');
+        chatBarCollapsed.classList.toggle('hidden');
     }
 }
 
@@ -972,7 +789,6 @@ function setupChatEventListeners() {
     }
 
     // --- Faction Chat Input / Send Button Listeners (within faction-chat-panel) ---
-    // Ensure these elements are part of the specific factionChatPanel, not global search.
     const factionChatTextInputEl = factionChatPanel?.querySelector('.chat-text-input');
     const factionChatSendBtnEl = factionChatPanel?.querySelector('.chat-send-btn');
     if (factionChatSendBtnEl) {
@@ -988,7 +804,6 @@ function setupChatEventListeners() {
     }
 
     // --- War Chat Input / Send Button Listeners (within war-chat-panel) ---
-    // Ensure these elements are part of the specific warChatPanel.
     const warChatTextInputEl = warChatPanel?.querySelector('.chat-text-input');
     const warChatSendBtnEl = warChatPanel?.querySelector('.chat-send-btn');
     if (warChatSendBtnEl) {
@@ -1003,7 +818,7 @@ function setupChatEventListeners() {
         });
     }
 
-    // --- Settings Panel Button Listeners ---
+    // --- Settings Panel Button Listeners (assuming they exist globally after HTML load) ---
     if (saveAllSettingsButton) {
         saveAllSettingsButton.addEventListener('click', () => {
             localStorage.setItem('chatSettings', JSON.stringify(chatSettings));
@@ -1030,16 +845,10 @@ function setupChatEventListeners() {
                     unsubscribeFromPrivateChat();
                     unsubscribeFromPrivateChat = null;
                     currentSelectedPrivateChatId = null;
-                    // Re-query elements, as they might have been injected/re-rendered.
-                    const dynamicSelectedChatHeader = friendsPanelContent?.querySelector('#selectedChatHeader');
-                    const dynamicSelectedChatDisplay = friendsPanelContent?.querySelector('#selectedChatDisplay');
-                    const dynamicPrivateChatMessageInput = friendsPanelContent?.querySelector('#privateChatMessageInput');
-                    const dynamicSendPrivateMessageBtn = friendsPanelContent?.querySelector('#sendPrivateMessageBtn');
-
-                    if (dynamicSelectedChatHeader) dynamicSelectedChatHeader.textContent = "Select a Chat";
-                    if (dynamicSelectedChatDisplay) dynamicSelectedChatDisplay.innerHTML = '<p class="message-placeholder">Click a chat on the left to start messaging.</p>';
-                    if (dynamicPrivateChatMessageInput) dynamicPrivateChatMessageInput.disabled = true;
-                    if (dynamicSendPrivateMessageBtn) dynamicSendPrivateMessageBtn.disabled = true;
+                    if (selectedChatHeader) selectedChatHeader.textContent = "Select a Chat";
+                    if (selectedChatDisplay) selectedChatDisplay.innerHTML = '<p class="message-placeholder">Click a chat on the left to start messaging.</p>';
+                    if (privateChatMessageInput) privateChatMessageInput.disabled = true;
+                    if (sendPrivateMessageBtn) sendPrivateMessageBtn.disabled = true;
 
                     const recentChatsSubTabButton = document.querySelector('.friends-panel-subtabs .sub-tab-button[data-subtab="recent-chats"]');
                     if (recentChatsSubTabButton) { handleFriendsSubTabClick({ currentTarget: recentChatsSubTabButton }); }
@@ -1068,15 +877,10 @@ function setupChatEventListeners() {
                 showCustomAlert(`Successfully deleted ${deleteCount} private messages and all chat threads.`, "Deletion Complete");
                 if (unsubscribeFromPrivateChat) {
                     unsubscribeFromPrivateChat(); unsubscribeFromPrivateChat = null; currentSelectedPrivateChatId = null;
-                    const dynamicSelectedChatHeader = friendsPanelContent?.querySelector('#selectedChatHeader');
-                    const dynamicSelectedChatDisplay = friendsPanelContent?.querySelector('#selectedChatDisplay');
-                    const dynamicPrivateChatMessageInput = friendsPanelContent?.querySelector('#privateChatMessageInput');
-                    const dynamicSendPrivateMessageBtn = friendsPanelContent?.querySelector('#sendPrivateMessageBtn');
-
-                    if (dynamicSelectedChatHeader) dynamicSelectedChatHeader.textContent = "Select a Chat";
-                    if (dynamicSelectedChatDisplay) dynamicSelectedChatDisplay.innerHTML = '<p class="message-placeholder">Click a chat on the left to start messaging.</p>';
-                    if (dynamicPrivateChatMessageInput) dynamicPrivateChatMessageInput.disabled = true;
-                    if (dynamicSendPrivateMessageBtn) dynamicSendPrivateMessageBtn.disabled = true;
+                    if (selectedChatHeader) selectedChatHeader.textContent = "Select a Chat";
+                    if (selectedChatDisplay) selectedChatDisplay.innerHTML = '<p class="message-placeholder">Click a chat on the left to start messaging.</p>';
+                    if (privateChatMessageInput) privateChatMessageInput.disabled = true;
+                    if (sendPrivateMessageBtn) sendPrivateMessageBtn.disabled = true;
                 }
                 const recentChatsSubTabButton = document.querySelector('.friends-panel-subtabs .sub-tab-button[data-subtab="recent-chats"]');
                 if (recentChatsSubTabButton) { handleFriendsSubTabClick({ currentTarget: recentChatsSubTabButton }); }
@@ -1085,24 +889,28 @@ function setupChatEventListeners() {
     }
 
     // Settings panel controls for saving preferences to localStorage
+    // These listeners are placed directly on the input elements, as they exist only once.
     if (settingsUserStatusDisplayRadios) settingsUserStatusDisplayRadios.forEach(radio => radio.addEventListener('change', (e) => chatSettings.userStatusDisplay = e.target.value));
     if (settingsFontSizeRadios) settingsFontSizeRadios.forEach(radio => radio.addEventListener('change', (e) => {
         chatSettings.chatFontSize = e.target.value;
         document.querySelectorAll('.chat-messages-scroll-wrapper').forEach(el => {
-            el.classList.remove('font-small', 'font-medium', 'font-large'); el.classList.add(`font-${chatSettings.chatFontSize}`);
+            el.classList.remove('font-small', 'font-medium', 'font-large');
+            el.classList.add(`font-${chatSettings.chatFontSize}`);
         });
     }));
     if (settingsChatThemeRadios) settingsChatThemeRadios.forEach(radio => radio.addEventListener('change', (e) => chatSettings.chatTheme = e.target.value));
     if (settingsMessageDensityRadios) settingsMessageDensityRadios.forEach(radio => radio.addEventListener('change', (e) => {
         chatSettings.messageDensity = e.target.value;
         document.querySelectorAll('.chat-messages-scroll-wrapper').forEach(el => {
-            el.classList.remove('density-compact', 'density-normal', 'density-spacious'); el.classList.add(`density-${chatSettings.messageDensity}`);
+            el.classList.remove('density-compact', 'density-normal', 'density-spacious');
+            el.classList.add(`density-${chatSettings.messageDensity}`);
         });
     }));
     if (settingsInputSizeRadios) settingsInputSizeRadios.forEach(radio => radio.addEventListener('change', (e) => {
         chatSettings.chatInputSize = e.target.value;
         document.querySelectorAll('.chat-text-input').forEach(el => {
-            el.classList.remove('input-small', 'input-medium', 'input-large'); el.classList.add(`input-${chatSettings.chatInputSize}`);
+            el.classList.remove('input-small', 'input-medium', 'input-large');
+            el.classList.add(`input-${chatSettings.chatInputSize}`);
         });
     }));
     if (settingsShowTimestamps) settingsShowTimestamps.addEventListener('change', (e) => chatSettings.showTimestamps = e.target.checked);
@@ -1116,30 +924,99 @@ function setupChatEventListeners() {
 }
 
 // ==========================================================================================
-// STUBS FOR NON-CHAT FUNCTIONS (TO PREVENT ERRORS IF CALLED BY CHAT)
-// These functions are called by chat features (e.g., `populateRecentlyMetTab` needing `userApiKey`),
-// but their primary implementation (data source, UI updates for other parts of the app) is assumed
-// to be in your `war_hub.js` or other scripts. These stubs prevent "function not defined" errors.
+// REMAINING HELPER FUNCTIONS (NOT DIRECTLY CHAT-UI RELATED BUT MAY BE USED BY CHAT FUNCTIONS)
+// These functions are kept because they are called by the chat-related functions.
 // ==========================================================================================
-let userApiKey = null; // Declare as `let` here to be assignable by external logic
-let factionApiFullData = null; // Declare as `let` for external assignment
-let globalYourFactionID = null; // Declare as `let` for external assignment
 
-function fetchAndDisplayEnemyFaction(factionID, apiKey) { console.log(`[Stub] fetchAndDisplayEnemyFaction called for ID: ${factionID}. (Full logic in war_hub.js)`); }
-async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
-    const friendListTbody = friendsPanelContent?.querySelector('#friends-tbody');
-    if (friendListTbody) { friendListTbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading friends' details (via stubbed function)...</td></tr>`; }
-    console.log(`[Stub] updateFriendlyMembersTable called for user: ${firebaseAuthUid}. (Full logic in war_hub.js)`);
-    // Example placeholder: if your war_hub.js populated `factionApiFullData`
-    // and `userApiKey`, you might access them here.
-    if (apiKey && firebaseAuthUid) {
-        // In a real scenario, this would fetch friend stats from Torn API
-        // and populate the table with actual data. For now, it's a stub.
-        if (friendListTbody) {
-            friendListTbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">API data loading for friends is stubbed.</td></tr>`;
-        }
+// This function (and ones it calls) would normally be in your war_hub.js if it only updates the main war hub.
+// But if it's called by chat features like "Recently Met" for data, it needs to be accessible globally.
+// I've included a minimal version here, assuming its full implementation is in war_hub.js.
+function fetchAndDisplayEnemyFaction(factionID, apiKey) {
+    // This is a minimal placeholder. Your actual fetchAndDisplayEnemyFaction
+    // in war_hub.js would do real API calls and update `enemyTargetsContainer`.
+    // For chat-only purposes, this function doesn't need to do much.
+    console.log(`[Stub] fetchAndDisplayEnemyFaction called for ID: ${factionID}. (Full logic in war_hub.js)`);
+    // Example of what it might do minimally for chat if needed:
+    if (factionID && apiKey) {
+        // Here you would typically fetch real enemy data.
+        // For this chat-only global.js, we just acknowledge the call.
+        // If other chat-related functions *strictly* rely on a global `enemyDataGlobal` being populated by this,
+        // you might need to add a minimal mock or an actual fetch here.
     }
 }
+
+// Dummy function for updateFriendlyMembersTable - if it's not strictly part of chat functionality
+// it might belong in your war_hub.js. If it is used by the Friends tab to show stats, keep it here.
+// I'm assuming for 'Friend List' tab, you want it to actually populate data.
+async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
+    const friendListTbody = friendsPanelContent?.querySelector('#friends-tbody');
+    if (!friendListTbody) { console.error("HTML Error: #friends-tbody not found for updateFriendlyMembersTable."); return; }
+    friendListTbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading friends' details...</td></tr>`;
+
+    if (!auth.currentUser || !apiKey) { friendListTbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Login and API Key required.</td></tr>`; return; }
+
+    try {
+        const userProfileDoc = await db.collection('userProfiles').doc(firebaseAuthUid).get();
+        if (!userProfileDoc.exists || !userProfileDoc.data().friends) { friendListTbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">No friends added yet.</td></tr>`; return; }
+        const friendTornIds = userProfileDoc.data().friends;
+
+        const fetchPromises = friendTornIds.map(id =>
+            fetch(`https://api.torn.com/user/${id}?selections=profile,personalstats,battlestats,workstats,cooldowns,bars,revive&key=${apiKey}&comment=MyTornPA_FriendDetails`)
+            .then(res => res.json())
+            .then(data => ({ id: id, data: data }))
+            .catch(error => { console.error(`Error fetching Torn data for friend ${id}:`, error); return { id: id, data: { error: true } }; })
+        );
+
+        const fetchedFriendData = await Promise.all(fetchPromises);
+        let allRowsHtml = '';
+        for (const { id: tornPlayerId, data: friendData } of fetchedFriendData) {
+            if (friendData.error || friendData.name === undefined) { // Check for API errors or missing essential data
+                 allRowsHtml += `<tr data-id="${tornPlayerId}" class="status-error"><td><a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank">Error [${tornPlayerId}]</a></td><td colspan="11" style="text-align:center; color: red;">API Error or Data Missing</td></tr>`;
+                 continue;
+            }
+
+            const name = friendData.name || 'N/A';
+            const level = friendData.level || 'N/A';
+            const lastAction = friendData.last_action ? formatRelativeTime(friendData.last_action.timestamp) : 'N/A';
+            const statusState = friendData.status?.state || ''; const statusDescription = friendData.status?.description || 'N/A';
+            let formattedStatus = statusDescription; let statusClass = 'status-okay';
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; } else if (statusState === 'Traveling') { statusClass = 'status-traveling'; } else if (statusState !== 'Okay') { statusClass = 'status-other'; }
+            const strength = formatBattleStats(friendData.battlestats?.strength || 0); const dexterity = formatBattleStats(friendData.battlestats?.dexterity || 0);
+            const speed = formatBattleStats(friendData.battlestats?.speed || 0); const defense = formatBattleStats(friendData.battlestats?.defense || 0);
+            const totalStats = formatBattleStats((friendData.battlestats?.strength || 0) + (friendData.battlestats?.speed || 0) + (friendData.battlestats?.dexterity || 0) + (friendData.battlestats?.defense || 0));
+            const nerveCurrent = friendData.bars?.nerve?.current ?? 'N/A'; const nerveMaximum = friendData.bars?.nerve?.maximum ?? 'N/A'; const nerve = `${nerveCurrent} / ${nerveMaximum}`;
+            const energyCurrent = friendData.bars?.energy?.current ?? 'N/A'; const energyMaximum = friendData.bars?.energy?.maximum ?? 'N/A'; const energy = `${energyCurrent} / ${energyMaximum}`;
+            const drugCooldownValue = friendData.cooldowns?.drug ?? 0; let drugCooldown, drugCooldownClass = '';
+            if (drugCooldownValue > 0) {
+                const hours = Math.floor(drugCooldownValue / 3600); const minutes = Math.floor((drugCooldownValue % 3600) / 60);
+                drugCooldown = `${hours > 0 ? `${hours}h` : ''} ${minutes > 0 ? `${minutes}m` : ''}`.trim() || '<1m';
+                if (drugCooldownValue > 18000) drugCooldownClass = 'status-hospital'; else if (drugCooldownValue > 7200) drugCooldownClass = 'status-other'; else drugCooldownClass = 'status-okay';
+            } else { drugCooldown = 'None 🍁'; drugCooldownClass = 'status-okay'; }
+            const reviveSetting = (friendData.revive_setting || '').trim(); let revivableClass = '';
+            if (reviveSetting === 'Everyone') { revivableClass = 'revivable-text-green'; } else if (reviveSetting === 'Friends & faction') { revivableClass = 'revivable-text-orange'; } else if (reviveSetting === 'No one') { revivableClass = 'revivable-text-red'; }
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${tornPlayerId}`;
+
+            allRowsHtml += `
+                <tr data-id="${tornPlayerId}">
+                    <td><a href="${profileUrl}" target="_blank">${name} [${tornPlayerId}]</a></td>
+                    <td>${level}</td>
+                    <td>${strength}</td><td>${dexterity}</td><td>${speed}</td><td>${defense}</td><td>${totalStats}</td>
+                    <td class="${statusClass}">${formattedStatus}</td>
+                    <td class="nerve-text">${nerve}</td>
+                    <td class="energy-text">${energy}</td>
+                    <td class="${drugCooldownClass}">${drugCooldown}</td>
+                    <td class="${revivableClass}">${reviveSetting}</td>
+                </tr>`;
+        }
+        friendListTbody.innerHTML = allRowsHtml || '<tr><td colspan="12" style="text-align:center; padding: 20px;">No detailed friend data available or no friends added.</td></tr>';
+        applyStatColorCoding(friendListTbody);
+    } catch (error) { console.error("Error fetching or displaying friends:", error); friendListTbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Error loading friends: ${error.message}</td></tr>`; }
+}
+
+
+// --- DUMMY FUNCTIONS FOR METHODS USED BY CHAT FUNCTIONS, BUT ARE PART OF MAIN WAR_HUB.JS ---
+// These are placeholders to prevent "function not defined" errors.
+// Their real logic lives in your war_hub.js.
 function setupWarClaimsListener() { console.log("[Stub] setupWarClaimsListener called. (Logic is in war_hub.js)"); }
 function autoUnclaimHitTargets() { console.log("[Stub] autoUnclaimHitTargets called. (Logic is in war_hub.js)"); }
 function updateOnlineMemberCounts() { console.log("[Stub] updateOnlineMemberCounts called. (Logic is in war_hub.js)"); }
@@ -1153,12 +1030,15 @@ function loadWarStatusForEdit(data) { console.log("[Stub] loadWarStatusForEdit c
 function displayWarRoster() { console.log("[Stub] displayWarRoster called. (Logic is in war_hub.js)"); }
 function setupFactionHitsListener(db, factionId) { console.log(`[Stub] setupFactionHitsListener called for faction: ${factionId}. (Logic is in war_hub.js)`); }
 function updateDualChainTimers(key, yourFactionId, enemyFactionId) { console.log(`[Stub] updateDualChainTimers called. (Logic is in war_hub.js)`); }
-function checkIfUserIsAdmin() { console.log("[Stub] checkIfUserIsAdmin called. (Logic is in war_hub.js)"); return false; }
+function checkIfUserIsAdmin() { console.log("[Stub] checkIfUserIsAdmin called. (Logic is in war_hub.js)"); return false; } // Must return boolean
 function setupDiscordWebhookControls() { console.log("[Stub] setupDiscordWebhookControls called. (Logic is in war_hub.js)"); }
 function sendReminderNotifications() { console.log("[Stub] sendReminderNotifications called. (Logic is in war_hub.js)"); }
 function resetAllAvailability() { console.log("[Stub] resetAllAvailability called. (Logic is in war_hub.js)"); }
 function handleImageUpload(input, display, label, type) { console.log(`[Stub] handleImageUpload called for ${type}. (Logic is in war_hub.js)`); }
+// This applies to the *table* in your main app. The chat's friend list uses populateFriendListTab.
 function setupMemberClickEvents() { console.log("[Stub] setupMemberClickEvents called. (Logic is in war_hub.js)"); }
+function applyStatColorCoding(tableBodyElement) { console.log("[Stub] applyStatColorCoding called. (Logic is in war_hub.js)"); }
+function setupProgressText() { console.log("[Stub] setupProgressText called. (Logic is in war_hub.js)"); }
 function updateRankedWarDisplay(rankedWarData, yourFactionId) { console.log("[Stub] updateRankedWarDisplay called. (Logic is in war_hub.js)"); }
 
 
@@ -1179,23 +1059,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const doc = await userProfileRef.get();
             const userData = doc.exists ? doc.data() : {};
 
-            // User's API key and faction ID are needed for many chat functions
-            // If `userApiKey` and `globalYourFactionID` are populated by `war_hub.js`,
-            // ensure `war_hub.js` loads first and populates these, or duplicate the logic here.
-            // For now, we manually assign the API key and faction ID if available from user profile.
-            userApiKey = userData.tornApiKey || null; // This will update the global userApiKey stub
-            // The `globalYourFactionID` would typically be set by a main app initialization function,
-            // like `initializeAndLoadData` in your `war_hub.js`. We'll set it here minimally if found.
-            if (userData.faction_id) {
-                globalYourFactionID = userData.faction_id;
-            }
-
+            userApiKey = userData.tornApiKey || null; // Update global userApiKey
             currentTornUserName = userData.preferredName || 'Unknown';
 
-            // Set up chatMessagesCollection based on user's faction ID for faction chat
-            if (globalYourFactionID) {
+            // Only initiate chat-specific fetches/listeners if API key and faction ID are available
+            // If globalYourFactionID is derived from userData.faction_id in initializeAndLoadData,
+            // ensure that function or a similar call runs when a user logs in.
+            // For this chat-only global.js, we simulate minimum setup:
+            if (userData.faction_id) {
+                globalYourFactionID = userData.faction_id; // Set global faction ID for chat collection
                 chatMessagesCollection = db.collection('factionChats').doc(String(globalYourFactionID)).collection('messages');
                 console.log(`Chat messages collection set to: factionChats/${globalYourFactionID}/messages`);
+
+                // Start faction chat listener if faction chat panel is active by default
+                // or when the user manually switches to it.
+                // The handleChatTabClick will call setupChatRealtimeListener.
             } else {
                 chatMessagesCollection = null;
                 console.warn("User's faction ID not found. Faction chat may not be fully functional.");
@@ -1204,18 +1082,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // Default to showing faction chat or the tab specified in URL after login/data fetch
             const urlParams = new URLSearchParams(window.location.search);
             const requestedView = urlParams.get('view');
-            // Ensure the DOM elements exist before querying them (e.g., chatTabButtons)
-            const defaultTabButton = chatTabButtons
-                ? (requestedView ? document.querySelector(`.chat-tab[data-tab-target="${requestedView}-panel"]`) : document.querySelector('.chat-tab[data-tab-target="faction-chat-panel"]'))
-                : null;
+            const defaultTabButton = requestedView
+                ? document.querySelector(`.chat-tab[data-tab-target="${requestedView}-panel"]`)
+                : document.querySelector('.chat-tab[data-tab-target="faction-chat-panel"]');
 
             if (defaultTabButton) {
+                // Trigger a click to open the default/requested tab and load its content
                 handleChatTabClick({ currentTarget: defaultTabButton });
             } else {
-                console.error(`Requested view "${requestedView}" or default faction-chat-panel not found, or chat UI not fully loaded. Cannot auto-select a tab.`);
-                if (tornpaChatSystem && chatWindow) {
-                     toggleChatWindowVisibility(); // Just open the window, user can pick tab.
-                }
+                console.error(`Requested view "${requestedView}" or default faction-chat-panel not found. Cannot auto-select a tab.`);
+                // If no default tab, simply open the chat window
+                toggleChatWindowVisibility();
             }
 
         } else {
