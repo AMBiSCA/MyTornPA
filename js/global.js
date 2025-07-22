@@ -13,33 +13,56 @@ function initializeChatAndFooter() {
         .then(data => {
             document.getElementById('footer-container').innerHTML = data;
             
-            // Find the elements for opening/closing the window
+            // --- Find ALL our new elements ---
             const chatBarCollapsed = document.getElementById('chat-bar-collapsed');
             const chatWindow = document.getElementById('chat-window');
             const closeChatButton = document.getElementById('close-chat-button');
             const chatTextInput = document.querySelector('.chat-text-input');
             const chatSendBtn = document.querySelector('.chat-send-btn');
-
-            // --- THIS IS THE ONLY CHANGE IN THIS FILE ---
-            // We now look for the specific chat icon to open the window
             const openChatIcon = document.getElementById('open-chat-icon'); 
-            // --- END OF CHANGE ---
+            const openSettingsIcon = document.getElementById('open-settings-icon');
 
-            // --- Open/Close Logic ---
-            if (openChatIcon) { // Changed from chatBarCollapsed
-                openChatIcon.addEventListener('click', () => { // Changed from chatBarCollapsed
-                    if(chatWindow) chatWindow.classList.remove('hidden');
-                    if(chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
-                });
-            }
-            if (closeChatButton) {
-                closeChatButton.addEventListener('click', () => {
-                    if(chatWindow) chatWindow.classList.add('hidden');
-                    if(chatBarCollapsed) chatBarCollapsed.classList.remove('hidden');
-                });
-            }
+            // Panels inside the window
+            const chatDisplayArea = document.getElementById('chat-display-area');
+            const settingsPanel = document.getElementById('settings-panel');
+            const chatInputArea = document.getElementById('chat-input-area');
+            const chatWindowTitle = document.getElementById('chat-window-title');
 
-            // --- Send Message Logic ---
+
+            // --- NEW LOGIC FOR CLICKING ICONS ---
+            
+            // When clicking the CHAT icon
+            openChatIcon.addEventListener('click', () => {
+                chatWindow.classList.remove('hidden');
+                chatBarCollapsed.classList.add('hidden');
+                // Show the chat parts
+                chatDisplayArea.classList.remove('hidden');
+                chatInputArea.classList.remove('hidden');
+                // Hide the settings part
+                settingsPanel.classList.add('hidden');
+                chatWindowTitle.textContent = "TornPA Chat";
+            });
+
+            // When clicking the SETTINGS icon
+            openSettingsIcon.addEventListener('click', () => {
+                chatWindow.classList.remove('hidden');
+                chatBarCollapsed.classList.add('hidden');
+                // Hide the chat parts
+                chatDisplayArea.classList.add('hidden');
+                chatInputArea.classList.add('hidden');
+                // Show the settings part
+                settingsPanel.classList.remove('hidden');
+                chatWindowTitle.textContent = "Settings";
+            });
+            
+            // When clicking the CLOSE button
+            closeChatButton.addEventListener('click', () => {
+                chatWindow.classList.add('hidden');
+                chatBarCollapsed.classList.remove('hidden');
+            });
+
+
+            // --- Send Message Logic (no changes here) ---
             if (chatSendBtn) {
                 chatSendBtn.addEventListener('click', sendChatMessage);
             }
@@ -51,13 +74,12 @@ function initializeChatAndFooter() {
                     }
                 });
             }
-
         })
         .catch(error => {
             console.error('Error loading global footer:', error);
         });
 
-    // ---- AUTHENTICATION LISTENER ----
+    // ---- AUTHENTICATION LISTENER (no changes here) ----
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -83,7 +105,7 @@ function initializeChatAndFooter() {
         }
     });
 
-    // ---- CORE CHAT FUNCTIONS (from your file) ----
+    // ---- CORE CHAT FUNCTIONS (no changes here) ----
     function displayChatMessage(messageObj) {
         const chatDisplayArea = document.getElementById('chat-display-area');
         if (!chatDisplayArea) return;
