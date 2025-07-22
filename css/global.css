@@ -860,6 +860,128 @@ ul li:last-child { border-bottom: none; }
     color: #e0e1dd;
 }
 
+/* New or updated rules for a compact, single-line member display */
+
+.friends-panel-content .members-list-container {
+    padding: 5px; /* Add some padding around the whole list */
+    display: flex; /* Make the container a flex container */
+    flex-direction: column; /* Stack member items vertically */
+    gap: 2px; /* Small gap between individual member lines */
+}
+
+.friends-panel-content .member-item {
+    display: flex; /* Use flexbox for each member item */
+    align-items: center; /* Vertically align items in the middle */
+    justify-content: space-between; /* Space out content and action buttons */
+    padding: 4px 8px; /* Reduce padding to make it more compact */
+    border-bottom: 1px solid #333; /* Light separator between entries */
+    background-color: #2a2a2a; /* Slightly lighter background for each row */
+    font-size: 0.9em; /* Slightly smaller font size */
+    flex-wrap: nowrap; /* Prevent wrapping of content within the member item */
+    min-height: 30px; /* Ensure a minimum height for consistency */
+}
+
+.friends-panel-content .member-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.friends-panel-content .member-info-left {
+    display: flex; /* Use flexbox for the left side (rank, identity) */
+    align-items: center;
+    flex-grow: 1; /* Allow this section to grow */
+    overflow: hidden; /* Hide overflow if text is too long */
+    white-space: nowrap; /* Prevent text wrapping here */
+}
+
+.friends-panel-content .member-rank {
+    font-size: 0.75em; /* Smaller font for rank */
+    color: #bbb; /* Lighter color for rank */
+    margin-right: 8px; /* Space between rank and identity */
+    flex-shrink: 0; /* Prevent rank from shrinking */
+    max-width: 100px; /* Limit rank width if needed */
+    text-overflow: ellipsis; /* Add ellipsis for long ranks */
+    overflow: hidden;
+}
+
+.friends-panel-content .member-identity {
+    display: flex; /* Flex for profile pic and name */
+    align-items: center;
+    gap: 5px; /* Space between pic and name */
+    overflow: hidden; /* Hide overflow for name */
+    white-space: nowrap; /* Prevent name wrapping */
+    flex-grow: 1; /* Allow identity to grow */
+}
+
+/* === MODIFIED: Profile Picture Size and Border === */
+.friends-panel-content .member-profile-pic {
+    width: 32px; /* Slightly larger profile picture */
+    height: 32px; /* Maintain aspect ratio */
+    border-radius: 4px; /* Keep slightly rounded corners */
+    object-fit: cover; /* Ensure image covers the area */
+    flex-shrink: 0;
+    /* --- NEW BORDER STYLES --- */
+    border: 1px solid #00a8ff; /* A nice blue border */
+    padding: 2px; /* Adds space between image and border */
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.4); /* Subtle glow effect */
+    background-color: #1b263b; /* A subtle background behind the image for padding */
+}
+/* =============================================== */
+
+.friends-panel-content .member-name {
+    font-weight: bold;
+    color: #eee; /* Brighter color for name */
+    text-overflow: ellipsis; /* Add ellipsis for long names */
+    overflow: hidden;
+    flex-grow: 1; /* Allow name to grow */
+}
+
+.friends-panel-content .member-actions {
+    display: flex; /* Flex for action buttons */
+    align-items: center;
+    gap: 3px; /* Smaller gap between buttons */
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.friends-panel-content .item-button {
+    background-color: #444; /* Darker button background */
+    color: #fff;
+    border: 1px solid #555;
+    padding: 3px 6px; /* Smaller padding for buttons */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em; /* Smaller font for buttons */
+    line-height: 1; /* Adjust line height for vertical alignment */
+    text-decoration: none; /* Remove underline for link button */
+    display: inline-flex; /* Use flex for button content, especially for icon+text */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    min-width: 28px; /* Minimum width for small icons (increased slightly for border) */
+    min-height: 28px; /* Minimum height for small icons (increased slightly for border) */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.friends-panel-content .item-button:hover {
+    background-color: #555; /* Hover effect */
+}
+
+.friends-panel-content .add-member-button,
+.friends-panel-content .remove-friend-button {
+    position: relative;
+    padding: 3px 6px; /* Adjust padding for icon buttons */
+    font-size: 1.1em; /* Larger icon size */
+    line-height: 1;
+}
+
+.friends-panel-content .add-member-button .plus-sign,
+.friends-panel-content .remove-friend-button .plus-sign {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.7em; /* Smaller +/- sign */
+    font-weight: bold;
+}
+
 /* ------------------------------------- */
 /* Notifications Panel Specific Styles   */
 /* ------------------------------------- */
