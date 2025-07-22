@@ -5,61 +5,55 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("globalheader.js: DOMContentLoaded event fired.");
 
     // Function to load the global header HTML (and modals) and then initialize its JavaScript logic
-    async function loadGlobalHeaderAndInitializeLogic() {
-        // IMPORTANT: Adjust this path based on where your globalheader.html is located.
-        // Based on our last successful attempt, it's in the 'pages/' folder.
-        const headerPath = '../pages/globalheader.html'; 
+   // Replace the existing function in globalheader.js with this one.
+async function loadGlobalHeaderAndInitializeLogic() {
+    // IMPORTANT: This path is now root-relative, so it works from any page.
+    const headerPath = '/pages/globalheader.html'; // <<< THIS IS THE FIX
 
-        try {
-            const response = await fetch(headerPath);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const html = await response.text();
-            const headerPlaceholder = document.getElementById('global-header-placeholder');
-            
-            if (headerPlaceholder) {
-                // Insert the tched HTML into the placeholder
-                headerPlaceholder.innerHTML = html;
-                console.log("globalheader.js: Global header HTML loaded successfully into placeholder.");
-
-                // Now, re-insert the modals into the body (this is important for modals to function as overlays)
-                // We assume the modals are part of globalheader.html content, appended AFTER the header tag.
-                // We extract them and append them directly to the body.
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html; // Load the HTML into a temporary div to parse
-
-                const authModal = tempDiv.querySelector('#authModal');
-                const profileSetupModal = tempDiv.querySelector('#profileSetupModal');
-                
-                if (authModal) {
-                    // Check if modal already exists to prevent duplicates if this runs multiple times unexpectedly
-                    if (!document.getElementById('authModal')) {
-                        document.body.appendChild(authModal);
-                        console.log("globalheader.js: Auth Modal appended to body.");
-                    }
-                }
-                if (profileSetupModal) {
-                     // Check if modal already exists to prevent duplicates
-                    if (!document.getElementById('profileSetupModal')) {
-                        document.body.appendChild(profileSetupModal);
-                        console.log("globalheader.js: Profile Setup Modal appended to body.");
-                    }
-                }
-
-                // Call the function that contains all the header-specific JavaScript logic.
-                // This function will find elements and attach listeners.
-                initializeHeaderLogicAfterLoad();
-
-            } else {
-                console.error('globalheader.js: Placeholder div #global-header-placeholder not found!');
-            }
-        } catch (error) {
-            console.error('globalheader.js: Error loading global header HTML or modals:', error);
-            document.body.insertAdjacentHTML('afterbegin', '<p style="color:red; text-align:center; background:white; padding:10px;">Error loading global header. Please check console.</p>');
+    try {
+        const response = await fetch(headerPath);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    }
+        const html = await response.text();
+        const headerPlaceholder = document.getElementById('global-header-placeholder');
+        
+        if (headerPlaceholder) {
+            // Insert the fetched HTML into the placeholder
+            headerPlaceholder.innerHTML = html;
+            console.log("globalheader.js: Global header HTML loaded successfully into placeholder.");
 
+            // Now, re-insert the modals into the body (this is important for modals to function as overlays)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html; // Load the HTML into a temporary div to parse
+
+            const authModal = tempDiv.querySelector('#authModal');
+            const profileSetupModal = tempDiv.querySelector('#profileSetupModal');
+            
+            if (authModal) {
+                if (!document.getElementById('authModal')) {
+                    document.body.appendChild(authModal);
+                    console.log("globalheader.js: Auth Modal appended to body.");
+                }
+            }
+            if (profileSetupModal) {
+                 if (!document.getElementById('profileSetupModal')) {
+                    document.body.appendChild(profileSetupModal);
+                    console.log("globalheader.js: Profile Setup Modal appended to body.");
+                }
+            }
+
+            // Call the function that contains all the header-specific JavaScript logic.
+            initializeHeaderLogicAfterLoad();
+
+        } else {
+            console.error('globalheader.js: Placeholder div #global-header-placeholder not found!');
+        }
+    } catch (error) {
+        console.error('globalheader.js: Error loading global header HTML or modals:', error);
+        document.body.insertAdjacentHTML('afterbegin', '<p style="color:red; text-align:center; background:white; padding:10px;">Error loading global header. Please check console.</p>');
+    }
+}
     // This function contains all the *header-specific* JavaScript logic
     // that needs to run *AFTER* the global header HTML (including modals) has been loaded into the DOM.
     function initializeHeaderLogicAfterLoad() {
