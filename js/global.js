@@ -147,22 +147,45 @@ function initializeGlobals() {
                         tab.classList.add('active');
                         if (targetPanel) targetPanel.classList.remove('hidden');
 
-                        if (targetPanelId === 'friends-panel') {
-                            const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
-                            const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
-                            friendsSubTabs.forEach(t => t.classList.remove('active'));
-                            if (recentChatsSubTab) {
-                                recentChatsSubTab.classList.add('active');
-                                friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
-                            }
+                        // Moved the problematic 'case' statement here into a switch
+                        switch (targetPanelId) {
+                            case 'friends-panel':
+                                const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
+                                const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                                friendsSubTabs.forEach(t => t.classList.remove('active'));
+                                if (recentChatsSubTab) {
+                                    recentChatsSubTab.classList.add('active');
+                                    friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
+                                }
+                                break;
+                            case 'recently-met':
+                                // You need to decide where 'chatDisplayArea' comes from or which element to pass
+                                // For now, assuming it's friendsPanelContent as that's where recently met users are displayed
+                                populateRecentlyMetTab(friendsPanelContent);
+                                // The 'showInputArea = false;' line was causing an error as showInputArea is not defined.
+                                // If you need to hide the input area, you'd need to manage its visibility,
+                                // e.g., by adding a class to hide it.
+                                break;
+                            // Add more cases for other chat tabs if they have specific initialization logic
                         }
                     });
                 });
 
-                  case 'recently-met':
-            populateRecentlyMetTab(chatDisplayArea);
-            showInputArea = false; // Hide input for non-chat tabs
-            break;
+                // The 'recently-met' case was misplaced, it should be within the switch
+                // that handles tab clicks, or within the specific sub-tab event listener.
+                // The snippet below shows how the 'recently-met' sub-tab within the friends panel
+                // would be handled *if* it was clicked as a sub-tab.
+                if (recentlyMetSubTab) {
+                    recentlyMetSubTab.addEventListener('click', () => {
+                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                        recentlyMetSubTab.classList.add('active');
+                        populateRecentlyMetTab(friendsPanelContent);
+                        // If you have a chat input area that needs to be hidden,
+                        // you'd need a reference to it and modify its style.
+                        // For example: if (chatInputArea) chatInputArea.classList.add('hidden');
+                    });
+                }
+
 
                 if (factionMembersSubTab) {
                     factionMembersSubTab.addEventListener('click', async () => {
@@ -396,6 +419,16 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 
     try {
         // Step 1: Fetch the last 5 wars to get their IDs
+        // Ensure userApiKey and globalYourFactionID are accessible.
+        // They should be populated from window.userTornApiKey and window.currentUserFactionId respectively.
+        const userApiKey = window.userTornApiKey;
+        const globalYourFactionID = window.currentUserFactionId;
+
+        if (!userApiKey || !globalYourFactionID) {
+            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">API key or Faction ID not available. Please log in.</p>`;
+            return;
+        }
+
         const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
         const historyResponse = await fetch(historyUrl);
         const historyData = await historyResponse.json();
@@ -410,7 +443,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
 
         // Step 2: Fetch detailed reports for those wars
         targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
-        const reportPromises = wars.map(war => 
+        const reportPromises = wars.map(war =>
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
@@ -430,7 +463,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 });
             }
         });
-        
+
         const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
         if (uniqueOpponentIds.length === 0) {
             targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
@@ -440,6 +473,7 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         // Step 4: Check registration status in chunks
         const registeredUserIds = new Set();
         const chunkSize = 30;
+        const db = firebase.firestore(); // Access Firestore here
         for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
             const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
             const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
@@ -451,6 +485,9 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         // Step 5: Build the final HTML grid
         const membersListContainer = document.createElement('div');
         membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
+
+        // Define DEFAULT_PROFILE_ICONS if it's not defined globally elsewhere
+        const DEFAULT_PROFILE_ICONS = ['../../images/default_profile_icon.png']; // Add more paths if you have other default icons
 
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
@@ -611,11 +648,11 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
                 console.log(`Added friend: ${memberId}`);
                 if (window.currentUserFactionId && window.userTornApiKey && TORN_API_BASE_URL_GLOBAL) {
-                     const response = await fetch(`${TORN_API_BASE_URL_GLOBAL}/faction/${window.currentUserFactionId}?selections=members&key=${window.userTornApiKey}`);
-                     const data = await response.json();
-                     if (data.members) {
-                         displayFactionMembersInChatTab(data.members, targetDisplayElement);
-                     }
+                    const response = await fetch(`${TORN_API_BASE_URL_GLOBAL}/faction/${window.currentUserFactionId}?selections=members&key=${window.userTornApiKey}`);
+                    const data = await response.json();
+                    if (data.members) {
+                        displayFactionMembersInChatTab(data.members, targetDisplayElement);
+                    }
                 }
             } catch (error) {
                 console.error("Error adding friend:", error);
@@ -633,7 +670,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                     if (data.members) {
                         displayFactionMembersInChatTab(data.members, targetDisplayElement);
                     }
-               }
+                }
             } catch (error) {
                 console.error("Error removing friend:", error);
                 alert("Failed to remove friend. See console for details.");
