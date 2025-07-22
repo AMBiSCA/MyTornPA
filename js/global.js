@@ -312,5 +312,173 @@ function initializeGlobals() {
     }
 }
 
+async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for faction members list.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
+
+    // Get the current user's friends list first
+    let friendsSet = new Set();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        try {
+            const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+            friendsSnapshot.forEach(doc => friendsSet.add(doc.id));
+        } catch (error) {
+            console.error("Error fetching friends list for faction members tab:", error);
+        }
+    }
+
+    if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
+        return;
+    }
+
+    const membersArray = Object.values(factionMembersApiData);
+    // Include more ranks if they exist in your Torn faction setup
+    const rankOrder = { "Leader": 0, "Co-leader": 1, "Council": 2, "Right Hand": 3, "Left Hand": 4, "Captain": 5, "Lieutenant": 6, "Sergeant": 7, "Corporal": 8, "Recruit": 9, "Applicant": 10, "Member": 99 };
+    membersArray.sort((a, b) => {
+        const orderA = rankOrder[a.position] !== undefined ? rankOrder[a.position] : rankOrder["Member"];
+        const orderB = rankOrder[b.position] !== undefined ? rankOrder[b.position] : rankOrder["Member"];
+        if (orderA !== orderB) { return orderA - orderB; }
+        return a.name.localeCompare(b.name);
+    });
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.classList.add('members-list-container');
+    targetDisplayElement.innerHTML = ''; // Clear loading message
+    targetDisplayElement.appendChild(membersListContainer);
+
+    for (const member of membersArray) {
+        const tornPlayerId = String(member.id); // Ensure ID is a string for consistency
+        const memberName = member.name || `Unknown (${tornPlayerId})`;
+        const memberRank = member.position || 'Member';
+        const isFriend = friendsSet.has(tornPlayerId);
+
+        // --- Simplified: NO hospital/traveling logic here for basic list ---
+        // These variables are no longer used for direct display in this simplified HTML
+        // const lastActionText = member.last_action ? formatRelativeTime(member.last_action.timestamp) : 'N/A';
+        // let statusText = member.status ? member.status.description : 'Unknown';
+        // let statusClass = 'member-status-okay'; // Default class, not directly used in simplified HTML structure below
+
+        // --- Generate Action Buttons (Add/Remove Friend, Message, Torn Profile Link) ---
+        let actionButtonHtml = '';
+        if (isFriend) {
+            actionButtonHtml = `
+                <button class="remove-friend-button" data-member-id="${tornPlayerId}" title="Remove Friend">
+                    👤<span class="plus-sign">-</span>
+                </button>
+            `;
+        } else {
+            actionButtonHtml = `
+                <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
+                    👤<span class="plus-sign">+</span>
+                </button>
+            `;
+        }
+        
+        const memberItemDiv = document.createElement('div');
+        memberItemDiv.classList.add('member-item');
+        if (memberRank === "Leader" || memberRank === "Co-leader") {
+            memberItemDiv.classList.add('leader-member'); // Keep special styling for leaders
+        }
+
+        // The HTML structure is simplified to remove status/last action details
+        memberItemDiv.innerHTML = `
+            <div class="member-info-left">
+                <span class="member-rank">${memberRank}</span>
+                <div class="member-identity">
+                    <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
+                    <span class="member-name">${memberName}</span>
+                </div>
+            </div>
+            <div class="member-actions">
+                ${actionButtonHtml}
+                <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
+                <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
+            </div>
+        `;
+        
+        membersListContainer.appendChild(memberItemDiv);
+
+        // Fetch profile picture from Firebase 'users' collection (async, won't block display)
+        (async () => {
+            try {
+                const docRef = db.collection('users').doc(tornPlayerId); // Assuming tornPlayerId is document ID here
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    const firebaseMemberData = docSnap.data();
+                    const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
+                    const imgElement = memberItemDiv.querySelector('.member-profile-pic');
+                    if (imgElement) imgElement.src = profileImageUrl;
+                }
+            } catch (error) {
+                console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
+            }
+        })();
+    }
+
+    // Add event listeners for the dynamically created buttons (add/remove friend, message)
+    membersListContainer.addEventListener('click', async (event) => {
+        const clickedButton = event.target.closest('button');
+        const clickedLink = event.target.closest('a.profile-link-button'); // Also listen for the new link button
+
+        const element = clickedButton || clickedLink; // Use the clicked button or link
+        if (!element) return;
+
+        const memberId = element.dataset.memberId;
+        if (!memberId || !auth.currentUser) return;
+
+        const currentUserId = auth.currentUser.uid;
+        const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId);
+
+        if (element.classList.contains('add-member-button')) {
+            try {
+                await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                console.log(`Added friend: ${memberId}`);
+                // Re-render to update button state
+                displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement);
+            } catch (error) {
+                console.error("Error adding friend:", error);
+                alert("Failed to add friend. See console for details.");
+            }
+        } else if (element.classList.contains('remove-friend-button')) {
+            const userConfirmed = await showCustomConfirm(`Are you sure you want to remove ${memberId} from your friends list?`, "Confirm Friend Removal");
+            if (!userConfirmed) return;
+            try {
+                await friendDocRef.delete();
+                console.log(`Removed friend: ${memberId}`);
+                // Re-render to update button state
+                displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement);
+            } catch (error) {
+                console.error("Error removing friend:", error);
+                alert("Failed to remove friend. See console for details.");
+            }
+        } else if (element.classList.contains('message-button')) {
+            console.log(`Message button clicked for member ID: ${memberId}. Switching to private chat.`);
+            const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
+            if (privateChatTabButton) {
+                // Manually trigger the click event on the private chat tab
+                privateChatTabButton.click(); 
+                // Wait a moment for the tab content to load, then select the chat
+                setTimeout(() => {
+                    if (typeof selectPrivateChat === 'function') {
+                        selectPrivateChat(memberId);
+                    } else {
+                        console.warn("selectPrivateChat function not available.");
+                        alert("Private chat functionality is not fully loaded. Please try again or refresh.");
+                    }
+                }, 100); // Small delay to allow UI to render
+            } else {
+                console.warn("Private Chat tab button not found. Cannot switch tab.");
+                window.open(`https://www.torn.com/messages.php#/p=compose&XID=${memberId}`, '_blank');
+            }
+        }
+        // No specific action needed for profile-link-button as it's an <a> tag with target="_blank"
+    });
+}
+
 // Run the main initialization function
 initializeGlobals();
