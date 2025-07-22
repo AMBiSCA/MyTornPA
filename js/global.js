@@ -160,90 +160,164 @@ function initializeGlobals() {
                 });
 
                 // --- Tab Switching Logic for main tabs (if still in use) ---
-                allTabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        const targetPanelId = tab.dataset.tabTarget;
-                        const targetPanel = document.getElementById(targetPanelId);
+               Yes, that makes perfect sense! You want to ensure all the sub-tabs within the "Friends" panel (recent-chats, recently-met, faction-members, friend-list, ignore-list) activate correctly when clicked.
 
-                        allTabs.forEach(t => t.classList.remove('active'));
-                        allPanels.forEach(p => p.classList.add('hidden'));
-                        tab.classList.add('active');
-                        if (targetPanel) targetPanel.classList.remove('hidden');
+You've got a correct if (recentChatsSubTab) block with its event listener now, but you also have an entire duplicate switch (targetPanelId) block at the bottom of the allTabs.forEach loop. This duplicate is causing issues because JavaScript is trying to interpret it as a new switch block, but it's not structured correctly, leading to unexpected behavior and errors.
 
-                        // Moved the problematic 'case' statement here into a switch
-                        switch (targetPanelId) {
-                            case 'friends-panel':
-                                const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
-                                const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
-                                friendsSubTabs.forEach(t => t.classList.remove('active'));
-                                if (recentChatsSubTab) {
-                                    recentChatsSubTab.classList.add('active');
-                                    friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
-                                }
-                                break;
-                            case 'recently-met':
-                                // You need to decide where 'chatDisplayArea' comes from or which element to pass
-                                // For now, assuming it's friendsPanelContent as that's where recently met users are displayed
-                                populateRecentlyMetTab(friendsPanelContent);
-                                // The 'showInputArea = false;' line was causing an error as showInputArea is not defined.
-                                // If you need to hide the input area, you'd need to manage its visibility,
-                                // e.g., by adding a class to hide it.
-                                break;
-                            // Add more cases for other chat tabs if they have specific initialization logic
-                        }
-                    });
-                });
+We need to:
 
-                // The 'recently-met' case was misplaced, it should be within the switch
-                // that handles tab clicks, or within the specific sub-tab event listener.
-                // The snippet below shows how the 'recently-met' sub-tab within the friends panel
-                // would be handled *if* it was clicked as a sub-tab.
-                if (recentlyMetSubTab) {
-                    recentlyMetSubTab.addEventListener('click', () => {
-                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-                        recentlyMetSubTab.classList.add('active');
-                        populateRecentlyMetTab(friendsPanelContent);
-                        // If you have a chat input area that needs to be hidden,
-                        // you'd need a reference to it and modify its style.
-                        // For example: if (chatInputArea) chatInputArea.classList.add('hidden');
-                    });
+Remove the duplicate switch (targetPanelId) block that starts after the first switch (around line 181 in the code you just provided).
+
+Add event listeners for friend-list and ignore-list sub-tabs, similar to recentlyMetSubTab and factionMembersSubTab.
+
+Here's the complete and corrected allTabs.forEach loop and the additional sub-tab event listeners within your fetch('globalchat.html').then(data => { ... }) block.
+
+Please replace your entire existing allTabs.forEach loop and the sub-tab event listeners below it with the following code:
+
+JavaScript
+
+// global.js (within the fetch('globalchat.html').then(data => { ... }) block)
+
+// ... (your existing DOM element references and initial setup) ...
+
+// --- Tab Switching Logic for main tabs (if still in use) ---
+allTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const targetPanelId = tab.dataset.tabTarget;
+        const targetPanel = document.getElementById(targetPanelId);
+
+        // Always remove active from all main tabs and hide all panels first
+        allTabs.forEach(t => t.classList.remove('active'));
+        allPanels.forEach(p => p.classList.add('hidden'));
+
+        // Set the clicked main tab as active and show its panel
+        tab.classList.add('active');
+        if (targetPanel) {
+            targetPanel.classList.remove('hidden');
+        }
+
+        // Handle specific panel logic after it's shown
+        switch (targetPanelId) {
+            case 'friends-panel':
+                // Get references to all sub-tabs and their content area
+                const friendsSubTabs = friendsPanel.querySelectorAll('.friends-panel-subtabs .sub-tab-button');
+                const recentChatsSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
+                const recentlyMetSubTabInSwitch = friendsPanel.querySelector('.sub-tab-button[data-subtab="recently-met"]'); // Need local reference if used here
+                const factionMembersSubTabInSwitch = friendsPanel.querySelector('.sub-tab-button[data-subtab="faction-members"]'); // Need local reference
+                const friendListSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="friend-list"]');
+                const ignoreListSubTab = friendsPanel.querySelector('.sub-tab-button[data-subtab="ignore-list"]');
+
+
+                // Ensure all sub-tabs are inactive visually when the main friends panel is first opened
+                friendsSubTabs.forEach(t => t.classList.remove('active'));
+
+                // *** IMPORTANT: Automatically click the "Recent Chats" sub-tab when the main "Friends" tab is opened ***
+                // This ensures "Recent Chats" is the default view for the Friends panel.
+                if (recentChatsSubTab) {
+                    recentChatsSubTab.click(); // This will trigger the dedicated listener for recentChatsSubTab below
+                } else {
+                    friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content could not load.</p>`;
                 }
+                break;
+
+            case 'alliance-chat-panel': // Case for the new Alliance Chat main tab
+                const allianceChatTextInput = document.getElementById('alliance-chat-text-input');
+                const allianceChatSendBtn = document.getElementById('alliance-chat-send-btn');
+                setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance'); // Assuming 'alliance' collection type
+                setupChatRealtimeListener('alliance'); // Set up listener for alliance chat
+                if (allianceChatTextInput) allianceChatTextInput.focus();
+                break;
+
+            case 'faction-chat-panel':
+                // Re-focus input and set up listener when Faction Chat tab is clicked
+                if (factionChatTextInput) factionChatTextInput.focus();
+                setupChatRealtimeListener('faction');
+                break;
+
+            case 'war-chat-panel':
+                // Re-focus input and set up listener when War Chat tab is clicked
+                if (warChatTextInput) warChatTextInput.focus();
+                setupChatRealtimeListener('war');
+                break;
+
+            // No default needed here, as panels will be hidden by default unless a specific case matches.
+        }
+    });
+});
 
 
-                if (factionMembersSubTab) {
-                    factionMembersSubTab.addEventListener('click', async () => {
-                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-                        factionMembersSubTab.classList.add('active');
+// --- Individual Sub-Tab Event Listeners for Friends Panel ---
+// These listeners handle clicks directly on the sub-tab buttons within the Friends panel.
+// They MUST remain outside the allTabs.forEach loop.
 
-                        if (!currentUserFactionId || !userTornApiKey) {
-                            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
-                            return;
-                        }
-
-                        friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members...</p>`;
-                        try {
-                            const response = await fetch(`${TORN_API_BASE_URL}/faction/${currentUserFactionId}?selections=members&key=${userTornApiKey}`);
-                            const data = await response.json();
-                            if (data.members) {
-                                displayFactionMembersInChatTab(data.members, friendsPanelContent);
-                            } else {
-                                friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error: Could not retrieve faction members. Check API key or faction ID. ${data.error ? data.error.message : ''}</p>`;
-                                console.error("Error fetching faction members:", data);
-                            }
-                        } catch (error) {
-                            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Network Error: Failed to fetch faction members.</p>`;
-                            console.error("Network error fetching faction members:", error);
-                        }
-                    });
-                }
-				
-				if (recentChatsSubTab) {
+if (recentChatsSubTab) {
     recentChatsSubTab.addEventListener('click', () => {
         friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
         recentChatsSubTab.classList.add('active');
         friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
-        // If you have actual recent chat loading logic, call it here instead of just the placeholder text.
-        // For example: loadRecentPrivateChats(friendsPanelContent);
+        // If you have actual recent chat loading logic, call it here, e.g.:
+        // loadRecentPrivateChats(friendsPanelContent);
+    });
+}
+
+if (recentlyMetSubTab) {
+    recentlyMetSubTab.addEventListener('click', () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        recentlyMetSubTab.classList.add('active');
+        populateRecentlyMetTab(friendsPanelContent);
+    });
+}
+
+if (factionMembersSubTab) {
+    factionMembersSubTab.addEventListener('click', async () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        factionMembersSubTab.classList.add('active');
+
+        if (!currentUserFactionId || !userTornApiKey) {
+            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
+            return;
+        }
+
+        friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members...</p>`;
+        try {
+            const response = await fetch(`${TORN_API_BASE_URL}/faction/${currentUserFactionId}?selections=members&key=${userTornApiKey}`);
+            const data = await response.json();
+            if (data.members) {
+                displayFactionMembersInChatTab(data.members, friendsPanelContent);
+            } else {
+                friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error: Could not retrieve faction members. Check API key or faction ID. ${data.error ? data.error.message : ''}</p>`;
+                console.error("Error fetching faction members:", data);
+            }
+        } catch (error) {
+            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Network Error: Failed to fetch faction members.</p>`;
+            console.error("Network error fetching faction members:", error);
+        }
+    });
+}
+
+// *** NEW: Event Listener for Friend List Sub-Tab ***
+const friendListSubTab = document.querySelector('.sub-tab-button[data-subtab="friend-list"]');
+if (friendListSubTab) {
+    friendListSubTab.addEventListener('click', async () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        friendListSubTab.classList.add('active');
+        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your friend list...</p>`;
+        // Here you would call your function to load the actual friend list from Firebase
+        // For example: await loadFriendList(friendsPanelContent);
+        console.log("Friend List tab clicked!");
+    });
+}
+
+// *** NEW: Event Listener for Ignore List Sub-Tab ***
+const ignoreListSubTab = document.querySelector('.sub-tab-button[data-subtab="ignore-list"]');
+if (ignoreListSubTab) {
+    ignoreListSubTab.addEventListener('click', async () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        ignoreListSubTab.classList.add('active');
+        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your ignore list...</p>`;
+        // Here you would call your function to load the actual ignore list from Firebase
+        // For example: await loadIgnoreList(friendsPanelContent);
+        console.log("Ignore List tab clicked!");
     });
 }
 
