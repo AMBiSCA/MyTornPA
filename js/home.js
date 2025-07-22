@@ -967,14 +967,13 @@ if (headerEditProfileBtn && auth && db) {
 
             await userProfileRef.set(profileDataToSave, { merge: true });
 
-            // We still call this to do the background data save
+            // --- MODIFIED PART ---
+            // Start the background data save but DON'T wait for it to finish.
             if (profileDataToSave.tornApiKey) {
-                await fetchAllRequiredData(user, db);
+                fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
             }
             
-            // --- SOLUTION ---
-            // This will force a page reload after everything is saved,
-            // ensuring all new data is displayed correctly.
+            // Refresh the page immediately.
             location.reload();
 
         } catch (error) {
