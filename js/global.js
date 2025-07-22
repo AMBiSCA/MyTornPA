@@ -389,247 +389,111 @@ function initializeGlobals() {
 } // END of initializeGlobals function
 
 
-// --- UPDATED FUNCTION: Fetch Recently Met Players (War Participants) ---
-// This function must be outside initializeGlobals but in the same script file
-async function fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiKey) {
-    // Access global variables using window prefix
-    const TORN_API_BASE_URL = window.TORN_API_BASE_URL;
-    const db = firebase.firestore(); // Access Firebase instances globally
-    const auth = firebase.auth();
-
+async function populateRecentlyMetTab(targetDisplayElement) {
     if (!targetDisplayElement) {
-        console.error("HTML Error: Target display element not provided for recently met players list.");
+        console.error("HTML Error: Target display element not provided for Recently Met tab.");
         return;
     }
 
-    if (!userFactionId || !apiKey) {
-        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
-        return;
-    }
-
-    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading recently met players from ranked wars...</p>`;
-
-    console.log("DEBUG: Starting fetchRecentlyMetPlayers for Faction ID:", userFactionId, "API Key Present:", !!apiKey);
-    console.log("DEBUG: Current time (UTC):", new Date().toISOString());
+    // Set a simple loading message without the extra title
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
 
     try {
-        // Step 1: Fetch ranked wars for the user's faction
-        const warApiUrl = `${TORN_API_BASE_URL}/faction/${userFactionId}?selections=rankedwars&key=${apiKey}`;
-        console.log("DEBUG: Fetching ranked wars from:", warApiUrl);
-        const warResponse = await fetch(warApiUrl);
-        const warData = await warResponse.json();
+        // Step 1: Fetch the last 5 wars to get their IDs
+        const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
+        const historyResponse = await fetch(historyUrl);
+        const historyData = await historyResponse.json();
 
-        console.log("DEBUG: Ranked wars API response:", warData);
+        if (historyData.error) throw new Error(historyData.error.error);
 
-        if (warData.error) {
-            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">API Error: ${warData.error.message}</p>`;
-            console.error("Torn API Error fetching ranked wars:", warData.error);
+        const wars = historyData.rankedwars || [];
+        if (wars.length === 0) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
             return;
         }
 
-        const enemyFactionIdsInRecentWars = new Set();
-        const MAX_RECENT_WARS_TO_PROCESS = 3; // Limit to the last 3 wars
-        const recentWars = warData.rankedwars ? Object.values(warData.rankedwars).slice(0, MAX_RECENT_WARS_TO_PROCESS) : [];
+        // Step 2: Fetch detailed reports for those wars
+        targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
+        const reportPromises = wars.map(war => 
+            fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
+        );
+        const warReports = await Promise.all(reportPromises);
 
-        console.log("DEBUG: Recent wars to process (first 3):", recentWars);
+        // Step 3: Aggregate and deduplicate all opponents
+        const opponentsMap = new Map();
+        warReports.forEach(reportData => {
+            const report = reportData.rankedwarreport;
+            if (!report || !report.factions) return;
 
-        // Map over wars and collect enemy faction IDs
-        recentWars.forEach(war => {
-            if (war.factions) {
-                // Factions within rankedwars is an object, not an array, so iterate its values
-                Object.values(war.factions).forEach(faction => {
-                    if (String(faction.id) !== String(userFactionId)) {
-                        enemyFactionIdsInRecentWars.add(String(faction.id));
-                        console.log("DEBUG: Found enemy faction ID:", faction.id, "Name:", faction.name);
+            const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
+            if (opponentFaction && opponentFaction.members) {
+                opponentFaction.members.forEach(member => {
+                    if (!opponentsMap.has(member.id)) {
+                        opponentsMap.set(member.id, { id: member.id, name: member.name });
                     }
                 });
             }
         });
-
-        console.log("DEBUG: Collected unique enemy faction IDs:", Array.from(enemyFactionIdsInRecentWars));
-
-        if (enemyFactionIdsInRecentWars.size === 0) {
-            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No recent enemy factions found in ranked wars (last ${MAX_RECENT_WARS_TO_PROCESS} wars processed).</p>`;
+        
+        const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
+        if (uniqueOpponentIds.length === 0) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
             return;
         }
 
-        const allEnemyPlayerIds = new Set();
-        const factionFetchPromises = Array.from(enemyFactionIdsInRecentWars).map(async (enemyFactionId) => {
-            const enemyFactionMembersUrl = `${TORN_API_BASE_URL}/faction/${enemyFactionId}?selections=members&key=${apiKey}`;
-            console.log("DEBUG: Fetching members for enemy faction:", enemyFactionMembersUrl);
-            const enemyFactionResponse = await fetch(enemyFactionMembersUrl);
-            const enemyFactionData = await enemyFactionResponse.json();
-
-            console.log(`DEBUG: Members response for faction ${enemyFactionId}:`, enemyFactionData);
-
-            if (enemyFactionData.members) {
-                for (const playerId in enemyFactionData.members) {
-                    allEnemyPlayerIds.add(playerId);
-                }
-            } else if (enemyFactionData.error) {
-                console.warn(`Torn API Error fetching members for enemy faction ${enemyFactionId}: ${enemyFactionData.error.message}`);
-            }
-        });
-
-        await Promise.all(factionFetchPromises);
-
-        console.log("DEBUG: All unique enemy player IDs collected (before filtering self):", Array.from(allEnemyPlayerIds));
-
-        let currentUserTornId = null;
-        if (currentUser && currentUser.uid) {
-            const currentUserTornIdDoc = await db.collection('userProfiles').doc(currentUser.uid).get();
-            if(currentUserTornIdDoc.exists && currentUserTornIdDoc.data().tornProfileId) {
-                currentUserTornId = String(currentUserTornIdDoc.data().tornProfileId);
-                console.log("DEBUG: Current user's Torn Profile ID:", currentUserTornId);
-                allEnemyPlayerIds.delete(currentUserTornId); // Filter out current user's own ID
-            }
-        }
-        console.log("DEBUG: All unique enemy player IDs after filtering self:", Array.from(allEnemyPlayerIds));
-
-
-        if (allEnemyPlayerIds.size === 0) {
-            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No other recent ranked war participants found.</p>`;
-            return;
+        // Step 4: Check registration status in chunks
+        const registeredUserIds = new Set();
+        const chunkSize = 30;
+        for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
+            const chunk = uniqueOpponentIds.slice(i, i + chunkSize);
+            const querySnapshot = await db.collection('userProfiles').where('tornProfileId', 'in', chunk).get();
+            querySnapshot.forEach(doc => {
+                registeredUserIds.add(doc.data().tornProfileId);
+            });
         }
 
-        // Step 3: Fetch player names for these IDs (using a single API call for efficiency)
-        const playerIdsToFetch = Array.from(allEnemyPlayerIds).join(',');
-        const playersApiUrl = `${TORN_API_BASE_URL}/user/${playerIdsToFetch}?selections=basic&key=${apiKey}`;
-        console.log("DEBUG: Fetching player names from:", playersApiUrl);
-        const playersResponse = await fetch(playersApiUrl);
-        const playersData = await playersResponse.json();
+        // Step 5: Build the final HTML grid
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container'; // This will be our 3-column grid
 
-        console.log("DEBUG: Player names API response:", playersData);
+        let cardsHtml = '';
+        for (const opponent of opponentsMap.values()) {
+            const isRegistered = registeredUserIds.has(String(opponent.id));
+            const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
+            const profilePic = DEFAULT_PROFILE_ICONS[randomIndex];
 
-        if (playersData.error) {
-            targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">API Error fetching player details: ${playersData.error.message}</p>`;
-            console.error("Torn API Error fetching player details:", playersData.error);
-            return;
-        }
-
-        const recentlyMetListContainer = document.createElement('div');
-        recentlyMetListContainer.classList.add('members-list-container');
-        targetDisplayElement.innerHTML = '';
-        targetDisplayElement.appendChild(recentlyMetListContainer);
-
-        const actualPlayers = Object.values(playersData).filter(p => p && p.name && p.player_id);
-        const sortedPlayers = actualPlayers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-        console.log("DEBUG: Sorted players to display:", sortedPlayers);
-
-        for (const player of sortedPlayers) {
-            const tornPlayerId = String(player.player_id);
-            const memberName = player.name;
-            const isFriend = friendsSet.has(tornPlayerId);
-
-            let actionButtonHtml = '';
-            if (isFriend) {
-                actionButtonHtml = `
-                    <button class="remove-friend-button" data-member-id="${tornPlayerId}" title="Remove Friend">
-                        👤<span class="plus-sign">-</span>
-                    </button>
-                `;
+            let messageButton;
+            if (isRegistered) {
+                messageButton = `<button class="item-button message-button" data-member-id="${opponent.id}" title="Send Message on MyTornPA">✉️</button>`;
             } else {
-                actionButtonHtml = `
-                    <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">
-                        👤<span class="plus-sign">+</span>
-                    </button>
-                `;
+                const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${opponent.id}`;
+                messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
 
-            const playerItemDiv = document.createElement('div');
-            playerItemDiv.classList.add('member-item');
-            playerItemDiv.innerHTML = `
-                <div class="member-info-left">
-                    <span class="member-rank">War Opponent</span>
+            cardsHtml += `
+                <div class="member-item">
                     <div class="member-identity">
-                        <img src="../../images/default_profile_icon.png" alt="${memberName}'s profile picture" class="member-profile-pic">
-                        <span class="member-name">${memberName}</span>
+                        <img src="${profilePic}" alt="${opponent.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${opponent.id}" target="_blank" class="member-name">${opponent.name} [${opponent.id}]</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="add-member-button" data-member-id="${opponent.id}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                        ${messageButton}
                     </div>
                 </div>
-                <div class="member-actions">
-                    ${actionButtonHtml}
-                    <button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message">✉️</button>
-                    <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
-                </div>
             `;
-            recentlyMetListContainer.appendChild(playerItemDiv);
-
-            // Fetch profile picture from Firebase 'users' collection (async, won't block display)
-            (async () => {
-                try {
-                    const docRef = db.collection('users').doc(tornPlayerId);
-                    const docSnap = await docRef.get();
-                    if (docSnap.exists) {
-                        const firebaseMemberData = docSnap.data();
-                        const profileImageUrl = firebaseMemberData.profile_image || '../../images/default_profile_icon.png';
-                        const imgElement = playerItemDiv.querySelector('.member-profile-pic');
-                        if (imgElement) imgElement.src = profileImageUrl;
-                    }
-                } catch (error) {
-                    console.error(`[Firestore Error] Failed to fetch profile pic for ${tornPlayerId}:`, error);
-                }
-            })();
         }
 
-        recentlyMetListContainer.addEventListener('click', async (event) => {
-            const clickedButton = event.target.closest('button');
-            const clickedLink = event.target.closest('a.profile-link-button');
-
-            const element = clickedButton || clickedLink;
-            if (!element) return;
-
-            const memberId = element.dataset.memberId;
-            if (!memberId || !auth.currentUser) return;
-
-            const currentUserId = auth.currentUser.uid;
-            const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId);
-
-            if (element.classList.contains('add-member-button')) {
-                try {
-                    await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    console.log(`Added friend: ${memberId}`);
-                    await fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiKey);
-                } catch (error) {
-                    console.error("Error adding friend:", error);
-                    alert("Failed to add friend. See console for details.");
-                }
-            } else if (element.classList.contains('remove-friend-button')) {
-                const userConfirmed = await showCustomConfirm(`Are you sure you want to remove ${memberId} from your friends list?`, "Confirm Friend Removal");
-                if (!userConfirmed) return;
-                try {
-                    await friendDocRef.delete();
-                    console.log(`Removed friend: ${memberId}`);
-                    await fetchRecentlyMetPlayers(targetDisplayElement, userFactionId, apiKey);
-                } catch (error) {
-                    console.error("Error removing friend:", error);
-                    alert("Failed to remove friend. See console for details.");
-                }
-            } else if (element.classList.contains('message-button')) {
-                console.log(`Message button clicked for member ID: ${memberId}. Switching to private chat.`);
-                const privateChatTabButton = document.querySelector('.chat-tab[data-chat-tab="private-chat"]');
-                if (privateChatTabButton) {
-                    privateChatTabButton.click();
-                    setTimeout(() => {
-                        if (typeof selectPrivateChat === 'function') {
-                            selectPrivateChat(memberId);
-                        } else {
-                            console.warn("selectPrivateChat function not available.");
-                            alert("Private chat functionality is not fully loaded. Please try again or refresh.");
-                        }
-                    }, 100);
-                } else {
-                    console.warn("Private Chat tab button not found. Cannot switch tab.");
-                    window.open(`https://www.torn.com/messages.php#/p=compose&XID=${memberId}`, '_blank');
-                }
-            }
-        });
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = ''; // Clear the "loading..." message
+        targetDisplayElement.appendChild(membersListContainer);
 
     } catch (error) {
-        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: red;">Error fetching recently met players: ${error.message}</p>`;
-        console.error("Error in fetchRecentlyMetPlayers:", error);
+        console.error("Error populating Recently Met tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
     }
 }
+
 
 // This function must also be outside initializeGlobals but in the same script file
 async function displayFactionMembersInChatTab(factionMembersApiData, targetDisplayElement) {
