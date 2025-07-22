@@ -9,8 +9,14 @@ function initializeGlobals() {
 
     // ---- Load the Footer ----
     // Path: From global.js (in /js), go up one level (../) to the project root, then find globalfooter.html
-    fetch('../globalfooter.html') 
-        .then(response => response.text())
+    // Assuming globalfooter.html is also in the 'mysite/' root directory.
+    fetch('../globalfooter.html')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status} for ../globalfooter.html`);
+            }
+            return response.text();
+        })
         .then(data => {
             document.getElementById('footer-container').innerHTML = data;
         })
@@ -18,9 +24,10 @@ function initializeGlobals() {
 
     // ---- Load the Chat System HTML dynamically ----
     // Path: From global.js (in /js), go up one level (../) to the project root, then find globalchat.html
-    fetch('../globalchat.html') 
+    fetch('../globalchat.html')
         .then(response => {
             if (!response.ok) {
+                // This will catch 404s and other HTTP errors
                 throw new Error(`HTTP error! Status: ${response.status} for ../globalchat.html`);
             }
             return response.text();
@@ -30,7 +37,7 @@ function initializeGlobals() {
             if (chatPlaceholder) {
                 chatPlaceholder.innerHTML = data;
                 // --- IMPORTANT: Call setupChatFunctionality ONLY AFTER HTML IS LOADED ---
-                setupChatFunctionality(); 
+                setupChatFunctionality();
             } else {
                 console.error('Error: #chat-system-placeholder not found in the DOM. Cannot inject chat HTML.');
             }
@@ -49,7 +56,7 @@ function initializeGlobals() {
         // which is the main container loaded from globalchat.html
         const chatBarCollapsed = document.getElementById('chat-bar-collapsed');
         const chatWindow = document.getElementById('chat-window');
-        
+
         // Use specific IDs or parent selectors to avoid conflicts
         const chatTextInput = document.querySelector('#tornpa-chat-system #faction-chat-panel .chat-text-input');
         const chatSendBtn = document.querySelector('#tornpa-chat-system #faction-chat-panel .chat-send-btn');
@@ -70,7 +77,7 @@ function initializeGlobals() {
                 chatBarCollapsed.classList.add('hidden'); // Hide the collapsed bar
             });
         }
-        
+
         // If you add a close button to your chatWindow, attach its listener here
         const closeChatBtn = document.getElementById('close-chat-btn'); // Assuming globalchat.html has a button with this ID
         if (closeChatBtn) {
@@ -113,7 +120,7 @@ function initializeGlobals() {
                 }
             });
         }
-        
+
         // After the chat HTML and its elements are ready, set up the Firebase real-time listener
         // This prevents trying to access `chatDisplayArea` before it exists.
         // It also checks if Firebase auth/collection is already set from the onAuthStateChanged listener.
@@ -181,7 +188,7 @@ function initializeGlobals() {
         }
         const messageText = chatTextInput.value.trim();
         if (messageText === '') return;
-        
+
         const messageObj = {
             senderId: auth.currentUser.uid,
             sender: currentTornUserName,
@@ -202,15 +209,15 @@ function initializeGlobals() {
         const chatDisplayArea = document.querySelector('#tornpa-chat-system #faction-chat-panel #chat-display-area');
         if (!chatMessagesCollection || !chatDisplayArea) {
             console.warn("Cannot setup chat real-time listener: Chat collection or display area element not available.");
-            return; 
+            return;
         }
-        
+
         chatDisplayArea.innerHTML = '<p>Loading messages...</p>'; // Clear and show loading
         if (unsubscribeFromChat) unsubscribeFromChat();
 
         unsubscribeFromChat = chatMessagesCollection.orderBy('timestamp', 'asc').limitToLast(50)
             .onSnapshot(snapshot => {
-                if (chatDisplayArea) chatDisplayArea.innerHTML = ''; // Clear for new messages
+                if (chatDisplayArea) chatDisplayArea.innerHTML = '';
                 if (snapshot.empty) {
                     if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No messages yet.</p>`;
                     return;
