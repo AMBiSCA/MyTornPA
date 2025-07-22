@@ -256,6 +256,7 @@ function initializeGlobals() {
     function setupChatRealtimeListener(type) {
         let chatDisplayArea = null;
         let collectionRef = null;
+        let displayAreaId = ''; // Declare a variable to hold the correct display area ID
 
         if (unsubscribeFromChat) unsubscribeFromChat();
 
@@ -263,7 +264,8 @@ function initializeGlobals() {
             db.collection('userProfiles').doc(auth.currentUser.uid).get().then(doc => {
                 if (doc.exists && doc.data().faction_id) {
                     collectionRef = db.collection('factionChats').doc(String(doc.data().faction_id)).collection('messages');
-                    chatDisplayArea = document.getElementById('chat-display-area');
+                    displayAreaId = 'chat-display-area'; // Set for faction chat
+                    chatDisplayArea = document.getElementById(displayAreaId);
                     if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading faction messages...</p>';
                     
                     if (collectionRef) {
@@ -274,7 +276,7 @@ function initializeGlobals() {
                                     if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No faction messages yet.</p>`;
                                     return;
                                 }
-                                snapshot.forEach(doc => displayChatMessage(doc.data(), 'chat-display-area'));
+                                snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId)); // Use displayAreaId here
                             }, error => {
                                 console.error("Error listening to faction chat messages:", error);
                                 if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading faction messages.</p>`;
@@ -292,7 +294,8 @@ function initializeGlobals() {
 
         } else if (type === 'war') {
             collectionRef = db.collection('warChats').doc('currentWar').collection('messages');
-            chatDisplayArea = document.getElementById('war-chat-display-area');
+            displayAreaId = 'war-chat-display-area'; // Set for war chat
+            chatDisplayArea = document.getElementById(displayAreaId);
             if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading war messages...</p>';
 
             if (collectionRef) {
@@ -303,7 +306,7 @@ function initializeGlobals() {
                             if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No war messages yet.</p>`;
                             return;
                         }
-                        snapshot.forEach(doc => displayChatMessage(doc.data(), 'war-chat-display-area'));
+                        snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId)); // Use displayAreaId here
                     }, error => {
                         console.error("Error listening to war chat messages:", error);
                         if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading war messages.</p>`;
@@ -318,4 +321,3 @@ function initializeGlobals() {
 
 // Run the main initialization function
 initializeGlobals();
-
