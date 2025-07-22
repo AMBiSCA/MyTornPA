@@ -17,6 +17,7 @@
                 <button class="chat-tab" data-tab-target="settings-panel" title="Settings">⚙️</button>
             </div>
         </div>
+
         <div class="chat-panels-container">
             <div id="faction-chat-panel" class="chat-panel active">
                 <div id="chat-display-area" class="chat-messages-scroll-wrapper"></div>
@@ -25,9 +26,28 @@
                     <button class="chat-send-btn">Send</button>
                 </div>
             </div>
+
             <div id="war-chat-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>War Chat</h3></div>
-            <div id="friends-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Friends Panel</h3></div>
+
+            <div id="friends-panel" class="chat-panel hidden">
+                <div class="friends-panel-subtabs">
+                    <button class="sub-tab-button active" data-subtab="recent-chats">Recent Chats</button>
+                    <button class="sub-tab-button" data-subtab="recently-met">Recently Met</button>
+                    <button class="sub-tab-button" data-subtab="friend-list">Friend List</button>
+                    <button class="sub-tab-button" data-subtab="faction-members">Faction</button>
+                    <button class="sub-tab-button" data-subtab="ignore-list">Ignore</button>
+                </div>
+                <div class="friends-panel-search">
+                    <input type="text" class="search-input" placeholder="Search by player name...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="friends-panel-content">
+                    <p style="text-align: center; color: #888; padding-top: 20px;">Content will be loaded here.</p>
+                </div>
+            </div>
+
             <div id="notifications-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Notifications</h3></div>
+
             <div id="settings-panel" class="chat-panel hidden" style="padding:20px; color:white;"><h3>Settings</h3></div>
         </div>
     </div>
