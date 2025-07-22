@@ -159,14 +159,10 @@ function initializeGlobals() {
                     });
                 });
 
-                // --- Friends Panel Sub-tab Logic ---
-                if (recentlyMetSubTab) {
-                    recentlyMetSubTab.addEventListener('click', async () => {
-                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-                        recentlyMetSubTab.classList.add('active');
-                        await fetchRecentlyMetPlayers(friendsPanelContent, currentUserFactionId, userTornApiKey);
-                    });
-                }
+                  case 'recently-met':
+            populateRecentlyMetTab(chatDisplayArea);
+            showInputArea = false; // Hide input for non-chat tabs
+            break;
 
                 if (factionMembersSubTab) {
                     factionMembersSubTab.addEventListener('click', async () => {
