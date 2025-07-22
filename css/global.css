@@ -440,16 +440,27 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    width: 200px;
-    padding: 10px;
+    width: auto; /* Allow width to be flexible */
+    padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
-    cursor: pointer;
-    text-align: center;
-    font-weight: bold;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    display: flex; /* This is the key change to show icons side-by-side */
+    gap: 5px; /* Adds a small space between icons */
+}
+
+.chat-bar-icon {
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.chat-bar-icon:hover {
+    background-color: #415a77;
 }
 
 /* --- Expanded Chat Window Styles --- */
@@ -513,6 +524,29 @@ ul li:last-child { border-bottom: none; }
 /* A utility class to hide elements */
 .hidden {
     display: none !important;
+}
+
+/* Styles for individual messages */
+.chat-message {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-timestamp {
+    color: #778da9;
+    margin-right: 6px;
+    font-size: 0.9em;
+}
+
+.chat-sender {
+    font-weight: bold;
+    color: #a9c5de; /* A slightly lighter blue for the sender's name */
+    margin-right: 6px;
+}
+
+.chat-text {
+    color: #e0e1dd;
 }
 
 @media (max-width: 768px) {
