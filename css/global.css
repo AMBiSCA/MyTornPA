@@ -1292,6 +1292,114 @@ input:checked + .slider:before {
     background-color: #4a9ecf;
 }
 
+/* --- Alliance Chat Settings Specific Styles --- */
+.settings-section h4 .alliance-icon {
+    /* Style for the alliance emoji next to the title */
+    color: #ffd700; /* Gold/yellow color for the shield emoji */
+    font-size: 0.9em; /* Slightly smaller than the title text */
+    vertical-align: middle; /* Align with text */
+    margin-left: -2px; /* Pull it slightly closer to the text */
+}
+
+.settings-section .setting-item {
+    /* Ensure flex behavior for items within Alliance Chat Settings */
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Consistent spacing between items */
+}
+
+.settings-section .setting-item:last-child {
+    margin-bottom: 0; /* No bottom margin on the last item in a section */
+}
+
+.settings-section .setting-item label[for="allianceFactionId"] {
+    /* Label for the faction ID input */
+    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-right: 10px; /* Space between label and input */
+    color: #e0e1dd; /* Consistent text color */
+}
+
+.settings-section #allianceFactionId {
+    /* Input field for Faction ID */
+    flex-grow: 1; /* Allow input to take available space */
+    padding: 8px 10px; /* Slightly reduced padding for compactness */
+    border: 1px solid #778da9; /* Border color from chat inputs */
+    background-color: #0d1b2a; /* Dark background matching chat */
+    color: #e0e1dd; /* Text color */
+    border-radius: 4px; /* Slightly rounded corners */
+    font-size: 0.95em; /* Match general setting input font size */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Subtle inner shadow */
+}
+
+.settings-section #allianceFactionId::placeholder {
+    color: #99aab5; /* Lighter placeholder text */
+    opacity: 0.8;
+}
+
+.settings-section #allianceFactionId:focus {
+    border-color: #5bc0de; /* Highlight on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(91, 192, 222, 0.5); /* Blue glow on focus */
+}
+
+/* Container for the buttons and info icon */
+.settings-section .setting-item:has(button) {
+    display: flex;
+    justify-content: flex-start; /* Align buttons to the left */
+    gap: 10px; /* Space between buttons and icon */
+    margin-top: 15px; /* Add some space above the buttons */
+    align-items: center; /* Vertically align items */
+}
+
+.settings-section .action-button.secondary {
+    /* Style for the Save button */
+    background-color: #3a506b; /* A more subdued blue/gray for save */
+    color: #e0e1dd;
+    border: 1px solid #5bc0de;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.settings-section .action-button.secondary:hover {
+    background-color: #415a77;
+    border-color: #88d7ff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 10px rgba(91, 192, 222, 0.4);
+}
+
+.settings-section .action-button.danger {
+    /* Red for Clear All Alliances button */
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border: 1px solid #e74c3c; /* Red border */
+}
+
+.settings-section .action-button.danger:hover {
+    background-color: #c0392b;
+    border-color: #ff6a5c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 10px rgba(231, 76, 60, 0.4);
+}
+
+.settings-section .info-icon {
+    /* Style for the 'i' icon */
+    cursor: pointer;
+    font-size: 1.1em; /* Make it slightly larger */
+    color: #778da9; /* A subtle color */
+    margin-left: 5px; /* Space from the button */
+    align-self: center; /* Ensure vertical alignment with buttons */
+    position: relative;
+    top: 1px; /* Fine-tune vertical alignment */
+    transition: color 0.2s;
+}
+
+.settings-section .info-icon:hover {
+    color: #5bc0de; /* Highlight on hover */
+}
+
 
 @media (max-width: 768px) {
 
