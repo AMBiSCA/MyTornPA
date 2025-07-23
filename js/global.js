@@ -641,83 +641,110 @@ function initializeGlobals() {
     }
 
     // This function loads messages and handles sending for a private chat window
-    function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
-        const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
-        const inputField = chatWindowElement.querySelector('.pcw-input');
-        const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
+async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
+    const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
+    const inputField = chatWindowElement.querySelector('.pcw-input');
+    const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
 
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+        return;
+    }
+
+    let friendFirebaseUid = null;
+    try {
+        const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
+        if (profileQuery.empty) {
+            messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
+            inputField.disabled = true;
+            sendButton.disabled = true;
             return;
         }
+        friendFirebaseUid = profileQuery.docs[0].id;
+    } catch (error) {
+        console.error("Error fetching friend's Firebase UID:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
+        return;
+    }
 
-        // Determine the unique ID for the chat document in Firestore
-        const participants = [currentUser.uid, userId].sort();
-        const chatDocId = `private_${participants[0]}_${participants[1]}`;
-        const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
+    const participants = [currentUser.uid, friendFirebaseUid].sort();
+    const chatDocId = `private_${participants[0]}_${participants[1]}`;
+    const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
 
-        // --- Real-time listener to load and display messages ---
-        const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
-            messagesContainer.innerHTML = ''; // Clear "Loading..." message
-            if (snapshot.empty) {
-                messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
-            } else {
-                snapshot.forEach(doc => {
-                    displayPrivateChatMessage(doc.data(), messagesContainer);
-                });
-                // Auto-scroll to the bottom
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }, error => {
-            console.error("Error loading private messages:", error);
-            messagesContainer.innerHTML = `<p style="color: red;">Error loading messages.</p>`;
-        });
+    // --- NEW AND CRITICAL FIX IS HERE ---
+    // We must create the parent chat document BEFORE trying to listen to its messages.
+    // This ensures the security rules can read the 'participants' array.
+    try {
+        await db.collection('privateChats').doc(chatDocId).set({
+            participants: participants,
+            lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error ensuring parent chat document exists:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
+        return; // Stop if we can't even create the parent document
+    }
+    // --- END OF FIX ---
 
-        // --- Function to send a message ---
-        const sendMessage = async () => {
-            const messageText = inputField.value.trim();
-            if (messageText === '') return;
+    // --- Real-time listener to load and display messages ---
+    const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        messagesContainer.innerHTML = ''; // Clear "Loading..." message
+        if (snapshot.empty) {
+            messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
+        } else {
+            snapshot.forEach(doc => {
+                displayPrivateChatMessage(doc.data(), messagesContainer);
+            });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }, error => {
+        console.error("Error loading private messages:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+    });
 
-            const messageObj = {
-                senderId: currentUser.uid,
-                sender: currentTornUserName, // Global variable for the current user's name
-                text: messageText,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
+    // --- Function to send a message ---
+    const sendMessage = async () => {
+        const messageText = inputField.value.trim();
+        if (messageText === '') return;
 
-            try {
-                // Ensure the parent document exists
-                await db.collection('privateChats').doc(chatDocId).set({
-                    participants: participants,
-                    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
-                // Add the new message
-                await messagesCollectionRef.add(messageObj);
-                inputField.value = '';
-                inputField.focus();
-            } catch (error) {
-                console.error("Error sending private message:", error);
-                alert("Failed to send message.");
-            }
+        const messageObj = {
+            senderId: currentUser.uid,
+            sender: currentTornUserName,
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // --- Hook up the send button and Enter key ---
-        sendButton.addEventListener('click', sendMessage);
-        inputField.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
+        try {
+            await db.collection('privateChats').doc(chatDocId).update({
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await messagesCollectionRef.add(messageObj);
+            inputField.value = '';
+            inputField.focus();
+        } catch (error) {
+            console.error("Error sending private message:", error);
+            alert("Failed to send message.");
+        }
+    };
 
-        // When the window is closed, we must stop listening for messages to prevent memory leaks
-        const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
-        closeButton.addEventListener('click', () => {
-            unsubscribe(); // This stops the real-time listener
-        });
-    }
+    // --- Hook up the send button and Enter key ---
+    sendButton.addEventListener('click', sendMessage);
+    inputField.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // When the window is closed, we must stop listening for messages
+    const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
+    const newCloseButtonListener = () => {
+        unsubscribe();
+        closeButton.removeEventListener('click', newCloseButtonListener);
+    };
+    closeButton.addEventListener('click', newCloseButtonListener);
+}
 
 
     async function populateIgnoreListTab(targetDisplayElement) {
