@@ -511,7 +511,7 @@ function displayPrivateChatMessage(messageObj, displayElement) {
 }
 
 // This function loads messages and handles sending for a private chat window
-function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
+async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
     const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
     const inputField = chatWindowElement.querySelector('.pcw-input');
     const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
@@ -522,8 +522,26 @@ function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
         return;
     }
 
-    // Determine the unique ID for the chat document in Firestore
-    const participants = [currentUser.uid, userId].sort();
+    // --- NEW LOGIC TO GET FRIEND'S FIREBASE UID ---
+    let friendFirebaseUid = null;
+    try {
+        const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
+        if (profileQuery.empty) {
+            messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
+            inputField.disabled = true;
+            sendButton.disabled = true;
+            return;
+        }
+        friendFirebaseUid = profileQuery.docs[0].id;
+    } catch (error) {
+        console.error("Error fetching friend's Firebase UID:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
+        return;
+    }
+    // --- END NEW LOGIC ---
+
+    // Determine the unique ID for the chat document in Firestore using BOTH Firebase UIDs
+    const participants = [currentUser.uid, friendFirebaseUid].sort();
     const chatDocId = `private_${participants[0]}_${participants[1]}`;
     const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
 
@@ -541,7 +559,7 @@ function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
         }
     }, error => {
         console.error("Error loading private messages:", error);
-        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages.</p>`;
+        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
     });
 
     // --- Function to send a message ---
@@ -557,13 +575,11 @@ function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
         };
 
         try {
-            // Ensure the parent document exists
             await db.collection('privateChats').doc(chatDocId).set({ 
                 participants: participants,
                 lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
-            // Add the new message
             await messagesCollectionRef.add(messageObj);
             inputField.value = '';
             inputField.focus();
@@ -582,13 +598,14 @@ function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
         }
     });
 
-    // When the window is closed, we must stop listening for messages to prevent memory leaks
+    // When the window is closed, we must stop listening for messages
     const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
-    closeButton.addEventListener('click', () => {
+    const newCloseButtonListener = () => {
         unsubscribe(); // This stops the real-time listener
-    });
+        closeButton.removeEventListener('click', newCloseButtonListener); // Clean up this listener itself
+    };
+    closeButton.addEventListener('click', newCloseButtonListener);
 }
-
 
 async function populateIgnoreListTab(targetDisplayElement) {
     if (!targetDisplayElement) {
