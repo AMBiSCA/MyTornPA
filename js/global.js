@@ -31,8 +31,8 @@ function initializeGlobals() {
     let currentTornUserName = 'Unknown';
     let currentUserFactionId = null;
     let userTornApiKey = null;
-    // NEW: Variable to store the user's saved alliance ID
-    let currentUserAllianceId = null;
+    // UPDATED: Variable to store the user's saved alliance IDs as an array
+    let currentUserAllianceIds = [];
 
     // ---- Torn API Base URL ----
     const TORN_API_BASE_URL = 'https://api.torn.com/v2';
@@ -171,14 +171,10 @@ function initializeGlobals() {
                 if (openSettingsIcon) {
                     openSettingsIcon.addEventListener('click', async () => {
                         openChatPanel(settingsPanel);
-                        // NEW: Populate alliance ID input when settings open
-                        if (allianceFactionIdInput && currentUserAllianceId) {
-                            allianceFactionIdInput.value = currentUserAllianceId;
-                        } else if (allianceFactionIdInput) {
-                            allianceFactionIdInput.value = ''; // Clear if no alliance ID saved
-                        }
-                        // NEW: Update info icon title with current alliances on hover
-                        updateAllianceInfoIconTitle();
+                        // No need to pre-fill allianceFactionIdInput with any specific value
+                        // as it's for adding new ones now.
+                        allianceFactionIdInput.value = ''; // Clear the input field for new entry
+                        updateAllianceInfoIconTitle(); // Update tooltip to show all saved IDs
                     });
                 }
 
@@ -187,8 +183,9 @@ function initializeGlobals() {
                     saveAllianceButton.addEventListener('click', async () => {
                         const newAllianceId = allianceFactionIdInput.value.trim();
                         if (newAllianceId) {
-                            await saveUserAllianceId(newAllianceId);
-                            alert('Alliance ID saved!');
+                            // Call the updated function to add the alliance ID to the array
+                            await addOrUpdateUserAllianceId(newAllianceId);
+                            allianceFactionIdInput.value = ''; // Clear input field after adding
                             updateAllianceInfoIconTitle(); // Update tooltip after saving
                         } else {
                             alert('Please enter an Alliance ID.');
@@ -199,9 +196,9 @@ function initializeGlobals() {
                 // NEW: Clear All Alliances button listener
                 if (clearAlliancesButton) {
                     clearAlliancesButton.addEventListener('click', async () => {
-                        const userConfirmed = await showCustomConfirm('Are you sure you want to remove all saved Alliance IDs?', 'Confirm Clear');
+                        const userConfirmed = await showCustomConfirm('Are you sure you want to remove ALL saved Alliance IDs?', 'Confirm Clear');
                         if (userConfirmed) {
-                            await clearUserAllianceIds(); // This will clear `currentUserAllianceId` as well
+                            await clearUserAllianceIds(); // This will clear `currentUserAllianceIds` as well
                             alert('All Alliance IDs cleared!');
                             allianceFactionIdInput.value = ''; // Clear input field
                             updateAllianceInfoIconTitle(); // Update tooltip
@@ -212,9 +209,11 @@ function initializeGlobals() {
                 // NEW: Function to update the alliance info icon title
                 function updateAllianceInfoIconTitle() {
                     if (allianceInfoIcon) {
-                        allianceInfoIcon.title = currentUserAllianceId ?
-                            `Current Alliance ID: ${currentUserAllianceId}` :
-                            'No Alliance ID saved. Enter one above.';
+                        if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                            allianceInfoIcon.title = `Saved Alliances: ${currentUserAllianceIds.join(', ')}\n(Chatting in first saved ID)`;
+                        } else {
+                            allianceInfoIcon.title = 'No Alliance IDs saved. Enter one above (max 3).';
+                        }
                     }
                 }
 
@@ -271,11 +270,8 @@ function initializeGlobals() {
                                 break;
 
                             case 'settings-panel': // When settings panel is opened via tab, update alliance input
-                                if (allianceFactionIdInput && currentUserAllianceId) {
-                                    allianceFactionIdInput.value = currentUserAllianceId;
-                                } else if (allianceFactionIdInput) {
-                                    allianceFactionIdInput.value = '';
-                                }
+                                // No need to pre-fill the input, as it's for adding new IDs
+                                allianceFactionIdInput.value = ''; // Clear for new entry
                                 updateAllianceInfoIconTitle(); // Ensure tooltip is fresh
                                 break;
 
@@ -310,7 +306,7 @@ function initializeGlobals() {
                         factionMembersSubTab.classList.add('active');
 
                         if (!currentUserFactionId || !userTornApiKey) {
-                            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
+                            friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not available. Please log in and ensure your profile is complete.</p>`;
                             return;
                         }
 
@@ -390,42 +386,42 @@ function initializeGlobals() {
                 const userData = doc.data();
                 currentUserFactionId = String(userData.faction_id);
                 currentTornUserName = userData.preferredName || 'Unknown';
-                userTornApiKey = userData.tornApiKey; // Corrected casing
-                // NEW: Load user's alliance ID from profile
-                currentUserAllianceId = userData.allianceId || null;
+                userTornApiKey = userData.tornApiKey;
+                // UPDATED: Load user's alliance IDs from profile (now an array)
+                currentUserAllianceIds = userData.allianceIds || [];
 
                 // Make globals accessible to functions outside this scope, especially for re-rendering
                 window.currentUserFactionId = currentUserFactionId;
                 window.userTornApiKey = userTornApiKey;
-                window.TORN_API_BASE_URL = TORN_API_BASE_URL; // Expose TORN_API_BASE_URL globally
-                // NEW: Expose currentUserAllianceId globally
-                window.currentUserAllianceId = currentUserAllianceId;
+                window.TORN_API_BASE_URL = TORN_API_BASE_URL;
+                // UPDATED: Expose currentUserAllianceIds globally
+                window.currentUserAllianceIds = currentUserAllianceIds;
 
 
-                console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance ID: ${currentUserAllianceId}`);
+                console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}, Alliance IDs: [${currentUserAllianceIds.join(', ')}]`);
             } else {
                 console.warn("User profile not found for authenticated user:", user.uid);
                 currentUserFactionId = null;
                 userTornApiKey = null;
-                currentUserAllianceId = null; // Clear alliance ID if profile not found
+                currentUserAllianceIds = []; // Clear alliance IDs if profile not found
                 // Clear globals on logout/missing profile
                 window.currentUserFactionId = null;
                 window.userTornApiKey = null;
                 window.TORN_API_BASE_URL = null;
-                window.currentUserAllianceId = null;
+                window.currentUserAllianceIds = [];
             }
         } else {
             // User is signed out
             if (unsubscribeFromChat) unsubscribeFromChat();
             chatMessagesCollection = null;
             currentUserFactionId = null;
-            userTornApiKey = null; // Clear API key on logout
-            currentUserAllianceId = null; // Clear alliance ID on logout
+            userTornApiKey = null;
+            currentUserAllianceIds = []; // Clear alliance IDs on logout
             // Clear globals on logout
             window.currentUserFactionId = null;
             window.userTornApiKey = null;
             window.TORN_API_BASE_URL = null;
-            window.currentUserAllianceId = null;
+            window.currentUserAllianceIds = [];
 
             const chatDisplayAreaFaction = document.getElementById('chat-display-area');
             const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
@@ -438,26 +434,49 @@ function initializeGlobals() {
         }
     });
 
-    // NEW: Function to save the user's alliance ID to Firestore
-    async function saveUserAllianceId(allianceId) {
+    // NEW FUNCTION: Add or update a user's alliance ID in their saved list
+    async function addOrUpdateUserAllianceId(newAllianceId) {
         const user = auth.currentUser;
         if (!user) {
             console.warn('Cannot save alliance ID: User not logged in.');
             return;
         }
+
+        // Ensure currentUserAllianceIds is an array
+        const currentAllianceIds = currentUserAllianceIds || [];
+        const trimmedNewId = newAllianceId.trim();
+
+        if (!trimmedNewId) {
+            alert('Please enter a valid Alliance ID.');
+            return;
+        }
+
+        if (currentAllianceIds.includes(trimmedNewId)) {
+            alert(`Alliance ID '${trimmedNewId}' is already saved.`);
+            return;
+        }
+
+        if (currentAllianceIds.length >= 3) { // Enforce max 3 IDs
+            alert('You can only save up to 3 Alliance IDs. Please clear one first.');
+            return;
+        }
+
         try {
-            await db.collection('userProfiles').doc(user.uid).set({
-                allianceId: allianceId
-            }, { merge: true }); // Use merge to avoid overwriting other fields
-            currentUserAllianceId = allianceId; // Update local variable
-            console.log(`Alliance ID '${allianceId}' saved for user ${user.uid}`);
+            // Use arrayUnion to safely add the new ID to the array in Firestore
+            await db.collection('userProfiles').doc(user.uid).update({
+                allianceIds: firebase.firestore.FieldValue.arrayUnion(trimmedNewId)
+            });
+            // Update local variable
+            currentUserAllianceIds.push(trimmedNewId); // Add to local array
+            console.log(`Alliance ID '${trimmedNewId}' added for user ${user.uid}`);
+            alert(`Alliance ID '${trimmedNewId}' saved successfully!`);
         } catch (error) {
-            console.error('Error saving alliance ID:', error);
-            alert('Failed to save Alliance ID. Please try again.');
+            console.error('Error adding alliance ID:', error);
+            alert('Failed to add Alliance ID. Please try again.');
         }
     }
 
-    // NEW: Function to clear the user's alliance ID from Firestore
+    // UPDATED FUNCTION: Clear all user's alliance IDs from Firestore
     async function clearUserAllianceIds() {
         const user = auth.currentUser;
         if (!user) {
@@ -465,11 +484,12 @@ function initializeGlobals() {
             return;
         }
         try {
+            // Set the allianceIds field to an empty array
             await db.collection('userProfiles').doc(user.uid).update({
-                allianceId: firebase.firestore.FieldValue.delete()
+                allianceIds: []
             });
-            currentUserAllianceId = null; // Clear local variable
-            console.log(`Alliance ID cleared for user ${user.uid}`);
+            currentUserAllianceIds = []; // Clear local variable
+            console.log(`All Alliance IDs cleared for user ${user.uid}`);
         } catch (error) {
             console.error('Error clearing alliance IDs:', error);
             alert('Failed to clear Alliance IDs. Please try again.');
@@ -812,11 +832,13 @@ function initializeGlobals() {
             targetCollection = db.collection('warChats').doc('currentWar').collection('messages');
             consoleLogPath = `warChats/currentWar/messages`;
         } else if (collectionType === 'alliance') { // NEW: Alliance chat collection
-            if (currentUserAllianceId) {
-                targetCollection = db.collection('allianceChats').doc(currentUserAllianceId).collection('messages');
-                consoleLogPath = `allianceChats/${currentUserAllianceId}/messages`;
+            // Use the first saved alliance ID for chatting
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToChatIn = currentUserAllianceIds[0];
+                targetCollection = db.collection('allianceChats').doc(allianceIdToChatIn).collection('messages');
+                consoleLogPath = `allianceChats/${allianceIdToChatIn}/messages`;
             } else {
-                console.warn("Alliance ID not available for current user. Cannot send alliance chat message.");
+                console.warn("No Alliance ID available for current user. Cannot send alliance chat message.");
                 alert("No Alliance ID saved. Please go to Settings > Alliance Chat Settings and enter your alliance's ID to use this chat.");
                 return;
             }
@@ -838,7 +860,7 @@ function initializeGlobals() {
         try {
             // Ensure the parent document exists for faction/alliance chats if it's the first message
             if (collectionType === 'faction' || collectionType === 'alliance') {
-                const docId = collectionType === 'faction' ? currentUserFactionId : currentUserAllianceId;
+                const docId = collectionType === 'faction' ? currentUserFactionId : currentUserAllianceIds[0]; // Use first alliance ID
                 const parentCollection = collectionType === 'faction' ? 'factionChats' : 'allianceChats';
                 await db.collection(parentCollection).doc(docId).set({
                     // You might add initial metadata here, e.g., 'createdAt: serverTimestamp()'
@@ -882,10 +904,12 @@ function initializeGlobals() {
             displayAreaId = 'war-chat-display-area';
             consoleLogPath = `warChats/currentWar/messages`;
         } else if (type === 'alliance' && auth.currentUser) { // NEW: Alliance chat listener
-            if (currentUserAllianceId) {
-                collectionRef = db.collection('allianceChats').doc(currentUserAllianceId).collection('messages');
+            // Use the first saved alliance ID for displaying messages
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToListenTo = currentUserAllianceIds[0];
+                collectionRef = db.collection('allianceChats').doc(allianceIdToListenTo).collection('messages');
                 displayAreaId = 'alliance-chat-display-area';
-                consoleLogPath = `allianceChats/${currentUserAllianceId}/messages`;
+                consoleLogPath = `allianceChats/${allianceIdToListenTo}/messages`;
             } else {
                 chatDisplayArea = document.getElementById('alliance-chat-display-area');
                 if (chatDisplayArea) chatDisplayArea.innerHTML = "<p>No Alliance ID saved. Go to Settings to enter one.</p>";
@@ -1022,27 +1046,33 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
 
-            cardsHtml += `
-                <div class="member-item">
-                    <div class="member-info-left">
-                        <span class="member-rank">${memberRank}</span>
-                        <div class="member-identity">
-                            <img src="${profilePicUrl}" alt="${memberName}'s profile pic" class="member-profile-pic">
-                            <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="member-name">${memberName} [${tornPlayerId}]</a>
-                        </div>
-                    </div>
-                    <div class="member-actions">
-                        <button class="add-member-button" data-member-id="${tornPlayerId}" title="Add Friend">👤<span class="plus-sign">+</span></button>
-                        ${messageButton}
-                        <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
+            // Note: The `cardsHtml` variable was being built outside the loop and appended once.
+            // When using `appendChild` inside the loop, `cardsHtml` isn't strictly necessary for building the string,
+            // but for consistency with existing pattern, I'll keep the `cardsHtml` and append at the end.
+            // However, the `for...of` loop with direct `appendChild` is often cleaner.
+            // Let's stick with the `for...of` loop adding elements directly.
+            const memberItemDiv = document.createElement('div');
+            memberItemDiv.classList.add('member-item');
+            if (memberRank === "Leader" || memberRank === "Co-leader") {
+                memberItemDiv.classList.add('leader-member');
+            }
+
+            memberItemDiv.innerHTML = `
+                <div class="member-info-left">
+                    <span class="member-rank">${memberRank}</span>
+                    <div class="member-identity">
+                        <img src="${profilePicUrl}" alt="${memberName}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="member-name">${memberName} [${tornPlayerId}]</a>
                     </div>
                 </div>
+                <div class="member-actions">
+                    <button class="add-member-button item-button" data-member-id="${tornPlayerId}" title="Add Friend">👤<span class="plus-sign">+</span></button>
+                    ${messageButton}
+                    <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
+                </div>
             `;
+            membersListContainer.appendChild(memberItemDiv);
         }
-
-        membersListContainer.innerHTML = cardsHtml;
-        targetDisplayElement.innerHTML = '';
-        targetDisplayElement.appendChild(membersListContainer);
 
         const authInstance = firebase.auth();
         const dbInstance = firebase.firestore();
