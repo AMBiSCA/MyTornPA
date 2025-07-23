@@ -482,20 +482,20 @@ ul li:last-child { border-bottom: none; }
     display: inline; /* Show text on hover of the entire collapsed bar */
 }
 
-#tornpa-chat-system {
-    /* This makes it stick to the bottom right of the screen */
-    position: fixed; 
-    bottom: 18px;   
-    right: 0px;     
-    z-index: 1000;  
-    font-family: Arial, sans-serif;
-    
-    /* Ensure flexbox behavior for stacking the window above the bar */
+/* --- Expanded Chat Window Styles --- */
+#chat-window {
+    width: 350px; /* A little wider for tabs */
+    height: 450px; /* A little taller */
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
-    /* THIS IS THE FIX: It reverses the stacking order */
-    flex-direction: column-reverse; 
-    align-items: flex-end; /* This correctly keeps everything aligned to the right */
+    flex-direction: column;
+    overflow: hidden; /* Prevents content from spilling out */
+    /* Position is handled by parent #tornpa-chat-system now, no need for individual positioning here */
 }
+
 /* A utility class to hide elements */
 .hidden {
     display: none !important; /* Use !important to ensure it overrides other display properties */
@@ -556,17 +556,9 @@ ul li:last-child { border-bottom: none; }
 
 .chat-panel {
     width: 100%;
-    flex-grow: 1;
+    height: 100%;
     display: flex;
-    flex-direction: column;
-    overflow: hidden; 
-}
-
-#tornpa-chat-window-container {
-    position: fixed;
-    bottom: 65px; 
-    right: 0px;
-    z-index: 1001; 
+    flex-direction: column; /* Ensure panels are column flex containers */
 }
 
 /* Specific styling for Faction, Alliance, and War chat panels */
@@ -575,7 +567,7 @@ ul li:last-child { border-bottom: none; }
 #war-chat-panel {
     display: flex; /* Explicitly set display for panels that are flex containers */
     flex-direction: column;
-  
+    height: 100%; /* Ensures they fill the parent height */
 }
 
 /* Styles for the chat header (title and minimize button) */
