@@ -371,7 +371,8 @@ if (ignoreListSubTab) {
     // First, remove any other private chat window that might be open
     const existingWindow = document.querySelector('.private-chat-window');
     if (existingWindow) {
-        existingWindow.remove();
+        // Important: Manually trigger the close button's click to unsubscribe from listeners
+        existingWindow.querySelector('.pcw-close-btn').click();
     }
 
     // Create the main window container
@@ -397,12 +398,14 @@ if (ignoreListSubTab) {
     // Add the new chat window to the page
     document.body.appendChild(chatDiv);
 
-    // Make the close button work
+    // Make the close button work (it now only handles removing the element)
     chatDiv.querySelector('.pcw-close-btn').addEventListener('click', () => {
         chatDiv.remove();
     });
 
-    // TODO: Add logic here to load past messages and set up sending new ones
+    // --- THIS IS THE NEW LINE ---
+    // After creating the window, call the function to load its messages and make it work
+    loadAndHandlePrivateChat(userId, userName, chatDiv);
 }
 	
 	async function populateFriendListTab(targetDisplayElement) {
@@ -487,6 +490,103 @@ if (ignoreListSubTab) {
         console.error("Error populating Friend List tab:", error);
         targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
     }
+}
+
+// This helper function creates the HTML for a single message bubble
+function displayPrivateChatMessage(messageObj, displayElement) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message'); // Using existing class for style consistency
+
+    const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
+    const senderName = messageObj.sender || 'Unknown';
+    const messageText = messageObj.text || '';
+
+    // Simple message structure
+    messageElement.innerHTML = `
+        <span class="chat-timestamp">[${timestamp}]</span>
+        <span class="chat-sender">${senderName}:</span>
+        <span class="chat-text">${messageText}</span>
+    `;
+    displayElement.appendChild(messageElement);
+}
+
+// This function loads messages and handles sending for a private chat window
+function loadAndHandlePrivateChat(userId, userName, chatWindowElement) {
+    const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
+    const inputField = chatWindowElement.querySelector('.pcw-input');
+    const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+        return;
+    }
+
+    // Determine the unique ID for the chat document in Firestore
+    const participants = [currentUser.uid, userId].sort();
+    const chatDocId = `private_${participants[0]}_${participants[1]}`;
+    const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
+
+    // --- Real-time listener to load and display messages ---
+    const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+        messagesContainer.innerHTML = ''; // Clear "Loading..." message
+        if (snapshot.empty) {
+            messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
+        } else {
+            snapshot.forEach(doc => {
+                displayPrivateChatMessage(doc.data(), messagesContainer);
+            });
+            // Auto-scroll to the bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }, error => {
+        console.error("Error loading private messages:", error);
+        messagesContainer.innerHTML = `<p style="color: red;">Error loading messages.</p>`;
+    });
+
+    // --- Function to send a message ---
+    const sendMessage = async () => {
+        const messageText = inputField.value.trim();
+        if (messageText === '') return;
+
+        const messageObj = {
+            senderId: currentUser.uid,
+            sender: currentTornUserName, // Global variable for the current user's name
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            // Ensure the parent document exists
+            await db.collection('privateChats').doc(chatDocId).set({ 
+                participants: participants,
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            // Add the new message
+            await messagesCollectionRef.add(messageObj);
+            inputField.value = '';
+            inputField.focus();
+        } catch (error) {
+            console.error("Error sending private message:", error);
+            alert("Failed to send message.");
+        }
+    };
+
+    // --- Hook up the send button and Enter key ---
+    sendButton.addEventListener('click', sendMessage);
+    inputField.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // When the window is closed, we must stop listening for messages to prevent memory leaks
+    const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
+    closeButton.addEventListener('click', () => {
+        unsubscribe(); // This stops the real-time listener
+    });
 }
 
 
