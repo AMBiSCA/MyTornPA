@@ -556,11 +556,15 @@ ul li:last-child { border-bottom: none; }
     flex-direction: column;
 }
 
+/* Corrected rule for all chat content panels */
 .chat-panel {
     width: 100%;
-    height: 100%;
+    /* This makes the active panel fill the remaining vertical space */
+    flex-grow: 1;
     display: flex;
-    flex-direction: column; /* Ensure panels are column flex containers */
+    flex-direction: column;
+    /* This prevents the panel itself from causing scroll issues */
+    overflow: hidden; 
 }
 
 /* Specific styling for Faction, Alliance, and War chat panels */
