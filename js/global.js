@@ -706,6 +706,7 @@ async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElem
         messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
     });
 
+    // --- Function to send a message ---
     const sendMessage = async () => {
         const messageText = inputField.value.trim();
         if (messageText === '') return;
@@ -714,8 +715,22 @@ async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElem
             senderId: currentUser.uid,
             sender: currentTornUserName,
             text: messageText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            readBy: [currentUser.uid] // <-- THIS IS THE NEW LINE
         };
+
+        try {
+            await db.collection('privateChats').doc(chatDocId).update({
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await messagesCollectionRef.add(messageObj);
+            inputField.value = '';
+            inputField.focus();
+        } catch (error) {
+            console.error("Error sending private message:", error);
+            alert("Failed to send message.");
+        }
+    };
 
         try {
             await db.collection('privateChats').doc(chatDocId).update({

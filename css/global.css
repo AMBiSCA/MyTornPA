@@ -1520,6 +1520,17 @@ input:checked + .slider:before {
     margin-top: 20px;
 }
 
+.chat-message.my-message .chat-sender {
+    color: #5bc0de; /* Brighter color for "You" */
+}
+
+.chat-message.my-message {
+    background-color: rgba(91, 192, 222, 0.1);
+    border-left: 3px solid #5bc0de;
+    padding-left: 7px; /* Adjust padding to account for the border */
+    margin-left: -10px; /* Pull it back to align with other messages */
+}
+
 @media (max-width: 768px) {
 
   /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
