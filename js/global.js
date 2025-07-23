@@ -107,14 +107,27 @@ function initializeGlobals() {
 
 
                 // --- Helper to open a specific chat panel and hide others ---
-                function openChatPanel(panelToShow) {
-                    if (chatWindow) chatWindow.classList.remove('hidden');
-                    if (chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
-                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs when window opens
+function openChatPanel(panelToShow) {
+    // --- NEW CODE TO FIX STACKING ORDER ---
+    // This new block will physically reorder the elements in the HTML to ensure they stack correctly.
+    const chatSystem = document.getElementById('tornpa-chat-system');
 
-                    allPanels.forEach(p => p.classList.add('hidden'));
-                    if (panelToShow) panelToShow.classList.remove('hidden');
-                }
+    // Make sure all three elements exist before trying to reorder them
+    if (chatSystem && chatWindow && chatBarCollapsed) {
+        // This moves the chat window to be the first item inside the container,
+        // which forces it to appear on top of the icon bar due to your flexbox CSS.
+        chatSystem.insertBefore(chatWindow, chatBarCollapsed);
+    }
+    // --- END OF NEW CODE ---
+
+    // The rest of the function remains the same
+    if (chatWindow) chatWindow.classList.remove('hidden');
+    if (chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
+    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs when window opens
+
+    allPanels.forEach(p => p.classList.add('hidden'));
+    if (panelToShow) panelToShow.classList.remove('hidden');
+}
 
                 // --- Event Listeners for Collapsed Chat Bar Icons ---
                 if (openFactionChatIcon) {

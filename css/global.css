@@ -443,24 +443,21 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* --- Collapsed Chat Bar Styles --- */
-/* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    order: 2; /* <--- ADD THIS LINE */
-
-    /* Your existing styles below should remain unchanged */
-    width: auto;
+    width: auto; /* Allow width to be flexible based on content */
     padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex;
-    gap: 5px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    display: flex; /* Display icons side-by-side */
+    gap: 5px; /* Space between icons */
+    margin-bottom: 5px; /* Space between collapsed bar and expanded window */
+    cursor: pointer; /* Indicate it's clickable */
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover */
 }
+
 .chat-bar-icon {
     font-size: 20px;
     padding: 5px 8px;
@@ -487,9 +484,12 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    order: 1; /* <--- ADD THIS LINE */
+    /* --- NEW POSITIONING RULES --- */
+    position: absolute; /* This lifts the window out of the normal layout flow. */
+    bottom: 45px;       /* This positions it 45px from the bottom, right above your icon bar. */
+    right: 0;           /* This aligns it to the right edge. */
 
-    /* Your existing styles below should remain unchanged */
+    /* --- UNCHANGED STYLES --- */
     width: 350px;
     height: 450px;
     background-color: #1b263b;
@@ -498,7 +498,7 @@ ul li:last-child { border-bottom: none; }
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: hidden; /* Prevents content from spilling out */
 }
 
 /* A utility class to hide elements */
