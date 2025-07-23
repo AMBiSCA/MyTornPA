@@ -59,94 +59,53 @@ function initializeGlobals() {
                 console.log("global.js: Global chat HTML loaded successfully into placeholder.");
 
                 // --- DOM Element References (after globalchat.html is loaded) ---
+                
+                // --- NEW --- Get references to our new top-level containers
+                const iconBarContainer = document.getElementById('tornpa-icon-bar-container');
+                const windowContainer = document.getElementById('tornpa-chat-window-container');
+
                 const chatBarCollapsed = document.getElementById('chat-bar-collapsed');
                 const chatWindow = document.getElementById('chat-window');
                 const chatMainTabsContainer = document.querySelector('.chat-main-tabs-container');
-
                 const openFactionChatIcon = document.getElementById('open-faction-chat-icon');
                 const openWarChatIcon = document.getElementById('open-war-chat-icon');
                 const openFriendsIcon = document.getElementById('open-friends-icon');
                 const openNotificationsIcon = document.getElementById('open-notifications-icon');
                 const openSettingsIcon = document.getElementById('open-settings-icon');
-
-                // NEW: Alliance Chat icon reference
                 const openAllianceChatIcon = document.getElementById('open-alliance-chat-icon');
-
                 const factionChatPanel = document.getElementById('faction-chat-panel');
                 const warChatPanel = document.getElementById('war-chat-panel');
                 const friendsPanel = document.getElementById('friends-panel');
                 const notificationsPanel = document.getElementById('notifications-panel');
                 const settingsPanel = document.getElementById('settings-panel');
-
-                // NEW: Alliance Chat panel reference
                 const allianceChatPanel = document.getElementById('alliance-chat-panel');
-
                 const minimizeChatBtns = document.querySelectorAll('.minimize-chat-btn');
-
                 const allPanels = document.querySelectorAll('.chat-panel');
                 const allTabs = document.querySelectorAll('.chat-tab');
-
                 const factionChatTextInput = factionChatPanel.querySelector('.chat-text-input');
                 const factionChatSendBtn = factionChatPanel.querySelector('.chat-send-btn');
-
                 const warChatTextInput = warChatPanel.querySelector('.chat-text-input');
                 const warChatSendBtn = warChatPanel.querySelector('.chat-send-btn');
-
-                // NEW: Alliance Chat input and send button references
                 const allianceChatTextInput = allianceChatPanel.querySelector('.chat-text-input');
                 const allianceChatSendBtn = allianceChatPanel.querySelector('.chat-send-btn');
-
-
                 const friendsPanelContent = document.querySelector('#friends-panel .friends-panel-content');
                 const recentlyMetSubTab = document.querySelector('.sub-tab-button[data-subtab="recently-met"]');
                 const factionMembersSubTab = document.querySelector('.sub-tab-button[data-subtab="faction-members"]');
-                // NEW: Friends sub-tab references
                 const recentChatsSubTab = document.querySelector('.sub-tab-button[data-subtab="recent-chats"]');
                 const friendListSubTab = document.querySelector('.sub-tab-button[data-subtab="friend-list"]');
                 const ignoreListSubTab = document.querySelector('.sub-tab-button[data-subtab="ignore-list"]');
 
+                // --- UPDATED HELPER FUNCTION ---
+                function openChatPanel(panelToShow) {
+                    // Show the window container and hide the icon bar container
+                    if (windowContainer) windowContainer.classList.remove('hidden');
+                    if (iconBarContainer) iconBarContainer.classList.add('hidden');
 
-                // --- Helper to open a specific chat panel and hide others ---
-function openChatPanel(panelToShow) {
-    console.log("--- DEBUGGING LOG: openChatPanel has been called ---");
-
-    // Let's find all the elements we need
-    const chatSystem = document.getElementById('tornpa-chat-system');
-    
-    // --- Step 1: Check if the elements exist ---
-    console.log("1. Does chatSystem exist?", chatSystem);
-    console.log("2. Does chatWindow exist?", chatWindow);
-    console.log("3. Does chatBarCollapsed exist?", chatBarCollapsed);
-
-    // Only proceed if we found the main container
-    if (chatSystem) {
-        // --- Step 2: Log the order of elements BEFORE we try to change it ---
-        // The 'children' property gives us a list of the elements inside.
-        console.log("4. Children order BEFORE change:", chatSystem.children);
-
-        // This is our attempt to fix the order
-        chatSystem.insertBefore(chatWindow, chatBarCollapsed);
-
-        // --- Step 3: Log the order of elements IMMEDIATELY AFTER we try to change it ---
-        console.log("5. Children order RIGHT AFTER change:", chatSystem.children);
-        
-        // This checks the order again after a tiny delay, to see if something else changes it back
-        setTimeout(() => {
-            console.log("6. Children order AFTER 100ms DELAY:", chatSystem.children);
-        }, 100);
-
-    } else {
-        console.error("DEBUGGING ERROR: Could not find the main '#tornpa-chat-system' container!");
-    }
-
-    // --- The original code continues below ---
-    if (chatWindow) chatWindow.classList.remove('hidden');
-    if (chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
-    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
-
-    allPanels.forEach(p => p.classList.add('hidden'));
-    if (panelToShow) panelToShow.classList.remove('hidden');
-}
+                    // Original logic for showing tabs and the correct panel
+                    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
+                    allPanels.forEach(p => p.classList.add('hidden'));
+                    if (panelToShow) panelToShow.classList.remove('hidden');
+                }
 
                 // --- Event Listeners for Collapsed Chat Bar Icons ---
                 if (openFactionChatIcon) {
@@ -156,16 +115,13 @@ function openChatPanel(panelToShow) {
                         setupChatRealtimeListener('faction');
                     });
                 }
-
-                // NEW: Alliance Chat collapsed icon listener
                 if (openAllianceChatIcon) {
                     openAllianceChatIcon.addEventListener('click', () => {
                         openChatPanel(allianceChatPanel);
                         if (allianceChatTextInput) allianceChatTextInput.focus();
-                        setupChatRealtimeListener('alliance'); // Assuming 'alliance' collection type
+                        setupChatRealtimeListener('alliance');
                     });
                 }
-
                 if (openWarChatIcon) {
                     openWarChatIcon.addEventListener('click', () => {
                         openChatPanel(warChatPanel);
@@ -173,37 +129,36 @@ function openChatPanel(panelToShow) {
                         setupChatRealtimeListener('war');
                     });
                 }
-
                 if (openFriendsIcon) {
                     openFriendsIcon.addEventListener('click', () => {
                         openChatPanel(friendsPanel);
-                        // When friends icon is clicked, activate the default sub-tab (Recent Chats)
                         if (recentChatsSubTab) {
-                            recentChatsSubTab.click(); // This triggers the sub-tab's own listener
+                            recentChatsSubTab.click();
                         } else {
                             friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
                         }
                     });
                 }
-
                 if (openNotificationsIcon) {
                     openNotificationsIcon.addEventListener('click', () => {
                         openChatPanel(notificationsPanel);
                     });
                 }
-
                 if (openSettingsIcon) {
                     openSettingsIcon.addEventListener('click', () => {
                         openChatPanel(settingsPanel);
                     });
                 }
 
-                // --- Minimize Button Logic ---
+                // --- UPDATED MINIMIZE BUTTON LOGIC ---
                 minimizeChatBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
-                        if (chatWindow) chatWindow.classList.add('hidden');
-                        if (chatBarCollapsed) chatBarCollapsed.classList.remove('hidden');
-                        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden'); // Hide main tabs too
+                        // Hide the window container and show the icon bar container
+                        if (windowContainer) windowContainer.classList.add('hidden');
+                        if (iconBarContainer) iconBarContainer.classList.remove('hidden');
+                        
+                        // Original logic to hide the tabs container
+                        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
                     });
                 });
 
@@ -212,61 +167,45 @@ function openChatPanel(panelToShow) {
                     tab.addEventListener('click', () => {
                         const targetPanelId = tab.dataset.tabTarget;
                         const targetPanel = document.getElementById(targetPanelId);
-
-                        // Remove active from all main tabs and hide all panels
                         allTabs.forEach(t => t.classList.remove('active'));
                         allPanels.forEach(p => p.classList.add('hidden'));
-
-                        // Set the clicked main tab as active and show its panel
                         tab.classList.add('active');
                         if (targetPanel) {
                             targetPanel.classList.remove('hidden');
                         }
-
-                        // Handle specific panel logic after it's shown
                         switch (targetPanelId) {
                             case 'friends-panel':
-                                // Automatically click the "Recent Chats" sub-tab when the "Friends" main tab is opened
                                 if (recentChatsSubTab) {
-                                    recentChatsSubTab.click(); // Triggers the dedicated listener below
+                                    recentChatsSubTab.click();
                                 } else {
                                     friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content could not load.</p>`;
                                 }
                                 break;
-
-                            case 'alliance-chat-panel': // Case for the new Alliance Chat main tab
+                            case 'alliance-chat-panel':
                                 setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
                                 setupChatRealtimeListener('alliance');
                                 if (allianceChatTextInput) allianceChatTextInput.focus();
                                 break;
-
                             case 'faction-chat-panel':
                                 if (factionChatTextInput) factionChatTextInput.focus();
                                 setupChatRealtimeListener('faction');
                                 break;
-
                             case 'war-chat-panel':
                                 if (warChatTextInput) warChatTextInput.focus();
                                 setupChatRealtimeListener('war');
                                 break;
-
-                            // No default needed here, as panels will be hidden by default unless a specific case matches.
                         }
                     });
                 });
 
                 // --- Individual Sub-Tab Event Listeners for Friends Panel ---
-                // These handle direct clicks on the sub-tab buttons within the Friends panel.
-
                 if (recentChatsSubTab) {
                     recentChatsSubTab.addEventListener('click', () => {
                         friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
                         recentChatsSubTab.classList.add('active');
                         friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
-                        // TODO: Implement actual loadRecentPrivateChats(friendsPanelContent);
                     });
                 }
-
                 if (recentlyMetSubTab) {
                     recentlyMetSubTab.addEventListener('click', () => {
                         friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
@@ -274,17 +213,14 @@ function openChatPanel(panelToShow) {
                         populateRecentlyMetTab(friendsPanelContent);
                     });
                 }
-
                 if (factionMembersSubTab) {
                     factionMembersSubTab.addEventListener('click', async () => {
                         friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
                         factionMembersSubTab.classList.add('active');
-
                         if (!currentUserFactionId || !userTornApiKey) {
                             friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">Faction ID or API key not found. Please log in and ensure your profile is complete.</p>`;
                             return;
                         }
-
                         friendsPanelContent.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members...</p>`;
                         try {
                             const response = await fetch(`${TORN_API_BASE_URL}/faction/${currentUserFactionId}?selections=members&key=${userTornApiKey}`);
@@ -301,29 +237,22 @@ function openChatPanel(panelToShow) {
                         }
                     });
                 }
-
-                // NEW: Event Listener for Friend List Sub-Tab
                 if (friendListSubTab) {
                     friendListSubTab.addEventListener('click', async () => {
                         friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
                         friendListSubTab.classList.add('active');
                         friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your friend list...</p>`;
-                        // TODO: Implement loadFriendList(friendsPanelContent);
                         console.log("Friend List tab clicked!");
                     });
                 }
-
-                // NEW: Event Listener for Ignore List Sub-Tab
                 if (ignoreListSubTab) {
                     ignoreListSubTab.addEventListener('click', async () => {
                         friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
                         ignoreListSubTab.classList.add('active');
                         friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your ignore list...</p>`;
-                        // TODO: Implement loadIgnoreList(friendsPanelContent);
                         console.log("Ignore List tab clicked!");
                     });
                 }
-
 
                 // --- Send Message Logic ---
                 function setupMessageSending(textInput, sendBtn, collectionType) {
@@ -341,12 +270,9 @@ function openChatPanel(panelToShow) {
                         };
                     }
                 }
-
                 setupMessageSending(factionChatTextInput, factionChatSendBtn, 'faction');
                 setupMessageSending(warChatTextInput, warChatSendBtn, 'war');
-                // NEW: Setup message sending for alliance chat
                 setupMessageSending(allianceChatTextInput, allianceChatSendBtn, 'alliance');
-
 
             } else {
                 console.error("global.js: Error: #chat-system-placeholder element not found for loading chat HTML.");
@@ -363,41 +289,33 @@ function openChatPanel(panelToShow) {
                 const userData = doc.data();
                 currentUserFactionId = String(userData.faction_id);
                 currentTornUserName = userData.preferredName || 'Unknown User';
-                userTornApiKey = userData.tornApiKey; // Corrected casing
-
-                // Make globals accessible to functions outside this scope, especially for re-rendering
+                userTornApiKey = userData.tornApiKey;
                 window.currentUserFactionId = currentUserFactionId;
                 window.userTornApiKey = userTornApiKey;
-                window.TORN_API_BASE_URL = TORN_API_BASE_URL; // Expose TORN_API_BASE_URL globally
-
+                window.TORN_API_BASE_URL = TORN_API_BASE_URL;
                 console.log(`User logged in. Faction ID: ${currentUserFactionId}, Name: ${currentTornUserName}, API Key Present: ${!!userTornApiKey}`);
             } else {
                 console.warn("User profile not found for authenticated user:", user.uid);
                 currentUserFactionId = null;
                 userTornApiKey = null;
-                // Clear globals on logout/missing profile
                 window.currentUserFactionId = null;
                 window.userTornApiKey = null;
                 window.TORN_API_BASE_URL = null;
             }
         } else {
-            // User is signed out
             if (unsubscribeFromChat) unsubscribeFromChat();
             chatMessagesCollection = null;
             currentUserFactionId = null;
-            currentUserFactionId = null; // Clear API key on logout
-            // Clear globals on logout
+            userTornApiKey = null; // Correctly clear API key on logout
             window.currentUserFactionId = null;
             window.userTornApiKey = null;
             window.TORN_API_BASE_URL = null;
-
             const chatDisplayAreaFaction = document.getElementById('chat-display-area');
             const chatDisplayAreaWar = document.getElementById('war-chat-display-area');
-            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area'); // NEW: Alliance Chat display area
-
+            const chatDisplayAreaAlliance = document.getElementById('alliance-chat-display-area');
             if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
             if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
-            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>'; // NEW: Alliance Chat message
+            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>';
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
@@ -413,7 +331,7 @@ function openChatPanel(panelToShow) {
         const messageText = messageObj.text || '';
         messageElement.innerHTML = `<span class="chat-timestamp">[${timestamp}]</span> <span class="chat-sender">${senderName}:</span> <span class="chat-text">${messageText}</span>`;
         chatDisplayArea.appendChild(messageElement);
-        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Auto-scroll to latest message
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight;
     }
 
     async function sendChatMessage(textInput, collectionType) {
@@ -423,37 +341,24 @@ function openChatPanel(panelToShow) {
         }
         const messageText = textInput.value.trim();
         if (messageText === '') return;
-
         let targetCollection = null;
         if (collectionType === 'faction') {
             if (currentUserFactionId) {
                 targetCollection = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
-                console.log(`Attempting to send message to faction chat path: factionChats/${currentUserFactionId}/messages`);
             } else {
                 console.warn("Faction ID not available for current user. Cannot send faction chat message.");
                 return;
             }
         } else if (collectionType === 'war') {
             targetCollection = db.collection('warChats').doc('currentWar').collection('messages');
-            console.log(`Attempting to send message to war chat path: warChats/currentWar/messages`);
-        } else if (collectionType === 'alliance') { // NEW: Alliance chat collection
-            // You need a way to determine the alliance ID.
-            // For example, if you store it in userProfile or have a specific doc for alliances.
-            // For now, let's assume a fixed 'defaultAlliance' ID for testing, or derive it from currentUserFactionId.
-            // Example: db.collection('alliances').doc(currentUserFactionId).collection('messages');
-            // Or if a single global alliance chat: db.collection('allianceChats').doc('globalAlliance').collection('messages');
-            // For demonstration, let's use a placeholder 'yourAllianceId' that needs to be properly defined.
-            // This is a critical point: how do you identify the specific alliance chat?
-            const allianceId = 'defaultAllianceChat'; // <<-- IMPORTANT: Replace with actual alliance ID logic
+        } else if (collectionType === 'alliance') {
+            const allianceId = 'defaultAllianceChat';
             targetCollection = db.collection('allianceChats').doc(allianceId).collection('messages');
-            console.log(`Attempting to send message to alliance chat path: allianceChats/${allianceId}/messages`);
         }
-
         if (!targetCollection) {
             console.error("No valid chat collection determined for sending message.");
             return;
         }
-
         const messageObj = {
             senderId: auth.currentUser.uid,
             sender: currentTornUserName,
@@ -462,8 +367,8 @@ function openChatPanel(panelToShow) {
         };
         try {
             await targetCollection.add(messageObj);
-            textInput.value = ''; // Clear input field
-            textInput.focus();    // Keep focus on input field
+            textInput.value = '';
+            textInput.focus();
         } catch (error) {
             console.error(`Error sending ${collectionType} message to Firebase:`, error);
         }
@@ -473,24 +378,19 @@ function openChatPanel(panelToShow) {
         let chatDisplayArea = null;
         let collectionRef = null;
         let displayAreaId = '';
-
         if (unsubscribeFromChat) {
-            unsubscribeFromChat(); // Unsubscribe from previous listener to prevent multiple listeners
-            console.log("Unsubscribed from previous chat listener.");
+            unsubscribeFromChat();
         }
-
         if (type === 'faction' && auth.currentUser) {
             if (currentUserFactionId) {
                 collectionRef = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
                 displayAreaId = 'chat-display-area';
                 chatDisplayArea = document.getElementById(displayAreaId);
                 if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading faction messages...</p>';
-                console.log(`Setting up faction chat listener for path: factionChats/${currentUserFactionId}/messages`);
-
                 if (collectionRef) {
                     unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
                         .onSnapshot(snapshot => {
-                            if (chatDisplayArea) chatDisplayArea.innerHTML = ''; // Clear previous messages
+                            if (chatDisplayArea) chatDisplayArea.innerHTML = '';
                             if (snapshot.empty) {
                                 if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No faction messages yet.</p>`;
                                 return;
@@ -504,15 +404,12 @@ function openChatPanel(panelToShow) {
             } else {
                 chatDisplayArea = document.getElementById('chat-display-area');
                 if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat. Please ensure your profile is complete.</p>';
-                console.warn("User has no faction ID to set up faction chat listener.");
             }
         } else if (type === 'war') {
             collectionRef = db.collection('warChats').doc('currentWar').collection('messages');
             displayAreaId = 'war-chat-display-area';
             chatDisplayArea = document.getElementById(displayAreaId);
             if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading war messages...</p>';
-            console.log(`Setting up war chat listener for path: warChats/currentWar/messages`);
-
             if (collectionRef) {
                 unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
                     .onSnapshot(snapshot => {
@@ -527,20 +424,12 @@ function openChatPanel(panelToShow) {
                         if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading war messages.</p>`;
                     });
             }
-
-        } else if (type === 'alliance' && auth.currentUser) { // NEW: Alliance chat listener
-            // You need a way to determine the alliance ID for the current user.
-            // This is a critical step for your application logic.
-            // Example: Get alliance ID from userProfile, or a global config.
-            // For now, using a placeholder 'defaultAllianceChat'.
-            const allianceId = 'defaultAllianceChat'; // <<-- IMPORTANT: Replace with actual alliance ID logic
-
+        } else if (type === 'alliance' && auth.currentUser) {
+            const allianceId = 'defaultAllianceChat';
             collectionRef = db.collection('allianceChats').doc(allianceId).collection('messages');
             displayAreaId = 'alliance-chat-display-area';
             chatDisplayArea = document.getElementById(displayAreaId);
             if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Loading alliance messages...</p>';
-            console.log(`Setting up alliance chat listener for path: allianceChats/${allianceId}/messages`);
-
             if (collectionRef) {
                 unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
                     .onSnapshot(snapshot => {
@@ -555,8 +444,7 @@ function openChatPanel(panelToShow) {
                         if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading alliance messages.</p>`;
                     });
             }
-        }
-        else {
+        } else {
             console.warn("Unknown chat type or user not logged in for real-time listener.");
         }
     }
@@ -567,60 +455,47 @@ async function populateRecentlyMetTab(targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Recently Met tab.");
         return;
     }
-
     targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading war history to find opponents...</p>`;
-
     try {
         const userApiKey = window.userTornApiKey;
         const globalYourFactionID = window.currentUserFactionId;
-        const db = firebase.firestore(); // Ensure db is accessible
-
+        const db = firebase.firestore();
         if (!userApiKey || !globalYourFactionID) {
             targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px; color: orange;">API key or Faction ID not available. Please log in.</p>`;
             return;
         }
-
         const historyUrl = `https://api.torn.com/v2/faction/rankedwars?sort=DESC&limit=5&key=${userApiKey}&comment=MyTornPA_RecentlyMet`;
         const historyResponse = await fetch(historyUrl);
         const historyData = await historyResponse.json();
-
         if (historyData.error) throw new Error(historyData.error.error);
-
         const wars = historyData.rankedwars || [];
         if (wars.length === 0) {
             targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent wars found to populate this list.</p>';
             return;
         }
-
         targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Loading opponent details from war reports...</p>';
         const reportPromises = wars.map(war =>
             fetch(`https://api.torn.com/v2/faction/${war.id}/rankedwarreport?key=${userApiKey}&comment=MyTornPA_WarReport`).then(res => res.json())
         );
         const warReports = await Promise.all(reportPromises);
-
         const opponentsMap = new Map();
         warReports.forEach(reportData => {
             const report = reportData.rankedwarreport;
             if (!report || !report.factions) return;
-
             const opponentFaction = report.factions.find(f => f.id != globalYourFactionID);
             if (opponentFaction && opponentFaction.members) {
                 opponentFaction.members.forEach(member => {
                     if (!opponentsMap.has(member.id)) {
-                        // Store full member object including name, and potentially rank if available from API
-                        opponentsMap.set(member.id, { id: member.id, name: member.name, position: 'Opponent' }); // Default position for display
+                        opponentsMap.set(member.id, { id: member.id, name: member.name, position: 'Opponent' });
                     }
                 });
             }
         });
-
         const uniqueOpponentIds = Array.from(opponentsMap.keys()).map(String);
         if (uniqueOpponentIds.length === 0) {
             targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Could not find any opponents in recent wars.</p>';
             return;
         }
-
-        // Fetch registered user profile images from 'users' collection
         const registeredUsersData = new Map();
         const chunkSize = 30;
         for (let i = 0; i < uniqueOpponentIds.length; i += chunkSize) {
@@ -630,10 +505,8 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 registeredUsersData.set(doc.id, doc.data());
             });
         }
-
         const membersListContainer = document.createElement('div');
         membersListContainer.className = 'members-list-container';
-
         let cardsHtml = '';
         for (const opponent of opponentsMap.values()) {
             const tornPlayerId = String(opponent.id);
@@ -641,14 +514,12 @@ async function populateRecentlyMetTab(targetDisplayElement) {
             const memberRank = opponent.position || '';
             const registeredUserData = registeredUsersData.get(tornPlayerId);
             let profilePicUrl;
-
             if (registeredUserData && registeredUserData.profile_image) {
                 profilePicUrl = registeredUserData.profile_image;
             } else {
                 const randomIndex = Math.floor(Math.random() * DEFAULT_PROFILE_ICONS.length);
                 profilePicUrl = DEFAULT_PROFILE_ICONS[randomIndex];
             }
-
             let messageButton;
             if (registeredUserData) {
                 messageButton = `<button class="item-button message-button" data-member-id="${tornPlayerId}" title="Send Message on MyTornPA">✉️</button>`;
@@ -656,7 +527,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${tornPlayerId}`;
                 messageButton = `<a href="${tornMessageUrl}" target="_blank" class="item-button message-button" title="Send Message on Torn">✉️</a>`;
             }
-
             cardsHtml += `
                 <div class="member-item">
                     <div class="member-info-left">
@@ -674,27 +544,20 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 </div>
             `;
         }
-
         membersListContainer.innerHTML = cardsHtml;
         targetDisplayElement.innerHTML = '';
         targetDisplayElement.appendChild(membersListContainer);
-
         const authInstance = firebase.auth();
         const dbInstance = firebase.firestore();
-
         membersListContainer.addEventListener('click', async (event) => {
             const clickedButton = event.target.closest('button');
             const clickedLink = event.target.closest('a.profile-link-button');
-
             const element = clickedButton || clickedLink;
             if (!element) return;
-
             const memberId = element.dataset.memberId;
             if (!memberId || !authInstance.currentUser) return;
-
             const currentUserId = authInstance.currentUser.uid;
             const friendDocRef = dbInstance.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId);
-
             if (element.classList.contains('add-member-button')) {
                 try {
                     await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
@@ -734,7 +597,6 @@ async function populateRecentlyMetTab(targetDisplayElement) {
                 }
             }
         });
-
     } catch (error) {
         console.error("Error populating Recently Met tab:", error);
         targetDisplayElement.innerHTML = `<p style="color: red; text-align:center; padding: 20px;">Error: ${error.message}</p>`;
@@ -745,13 +607,11 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
     const db = firebase.firestore();
     const auth = firebase.auth();
     const TORN_API_BASE_URL_GLOBAL = window.TORN_API_BASE_URL;
-
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for faction members list.");
         return;
     }
     targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">Loading faction members details...</p>`;
-
     let friendsSet = new Set();
     const currentUser = auth.currentUser;
     if (currentUser) {
@@ -762,12 +622,10 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             console.error("Error fetching friends list for faction members tab:", error);
         }
     }
-
     if (!factionMembersApiData || typeof factionMembersApiData !== 'object' || Object.keys(factionMembersApiData).length === 0) {
         targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 10px;">No faction members found.</p>`;
         return;
     }
-
     const membersArray = Object.values(factionMembersApiData);
     const rankOrder = { "Leader": 0, "Co-leader": 1, "Council": 2, "Right Hand": 3, "Left Hand": 4, "Captain": 5, "Lieutenant": 6, "Sergeant": 7, "Corporal": 8, "Recruit": 9, "Applicant": 10, "Member": 99 };
     membersArray.sort((a, b) => {
@@ -776,18 +634,15 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         if (orderA !== orderB) { return orderA - orderB; }
         return a.name.localeCompare(b.name);
     });
-
     const membersListContainer = document.createElement('div');
     membersListContainer.classList.add('members-list-container');
     targetDisplayElement.innerHTML = '';
     targetDisplayElement.appendChild(membersListContainer);
-
     for (const member of membersArray) {
         const tornPlayerId = String(member.id);
         const memberName = member.name || `Unknown (${tornPlayerId})`;
         const memberRank = member.position || 'Member';
         const isFriend = friendsSet.has(tornPlayerId);
-
         let actionButtonHtml = '';
         if (isFriend) {
             actionButtonHtml = `
@@ -802,13 +657,11 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 </button>
             `;
         }
-
         const memberItemDiv = document.createElement('div');
         memberItemDiv.classList.add('member-item');
         if (memberRank === "Leader" || memberRank === "Co-leader") {
             memberItemDiv.classList.add('leader-member');
         }
-
         memberItemDiv.innerHTML = `
             <div class="member-info-left">
                 <span class="member-rank">${memberRank}</span>
@@ -823,9 +676,7 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
                 <a href="https://www.torn.com/profiles.php?XID=${tornPlayerId}" target="_blank" class="item-button profile-link-button" title="View Torn Profile">🔗</a>
             </div>
         `;
-
         membersListContainer.appendChild(memberItemDiv);
-
         (async () => {
             try {
                 const docRef = db.collection('users').doc(tornPlayerId);
@@ -841,20 +692,15 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
             }
         })();
     }
-
     membersListContainer.addEventListener('click', async (event) => {
         const clickedButton = event.target.closest('button');
         const clickedLink = event.target.closest('a.profile-link-button');
-
         const element = clickedButton || clickedLink;
         if (!element) return;
-
         const memberId = element.dataset.memberId;
         if (!memberId || !auth.currentUser) return;
-
         const currentUserId = auth.currentUser.uid;
         const friendDocRef = db.collection('userProfiles').doc(currentUserId).collection('friends').doc(memberId);
-
         if (element.classList.contains('add-member-button')) {
             try {
                 await friendDocRef.set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
@@ -907,7 +753,6 @@ async function displayFactionMembersInChatTab(factionMembersApiData, targetDispl
         }
     });
 }
-
 
 // Run the main initialization function
 initializeGlobals();
