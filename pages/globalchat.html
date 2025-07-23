@@ -1,4 +1,4 @@
-<div id="chat-bar-container">
+<div id="tornpa-chat-system">
     <div id="chat-bar-collapsed">
         <div id="open-faction-chat-icon" class="chat-bar-icon" title="Faction Chat">🤝</div>
         <div id="open-alliance-chat-icon" class="chat-bar-icon" title="Alliance Chat">🤝</div>
@@ -7,19 +7,17 @@
         <div id="open-notifications-icon" class="chat-bar-icon" title="Notifications">🔔</div>
         <div id="open-settings-icon" class="chat-bar-icon" title="Settings">⚙️</div>
     </div>
-</div>
 
-<div id="chat-window-container" class="hidden">
-    <div id="chat-window">
-        <div class="chat-main-tabs-container">
+    <div id="chat-window" class="hidden">
+        <div class="chat-main-tabs-container hidden">
             <div id="dynamic-tabs-container"></div>
             <div id="static-tabs-container">
-                <button class="chat-tab active" data-tab-target="#faction-chat-panel" title="Faction Chat">💬</button>
-                <button class="chat-tab" data-tab-target="#alliance-chat-panel" title="Alliance Chat">🤝</button>
-                <button class="chat-tab" data-tab-target="#war-chat-panel" title="War Chat">⚔️</button>
-                <button class="chat-tab" data-tab-target="#friends-panel" title="Friends">👥</button>
-                <button class="chat-tab" data-tab-target="#notifications-panel" title="Notifications">🔔</button>
-                <button class="chat-tab" data-tab-target="#settings-panel" title="Settings">⚙️</button>
+                <button class="chat-tab active" data-tab-target="faction-chat-panel" title="Faction Chat">💬</button>
+                <button class="chat-tab" data-tab-target="alliance-chat-panel" title="Alliance Chat">🤝</button>
+                <button class="chat-tab" data-tab-target="war-chat-panel" title="War Chat">⚔️</button>
+                <button class="chat-tab" data-tab-target="friends-panel" title="Friends">👥</button>
+                <button class="chat-tab" data-tab-target="notifications-panel" title="Notifications">🔔</button>
+                <button class="chat-tab" data-tab-target="settings-panel" title="Settings">⚙️</button>
             </div>
         </div>
 
@@ -29,7 +27,7 @@
                 <button class="minimize-chat-btn">-</button>
             </div>
             <div id="chat-display-area" class="chat-display-area">
-            </div>
+                </div>
             <div id="chat-input-area" class="chat-input-area">
                 <input type="text" class="chat-text-input" placeholder="Type your message...">
                 <button class="chat-send-btn">Send</button>
@@ -56,7 +54,7 @@
                 <button class="minimize-chat-btn">-</button>
             </div>
             <div id="war-chat-display-area" class="chat-messages-scroll-wrapper">
-            </div>
+                </div>
             <div id="war-chat-input-area" class="chat-input-area">
                 <input type="text" class="chat-text-input" placeholder="Type your message...">
                 <button class="chat-send-btn">Send</button>
@@ -133,6 +131,7 @@
                         <button class="action-button" id="deleteAllPrivateMessages">Delete All Private Messages</button>
                     </div>
                 </div>
+
                 <div class="settings-section">
                     <h4>Global Chat Toggles 🌍</h4>
                     <div class="setting-item">
@@ -166,6 +165,7 @@
                         <label for="muteWarSounds">Mute War Sounds</label>
                     </div>
                 </div>
+
                 <div class="settings-section">
                     <h4>User Status & Display 🧍</h4>
                     <div class="setting-item">
@@ -187,6 +187,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="settings-section">
                     <h4>General Chat Display 💬</h4>
                     <div class="setting-group">
@@ -253,6 +254,7 @@
                         <label for="profanityFilterLocal">Profanity Filter (Local)</label>
                     </div>
                 </div>
+
                 <div class="settings-section">
                     <h4>Notification Method 🔔</h4>
                     <div class="setting-group">
@@ -268,6 +270,7 @@
                         <p class="setting-note">(Note: Browser pop-ups are an advanced feature requiring user permission.)</p>
                     </div>
                 </div>
+
                 <div class="settings-section">
                     <h4>Data & Actions 💾</h4>
                     <div class="setting-item">
