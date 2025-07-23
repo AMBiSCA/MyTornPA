@@ -368,7 +368,158 @@ minimizeChatBtns.forEach(btn => {
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
+	
+	async function populateFriendListTab(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Friend List tab.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading your friend list...</p>`;
 
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your friends.</p>';
+        return;
+    }
+
+    try {
+        const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+
+        if (friendsSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">You have not added any friends yet.</p>';
+            return;
+        }
+
+        const friendDetailsPromises = friendsSnapshot.docs.map(doc => {
+            const friendTornId = doc.id;
+            return db.collection('users').doc(friendTornId).get().then(userDoc => {
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const friendName = userData.name || `User ID ${friendTornId}`;
+                    const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
+                    return { id: friendTornId, name: friendName, image: profileImage };
+                }
+                return { id: friendTornId, name: `Unknown [${friendTornId}]`, image: '../../images/default_profile_icon.png' };
+            });
+        });
+
+        const friendDetails = await Promise.all(friendDetailsPromises);
+
+        let cardsHtml = '';
+        friendDetails.forEach(friend => {
+            const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${friend.id}`;
+            cardsHtml += `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${friend.image}" alt="${friend.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${friend.id}" target="_blank" class="member-name">${friend.name}</a>
+                    </div>
+                    <div class="member-actions">
+                        <a href="${tornMessageUrl}" target="_blank" class="item-button" title="Send Message on Torn">✉️</a>
+                        <button class="item-button remove-friend-button" data-friend-id="${friend.id}" title="Remove Friend">🗑️</button>
+                    </div>
+                </div>`;
+        });
+
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container';
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = '';
+        targetDisplayElement.appendChild(membersListContainer);
+
+        // Add event listener for remove buttons
+        membersListContainer.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('remove-friend-button')) {
+                const friendIdToRemove = event.target.dataset.friendId;
+                const userConfirmed = await showCustomConfirm(`Are you sure you want to remove friend [${friendIdToRemove}]?`, "Confirm Removal");
+                if (userConfirmed) {
+                    await db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete();
+                    populateFriendListTab(targetDisplayElement); // Refresh the list
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Friend List tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
+    }
+}
+
+
+async function populateIgnoreListTab(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Ignore List tab.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading your ignore list...</p>`;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your ignore list.</p>';
+        return;
+    }
+
+    try {
+        // IMPORTANT: This assumes your ignored users are stored in a subcollection named 'ignored'
+        const ignoredSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('ignored').get();
+
+        if (ignoredSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Your ignore list is empty.</p>';
+            return;
+        }
+
+        const ignoredDetailsPromises = ignoredSnapshot.docs.map(doc => {
+            const ignoredTornId = doc.id;
+            return db.collection('users').doc(ignoredTornId).get().then(userDoc => {
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const ignoredName = userData.name || `User ID ${ignoredTornId}`;
+                    const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
+                    return { id: ignoredTornId, name: ignoredName, image: profileImage };
+                }
+                return { id: ignoredTornId, name: `Unknown [${ignoredTornId}]`, image: '../../images/default_profile_icon.png' };
+            });
+        });
+
+        const ignoredDetails = await Promise.all(ignoredDetailsPromises);
+
+        let cardsHtml = '';
+        ignoredDetails.forEach(ignored => {
+            cardsHtml += `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${ignored.image}" alt="${ignored.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${ignored.id}" target="_blank" class="member-name">${ignored.name}</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="item-button unignore-button" data-ignored-id="${ignored.id}" title="Remove from Ignore List">🗑️</button>
+                    </div>
+                </div>`;
+        });
+
+        const membersListContainer = document.createElement('div');
+        membersListContainer.className = 'members-list-container';
+        membersListContainer.innerHTML = cardsHtml;
+        targetDisplayElement.innerHTML = '';
+        targetDisplayElement.appendChild(membersListContainer);
+
+        // Add event listener for unignore buttons
+        membersListContainer.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('unignore-button')) {
+                const ignoredIdToRemove = event.target.dataset.ignoredId;
+                const userConfirmed = await showCustomConfirm(`Are you sure you want to unignore user [${ignoredIdToRemove}]?`, "Confirm Removal");
+                if (userConfirmed) {
+                    await db.collection('userProfiles').doc(currentUser.uid).collection('ignored').doc(ignoredIdToRemove).delete();
+                    populateIgnoreListTab(targetDisplayElement); // Refresh the list
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Ignore List tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
+    }
+}
     // ---- CORE CHAT FUNCTIONS ----
     function displayChatMessage(messageObj, chatDisplayAreaId) {
         const chatDisplayArea = document.getElementById(chatDisplayAreaId);
