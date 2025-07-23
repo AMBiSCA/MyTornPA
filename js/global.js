@@ -269,27 +269,25 @@ minimizeChatBtns.forEach(btn => {
                     });
                 }
 
-                // NEW: Event Listener for Friend List Sub-Tab
-                if (friendListSubTab) {
-                    friendListSubTab.addEventListener('click', async () => {
-                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-                        friendListSubTab.classList.add('active');
-                        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your friend list...</p>`;
-                        // TODO: Implement loadFriendList(friendsPanelContent);
-                        console.log("Friend List tab clicked!");
-                    });
-                }
+               // NEW: Event Listener for Friend List Sub-Tab
+if (friendListSubTab) {
+    friendListSubTab.addEventListener('click', () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        friendListSubTab.classList.add('active');
+        // Call the new function to populate the content area
+        populateFriendListTab(friendsPanelContent);
+    });
+}
 
-                // NEW: Event Listener for Ignore List Sub-Tab
-                if (ignoreListSubTab) {
-                    ignoreListSubTab.addEventListener('click', async () => {
-                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-                        ignoreListSubTab.classList.add('active');
-                        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading your ignore list...</p>`;
-                        // TODO: Implement loadIgnoreList(friendsPanelContent);
-                        console.log("Ignore List tab clicked!");
-                    });
-                }
+// NEW: Event Listener for Ignore List Sub-Tab
+if (ignoreListSubTab) {
+    ignoreListSubTab.addEventListener('click', () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        ignoreListSubTab.classList.add('active');
+        // Call the new function to populate the content area
+        populateIgnoreListTab(friendsPanelContent);
+    });
+}
 
 
                 // --- Send Message Logic ---
