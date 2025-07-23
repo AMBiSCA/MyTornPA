@@ -284,13 +284,13 @@ function initializeGlobals() {
                 // These handle direct clicks on the sub-tab buttons within the Friends panel.
 
                 if (recentChatsSubTab) {
-                    recentChatsSubTab.addEventListener('click', () => {
-                        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
-                        recentChatsSubTab.classList.add('active');
-                        friendsPanelContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Recent chats content would load here.</p>`;
-                        // TODO: Implement actual loadRecentPrivateChats(friendsPanelContent);
-                    });
-                }
+    recentChatsSubTab.addEventListener('click', () => {
+        friendsPanel.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.remove('active'));
+        recentChatsSubTab.classList.add('active');
+        // Call the new function to load the chats
+        loadRecentPrivateChats(friendsPanelContent);
+    });
+}
 
                 if (recentlyMetSubTab) {
                     recentlyMetSubTab.addEventListener('click', () => {
