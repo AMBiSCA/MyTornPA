@@ -442,26 +442,24 @@ ul li:last-child { border-bottom: none; }
     align-items: flex-end; /* Aligns its children (collapsed bar, chat window) to the right */
 }
 
-/* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    /* These are the new lines that lock it in place */
+    /* --- Positioning --- */
     position: fixed;
     bottom: 10px;
     left: 10px;
-    z-index: 1001;
+    z-index: 1001; /* Keep it on top */
 
-    /* Your existing styles are all great */
+    /* --- Layout & Styling (Your original styles) --- */
+    display: flex;
+    flex-direction: row; /* Ensures icons are side-by-side */
+    gap: 5px;
     width: auto;
     padding: 5px;
     background-color: #0d1b2a;
-    color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex;
-    gap: 5px;
     cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .chat-bar-icon {
@@ -490,13 +488,13 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    /* These new lines make the window float above the page */
+    /* --- Positioning --- */
     position: fixed;
-    bottom: 75px;   /* Positioned just above the icon bar */
-    left: 10px;
-    z-index: 1000;  /* A layer number below the icon bar */
+    left: 10px;     /* Aligns horizontally with the icon bar */
+    bottom: 65px;    /* This is the key: Lifts it above the icon bar */
+    z-index: 1000;
 
-    /* Your existing styles are perfect */
+    /* --- Your existing styles --- */
     width: 350px;
     height: 450px;
     background-color: #1b263b;
