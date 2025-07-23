@@ -427,37 +427,34 @@ ul li:last-child { border-bottom: none; }
 /* ======================================= */
 /* ======== CHAT SYSTEM STYLES =========== */
 /* ======================================= */
-
 #tornpa-chat-system {
-    /* This makes it stick to the bottom right of the screen */
-    position: fixed; /* Keep it fixed relative to the viewport */
-    bottom: 18px;    /* 18px from the bottom */
-    right: 0px;      /* 0px from the right */
-    z-index: 1000;   /* Ensures it sits on top of other content */
+    position: fixed;
+    bottom: 18px;
+    right: 0px;
+    z-index: 1000;
     font-family: Arial, sans-serif;
-    
-    /* Ensure flexbox behavior for stacking the collapsed bar above the window */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end; /* Aligns its children (collapsed bar, chat window) to the right */
+    /* The display:flex properties have been REMOVED. */
 }
-
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    width: auto; /* Allow width to be flexible based on content */
+    position: absolute; /* NEW */
+    bottom: 0;          /* NEW */
+    right: 0;           /* NEW */
+    
+    /* Your other styles are fine, but remove any margin */
+    margin-bottom: 0; /* CHANGED */
+    width: auto;
     padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex; /* Display icons side-by-side */
-    gap: 5px; /* Space between icons */
-    margin-bottom: 5px; /* Space between collapsed bar and expanded window */
-    cursor: pointer; /* Indicate it's clickable */
-    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover */
+    display: flex;
+    gap: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .chat-bar-icon {
     font-size: 20px;
     padding: 5px 8px;
@@ -484,12 +481,12 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    /* --- NEW POSITIONING RULES --- */
-    position: absolute; /* This lifts the window out of the normal layout flow. */
-    bottom: 45px;       /* This positions it 45px from the bottom, right above your icon bar. */
-    right: 0;           /* This aligns it to the right edge. */
+    position: absolute; /* NEW */
+    right: 0;           /* NEW */
+    /* Position it just above the icon bar (approx. 40px height + 5px gap) */
+    bottom: 45px;       /* NEW */
 
-    /* --- UNCHANGED STYLES --- */
+    /* Your other styles are fine */
     width: 350px;
     height: 450px;
     background-color: #1b263b;
@@ -498,7 +495,7 @@ ul li:last-child { border-bottom: none; }
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevents content from spilling out */
+    overflow: hidden;
 }
 
 /* A utility class to hide elements */
