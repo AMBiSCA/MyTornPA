@@ -487,12 +487,9 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    /* --- NEW POSITIONING RULES --- */
-    position: absolute; /* This lifts the window out of the normal layout flow. */
-    bottom: 45px;       /* This positions it 45px from the bottom, right above your icon bar. */
-    right: 0;           /* This aligns it to the right edge. */
+    order: 1; /* <--- ADD THIS LINE */
 
-    /* --- UNCHANGED STYLES --- */
+    /* Your existing styles below should remain unchanged */
     width: 350px;
     height: 450px;
     background-color: #1b263b;
@@ -501,7 +498,7 @@ ul li:last-child { border-bottom: none; }
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevents content from spilling out */
+    overflow: hidden;
 }
 
 /* A utility class to hide elements */
