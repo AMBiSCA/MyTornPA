@@ -445,8 +445,8 @@ ul li:last-child { border-bottom: none; }
 #chat-bar-collapsed {
     /* --- Positioning --- */
     position: fixed;
-    bottom: 13px;
-    right: 8px;
+    bottom: 15px;
+    right: 5px;
     z-index: 1001; /* Keep it on top */
 
     /* --- Layout & Styling (Your original styles) --- */
@@ -492,7 +492,7 @@ ul li:last-child { border-bottom: none; }
 #chat-window {
     /* --- Positioning --- */
     position: fixed;
-    right: 8px;     /* Aligns horizontally with the icon bar */
+    right: 5px;     /* Aligns horizontally with the icon bar */
     bottom: 73px;    /* This is the key: Lifts it above the icon bar */
     z-index: 1000;
 
