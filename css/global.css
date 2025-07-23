@@ -486,6 +486,10 @@ ul li:last-child { border-bottom: none; }
     display: inline; /* Show text on hover of the entire collapsed bar */
 }
 
+.chat-main-tabs-container {
+    display: none;
+}
+
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
     /* --- Positioning --- */
