@@ -491,7 +491,7 @@ ul li:last-child { border-bottom: none; }
     /* --- Positioning --- */
     position: fixed;
     right: 10px;     /* Aligns horizontally with the icon bar */
-    bottom: 65px;    /* This is the key: Lifts it above the icon bar */
+    bottom: 68px;    /* This is the key: Lifts it above the icon bar */
     z-index: 1000;
 
     /* --- Your existing styles --- */
