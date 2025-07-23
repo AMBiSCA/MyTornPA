@@ -562,13 +562,20 @@ ul li:last-child { border-bottom: none; }
     overflow: hidden; 
 }
 
+#tornpa-chat-window-container {
+    position: fixed;
+    bottom: 65px; 
+    right: 0px;
+    z-index: 1001; 
+}
+
 /* Specific styling for Faction, Alliance, and War chat panels */
 #faction-chat-panel,
 #alliance-chat-panel, /* Alliance chat panel */
 #war-chat-panel {
     display: flex; /* Explicitly set display for panels that are flex containers */
     flex-direction: column;
-    height: 100%; /* Ensures they fill the parent height */
+  
 }
 
 /* Styles for the chat header (title and minimize button) */
