@@ -108,22 +108,41 @@ function initializeGlobals() {
 
                 // --- Helper to open a specific chat panel and hide others ---
 function openChatPanel(panelToShow) {
-    // --- NEW CODE TO FIX STACKING ORDER ---
-    // This new block will physically reorder the elements in the HTML to ensure they stack correctly.
+    console.log("--- DEBUGGING LOG: openChatPanel has been called ---");
+
+    // Let's find all the elements we need
     const chatSystem = document.getElementById('tornpa-chat-system');
+    
+    // --- Step 1: Check if the elements exist ---
+    console.log("1. Does chatSystem exist?", chatSystem);
+    console.log("2. Does chatWindow exist?", chatWindow);
+    console.log("3. Does chatBarCollapsed exist?", chatBarCollapsed);
 
-    // Make sure all three elements exist before trying to reorder them
-    if (chatSystem && chatWindow && chatBarCollapsed) {
-        // This moves the chat window to be the first item inside the container,
-        // which forces it to appear on top of the icon bar due to your flexbox CSS.
+    // Only proceed if we found the main container
+    if (chatSystem) {
+        // --- Step 2: Log the order of elements BEFORE we try to change it ---
+        // The 'children' property gives us a list of the elements inside.
+        console.log("4. Children order BEFORE change:", chatSystem.children);
+
+        // This is our attempt to fix the order
         chatSystem.insertBefore(chatWindow, chatBarCollapsed);
-    }
-    // --- END OF NEW CODE ---
 
-    // The rest of the function remains the same
+        // --- Step 3: Log the order of elements IMMEDIATELY AFTER we try to change it ---
+        console.log("5. Children order RIGHT AFTER change:", chatSystem.children);
+        
+        // This checks the order again after a tiny delay, to see if something else changes it back
+        setTimeout(() => {
+            console.log("6. Children order AFTER 100ms DELAY:", chatSystem.children);
+        }, 100);
+
+    } else {
+        console.error("DEBUGGING ERROR: Could not find the main '#tornpa-chat-system' container!");
+    }
+
+    // --- The original code continues below ---
     if (chatWindow) chatWindow.classList.remove('hidden');
     if (chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
-    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs when window opens
+    if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden');
 
     allPanels.forEach(p => p.classList.add('hidden'));
     if (panelToShow) panelToShow.classList.remove('hidden');
