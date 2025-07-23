@@ -438,7 +438,7 @@ ul li:last-child { border-bottom: none; }
 /* Position the new window container in the same spot, but with a higher z-index */
 #tornpa-chat-window-container {
     position: fixed;
-    bottom: 65px;
+    bottom: 67px;
     right: 0px;
     z-index: 1001; /* Sits on top of the icon bar if they were to overlap */
 }
