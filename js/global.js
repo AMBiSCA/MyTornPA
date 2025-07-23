@@ -777,7 +777,6 @@ async function loadRecentPrivateChats(targetDisplayElement) {
 
             if (!otherParticipantUid) return null;
 
-            // Get the other user's profile to find their name and Torn ID
             const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
             if (!userProfileDoc.exists) return null;
             
@@ -785,11 +784,11 @@ async function loadRecentPrivateChats(targetDisplayElement) {
             const friendTornId = profileData.tornProfileId;
             const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
 
-            // Get their profile picture from the 'users' collection
             const userDoc = await db.collection('users').doc(friendTornId).get();
-            const friendImage = userDoc.exists() ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+            
+            // --- THIS IS THE CORRECTED LINE ---
+            const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
 
-            // Get the very last message from the subcollection
             const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
             const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
 
@@ -801,7 +800,7 @@ async function loadRecentPrivateChats(targetDisplayElement) {
             };
         });
 
-        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean); // Filter out any nulls
+        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
 
         let listHtml = '';
         chatDetails.forEach(chat => {
@@ -818,7 +817,6 @@ async function loadRecentPrivateChats(targetDisplayElement) {
         
         targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
 
-        // Add event listener to the container for all chat items
         targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', (event) => {
             const chatItem = event.target.closest('.recent-chat-item');
             if (chatItem) {
