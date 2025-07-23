@@ -1059,7 +1059,7 @@ async function loadRecentPrivateChats(targetDisplayElement) {
         if (!targetCollection) {
             console.error("No valid chat collection determined for sending message.");
             return;
-        }
+        
 
         console.log(`Attempting to send message to ${consoleLogPath}`);
 
