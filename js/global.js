@@ -109,7 +109,7 @@ function initializeGlobals() {
                 // --- Helper to open a specific chat panel and hide others ---
                 function openChatPanel(panelToShow) {
                     if (chatWindow) chatWindow.classList.remove('hidden');
-                    if (chatBarCollapsed) chatBarCollapsed.classList.add('hidden');
+                    
                     if (chatMainTabsContainer) chatMainTabsContainer.classList.remove('hidden'); // Show main tabs when window opens
 
                     allPanels.forEach(p => p.classList.add('hidden'));
