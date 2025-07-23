@@ -1301,12 +1301,7 @@ input:checked + .slider:before {
     margin-left: -2px; /* Pull it slightly closer to the text */
 }
 
-.settings-section .setting-item {
-    /* Ensure flex behavior for items within Alliance Chat Settings */
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px; /* Consistent spacing between items */
-}
+
 
 .settings-section .setting-item:last-child {
     margin-bottom: 0; /* No bottom margin on the last item in a section */
@@ -1319,17 +1314,6 @@ input:checked + .slider:before {
     color: #e0e1dd; /* Consistent text color */
 }
 
-.settings-section #allianceFactionId {
-    /* Input field for Faction ID */
-    flex-grow: 1; /* Allow input to take available space */
-    padding: 8px 10px; /* Slightly reduced padding for compactness */
-    border: 1px solid #778da9; /* Border color from chat inputs */
-    background-color: #0d1b2a; /* Dark background matching chat */
-    color: #e0e1dd; /* Text color */
-    border-radius: 4px; /* Slightly rounded corners */
-    font-size: 0.95em; /* Match general setting input font size */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Subtle inner shadow */
-}
 
 .settings-section #allianceFactionId::placeholder {
     color: #99aab5; /* Lighter placeholder text */
@@ -1342,14 +1326,7 @@ input:checked + .slider:before {
     box-shadow: 0 0 5px rgba(91, 192, 222, 0.5); /* Blue glow on focus */
 }
 
-/* Container for the buttons and info icon */
-.settings-section .setting-item:has(button) {
-    display: flex;
-    justify-content: flex-start; /* Align buttons to the left */
-    gap: 10px; /* Space between buttons and icon */
-    margin-top: 15px; /* Add some space above the buttons */
-    align-items: center; /* Vertically align items */
-}
+
 
 .settings-section .action-button.secondary {
     /* Style for the Save button */
@@ -1384,6 +1361,45 @@ input:checked + .slider:before {
     box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 10px rgba(231, 76, 60, 0.4);
 }
 
+.settings-section #allianceFactionId {
+    /* Existing styles, ensure these are present if not already */
+    flex-grow: 1;
+    padding: 8px 10px;
+    border: 1px solid #778da9;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+
+    /* --- FIXES FOR OVERFLOW --- */
+    box-sizing: border-box; /* Crucial: Include padding and border in the element's total width */
+    min-width: 0;          /* Allow the flex item to shrink below its content size */
+}
+
+/* Ensure the parent setting-item correctly distributes space */
+.settings-section .setting-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    /* Ensure no fixed width that would prevent flex item shrinkage */
+    width: 100%; /* Make sure it takes full width of its parent */
+    box-sizing: border-box; /* Ensures padding on parent doesn't cause overflow */
+    padding: 0 5px; /* Adjust if the parent .settings-item has horizontal padding that wasn't accounted for */
+}
+
+/* You might also want to ensure the setting-item containing buttons behaves well */
+.settings-section .setting-item:has(button) {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+    width: 100%; /* Ensure this also takes full width */
+    box-sizing: border-box;
+    padding: 0 5px; /* Adjust if necessary */
+}
+
 .settings-section .info-icon {
     /* Style for the 'i' icon */
     cursor: pointer;
@@ -1394,6 +1410,7 @@ input:checked + .slider:before {
     position: relative;
     top: 1px; /* Fine-tune vertical alignment */
     transition: color 0.2s;
+	flex-shrink: 0;
 }
 
 .settings-section .info-icon:hover {
