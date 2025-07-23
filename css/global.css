@@ -427,13 +427,20 @@ ul li:last-child { border-bottom: none; }
 /* ======================================= */
 /* ======== CHAT SYSTEM STYLES =========== */
 /* ======================================= */
-#tornpa-chat-system {
+/* Position the new icon bar container in the bottom right */
+#tornpa-icon-bar-container {
     position: fixed;
     bottom: 18px;
     right: 0px;
-    z-index: 1000;
-    font-family: Arial, sans-serif;
-    /* The display:flex properties have been REMOVED. */
+    z-index: 1000; /* Keep it on top of page content */
+}
+
+/* Position the new window container in the same spot, but with a higher z-index */
+#tornpa-chat-window-container {
+    position: fixed;
+    bottom: 18px;
+    right: 0px;
+    z-index: 1001; /* Sits on top of the icon bar if they were to overlap */
 }
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
