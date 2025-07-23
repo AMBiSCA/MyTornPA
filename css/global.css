@@ -444,18 +444,24 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    width: auto; /* Allow width to be flexible based on content */
+    /* These are the new lines that lock it in place */
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    z-index: 1001;
+
+    /* Your existing styles are all great */
+    width: auto;
     padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex; /* Display icons side-by-side */
-    gap: 5px; /* Space between icons */
-    margin-bottom: 5px; /* Space between collapsed bar and expanded window */
-    cursor: pointer; /* Indicate it's clickable */
-    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover */
+    display: flex;
+    gap: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .chat-bar-icon {
@@ -484,16 +490,22 @@ ul li:last-child { border-bottom: none; }
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
-    width: 350px; /* A little wider for tabs */
-    height: 450px; /* A little taller */
+    /* These new lines make the window float above the page */
+    position: fixed;
+    bottom: 75px;   /* Positioned just above the icon bar */
+    left: 10px;
+    z-index: 1000;  /* A layer number below the icon bar */
+
+    /* Your existing styles are perfect */
+    width: 350px;
+    height: 450px;
     background-color: #1b263b;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevents content from spilling out */
-    /* Position is handled by parent #tornpa-chat-system now, no need for individual positioning here */
+    overflow: hidden;
 }
 
 /* A utility class to hide elements */
