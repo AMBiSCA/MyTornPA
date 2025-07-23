@@ -746,6 +746,94 @@ async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElem
     closeButton.addEventListener('click', newCloseButtonListener);
 }
 
+async function loadRecentPrivateChats(targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Recent Chats tab.");
+        return;
+    }
+    targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
+        return;
+    }
+
+    try {
+        const chatsSnapshot = await db.collection('privateChats')
+            .where('participants', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageAt', 'desc')
+            .limit(20)
+            .get();
+
+        if (chatsSnapshot.empty) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
+            return;
+        }
+
+        const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
+            const chatData = doc.data();
+            const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
+
+            if (!otherParticipantUid) return null;
+
+            // Get the other user's profile to find their name and Torn ID
+            const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
+            if (!userProfileDoc.exists) return null;
+            
+            const profileData = userProfileDoc.data();
+            const friendTornId = profileData.tornProfileId;
+            const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
+
+            // Get their profile picture from the 'users' collection
+            const userDoc = await db.collection('users').doc(friendTornId).get();
+            const friendImage = userDoc.exists() ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+
+            // Get the very last message from the subcollection
+            const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
+            const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
+
+            return {
+                tornId: friendTornId,
+                name: friendName,
+                image: friendImage,
+                lastMessage: lastMessage.text
+            };
+        });
+
+        const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean); // Filter out any nulls
+
+        let listHtml = '';
+        chatDetails.forEach(chat => {
+            listHtml += `
+                <div class="recent-chat-item" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}" title="Open chat with ${chat.name}">
+                    <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
+                    <div class="rc-details">
+                        <span class="rc-name">${chat.name}</span>
+                        <span class="rc-last-message">${chat.lastMessage}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
+
+        // Add event listener to the container for all chat items
+        targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', (event) => {
+            const chatItem = event.target.closest('.recent-chat-item');
+            if (chatItem) {
+                const friendId = chatItem.dataset.friendId;
+                const friendName = chatItem.dataset.friendName;
+                openPrivateChatWindow(friendId, friendName);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error populating Recent Chats tab:", error);
+        targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
+    }
+}
+
 
     async function populateIgnoreListTab(targetDisplayElement) {
         if (!targetDisplayElement) {

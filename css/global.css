@@ -1417,6 +1417,54 @@ input:checked + .slider:before {
     color: #5bc0de; /* Highlight on hover */
 }
 
+.recent-chats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px; /* Small space between chat items */
+}
+
+.recent-chat-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: #1b263b;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.recent-chat-item:hover {
+    background-color: #3a506b;
+}
+
+.rc-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.rc-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Important for text truncation */
+}
+
+.rc-name {
+    font-weight: bold;
+    color: #e0e1dd;
+    white-space: nowrap;
+}
+
+.rc-last-message {
+    font-size: 0.9em;
+    color: #778da9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds "..." if the message is too long */
+}
 
 @media (max-width: 768px) {
 
