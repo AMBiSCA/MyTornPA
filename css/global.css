@@ -486,16 +486,14 @@ ul li:last-child { border-bottom: none; }
     display: inline; /* Show text on hover of the entire collapsed bar */
 }
 
-.chat-main-tabs-container {
-    display: none;
-}
+
 
 /* --- Expanded Chat Window Styles --- */
 #chat-window {
     /* --- Positioning --- */
     position: fixed;
     right: 10px;     /* Aligns horizontally with the icon bar */
-    bottom: 70px;    /* This is the key: Lifts it above the icon bar */
+    bottom: 72px;    /* This is the key: Lifts it above the icon bar */
     z-index: 1000;
 
     /* --- Your existing styles --- */
@@ -521,7 +519,7 @@ ul li:last-child { border-bottom: none; }
 
 /* Main container for the tab buttons */
 .chat-main-tabs-container {
-    display: flex;
+    display: none;
     justify-content: space-between; /* This pushes the two inner containers apart */
     background-color: #0d1b2a;
     padding: 3px;
