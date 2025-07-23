@@ -166,14 +166,13 @@ function initializeGlobals() {
                     });
                 }
 
-                // --- Minimize Button Logic ---
-                minimizeChatBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        if (chatWindow) chatWindow.classList.add('hidden');
-                        if (chatBarCollapsed) chatBarCollapsed.classList.remove('hidden');
-                        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden'); // Hide main tabs too
-                    });
-                });
+              // --- Minimize Button Logic ---
+minimizeChatBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (chatWindow) chatWindow.classList.add('hidden');
+        if (chatMainTabsContainer) chatMainTabsContainer.classList.add('hidden');
+    });
+});
 
                 // --- Tab Switching Logic for main tabs ---
                 allTabs.forEach(tab => {
