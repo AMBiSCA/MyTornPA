@@ -427,48 +427,35 @@ ul li:last-child { border-bottom: none; }
 /* ======================================= */
 /* ======== CHAT SYSTEM STYLES =========== */
 /* ======================================= */
-/* Position the new icon bar container in the bottom right */
-#tornpa-icon-bar-container {
-    position: fixed;
-    bottom: 18px;
-    right: 0px;
-    z-index: 1000; /* Keep it on top of page content */
-}
 
-/* Position the new window container in the same spot, but with a higher z-index */
-#tornpa-chat-window-container {
-    position: fixed;
-    bottom: 67px;
-    right: 0px;
-    z-index: 1001; /* Sits on top of the icon bar if they were to overlap */
+#tornpa-chat-system {
+    /* This makes it stick to the bottom right of the screen */
+    position: fixed; /* Keep it fixed relative to the viewport */
+    bottom: 18px;    /* 18px from the bottom */
+    right: 0px;      /* 0px from the right */
+    z-index: 1000;   /* Ensures it sits on top of other content */
+    font-family: Arial, sans-serif;
+    
+    /* Ensure flexbox behavior for stacking the collapsed bar above the window */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Aligns its children (collapsed bar, chat window) to the right */
 }
 
 /* --- Collapsed Chat Bar Styles --- */
 #chat-bar-collapsed {
-    width: auto;
+    width: auto; /* Allow width to be flexible based on content */
     padding: 5px;
     background-color: #0d1b2a;
     color: #e0e1dd;
     border: 1px solid #415a77;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex;
-    gap: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* --- Expanded Chat Window Styles --- */
-#chat-window {
-    width: 350px;
-    height: 450px;
-    background-color: #1b263b;
-    border: 1px solid #415a77;
-    border-radius: 5px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    display: flex; /* Display icons side-by-side */
+    gap: 5px; /* Space between icons */
+    margin-bottom: 5px; /* Space between collapsed bar and expanded window */
+    cursor: pointer; /* Indicate it's clickable */
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover */
 }
 
 .chat-bar-icon {
@@ -496,7 +483,18 @@ ul li:last-child { border-bottom: none; }
 }
 
 /* --- Expanded Chat Window Styles --- */
-
+#chat-window {
+    width: 350px; /* A little wider for tabs */
+    height: 450px; /* A little taller */
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevents content from spilling out */
+    /* Position is handled by parent #tornpa-chat-system now, no need for individual positioning here */
+}
 
 /* A utility class to hide elements */
 .hidden {
@@ -556,15 +554,11 @@ ul li:last-child { border-bottom: none; }
     flex-direction: column;
 }
 
-/* Corrected rule for all chat content panels */
 .chat-panel {
     width: 100%;
-    /* This makes the active panel fill the remaining vertical space */
-    flex-grow: 1;
+    height: 100%;
     display: flex;
-    flex-direction: column;
-    /* This prevents the panel itself from causing scroll issues */
-    overflow: hidden; 
+    flex-direction: column; /* Ensure panels are column flex containers */
 }
 
 /* Specific styling for Faction, Alliance, and War chat panels */
