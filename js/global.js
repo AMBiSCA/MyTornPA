@@ -367,6 +367,44 @@ if (ignoreListSubTab) {
         }
     });
 	
+	function openPrivateChatWindow(userId, userName) {
+    // First, remove any other private chat window that might be open
+    const existingWindow = document.querySelector('.private-chat-window');
+    if (existingWindow) {
+        existingWindow.remove();
+    }
+
+    // Create the main window container
+    const chatDiv = document.createElement('div');
+    chatDiv.className = 'private-chat-window';
+    chatDiv.id = `private-chat-window-${userId}`;
+
+    // Create the inner HTML for the window
+    chatDiv.innerHTML = `
+        <div class="pcw-header">
+            <span class="pcw-title" title="${userName} [${userId}]">Chat with ${userName}</span>
+            <button class="pcw-close-btn" title="Close">×</button>
+        </div>
+        <div class="pcw-messages">
+            <p style="color: #888;">Loading messages...</p>
+        </div>
+        <div class="pcw-input-area">
+            <input type="text" class="pcw-input" placeholder="Type a message...">
+            <button class="pcw-send-btn">Send</button>
+        </div>
+    `;
+
+    // Add the new chat window to the page
+    document.body.appendChild(chatDiv);
+
+    // Make the close button work
+    chatDiv.querySelector('.pcw-close-btn').addEventListener('click', () => {
+        chatDiv.remove();
+    });
+
+    // TODO: Add logic here to load past messages and set up sending new ones
+}
+	
 	async function populateFriendListTab(targetDisplayElement) {
     if (!targetDisplayElement) {
         console.error("HTML Error: Target display element not provided for Friend List tab.");
@@ -405,7 +443,7 @@ if (ignoreListSubTab) {
 
         let cardsHtml = '';
         friendDetails.forEach(friend => {
-            const tornMessageUrl = `https://www.torn.com/messages.php#/p=compose&XID=${friend.id}`;
+            // --- CHANGE IS HERE: The link is now a button with data attributes ---
             cardsHtml += `
                 <div class="member-item">
                     <div class="member-identity">
@@ -413,7 +451,7 @@ if (ignoreListSubTab) {
                         <a href="https://www.torn.com/profiles.php?XID=${friend.id}" target="_blank" class="member-name">${friend.name}</a>
                     </div>
                     <div class="member-actions">
-                        <a href="${tornMessageUrl}" target="_blank" class="item-button" title="Send Message on Torn">✉️</a>
+                        <button class="item-button message-friend-button" data-friend-id="${friend.id}" data-friend-name="${friend.name}" title="Send Message">✉️</button>
                         <button class="item-button remove-friend-button" data-friend-id="${friend.id}" title="Remove Friend">🗑️</button>
                     </div>
                 </div>`;
@@ -425,15 +463,23 @@ if (ignoreListSubTab) {
         targetDisplayElement.innerHTML = '';
         targetDisplayElement.appendChild(membersListContainer);
 
-        // Add event listener for remove buttons
+        // Add event listener for remove and message buttons
         membersListContainer.addEventListener('click', async (event) => {
-            if (event.target.classList.contains('remove-friend-button')) {
-                const friendIdToRemove = event.target.dataset.friendId;
+            const removeButton = event.target.closest('.remove-friend-button');
+            const messageButton = event.target.closest('.message-friend-button');
+
+            if (removeButton) {
+                const friendIdToRemove = removeButton.dataset.friendId;
                 const userConfirmed = await showCustomConfirm(`Are you sure you want to remove friend [${friendIdToRemove}]?`, "Confirm Removal");
                 if (userConfirmed) {
                     await db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete();
                     populateFriendListTab(targetDisplayElement); // Refresh the list
                 }
+            } else if (messageButton) {
+                // --- CHANGE IS HERE: This handles the click on the new message button ---
+                const friendId = messageButton.dataset.friendId;
+                const friendName = messageButton.dataset.friendName;
+                openPrivateChatWindow(friendId, friendName);
             }
         });
 

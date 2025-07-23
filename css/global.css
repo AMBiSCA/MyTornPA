@@ -1200,6 +1200,98 @@ input:checked + .slider:before {
     background: #5bc0de;
 }
 
+/* ======================================= */
+/* ====== PRIVATE CHAT WINDOW STYLES ===== */
+/* ======================================= */
+
+.private-chat-window {
+    position: fixed;
+    bottom: 10px;
+    /* Main chat is 350px wide + at 10px from edge. 350 + 10 + 10 space = 370px */
+    right: 370px; 
+    width: 300px;
+    height: 400px;
+    z-index: 999; /* Below the main chat window but above other content */
+
+    display: flex;
+    flex-direction: column;
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.pcw-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #0d1b2a; /* Darker header */
+    border-bottom: 1px solid #415a77;
+    color: #e0e1dd;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.pcw-title {
+    font-size: 1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pcw-close-btn {
+    background: none;
+    border: 1px solid #778da9;
+    color: #e0e1dd;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0px 6px;
+    line-height: 1.2;
+    border-radius: 3px;
+}
+.pcw-close-btn:hover {
+    background-color: #778da9;
+    color: #0d1b2a;
+}
+
+.pcw-messages {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    color: #e0e1dd;
+}
+
+.pcw-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0;
+}
+
+.pcw-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.pcw-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #5bc0de;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+}
+.pcw-send-btn:hover {
+    background-color: #4a9ecf;
+}
+
 
 @media (max-width: 768px) {
 
