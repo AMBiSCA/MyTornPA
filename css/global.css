@@ -18,7 +18,7 @@ body {
     z-index: 0;
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradient background */
     padding-top: 70px; /* Space for fixed header */
-    padding-bottom: 70px; /* Space for fixed footer */
+    padding-bottom: 70px; /* Space for fixedoter */
     min-height: 100vh; /* Ensure body takes full viewport height */
 
     /* --- IMPORTANT FIX: Allow overall page scrolling --- */
@@ -1518,17 +1518,6 @@ input:checked + .slider:before {
     justify-content: center;
     gap: 15px;
     margin-top: 20px;
-}
-
-.chat-message.my-message .chat-sender {
-    color: #5bc0de; /* Brighter color for "You" */
-}
-
-.chat-message.my-message {
-    background-color: rgba(91, 192, 222, 0.1);
-    border-left: 3px solid #5bc0de;
-    padding-left: 7px; /* Adjust padding to account for the border */
-    margin-left: -10px; /* Pull it back to align with other messages */
 }
 
 @media (max-width: 768px) {
