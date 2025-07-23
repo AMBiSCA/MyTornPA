@@ -1414,7 +1414,7 @@ input:checked + .slider:before {
 }
 
 .settings-section .info-icon:hover {
-    color: #5bc0de; /* Highlight on hover */
+    color: #5bc0de; /* Highlight n hover */
 }
 
 .recent-chats-list {
