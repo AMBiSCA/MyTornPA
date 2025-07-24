@@ -1,5 +1,6 @@
-// Import Firebase Admin SDK
+// Import Firebase Admin SDK and node-fetch
 const admin = require('firebase-admin');
+const fetch = require('node-fetch'); // Added this line to make API calls work
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
@@ -15,7 +16,6 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error("Firebase Admin initialization error in worker:", error.stack);
-        // This worker function should indicate failure if Firebase init fails
         exports.handler = async (event, context) => {
             return {
                 statusCode: 500,
@@ -38,8 +38,8 @@ exports.handler = async (event, context) => {
     }
 
     // --- Security Check: Validate the secret header ---
-    const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET; // Ensure this env var is set
-    const incomingSecret = event.headers['x-worker-secret']; // Netlify converts header names to lowercase
+    const WORKER_FUNCTION_SECRET = process.env.WORKER_FUNCTION_SECRET;
+    const incomingSecret = event.headers['x-worker-secret'];
 
     if (!WORKER_FUNCTION_SECRET || incomingSecret !== WORKER_FUNCTION_SECRET) {
         console.warn("[Worker] Unauthorized access attempt or missing secret header.");
@@ -71,7 +71,8 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
+        // --- MODIFIED: Added 'icons' to the selections string ---
+        const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars,icons";
         const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch`;
 
         console.log(`[Worker] Fetching data for Torn ID: ${tornProfileId}`);
@@ -87,7 +88,10 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Prepare the data to be saved (same structure as previous functions)
+        // --- NEW: Check for energy refill status from the 'icons' data ---
+        const energyRefillUsed = data.basicicons ? ('icon30' in data.basicicons) : false;
+
+        // Prepare the data to be saved
         const userDataToSave = {
             name: data.name,
             level: data.level,
@@ -120,10 +124,11 @@ exports.handler = async (event, context) => {
                 intelligence: data.intelligence || data.workstats?.intelligence || 0,
                 endurance: data.endurance || data.workstats?.endurance || 0,
             },
+            energyRefillUsed: energyRefillUsed, // --- ADDED: The new refill status field ---
             lastUpdated: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        // Save to Firestore 'users' collection (using the user's Torn ID as document ID)
+        // Save to Firestore 'users' collection
         await db.collection('users').doc(String(tornProfileId)).set(userDataToSave, { merge: true });
 
         console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId}`);
