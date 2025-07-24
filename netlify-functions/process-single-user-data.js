@@ -16,6 +16,7 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error("Firebase Admin initialization error in worker:", error.stack);
+        // This 'exports.handler' is a fallback for cold start errors, the main one is below
         exports.handler = async (event, context) => {
             return {
                 statusCode: 500,
@@ -60,11 +61,23 @@ exports.handler = async (event, context) => {
         const response = await fetch(apiUrl);
         const data = await response.json();
 
-        if (!response.ok || data.error) {
-            const errorMessage = data.error ? data.error.error : `HTTP error! status: ${response.status}`;
+        // Handle Torn API errors
+        if (data.error) { // Check for Torn API's internal error object first
+            const errorMessage = data.error.error;
             console.error(`[Worker] Torn API Error for ${tornProfileId}:`, errorMessage);
+            // Specifically capture "Access level not high enough" error for better debugging
+            if (data.error.code === 2 || data.error.code === 10) { // Code 2: Invalid Key, Code 10: Access Level too low
+                 return { statusCode: 403, body: JSON.stringify({ message: `Torn API Key Error for ${tornProfileId}: ${errorMessage}. Please check API key permissions.` })};
+            }
             return { statusCode: 500, body: JSON.stringify({ message: `Torn API Error for ${tornProfileId}: ${errorMessage}` })};
         }
+        // Handle HTTP errors (e.g., 404, 500 from Torn server itself)
+        if (!response.ok) {
+            const errorMessage = `HTTP error! status: ${response.status} ${response.statusText}`;
+            console.error(`[Worker] HTTP Error for ${tornProfileId}:`, errorMessage);
+            return { statusCode: response.status, body: JSON.stringify({ message: `HTTP Error for ${tornProfileId}: ${errorMessage}` })};
+        }
+
 
         const userRef = db.collection('users').doc(String(tornProfileId));
         const userDoc = await userRef.get();
@@ -75,14 +88,13 @@ exports.handler = async (event, context) => {
         const tornMidnightUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate()));
 
         // Get latest lifetime refill counts from Torn API
-        // Prioritize specific 'other.refills' then fallback to 'personalstats.refills' or 'personalstats.nerverefills'
         const currentApiEnergyRefills = (data.personalstats?.other?.refills?.energy ?? data.personalstats?.refills) || 0;
         const currentApiNerveRefills = (data.personalstats?.other?.refills?.nerve ?? data.personalstats?.nerverefills) || 0;
 
         // Get stored values from Firestore
         let storedLastKnownEnergyRefills = storedData.lastKnownEnergyRefills || 0;
         let storedLastKnownNerveRefills = storedData.lastKnownNerveRefills || 0;
-        let storedLastDailyRefillResetTime = storedData.lastDailyRefillResetTime?.toDate() || new Date(0);
+        let storedLastDailyRefillResetTime = storedData.lastDailyRefillResetTime?.toDate() || new Date(0); // Convert Firestore Timestamp to JS Date
 
         let energyRefillUsedToday = storedData.energyRefillUsedToday || false;
         let nerveRefillUsedToday = storedData.nerveRefillUsedToday || false;
@@ -98,7 +110,7 @@ exports.handler = async (event, context) => {
             storedLastKnownEnergyRefills = currentApiEnergyRefills;
             storedLastKnownNerveRefills = currentApiNerveRefills;
 
-            storedLastDailyRefillResetTime = tornMidnightUtc; // Record the current Torn midnight
+            storedLastDailyRefillResetTime = tornMidnightUtc; // Record the current Torn midnight as a JS Date
         } else {
             // Still the same Torn day as last check
             // Check if lifetime refills have increased since the last known count for this day
@@ -152,7 +164,8 @@ exports.handler = async (event, context) => {
             nerveRefillUsedToday: nerveRefillUsedToday,
             lastKnownEnergyRefills: storedLastKnownEnergyRefills, // Update with latest
             lastKnownNerveRefills: storedLastKnownNerveRefills,   // Update with latest
-            lastDailyRefillResetTime: admin.firestore.FieldValue.Timestamp.fromDate(storedLastDailyRefillResetTime), // Store as Firestore Timestamp
+            // Correct way to convert JS Date to Firestore Timestamp using Admin SDK
+            lastDailyRefillResetTime: admin.firestore.Timestamp.fromDate(storedLastDailyRefillResetTime), 
             lastUpdated: admin.firestore.FieldValue.serverTimestamp() // Keep this as general update timestamp
         };
 
