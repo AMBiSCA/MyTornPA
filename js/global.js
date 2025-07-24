@@ -64,7 +64,8 @@ function initializeGlobals() {
                 const chatBarCollapsed = document.getElementById('chat-bar-collapsed');
                 const chatWindow = document.getElementById('chat-window');
                 const chatMainTabsContainer = document.querySelector('.chat-main-tabs-container');
-
+                const openGraphIcon = document.getElementById('open-graph-icon');
+                const factionOverviewPanel = document.getElementById('faction-overview-panel');
                 const openFactionChatIcon = document.getElementById('open-faction-chat-icon');
                 const openWarChatIcon = document.getElementById('open-war-chat-icon');
                 const openFriendsIcon = document.getElementById('open-friends-icon');
@@ -175,6 +176,13 @@ function initializeGlobals() {
                         // as it's for adding new ones now.
                         allianceFactionIdInput.value = ''; // Clear the input field for new entry
                         updateAllianceInfoIconTitle(); // Update tooltip to show all saved IDs
+                    });
+                }
+				
+				if (openGraphIcon) {
+                    openGraphIcon.addEventListener('click', () => {
+                        openChatPanel(factionOverviewPanel);
+                        populateFactionOverview(); // This calls the function to load the data
                     });
                 }
 
@@ -433,6 +441,114 @@ function initializeGlobals() {
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
+	
+	async function populateFactionOverview() {
+    const overviewContent = document.getElementById('faction-overview-content');
+    if (!overviewContent) {
+        console.error("Faction Overview panel content area not found!");
+        return;
+    }
+
+    overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
+
+    try {
+        // Use the global variables for the current user's faction and API key
+        const factionId = window.currentUserFactionId;
+        const apiKey = window.userTornApiKey;
+
+        if (!factionId || !apiKey) {
+            overviewContent.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
+            return;
+        }
+
+        // 1. Fetch live member list from Torn API to get up-to-date status and revive settings
+        const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${apiKey}&comment=MyTornPA_Overview`;
+        const apiResponse = await fetch(factionApiUrl);
+        const tornData = await apiResponse.json();
+        
+        if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
+        
+        const membersFromApi = Object.values(tornData.members || {});
+        const memberIds = membersFromApi.map(member => member.user_id);
+
+        if (memberIds.length === 0) {
+            overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
+            return;
+        }
+
+        // 2. Fetch corresponding detailed stats from our 'users' collection in Firestore
+        const usersSnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', memberIds).get();
+        const firestoreDataMap = new Map();
+        usersSnapshot.forEach(doc => {
+            firestoreDataMap.set(doc.id, doc.data());
+        });
+
+        // 3. Combine data and build HTML for each member
+        const memberHtml = membersFromApi.map(apiMember => {
+            const memberId = apiMember.user_id;
+            const firestoreMember = firestoreDataMap.get(memberId) || {};
+
+            const name = apiMember.name;
+            const energy = `${firestoreMember.energy?.current || 0} / 1000`;
+            const drugCooldown = firestoreMember.cooldowns?.drug || 0;
+            const reviveSetting = apiMember.revive_setting || "No one";
+            const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
+            const status = apiMember.status.description;
+
+            // --- Helper logic for styling ---
+            let drugCdHtml = `<span class="status-okay">None</span>`;
+            if (drugCooldown > 0) {
+                const hours = Math.floor(drugCooldown / 3600);
+                const minutes = Math.floor((drugCooldown % 3600) / 60);
+                const cdText = `${hours}hr ${minutes}m`;
+                const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
+                drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
+            }
+
+            let reviveCircleClass = 'rev-circle-red'; // Default to red for "No one"
+            if (reviveSetting === 'Everyone') {
+                reviveCircleClass = 'rev-circle-green';
+            } else if (reviveSetting === 'Friends & faction') {
+                reviveCircleClass = 'rev-circle-orange';
+            }
+
+            let statusClass = 'status-okay';
+            if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
+            if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
+
+
+            return `
+                <div class="overview-member-row">
+                    <span class="overview-name">${name}</span>
+                    <span class="overview-energy">${energy}</span>
+                    <span class="overview-drugcd">${drugCdHtml}</span>
+                    <span class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></span>
+                    <span class="overview-refill">${energyRefillUsed}</span>
+                    <span class="overview-status ${statusClass}">${status}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // 4. Final HTML structure with headers
+        overviewContent.innerHTML = `
+            <div class="overview-header-row">
+                <span>Name</span>
+                <span>E / 1000</span>
+                <span>Drug CD</span>
+                <span>Rev</span>
+                <span>Refill</span>
+                <span>Status</span>
+            </div>
+            <div class="overview-list-container">
+                ${memberHtml}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error("Error populating Faction Overview:", error);
+        overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+    }
+}
 
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
     async function addOrUpdateUserAllianceId(newAllianceId) {
