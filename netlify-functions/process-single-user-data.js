@@ -1,6 +1,6 @@
 // Import Firebase Admin SDK and node-fetch
 const admin = require('firebase-admin');
-const fetch = require('node-fetch'); // Added this line to make API calls work
+const fetch = require('node-fetch');
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
@@ -78,6 +78,9 @@ exports.handler = async (event, context) => {
         const response = await fetch(apiUrl);
         const data = await response.json();
 
+        // --- TEMPORARY DEBUGGING LINE ---
+        console.log(`[Worker] Received basicicons for ${tornProfileId}:`, JSON.stringify(data.basicicons || {}));
+
         if (!response.ok || data.error) {
             const errorMessage = data.error ? data.error.error : `HTTP error! status: ${response.status} ${response.statusText}`;
             console.error(`[Worker] Torn API Error for ${tornProfileId}:`, errorMessage);
@@ -87,11 +90,9 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // Check for energy and nerve refill status from the 'icons' data
         const energyRefillUsed = data.basicicons ? ('icon30' in data.basicicons) : false;
-        const nerveRefillUsed = data.basicicons ? ('icon29' in data.basicicons) : false; // NEW: Added nerve refill check
+        const nerveRefillUsed = data.basicicons ? ('icon29' in data.basicicons) : false;
 
-        // Prepare the data to be saved
         const userDataToSave = {
             name: data.name,
             level: data.level,
@@ -125,11 +126,10 @@ exports.handler = async (event, context) => {
                 endurance: data.endurance || data.workstats?.endurance || 0,
             },
             energyRefillUsed: energyRefillUsed,
-            nerveRefillUsed: nerveRefillUsed, // NEW: Added the new nerve refill field
+            nerveRefillUsed: nerveRefillUsed,
             lastUpdated: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        // Save to Firestore 'users' collection
         await db.collection('users').doc(String(tornProfileId)).set(userDataToSave, { merge: true });
 
         console.log(`[Worker] Successfully fetched and saved data for Torn ID: ${tornProfileId}`);
