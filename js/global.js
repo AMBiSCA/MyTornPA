@@ -180,12 +180,11 @@ function initializeGlobals() {
                 }
 				
 				if (openGraphIcon) {
-                    openGraphIcon.addEventListener('click', () => {
-                        openChatPanel(factionOverviewPanel);
-                        populateFactionOverview(); // This calls the function to load the data
-                    });
-                }
-
+    openGraphIcon.addEventListener('click', () => {
+        openChatPanel(factionOverviewPanel);
+        populateFactionOverview(db); // MODIFIED: Pass the 'db' variable here
+    });
+}
                 // NEW: Save Alliance ID button listener
                 if (saveAllianceButton) {
                     saveAllianceButton.addEventListener('click', async () => {
