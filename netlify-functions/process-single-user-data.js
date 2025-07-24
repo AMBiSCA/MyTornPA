@@ -16,7 +16,6 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error("Firebase Admin initialization error in worker:", error.stack);
-        // This setup is for handling errors during the function's cold start
         exports.handler = async (event, context) => {
             return {
                 statusCode: 500,
@@ -71,8 +70,9 @@ exports.handler = async (event, context) => {
         const userDoc = await userRef.get();
         const storedData = userDoc.exists ? userDoc.data() : {};
 
-        const newEnergyRefills = data.personalstats?.other?.refills?.energy || 0;
-        const newNerveRefills = data.personalstats?.other?.refills?.nerve || 0;
+        // --- MODIFIED REFILL LOGIC TO HANDLE BOTH API STRUCTURES ---
+        const newEnergyRefills = data.personalstats?.other?.refills?.energy ?? data.personalstats?.refills || 0;
+        const newNerveRefills = data.personalstats?.other?.refills?.nerve ?? data.personalstats?.nerverefills || 0;
 
         const storedEnergyCount = storedData.energyRefillCount || 0;
         const storedNerveCount = storedData.nerveRefillCount || 0;
@@ -93,6 +93,7 @@ exports.handler = async (event, context) => {
         if (newNerveRefills > storedNerveCount) {
             nerveRefillUsed = true;
         }
+        // --- END OF REFILL LOGIC ---
 
         const userDataToSave = {
             name: data.name,
@@ -131,7 +132,6 @@ exports.handler = async (event, context) => {
             energyRefillCount: newEnergyRefills,
             nerveRefillCount: newNerveRefills,
             lastRefillUpdate: admin.firestore.FieldValue.serverTimestamp(),
-            // --- FIXED: Added the missing comma on the line above ---
             lastUpdated: admin.firestore.FieldValue.serverTimestamp()
         };
 
