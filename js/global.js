@@ -463,11 +463,11 @@ function initializeGlobals() {
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
-        
+
         if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
-        
+
         const memberIds = Object.keys(tornData.members || {});
-        
+
         if (memberIds.length === 0) {
             overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
             return;
@@ -475,11 +475,10 @@ function initializeGlobals() {
 
         const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
-        
+
         const memberHtmlPromises = membersToSort.map(async (apiMember) => {
             const memberId = apiMember.id;
-            
-            // --- THIS IS THE CORRECTED LINE ---
+
             // Explicitly ensures the memberId is a string before calling the database.
             const userDoc = await db.collection('users').doc(String(memberId)).get();
             const firestoreMember = userDoc.exists ? userDoc.data() : {};
@@ -487,7 +486,11 @@ function initializeGlobals() {
             const name = apiMember.name;
             const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
-            const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
+
+            // *** THE CRITICAL CHANGE IS HERE ***
+            // Use apiMember.revive_setting directly as a string for comparison
+            const reviveSettingText = apiMember.revive_setting; // This will be "Everyone", "Friends & faction", or "No one"
+
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
@@ -500,9 +503,13 @@ function initializeGlobals() {
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
 
-            let reviveCircleClass = 'rev-circle-red';
-            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
-            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
+            let reviveCircleClass = 'rev-circle-red'; // Default to red
+            if (reviveSettingText === 'Everyone') {
+                reviveCircleClass = 'rev-circle-green';
+            } else if (reviveSettingText === 'Friends & faction') {
+                reviveCircleClass = 'rev-circle-orange';
+            }
+            // If reviveSettingText is 'No one', it remains 'rev-circle-red' as intended.
 
             let statusClass = 'status-okay';
             if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
@@ -513,7 +520,7 @@ function initializeGlobals() {
                     <td class="overview-name">${name}</td>
                     <td class="overview-energy energy-text">${energy}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
-                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
+                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSettingText}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
