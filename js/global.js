@@ -488,11 +488,13 @@ function initializeGlobals() {
             const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
 
-            // *** THE CRITICAL CHANGE IS HERE ***
-            // Use apiMember.revive_setting directly as a string for comparison
-            const reviveSettingText = apiMember.revive_setting; // This will be "Everyone", "Friends & faction", or "No one"
+            const reviveSettingText = apiMember.revive_setting; 
 
-            const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
+            // --- MOVED AND CORRECTED: This now uses the firestoreMember data ---
+            const energyRefillUsedToday = firestoreMember.energyRefillUsedToday; // This is the boolean from your worker
+            const refillStatusHtml = energyRefillUsedToday ? '<span class="status-red">Used</span>' : '<span class="status-green">Available</span>';
+            // --- END MOVED AND CORRECTED ---
+
             const status = apiMember.status.description;
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
@@ -510,7 +512,6 @@ function initializeGlobals() {
             } else if (reviveSettingText === 'Friends & faction') {
                 reviveCircleClass = 'rev-circle-orange';
             }
-            // If reviveSettingText is 'No one', it remains 'rev-circle-red' as intended.
 
             let statusClass = 'status-okay';
             if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
