@@ -71,7 +71,6 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        // --- MODIFIED: Added 'icons' to the selections string ---
         const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars,icons";
         const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_WorkerFetch`;
 
@@ -88,8 +87,9 @@ exports.handler = async (event, context) => {
             };
         }
 
-        // --- NEW: Check for energy refill status from the 'icons' data ---
+        // Check for energy and nerve refill status from the 'icons' data
         const energyRefillUsed = data.basicicons ? ('icon30' in data.basicicons) : false;
+        const nerveRefillUsed = data.basicicons ? ('icon29' in data.basicicons) : false; // NEW: Added nerve refill check
 
         // Prepare the data to be saved
         const userDataToSave = {
@@ -124,7 +124,8 @@ exports.handler = async (event, context) => {
                 intelligence: data.intelligence || data.workstats?.intelligence || 0,
                 endurance: data.endurance || data.workstats?.endurance || 0,
             },
-            energyRefillUsed: energyRefillUsed, // --- ADDED: The new refill status field ---
+            energyRefillUsed: energyRefillUsed,
+            nerveRefillUsed: nerveRefillUsed, // NEW: Added the new nerve refill field
             lastUpdated: admin.firestore.FieldValue.serverTimestamp()
         };
 
