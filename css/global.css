@@ -497,7 +497,7 @@ ul li:last-child { border-bottom: none; }
     z-index: 1000;
 
     /* --- Your existing styles --- */
-    width: 350px;
+    width: 375px;
     height: 450px;
     background-color: #1b263b;
     border: 1px solid #415a77;
