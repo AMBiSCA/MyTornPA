@@ -1542,7 +1542,7 @@ input:checked + .slider:before {
 .overview-member-row {
     display: grid;
     /* Adjusted column widths for new headers and better spacing */
-    grid-template-columns: 3fr 1.5fr 1.2fr 0.5fr 1fr 2fr;
+    grid-template-columns: minmax(80px, 2.5fr) 1.5fr 1.2fr 35px 1fr 2fr;
     align-items: center;
     gap: 0; /* Remove gap to make borders connect */
     font-size: 13px;
@@ -1552,7 +1552,7 @@ input:checked + .slider:before {
 .overview-header-row {
     font-weight: bold;
     color: #bdc3c7;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: #0d1b2a; /* Darker header background */
     position: sticky;
     top: 0;
     z-index: 1;
@@ -1560,8 +1560,8 @@ input:checked + .slider:before {
 
 .overview-header-row span,
 .overview-member-row span {
-    padding: 8px 5px; /* Add padding inside each cell */
-    border-right: 1px solid #2c3e50; /* Add vertical grid lines */
+    padding: 8px 5px;
+    border-right: 1px solid #2c3e50;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1569,7 +1569,7 @@ input:checked + .slider:before {
 
 .overview-header-row span:last-child,
 .overview-member-row span:last-child {
-    border-right: none; /* Remove border from the last cell in a row */
+    border-right: none;
 }
 
 .overview-member-row:nth-child(even) {
@@ -1586,7 +1586,8 @@ input:checked + .slider:before {
 }
 
 .overview-status {
-    white-space: normal; /* Allow status text to wrap if needed */
+    white-space: normal;
+    word-break: break-word;
 }
 
 
@@ -1616,7 +1617,6 @@ input:checked + .slider:before {
 }
 .overview-list-container::-webkit-scrollbar-track {
     background: #1b263b;
-    border-radius: 10px;
 }
 .overview-list-container::-webkit-scrollbar-thumb {
     background-color: #415a77;
