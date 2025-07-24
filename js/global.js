@@ -452,7 +452,6 @@ function initializeGlobals() {
     overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
 
     try {
-        // Use the global variables for the current user's faction and API key
         const factionId = window.currentUserFactionId;
         const apiKey = window.userTornApiKey;
 
@@ -461,31 +460,31 @@ function initializeGlobals() {
             return;
         }
 
-        // 1. Fetch live member list from Torn API to get up-to-date status and revive settings
         const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
-        
-        if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
-        
-        const membersFromApi = Object.values(tornData.members || {});
-        const memberIds = membersFromApi.map(member => member.user_id);
 
+        if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
+
+        // --- THIS IS THE CORRECTED LINE ---
+        // It now reads the IDs directly, which is more reliable.
+        const memberIds = Object.keys(tornData.members || {});
+        
         if (memberIds.length === 0) {
             overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
             return;
         }
 
-        // 2. Fetch corresponding detailed stats from our 'users' collection in Firestore
         const usersSnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', memberIds).get();
         const firestoreDataMap = new Map();
         usersSnapshot.forEach(doc => {
             firestoreDataMap.set(doc.id, doc.data());
         });
+        
+        const membersFromApi = Object.values(tornData.members || {});
 
-        // 3. Combine data and build HTML for each member
         const memberHtml = membersFromApi.map(apiMember => {
-            const memberId = apiMember.user_id;
+            const memberId = String(apiMember.user_id); // Ensure memberId is a string
             const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
@@ -495,7 +494,6 @@ function initializeGlobals() {
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
-            // --- Helper logic for styling ---
             let drugCdHtml = `<span class="status-okay">None</span>`;
             if (drugCooldown > 0) {
                 const hours = Math.floor(drugCooldown / 3600);
@@ -505,7 +503,7 @@ function initializeGlobals() {
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
 
-            let reviveCircleClass = 'rev-circle-red'; // Default to red for "No one"
+            let reviveCircleClass = 'rev-circle-red';
             if (reviveSetting === 'Everyone') {
                 reviveCircleClass = 'rev-circle-green';
             } else if (reviveSetting === 'Friends & faction') {
@@ -515,7 +513,6 @@ function initializeGlobals() {
             let statusClass = 'status-okay';
             if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
             if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
-
 
             return `
                 <div class="overview-member-row">
@@ -528,8 +525,7 @@ function initializeGlobals() {
                 </div>
             `;
         }).join('');
-        
-        // 4. Final HTML structure with headers
+
         overviewContent.innerHTML = `
             <div class="overview-header-row">
                 <span>Name</span>
@@ -549,7 +545,6 @@ function initializeGlobals() {
         overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
     }
 }
-
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
     async function addOrUpdateUserAllianceId(newAllianceId) {
         const user = auth.currentUser;
