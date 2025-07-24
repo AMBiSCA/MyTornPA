@@ -476,12 +476,12 @@ function initializeGlobals() {
         const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
-        // --- CORRECTED DATA FETCHING LOGIC ---
-        // Fetch each user one-by-one inside the loop, just like your working table function.
         const memberHtmlPromises = membersToSort.map(async (apiMember) => {
             const memberId = apiMember.id;
             
-            const userDoc = await db.collection('users').doc(memberId).get();
+            // --- THIS IS THE CORRECTED LINE ---
+            // Explicitly ensures the memberId is a string before calling the database.
+            const userDoc = await db.collection('users').doc(String(memberId)).get();
             const firestoreMember = userDoc.exists ? userDoc.data() : {};
 
             const name = apiMember.name;
@@ -521,7 +521,6 @@ function initializeGlobals() {
         });
 
         const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
-        // --- END OF CORRECTION ---
 
         overviewContent.innerHTML = `
             <table class="overview-table">
