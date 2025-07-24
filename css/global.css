@@ -1608,6 +1608,10 @@ input:checked + .slider:before {
     color: #f39c12;
 }
 
+.overview-list-container::-webkit-scrollbar {
+    all: unset;
+}
+
 @media (max-width: 768px) {
 
   /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
