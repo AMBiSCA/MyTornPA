@@ -460,8 +460,8 @@ function initializeGlobals() {
             return;
         }
 
-        // --- CORRECTED: Use 'members' selection to get correct revive data ---
-        const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
+        // --- CORRECTED: Changed URL to use the v2 API endpoint ---
+        const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
         
@@ -480,6 +480,7 @@ function initializeGlobals() {
             firestoreDataMap.set(doc.id, doc.data());
         });
 
+        // The API response for `members` selection has member ID as the key
         const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
@@ -488,10 +489,9 @@ function initializeGlobals() {
             const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
-            // --- CORRECTED: Use dynamic max energy, not hardcoded 1000 ---
             const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
-            // --- CORRECTED: The 'members' selection provides the 'revivable' field ---
+            // The v2 `members` selection uses `revivable` with 0, 1, 2
             const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
