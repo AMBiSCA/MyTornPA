@@ -479,12 +479,19 @@ function initializeGlobals() {
             firestoreDataMap.set(doc.id, doc.data());
         });
 
-        const membersFromApi = Object.values(tornData.members || {});
-        // Sort members alphabetically by name before displaying
-        membersFromApi.sort((a, b) => a.name.localeCompare(b.name));
+        // --- CORRECTED SORTING AND MAPPING LOGIC ---
+        // 1. Create an array of members that we can sort
+        const membersToSort = memberIds.map(id => ({
+            id: id,
+            ...tornData.members[id]
+        }));
 
-        const memberHtml = membersFromApi.map(apiMember => {
-            const memberId = String(apiMember.user_id);
+        // 2. Sort this new array alphabetically by name
+        membersToSort.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // 3. Map over the SORTED array to build the HTML
+        const memberHtml = membersToSort.map(apiMember => {
+            const memberId = apiMember.id; // This is now the correct, reliable ID
             const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
@@ -494,27 +501,18 @@ function initializeGlobals() {
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
-            // --- CORRECTED HELPER LOGIC ---
-            let drugCdHtml = `<span class="status-okay">None 🍁</span>`; // Added leaf emoji
+            let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
                 const hours = Math.floor(drugCooldown / 3600);
                 const minutes = Math.floor((drugCooldown % 3600) / 60);
-                let cdText = '';
-                if (hours > 0) {
-                    cdText = `${hours}hr ${minutes}m`; // Shows hours and minutes
-                } else {
-                    cdText = `${minutes}m`; // ONLY shows minutes if less than an hour
-                }
+                let cdText = (hours > 0) ? `${hours}hr ${minutes}m` : `${minutes}m`;
                 const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
 
             let reviveCircleClass = 'rev-circle-red';
-            if (reviveSetting === 'Everyone') {
-                reviveCircleClass = 'rev-circle-green';
-            } else if (reviveSetting === 'Friends & faction') {
-                reviveCircleClass = 'rev-circle-orange';
-            }
+            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
+            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
 
             let statusClass = 'status-okay';
             if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
@@ -527,12 +525,12 @@ function initializeGlobals() {
                     <span class="overview-drugcd">${drugCdHtml}</span>
                     <span class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></span>
                     <span class="overview-refill">${energyRefillUsed}</span>
-                    <span class="overview-status ${statusClass}">${status}</span>
+                    <span class="overview-status">${status}</span>
                 </div>
             `;
         }).join('');
-        
-        // --- CORRECTED HEADERS ---
+        // --- END OF CORRECTION ---
+
         overviewContent.innerHTML = `
             <div class="overview-header-row">
                 <span>Name</span>
