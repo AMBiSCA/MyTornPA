@@ -44,17 +44,25 @@
         </div>
 
         <div id="war-chat-panel" class="chat-panel hidden">
-            <div class="chat-header">
-                <span class="chat-title">War Chat</span>
-                <button class="minimize-chat-btn">-</button>
-            </div>
-            <div id="war-chat-display-area" class="chat-messages-scroll-wrapper">
-            </div>
-            <div id="war-chat-input-area" class="chat-input-area">
-                <input type="text" class="chat-text-input" placeholder="Type your message...">
-                <button class="chat-send-btn">Send</button>
+    <div class="chat-header">
+        <h4 id="war-chat-title">War Chat - Loading...</h4>
+        <div id="war-info-display" class="war-info-display">
+            <span id="war-factions-display">Loading War Details...</span>
+            <span id="war-timer-display">Time: N/A</span>
+            <div class="war-chat-note">
+                Please note: War chat can be turned off in settings (Leadership can override individual settings).
             </div>
         </div>
+        <button class="minimize-chat-btn">-</button>
+    </div>
+    <div id="war-chat-display-area" class="chat-messages-scroll-wrapper">
+        <p>No war messages yet.</p>
+    </div>
+    <div id="war-chat-input-area" class="chat-input-area">
+        <input type="text" class="chat-text-input" placeholder="Type your message...">
+        <button class="chat-send-btn">Send</button>
+    </div>
+</div>
 
         <div id="friends-panel" class="chat-panel hidden">
             <div class="chat-header">
