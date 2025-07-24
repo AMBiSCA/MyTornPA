@@ -497,7 +497,7 @@ ul li:last-child { border-bottom: none; }
     z-index: 1000;
 
     /* --- Your existing styles --- */
-    width: 375px;
+    width: 350px;
     height: 450px;
     background-color: #1b263b;
     border: 1px solid #415a77;
@@ -1520,12 +1520,21 @@ input:checked + .slider:before {
     margin-top: 20px;
 }
 
-/* --- Faction Overview Panel Styles --- */
+/* --- Faction Overview Panel Styles (Corrected for Scrolling) --- */
 
-/* The main container for the list, enables scrolling */
+/* This is the main content area for our new panel */
+#faction-overview-content {
+    display: flex;
+    flex-direction: column;
+    /* This makes sure the content area fills the available space inside the panel */
+    flex-grow: 1;
+    overflow: hidden; /* This is important to contain the scrolling list */
+}
+
+/* The scrollable list container */
 .overview-list-container {
-    height: calc(100% - 35px); /* Adjust height based on your header size */
-    overflow-y: auto;
+    flex-grow: 1; /* This makes the list take up all available space */
+    overflow-y: auto; /* This will now work correctly and add the scrollbar when needed */
     padding: 5px;
 }
 
@@ -1533,12 +1542,13 @@ input:checked + .slider:before {
 .overview-header-row,
 .overview-member-row {
     display: grid;
-    grid-template-columns: 2.5fr 1.5fr 1fr 0.5fr 1fr 1.5fr; /* Column widths */
+    grid-template-columns: 2.5fr 1.5fr 1fr 0.5fr 1fr 1.5fr;
     align-items: center;
     gap: 5px;
     padding: 6px 8px;
     border-bottom: 1px solid #2c3e50;
     font-size: 13px;
+    flex-shrink: 0; /* Prevents rows from shrinking */
 }
 
 /* Styling for the header row */
@@ -1572,29 +1582,30 @@ input:checked + .slider:before {
     height: 12px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 0 auto; /* Helps center the circle within its grid cell */
 }
 
 .rev-circle-green {
-    background-color: #2ecc71; /* Green for Everyone */
+    background-color: #2ecc71;
 }
 
 .rev-circle-orange {
-    background-color: #f39c12; /* Orange for Faction/Friends */
+    background-color: #f39c12;
 }
 
 .rev-circle-red {
-    background-color: #e74c3c; /* Red for No one */
+    background-color: #e74c3c;
 }
 
-/* --- Status Text Color Styles (reusing your existing classes) --- */
+/* --- Status Text Color Styles --- */
 .status-okay {
-    color: #2ecc71; /* Green */
+    color: #2ecc71;
 }
 .status-hospital {
-    color: #e74c3c; /* Red */
+    color: #e74c3c;
 }
 .status-other {
-    color: #f39c12; /* Orange */
+    color: #f39c12;
 }
 
 @media (max-width: 768px) {
