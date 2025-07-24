@@ -488,7 +488,6 @@ function initializeGlobals() {
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
-            // --- NEW ENERGY DISPLAY LOGIC ---
             const currentEnergy = firestoreMember.energy?.current || 0;
             const maxEnergy = firestoreMember.energy?.maximum || 'N/A';
             let energyDisplayHtml = '';
@@ -500,7 +499,6 @@ function initializeGlobals() {
             } else {
                 energyDisplayHtml = `<span class="energy-text">${currentEnergy} / ${maxEnergy}</span>`;
             }
-            // --- END OF NEW LOGIC ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
