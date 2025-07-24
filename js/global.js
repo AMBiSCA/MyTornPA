@@ -442,7 +442,7 @@ function initializeGlobals() {
         }
     });
 	
-	async function populateFactionOverview(db) {
+	async function populateFactionOverview() {
     const overviewContent = document.getElementById('faction-overview-content');
     if (!overviewContent) {
         console.error("Faction Overview panel content area not found!");
@@ -479,81 +479,62 @@ function initializeGlobals() {
         const memberHtmlPromises = membersToSort.map(async (apiMember) => {
             const memberId = apiMember.id;
             
+            // --- THIS IS THE CORRECTED LINE ---
+            // Explicitly ensures the memberId is a string before calling the database.
             const userDoc = await db.collection('users').doc(String(memberId)).get();
             const firestoreMember = userDoc.exists ? userDoc.data() : {};
 
             const name = apiMember.name;
+            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
             const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
-            const currentEnergy = firestoreMember.energy?.current || 0;
-            const maxEnergy = firestoreMember.energy?.maximum || 'N/A';
-            let energyDisplayHtml = '';
+            let energyDisplay = '';
+    let energyClass = '';
+    const currentEnergy = firestoreMember.energy?.current;
+    const maximumEnergy = firestoreMember.energy?.maximum;
 
-            if (currentEnergy === 1000) {
-                energyDisplayHtml = `<span class="status-okay" title="1000e">Stacked</span>`;
-            } else if (currentEnergy >= 900) {
-                energyDisplayHtml = `<span class="status-other" title="${currentEnergy}e">Stacked</span>`;
-            } else {
-                energyDisplayHtml = `<span class="energy-text">${currentEnergy} / ${maxEnergy}</span>`;
-            }
-
-            let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
-            if (drugCooldown > 0) {
-                const hours = Math.floor(drugCooldown / 3600);
-                const minutes = Math.floor((drugCooldown % 3600) / 60);
-                let cdText = (hours > 0) ? `${hours}hr ${minutes}m` : `${minutes}m`;
-                const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
-                drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
-            }
-
-            let reviveCircleClass = 'rev-circle-red';
-            if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
-            else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
-
-            let statusClass = 'status-okay';
-            if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
-            if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
-
-            return `
-                <tr>
-                    <td class="overview-name">${name}</td>
-                    <td class="overview-energy">${energyDisplayHtml}</td>
-                    <td class="overview-drugcd">${drugCdHtml}</td>
-                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
-                    <td class="overview-refill">${energyRefillUsed}</td>
-                    <td class="overview-status ${statusClass}">${status}</td>
-                </tr>
-            `;
-        });
-
-        const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
-
-        overviewContent.innerHTML = `
-            <table class="overview-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Energy</th>
-                        <th>Drug C/D</th>
-                        <th>Rev</th>
-                        <th>Refill</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${memberRowsHtml}
-                </tbody>
-            </table>
-        `;
-
-    } catch (error) {
-        console.error("Error populating Faction Overview:", error);
-        overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+    if (currentEnergy === 1000 && maximumEnergy === 1000) {
+        energyDisplay = 'Stacked';
+        energyClass = 'status-green'; // Green for perfectly stacked
+    } else if (currentEnergy >= 900 && currentEnergy < 1000 && maximumEnergy === 1000) {
+        energyDisplay = 'Stacked';
+        energyClass = 'status-orange'; // Orange for nearly stacked
+    } else {
+        energyDisplay = `${currentEnergy || 'N/A'} / ${maximumEnergy || 'N/A'}`;
+        energyClass = 'energy-text'; // Default class for regular display
     }
-}
+
+    let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
+    if (drugCooldown > 0) {
+        const hours = Math.floor(drugCooldown / 3600);
+        const minutes = Math.floor((drugCooldown % 3600) / 60);
+        let cdText = (hours > 0) ? `${hours}hr ${minutes}m` : `${minutes}m`;
+        const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
+        drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
+    }
+
+    let reviveCircleClass = 'rev-circle-red';
+    if (reviveSetting === 'Everyone') reviveCircleClass = 'rev-circle-green';
+    else if (reviveSetting === 'Friends & faction') reviveCircleClass = 'rev-circle-orange';
+
+    let statusClass = 'status-okay';
+    if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
+    if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
+
+    return `
+        <tr>
+            <td class="overview-name">${name}</td>
+            <td class="overview-energy ${energyClass}">${energyDisplay}</td>
+            <td class="overview-drugcd">${drugCdHtml}</td>
+            <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
+            <td class="overview-refill">${energyRefillUsed}</td>
+            <td class="overview-status ${statusClass}">${status}</td>
+        </tr>
+    `;
+});
     // NEW FUNCTION: Add or update a user's alliance ID in their saved list
     async function addOrUpdateUserAllianceId(newAllianceId) {
         const user = auth.currentUser;
