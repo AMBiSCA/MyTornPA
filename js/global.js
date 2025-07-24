@@ -442,7 +442,7 @@ function initializeGlobals() {
         }
     });
 	
-	async function populateFactionOverview() {
+	async function populateFactionOverview(db) {
     const overviewContent = document.getElementById('faction-overview-content');
     if (!overviewContent) {
         console.error("Faction Overview panel content area not found!");
@@ -479,17 +479,28 @@ function initializeGlobals() {
         const memberHtmlPromises = membersToSort.map(async (apiMember) => {
             const memberId = apiMember.id;
             
-            // --- THIS IS THE CORRECTED LINE ---
-            // Explicitly ensures the memberId is a string before calling the database.
             const userDoc = await db.collection('users').doc(String(memberId)).get();
             const firestoreMember = userDoc.exists ? userDoc.data() : {};
 
             const name = apiMember.name;
-            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
             const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
+
+            // --- NEW ENERGY DISPLAY LOGIC ---
+            const currentEnergy = firestoreMember.energy?.current || 0;
+            const maxEnergy = firestoreMember.energy?.maximum || 'N/A';
+            let energyDisplayHtml = '';
+
+            if (currentEnergy === 1000) {
+                energyDisplayHtml = `<span class="status-okay" title="1000e">Stacked</span>`;
+            } else if (currentEnergy >= 900) {
+                energyDisplayHtml = `<span class="status-other" title="${currentEnergy}e">Stacked</span>`;
+            } else {
+                energyDisplayHtml = `<span class="energy-text">${currentEnergy} / ${maxEnergy}</span>`;
+            }
+            // --- END OF NEW LOGIC ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -511,7 +522,7 @@ function initializeGlobals() {
             return `
                 <tr>
                     <td class="overview-name">${name}</td>
-                    <td class="overview-energy energy-text">${energy}</td>
+                    <td class="overview-energy">${energyDisplayHtml}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
                     <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>
