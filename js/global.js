@@ -460,7 +460,8 @@ function initializeGlobals() {
             return;
         }
 
-        const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${apiKey}&comment=MyTornPA_Overview`;
+        // --- CORRECTED: Use 'members' selection to get correct revive data ---
+        const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
         
@@ -479,7 +480,7 @@ function initializeGlobals() {
             firestoreDataMap.set(doc.id, doc.data());
         });
 
-        const membersToSort = memberIds.map(id => ({ id, ...tornData.members[id] }));
+        const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
         const memberRowsHtml = membersToSort.map(apiMember => {
@@ -487,9 +488,11 @@ function initializeGlobals() {
             const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
-            const energy = `${firestoreMember.energy?.current || 0} / 1000`;
+            // --- CORRECTED: Use dynamic max energy, not hardcoded 1000 ---
+            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
-            const reviveSetting = apiMember.revive_setting || "No one";
+            // --- CORRECTED: The 'members' selection provides the 'revivable' field ---
+            const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
@@ -513,7 +516,7 @@ function initializeGlobals() {
             return `
                 <tr>
                     <td class="overview-name">${name}</td>
-                    <td class="overview-energy">${energy}</td>
+                    <td class="overview-energy energy-text">${energy}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
                     <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>

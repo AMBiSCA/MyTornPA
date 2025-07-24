@@ -1564,6 +1564,11 @@ input:checked + .slider:before {
     border-right: none; /* Remove border from the last column */
 }
 
+.overview-table .energy-text {
+    color: #2ecc71; /* This is the same green as your 'status-okay' text */
+    font-weight: bold;
+}
+
 .overview-table .overview-name { text-align: left; }
 .overview-table .overview-status { 
     white-space: normal; /* Allow the status column to wrap text */
