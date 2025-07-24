@@ -70,9 +70,9 @@ exports.handler = async (event, context) => {
         const userDoc = await userRef.get();
         const storedData = userDoc.exists ? userDoc.data() : {};
 
-        // --- MODIFIED REFILL LOGIC TO HANDLE BOTH API STRUCTURES ---
-        const newEnergyRefills = data.personalstats?.other?.refills?.energy ?? data.personalstats?.refills || 0;
-        const newNerveRefills = data.personalstats?.other?.refills?.nerve ?? data.personalstats?.nerverefills || 0;
+        // --- CORRECTED REFILL LOGIC WITH PARENTHESES ---
+        const newEnergyRefills = (data.personalstats?.other?.refills?.energy ?? data.personalstats?.refills) || 0;
+        const newNerveRefills = (data.personalstats?.other?.refills?.nerve ?? data.personalstats?.nerverefills) || 0;
 
         const storedEnergyCount = storedData.energyRefillCount || 0;
         const storedNerveCount = storedData.nerveRefillCount || 0;
