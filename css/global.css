@@ -1524,52 +1524,58 @@ input:checked + .slider:before {
     margin-top: 20px;
 }
 
-/* --- Faction Overview Panel Styles (Corrected for Scrolling) --- */
+/* --- Faction Overview Panel Styles (Corrected for Layout & Borders) --- */
 
-/* This is the main content area for our new panel */
 #faction-overview-content {
     display: flex;
     flex-direction: column;
-    /* This makes sure the content area fills the available space inside the panel */
     flex-grow: 1;
-    overflow: hidden; /* This is important to contain the scrolling list */
+    overflow: hidden;
 }
 
-/* The scrollable list container */
 .overview-list-container {
-    flex-grow: 1; /* This makes the list take up all available space */
-    overflow-y: auto; /* This will now work correctly and add the scrollbar when needed */
-    padding: 5px;
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
-/* Base styles for both the header and member rows */
 .overview-header-row,
 .overview-member-row {
     display: grid;
-    grid-template-columns: 2.5fr 1.5fr 1fr 0.5fr 1fr 1.5fr;
+    /* Adjusted column widths for new headers and better spacing */
+    grid-template-columns: 3fr 1.5fr 1.2fr 0.5fr 1fr 2fr;
     align-items: center;
-    gap: 5px;
-    padding: 6px 8px;
-    border-bottom: 1px solid #2c3e50;
+    gap: 0; /* Remove gap to make borders connect */
     font-size: 13px;
-    flex-shrink: 0; /* Prevents rows from shrinking */
+    border-bottom: 1px solid #2c3e50;
 }
 
-/* Styling for the header row */
 .overview-header-row {
     font-weight: bold;
     color: #bdc3c7;
     background-color: rgba(0, 0, 0, 0.2);
     position: sticky;
     top: 0;
+    z-index: 1;
 }
 
-/* Styling for each member row */
+.overview-header-row span,
+.overview-member-row span {
+    padding: 8px 5px; /* Add padding inside each cell */
+    border-right: 1px solid #2c3e50; /* Add vertical grid lines */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.overview-header-row span:last-child,
+.overview-member-row span:last-child {
+    border-right: none; /* Remove border from the last cell in a row */
+}
+
 .overview-member-row:nth-child(even) {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Individual column text alignment */
 .overview-name { text-align: left; }
 .overview-energy,
 .overview-drugcd,
@@ -1579,6 +1585,11 @@ input:checked + .slider:before {
     text-align: center;
 }
 
+.overview-status {
+    white-space: normal; /* Allow status text to wrap if needed */
+}
+
+
 /* --- Revive Circle Styles --- */
 .rev-circle {
     display: inline-block;
@@ -1586,30 +1597,34 @@ input:checked + .slider:before {
     height: 12px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    margin: 0 auto; /* Helps center the circle within its grid cell */
+    margin: 0 auto;
 }
 
-.rev-circle-green {
-    background-color: #2ecc71;
-}
+.rev-circle-green { background-color: #2ecc71; }
+.rev-circle-orange { background-color: #f39c12; }
+.rev-circle-red { background-color: #e74c3c; }
 
-.rev-circle-orange {
-    background-color: #f39c12;
-}
-
-.rev-circle-red {
-    background-color: #e74c3c;
-}
 
 /* --- Status Text Color Styles --- */
-.status-okay {
-    color: #2ecc71;
+.status-okay { color: #2ecc71; }
+.status-hospital { color: #e74c3c; }
+.status-other { color: #f39c12; }
+
+/* Scrollbar styling */
+.overview-list-container::-webkit-scrollbar {
+    width: 8px;
 }
-.status-hospital {
-    color: #e74c3c;
+.overview-list-container::-webkit-scrollbar-track {
+    background: #1b263b;
+    border-radius: 10px;
 }
-.status-other {
-    color: #f39c12;
+.overview-list-container::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+.overview-list-container::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
 }
 
 @media (max-width: 768px) {

@@ -479,11 +479,13 @@ function initializeGlobals() {
             firestoreDataMap.set(doc.id, doc.data());
         });
 
-        // --- THIS IS THE CORRECTED LOGIC ---
-        // It now loops through the guaranteed list of member IDs.
-        const memberHtml = memberIds.map(memberId => {
-            const apiMember = tornData.members[memberId]; // Get API data using the correct ID
-            const firestoreMember = firestoreDataMap.get(memberId) || {}; // Get Firestore data using the correct ID
+        const membersFromApi = Object.values(tornData.members || {});
+        // Sort members alphabetically by name before displaying
+        membersFromApi.sort((a, b) => a.name.localeCompare(b.name));
+
+        const memberHtml = membersFromApi.map(apiMember => {
+            const memberId = String(apiMember.user_id);
+            const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
             const energy = `${firestoreMember.energy?.current || 0} / 1000`;
@@ -492,11 +494,17 @@ function initializeGlobals() {
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
 
-            let drugCdHtml = `<span class="status-okay">None</span>`;
+            // --- CORRECTED HELPER LOGIC ---
+            let drugCdHtml = `<span class="status-okay">None 🍁</span>`; // Added leaf emoji
             if (drugCooldown > 0) {
                 const hours = Math.floor(drugCooldown / 3600);
                 const minutes = Math.floor((drugCooldown % 3600) / 60);
-                const cdText = `${hours}hr ${minutes}m`;
+                let cdText = '';
+                if (hours > 0) {
+                    cdText = `${hours}hr ${minutes}m`; // Shows hours and minutes
+                } else {
+                    cdText = `${minutes}m`; // ONLY shows minutes if less than an hour
+                }
                 const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
                 drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
             }
@@ -523,13 +531,13 @@ function initializeGlobals() {
                 </div>
             `;
         }).join('');
-        // --- END OF CORRECTION ---
         
+        // --- CORRECTED HEADERS ---
         overviewContent.innerHTML = `
             <div class="overview-header-row">
                 <span>Name</span>
-                <span>E / 1000</span>
-                <span>Drug CD</span>
+                <span>Energy</span>
+                <span>Drug C/D</span>
                 <span>Rev</span>
                 <span>Refill</span>
                 <span>Status</span>
