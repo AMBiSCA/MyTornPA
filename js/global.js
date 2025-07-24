@@ -180,11 +180,12 @@ function initializeGlobals() {
                 }
 				
 				if (openGraphIcon) {
-    openGraphIcon.addEventListener('click', () => {
-        openChatPanel(factionOverviewPanel);
-        populateFactionOverview(db); // MODIFIED: Pass the 'db' variable here
-    });
-}
+                    openGraphIcon.addEventListener('click', () => {
+                        openChatPanel(factionOverviewPanel);
+                        populateFactionOverview(); // This calls the function to load the data
+                    });
+                }
+
                 // NEW: Save Alliance ID button listener
                 if (saveAllianceButton) {
                     saveAllianceButton.addEventListener('click', async () => {
@@ -436,12 +437,12 @@ function initializeGlobals() {
 
             if (chatDisplayAreaFaction) chatDisplayAreaFaction.innerHTML = '<p>Please log in to use chat.</p>';
             if (chatDisplayAreaWar) chatDisplayAreaWar.innerHTML = '<p>Please log in to use war chat.</p>';
-            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>'; // NEW: Allnce Chat message
+            if (chatDisplayAreaAlliance) chatDisplayAreaAlliance.innerHTML = '<p>Please log in to use alliance chat.</p>'; // NEW: Alliance Chat message
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
 	
-	async function populateFactionOverview(db) {
+	async function populateFactionOverview() {
     const overviewContent = document.getElementById('faction-overview-content');
     if (!overviewContent) {
         console.error("Faction Overview panel content area not found!");
@@ -472,38 +473,23 @@ function initializeGlobals() {
             return;
         }
 
-        const usersSnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', memberIds).get();
-        const firestoreDataMap = new Map();
-        usersSnapshot.forEach(doc => {
-            firestoreDataMap.set(doc.id, doc.data());
-        });
-
         const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
-        const memberRowsHtml = membersToSort.map(apiMember => {
+        const memberHtmlPromises = membersToSort.map(async (apiMember) => {
             const memberId = apiMember.id;
-            const firestoreMember = firestoreDataMap.get(memberId) || {};
+            
+            // --- THIS IS THE CORRECTED LINE ---
+            // Explicitly ensures the memberId is a string before calling the database.
+            const userDoc = await db.collection('users').doc(String(memberId)).get();
+            const firestoreMember = userDoc.exists ? userDoc.data() : {};
 
             const name = apiMember.name;
+            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
             const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
-
-            // --- NEW ENERGY DISPLAY LOGIC ---
-            const currentEnergy = firestoreMember.energy?.current || 0;
-            const maxEnergy = firestoreMember.energy?.maximum || 'N/A';
-            let energyDisplayHtml = '';
-
-            if (currentEnergy === 1000) {
-                energyDisplayHtml = `<span class="status-okay" title="1000e">Stacked</span>`;
-            } else if (currentEnergy >= 900) {
-                energyDisplayHtml = `<span class="status-other" title="${currentEnergy}e">Stacked</span>`;
-            } else {
-                energyDisplayHtml = `<span class="energy-text">${currentEnergy} / ${maxEnergy}</span>`;
-            }
-            // --- END NEW ENERGY LOGIC ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -525,14 +511,16 @@ function initializeGlobals() {
             return `
                 <tr>
                     <td class="overview-name">${name}</td>
-                    <td class="overview-energy">${energyDisplayHtml}</td>
+                    <td class="overview-energy energy-text">${energy}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
                     <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
             `;
-        }).join('');
+        });
+
+        const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
 
         overviewContent.innerHTML = `
             <table class="overview-table">
