@@ -463,11 +463,9 @@ function initializeGlobals() {
         const factionApiUrl = `https://api.torn.com/faction/${factionId}?selections=basic&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
-
+        
         if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
-
-        // --- THIS IS THE CORRECTED LINE ---
-        // It now reads the IDs directly, which is more reliable.
+        
         const memberIds = Object.keys(tornData.members || {});
         
         if (memberIds.length === 0) {
@@ -480,12 +478,12 @@ function initializeGlobals() {
         usersSnapshot.forEach(doc => {
             firestoreDataMap.set(doc.id, doc.data());
         });
-        
-        const membersFromApi = Object.values(tornData.members || {});
 
-        const memberHtml = membersFromApi.map(apiMember => {
-            const memberId = String(apiMember.user_id); // Ensure memberId is a string
-            const firestoreMember = firestoreDataMap.get(memberId) || {};
+        // --- THIS IS THE CORRECTED LOGIC ---
+        // It now loops through the guaranteed list of member IDs.
+        const memberHtml = memberIds.map(memberId => {
+            const apiMember = tornData.members[memberId]; // Get API data using the correct ID
+            const firestoreMember = firestoreDataMap.get(memberId) || {}; // Get Firestore data using the correct ID
 
             const name = apiMember.name;
             const energy = `${firestoreMember.energy?.current || 0} / 1000`;
@@ -525,7 +523,8 @@ function initializeGlobals() {
                 </div>
             `;
         }).join('');
-
+        // --- END OF CORRECTION ---
+        
         overviewContent.innerHTML = `
             <div class="overview-header-row">
                 <span>Name</span>
