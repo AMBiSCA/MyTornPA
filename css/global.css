@@ -1520,6 +1520,83 @@ input:checked + .slider:before {
     margin-top: 20px;
 }
 
+/* --- Faction Overview Panel Styles --- */
+
+/* The main container for the list, enables scrolling */
+.overview-list-container {
+    height: calc(100% - 35px); /* Adjust height based on your header size */
+    overflow-y: auto;
+    padding: 5px;
+}
+
+/* Base styles for both the header and member rows */
+.overview-header-row,
+.overview-member-row {
+    display: grid;
+    grid-template-columns: 2.5fr 1.5fr 1fr 0.5fr 1fr 1.5fr; /* Column widths */
+    align-items: center;
+    gap: 5px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #2c3e50;
+    font-size: 13px;
+}
+
+/* Styling for the header row */
+.overview-header-row {
+    font-weight: bold;
+    color: #bdc3c7;
+    background-color: rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+}
+
+/* Styling for each member row */
+.overview-member-row:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Individual column text alignment */
+.overview-name { text-align: left; }
+.overview-energy,
+.overview-drugcd,
+.overview-revive,
+.overview-refill,
+.overview-status {
+    text-align: center;
+}
+
+/* --- Revive Circle Styles --- */
+.rev-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rev-circle-green {
+    background-color: #2ecc71; /* Green for Everyone */
+}
+
+.rev-circle-orange {
+    background-color: #f39c12; /* Orange for Faction/Friends */
+}
+
+.rev-circle-red {
+    background-color: #e74c3c; /* Red for No one */
+}
+
+/* --- Status Text Color Styles (reusing your existing classes) --- */
+.status-okay {
+    color: #2ecc71; /* Green */
+}
+.status-hospital {
+    color: #e74c3c; /* Red */
+}
+.status-other {
+    color: #f39c12; /* Orange */
+}
+
 @media (max-width: 768px) {
 
   /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
