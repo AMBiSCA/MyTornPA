@@ -473,23 +473,38 @@ function initializeGlobals() {
             return;
         }
 
+        const usersSnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', memberIds).get();
+        const firestoreDataMap = new Map();
+        usersSnapshot.forEach(doc => {
+            firestoreDataMap.set(doc.id, doc.data());
+        });
+
         const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
-        const memberHtmlPromises = membersToSort.map(async (apiMember) => {
+        const memberRowsHtml = membersToSort.map(apiMember => {
             const memberId = apiMember.id;
-            
-            // --- THIS IS THE CORRECTED LINE ---
-            // Explicitly ensures the memberId is a string before calling the database.
-            const userDoc = await db.collection('users').doc(String(memberId)).get();
-            const firestoreMember = userDoc.exists ? userDoc.data() : {};
+            const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
-            const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
             const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
+
+            // --- NEW ENERGY DISPLAY LOGIC ---
+            const currentEnergy = firestoreMember.energy?.current || 0;
+            const maxEnergy = firestoreMember.energy?.maximum || 'N/A';
+            let energyDisplayHtml = '';
+
+            if (currentEnergy === 1000) {
+                energyDisplayHtml = `<span class="status-okay" title="1000e">Stacked</span>`;
+            } else if (currentEnergy >= 900) {
+                energyDisplayHtml = `<span class="status-other" title="${currentEnergy}e">Stacked</span>`;
+            } else {
+                energyDisplayHtml = `<span class="energy-text">${currentEnergy} / ${maxEnergy}</span>`;
+            }
+            // --- END NEW ENERGY LOGIC ---
 
             let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
             if (drugCooldown > 0) {
@@ -511,16 +526,14 @@ function initializeGlobals() {
             return `
                 <tr>
                     <td class="overview-name">${name}</td>
-                    <td class="overview-energy energy-text">${energy}</td>
+                    <td class="overview-energy">${energyDisplayHtml}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
                     <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
                     <td class="overview-refill">${energyRefillUsed}</td>
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
             `;
-        });
-
-        const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
+        }).join('');
 
         overviewContent.innerHTML = `
             <table class="overview-table">
