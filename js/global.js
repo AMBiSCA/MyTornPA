@@ -460,7 +460,6 @@ function initializeGlobals() {
             return;
         }
 
-        // --- CORRECTED: Changed URL to use the v2 API endpoint ---
         const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
         const apiResponse = await fetch(factionApiUrl);
         const tornData = await apiResponse.json();
@@ -474,24 +473,20 @@ function initializeGlobals() {
             return;
         }
 
-        const usersSnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', memberIds).get();
-        const firestoreDataMap = new Map();
-        usersSnapshot.forEach(doc => {
-            firestoreDataMap.set(doc.id, doc.data());
-        });
-
-        // The API response for `members` selection has member ID as the key
         const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
-        const memberRowsHtml = membersToSort.map(apiMember => {
+        // --- CORRECTED DATA FETCHING LOGIC ---
+        // Fetch each user one-by-one inside the loop, just like your working table function.
+        const memberHtmlPromises = membersToSort.map(async (apiMember) => {
             const memberId = apiMember.id;
-            const firestoreMember = firestoreDataMap.get(memberId) || {};
+            
+            const userDoc = await db.collection('users').doc(memberId).get();
+            const firestoreMember = userDoc.exists ? userDoc.data() : {};
 
             const name = apiMember.name;
             const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
             const drugCooldown = firestoreMember.cooldowns?.drug || 0;
-            // The v2 `members` selection uses `revivable` with 0, 1, 2
             const reviveSetting = apiMember.revivable === 1 ? "Everyone" : (apiMember.revivable === 0 ? "No one" : "Friends & faction");
             const energyRefillUsed = firestoreMember.energyRefillUsed ? 'Yes' : 'No';
             const status = apiMember.status.description;
@@ -523,7 +518,10 @@ function initializeGlobals() {
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
             `;
-        }).join('');
+        });
+
+        const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
+        // --- END OF CORRECTION ---
 
         overviewContent.innerHTML = `
             <table class="overview-table">
