@@ -479,19 +479,11 @@ function initializeGlobals() {
             firestoreDataMap.set(doc.id, doc.data());
         });
 
-        // --- CORRECTED SORTING AND MAPPING LOGIC ---
-        // 1. Create an array of members that we can sort
-        const membersToSort = memberIds.map(id => ({
-            id: id,
-            ...tornData.members[id]
-        }));
-
-        // 2. Sort this new array alphabetically by name
+        const membersToSort = memberIds.map(id => ({ id, ...tornData.members[id] }));
         membersToSort.sort((a, b) => a.name.localeCompare(b.name));
         
-        // 3. Map over the SORTED array to build the HTML
-        const memberHtml = membersToSort.map(apiMember => {
-            const memberId = apiMember.id; // This is now the correct, reliable ID
+        const memberRowsHtml = membersToSort.map(apiMember => {
+            const memberId = apiMember.id;
             const firestoreMember = firestoreDataMap.get(memberId) || {};
 
             const name = apiMember.name;
@@ -519,30 +511,33 @@ function initializeGlobals() {
             if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
 
             return `
-                <div class="overview-member-row">
-                    <span class="overview-name">${name}</span>
-                    <span class="overview-energy">${energy}</span>
-                    <span class="overview-drugcd">${drugCdHtml}</span>
-                    <span class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></span>
-                    <span class="overview-refill">${energyRefillUsed}</span>
-                    <span class="overview-status">${status}</span>
-                </div>
+                <tr>
+                    <td class="overview-name">${name}</td>
+                    <td class="overview-energy">${energy}</td>
+                    <td class="overview-drugcd">${drugCdHtml}</td>
+                    <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSetting}"></div></td>
+                    <td class="overview-refill">${energyRefillUsed}</td>
+                    <td class="overview-status ${statusClass}">${status}</td>
+                </tr>
             `;
         }).join('');
-        // --- END OF CORRECTION ---
 
         overviewContent.innerHTML = `
-            <div class="overview-header-row">
-                <span>Name</span>
-                <span>Energy</span>
-                <span>Drug C/D</span>
-                <span>Rev</span>
-                <span>Refill</span>
-                <span>Status</span>
-            </div>
-            <div class="overview-list-container">
-                ${memberHtml}
-            </div>
+            <table class="overview-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Energy</th>
+                        <th>Drug C/D</th>
+                        <th>Rev</th>
+                        <th>Refill</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${memberRowsHtml}
+                </tbody>
+            </table>
         `;
 
     } catch (error) {
