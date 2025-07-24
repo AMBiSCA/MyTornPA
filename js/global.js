@@ -441,7 +441,7 @@ function initializeGlobals() {
         }
     });
 	
-	async function populateFactionOverview() {
+	async function populateFactionOverview(db) {
     const overviewContent = document.getElementById('faction-overview-content');
     if (!overviewContent) {
         console.error("Faction Overview panel content area not found!");
