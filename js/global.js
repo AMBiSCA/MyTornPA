@@ -33,7 +33,7 @@ function initializeGlobals() {
     let userTornApiKey = null;
     // UPDATED: Variable to store the user's saved alliance IDs as an array
     let currentUserAllianceIds = [];
-
+    let refillStatusHtml = energyRefillUsedToday ? '<span class="status-red">Used</span>' : '<span class="status-green">Available</span>';
     // ---- Torn API Base URL ----
     const TORN_API_BASE_URL = 'https://api.torn.com/v2';
 
@@ -71,6 +71,7 @@ function initializeGlobals() {
                 const openFriendsIcon = document.getElementById('open-friends-icon');
                 const openNotificationsIcon = document.getElementById('open-notifications-icon');
                 const openSettingsIcon = document.getElementById('open-settings-icon');
+				const energyRefillUsedToday = firestoreMember.energyRefillUsedToday; // Use the new field name
 
                 // NEW: Alliance Chat icon reference
                 const openAllianceChatIcon = document.getElementById('open-alliance-chat-icon');
@@ -521,7 +522,7 @@ function initializeGlobals() {
                     <td class="overview-energy energy-text">${energy}</td>
                     <td class="overview-drugcd">${drugCdHtml}</td>
                     <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSettingText}"></div></td>
-                    <td class="overview-refill">${energyRefillUsed}</td>
+                    <td class="overview-refill">${refillStatusHtml}</td>
                     <td class="overview-status ${statusClass}">${status}</td>
                 </tr>
             `;

@@ -70,30 +70,48 @@ exports.handler = async (event, context) => {
         const userDoc = await userRef.get();
         const storedData = userDoc.exists ? userDoc.data() : {};
 
-        // --- CORRECTED REFILL LOGIC WITH PARENTHESES ---
-        const newEnergyRefills = (data.personalstats?.other?.refills?.energy ?? data.personalstats?.refills) || 0;
-        const newNerveRefills = (data.personalstats?.other?.refills?.nerve ?? data.personalstats?.nerverefills) || 0;
+        // Get current UTC date at midnight (Torn City Time)
+        const nowUtc = new Date();
+        const tornMidnightUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate()));
 
-        const storedEnergyCount = storedData.energyRefillCount || 0;
-        const storedNerveCount = storedData.nerveRefillCount || 0;
-        let energyRefillUsed = storedData.energyRefillUsed || false;
-        let nerveRefillUsed = storedData.nerveRefillUsed || false;
+        // Get latest lifetime refill counts from Torn API
+        // Prioritize specific 'other.refills' then fallback to 'personalstats.refills' or 'personalstats.nerverefills'
+        const currentApiEnergyRefills = (data.personalstats?.other?.refills?.energy ?? data.personalstats?.refills) || 0;
+        const currentApiNerveRefills = (data.personalstats?.other?.refills?.nerve ?? data.personalstats?.nerverefills) || 0;
 
-        const lastUpdateTimestamp = storedData.lastRefillUpdate?.toDate();
-        const now = new Date();
+        // Get stored values from Firestore
+        let storedLastKnownEnergyRefills = storedData.lastKnownEnergyRefills || 0;
+        let storedLastKnownNerveRefills = storedData.lastKnownNerveRefills || 0;
+        let storedLastDailyRefillResetTime = storedData.lastDailyRefillResetTime?.toDate() || new Date(0);
 
-        if (!lastUpdateTimestamp || lastUpdateTimestamp.getUTCFullYear() !== now.getUTCFullYear() || lastUpdateTimestamp.getUTCMonth() !== now.getUTCMonth() || lastUpdateTimestamp.getUTCDate() !== now.getUTCDate()) {
-            energyRefillUsed = false;
-            nerveRefillUsed = false;
+        let energyRefillUsedToday = storedData.energyRefillUsedToday || false;
+        let nerveRefillUsedToday = storedData.nerveRefillUsedToday || false;
+
+        // Check if a new Torn day has started since our last recorded reset
+        if (storedLastDailyRefillResetTime.getTime() < tornMidnightUtc.getTime()) {
+            // New day has started, reset daily usage flags
+            energyRefillUsedToday = false;
+            nerveRefillUsedToday = false;
+            
+            // Update the stored lifetime refill count to the current API value for the start of the new day
+            // This is crucial so the next comparison is against the value at the *start of the current day*.
+            storedLastKnownEnergyRefills = currentApiEnergyRefills;
+            storedLastKnownNerveRefills = currentApiNerveRefills;
+
+            storedLastDailyRefillResetTime = tornMidnightUtc; // Record the current Torn midnight
+        } else {
+            // Still the same Torn day as last check
+            // Check if lifetime refills have increased since the last known count for this day
+            if (currentApiEnergyRefills > storedLastKnownEnergyRefills) {
+                energyRefillUsedToday = true; // Energy refill was used today
+            }
+            if (currentApiNerveRefills > storedLastKnownNerveRefills) {
+                nerveRefillUsedToday = true; // Nerve refill was used today
+            }
+            // IMPORTANT: Always update storedLastKnownRefills with the latest from API for ongoing tracking
+            storedLastKnownEnergyRefills = currentApiEnergyRefills;
+            storedLastKnownNerveRefills = currentApiNerveRefills;
         }
-
-        if (newEnergyRefills > storedEnergyCount) {
-            energyRefillUsed = true;
-        }
-        if (newNerveRefills > storedNerveCount) {
-            nerveRefillUsed = true;
-        }
-        // --- END OF REFILL LOGIC ---
 
         const userDataToSave = {
             name: data.name,
@@ -110,7 +128,7 @@ exports.handler = async (event, context) => {
                 drug: data.cooldowns?.drug || 0,
                 booster: data.cooldowns?.booster || 0,
             },
-            personalstats: data.personalstats || {},
+            personalstats: data.personalstats || {}, // Save full personalstats for reference
             battlestats: {
                 strength: data.strength || data.battlestats?.strength || 0,
                 defense: data.defense || data.battlestats?.defense || 0,
@@ -127,12 +145,15 @@ exports.handler = async (event, context) => {
                 intelligence: data.intelligence || data.workstats?.intelligence || 0,
                 endurance: data.endurance || data.workstats?.endurance || 0,
             },
-            energyRefillUsed: energyRefillUsed,
-            nerveRefillUsed: nerveRefillUsed,
-            energyRefillCount: newEnergyRefills,
-            nerveRefillCount: newNerveRefills,
-            lastRefillUpdate: admin.firestore.FieldValue.serverTimestamp(),
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            profile_image: data.profile_image || null, // Ensure profile image is saved
+
+            // Save the daily tracking flags and lifetime counts
+            energyRefillUsedToday: energyRefillUsedToday,
+            nerveRefillUsedToday: nerveRefillUsedToday,
+            lastKnownEnergyRefills: storedLastKnownEnergyRefills, // Update with latest
+            lastKnownNerveRefills: storedLastKnownNerveRefills,   // Update with latest
+            lastDailyRefillResetTime: admin.firestore.FieldValue.Timestamp.fromDate(storedLastDailyRefillResetTime), // Store as Firestore Timestamp
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp() // Keep this as general update timestamp
         };
 
         await userRef.set(userDataToSave, { merge: true });
