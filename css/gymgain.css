@@ -263,59 +263,6 @@
     font-style: italic;
 }
 
-/* Training Action Grid (Removed from HTML) */
-.gym-action-grid {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-    width: 100%;
-}
-.gym-action-card {
-    background-color: var(--item-bg-color);
-    padding: 15px;
-    border-radius: 5px;
-    border: 1px solid var(--secondary-border-color);
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 120px;
-    flex: 0 1 250px;
-}
-
-.gym-action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.gym-action-card h3 {
-    color: var(--accent-color);
-    margin-bottom: 15px;
-    font-size: 1.1em;
-}
-
-.gym-action-card .btn {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: var(--button-bg-color);
-    color: var(--button-text-color);
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    width: 100%;
-    margin-top: auto;
-}
-
-.gym-action-card .btn:hover {
-    background-color: var(--button-hover-bg-color);
-}
-
 /* Torn Gym Link Button - Styling to match header buttons (Solid Dark Background, Blue Text) */
 .torn-gym-link-container {
     width: 100%;
@@ -352,37 +299,30 @@
 }
 /* --- Custom Stat Toggle Button Styles (High Specificity) --- */
 
-/* By adding #statProgressionContainer, these rules get a higher priority */
-
-/* Style for the Strength button */
 #statProgressionContainer .stat-toggle-options button[data-stat-toggle="0"] {
     background-color: #F06292;  /* Pink/Red from chart */
     color: #000000;              /* Black font color */
     border: 2px solid #000000;  /* Black border */
 }
 
-/* Style for the Defense button */
 #statProgressionContainer .stat-toggle-options button[data-stat-toggle="1"] {
     background-color: #00a8ff;  /* Cyan from chart */
     color: #000000;              /* Black font color */
     border: 2px solid #000000;  /* Black border */
 }
 
-/* Style for the Speed button */
 #statProgressionContainer .stat-toggle-options button[data-stat-toggle="2"] {
     background-color: #FFD54F;  /* Amber/Yellow from chart */
     color: #000000;              /* Black font color */
     border: 2px solid #000000;  /* Black border */
 }
 
-/* Style for the Dexterity button */
 #statProgressionContainer .stat-toggle-options button[data-stat-toggle="3"] {
     background-color: #4DD0E1;  /* Purple from chart */
     color: #000000;              /* Black font color */
     border: 2px solid #000000;  /* Black border */
 }
 
-/* Optional: A nice hover effect for these new buttons */
 #statProgressionContainer .stat-toggle-options button[data-stat-toggle]:hover {
     filter: brightness(110%);
     cursor: pointer;
@@ -409,27 +349,6 @@
 p.feedback-message { color: lightgreen; margin-top: 5px; text-align: center; }
 p.error-message { color: red; margin-top: 5px; text-align: center; }
 
-
-/* Responsive Adjustments */
-@media (max-width: 960px) {
-    .gym-main-layout-wrapper {
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-    }
-    .gym-main-content, .gym-sidebar-right {
-        flex-basis: auto;
-        width: 100%;
-        max-width: 700px;
-        margin-left:0;
-    }
-    .gain-summary-grid {
-        grid-template-columns: 1fr;
-    }
-    .gain-summary-item {
-        grid-column: auto;
-    }
-}
 
 /* --- Custom Confirmation Box CSS --- */
 .custom-confirm-overlay {
@@ -473,7 +392,6 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     gap: 15px;
 }
 
-/* Re-using your button styles */
 .custom-confirm-actions .action-button {
     padding: 10px 20px;
     border-radius: 5px;
@@ -498,25 +416,27 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     background-color: #286090;
 }
 
-/* --- NEW SETTINGS PANEL STYLES --- */
 
-/* 1. CENTERING CONTENT */
+/* --- Styles for Settings Panel (High Specificity) --- */
 
-/* Center the main section titles like "General Actions" */
-.settings-section h4 {
+/* 1. CENTERING ALL CONTENT */
+
+/* Center the main section titles */
+#settings-panel .settings-section h4 {
     text-align: center;
+    margin-bottom: 15px;
 }
 
-/* Center the content of each row (buttons, toggles, inputs) */
-.setting-item {
+/* Center the content of each individual setting row */
+#settings-panel .setting-item {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px; /* Adds a little space between a toggle and its label */
+    gap: 10px; /* Adds space between a toggle and its label */
 }
 
-/* Center the button groups for options like Font Size, Theme, etc. */
-.radio-group {
+/* Center the groups of radio-style buttons */
+#settings-panel .radio-group {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -526,28 +446,45 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 
 /* 2. UNIFORM BUTTON STYLING */
 
-/* Base style for all blue action buttons */
-.action-button {
+/* Base style for ALL buttons in the settings panel */
+#settings-panel .action-button {
     background-color: #337ab7; /* Standard blue color */
-    color: black;              /* Black font color as requested */
+    color: black;              /* Black font color */
     border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
-.action-button:hover {
+#settings-panel .action-button:hover {
     background-color: #286090; /* Darker blue on hover */
 }
 
-/* Override for the danger/red buttons to keep them red */
-.action-button.danger {
-    background-color: #d9534f; 
-    color: white;              /* White font for better contrast on red */
+/* Override for the "danger" (red) buttons */
+#settings-panel .action-button.danger {
+    background-color: #B9312C; /* A darker, less bright red */
+    color: black;              /* Black font color as requested */
 }
-.action-button.danger:hover {
-    background-color: #c9302c;
+#settings-panel .action-button.danger:hover {
+    background-color: #A42B27; /* Even darker red on hover */
 }
 
-/* Style for the radio button groups (Font Size, Theme, etc.) to make them look like buttons */
-.radio-group label {
-    background-color: #2a3b4d; /* A darker, unselected blue */
+/* Override for the "secondary" (Save) button to match the others */
+#settings-panel .action-button.secondary {
+    background-color: #337ab7; /* Standard blue color */
+    color: black;              /* Black font color */
+}
+#settings-panel .action-button.secondary:hover {
+    background-color: #286090; /* Darker blue on hover */
+}
+
+
+/* 3. RADIO BUTTON GROUP STYLING */
+
+/* Style for the labels to make them look like buttons */
+#settings-panel .radio-group label {
+    background-color: #2a3b4d; /* Darker, unselected blue */
     color: #cdd3d8;           /* Light text for unselected state */
     padding: 8px 12px;
     border-radius: 5px;
@@ -557,73 +494,13 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
 }
 
 /* Style for the SELECTED radio button's label */
-.radio-group input[type="radio"]:checked + label {
-    background-color: #337ab7; /* The standard blue color */
-    color: black;              /* Black font color for selected state */
+#settings-panel .radio-group input[type="radio"]:checked + label {
+    background-color: #337ab7; /* Standard blue color */
+    color: black;              /* Black font color */
     font-weight: bold;
 }
 
-/* Hide the actual radio buttons themselves */
-.radio-group input[type="radio"] {
+/* Hide the actual radio buttons */
+#settings-panel .radio-group input[type="radio"] {
     display: none;
-}
-
-@media (max-width: 600px) {
-    .gym-main-layout-wrapper {
-        padding: 10px;
-    }
-    .gym-section {
-        padding: 10px;
-    }
-    .gain-summary-item strong {
-        font-size: 0.9em;
-    }
-    .gain-summary-item .gain-text {
-        font-size: 0.85em;
-    }
-}
-
-/* --- Specific Overrides for "Stats Logged!" Modal (#logConfirmationModal) --- */
-/* This will make the modal smaller and the overlay less opaque,
-   overriding the general modal styles in global.css specifically for this modal. */
-
-/* Styles for the new "dropdown-like" overlay */
-.log-popup-dropdown {
-    position: absolute; /* Positioned relative to its closest positioned ancestor */
-    background-color: transparent; /* No dimming overlay */
-    box-shadow: none; /* No shadow on the overlay itself */
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out, visibility 0s 0.3s; /* Fade out effect */
-    z-index: 100; /* Higher than normal content, lower than full-screen modals */
-    display: block; /* Manage visibility via opacity/visibility for transitions */
-}
-
-.log-popup-dropdown.visible {
-    visibility: visible;
-    opacity: 1;
-    transition-delay: 0s; /* No delay on fade in */
-}
-
-/* Styles for the actual modal content box within the dropdown */
-#logConfirmationModal .modal-content {
-    /* Inherits from global .modal-content for border, background, shadow */
-    max-width: 350px; /* Make the box smaller */
-    padding: 15px 20px; /* Adjust padding to fit the smaller size */
- 
-
-/* Optional: Adjust font sizes within this specific modal if the smaller box makes text too large */
-#logConfirmationModal .modal-content h3 {
-    font-size: 1.1em; /* Slightly smaller title */
-    margin-bottom: 8px; /* Adjust margin for compactness */
-}
-
-#logConfirmationModal .modal-content p {
-    font-size: 0.85em; /* Slightly smaller paragraph text */
-    margin-bottom: 8px; /* Adjust margin */
-}
-
-#logConfirmationModal .gain-details-list p {
-    font-size: 0.85em; /* Smaller text for the individual gain lines */
-    padding: 3px 6px; /* Smaller padding for gain lines */
 }
