@@ -477,166 +477,181 @@ function initializeGlobals() {
     });
 
     // NEW FUNCTION: Fetches active ranked war and sets up context for War Chat
-    async function fetchAndSetWarChatContext() {
-        const warChatTitle = document.getElementById('war-chat-title');
-        const warFactionsDisplay = document.getElementById('war-factions-display');
-        const warTimerDisplay = document.getElementById('war-timer-display');
-        const warChatDisplayArea = document.getElementById('war-chat-display-area');
+async function fetchAndSetWarChatContext() {
+    const warChatTitle = document.getElementById('war-chat-title');
+    const warFactionsDisplay = document.getElementById('war-factions-display');
+    const warTimerDisplay = document.getElementById('war-timer-display');
+    const warChatDisplayArea = document.getElementById('war-chat-display-area');
 
-        // Reset display while loading
-        if (warChatTitle) warChatTitle.textContent = "War Chat - Loading...";
-        if (warFactionsDisplay) warFactionsDisplay.textContent = "Loading War Details...";
-        if (warTimerDisplay) warTimerDisplay.textContent = "Time: N/A";
-        if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>Fetching war details...</p>`; // Clear existing messages/loading states
+    // Reset display while loading
+    if (warChatTitle) warChatTitle.textContent = "War Chat - Loading...";
+    if (warFactionsDisplay) warFactionsDisplay.textContent = "Loading War Details...";
+    if (warTimerDisplay) warTimerDisplay.textContent = "Time: N/A";
+    if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>Fetching war details...</p>`; // Clear existing messages/loading states
 
-        currentActiveRankedWarId = null; // Reset
-        currentActiveRankedWarData = null; // Reset
+    currentActiveRankedWarId = null; // Reset
+    currentActiveRankedWarData = null; // Reset
 
-        if (!auth.currentUser || !userTornApiKey || !currentUserFactionId) {
-            if (warChatTitle) warChatTitle.textContent = "War Chat - Login Required";
-            if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>Please log in and ensure your API key and faction ID are set in your profile.</p>`;
-            return;
+    if (!auth.currentUser || !userTornApiKey || !currentUserFactionId) {
+        if (warChatTitle) warChatTitle.textContent = "War Chat - Login Required";
+        if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>Please log in and ensure your API key and faction ID are set in your profile.</p>`;
+        return;
+    }
+
+    try {
+        // Fetch active ranked wars for the current user's faction
+        const warsApiUrl = `${TORN_API_BASE_URL}/faction/wars?key=${userTornApiKey}&comment=MyTornPA_WarChat_Info`;
+        const response = await fetch(warsApiUrl);
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
         }
 
-        try {
-            // Fetch active ranked wars for the current user's faction
-            const warsApiUrl = `${TORN_API_BASE_URL}/faction/wars?key=${userTornApiKey}&comment=MyTornPA_WarChat_Info`;
-            const response = await fetch(warsApiUrl);
-            const data = await response.json();
+        // ---- **** THIS IS THE CORRECTED LOGIC **** ----
+        // The API returns the ranked war as a single object at data.ranked, not an array.
+        const rankedWar = data.ranked;
+        const nowInSeconds = Math.floor(Date.now() / 1000);
+        let activeWar = null;
 
-            if (!response.ok || data.error) {
-                throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
+        // Check if the rankedWar object exists, has a war_id, and is currently active.
+        if (rankedWar && rankedWar.war_id && nowInSeconds >= rankedWar.start) {
+            // A war with end:null or end:0 is ongoing. We only filter out past wars.
+            if (rankedWar.end === null || rankedWar.end === 0 || nowInSeconds < rankedWar.end) {
+                 activeWar = rankedWar;
             }
+        }
+        // ---- **** END OF CORRECTION **** ----
+        
+        if (activeWar) {
+            // Note: The Torn API response uses 'war_id', not 'id'. We'll use war_id.
+            currentActiveRankedWarId = String(activeWar.war_id);
+            currentActiveRankedWarData = activeWar; // Store full active war object
 
-            // Find an *active* ranked war. A war is active if its start time is in the past
-            // and its end time is in the future.
-            const nowInSeconds = Math.floor(Date.now() / 1000);
-            const activeWar = data.rankedwars?.find(war => nowInSeconds >= war.start && nowInSeconds < war.end);
+            const yourFaction = activeWar.factions.find(f => String(f.id) === String(currentUserFactionId));
+            const opponentFaction = activeWar.factions.find(f => String(f.id) !== String(currentUserFactionId));
 
-            if (activeWar) {
-                currentActiveRankedWarId = String(activeWar.id);
-                currentActiveRankedWarData = activeWar; // Store full active war object
+            const yourFactionName = yourFaction?.name || "Your Faction";
+            const opponentFactionName = opponentFaction?.name || "Opponent Faction";
 
-                const yourFaction = activeWar.factions.find(f => String(f.id) === String(currentUserFactionId));
-                const opponentFaction = activeWar.factions.find(f => String(f.id) !== String(currentUserFactionId));
+            if (warChatTitle) warChatTitle.textContent = `War Chat - Active War!`;
+            if (warFactionsDisplay) warFactionsDisplay.textContent = `${yourFactionName} vs ${opponentFactionName}`;
+            
+            // Set up real-time countdown for the war
+            const updateWarTimer = () => {
+                const now = Math.floor(Date.now() / 1000);
+                let timeLeft = 0;
+                let timerText = "";
 
-                const yourFactionName = yourFaction?.name || "Your Faction";
-                const opponentFactionName = opponentFaction?.name || "Opponent Faction";
+                // Handle wars that might not have an end time yet
+                const warHasEnded = activeWar.end && now >= activeWar.end;
 
-                if (warChatTitle) warChatTitle.textContent = `War Chat - Active War!`;
-                if (warFactionsDisplay) warFactionsDisplay.textContent = `${yourFactionName} vs ${opponentFactionName}`;
-
-                // Set up real-time countdown for the war
-                const updateWarTimer = () => {
-                    const now = Math.floor(Date.now() / 1000);
-                    let timeLeft = 0;
-                    let timerText = "";
-
-                    if (now < activeWar.start) {
-                        timeLeft = activeWar.start - now;
-                        timerText = `Starts in: ${formatDuration(timeLeft)}`;
-                        warTimerDisplay.classList.remove('active-war');
-                        warTimerDisplay.classList.add('pending-war');
-                    } else if (now >= activeWar.start && now < activeWar.end) {
-                        timeLeft = activeWar.end - now;
-                        timerText = `Ends in: ${formatDuration(timeLeft)}`;
-                        warTimerDisplay.classList.add('active-war');
-                        warTimerDisplay.classList.remove('pending-war');
+                if (now < activeWar.start) {
+                    timeLeft = activeWar.start - now;
+                    timerText = `Starts in: ${formatDuration(timeLeft)}`;
+                    warTimerDisplay.classList.remove('active-war');
+                    warTimerDisplay.classList.add('pending-war');
+                } else if (!warHasEnded) {
+                    // If no end time, just show it's active or calculate from a default duration if available.
+                    // For this example, we'll only display a countdown if `activeWar.end` is valid.
+                    if (activeWar.end) {
+                       timeLeft = activeWar.end - now;
+                       timerText = `Ends in: ${formatDuration(timeLeft)}`;
                     } else {
-                        timerText = `War Ended: ${formatDuration(now - activeWar.end)} ago`;
-                        warTimerDisplay.classList.remove('active-war', 'pending-war');
-                        warTimerDisplay.classList.add('ended-war'); // Add a class for ended war if needed for styling
+                       timerText = "War is Active";
                     }
-                    if (warTimerDisplay) warTimerDisplay.textContent = timerText;
+                    warTimerDisplay.classList.add('active-war');
+                    warTimerDisplay.classList.remove('pending-war');
+                } else { // War has ended
+                    timerText = `War Ended: ${formatDuration(now - activeWar.end)} ago`;
+                    warTimerDisplay.classList.remove('active-war', 'pending-war');
+                    warTimerDisplay.classList.add('ended-war');
+                }
+                if (warTimerDisplay) warTimerDisplay.textContent = timerText;
 
-                    if (timeLeft <= 0 && now >= activeWar.end) {
-                        // Clear interval if war has ended, and refresh context to show "No Active War"
-                        clearInterval(warChatTimerInterval); // Use the global variable
-                        warChatTimerInterval = null; // Clear the global variable
-                        fetchAndSetWarChatContext(); // Re-run to update to "No Active War"
-                    }
-                };
-
-                // Clear any existing timer before setting a new one
-                if (warChatTimerInterval) {
+                if (warHasEnded) {
+                    // Clear interval if war has ended, and refresh context to show "No Active War"
                     clearInterval(warChatTimerInterval);
+                    warChatTimerInterval = null; 
+                    fetchAndSetWarChatContext(); // Re-run to update to "No Active War"
                 }
-                updateWarTimer(); // Run immediately
-                warChatTimerInterval = setInterval(updateWarTimer, 1000); // Use the global variable for assignment
+            };
 
-            } else {
-                if (warChatTitle) warChatTitle.textContent = "War Chat";
-                if (warFactionsDisplay) warFactionsDisplay.textContent = "No active ranked war.";
-                if (warTimerDisplay) warTimerDisplay.textContent = "";
-                if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>There is no active ranked war to display messages for.</p>`;
-                if (warChatTimerInterval) { // Clear if no active war, but interval was somehow running
-                    clearInterval(warChatTimerInterval);
-                    warChatTimerInterval = null;
-                }
+            // Clear any existing timer before setting a new one
+            if (warChatTimerInterval) {
+                clearInterval(warChatTimerInterval);
             }
+            updateWarTimer(); // Run immediately
+            warChatTimerInterval = setInterval(updateWarTimer, 1000);
 
-            // Now, establish the Firestore listener based on currentActiveRankedWarId
-            if (currentActiveRankedWarId) {
-                chatMessagesCollection = db.collection('warChats').doc(currentActiveRankedWarId).collection('messages');
-                
-                // IMPORTANT: Ensure the parent war document exists (e.g., for metadata)
-                await db.collection('warChats').doc(currentActiveRankedWarId).set(
-                    {
-                        faction1Id: yourFaction?.id,
-                        faction1Name: yourFaction?.name,
-                        faction2Id: opponentFaction?.id,
-                        faction2Name: opponentFaction?.name,
-                        warStart: activeWar?.start,
-                        warEnd: activeWar?.end,
-                        // Add default settings or load from a central war config here
-                        warChatEnabledForAll: true // Default to enabled, will be overridden by settings later
-                    },
-                    { merge: true }
-                );
-
-                unsubscribeFromChat = chatMessagesCollection
-                    .orderBy('timestamp', 'asc')
-                    .limitToLast(50)
-                    .onSnapshot(snapshot => {
-                        if (warChatDisplayArea) warChatDisplayArea.innerHTML = '';
-                        if (snapshot.empty) {
-                            if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>No war messages yet. Be the first to say hello!</p>`;
-                            return;
-                        }
-                        snapshot.forEach(doc => displayChatMessage(doc.data(), 'war-chat-display-area'));
-                    }, error => {
-                        console.error("Error listening to war chat messages:", error);
-                        if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p style="color: red;">Error loading war messages: ${error.message}</p>`;
-                    });
-                console.log(`War chat real-time listener set up for war: ${currentActiveRankedWarId}`);
-                
-                // Add a scroll event listener for the war chat display area if needed for custom scroll indicators
-                const scrollWrapper = document.getElementById('war-chat-display-area');
-                if (scrollWrapper) {
-                    // Example: scrollWrapper.addEventListener('scroll', someScrollHandlerFunction);
-                }
-
-            } else {
-                chatMessagesCollection = null; // No active war, so no collection to listen to
-                if (unsubscribeFromChat) unsubscribeFromChat(); // Unsubscribe if a previous listener was active
-                console.log("No active ranked war found, war chat listener not set up.");
-            }
-
-        } catch (error) {
-            console.error("Error fetching active ranked war for chat:", error);
-            if (warChatTitle) warChatTitle.textContent = "War Chat - Error";
-            if (warFactionsDisplay) warFactionsDisplay.textContent = "Could not fetch war details.";
-            if (warTimerDisplay) warTimerDisplay.textContent = "Error";
-            if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p style="color: red;">Failed to load war chat: ${error.message}</p>`;
-            if (warChatTimerInterval) { // Clear if error but interval was somehow running
+        } else {
+            if (warChatTitle) warChatTitle.textContent = "War Chat";
+            if (warFactionsDisplay) warFactionsDisplay.textContent = "No active ranked war.";
+            if (warTimerDisplay) warTimerDisplay.textContent = "";
+            if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>There is no active ranked war to display messages for.</p>`;
+            if (warChatTimerInterval) { 
                 clearInterval(warChatTimerInterval);
                 warChatTimerInterval = null;
             }
-            chatMessagesCollection = null;
-            if (unsubscribeFromChat) unsubscribeFromChat();
         }
-    }
 
+        // Now, establish the Firestore listener based on currentActiveRankedWarId
+        if (currentActiveRankedWarId) {
+            chatMessagesCollection = db.collection('warChats').doc(currentActiveRankedWarId).collection('messages');
+            
+            // Getting faction names again to ensure they are in scope for the set command
+            const yourFaction = currentActiveRankedWarData.factions.find(f => String(f.id) === String(currentUserFactionId));
+            const opponentFaction = currentActiveRankedWarData.factions.find(f => String(f.id) !== String(currentUserFactionId));
+
+            // IMPORTANT: Ensure the parent war document exists (e.g., for metadata)
+            await db.collection('warChats').doc(currentActiveRankedWarId).set({
+                faction1Id: yourFaction?.id,
+                faction1Name: yourFaction?.name,
+                faction2Id: opponentFaction?.id,
+                faction2Name: opponentFaction?.name,
+                warStart: currentActiveRankedWarData?.start,
+                warEnd: currentActiveRankedWarData?.end,
+                warChatEnabledForAll: true
+            }, {
+                merge: true
+            });
+
+            unsubscribeFromChat = chatMessagesCollection
+                .orderBy('timestamp', 'asc')
+                .limitToLast(50)
+                .onSnapshot(snapshot => {
+                    if (warChatDisplayArea) warChatDisplayArea.innerHTML = '';
+                    if (snapshot.empty) {
+                        if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p>No war messages yet. Be the first to say hello!</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => displayChatMessage(doc.data(), 'war-chat-display-area'));
+                }, error => {
+                    console.error("Error listening to war chat messages:", error);
+                    if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p style="color: red;">Error loading war messages: ${error.message}</p>`;
+                });
+            console.log(`War chat real-time listener set up for war: ${currentActiveRankedWarId}`);
+            
+        } else {
+            chatMessagesCollection = null; // No active war, so no collection to listen to
+            if (unsubscribeFromChat) unsubscribeFromChat(); // Unsubscribe if a previous listener was active
+            console.log("No active ranked war found, war chat listener not set up.");
+        }
+
+    } catch (error) {
+        console.error("Error fetching active ranked war for chat:", error);
+        if (warChatTitle) warChatTitle.textContent = "War Chat - Error";
+        if (warFactionsDisplay) warFactionsDisplay.textContent = "Could not fetch war details.";
+        if (warTimerDisplay) warTimerDisplay.textContent = "Error";
+        if (warChatDisplayArea) warChatDisplayArea.innerHTML = `<p style="color: red;">Failed to load war chat: ${error.message}</p>`;
+        if (warChatTimerInterval) {
+            clearInterval(warChatTimerInterval);
+            warChatTimerInterval = null;
+        }
+        chatMessagesCollection = null;
+        if (unsubscribeFromChat) unsubscribeFromChat();
+    }
+}
     // Now, inside your existing setupChatRealtimeListener function, modify the 'war' case:
     function setupChatRealtimeListener(type) {
         // Clear previous listener first
