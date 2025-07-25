@@ -41,6 +41,41 @@ function formatDuration(seconds) {
     return result.trim();
 }
 
+function showCustomAlert(message, title = "Alert") {
+    return new Promise(resolve => {
+        // Create the overlay and box elements using the same styles
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-confirm-overlay';
+
+        const alertBox = document.createElement('div');
+        alertBox.className = 'custom-confirm-box';
+
+        // Create the content with a single "Okay" button
+        alertBox.innerHTML = `
+            <h4>${title}</h4>
+            <p>${message}</p>
+            <div class="custom-confirm-actions">
+                <button class="action-button secondary" id="alert-btn-ok">Okay</button>
+            </div>
+        `;
+
+        // Append to the page
+        overlay.appendChild(alertBox);
+        document.body.appendChild(overlay);
+
+        const btnOk = document.getElementById('alert-btn-ok');
+
+        // Function to close and resolve the promise
+        const closeAlert = () => {
+            document.body.removeChild(overlay);
+            resolve();
+        };
+
+        // Add event listener
+        btnOk.addEventListener('click', closeAlert);
+    });
+}
+
 function showCustomConfirm(message, title = "Are you sure?") {
     return new Promise(resolve => {
         // Create the overlay and box elements
@@ -288,16 +323,17 @@ function initializeGlobals() {
     });
 }
 
-                // NEW: Function to update the alliance info icon title
                 function updateAllianceInfoIconTitle() {
-                    if (allianceInfoIcon) {
-                        if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
-                            allianceInfoIcon.title = `Saved Alliances: ${currentUserAllianceIds.join(', ')}\n(Chatting in first saved ID)`;
-                        } else {
-                            allianceInfoIcon.title = 'No Alliance IDs saved. Enter one above (max 3).';
-                        }
-                    }
-                }
+    if (allianceInfoIcon) {
+        if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+            // Updated text for when a password is saved
+            allianceInfoIcon.title = `Saved Alliance Password: ${currentUserAllianceIds[0]}`;
+        } else {
+            // Updated text for the new limit
+            allianceInfoIcon.title = 'No Alliance Password saved. Enter one above (max 1).';
+        }
+    }
+}
 
 
                 // --- Minimize Button Logic ---
