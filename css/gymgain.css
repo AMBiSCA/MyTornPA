@@ -431,6 +431,73 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     }
 }
 
+/* --- Custom Confirmation Box CSS --- */
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.custom-confirm-box {
+    background-color: #1c2836;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #4a6a8a;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+
+.custom-confirm-box h4 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.custom-confirm-box p {
+    color: #cdd3d8;
+    margin-bottom: 25px;
+}
+
+.custom-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Re-using your button styles */
+.custom-confirm-actions .action-button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+}
+
+.custom-confirm-actions .danger {
+    background-color: #d9534f; /* Red */
+}
+.custom-confirm-actions .danger:hover {
+    background-color: #c9302c;
+}
+
+.custom-confirm-actions .secondary {
+    background-color: #337ab7; /* Blue */
+}
+.custom-confirm-actions .secondary:hover {
+    background-color: #286090;
+}
+
 @media (max-width: 600px) {
     .gym-main-layout-wrapper {
         padding: 10px;

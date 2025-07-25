@@ -41,7 +41,45 @@ function formatDuration(seconds) {
     return result.trim();
 }
 
-// Function to format UTC timestamp to a readable time/date string
+function showCustomConfirm(message, title = "Are you sure?") {
+    return new Promise(resolve => {
+        // Create the overlay and box elements
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-confirm-overlay';
+
+        const confirmBox = document.createElement('div');
+        confirmBox.className = 'custom-confirm-box';
+
+        // Create the content
+        confirmBox.innerHTML = `
+            <h4>${title}</h4>
+            <p>${message}</p>
+            <div class="custom-confirm-actions">
+                <button class="action-button danger" id="confirm-btn-yes">Yes</button>
+                <button class="action-button secondary" id="confirm-btn-no">No</button>
+            </div>
+        `;
+
+        // Append to the page
+        overlay.appendChild(confirmBox);
+        document.body.appendChild(overlay);
+
+        // Get the new buttons
+        const btnYes = document.getElementById('confirm-btn-yes');
+        const btnNo = document.getElementById('confirm-btn-no');
+
+        // Function to close and resolve the promise
+        const closeConfirm = (decision) => {
+            document.body.removeChild(overlay);
+            resolve(decision);
+        };
+
+        // Add event listeners
+        btnYes.addEventListener('click', () => closeConfirm(true));
+        btnNo.addEventListener('click', () => closeConfirm(false));
+    });
+}
+
 function formatUtcTimestamp(timestampInSeconds) {
     if (!timestampInSeconds) return 'N/A';
     const date = new Date(timestampInSeconds * 1000);
@@ -238,18 +276,18 @@ function initializeGlobals() {
                     });
                 }
 
-                // NEW: Clear All Alliances button listener
                 if (clearAlliancesButton) {
-                    clearAlliancesButton.addEventListener('click', async () => {
-                        const userConfirmed = await showCustomConfirm('Are you sure you want to remove ALL saved Alliance IDs?', 'Confirm Clear');
-                        if (userConfirmed) {
-                            await clearUserAllianceIds(); // This will clear `currentUserAllianceIds` as well
-                            alert('All Alliance IDs cleared!');
-                            allianceFactionIdInput.value = ''; // Clear input field
-                            updateAllianceInfoIconTitle(); // Update tooltip
-                        }
-                    });
-                }
+    clearAlliancesButton.addEventListener('click', async () => {
+        const userConfirmed = await showCustomConfirm('Are you sure you want to remove ALL saved Alliance passwords?', 'Confirm Clear');
+        
+        if (userConfirmed) {
+            await clearUserAllianceIds(); // This function already exists in your code
+            alert('All Alliance passwords cleared!'); // Using a simple alert for confirmation
+            allianceFactionIdInput.value = ''; 
+            updateAllianceInfoIconTitle(); 
+        }
+    });
+}
 
                 // NEW: Function to update the alliance info icon title
                 function updateAllianceInfoIconTitle() {
