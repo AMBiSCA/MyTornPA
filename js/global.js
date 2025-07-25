@@ -53,86 +53,6 @@ function formatUtcTimestamp(timestampInSeconds) {
     });
 }
 
-async function sendChatMessage(textInput, collectionType) {
-        if (!textInput || !auth.currentUser) {
-            console.warn("Cannot send message: User not authenticated.");
-            return;
-        }
-        const messageText = textInput.value.trim();
-        if (messageText === '') return;
-
-        let targetCollection = null;
-        let consoleLogPath = '';
-        let docIdForParent = null; 
-
-        if (collectionType === 'faction') {
-            if (currentUserFactionId) {
-                targetCollection = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
-                consoleLogPath = `factionChats/${currentUserFactionId}/messages`;
-                docIdForParent = currentUserFactionId;
-            } else {
-                console.warn("Faction ID not available for current user. Cannot send faction chat message.");
-                alert("Faction ID not found. Please complete your profile to use faction chat.");
-                return;
-            }
-        } else if (collectionType === 'war') {
-            // Use the globally stored currentActiveRankedWarId
-            if (currentActiveRankedWarId) {
-                targetCollection = db.collection('warChats').doc(currentActiveRankedWarId).collection('messages');
-                consoleLogPath = `warChats/${currentActiveRankedWarId}/messages`;
-                docIdForParent = currentActiveRankedWarId;
-            } else {
-                console.warn("No active ranked war ID. Cannot send war chat message.");
-                alert("No active war chat available. Please wait for a war to start or check war settings.");
-                return;
-            }
-        } else if (collectionType === 'alliance') {
-            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
-                const allianceIdToChatIn = currentUserAllianceIds[0];
-                targetCollection = db.collection('allianceChats').doc(allianceIdToChatIn).collection('messages');
-                consoleLogPath = `allianceChats/${allianceIdToChatIn}/messages`;
-                docIdForParent = allianceIdToChatIn;
-            } else {
-                console.warn("No Alliance ID available for current user. Cannot send alliance chat message.");
-                alert("No Alliance ID saved. Please go to Settings > Alliance Chat Settings and enter your alliance's ID to use this chat.");
-                return;
-            }
-        }
-
-        if (!targetCollection) {
-            console.error("No valid chat collection determined for sending message.");
-            return;
-        }
-
-        console.log(`Attempting to send message to ${consoleLogPath}`);
-
-        const messageObj = {
-            senderId: auth.currentUser.uid,
-            sender: currentTornUserName,
-            text: messageText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        try {
-            // Ensure the parent document exists for faction/alliance/war chats if it's the first message
-            if (docIdForParent) {
-                const parentCollectionName = (collectionType === 'faction') ? 'factionChats' :
-                                             (collectionType === 'alliance') ? 'allianceChats' :
-                                             (collectionType === 'war') ? 'warChats' : null;
-
-                if (parentCollectionName) {
-                    await db.collection(parentCollectionName).doc(docIdForParent).set({}, { merge: true }); // Empty merge to ensure existence
-                }
-            }
-
-            await targetCollection.add(messageObj);
-            textInput.value = ''; // Clear input field
-            textInput.focus(); // Keep focus on input field
-        } catch (error) {
-            console.error(`Error sending ${collectionType} message to Firebase:`, error);
-            alert(`Failed to send ${collectionType} message.`);
-        }
-    }
-
 function initializeGlobals() {
     // ---- Firebase Setup ----
     const db = firebase.firestore();
@@ -142,14 +62,13 @@ function initializeGlobals() {
     let currentTornUserName = 'Unknown';
     let currentUserFactionId = null;
     let userTornApiKey = null;
-    // UPDATED: Variable to store the user's saved alliance IDs as an array
     let currentUserAllianceIds = [];
 
     // NEW GLOBAL VARS FOR WAR CHAT
     let currentActiveRankedWarId = null;
     let currentActiveRankedWarData = null; // To store names, start/end times etc.
-    // Store the interval ID to clear it later when switching away from war chat
-    let warChatTimerInterval = null;
+    // Store the interval ID to clear it later
+    let warChatTimerInterval = null; 
     // END NEW GLOBAL VARS
 
     // ---- Torn API Base URL ----
@@ -557,8 +476,6 @@ function initializeGlobals() {
         }
     });
 
-
-
     // NEW FUNCTION: Fetches active ranked war and sets up context for War Chat
     async function fetchAndSetWarChatContext() {
         const warChatTitle = document.getElementById('war-chat-title');
@@ -591,75 +508,52 @@ function initializeGlobals() {
                 throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
             }
 
+            // Find an *active* ranked war. A war is active if its start time is in the past
+            // and its end time is in the future.
             const nowInSeconds = Math.floor(Date.now() / 1000);
-            let currentOrUpcomingWar = null;
+            const activeWar = data.rankedwars?.find(war => nowInSeconds >= war.start && nowInSeconds < war.end);
 
-            if (data.rankedwars && data.rankedwars.length > 0) {
-                // Prioritize finding an *active* war (already started AND has an end time in the future)
-                currentOrUpcomingWar = data.rankedwars.find(war => nowInSeconds >= war.start && war.end !== null && nowInSeconds < war.end);
+            if (activeWar) {
+                currentActiveRankedWarId = String(activeWar.id);
+                currentActiveRankedWarData = activeWar; // Store full active war object
 
-                // If no truly active war, look for an *upcoming* war (start time in the future, end is null)
-                // You might also add a check here like && war.start < (nowInSeconds + 24 * 3600) to only show wars
-                // starting within the next 24 hours, to avoid showing very distant future wars.
-                if (!currentOrUpcomingWar) {
-                    currentOrUpcomingWar = data.rankedwars.find(war => nowInSeconds < war.start && war.end === null);
-                }
-
-                // Fallback: If still no war found, maybe there's a recently ended war? (less critical for chat, but for context)
-                // For chat purposes, we primarily care about active or upcoming.
-            }
-
-            if (currentOrUpcomingWar) {
-                currentActiveRankedWarId = String(currentOrUpcomingWar.id);
-                currentActiveRankedWarData = currentOrUpcomingWar;
-
-                const yourFaction = currentOrUpcomingWar.factions.find(f => String(f.id) === String(currentUserFactionId));
-                const opponentFaction = currentOrUpcomingWar.factions.find(f => String(f.id) !== String(currentUserFactionId));
+                const yourFaction = activeWar.factions.find(f => String(f.id) === String(currentUserFactionId));
+                const opponentFaction = activeWar.factions.find(f => String(f.id) !== String(currentUserFactionId));
 
                 const yourFactionName = yourFaction?.name || "Your Faction";
                 const opponentFactionName = opponentFaction?.name || "Opponent Faction";
 
+                if (warChatTitle) warChatTitle.textContent = `War Chat - Active War!`;
                 if (warFactionsDisplay) warFactionsDisplay.textContent = `${yourFactionName} vs ${opponentFactionName}`;
 
                 // Set up real-time countdown for the war
                 const updateWarTimer = () => {
-                    const currentSecond = Math.floor(Date.now() / 1000);
+                    const now = Math.floor(Date.now() / 1000);
                     let timeLeft = 0;
                     let timerText = "";
 
-                    if (currentSecond < currentOrUpcomingWar.start) {
-                        // War is upcoming
-                        timeLeft = currentOrUpcomingWar.start - currentSecond;
+                    if (now < activeWar.start) {
+                        timeLeft = activeWar.start - now;
                         timerText = `Starts in: ${formatDuration(timeLeft)}`;
-                        if (warChatTitle) warChatTitle.textContent = "War Chat - Upcoming War";
-                        warTimerDisplay.classList.remove('active-war', 'ended-war');
+                        warTimerDisplay.classList.remove('active-war');
                         warTimerDisplay.classList.add('pending-war');
-                    } else if (currentOrUpcomingWar.end === null || currentSecond < currentOrUpcomingWar.end) {
-                        // War has started and is ongoing (either end is null, or it's before end)
-                        if (currentOrUpcomingWar.end === null) {
-                            timerText = `Ongoing (No End Time)`; // Can't calculate countdown for indefinite wars
-                        } else {
-                            timeLeft = currentOrUpcomingWar.end - currentSecond;
-                            timerText = `Ends in: ${formatDuration(timeLeft)}`;
-                        }
-                        if (warChatTitle) warChatTitle.textContent = "War Chat - Active War!";
-                        warTimerDisplay.classList.remove('pending-war', 'ended-war');
+                    } else if (now >= activeWar.start && now < activeWar.end) {
+                        timeLeft = activeWar.end - now;
+                        timerText = `Ends in: ${formatDuration(timeLeft)}`;
                         warTimerDisplay.classList.add('active-war');
+                        warTimerDisplay.classList.remove('pending-war');
                     } else {
-                        // War has ended
-                        timerText = `War Ended: ${formatDuration(currentSecond - currentOrUpcomingWar.end)} ago`;
-                        if (warChatTitle) warChatTitle.textContent = "War Chat - Ended";
+                        timerText = `War Ended: ${formatDuration(now - activeWar.end)} ago`;
                         warTimerDisplay.classList.remove('active-war', 'pending-war');
-                        warTimerDisplay.classList.add('ended-war');
+                        warTimerDisplay.classList.add('ended-war'); // Add a class for ended war if needed for styling
                     }
-                    
                     if (warTimerDisplay) warTimerDisplay.textContent = timerText;
 
-                    // If war has clearly ended, clear the interval and refresh context
-                    if (currentOrUpcomingWar.end !== null && currentSecond >= currentOrUpcomingWar.end) {
-                        clearInterval(warChatTimerInterval);
-                        warChatTimerInterval = null;
-                        fetchAndSetWarChatContext(); // Re-run to update to "No Active War" or next pending
+                    if (timeLeft <= 0 && now >= activeWar.end) {
+                        // Clear interval if war has ended, and refresh context to show "No Active War"
+                        clearInterval(warChatTimerInterval); // Use the global variable
+                        warChatTimerInterval = null; // Clear the global variable
+                        fetchAndSetWarChatContext(); // Re-run to update to "No Active War"
                     }
                 };
 
@@ -668,7 +562,7 @@ function initializeGlobals() {
                     clearInterval(warChatTimerInterval);
                 }
                 updateWarTimer(); // Run immediately
-                warChatTimerInterval = setInterval(updateWarTimer, 1000); // Set the global variable for assignment
+                warChatTimerInterval = setInterval(updateWarTimer, 1000); // Use the global variable for assignment
 
             } else {
                 if (warChatTitle) warChatTitle.textContent = "War Chat";
@@ -692,9 +586,8 @@ function initializeGlobals() {
                         faction1Name: yourFaction?.name,
                         faction2Id: opponentFaction?.id,
                         faction2Name: opponentFaction?.name,
-                        warStart: currentOrUpcomingWar?.start,
-                        warEnd: currentOrUpcomingWar?.end,
-                        warStatus: (nowInSeconds < currentOrUpcomingWar.start) ? 'pending' : ((currentOrUpcomingWar.end === null || nowInSeconds < currentOrUpcomingWar.end) ? 'active' : 'ended'),
+                        warStart: activeWar?.start,
+                        warEnd: activeWar?.end,
                         // Add default settings or load from a central war config here
                         warChatEnabledForAll: true // Default to enabled, will be overridden by settings later
                     },
@@ -845,7 +738,7 @@ function initializeGlobals() {
                 return;
             }
 
-            const factionApiUrl = `${TORN_API_BASE_URL}/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
+            const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
             const apiResponse = await fetch(factionApiUrl);
             const tornData = await apiResponse.json();
 
@@ -1079,6 +972,7 @@ function initializeGlobals() {
 
             let cardsHtml = '';
             friendDetails.forEach(friend => {
+                // --- CHANGE IS HERE: The link is now a button with data attributes ---
                 cardsHtml += `
                     <div class="member-item">
                         <div class="member-identity">
@@ -1111,6 +1005,7 @@ function initializeGlobals() {
                         populateFriendListTab(targetDisplayElement); // Refresh the list
                     }
                 } else if (messageButton) {
+                    // --- CHANGE IS HERE: This handles the click on the new message button ---
                     const friendId = messageButton.dataset.friendId;
                     const friendName = messageButton.dataset.friendName;
                     openPrivateChatWindow(friendId, friendName);
@@ -1196,6 +1091,7 @@ function initializeGlobals() {
             } else {
                 snapshot.forEach(doc => {
                     const messageData = doc.data();
+                    // --- THIS IS THE KEY CHANGE ---
                     const isMyMessage = messageData.senderId === currentUser.uid;
                     displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
                 });
@@ -1491,10 +1387,1025 @@ function initializeGlobals() {
             targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
         }
     }
+    // ---- CORE CHAT FUNCTIONS ----
+    function displayChatMessage(messageObj, chatDisplayAreaId) {
+        const chatDisplayArea = document.getElementById(chatDisplayAreaId);
+        if (!chatDisplayArea) return;
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+        const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const senderName = messageObj.sender || 'Unknown';
+        const messageText = messageObj.text || '';
+        messageElement.innerHTML = `<span class="chat-timestamp">[${timestamp}]</span> <span class="chat-sender">${senderName}:</span> <span class="chat-text">${messageText}</span>`;
+        chatDisplayArea.appendChild(messageElement);
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Auto-scroll to latest message
+    }
+
+    async function sendChatMessage(textInput, collectionType) {
+        if (!textInput || !auth.currentUser) {
+            console.warn("Cannot send message: User not authenticated.");
+            return;
+        }
+        const messageText = textInput.value.trim();
+        if (messageText === '') return;
+
+        let targetCollection = null;
+        let consoleLogPath = '';
+        let docIdForParent = null; // New variable to hold the document ID for parent chat collections
+
+        if (collectionType === 'faction') {
+            if (currentUserFactionId) {
+                targetCollection = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
+                consoleLogPath = `factionChats/${currentUserFactionId}/messages`;
+                docIdForParent = currentUserFactionId;
+            } else {
+                console.warn("Faction ID not available for current user. Cannot send faction chat message.");
+                alert("Faction ID not found. Please complete your profile to use faction chat.");
+                return;
+            }
+        } else if (collectionType === 'war') {
+            // Use the globally stored currentActiveRankedWarId
+            if (currentActiveRankedWarId) {
+                targetCollection = db.collection('warChats').doc(currentActiveRankedWarId).collection('messages');
+                consoleLogPath = `warChats/${currentActiveRankedWarId}/messages`;
+                docIdForParent = currentActiveRankedWarId;
+            } else {
+                console.warn("No active ranked war ID. Cannot send war chat message.");
+                alert("No active war chat available. Please wait for a war to start or check war settings.");
+                return;
+            }
+        } else if (collectionType === 'alliance') {
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToChatIn = currentUserAllianceIds[0];
+                targetCollection = db.collection('allianceChats').doc(allianceIdToChatIn).collection('messages');
+                consoleLogPath = `allianceChats/${allianceIdToChatIn}/messages`;
+                docIdForParent = allianceIdToChatIn;
+            } else {
+                console.warn("No Alliance ID available for current user. Cannot send alliance chat message.");
+                alert("No Alliance ID saved. Please go to Settings > Alliance Chat Settings and enter your alliance's ID to use this chat.");
+                return;
+            }
+        }
+
+        if (!targetCollection) {
+            console.error("No valid chat collection determined for sending message.");
+            return;
+        }
+
+        console.log(`Attempting to send message to ${consoleLogPath}`);
+
+        const messageObj = {
+            senderId: auth.currentUser.uid,
+            sender: currentTornUserName,
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        try {
+            // Ensure the parent document exists for faction/alliance/war chats if it's the first message
+            if (docIdForParent) { // Check if a parent doc ID was determined
+                const parentCollectionName = (collectionType === 'faction') ? 'factionChats' :
+                                             (collectionType === 'alliance') ? 'allianceChats' :
+                                             (collectionType === 'war') ? 'warChats' : null;
+
+                if (parentCollectionName) {
+                    await db.collection(parentCollectionName).doc(docIdForParent).set({}, { merge: true }); // Empty merge to ensure existence
+                }
+            }
+
+            await targetCollection.add(messageObj);
+            textInput.value = ''; // Clear input field
+            textInput.focus(); // Keep focus on input field
+        } catch (error) {
+            console.error(`Error sending ${collectionType} message to Firebase:`, error);
+            alert(`Failed to send ${collectionType} message.`);
+        }
+    }
+
+    function setupChatRealtimeListener(type) {
+        // Clear previous listener first
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null; // Ensure it's explicitly null
+            console.log("Unsubscribed from previous chat listener.");
+        }
+        // Also clear any active war chat timer if switching away from war chat
+        if (warChatTimerInterval) {
+            clearInterval(warChatTimerInterval);
+            warChatTimerInterval = null;
+            console.log("Cleared war chat timer interval.");
+        }
+
+        let chatDisplayArea = null; // Declare here so it's fresh for each type
+        let collectionRef = null;
+        let displayAreaId = '';
+        let consoleLogPath = '';
+
+        if (type === 'faction' && auth.currentUser) {
+            if (currentUserFactionId) {
+                collectionRef = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
+                displayAreaId = 'chat-display-area';
+                consoleLogPath = `factionChats/${currentUserFactionId}/messages`;
+            } else {
+                chatDisplayArea = document.getElementById('chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat. Please ensure your profile is complete.</p>';
+                console.warn("User has no faction ID to set up faction chat listener.");
+                return;
+            }
+        } else if (type === 'war') {
+            // For war chat, we need to first determine the active war.
+            // fetchAndSetWarChatContext will handle setting up chatMessagesCollection and listener.
+            fetchAndSetWarChatContext(); // This function does all the heavy lifting for war chat
+            return; // Exit here, as the listener is set up within fetchAndSetWarChatContext
+        } else if (type === 'alliance' && auth.currentUser) {
+            // Use the first saved alliance ID for displaying messages
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToListenTo = currentUserAllianceIds[0];
+                collectionRef = db.collection('allianceChats').doc(allianceIdToListenTo).collection('messages');
+                displayAreaId = 'alliance-chat-display-area';
+                consoleLogPath = `allianceChats/${allianceIdToListenTo}/messages`;
+            } else {
+                chatDisplayArea = document.getElementById('alliance-chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = "<p>No Alliance ID saved. Go to Settings to enter one.</p>";
+                console.warn("User has no alliance ID to set up alliance chat listener.");
+                return;
+            }
+        } else if (!auth.currentUser) { // If user is not logged in for any chat type
+            const displayAreas = {
+                'faction': 'chat-display-area',
+                'war': 'war-chat-display-area',
+                'alliance': 'alliance-chat-display-area'
+            };
+            chatDisplayArea = document.getElementById(displayAreas[type]);
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+            console.warn(`User not logged in. Cannot set up ${type} chat listener.`);
+            return;
+        }
+
+        // This block only executes for 'faction' or 'alliance' chat after their respective collectionRefs are set
+        chatDisplayArea = document.getElementById(displayAreaId); // Re-get it, it might be set above
+        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>Loading ${type} messages...</p>`;
+        console.log(`Setting up ${type} chat listener for path: ${consoleLogPath}`);
+
+        if (collectionRef) {
+            unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
+                .onSnapshot(snapshot => {
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = ''; // Clear previous messages
+                    if (snapshot.empty) {
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No ${type} messages yet.</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId));
+                }, error => {
+                    console.error(`Error listening to ${type} chat messages:`, error);
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading ${type} messages.</p>`;
+                });
+        }
+    }
+    // ... populateFactionOverview and other functions ...
+
+    async function populateFactionOverview() {
+        const overviewContent = document.getElementById('faction-overview-content');
+        if (!overviewContent) {
+            console.error("Faction Overview panel content area not found!");
+            return;
+        }
+
+        overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>`;
+
+        try {
+            const factionId = window.currentUserFactionId;
+            const apiKey = window.userTornApiKey;
+
+            if (!factionId || !apiKey) {
+                overviewContent.innerHTML = `<p style="color: orange; text-align: center;">Faction ID or API Key not available.</p>`;
+                return;
+            }
+
+            const factionApiUrl = `https://api.torn.com/v2/faction/${factionId}?selections=members&key=${apiKey}&comment=MyTornPA_Overview`;
+            const apiResponse = await fetch(factionApiUrl);
+            const tornData = await apiResponse.json();
+
+            if (tornData.error) throw new Error(`Torn API Error: ${tornData.error.error}`);
+
+            const memberIds = Object.keys(tornData.members || {});
+
+            if (memberIds.length === 0) {
+                overviewContent.innerHTML = `<p style="text-align: center;">No faction members found.</p>`;
+                return;
+            }
+
+            const membersToSort = memberIds.map(id => ({ id: id, ...tornData.members[id] }));
+            membersToSort.sort((a, b) => a.name.localeCompare(b.name));
+
+            const memberHtmlPromises = membersToSort.map(async (apiMember) => {
+                const memberId = apiMember.id;
+
+                // Explicitly ensures the memberId is a string before calling the database.
+                const userDoc = await db.collection('users').doc(String(memberId)).get();
+                const firestoreMember = userDoc.exists ? userDoc.data() : {};
+
+                const name = apiMember.name;
+                const energy = `${firestoreMember.energy?.current || 'N/A'} / ${firestoreMember.energy?.maximum || 'N/A'}`;
+                const drugCooldown = firestoreMember.cooldowns?.drug || 0;
+
+                const reviveSettingText = apiMember.revive_setting;
+
+                const energyRefillUsedToday = firestoreMember.energyRefillUsedToday; // This is the boolean from your worker
+                const refillStatusHtml = energyRefillUsedToday ? '<span class="status-red">Used</span>' : '<span class="status-green">Available</span>';
+
+                const status = apiMember.status.description;
+
+                let drugCdHtml = `<span class="status-okay">None 🍁</span>`;
+                if (drugCooldown > 0) {
+                    const hours = Math.floor(drugCooldown / 3600);
+                    const minutes = Math.floor((drugCooldown % 3600) / 60);
+                    let cdText = (hours > 0) ? `${hours}hr ${minutes}m` : `${minutes}m`;
+                    const cdClass = drugCooldown > 18000 ? 'status-hospital' : 'status-other';
+                    drugCdHtml = `<span class="${cdClass}">${cdText}</span>`;
+                }
+
+                let reviveCircleClass = 'rev-circle-red'; // Default to red
+                if (reviveSettingText === 'Everyone') {
+                    reviveCircleClass = 'rev-circle-green';
+                } else if (reviveSettingText === 'Friends & faction') {
+                    reviveCircleClass = 'rev-circle-orange';
+                }
+
+                let statusClass = 'status-okay';
+                if (apiMember.status.state === 'Hospital') statusClass = 'status-hospital';
+                if (apiMember.status.state === 'Traveling') statusClass = 'status-other';
+
+                return `
+                    <tr>
+                        <td class="overview-name">${name}</td>
+                        <td class="overview-energy energy-text">${energy}</td>
+                        <td class="overview-drugcd">${drugCdHtml}</td>
+                        <td class="overview-revive"><div class="rev-circle ${reviveCircleClass}" title="${reviveSettingText}"></div></td>
+                        <td class="overview-refill">${refillStatusHtml}</td>
+                        <td class="overview-status ${statusClass}">${status}</td>
+                    </tr>
+                `;
+            });
+
+            const memberRowsHtml = (await Promise.all(memberHtmlPromises)).join('');
+
+            overviewContent.innerHTML = `
+                <table class="overview-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Energy</th>
+                            <th>Drug C/D</th>
+                            <th>Rev</th>
+                            <th>Refill</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${memberRowsHtml}
+                    </tbody>
+                </table>
+            `;
+
+        } catch (error) {
+            console.error("Error populating Faction Overview:", error);
+            overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+        }
+    }
+
+    // NEW FUNCTION: Add or update a user's alliance ID in their saved list
+    async function addOrUpdateUserAllianceId(newAllianceId) {
+        const user = auth.currentUser;
+        if (!user) {
+            console.warn('Cannot save alliance ID: User not logged in.');
+            return;
+        }
+
+        // Ensure currentUserAllianceIds is an array
+        const currentAllianceIds = currentUserAllianceIds || [];
+        const trimmedNewId = newAllianceId.trim();
+
+        if (!trimmedNewId) {
+            alert('Please enter a valid Alliance ID.');
+            return;
+        }
+
+        if (currentAllianceIds.includes(trimmedNewId)) {
+            alert(`Alliance ID '${trimmedNewId}' is already saved.`);
+            return;
+        }
+
+        if (currentAllianceIds.length >= 3) { // Enforce max 3 IDs
+            alert('You can only save up to 3 Alliance IDs. Please clear one first.');
+            return;
+        }
+
+        try {
+            // Use arrayUnion to safely add the new ID to the array in Firestore
+            await db.collection('userProfiles').doc(user.uid).update({
+                allianceIds: firebase.firestore.FieldValue.arrayUnion(trimmedNewId)
+            });
+            // Update local variable
+            currentUserAllianceIds.push(trimmedNewId); // Add to local array
+            console.log(`Alliance ID '${trimmedNewId}' added for user ${user.uid}`);
+            alert(`Alliance ID '${trimmedNewId}' saved successfully!`);
+        } catch (error) {
+            console.error('Error adding alliance ID:', error);
+            alert('Failed to add Alliance ID. Please try again.');
+        }
+    }
+
+    // UPDATED FUNCTION: Clear all user's alliance IDs from Firestore
+    async function clearUserAllianceIds() {
+        const user = auth.currentUser;
+        if (!user) {
+            console.warn('Cannot clear alliance IDs: User not logged in.');
+            return;
+        }
+        try {
+            // Set the allianceIds field to an empty array
+            await db.collection('userProfiles').doc(user.uid).update({
+                allianceIds: []
+            });
+            currentUserAllianceIds = []; // Clear local variable
+            console.log(`All Alliance IDs cleared for user ${user.uid}`);
+        } catch (error) {
+            console.error('Error clearing alliance IDs:', error);
+            alert('Failed to clear Alliance IDs. Please try again.');
+        }
+    }
 
 
-} // END of initializeGlobals function (Closing brace moved down)
+    function openPrivateChatWindow(userId, userName) {
+        // First, remove any other private chat window that might be open
+        const existingWindow = document.querySelector('.private-chat-window');
+        if (existingWindow) {
+            // Important: Manually trigger the close button's click to unsubscribe from listeners
+            existingWindow.querySelector('.pcw-close-btn').click();
+        }
 
+        // Create the main window container
+        const chatDiv = document.createElement('div');
+        chatDiv.className = 'private-chat-window';
+        chatDiv.id = `private-chat-window-${userId}`;
+
+        // Create the inner HTML for the window
+        chatDiv.innerHTML = `
+            <div class="pcw-header">
+                <span class="pcw-title" title="${userName} [${userId}]">Chat with ${userName}</span>
+                <button class="pcw-close-btn" title="Close">×</button>
+            </div>
+            <div class="pcw-messages">
+                <p style="color: #888;">Loading messages...</p>
+            </div>
+            <div class="pcw-input-area">
+                <input type="text" class="pcw-input" placeholder="Type a message...">
+                <button class="pcw-send-btn">Send</button>
+            </div>
+        `;
+
+        // Add the new chat window to the page
+        document.body.appendChild(chatDiv);
+
+        // Make the close button work (it now only handles removing the element)
+        chatDiv.querySelector('.pcw-close-btn').addEventListener('click', () => {
+            chatDiv.remove();
+        });
+
+        // --- THIS IS THE NEW LINE ---
+        // After creating the window, call the function to load its messages and make it work
+        loadAndHandlePrivateChat(userId, userName, chatDiv);
+    }
+
+    async function populateFriendListTab(targetDisplayElement) {
+        if (!targetDisplayElement) {
+            console.error("HTML Error: Target display element not provided for Friend List tab.");
+            return;
+        }
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading your friend list...</p>`;
+
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your friends.</p>';
+            return;
+        }
+
+        try {
+            const friendsSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('friends').get();
+
+            if (friendsSnapshot.empty) {
+                targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">You have not added any friends yet.</p>';
+                return;
+            }
+
+            const friendDetailsPromises = friendsSnapshot.docs.map(doc => {
+                const friendTornId = doc.id;
+                return db.collection('users').doc(friendTornId).get().then(userDoc => {
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        const friendName = userData.name || `User ID ${friendTornId}`;
+                        const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
+                        return { id: friendTornId, name: friendName, image: profileImage };
+                    }
+                    return { id: friendTornId, name: `Unknown [${friendTornId}]`, image: '../../images/default_profile_icon.png' };
+                });
+            });
+
+            const friendDetails = await Promise.all(friendDetailsPromises);
+
+            let cardsHtml = '';
+            friendDetails.forEach(friend => {
+                // --- CHANGE IS HERE: The link is now a button with data attributes ---
+                cardsHtml += `
+                    <div class="member-item">
+                        <div class="member-identity">
+                            <img src="${friend.image}" alt="${friend.name}'s profile pic" class="member-profile-pic">
+                            <a href="https://www.torn.com/profiles.php?XID=${friend.id}" target="_blank" class="member-name">${friend.name}</a>
+                        </div>
+                        <div class="member-actions">
+                            <button class="item-button message-friend-button" data-friend-id="${friend.id}" data-friend-name="${friend.name}" title="Send Message">✉️</button>
+                            <button class="item-button remove-friend-button" data-friend-id="${friend.id}" title="Remove Friend">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+
+            const membersListContainer = document.createElement('div');
+            membersListContainer.className = 'members-list-container';
+            membersListContainer.innerHTML = cardsHtml;
+            targetDisplayElement.innerHTML = '';
+            targetDisplayElement.appendChild(membersListContainer);
+
+            // Add event listener for remove and message buttons
+            membersListContainer.addEventListener('click', async (event) => {
+                const removeButton = event.target.closest('.remove-friend-button');
+                const messageButton = event.target.closest('.message-friend-button');
+
+                if (removeButton) {
+                    const friendIdToRemove = removeButton.dataset.friendId;
+                    const userConfirmed = await showCustomConfirm(`Are you sure you want to remove friend [${friendIdToRemove}]?`, "Confirm Removal");
+                    if (userConfirmed) {
+                        await db.collection('userProfiles').doc(currentUser.uid).collection('friends').doc(friendIdToRemove).delete();
+                        populateFriendListTab(targetDisplayElement); // Refresh the list
+                    }
+                } else if (messageButton) {
+                    // --- CHANGE IS HERE: This handles the click on the new message button ---
+                    const friendId = messageButton.dataset.friendId;
+                    const friendName = messageButton.dataset.friendName;
+                    openPrivateChatWindow(friendId, friendName);
+                }
+            });
+
+        } catch (error) {
+            console.error("Error populating Friend List tab:", error);
+            targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
+        }
+    }
+
+    // This helper function creates the HTML for a single message bubble
+    function displayPrivateChatMessage(messageObj, displayElement, isMyMessage) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+
+        // Add a special class if the message is from the current user
+        if (isMyMessage) {
+            messageElement.classList.add('my-message');
+        }
+
+        const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || '';
+
+        // Use "You" if it's your message, otherwise use the sender's name
+        const senderName = isMyMessage ? 'You' : (messageObj.sender || 'Unknown');
+        const messageText = messageObj.text || '';
+
+        messageElement.innerHTML = `
+            <span class="chat-timestamp">[${timestamp}]</span>
+            <span class="chat-sender">${senderName}:</span>
+            <span class="chat-text">${messageText}</span>
+        `;
+        displayElement.appendChild(messageElement);
+    }
+    // This function loads messages and handles sending for a private chat window
+    async function loadAndHandlePrivateChat(friendTornId, friendName, chatWindowElement) {
+        const messagesContainer = chatWindowElement.querySelector('.pcw-messages');
+        const inputField = chatWindowElement.querySelector('.pcw-input');
+        const sendButton = chatWindowElement.querySelector('.pcw-send-btn');
+
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            messagesContainer.innerHTML = '<p style="color: red;">You must be logged in.</p>';
+            return;
+        }
+
+        let friendFirebaseUid = null;
+        try {
+            const profileQuery = await db.collection('userProfiles').where('tornProfileId', '==', friendTornId).limit(1).get();
+            if (profileQuery.empty) {
+                messagesContainer.innerHTML = `<p style="color: orange;">Cannot open chat. ${friendName} is not a registered user of this platform.</p>`;
+                inputField.disabled = true;
+                sendButton.disabled = true;
+                return;
+            }
+            friendFirebaseUid = profileQuery.docs[0].id;
+        } catch (error) {
+            console.error("Error fetching friend's Firebase UID:", error);
+            messagesContainer.innerHTML = `<p style="color: red;">Error initializing chat.</p>`;
+            return;
+        }
+
+        const participants = [currentUser.uid, friendFirebaseUid].sort();
+        const chatDocId = `private_${participants[0]}_${participants[1]}`;
+        const messagesCollectionRef = db.collection('privateChats').doc(chatDocId).collection('messages');
+
+        try {
+            await db.collection('privateChats').doc(chatDocId).set({
+                participants: participants,
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        } catch (error) {
+            console.error("Error ensuring parent chat document exists:", error);
+            messagesContainer.innerHTML = `<p style="color: red;">A permissions error occurred while setting up the chat.</p>`;
+            return;
+        }
+
+        const unsubscribe = messagesCollectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+            messagesContainer.innerHTML = '';
+            if (snapshot.empty) {
+                messagesContainer.innerHTML = `<p style="color: #888;">No messages yet. Say hello!</p>`;
+            } else {
+                snapshot.forEach(doc => {
+                    const messageData = doc.data();
+                    // --- THIS IS THE KEY CHANGE ---
+                    const isMyMessage = messageData.senderId === currentUser.uid;
+                    displayPrivateChatMessage(messageData, messagesContainer, isMyMessage);
+                });
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }, error => {
+            console.error("Error loading private messages:", error);
+            messagesContainer.innerHTML = `<p style="color: red;">Error loading messages: ${error.message}</p>`;
+        });
+
+        const sendMessage = async () => {
+            const messageText = inputField.value.trim();
+            if (messageText === '') return;
+
+            const messageObj = {
+                senderId: currentUser.uid,
+                sender: currentTornUserName,
+                text: messageText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('privateChats').doc(chatDocId).update({
+                    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await messagesCollectionRef.add(messageObj);
+                inputField.value = '';
+                inputField.focus();
+            } catch (error) {
+                console.error("Error sending private message:", error);
+                alert("Failed to send message.");
+            }
+        };
+
+        sendButton.addEventListener('click', sendMessage);
+        inputField.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        const closeButton = chatWindowElement.querySelector('.pcw-close-btn');
+        const newCloseButtonListener = () => {
+            unsubscribe();
+            closeButton.removeEventListener('click', newCloseButtonListener);
+        };
+        closeButton.addEventListener('click', newCloseButtonListener);
+    }
+
+    // A custom confirmation box that returns a promise with the user's choice
+    function showCustomConfirmWithOptions(message, title = "Confirm") {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-confirm-overlay';
+
+            overlay.innerHTML = `
+                <div class="custom-confirm-box">
+                    <h4>${title}</h4>
+                    <p>${message}</p>
+                    <div class="custom-confirm-checkbox">
+                        <input type="checkbox" id="confirm-dont-ask-again">
+                        <label for="confirm-dont-ask-again">Don't ask me again</label>
+                    </div>
+                    <div class="custom-confirm-actions">
+                        <button class="action-button danger">Yes</button>
+                        <button class="action-button">No</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const yesBtn = overlay.querySelector('.danger');
+            const noBtn = overlay.querySelector('.action-button:not(.danger)');
+            const checkbox = overlay.querySelector('#confirm-dont-ask-again');
+
+            const closeConfirm = (confirmed) => {
+                const dontAskAgain = checkbox.checked;
+                document.body.removeChild(overlay);
+                resolve({ confirmed, dontAskAgain });
+            };
+
+            yesBtn.onclick = () => closeConfirm(true);
+            noBtn.onclick = () => closeConfirm(false);
+        });
+    }
+
+    async function deletePrivateChat(chatDocId) {
+        try {
+            const messagesRef = db.collection('privateChats').doc(chatDocId).collection('messages');
+            const messagesSnapshot = await messagesRef.get();
+
+            const batch = db.batch();
+            messagesSnapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+
+            await db.collection('privateChats').doc(chatDocId).delete();
+            console.log(`Successfully deleted chat and all messages for doc: ${chatDocId}`);
+            return true;
+        } catch (error) {
+            console.error("Error deleting private chat:", error);
+            alert("Failed to delete chat.");
+            return false;
+        }
+    }
+
+    async function loadRecentPrivateChats(targetDisplayElement) {
+        if (!targetDisplayElement) {
+            console.error("HTML Error: Target display element not provided for Recent Chats tab.");
+            return;
+        }
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading recent conversations...</p>`;
+
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your chats.</p>';
+            return;
+        }
+
+        try {
+            const chatsSnapshot = await db.collection('privateChats')
+                .where('participants', 'array-contains', currentUser.uid)
+                .orderBy('lastMessageAt', 'desc')
+                .limit(20)
+                .get();
+
+            if (chatsSnapshot.empty) {
+                targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">No recent private chats found.</p>';
+                return;
+            }
+
+            const chatDetailsPromises = chatsSnapshot.docs.map(async (doc) => {
+                const chatData = doc.data();
+                const otherParticipantUid = chatData.participants.find(uid => uid !== currentUser.uid);
+
+                if (!otherParticipantUid) return null;
+
+                const userProfileDoc = await db.collection('userProfiles').doc(otherParticipantUid).get();
+                if (!userProfileDoc.exists) return null;
+
+                const profileData = userProfileDoc.data();
+                const friendTornId = profileData.tornProfileId;
+                const friendName = profileData.preferredName || profileData.name || `User ${friendTornId}`;
+
+                const userDoc = await db.collection('users').doc(friendTornId).get();
+                const friendImage = userDoc.exists ? userDoc.data().profile_image : '../../images/default_profile_icon.png';
+
+                const lastMessageSnapshot = await db.collection('privateChats').doc(doc.id).collection('messages').orderBy('timestamp', 'desc').limit(1).get();
+                const lastMessage = lastMessageSnapshot.empty ? { text: 'No messages yet...' } : lastMessageSnapshot.docs[0].data();
+
+                return {
+                    chatId: doc.id, // We need the chat document ID for deletion
+                    tornId: friendTornId,
+                    name: friendName,
+                    image: friendImage,
+                    lastMessage: lastMessage.text
+                };
+            });
+
+            const chatDetails = (await Promise.all(chatDetailsPromises)).filter(Boolean);
+
+            let listHtml = '';
+            chatDetails.forEach(chat => {
+                listHtml += `
+                    <div class="recent-chat-item" data-friend-id="${chat.tornId}" data-friend-name="${chat.name}">
+                        <img src="${chat.image}" class="rc-avatar" alt="${chat.name}'s avatar">
+                        <div class="rc-details" title="Open chat with ${chat.name}">
+                            <span class="rc-name">${chat.name}</span>
+                            <span class="rc-last-message">${chat.lastMessage}</span>
+                        </div>
+                        <button class="item-button rc-delete-btn" data-chat-id="${chat.chatId}" data-friend-name="${chat.name}" title="Delete Chat">🗑️</button>
+                    </div>
+                `;
+            });
+
+            targetDisplayElement.innerHTML = `<div class="recent-chats-list">${listHtml}</div>`;
+
+            targetDisplayElement.querySelector('.recent-chats-list').addEventListener('click', async (event) => {
+                const chatItem = event.target.closest('.recent-chat-item');
+                const deleteButton = event.target.closest('.rc-delete-btn');
+
+                if (deleteButton) {
+                    event.stopPropagation(); // Stop the click from opening the chat window
+                    const chatId = deleteButton.dataset.chatId;
+                    const friendName = deleteButton.dataset.friendName;
+
+                    const confirmDelete = localStorage.getItem('confirmDeleteChat') !== 'false';
+
+                    if (confirmDelete) {
+                        const result = await showCustomConfirmWithOptions(`Are you sure you want to delete your entire chat history with ${friendName}? This cannot be undone.`, "Confirm Deletion");
+
+                        if (result.dontAskAgain) {
+                            localStorage.setItem('confirmDeleteChat', 'false');
+                        }
+                        if (!result.confirmed) {
+                            return; // User clicked "No"
+                        }
+                    }
+
+                    // If confirmed or if we are skipping confirmation, proceed to delete
+                    const success = await deletePrivateChat(chatId);
+                    if (success) {
+                        loadRecentPrivateChats(targetDisplayElement); // Refresh the list
+                    }
+
+                } else if (chatItem) {
+                    const friendId = chatItem.dataset.friendId;
+                    const friendName = chatItem.dataset.friendName;
+                    openPrivateChatWindow(friendId, friendName);
+                }
+            });
+
+        } catch (error) {
+            console.error("Error populating Recent Chats tab:", error);
+            targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error loading recent chats: ${error.message}</p>`;
+        }
+    }
+
+    async function populateIgnoreListTab(targetDisplayElement) {
+        if (!targetDisplayElement) {
+            console.error("HTML Error: Target display element not provided for Ignore List tab.");
+            return;
+        }
+        targetDisplayElement.innerHTML = `<p style="text-align:center; padding: 20px;">Loading your ignore list...</p>`;
+
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            targetDisplayElement.innerHTML = '<p style="text-align:center; color: orange;">Please log in to see your ignore list.</p>';
+            return;
+        }
+
+        try {
+            // IMPORTANT: This assumes your ignored users are stored in a subcollection named 'ignored'
+            const ignoredSnapshot = await db.collection('userProfiles').doc(currentUser.uid).collection('ignored').get();
+
+            if (ignoredSnapshot.empty) {
+                targetDisplayElement.innerHTML = '<p style="text-align:center; padding: 20px;">Your ignore list is empty.</p>';
+                return;
+            }
+
+            const ignoredDetailsPromises = ignoredSnapshot.docs.map(doc => {
+                const ignoredTornId = doc.id;
+                return db.collection('users').doc(ignoredTornId).get().then(userDoc => {
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        const ignoredName = userData.name || `User ID ${ignoredTornId}`;
+                        const profileImage = userData.profile_image || '../../images/default_profile_icon.png';
+                        return { id: ignoredTornId, name: ignoredName, image: profileImage };
+                    }
+                    return { id: ignoredTornId, name: `Unknown [${ignoredTornId}]`, image: '../../images/default_profile_icon.png' };
+                });
+            });
+
+            const ignoredDetails = await Promise.all(ignoredDetailsPromises);
+
+            let cardsHtml = '';
+            ignoredDetails.forEach(ignored => {
+                cardsHtml += `
+                    <div class="member-item">
+                        <div class="member-identity">
+                            <img src="${ignored.image}" alt="${ignored.name}'s profile pic" class="member-profile-pic">
+                            <a href="https://www.torn.com/profiles.php?XID=${ignored.id}" target="_blank" class="member-name">${ignored.name}</a>
+                        </div>
+                        <div class="member-actions">
+                            <button class="item-button unignore-button" data-ignored-id="${ignored.id}" title="Remove from Ignore List">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+
+            const membersListContainer = document.createElement('div');
+            membersListContainer.className = 'members-list-container';
+            membersListContainer.innerHTML = cardsHtml;
+            targetDisplayElement.innerHTML = '';
+            targetDisplayElement.appendChild(membersListContainer);
+
+            // Add event listener for unignore buttons
+            membersListContainer.addEventListener('click', async (event) => {
+                if (event.target.classList.contains('unignore-button')) {
+                    const ignoredIdToRemove = event.target.dataset.ignoredId;
+                    const userConfirmed = await showCustomConfirm(`Are you sure you want to unignore user [${ignoredIdToRemove}]?`, "Confirm Removal");
+                    if (userConfirmed) {
+                        await db.collection('userProfiles').doc(currentUser.uid).collection('ignored').doc(ignoredIdToRemove).delete();
+                        populateIgnoreListTab(targetDisplayElement); // Refresh the list
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error("Error populating Ignore List tab:", error);
+            targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
+        }
+    }
+    // ---- CORE CHAT FUNCTIONS ----
+    function displayChatMessage(messageObj, chatDisplayAreaId) {
+        const chatDisplayArea = document.getElementById(chatDisplayAreaId);
+        if (!chatDisplayArea) return;
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
+        const timestamp = messageObj.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const senderName = messageObj.sender || 'Unknown';
+        const messageText = messageObj.text || '';
+        messageElement.innerHTML = `<span class="chat-timestamp">[${timestamp}]</span> <span class="chat-sender">${senderName}:</span> <span class="chat-text">${messageText}</span>`;
+        chatDisplayArea.appendChild(messageElement);
+        chatDisplayArea.scrollTop = chatDisplayArea.scrollHeight; // Auto-scroll to latest message
+    }
+
+    async function sendChatMessage(textInput, collectionType) {
+        if (!textInput || !auth.currentUser) {
+            console.warn("Cannot send message: User not authenticated.");
+            return;
+        }
+        const messageText = textInput.value.trim();
+        if (messageText === '') return;
+
+        let targetCollection = null;
+        let consoleLogPath = '';
+        let docIdForParent = null; // New variable to hold the document ID for parent chat collections
+
+        if (collectionType === 'faction') {
+            if (currentUserFactionId) {
+                targetCollection = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
+                consoleLogPath = `factionChats/${currentUserFactionId}/messages`;
+                docIdForParent = currentUserFactionId;
+            } else {
+                console.warn("Faction ID not available for current user. Cannot send faction chat message.");
+                alert("Faction ID not found. Please complete your profile to use faction chat.");
+                return;
+            }
+        } else if (collectionType === 'war') {
+            // Use the globally stored currentActiveRankedWarId
+            if (currentActiveRankedWarId) {
+                targetCollection = db.collection('warChats').doc(currentActiveRankedWarId).collection('messages');
+                consoleLogPath = `warChats/${currentActiveRankedWarId}/messages`;
+                docIdForParent = currentActiveRankedWarId;
+            } else {
+                console.warn("No active ranked war ID. Cannot send war chat message.");
+                alert("No active war chat available. Please wait for a war to start or check war settings.");
+                return;
+            }
+        } else if (collectionType === 'alliance') {
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToChatIn = currentUserAllianceIds[0];
+                targetCollection = db.collection('allianceChats').doc(allianceIdToChatIn).collection('messages');
+                consoleLogPath = `allianceChats/${allianceIdToChatIn}/messages`;
+                docIdForParent = allianceIdToChatIn;
+            } else {
+                console.warn("No Alliance ID available for current user. Cannot send alliance chat message.");
+                alert("No Alliance ID saved. Please go to Settings > Alliance Chat Settings and enter your alliance's ID to use this chat.");
+                return;
+            }
+        }
+
+        if (!targetCollection) {
+            console.error("No valid chat collection determined for sending message.");
+            return;
+        }
+
+        console.log(`Attempting to send message to ${consoleLogPath}`);
+
+        const messageObj = {
+            senderId: auth.currentUser.uid,
+            sender: currentTornUserName,
+            text: messageText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        try {
+            // Ensure the parent document exists for faction/alliance/war chats if it's the first message
+            if (docIdForParent) { // Check if a parent doc ID was determined
+                const parentCollectionName = (collectionType === 'faction') ? 'factionChats' :
+                                             (collectionType === 'alliance') ? 'allianceChats' :
+                                             (collectionType === 'war') ? 'warChats' : null;
+
+                if (parentCollectionName) {
+                    await db.collection(parentCollectionName).doc(docIdForParent).set({}, { merge: true }); // Empty merge to ensure existence
+                }
+            }
+
+            await targetCollection.add(messageObj);
+            textInput.value = ''; // Clear input field
+            textInput.focus(); // Keep focus on input field
+        } catch (error) {
+            console.error(`Error sending ${collectionType} message to Firebase:`, error);
+            alert(`Failed to send ${collectionType} message.`);
+        }
+    }
+
+    function setupChatRealtimeListener(type) {
+        // Clear previous listener first
+        if (unsubscribeFromChat) {
+            unsubscribeFromChat();
+            unsubscribeFromChat = null; // Ensure it's explicitly null
+            console.log("Unsubscribed from previous chat listener.");
+        }
+        // Also clear any active war chat timer if switching away from war chat
+        if (warChatTimerInterval) {
+            clearInterval(warChatTimerInterval);
+            warChatTimerInterval = null;
+            console.log("Cleared war chat timer interval.");
+        }
+
+
+        let chatDisplayArea = null; // Declare here so it's fresh for each type
+        let collectionRef = null;
+        let displayAreaId = '';
+        let consoleLogPath = '';
+
+        if (type === 'faction' && auth.currentUser) {
+            if (currentUserFactionId) {
+                collectionRef = db.collection('factionChats').doc(currentUserFactionId).collection('messages');
+                displayAreaId = 'chat-display-area';
+                consoleLogPath = `factionChats/${currentUserFactionId}/messages`;
+            } else {
+                chatDisplayArea = document.getElementById('chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Faction ID not found for chat. Please ensure your profile is complete.</p>';
+                console.warn("User has no faction ID to set up faction chat listener.");
+                return;
+            }
+        } else if (type === 'war') {
+            // For war chat, we need to first determine the active war.
+            // fetchAndSetWarChatContext will handle setting up chatMessagesCollection and listener.
+            fetchAndSetWarChatContext(); // This function does all the heavy lifting for war chat
+            return; // Exit here, as the listener is set up within fetchAndSetWarChatContext
+        } else if (type === 'alliance' && auth.currentUser) {
+            // Use the first saved alliance ID for displaying messages
+            if (currentUserAllianceIds && currentUserAllianceIds.length > 0) {
+                const allianceIdToListenTo = currentUserAllianceIds[0];
+                collectionRef = db.collection('allianceChats').doc(allianceIdToListenTo).collection('messages');
+                displayAreaId = 'alliance-chat-display-area';
+                consoleLogPath = `allianceChats/${allianceIdToListenTo}/messages`;
+            } else {
+                chatDisplayArea = document.getElementById('alliance-chat-display-area');
+                if (chatDisplayArea) chatDisplayArea.innerHTML = "<p>No Alliance ID saved. Go to Settings to enter one.</p>";
+                console.warn("User has no alliance ID to set up alliance chat listener.");
+                return;
+            }
+        } else if (!auth.currentUser) { // If user is not logged in for any chat type
+            const displayAreas = {
+                'faction': 'chat-display-area',
+                'war': 'war-chat-display-area',
+                'alliance': 'alliance-chat-display-area'
+            };
+            chatDisplayArea = document.getElementById(displayAreas[type]);
+            if (chatDisplayArea) chatDisplayArea.innerHTML = '<p>Please log in to use chat.</p>';
+            console.warn(`User not logged in. Cannot set up ${type} chat listener.`);
+            return;
+        }
+
+        // This block only executes for 'faction' or 'alliance' chat after their respective collectionRefs are set
+        chatDisplayArea = document.getElementById(displayAreaId); // Re-get it, it might be set above
+        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>Loading ${type} messages...</p>`;
+        console.log(`Setting up ${type} chat listener for path: ${consoleLogPath}`);
+
+        if (collectionRef) {
+            unsubscribeFromChat = collectionRef.orderBy('timestamp', 'asc').limitToLast(50)
+                .onSnapshot(snapshot => {
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = ''; // Clear previous messages
+                    if (snapshot.empty) {
+                        if (chatDisplayArea) chatDisplayArea.innerHTML = `<p>No ${type} messages yet.</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => displayChatMessage(doc.data(), displayAreaId));
+                }, error => {
+                    console.error(`Error listening to ${type} chat messages:`, error);
+                    if (chatDisplayArea) chatDisplayArea.innerHTML = `<p style="color: red;">Error loading ${type} messages.</p>`;
+                });
+        }
+    }
+} // END of initializeGlobals function
 
 // Run the main initialization function
 initializeGlobals();
