@@ -282,7 +282,6 @@ function initializeGlobals() {
         
         if (userConfirmed) {
             await clearUserAllianceIds(); // This function already exists in your code
-            alert('All Alliance passwords cleared!'); // Using a simple alert for confirmation
             allianceFactionIdInput.value = ''; 
             updateAllianceInfoIconTitle(); 
         }
