@@ -503,6 +503,7 @@ async function fetchAndSetWarChatContext() {
         const warsApiUrl = `${TORN_API_BASE_URL}/faction/wars?key=${userTornApiKey}&comment=MyTornPA_WarChat_Info`;
         const response = await fetch(warsApiUrl);
         const data = await response.json();
+		console.log("API Response Data:", JSON.stringify(data, null, 2));
 
         if (!response.ok || data.error) {
             throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
