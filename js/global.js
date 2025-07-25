@@ -296,20 +296,39 @@ function initializeGlobals() {
                     });
                 }
 
-                // NEW: Save Alliance ID button listener
                 if (saveAllianceButton) {
-                    saveAllianceButton.addEventListener('click', async () => {
-                        const newAllianceId = allianceFactionIdInput.value.trim();
-                        if (newAllianceId) {
-                            // Call the updated function to add the alliance ID to the array
-                            await addOrUpdateUserAllianceId(newAllianceId);
-                            allianceFactionIdInput.value = ''; // Clear input field after adding
-                            updateAllianceInfoIconTitle(); // Update tooltip after saving
-                        } else {
-                            alert('Please enter an Alliance ID.');
-                        }
-                    });
-                }
+    saveAllianceButton.addEventListener('click', async () => {
+        const newAllianceId = allianceFactionIdInput.value.trim();
+        
+        const originalButtonText = saveAllianceButton.textContent;
+        saveAllianceButton.textContent = 'Saving...';
+        saveAllianceButton.disabled = true;
+
+        if (newAllianceId) {
+            const success = await addOrUpdateUserAllianceId(newAllianceId);
+
+            if (success) {
+                allianceFactionIdInput.value = '';
+                updateAllianceInfoIconTitle();
+                saveAllianceButton.textContent = 'Saved!';
+                
+                setTimeout(() => {
+                    saveAllianceButton.textContent = originalButtonText;
+                    saveAllianceButton.disabled = false;
+                }, 2000); // Revert back to "Save" after 2 seconds
+            } else {
+                // If it failed, reset the button immediately
+                saveAllianceButton.textContent = originalButtonText;
+                saveAllianceButton.disabled = false;
+            }
+        } else {
+            // Handle case where input is empty
+            await showCustomAlert('Please enter an Alliance Password.', 'Input Required');
+            saveAllianceButton.textContent = originalButtonText;
+            saveAllianceButton.disabled = false;
+        }
+    });
+}
 
                 if (clearAlliancesButton) {
     clearAlliancesButton.addEventListener('click', async () => {
@@ -1749,48 +1768,58 @@ async function fetchAndSetWarChatContext() {
         }
     }
 
-    // NEW FUNCTION: Add or update a user's alliance ID in their saved list
-    async function addOrUpdateUserAllianceId(newAllianceId) {
-        const user = auth.currentUser;
-        if (!user) {
-            console.warn('Cannot save alliance ID: User not logged in.');
-            return;
-        }
-
-        // Ensure currentUserAllianceIds is an array
-        const currentAllianceIds = currentUserAllianceIds || [];
-        const trimmedNewId = newAllianceId.trim();
-
-        if (!trimmedNewId) {
-            alert('Please enter a valid Alliance ID.');
-            return;
-        }
-
-        if (currentAllianceIds.includes(trimmedNewId)) {
-            alert(`Alliance ID '${trimmedNewId}' is already saved.`);
-            return;
-        }
-
-        if (currentAllianceIds.length >= 3) { // Enforce max 3 IDs
-            alert('You can only save up to 3 Alliance IDs. Please clear one first.');
-            return;
-        }
-
-        try {
-            // Use arrayUnion to safely add the new ID to the array in Firestore
-            await db.collection('userProfiles').doc(user.uid).update({
-                allianceIds: firebase.firestore.FieldValue.arrayUnion(trimmedNewId)
-            });
-            // Update local variable
-            currentUserAllianceIds.push(trimmedNewId); // Add to local array
-            console.log(`Alliance ID '${trimmedNewId}' added for user ${user.uid}`);
-            alert(`Alliance ID '${trimmedNewId}' saved successfully!`);
-        } catch (error) {
-            console.error('Error adding alliance ID:', error);
-            alert('Failed to add Alliance ID. Please try again.');
-        }
+   // UPDATED FUNCTION: Returns true/false instead of showing a success alert.
+async function addOrUpdateUserAllianceId(newAllianceId) {
+    const user = auth.currentUser;
+    if (!user || !currentUserFactionId) {
+        await showCustomAlert('Could not verify user or faction ID. Please log in again.', 'Error');
+        return false; // Return false on failure
     }
 
+    const trimmedNewId = newAllianceId.trim();
+    if (!trimmedNewId) {
+        await showCustomAlert('Please enter a valid Alliance Password.', 'Input Required');
+        return false; // Return false on failure
+    }
+
+    if (currentUserAllianceIds.length >= 1) {
+        await showCustomAlert('You can only save one Alliance Password at a time. Please clear your current one first.', 'Limit Reached');
+        return false; // Return false on failure
+    }
+
+    try {
+        const chatRef = db.collection('allianceChats').doc(trimmedNewId);
+        const chatDoc = await chatRef.get();
+
+        if (chatDoc.exists) {
+            const chatData = chatDoc.data();
+            const participatingFactions = chatData.participatingFactions || [];
+            const isAlreadyMember = participatingFactions.includes(currentUserFactionId);
+            if (!isAlreadyMember && participatingFactions.length >= 3) {
+                await showCustomAlert('This alliance is full. A maximum of 3 unique factions can join.', 'Alliance Full');
+                return false; // Return false on failure
+            }
+        }
+
+        await chatRef.set({
+            participatingFactions: firebase.firestore.FieldValue.arrayUnion(currentUserFactionId)
+        }, { merge: true });
+
+        await db.collection('userProfiles').doc(user.uid).update({
+            allianceIds: [trimmedNewId]
+        });
+
+        currentUserAllianceIds = [trimmedNewId];
+        console.log(`Alliance password '${trimmedNewId}' saved for user ${user.uid}`);
+        
+        return true; // Return true on success
+
+    } catch (error) {
+        console.error('Error saving alliance password:', error);
+        await showCustomAlert('Failed to save Alliance Password. Please try again.', 'Error');
+        return false; // Return false on failure
+    }
+}
     // UPDATED FUNCTION: Clear all user's alliance IDs from Firestore
     async function clearUserAllianceIds() {
         const user = auth.currentUser;
