@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - Recruitment Hub</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/recruitment.css">
+</head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <main class="recruitment-main-content">
+        <div class="recruitment-top-box">
+            <h1 class="page-title">MyTornPA Recruitment Hub</h1>
+        </div>
+
+        <div class="recruitment-sections-wrapper">
+            <section class="recruitment-section">
+                <h2>Factions Seeking Members</h2>
+                <p>Browse factions currently looking for new recruits. Click 'Advertise My Faction' to advertise your faction.</p>
+                
+                <div class="buttons-container">
+                    <button id="advertise-faction-button" class="action-button" style="display:none;">Advertise My Faction</button> 
+                </div>
+
+                <table class="recruitment-table">
+                    <thead>
+                        <tr>
+                            <th>Faction Name</th>
+                            <th>Respect</th>
+                            <th>Rank</th>
+                            <th>Members</th>
+                            <th>Apply</th>
+                        </tr>
+                    </thead>
+                    <tbody id="factions-seeking-members-tbody">
+                        <tr><td colspan="5">Loading recruiting factions...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="recruitment-section">
+                <h2>Players Seeking Factions</h2>
+                <p>Browse players currently looking for a new faction. Click 'Enlist Myself' to advertise yourself.</p>
+                
+                <div class="buttons-container">
+                    <button id="list-self-button" class="action-button">Enlist Myself</button>
+                </div>
+                
+                <table class="recruitment-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Level</th>
+                            <th>Total Battle Stats</th>
+                            <th>Xanax Taken</th>
+                            <th>War Hits</th>
+                            <th>Energy Refills</th>
+                            <th>Active Streak</th>
+                            <th>Message</th> </tr>
+                    </thead>
+                    <tbody id="players-seeking-factions-tbody">
+                        <tr>
+                            <td>Players looking for factions will appear here...</td>
+                            <td></td> <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><button class="action-button">Message</button></td> </tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <div id="confirmation-modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="modal-title">Confirmation</h2>
+            <p id="modal-text">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="action-button">No</button>
+                <button id="modal-confirm-btn" class="action-button">Yes</button>
+            </div>
+            <div class="modal-preference">
+                <input type="checkbox" id="modal-remember-checkbox">
+                <label for="modal-remember-checkbox">Remember my choice</label>
+            </div>
+        </div>
+    </div>
+
+     <script src="../js/firebase-init.js"></script>
+  
+     <script src="../js/globalheader.js"></script> 
+    <script src="../js/recruitment.js"></script>
+</body>
+</html>

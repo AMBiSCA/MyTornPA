@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | MyTornPA</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+        <a href="pages/home.html" style="text-decoration: none;">
+            <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
+        </a>
+    </div>
+    <div class="header-center">
+        <img src="images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo"> 
+    </div>
+    <div class="header-right-controls">
+        <a href="https://www.torn.com/index.php" class="header-text-link" id="tornCityHomepageLink" target="_blank" rel="noopener noreferrer" style="display: none;">Torn City - Homepage&nbsp;🏙️</a>
+        
+        <div class="header-buttons" id="headerButtonsContainer" style="display: none;">
+            <button class="btn" id="headerEditProfileBtn">
+                <span class="btn-text">Edit Profile</span><span class="btn-icon">⚙️</span>
+            </button>
+            <div class="dropdown" id="usefulLinksDropdownContainer">
+                <button class="btn dropdown-toggle" id="usefulLinksBtn"> 
+                    <span class="btn-text">Useful Links</span><span class="btn-icon">🔗</span>
+                </button>
+                <div class="dropdown-content" id="usefulLinksDropdown">
+                    <a href="https://www.torn.com/preferences.php#tab=api" target="_blank" rel="noopener noreferrer">Torn City - API Key.</a>
+                    <a href="https://www.tornstats.com/settings/general" target="_blank" rel="noopener noreferrer">Torn Stats - API Key.</a>
+                    <a href="https://www.torn.com/factions.php?step=your&type=1#/war/rank" target="_blank" rel="noopener noreferrer">Torn City - My Faction</a>
+                    <a href="https://www.torn.com/newspaper.php" target="_blank" rel="noopener noreferrer">Torn City - Times!</a>
+                    <a href="https://www.torn.com/register/" target="_blank" rel="noopener noreferrer">Torn City - Register!</a>
+                    <a href="https://www.tornstats.com/" target="_blank" rel="noopener noreferrer">TornStats</a>
+                    <a href="https://yata.yt/" target="_blank" rel="noopener noreferrer">Y.A.T.A</a>
+                    <a href="https://tc-armasync.netlify.app/payout-calculator" target="_blank" rel="noopener noreferrer">R/W Pay Calculator</a>
+                    <a href="https://oran.pw/baldrstargets/" target="_blank" rel="noopener noreferrer">Baldrs Level List</a>
+                </div>
+            </div>
+            <div class="dropdown" id="contactUsDropdownContainer">
+                <button class="btn dropdown-toggle" id="contactUsBtn">
+                    <span class="btn-text">Contact Us</span><span class="btn-icon">💬</span>
+                </button>
+                <div class="dropdown-content" id="contactUsDropdown">
+                    <a href="pages/report.html">Report an Issue</a>
+                    <a href="#">Live Chat (Soon™)</a>
+                    <a href="pages/FAQ.html">F.A.Q</a>
+                </div>
+            </div>
+            <button class="btn" id="homeButtonHeader" style="display:none;"> 
+                <span class="btn-text">Home</span><span class="btn-icon">🏠</span>
+            </button> 
+            <button class="btn" id="logoutButtonHeader"> 
+                <span class="btn-text">Logout</span><span class="btn-icon">🚪</span>
+            </button>
+        </div>
+        <button class="btn" id="signUpButtonHeader">Register: 🤝 </button>
+    </div>
+  </header>
+
+  <div class="main-content-wrapper">
+    <div class="main-content">
+      <div class="login-page-layout-container">
+
+        <div class="index-main-feature-box">
+          <h2> TCP's Terrible Tip Of The Day!</h2>
+          <p id="dynamic-torn-tip">Loading a helpful tip...</p>
+        
+          <div class="whats-new-box">
+            <h4>Some Features Include:</h4>
+            <ul id="whats-new-list"></ul>
+            <a href="pages/FAQ.html" class="btn-faq btn btn-uniform"> 
+                <span class="btn-icon">💬</span>
+                <span class="btn-text">F.A.Q.</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="login-container">
+          <h2>Login to MyTornPA.</h2>
+          <input type="email" id="email" placeholder="Email:" autocomplete="username" class="custom-input"/>
+          
+          <div class="password-wrapper">
+            <input type="password" id="password" placeholder="Password:" autocomplete="current-password" class="custom-input"/>
+          </div>
+          
+          <div class="form-options-container">
+            <label class="remember-me-label" for="rememberMe">
+              Remember me?
+              <input type="checkbox" id="rememberMe" />
+            </label>
+            <label class="remember-me-label" for="showPasswordCheckbox"> Show Password
+              <input type="checkbox" id="showPasswordCheckbox" />
+            </label>
+          </div>
+          <button id="loginBtn" class="btn btn-uniform"> 
+            <span class="btn-text">Log in with Email.</span>
+            <svg class="btn-icon email-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path fill="none" d="M0 0h24v24H0V0z"/> <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </button>
+          
+          <button id="googleSignInButtonLogin" class="gsi-material-button"> <div class="gsi-material-button-state"></div>
+            <div class="gsi-material-button-content-wrapper">
+              <span class="gsi-material-button-contents">Continue with Google.</span>
+              <div class="gsi-material-button-icon">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                  <path fill="none" d="M0 0h48v48H0z"></path>
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          <div class="login-form-links">
+            <button class="toggle-btn" id="showRegister">New user? Sign up</button>
+            <button class="toggle-btn" id="showForgotPassword">Forgot Password?</button>
+          </div>
+          <div class="error-message" id="loginError"></div> 
+       </div>
+
+      </div>
+    </div>
+  </div> 
+
+  <div id="authModal" class="modal-overlay" style="display:none;"> 
+      <div class="modal-content">
+          <button class="modal-close-btn" id="closeAuthModalBtn">&times;</button>
+          <h2>Register / Login</h2>
+          <p>Create an account or log in to access MyTornPA.</p>
+          
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="registerOverlay" style="display: none;"> <div class="popup" style="background-color: #2d2d3d; border: 1px solid #00a8ff; padding: 20px; border-radius: 8px; width: 320px; margin: auto; color: #ccc;">
+      <h3 style="color: #00a8ff; margin-top: 0;">Register!</h3>
+      <input type="email" id="registerEmail" placeholder="Email:" autocomplete="email" class="custom-input" style="margin-bottom: 10px;"/>
+      <input type="password" id="registerPassword" placeholder="Password: (1 Capital & Special Character)" autocomplete="new-password" class="custom-input" style="margin-bottom: 10px;"/>
+      
+      
+      <button id="registerBtn" class="btn" style="width: 100%; margin-bottom: 10px;"> 
+        <span class="btn-text">Register!</span>
+      </button>
+      <div class="error-message" id="registerError" style="margin-bottom: 10px;"></div>
+      <button id="closeRegister" class="btn" style="width: 100%;"> 
+        <span class="btn-text">Back To Login.</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="forgotPasswordOverlay" style="display: none;"> <div class="popup" style="background-color: #2d2d3d; border: 1px solid #00a8ff; padding: 20px; border-radius: 8px; width: 320px; margin: auto; color: #ccc;">
+      <h3 style="color: #00a8ff; margin-top: 0;">Reset Password.</h3>
+      <input type="email" id="forgotEmail" placeholder="Enter Your Email:" autocomplete="email" class="custom-input" style="margin-bottom: 10px;"/>
+      <button id="resetPasswordBtn" class="btn" style="width: 100%; margin-bottom: 10px;"> 
+        <span class="btn-text">Send Reset Request.</span>
+      </button>
+      <div class="error-message" id="forgotError" style="margin-bottom: 5px;"></div>
+      <div id="forgotSuccess" style="margin-bottom: 10px; color: lightgreen;"></div>
+      <button id="closeForgot" class="btn" style="width: 100%;"> 
+        <span class="btn-text">Back To Login.</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="customAlertOverlay" class="custom-popup-overlay" style="display: none;"> <div class="custom-popup-content">
+      <h3 id="customAlertTitle">Alert Title</h3>
+      <p id="customAlertMessage">This is the detailed message for the alert.</p>
+      <button id="customAlertClose" class="btn">Close</button> 
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="pages/FAQ.html">F.A.Q</a>
+	  <a href="pages/Terms.html">Disclaimer & Terms</a>
+	   <a href="pages/privacy.html">Privacy Policy</a>
+      <a href="pages/report.html">Report An Issue</a>
+      <a href="pages/about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    <a href="pages/home.html" id="homeButtonFooter" style="display:none; margin-top: 5px; color: #00a8ff; text-decoration:none;">Home</a>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-init.js"></script> 
+  <script src="js/index.js"></script>
+</body>
+</html>

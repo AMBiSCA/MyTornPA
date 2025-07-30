@@ -1,0 +1,964 @@
+/* mysite/css/factionoverview.css - Styles for the Faction Overview Page */
+
+/* ====================================================================== */
+/* Main Page Container & Layout                                         */
+/* ====================================================================== */
+
+/* This is the main content panel that holds all the dynamic content */
+#factionOverviewPageContentContainer {
+    width: 95%;
+    max-width: 1500px;
+    margin: 5px auto 20px auto; /* Center the panel on the page */
+    padding: 20px;
+    background-color: rgba(34, 34, 34, 0.85); /* Consistent with your main content areas */
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.3); /* Consistent blue glow */
+    border: 2px solid black; /* Consistent border */
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 20px; /* Spacing between main sections */
+    box-sizing: border-box;
+    min-height: calc(100vh - 140px - 40px); /* Adjust to fit within viewport, considering header/footer */
+    overflow-x: hidden; /* Prevent horizontal scroll for the main content panel itself */
+}
+
+/* Page Header / Title within the content panel */
+.fo-header-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid black;
+}
+
+.fo-page-title {
+    color: #00a8ff; /* Consistent accent color for titles */
+    margin: 0;
+    font-size: 1.9rem;
+    font-weight: bold;
+    text-align: left;
+    margin-left: 500px; /* Adjust as needed for alignment */
+}
+
+/* Cog Button for Banker Settings */
+.fo-cog-button {
+    background: none;
+    border: none;
+    font-size: 2.5rem; /* Large enough to be noticeable */
+    color: #00a8ff;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+    padding: 5px;
+}
+.fo-cog-button:hover {
+    transform: rotate(45deg); /* Slight rotation on hover */
+    color: #00e0ff; /* Lighter blue on hover */
+}
+
+
+/* ====================================================================== */
+/* Sub-Tab Navigation (all on one line)                                 */
+/* ====================================================================== */
+
+.fo-sub-tabs-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap onto next line on small screens if needed */
+    justify-content: center;
+    gap: 10px; /* Space between tab buttons */
+    margin-bottom: -5px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid black;
+}
+
+.fo-sub-tab-button {
+    padding: 10px 18px;
+    border: 1px solid #007acc;
+    border-radius: 5px;
+    background-color: #1a1a1a;
+    color: #eee;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap; /* Prevent tab names from breaking */
+    font-size: 0.95rem;
+}
+
+.fo-sub-tab-button:hover:not(.active) {
+    background-color: #282828;
+    border-color: #00a8ff;
+    color: #fff;
+}
+
+.fo-sub-tab-button.active {
+    background-color: #007acc; /* Active tab color */
+    border-color: #00e0ff;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.5); /* Glow for active tab */
+}
+
+
+/* ====================================================================== */
+/* Search, Filter & Date Controls                                       */
+/* ====================================================================== */
+
+.fo-controls-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center; /* Center controls */
+    gap: 15px; /* Space between elements */
+    margin-bottom: -5px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 3px solid black;
+    box-sizing: border-box; /* Ensures padding/border don't add to width */
+}
+
+.fo-search-input,
+.fo-date-input {
+    background-color: #1a1a1a;
+    border: 1px solid #007acc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #eee;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    flex-grow: 1; /* Allow inputs to grow */
+    min-width: 150px; /* Minimum width for inputs */
+    max-width: 250px;
+}
+
+.fo-search-input::placeholder {
+    color: #aaa;
+}
+
+.fo-search-input:focus,
+.fo-date-input:focus {
+    border-color: #00a8ff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.5);
+}
+
+.fo-button {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid #00a8ff; /* Consistent button border */
+    background-color: #131314; /* Consistent button background */
+    color: #e3e3e3; /* Consistent button text color */
+    white-space: nowrap;
+    box-sizing: border-box; /* Apply to all buttons */
+}
+
+.fo-button:hover {
+    background-color: #007acc; /* Hover effect */
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.5);
+}
+
+.fo-button:active {
+    transform: translateY(1px); /* Click effect */
+}
+
+.fo-date-label {
+    color: #00a8ff;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+
+/* ====================================================================== */
+/* Data Display Area (Main Content for Tables/Summaries)                */
+/* ====================================================================== */
+
+.fo-display-area {
+    flex-grow: 1;
+    min-height: 200px; /* Ensure some height even when empty */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent content overflow from here, handled by child elements */
+}
+
+.fo-view-title {
+    color: #e0a71a; /* Distinct color for sub-section titles */
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(224, 167, 26, 0.5);
+}
+
+/* Generic Table Styles (used for Armory, Funds, Crime logs) */
+.fo-data-table {
+    width: 100%; /* Ensures the table tries to take full width of its container */
+    border-collapse: collapse;
+    margin-top: 15px;
+    table-layout: fixed; /* Crucial for fixed column widths and alignment */
+    max-height: 450px; /* Controls the overall height of the scrollable table area */
+    overflow-y: auto; /* Enables vertical scrolling for the whole table */
+    overflow-x: auto; /* Allow horizontal scrolling for table content if it's wider than its container */
+    display: block; /* IMPORTANT: Allows max-height and overflow to work on the table element */
+    border: 1px solid #00a8ff; /* Consistent border around the entire table */
+    border-radius: 8px; /* Consistent rounded corners for the table */
+    box-sizing: border-box; /* Ensures padding and border are included *within* the 100% width */
+    min-width: 0; /* CRITICAL: Prevents default flex item min-width from causing overflow */
+}
+
+.fo-data-table thead {
+    display: table; /* Forces thead to behave like a table directly */
+    width: 100%; /* Forces thead to fill its parent's width */
+    position: sticky; /* Enables sticky positioning */
+    top: 0;           /* Sticks to the top of its scrollable parent (the .fo-data-table) */
+    z-index: 10;      /* Ensures header stays above scrolling tbody content */
+    background-color: #004d80; /* Match your header background */
+}
+
+.fo-data-table tbody {
+    display: table; /* Forces tbody to behave like a table directly */
+    width: 100%; /* Forces tbody to fill its parent's width */
+    /* No direct overflow on tbody itself, the parent table handles it */
+}
+
+/* Ensure table rows behave correctly within the display:table thead/tbody */
+.fo-data-table thead tr,
+.fo-data-table tbody tr {
+    display: table-row; /* Crucial for ensuring cells align correctly */
+    width: 100%; /* Ensures rows also stretch to 100% of their table-like parents */
+}
+
+/* Styles for table headers and cells */
+.fo-data-table th,
+.fo-data-table td {
+    padding: 10px 15px;
+    text-align: left;
+    color: #eee;
+    font-size: 0.95rem;
+    white-space: nowrap;     /* Prevent text from wrapping (truncates) */
+    overflow: hidden;        /* Hide overflowing content */
+    text-overflow: ellipsis; /* Show ellipsis for truncated text */
+    /* Borders: Need to re-apply borders because display:block/table changes rendering */
+    border-top: none; /* No top border for cells (border on table itself) */
+    border-bottom: 1px solid #007acc; /* Keep internal row separators */
+    border-left: 1px solid #007acc; /* Left border for cells */
+    border-right: 1px solid #007acc; /* Right border for cells */
+    min-width: 60px; /* Prevents columns from becoming too squished on horizontal scroll */
+}
+
+/* Remove internal borders from first/last cell to match outer table border */
+.fo-data-table th:first-child,
+.fo-data-table td:first-child {
+    border-left: none;
+}
+
+.fo-data-table th:last-child,
+.fo-data-table td:last-child {
+    border-right: none;
+}
+
+/* And ensure the bottom border of the header is visible */
+.fo-data-table thead th {
+    border-bottom: 1px solid #007acc; /* Explicit bottom border for header cells */
+}
+
+/* Adjust column widths - These will be honored by table-layout: fixed */
+.fo-data-table th:nth-child(1), .fo-data-table td:nth-child(1) { width: 18%; } /* Date/Time */
+.fo-data-table th:nth-child(2), .fo-data-table td:nth-child(2) { width: 18%; } /* User/Sender */
+.fo-data-table th:nth-child(3), .fo-data-table td:nth-child(3) { width: 34%; } /* Item/Recipient/Crime Type */
+.fo-data-table th:nth-child(4), .fo-data-table td:nth-child(4) { width: 15%; } /* Quantity/Amount/Result */
+.fo-data-table th:nth-child(5), .fo-data-table td:nth-child(5) { width: 15%; } /* For Crime Type / Result */
+
+/* Custom Scrollbar Styles for .fo-data-table and other scrollable panels */
+/* Defining them generally for webkit browsers */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #2b2b2b;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #007acc;
+    border-radius: 5px;
+    border: 2px solid #2b2b2b;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+::-webkit-scrollbar-corner {
+    background: #222;
+}
+
+/* Style for links within table cells (User, Sender, Recipient columns) */
+.fo-data-table td a {
+    color: inherit; /* Makes the link color the same as the parent text (which is #eee) */
+    text-decoration: none; /* Removes the default underline from links */
+    cursor: pointer; /* Ensures it's clear it's clickable */
+}
+
+.fo-data-table td a:hover {
+    text-decoration: underline; /* Add underline back only on hover for subtle feedback */
+    color: #00e0ff; /* Optional: A slight highlight color on hover */
+}
+
+
+/* ====================================================================== */
+/* Faction Balances Tab Specific Styles                                 */
+/* ====================================================================== */
+
+/* Flex container for the two balance panels */
+.fo-balances-layout {
+    display: flex;
+    gap: 20px;
+    padding: 15px;
+    align-items: stretch;
+    flex-wrap: nowrap; /* Keep panels on one line */
+    justify-content: center; /* Center content if extra space */
+    width: 100%; /* Ensure it takes full available width */
+    box-sizing: border-box; /* Include padding and border in width */
+    min-height: 400px; /* Ensure layout has some height */
+}
+
+/* Individual balance panel styling */
+.fo-balances-left-panel,
+.fo-balances-right-panel {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid black;
+    padding: 15px;
+    background-color: #2a3d52;
+    border-radius: 8px;
+    box-sizing: border-box; /* Crucial: Include padding in the width calculation */
+    min-width: 300px; /* Give them a minimum width */
+    flex-grow: 1; /* Allow panels to grow and shrink */
+    flex-shrink: 1;
+}
+
+.fo-balances-left-panel {
+    flex-basis: 60%; /* Desired base width proportion */
+    max-width: 65%; /* Max width for this panel */
+}
+
+.fo-balances-right-panel {
+    flex-basis: 40%; /* Desired base width proportion */
+    max-width: 35%; /* Max width for this panel */
+}
+
+/* Overall Faction Balances section (Total Money/Points) */
+#foOverallFactionBalances {
+    margin-bottom: 15px;
+    text-align: center;
+    flex-shrink: 0; /* Prevents it from shrinking vertically */
+}
+#foOverallFactionBalances h4 {
+    margin: 0 0 5px 0;
+    color: #eee; /* Light color for headers */
+    font-size: 1.1em;
+}
+#foOverallFactionBalances h2 {
+    color: #28a745; /* Green for money/points totals */
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: bold;
+}
+#foOverallFactionBalances > div { /* The flex container inside */
+    display: flex;
+    justify-content: space-around;
+    background: #1e2a38;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #34495e;
+}
+
+/* Scrollable area for Member Balances List */
+#foMemberBalancesScroll {
+    overflow-y: auto; /* Enable vertical scrolling */
+    flex-grow: 1; /* Allow it to take available vertical space */
+    background: #1e2a38;
+    padding: 10px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    width: 100%; /* Ensure it fits horizontally */
+}
+/* Table within foMemberBalancesScroll needs specific adjustments */
+#foMemberBalancesScroll .fo-data-table {
+    margin-top: 0; /* Remove default margin from generic table style */
+    border: none; /* Remove outer border as parent has it */
+    border-radius: 0; /* Remove outer border radius */
+    max-height: none; /* No max height here, parent handles scroll */
+    overflow: visible; /* Let its parent handle the scroll */
+    display: table; /* Overwrite display: block from generic .fo-data-table */
+}
+#foMemberBalancesScroll .fo-data-table thead,
+#foMemberBalancesScroll .fo-data-table tbody {
+    display: table-row-group; /* Revert to normal table display for scrolling */
+}
+#foMemberBalancesScroll .fo-data-table th,
+#foMemberBalancesScroll .fo-data-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #34495e; /* Internal table borders */
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+#foMemberBalancesScroll .fo-data-table th:first-child,
+#foMemberBalancesScroll .fo-data-table td:first-child {
+    border-left: 1px solid #34495e; /* Re-add first column left border */
+}
+#foMemberBalancesScroll .fo-data-table th:last-child,
+#foMemberBalancesScroll .fo-data-table td:last-child {
+    border-right: 1px solid #34495e; /* Re-add last column right border */
+}
+#foMemberBalancesScroll .fo-data-table thead th {
+    background-color: #1e2a38; /* Header matches panel background */
+    position: sticky;
+    top: -10px; /* Sticks to the top, accounting for container's padding */
+    z-index: 2;
+    border-bottom: 2px solid #34495e;
+}
+#foMemberBalancesScroll .fo-data-table th {
+    padding: 12px; /* Slightly more padding for headers */
+    font-size: 1em;
+}
+#foMemberBalancesScroll .fo-data-table tbody tr:last-child td {
+    border-bottom: none; /* Remove last row's bottom border */
+}
+
+/* Search area for Member & Fund Activity */
+.fo-member-fund-search-area {
+    margin-bottom: 15px;
+    flex-shrink: 0; /* Don't allow it to shrink vertically */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center input and buttons */
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.fo-member-fund-search-area input.fo-search-input {
+    width: 80%; /* Takes most of the width but leaves some space for centering */
+    max-width: 300px; /* Limits overall width */
+}
+.fo-member-fund-search-area > div { /* Button container */
+    display: flex;
+    gap: 10px;
+    justify-content: center; /* Center the buttons */
+    width: 100%;
+}
+.fo-member-fund-search-area button.fo-button {
+    flex-grow: 0; /* Don't let buttons grow too much */
+    width: auto;
+    padding: 8px 20px;
+}
+
+/* Scrollable area for Fund Activity List */
+#foFundActivityScroll {
+    overflow-y: auto; /* Enable vertical scrolling */
+    flex-grow: 1; /* Allow it to take available vertical space */
+    background: #1e2a38;
+    padding: 10px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    width: 100%; /* Ensure it fits horizontally */
+}
+#foFundActivityScroll ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#foFundActivityScroll li {
+    padding: 8px;
+    border-bottom: 1px solid #34495e;
+    font-size: 0.9em;
+    word-wrap: break-word; /* Allow long words to break and wrap */
+    white-space: normal; /* Allow text to wrap naturally */
+    overflow-wrap: break-word; /* Modern property for the same behavior */
+    line-height: 1.4; /* Adds a little space between wrapped lines */
+}
+#foFundActivityScroll li:last-child {
+    border-bottom: none;
+}
+
+
+/* ====================================================================== */
+/* Logistics Tab Specific Styles                                        */
+/* ====================================================================== */
+
+/* Container for the two main Logistics panels (Stock Levels and Large Movements) */
+.fo-logistics-panels-container {
+    display: flex;
+    gap: 20px; /* Space between the panels */
+    flex-grow: 1; /* Allow this container to take up available vertical space */
+    min-height: 0; /* Crucial for flex item with overflow */
+}
+
+.fo-logistics-panel {
+   flex: 1;
+   min-width: 0; /* Add this line */
+   display: flex;
+   flex-direction: column; /* Stack title and content vertically */ 
+   background-color: rgba(0, 0, 0, 0.2);
+   border: 1px solid rgba(0, 168, 255, 0.1);
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+   padding: 15px;
+   box-sizing: border-box;
+}
+/* The Logistics "full-width" panel (e.g. for charts if added later) */
+.fo-logistics-panel-full-width {
+    width: 100%; /* Ensure it takes full width */
+    max-width: none; /* Ensure it doesn't get capped */
+    flex: none; /* Prevent flex from trying to put it side-by-side */
+}
+
+
+
+/* Titles within the Logistics/Oversight Panels - Defined once for reusability */
+.fo-panel-title {
+    color: #00a8ff;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 168, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.fo-logistics-panel .fo-scrollable-panel-content { /* More specific selector */
+flex-grow: 1;
+max-height: 250px;
+overflow-y: auto;
+overflow-x: auto; /* This line was changed from 'hidden' */
+padding-right: 5px;
+}
+
+/* Specific styles for tables within logistics panels */
+.fo-logistics-panel .fo-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0; /* Remove default table margin */
+    /* Use the generic ::-webkit-scrollbar for scrollbar styles */
+}
+.fo-logistics-panel .fo-summary-table th,
+.fo-logistics-panel .fo-summary-table td {
+    white-space: nowrap; /* Prevent wrapping in summary tables */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* ====================================================================== */
+/* Oversight Tab Specific Styles                                        */
+/* ====================================================================== */
+
+.fo-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid for KPI boxes */
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.fo-kpi-box {
+    background-color: #1e2a38; /* Darker background for KPI boxes */
+    border: 1px solid #007acc;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.fo-kpi-box h5 {
+    color: #00a8ff;
+    font-size: 1em;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.fo-kpi-box p {
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Container for the two main Oversight panels (Top Users and Alerts) */
+.fo-oversight-panels-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow panels to wrap on smaller screens */
+    gap: 20px; /* Space between the panels */
+    justify-content: center; /* Center panels if they don't fill full width */
+    flex-grow: 1; /* Allow this container to take up available vertical space */
+    min-height: 0; /* Crucial for flex item with overflow */
+}
+
+/* Individual Oversight Panel (e.g., Top Users Box, Alerts Box) */
+.fo-oversight-panel {
+    flex: 1 1 48%; /* Allows two side-by-side with wrapping on smaller screens */
+    min-width: 300px; /* Minimum width for each panel */
+    max-width: 48%; /* Max width to ensure two columns on wider screens */
+    display: flex;
+    flex-direction: column; /* Stack title and content vertically */
+    
+    background-color: rgba(0, 0, 0, 0.2); /* Consistent with other section panels */
+    border: 1px solid rgba(0, 168, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 122, 204, 0.2);
+    padding: 15px; /* Internal padding */
+    box-sizing: border-box; /* Include padding in width */
+}
+
+/* Content area within Oversight Panels that will scroll */
+.fo-oversight-panel .fo-scrollable-panel-content { /* More specific selector */
+    flex-grow: 1; /* Allow content area to fill remaining vertical space */
+    max-height: 250px; /* Sets the visible height before scrolling occurs */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Hides horizontal scrollbar */
+    padding-right: 5px; /* Add slight padding for scrollbar */
+}
+
+.fo-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.fo-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #eee;
+    font-size: 0.95rem;
+}
+.fo-list li:last-child {
+    border-bottom: none;
+}
+
+.fo-alerts-list li {
+    color: #ff4d4d; /* Red for alerts */
+    font-weight: bold;
+}
+.fo-alerts-list li::before {
+    content: '🚨 '; /* Warning emoji prefix */
+}
+
+/* ====================================================================== */
+/* Banker Settings Modal Styles                                         */
+/* ====================================================================== */
+
+.fo-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Darker overlay for modals */
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000;
+    opacity: 0; visibility: hidden; /* Hidden by default, toggled by JS */
+    transition: opacity 0.3s ease-in-out, visibility 0s 0.3s;
+}
+
+.fo-modal-overlay.visible {
+    opacity: 1; visibility: visible;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.fo-modal-content {
+    background-color: #1e2a38; /* Modal background */
+    color: #eee;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #00a8ff;
+    box-shadow: 0 0 30px rgba(0, 168, 255, 0.7);
+    width: 90%; max-width: 600px; /* Larger max-width for selection grid */
+    position: relative;
+    box-sizing: border-box;
+    max-height: 90vh; /* Limit height for scrollability on smaller screens */
+    overflow-y: auto; /* Allow scrolling within the modal if content is long */
+}
+
+.fo-modal-close-button {
+    position: absolute; top: 15px; right: 15px;
+    background: none; border: none;
+    font-size: 2rem; color: #00a8ff;
+    cursor: pointer; line-height: 1;
+    transition: color 0.2s ease;
+}
+.fo-modal-close-button:hover {
+    color: #00e0ff;
+}
+
+.fo-modal-title {
+    color: #00a8ff; margin-top: 0; margin-bottom: 15px;
+    font-size: 1.8rem; font-weight: 600; text-align: center;
+}
+
+.fo-modal-description {
+    color: #ccc; font-size: 0.95rem; line-height: 1.6; text-align: center;
+    margin-bottom: 25px;
+}
+
+.fo-setting-group {
+    margin-bottom: 20px;
+}
+
+.fo-setting-group .fo-label {
+    display: block; /* Make label take full width */
+    color: #00a8ff;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.fo-setting-group .fo-input {
+    width: 100%;
+    background-color: #1a1a1a;
+    border: 1px solid #007acc;
+    border-radius: 4px;
+    padding: 10px;
+    color: #eee;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.fo-setting-group .fo-note {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+
+.fo-banker-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 2 columns for checkboxes */
+    gap: 10px;
+    padding: 15px;
+    border: 1px solid rgba(0, 168, 255, 0.2);
+    border-radius: 8px;
+    max-height: 300px; /* Make the checkbox area scrollable */
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.2);
+    margin-bottom: 25px;
+}
+
+.fo-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+}
+.fo-checkbox-item input[type="checkbox"] {
+    cursor: pointer;
+    transform: scale(1.2); /* Make checkbox slightly larger */
+}
+.fo-checkbox-item label {
+    color: #eee;
+    font-size: 1em;
+    cursor: pointer;
+}
+.fo-checkbox-item input[type="checkbox"]:disabled + label {
+    color: #888; /* Dim disabled labels */
+    cursor: not-allowed;
+}
+
+
+.fo-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Reusing base fo-button for primary/secondary variants */
+.fo-modal-actions .fo-button {
+    flex-grow: 1;
+    max-width: 150px;
+}
+
+.fo-button-primary {
+    background-color: #28a745; /* Green for primary action (Save) */
+    border-color: #28a745;
+    color: white;
+}
+.fo-button-primary:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+.fo-button-secondary {
+    background-color: #dc3545; /* Red for secondary action (Cancel) */
+    border-color: #dc3545;
+    color: white;
+}
+.fo-button-secondary:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+}
+
+.fo-modal-note {
+    font-size: 0.85rem;
+    color: #aaa;
+    text-align: center;
+    margin-top: 15px;
+}
+
+/* ====================================================================== */
+/* Access Denied / Error Messages (Page-level)                          */
+/* ====================================================================== */
+
+.fo-access-denied {
+    text-align: center;
+    padding: 50px 20px;
+    color: #ff4d4d; /* Red for errors */
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid #ff4d4d;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 50px auto; /* Center on the page */
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
+}
+
+.fo-access-denied h3 {
+    color: #ff4d4d;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+
+.fo-access-denied p {
+    color: #eee;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.fo-access-denied p:last-child {
+    margin-bottom: 0;
+}
+
+/* ====================================================================== */
+/* Responsive Adjustments (Specific to Faction Overview)                */
+/* ====================================================================== */
+
+@media (max-width: 900px) {
+    .faction-overview-content-panel {
+        width: 98%;
+        padding: 15px;
+        margin: 10px auto;
+        gap: 15px;
+    }
+    .fo-page-title {
+        font-size: 1.5rem;
+        margin-left: 0; /* Remove fixed left margin on small screens */
+        text-align: center; /* Center title on small screens */
+    }
+    .fo-cog-button {
+        font-size: 1.8rem;
+    }
+    .fo-sub-tabs-container {
+        flex-direction: column; /* Stack tabs vertically on small screens */
+        align-items: stretch; /* Stretch tabs to fill width */
+        gap: 5px; /* Reduce gap between stacked tabs */
+    }
+    .fo-sub-tab-button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        width: 100%; /* Make tabs fill full width */
+        box-sizing: border-box;
+    }
+    .fo-controls-bar {
+        flex-direction: column; /* Stack controls vertically */
+        align-items: stretch;
+        gap: 10px;
+        padding: 10px;
+    }
+    .fo-search-input,
+    .fo-date-input,
+    .fo-button {
+        max-width: 100%; /* Take full width when stacked */
+        min-width: unset;
+    }
+    .fo-date-label {
+        text-align: center;
+        width: 100%;
+    }
+    .fo-data-table {
+        min-width: unset; /* Allow table to shrink or use horizontal scroll */
+        max-height: 350px; /* Adjust height for smaller screens */
+    }
+    .fo-data-table th,
+    .fo-data-table td {
+        white-space: normal; /* Allow text to wrap more easily */
+        overflow: visible; /* Prevent hidden overflow on smaller screens */
+        text-overflow: clip; /* No ellipsis on smaller screens when wrapping */
+        word-wrap: break-word;
+        word-break: break-word; /* Ensure long words break */
+    }
+    .fo-kpi-grid {
+        grid-template-columns: 1fr; /* One KPI box per row */
+    }
+    .fo-kpi-box h5 {
+        font-size: 0.9em;
+    }
+    .fo-kpi-box p {
+        font-size: 1.5rem;
+    }
+    .fo-banker-selection-grid {
+        grid-template-columns: 1fr; /* Stack checkboxes vertically */
+    }
+    .fo-balances-layout {
+        flex-direction: column; /* Stack panels vertically on smaller screens */
+        align-items: center; /* Center stacked panels */
+    }
+
+    .fo-balances-left-panel,
+    .fo-balances-right-panel {
+        width: 95%; /* Take almost full width */
+        max-width: none; /* Remove max-width constraint */
+        flex-basis: auto; /* Revert flex-basis */
+    }
+    /* Specific styling for the Member & Fund Activity search area on mobile */
+    .fo-member-fund-search-area input.fo-search-input {
+        width: 95%; /* Make input take almost full width */
+        max-width: none; /* Remove max-width */
+    }
+    .fo-member-fund-search-area > div { /* Button container */
+        flex-direction: column; /* Stack buttons vertically */
+        align-items: stretch;
+    }
+    .fo-member-fund-search-area button.fo-button {
+        max-width: 100%; /* Make buttons full width */
+    }
+    .fo-scrollable-panel-content {
+        max-height: 200px; /* Adjust height for smaller screens for all scrollable panels */
+    }
+    /* Logistics specific mobile override: ensure panels stack vertically on small screens */
+    .fo-logistics-panels-container {
+        flex-direction: column;
+    }
+    .fo-logistics-panel {
+        max-width: 100%; /* Ensure full width on mobile */
+        flex: 1 1 auto; /* Reset flex for full width on mobile */
+    }
+    /* Oversight specific mobile override: ensure panels stack vertically on small screens */
+    .fo-oversight-panels-container {
+        flex-direction: column;
+    }
+    .fo-oversight-panel {
+        max-width: 100%; /* Ensure full width on mobile */
+        flex: 1 1 auto; /* Reset flex for full width on mobile */
+    }
+}
+
+@media (max-width: 600px) {
+    .fo-page-title {
+        font-size: 1.3rem;
+    }
+    .fo-sub-tab-button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .fo-modal-content {
+        padding: 20px;
+    }
+}

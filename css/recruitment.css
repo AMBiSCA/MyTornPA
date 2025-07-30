@@ -1,0 +1,450 @@
+.recruitment-main-content {
+    /* Mimics #warPageHubContainer for overall page content structure */
+    background-color: #1e1e1e; /* Darker background */
+    color: #f0f0f0; /* Light text */
+    padding: 10px; /* Consistent padding */
+    border-radius: 8px;
+    margin-top: 15px; /* Reverted to 15px as requested earlier */
+    margin-bottom: 20px; /* Adjusted from -50px for footer spacing on a new page */
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    width: 98%;
+    max-width: 1800px;
+    box-sizing: border-box;
+    
+    /* --- CRITICAL CHANGE FOR 1x2 LAYOUT --- */
+    display: flex;
+    flex-direction: column;   /* Stacks children (top box, then sections wrapper) vertically */
+    gap: 20px;                /* Space between the top box and the sections wrapper */
+    align-items: center;      /* Center items if they don't take full width */
+    /* --- END CRITICAL CHANGE --- */
+
+    min-height: calc(100vh - 170px); /* Ensures content area takes up most of the screen height */
+    border: 3px solid black; /* Consistent border */
+}
+
+/* NEW: Style for the top box containing the page title and description */
+.recruitment-top-box {
+    background-color: #222; /* Consistent dark background */
+    border: 1px solid black;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    padding: 15px; /* Consistent padding */
+    width: 100%; /* Ensure it spans the full width of the main content area */
+    box-sizing: border-box;
+    display: flex; /* Use flex for internal alignment of title/description if needed */
+    flex-direction: column;
+    align-items: center; /* Center the text horizontally within this box */
+    gap: 10px; /* Space between title and description */
+}
+
+/* Page Title (h1) */
+.page-title {
+    /* Mimics .script-title from war_page_hub.css */
+    color: #00a8ff; /* Blue theme color */
+    text-align: center;
+    margin-bottom: 0px; /* Adjusted margin within new box */
+    margin-top: 0px; /* Adjusted margin within new box */
+    font-size: 2.2em; /* Slightly larger for a main page title */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    border-bottom: 2px solid #00a8ff; /* Add a bottom border for emphasis */
+    padding-bottom: 10px;
+    width: 100%; /* Ensure it spans full width of its flex container */
+    box-sizing: border-box;
+}
+
+.description-text {
+    text-align: center;
+    margin-bottom: 0px; /* Adjusted margin within new box */
+    font-size: 1.1em;
+    color: #ccc;
+    width: 100%; /* Ensure it spans full width of its flex container */
+    box-sizing: border-box;
+}
+
+/* NEW: Wrapper for the two main content sections */
+.recruitment-sections-wrapper {
+    display: flex;
+    flex-direction: row;       /* Arranges children horizontally */
+    flex-wrap: wrap;           /* Allows sections to wrap to the next line on smaller screens */
+    gap: 20px;                 /* Space between the sections */
+    align-items: flex-start; /* Aligns items to the start of the cross-axis (top) */
+    width: 100%; /* Take full width of parent */
+    box-sizing: border-box;
+}
+
+
+/* Section Containers (Factions Seeking, Players Seeking) */
+.recruitment-section {
+    /* Mimics .config-section or .war-announcement-section */
+    background-color: #222; /* Consistent dark background */
+    border: 1px solid black;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    padding: 15px; /* Consistent padding */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between elements within a section */
+    
+    flex: 1;             /* Allows sections to grow and shrink, and occupy equal space */
+    min-width: 480px;    /* Adjusted from 450px to 480px to accommodate the new column */
+    box-sizing: border-box; /* Include padding and border in width calculation */
+}
+
+/* Section Headings (h2) */
+.recruitment-section h2 {
+    /* Consistent heading style */
+    color: #00a8ff;
+    text-align: center;
+    margin-bottom: 10px;
+    margin-top: 0;
+    font-size: 1.8em;
+    border-bottom: 1px solid #00a8ff; /* Lighter border than page title */
+    padding-bottom: 5px;
+}
+
+.recruitment-section p {
+    color: #f0f0f0;
+    font-size: 0.95em;
+    text-align: center;
+}
+
+/* Table Styles (Faction and Player listings) */
+/* recruitment.css */
+
+/* ... (your existing CSS code above this) ... */
+
+
+/* Table Styles (Faction and Player listings) */
+.recruitment-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #f0f0f0; /* Light text for table content */
+    background-color: #2a2a2a; /* Slightly lighter background for the table itself */
+    border-radius: 4px; /* Slight rounding for tables */
+    overflow: hidden; /* Ensures rounded corners are respected */
+    /* NEW: Force fixed table layout for better column control */
+    table-layout: fixed;
+}
+
+.recruitment-table th,
+.recruitment-table td {
+    border: 1px solid #3a3a40; /* Consistent border from enemy-targets-table */
+    padding: 10px;
+    text-align: left;
+    white-space: nowrap; /* Prevent wrapping unless explicit break */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recruitment-table thead th {
+    background-color: #00a8ff; /* Blue header background */
+    color: #1e1e1e; /* Dark text on blue */
+    font-weight: bold;
+    text-align: center;
+    font-size: 0.95em;
+    border-bottom: 2px solid #1e1e1e;
+}
+
+/* NEW: Specific column widths for Factions Seeking Members table */
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(1), /* Faction Name */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(1) {
+    width: 35%; /* Give more space to faction name */
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(2), /* Respect */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(2) {
+    width: 15%;
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(3), /* Rank */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(3) {
+    width: 15%;
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(4), /* Members */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(4) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(1) .recruitment-table th:nth-child(5), /* Apply */
+.recruitment-section:nth-of-type(1) .recruitment-table td:nth-child(5) {
+    width: 25%; /* Space for button */
+    text-align: center; /* Center the apply button */
+}
+
+
+/* NEW: Specific column widths for Players Seeking Factions table */
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(1), /* Name */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(1) {
+    width: 20%; /* Adjusted width for player name */
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(2), /* Level */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(2) {
+    width: 8%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(3), /* Total Battle Stats */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(3) {
+    width: 14%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(4), /* Xanax Taken */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(4) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(5), /* War Hits */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(5) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(6), /* Energy Refills */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(6) {
+    width: 10%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(7), /* Best Active Streak */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(7) {
+    width: 13%;
+}
+.recruitment-section:nth-of-type(2) .recruitment-table th:nth-child(8), /* Message */
+.recruitment-section:nth-of-type(2) .recruitment-table td:nth-child(8) {
+    width: 15%; /* Sufficient space for the button */
+    text-align: center; /* Center the message button */
+}
+
+
+/* ... (rest of your CSS code below this) ... */
+
+.recruitment-table tbody tr:nth-child(even) {
+    background-color: #333; /* Alternate row color */
+}
+
+.recruitment-table tbody tr:hover {
+    background-color: #444; /* Hover effect */
+}
+
+/* Specific button style for Enlist/Contact/List Myself/Advertise */
+.action-button {
+    /* Mimics .config-section .action-btn and .quick-ff-target-btn */
+    display: inline-block;
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 8px 15px;
+    border: 2px solid black; /* Consistent border */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    text-decoration: none; /* In case it's an <a> acting as a button */
+    white-space: nowrap;
+    margin-right: 10px; /* Space between multiple buttons in the same section */
+}
+
+.action-button:hover {
+    background-color: #00a8ff;
+    border-color: black;
+}
+
+.action-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    border-color: #555;
+    color: #ccc;
+}
+
+/* Styles for the "Player Name [ID]" link within tables */
+.recruitment-table a {
+    color: #8ab4f4; /* Consistent blue for links, slightly lighter for better visibility on dark bg */
+    text-decoration: none;
+}
+
+.recruitment-table a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .recruitment-main-content {
+        gap: 15px; /* Adjust gap for smaller screens */
+        padding: 10px;
+    }
+    .recruitment-top-box {
+        padding: 10px;
+    }
+    .recruitment-sections-wrapper {
+        flex-direction: column; /* Stack sections vertically on smaller screens */
+        align-items: stretch; /* Stretch to fill width when stacked */
+        gap: 15px;
+    }
+    .recruitment-section {
+        min-width: unset; /* Remove min-width when stacking */
+        width: 100%; /* Take full width when stacked */
+        padding: 10px;
+    }
+    .recruitment-table th,
+    .recruitment-table td {
+        padding: 8px;
+        font-size: 0.85em;
+    }
+    .action-button {
+        padding: 6px 12px;
+        font-size: 0.9em;
+        margin-bottom: 5px; /* Add vertical space when buttons stack */
+        margin-right: 0; /* Remove horizontal margin when stacked */
+    }
+    /* Header/Footer adjustments (copied from war_page_hub.css if not handled globally) */
+    .main-header nav a {
+        margin-left: 10px; /* Reduce space in header nav */
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 768px) {
+    .recruitment-main-content h1 {
+        font-size: 1.8em;
+    }
+    .recruitment-section h2 {
+        font-size: 1.5em;
+    }
+    .recruitment-table th,
+    .recruitment-table td {
+        padding: 6px;
+        font-size: 0.8em;
+    }
+    .action-button {
+        padding: 5px 10px;
+        font-size: 0.85em;
+    }
+    
+}
+
+@media (max-width: 480px) {
+    .recruitment-main-content {
+        padding: 5px;
+        gap: 10px;
+    }
+    .recruitment-main-content h1 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+    }
+    .recruitment-section {
+        padding: 8px;
+        gap: 10px;
+    }
+    .recruitment-section h2 {
+        font-size: 1.3em;
+    }
+    .recruitment-table th,
+    .recruitment-table td {
+        padding: 4px;
+        font-size: 0.75em;
+    }
+    .action-button {
+        padding: 4px 8px;
+        font-size: 0.8em;
+        width: 100%; /* Force buttons to stack vertically */
+        margin-right: 0; /* Remove horizontal margin */
+    }
+    /* Header/Footer adjustments for very small screens */    
+
+/* Style for the 'Remove Listing' button to make it red */
+.action-button.remove {
+    background-color: #d93025; /* A standard red color */
+    border-color: #a52714;
+}
+
+.action-button.remove:hover {
+    background-color: #c5221f; /* A slightly darker red for hover */
+    border-color: #a52714;
+}
+
+/* --- FIX: Remove the default browser focus ring on custom buttons --- */
+
+.action-button:focus,
+.action-button:active {
+    outline: none !important;
+    box-shadow: none !important; 
+}
+
+.btn {
+    /* You might have these in global.css or war_page_hub.css already */
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 8px 12px;
+    border: 2px solid black;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.btn:hover {
+    background-color: #555;
+    color: #00a8ff;
+    border-color: #00a8ff;
+}
+.btn-text {
+    white-space: nowrap;
+}
+.btn-icon {
+    line-height: 1; /* Ensures icon is properly aligned */
+}
+
+
+/* Dropdown specific styles (from header) */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #2c2c2c;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+    right: 0; /* Align dropdown to the right if align-right is used */
+    border: 1px solid #444;
+}
+
+.dropdown-content a {
+    color: #f0f0f0;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.dropdown-content a:hover {
+    background-color: #00a8ff;
+    color: #1e1e1e;
+}
+
+.dropdown-content a:last-child {
+    border-bottom: none;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* User Display and Text Links in Header (if needed) */
+.header-user-display {
+    color: #e0a71a; /* Gold color for logged in user name */
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.header-text-link {
+    color: #8ab4f8; /* Blue for Torn City homepage link */
+    text-decoration: none;
+    margin-left: 15px;
+    font-size: 1em;
+}
+
+.header-text-link:hover {
+    text-decoration: underline;
+}

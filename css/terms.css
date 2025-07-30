@@ -1,0 +1,238 @@
+/* General layout from global.css applies, but some overrides here */
+html, body {
+    height: 100vh; /* Set html/body to full viewport height */
+    overflow: hidden; /* NEW: Hide scrollbar for the entire page */
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+    opacity: 0.8;
+    z-index: -1;
+}
+
+.main-content-wrapper {
+    flex-grow: 1;
+    /* NEW: Occupy remaining height, but allow internal scrolling if needed */
+    height: calc(100vh - 70px - 70px); /* 100vh - header height - footer height */
+    overflow-y: auto; /* Allow main content wrapper to scroll if its content overflows */
+    padding-top: 90px; /* Adjusted for fixed header */
+    padding-bottom: 90px; /* Provides space for fixed footer */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.image-glow {
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow-flipped {
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Main content container for the terms page */
+main.terms-page-content {
+    width: 90%; 
+    max-width: 1400px;
+    margin-top: 15px; 
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #222; 
+    padding: 20px 40px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff; 
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    display: flex; 
+    flex-direction: column;
+    /* NEW: Make this content box itself fill remaining height and allow internal scroll */
+    flex-grow: 1; /* Allow it to grow within main-content-wrapper */
+    overflow-y: hidden; /* NEW: This container will NOT scroll, forcing content to scroll within its children */
+}
+
+/* Title styles */
+main.terms-page-content h2.highlight {
+    color: #00a8ff;
+    margin-top: 0;
+    margin-bottom: 25px;
+    user-select: none;
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: bold;
+}
+
+/* Grid for the top sections (Disclaimer, Terms and Conditions, Membership) */
+.terms-top-sections-grid {
+    display: grid;
+    /* NEW: Explicitly define 3 columns. minmax will shrink columns if not enough space */
+    grid-template-columns: repeat(3, minmax(280px, 1fr)); 
+    gap: 25px; 
+    margin-bottom: 25px;
+    flex-grow: 1; /* Allow the grid to take up available space */
+    /* NEW: This grid container will scroll if its combined content overflows its height */
+    overflow-y: hidden; 
+}
+
+/* Individual section styling (Disclaimer, T&C, Membership) */
+.terms-section-item {
+    background-color: #272727; 
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #00a8ff; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column; 
+    margin-bottom: 0; /* Gap is managed by grid for grid items */
+    /* NEW: Allow individual sections to scroll if their content overflows */
+    overflow-y: auto; 
+    flex-grow: 1; /* Allow content to grow and fill vertical space within the grid cell */
+}
+
+/* Section heading styles */
+main.terms-page-content section h3 {
+    color:#00a8ff;
+    text-align:center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem; 
+    font-weight: 600;
+}
+
+/* Paragraph and link styles */
+main.terms-page-content p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    text-align: left;
+}
+main.terms-page-content p a {
+    color:#00a8ff;
+    text-decoration: underline;
+}
+main.terms-page-content p a:hover {
+    color: #3ccbff;
+}
+
+/* Footer styles - Fixed and consistent */
+footer.footer {
+    flex-shrink: 0;
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    position: fixed; 
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid #00a8ff; 
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    user-select: none;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
+footer.footer .footer-links { margin-bottom: 4px; }
+footer.footer .footer-links a:hover { text-decoration: underline; }
+
+
+/* Responsive styles */
+/* Adjusted breakpoints to try and maintain 3 columns longer */
+@media (max-width: 1000px) { /* Adjust minmax for 2 columns */
+    .terms-top-sections-grid {
+        grid-template-columns: repeat(2, minmax(350px, 1fr)); 
+    }
+}
+
+@media (max-width: 768px) {
+    .terms-top-sections-grid {
+        grid-template-columns: 1fr; /* Stack into a single column on small screens */
+    }
+    main.terms-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
+    main.terms-page-content h2.highlight { font-size: 1.8rem; }
+    main.terms-page-content section h3 { font-size: 1.3rem; }
+    main.terms-page-content p { font-size: 0.95rem; }
+    .image-glow, .image-glow-flipped { display: none; }
+}
+
+@media (max-width: 480px) {
+    main.terms-page-content { margin: 10px; padding: 15px; }
+    main.terms-page-content h2.highlight { font-size: 1.5rem; }
+    main.terms-page-content section h3 { font-size: 1.2rem; }
+    main.terms-page-content p { font-size: 0.9rem; }
+    .terms-section-item { padding: 12px; }
+}
+
+/* Force buttons in the header to be bold (review if global.css should handle this) */
+header .btn,
+header button,
+header .header-btn {
+    font-weight: bold !important;
+}
+
+/* Force buttons on login/logout screens to be bold (review if global.css should handle this) */
+.login-screen-wrapper .btn,
+.login-screen-wrapper button,
+.login-dialog .btn,
+.login-dialog button,
+.login-page-container .btn,
+.login-page-container button,
+.btn-login,
+.logout-screen-wrapper .btn,
+.logout-screen-wrapper button,
+.logout-dialog .btn,
+.logout-dialog button,
+.logout-page-container .btn,
+.logout-page-container button,
+.btn-logout {
+    font-weight: bold !important;
+}

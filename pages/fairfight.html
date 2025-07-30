@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyTornPA - Target Finder</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/fairfight.css"> 
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+        <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+        <div class="peeper-tool-container">
+            <h2 class="script-title">Personal Target Finder</h2>
+            
+            <div id="fairFightApiKeyError" class="error-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;"></div>
+            
+            <div class="target-finder-container">
+                <p>Find personalized targets from the database based on your battle stats to maximize respect gain.</p>
+                <button id="fetchTargetsBtn" class="fetch-btn">Fetch My Targets</button>
+                <div id="myTargetsResults" class="results-inline-status"></div> </div>
+            
+            <div class="note">
+                <p>Please Note: Target suggestions are based on the data you have gathered with the admin tool. Keep your data fresh for the best results.</p>
+            </div>
+        </div>
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="resultsModalOverlay" class="modal-overlay">
+            <div class="modal-content">
+                <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
+                <h3 class="modal-title">Recommended Targets</h3>
+                <div class="modal-summary"></div>
+                <div class="modal-table-container">
+                    <table class="modal-table">
+                        <thead id="modal-results-table-header">
+                        </thead>
+                        <tbody id="modal-results-table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-action-area">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/fairfight.js"></script> 
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+ 
+ <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/factionpeeper.css">
+</head>
+<body>
+
+ <div id="global-header-placeholder"></div>
+
+  <div class="main-content-wrapper">
+    <img src="../images/manwithgun.png" alt="Decorative Glow" class="image-glow">
+    <img src="../images/manwithgun.png" alt="Decorative Glow Flipped" class="image-glow-flipped">
+
+    <div class="faction-peeper-tool-container">
+        <h2 class="script-title">Faction People Peeper.</h2>
+        <div class="input-group">
+            <div class="input-field">
+                <label for="factionId">Faction ID:</label>
+                <input type="text" id="factionId" placeholder="ID of faction your peeping:" />
+                <div id="factionIdError" class="error-message"></div>
+            </div>
+  
+        <div id="statSelectionArea">
+            <div class="popular-options-toggle">
+                <input type="checkbox" id="chkMostPopular" />
+                <label for="chkMostPopular">Auto-select popular: Level, Age, Last Action, Xanax, Refills, War Hits</label>
+            </div>
+            <p style="color:#ccc; margin-bottom: 10px; text-align:center; font-weight: 600;">
+                Or, manually select up to 6 stats:
+            </p>
+            <div class="stat-dropdowns-container" id="statDropdownsParentContainer">
+                </div>
+            <div id="selectedStatsDisplay">
+                </div>
+            <div id="statsError" class="error-message" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="action-buttons-container">
+            <button id="fetchData" class="action-btn fetch-btn">Fetch Data!</button>
+            <button id="clearSelectionsBtn" class="action-btn clear-btn">Clear Choices.</button>
+        </div>
+
+    </div> <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <div id="resultsModalOverlay" class="modal-overlay">
+      <div class="modal-content">
+        <button class="modal-close-btn" onclick="closeResultsModal()">&times;</button>
+        <h3 class="modal-title">Faction Members Data</h3>
+        <div class="modal-summary">
+          Faction: <span id="modal-faction-name">N/A</span> | Members: <span id="modal-member-count">0</span>
+        </div>
+        <div class="modal-table-container">
+          <table class="modal-table">
+            <thead id="modal-results-table-header">
+            </thead>
+            <tbody id="modal-results-table-body">
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-action-area">
+          <button id="downloadDataBtn" class="action-btn download-btn">Download Data!</button>
+        </div>
+      </div>
+    </div> </div> <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+   <script src="../js/firebase-init.js"></script>
+  <script src="../js/globalheader.js"></script>
+  <script src="../js/factionpeeper.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const contactBtn = document.getElementById('headerContactUsBtn');
+    const contactDropdown = document.getElementById('headerContactUsDropdown');
+
+    // Hide dropdown initially
+    contactDropdown.style.display = 'none';
+
+    contactBtn.addEventListener('click', () => {
+      const isVisible = contactDropdown.style.display === 'block';
+      contactDropdown.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Optional: Hide dropdown if clicked outside
+    window.addEventListener('click', (e) => {
+      if (!contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
+        contactDropdown.style.display = 'none';
+      }
+    });
+  });
+</script>
+</body>
+</html>

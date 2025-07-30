@@ -1,0 +1,275 @@
+/* css/privacy.css */
+/* This file contains styles specific to the Privacy Policy page content. */
+/* General site layout, header, and footer styles are managed by global.css. */
+
+/* Basic html, body setup (assuming global.css provides the full, robust fixed header/footer handling) */
+html, body {
+    height: 100%; 
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color-light, #eee); 
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%);
+    min-height: 100vh; 
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+    opacity: 0.8;
+    z-index: -1;
+}
+
+/* Header and Footer basic flex rules (assuming global.css provides their fixed positioning and heights) */
+header { 
+    flex-shrink: 0; 
+}
+footer.footer { 
+    flex-shrink: 0; 
+}
+
+/* Main content wrapper that sits between fixed header and footer */
+.main-content-wrapper {
+    flex-grow: 1; 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    overflow-y: auto; /* Enable vertical scrolling for content overflow */
+    padding-top: 90px;    /* Accounts for fixed header height + buffer */
+    padding-bottom: 90px; /* Accounts for fixed footer height + buffer */
+    min-height: auto; 
+}
+
+.image-glow {
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow-flipped {
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px var(--theme-accent-color, #00a8ff));
+    width: 570px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Main content container for the privacy policy page - Consistent with FAQ/Terms/Report */
+main.privacy-page-content {
+    width: 90%; 
+    max-width: 1400px; /* Use the wider max-width for consistency with other legal pages */
+    margin-top: 15px; 
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #222; 
+    padding: 20px 40px;
+    border-radius: 12px;
+    border: 2px solid #00a8ff; 
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); 
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    display: flex; 
+    flex-direction: column; 
+}
+
+/* Page title styles - Consistent with FAQ/Terms/Report */
+main.privacy-page-content h2.highlight {
+    font-size: 2.2rem; 
+    font-weight: bold;
+    color: var(--theme-accent-color, #00a8ff);
+    text-align: center;
+    margin-bottom: 25px;
+    padding-top: 0;
+    flex-shrink: 0; 
+}
+
+/* Last updated timestamp style */
+main.privacy-page-content p.last-updated {
+    font-size: 0.85rem;
+    color: #bbb;
+    text-align: center;
+    margin-top: -15px; 
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+/* NEW: Grid container for privacy policy sections (3-column overview) */
+.privacy-policy-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Aim for 3 columns on larger screens */
+    gap: 25px; 
+    margin-bottom: 20px; 
+    flex-grow: 1; 
+    overflow-y: auto; /* Allow the grid container to scroll internally if content overflows */
+}
+
+/* Individual section styling within the grid */
+.privacy-section-item {
+    background-color: #272727; 
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #00a8ff; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column; 
+    flex-grow: 1; 
+    overflow-y: auto; /* Allow internal scrolling for individual sections if their content overflows */
+}
+
+/* Section heading styles - Consistent with FAQ/Terms/Report */
+.privacy-section-item h3 {
+    color: var(--theme-accent-color, #00a8ff);
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem; 
+    font-weight: 600;
+    flex-shrink: 0; 
+}
+
+/* Paragraphs within sections - Consistent with FAQ/Terms/Report */
+.privacy-section-item p { /* Specific to paragraphs within the overview section */
+    font-size: 0.95rem; 
+    line-height: 1.6;
+    margin-bottom: 15px;
+    text-align: left;
+    color: var(--text-color-light, #eee);
+    flex-shrink: 0; 
+}
+
+/* List items within sections - Consistent with FAQ/Terms/Report */
+.privacy-section-item ul {
+    list-style-type: disc; 
+    padding-left: 20px; 
+    margin-bottom: 15px;
+    flex-grow: 1; 
+    overflow-y: auto; /* Allow list to scroll internally if it overflows */
+}
+
+.privacy-section-item ul li {
+    margin-bottom: 8px; 
+    font-size: 0.9rem; 
+    line-height: 1.5;
+    color: #ddd;
+    flex-shrink: 0; 
+}
+
+/* Links within content - Consistent with FAQ/Terms/Report */
+.privacy-section-item a {
+    color: var(--theme-accent-color, #00a8ff);
+    text-decoration: underline;
+}
+.privacy-section-item a:hover {
+    color: var(--theme-accent-hover-color, #3ccbff);
+}
+
+
+/* Footer styles - Fixed and consistent */
+footer.footer {
+    flex-shrink: 0;
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    position: fixed; 
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid #00a8ff; 
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    user-select: none;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
+footer.footer .footer-links { margin-bottom: 4px; }
+footer.footer .footer-links a:hover { text-decoration: underline; }
+
+
+/* Responsive styles - Consistent with FAQ/Terms/Report */
+@media (max-width: 1100px) { 
+    .privacy-policy-overview-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Adjust to 2 columns on medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .privacy-policy-overview-grid {
+        grid-template-columns: 1fr; /* Stack into a single column on small screens */
+    }
+    main.privacy-page-content { margin: 20px 15px; padding: 20px; width: auto; max-width: 95%; }
+    main.privacy-page-content h2.highlight { font-size: 1.8rem; }
+    main.privacy-page-content p { font-size: 0.9rem; }
+    main.privacy-page-content section h3 { font-size: 1.3rem; }
+    main.privacy-page-content ul li { font-size: 0.85rem; }
+    .image-glow, .image-glow-flipped { display: none; }
+}
+
+@media (max-width: 480px) {
+    main.privacy-page-content { margin: 10px; padding: 15px; }
+    main.privacy-page-content h2.highlight { font-size: 1.5rem; }
+    main.privacy-page-content p { font-size: 0.85rem; }
+    main.privacy-page-content section h3 { font-size: 1.2rem; }
+    main.privacy-page-content ul li { font-size: 0.82rem; }
+}
+
+/* Force buttons in the header to be bold (review if global.css should handle this) */
+header .btn,
+header button,
+header .header-btn {
+    font-weight: bold !important;
+}
+
+/* Force buttons on login/logout screens to be bold (review if global.css should handle this) */
+.login-screen-wrapper .btn,
+.login-screen-wrapper button,
+.login-dialog .btn,
+.login-dialog button,
+.login-page-container .btn,
+.login-page-container button,
+.btn-login,
+.logout-screen-wrapper .btn,
+.logout-screen-wrapper button,
+.logout-dialog .btn,
+.logout-dialog button,
+.logout-page-container .btn,
+.logout-page-container button,
+.btn-logout {
+    font-weight: bold !important;
+}

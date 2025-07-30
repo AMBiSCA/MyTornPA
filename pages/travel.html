@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyTornPA - Travel Helper</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/travel.css">
+</head>
+<body>
+
+  <div id="global-header-placeholder"></div>
+
+  <div class="main-content-wrapper">
+
+    <main class="page-specific-content-area">
+      <h2>Torn Travel Helper</h2>
+      <p>Plan your Torn City travels effectively! This tool will help you find profitable items in different countries, check stock levels, and calculate potential profits from your travel runs.</p>
+
+          <div id="loading-indicator">Loading data, please wait...</div>
+          <div id="error-display" class="error-message"></div>
+
+      <div class="travel-layout-container">
+
+        <div class="left-panel">
+            <div class="input-section">
+                <label for="item-search">Search for Item:</label>
+                <input type="text" id="item-search" placeholder="e.g., Xanax, Lion Plushie">
+                <p>(Find where an item is sold abroad)</p>
+
+                <label for="destination-select">Select Destination Country:</label>
+                <select id="destination-select">
+                    <option value="">Loading destinations...</option>
+                </select>
+
+                <label for="travel-capacity">Your Current Travel Capacity:</label>
+                <input type="number" id="travel-capacity" value="5" min="1">
+                <p>(Default is 5. Update if you have Airstrip/WLT/Suitcases.)</p>
+
+                <button class="btn-header" id="fetch-data-btn">Fetch Travel Data</button>
+
+                <hr> 
+                
+                <label for="category-filter">Filter by Category:</label>
+                <select id="category-filter">
+                    <option value="all">All Items</option>
+                    <option value="Plushie">Plushies</option>
+                    <option value="Flower">Flowers</option>
+                    <option value="Drug">Drugs</option>
+                    <option value="Special">Special Items</option>
+                </select>
+                <p>(Changes update instantly)</p>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            
+            <div class="item-list-section">
+                <h2>Items Available in <span id="selected-country-name">Selected Country</span></h2>
+                <div id="item-list">
+                    <p>Select a destination and click "Fetch Travel Data" to see items.</p>
+                </div>
+            </div>
+        </div>
+
+      </div> 
+    </main>
+  </div> 
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html" id="homeButtonFooter">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <script src="../js/firebase-init.js"></script>
+  
+  <script src="../js/globalheader.js"></script>
+  
+  <script src="../js/travel.js"></script>
+</body>
+</html>

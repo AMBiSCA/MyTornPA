@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - War Hub</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/war_page_hub.css">
+</head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <div id="warPageHubContainer" class="styled-container">
+            <h2 class="script-title" id="factionWarHubTitle">Faction War Hub.</h2>
+
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="announcements">latest Announcements.</button>
+                <button class="tab-button" data-tab="active-ops">Active Operation.</button>
+                <button class="tab-button" data-tab="friendly-status">Live Faction Activity.</button>
+                <button class="tab-button" data-tab="war-availability">War Availability.</button>
+                <button class="tab-button" data-tab="Faction-Financials">War Information.</button>
+                <button class="tab-button" data-tab="leader-config">Leadership Settings.</button>
+            </div>
+
+            <div class="tab-content-container">
+                <div id="announcements-tab" class="tab-pane active">
+                    <div class="announcements-grid-container">
+
+                        <div class="announcement-section-item">
+                            <div class="war-announcement-section">
+                                <h3>Game Plan:</h3>
+                                <div id="gamePlanDisplay" class="game-plan-display">
+                                    <p>Loading game plan...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="announcement-section-item">
+    <div class="war-announcement-section">
+        <h3>Current War Status:</h3>
+        <div class="war-status-display">
+            <div class="status-item">
+                <span class="status-label">Enlisted:</span>
+                <span id="warEnlistedStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Termed War:</span>
+                <span id="warTermedStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Win/Loss Termed:</span>
+                <span id="warTermedWinLoss" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Chaining:</span>
+                <span id="warChainingStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">No Flying:</span>
+                <span id="warNoFlyingStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Turtle Mode:</span>
+                <span id="warTurtleStatus" class="status-value">N/A</span>
+            </div>
+            <div class="status-item-full-width status-summary-two-col">
+                <div class="status-item">
+                    <span class="status-label">Next Planned Chain Time:</span>
+                    <span id="warNextChainTimeStatus" class="status-value status-value-box">N/A</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Current Team Leader:</span>
+                    <span id="warCurrentTeamLeadStatus" class="status-value status-value-box">N/A</span>
+                </div>
+            </div>
+
+            <div id="announcementScoreboardContainer">
+                <div class="ranked-war-container">
+                    <div class="rw-header">
+                        <span id="rw-faction-one-name_announcement">Your Faction</span>
+                        <span class="rw-vs">vs</span>
+                        <span id="rw-faction-two-name_announcement">Opponent</span>
+                    </div>
+                    <div class="rw-scores-new">
+                        <div class="rw-stat-box-small">
+                            <div class="rw-small-label">Energy</div>
+                            <div class="rw-small-value" id="rw-user-energy_announcement">N/A</div>
+                        </div>
+                        <div class="rw-lead-target">
+                            <div class="rw-lead-label">LEAD TARGET</div>
+                            <div class="rw-lead-value" id="rw-lead-value_announcement">0 / 0</div>
+                        </div>
+                        <div class="rw-stat-box-small">
+                            <div class="rw-small-label">War Time</div>
+                            <div class="rw-small-value" id="rw-war-timer_announcement">0:00:00:00</div>
+                        </div>
+                    </div>
+                    <div class="rw-progress-bar-container">
+                        <div class="rw-progress-bar-one" id="rw-progress-one_announcement" style="width: 50%;"></div>
+                        <div class="rw-progress-bar-two" id="rw-progress-two_announcement" style="width: 50%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+    </div>
+</div>
+</div>
+
+                        <div class="announcement-section-item">
+                            <div class="war-announcement-section">
+                                <h3>Faction Announcements:</h3>
+                                <div id="factionAnnouncementsDisplay" class="game-plan-display">
+                                    <p>No current announcements.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <div id="announcementScoreboardContainer" class="ops-control-item ops-ranked-war-score">
+                        <div class="ranked-war-container">
+                            <div class="rw-header">
+                                <span id="rw-faction-one-name_announcement">Your Faction</span>
+                                <span class="rw-vs">vs</span>
+                                <span id="rw-faction-two-name_announcement">Opponent</span>
+                            </div>
+                            <div class="rw-scores-new">
+                                <div class="rw-stat-box-small">
+                                    <div class="rw-small-label">Energy</div>
+                                    <div class="rw-small-value" id="rw-user-energy_announcement">N/A</div>
+                                </div>
+                                <div class="rw-lead-target">
+                                    <div class="rw-lead-label">LEAD TARGET</div>
+                                    <div class="rw-lead-value" id="rw-lead-value_announcement">0 / 0</div>
+                                </div>
+                                <div class="rw-stat-box-small">
+                                    <div class="rw-small-label">War Time</div>
+                                    <div class="rw-small-value" id="rw-war-timer_announcement">0:00:00:00</div>
+                                </div>
+                            </div>
+                            <div class="rw-progress-bar-container">
+                                <div class="rw-progress-bar-one" id="rw-progress-one_announcement" style="width: 50%;"></div>
+                                <div class="rw-progress-bar-two" id="rw-progress-two_announcement" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        </div>
+                </div>
+
+                <div id="active-ops-tab" class="tab-pane">
+                    <div class="ops-controls-grid">
+                        
+                        <div class="ops-left-group">
+                            <div class="ops-control-item">
+                                <div class="chain-timer-box" id="friendly-chain-timer">
+    <div class="chain-timer-header">Your Current Chain</div>
+    <div class="chain-timer-data">
+        <span class="chain-timer-hits" id="friendly-chain-hits">0</span>
+        <span class="chain-timer-time" id="friendly-chain-time">Over</span>
+    </div>
+    <div class="chain-progress-container">
+        <div class="chain-progress-bar" id="friendly-chain-progress"></div>
+    </div>
+</div>
+                            </div>
+
+                            <div class="ops-control-item">
+    <div id="faction-hits-display">
+        <div class="hits-row">
+            <span id="tc-hits-value" class="hits-value">0</span> <span class="hits-label">Total Hits Available </span> </div>
+        <div class="hits-row">
+            <span id="abroad-hits-value" class="hits-value">0</span> <span class="hits-label">Total Abroad Hits Available</span> </div>
+    </div>
+</div>
+
+                            <div class="ops-control-item">
+                                <div class="chain-timer-box" id="enemy-chain-timer">
+    <div class="chain-timer-header">Enemies Current Chain</div>
+    <div class="chain-timer-data">
+        <span class="chain-timer-hits" id="enemy-chain-hits">0</span>
+        <span class="chain-timer-time" id="enemy-chain-time">Over</span>
+    </div>
+    <div class="chain-progress-container">
+        <div class="chain-progress-bar" id="enemy-chain-progress"></div>
+    </div>
+</div>
+                            </div>
+                        </div>
+                        
+                        <div class="ops-control-item">
+                            <div class="ranked-war-container">
+                                <div class="rw-header">
+                                    <span id="rw-faction-one-name">Your Faction</span>
+                                    <span class="rw-vs">vs</span>
+                                    <span id="rw-faction-two-name">Opponent</span>
+                                </div>
+                                <div class="rw-scores-new">
+                                    <div class="rw-stat-box-small">
+                                        <div class="rw-small-label">Energy</div>
+                                        <div class="rw-small-value" id="rw-user-energy">N/A</div>
+                                    </div>
+                                    <div class="rw-lead-target">
+                                        <div class="rw-lead-label">LEAD TARGET</div>
+                                        <div class="rw-lead-value" id="rw-lead-value">0 / 0</div>
+                                    </div>
+                                    <div class="rw-stat-box-small">
+                                        <div class="rw-small-label">War Time</div>
+                                        <div class="rw-small-value" id="rw-war-timer">0:00:00:00</div>
+                                    </div>
+                                </div>
+                                <div class="rw-progress-bar-container">
+                                    <div class="rw-progress-bar-one" id="rw-progress-one" style="width: 50%;"></div>
+                                    <div class="rw-progress-bar-two" id="rw-progress-two" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ops-control-item ops-quick-targets">
+                            <label>Quick FairFight Chain saver:</label>
+                            <div id="quickFFTargetsDisplay" class="quick-ff-targets-container">
+                                <span>Target 1</span>
+                                <span>Target 2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="active-ops-layout-row">
+                        <div class="active-ops-targets-panel">
+                            <div class="enemy-targets-list-section">
+                                <div id="enemyTargetsContainer" class="enemy-targets-scroll-area">
+                                    <p>Loading enemy targets...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="active-ops-right-panel">
+                            </div>
+                    </div>
+                </div>
+
+                <div id="friendly-status-tab" class="tab-pane">
+                    <div class="ops-controls-grid">
+                        <div class="ops-control-item ops-control-item--actions">
+                            <div class="action-buttons-container">
+                                <div class="action-button-group">
+                                    <p class="action-button-label">🛫 Going Somewhere? 🛬</p>
+                                    <a href="https://www.torn.com/travelagency.php" target="_blank" rel="noopener noreferrer" class="action-button action-button-orange">Travel</a>
+                                </div>
+                                <div class="action-button-group">
+                                    <p class="action-button-label">💊 What's Popping? 💊</p>
+                                    <a href="https://www.torn.com/item.php" target="_blank" rel="noopener noreferrer" class="action-button action-button-yellow">Use Xanax</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ops-control-item">
+                            <h2 class="table-title-centered" style="margin: auto; font-size: 1.2em;">Your Factions Live Activity.</h2>
+                        </div>
+                        <div class="ops-control-item ops-control-item--actions">
+                            <div class="action-buttons-container">
+                                <div class="action-button-group">
+                                    <p class="action-button-label">🚔 Got the Nerve? 🚔</p>
+                                    <a href="https://www.torn.com/crimes.php" target="_blank" rel="noopener noreferrer" class="action-button action-button-red">Crimes</a>
+                                </div>
+                                <div class="action-button-group">
+                                    <p class="action-button-label">🤸 Feeling Gym? 🏃</p>
+                                    <a href="https://www.torn.com/gym.php" target="_blank" rel="noopener noreferrer" class="action-button action-button-green">Gym</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="friendly-status-layout-row">
+                        <div class="friendly-members-panel">
+                            <div id="friendlyMembersListContainer">
+                                <table class="enemy-targets-table" id="friendly-members-table">
+                                    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Last Action</th>
+        <th>Strength</th>
+        <th>Dexterity</th>
+        <th>Speed</th>
+        <th>Defense</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Nerve</th>
+        <th>Energy</th>
+        <th>Drug C/D</th>
+        <th>Revivable?</th>
+    </tr>
+</thead>
+                                    <tbody id="friendly-members-tbody">
+                                        <tr>
+                                            <td colspan="12" style="text-align:center; padding: 20px;">Loading member data...</td> </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        </div>
+                </div>
+                
+                <div id="war-availability-tab" class="tab-pane">
+                    <div class="war-availability-grid">
+
+                        <div class="user-status-panel">
+                            <h4>Your Availability</h4>
+
+                            <div id="availability-forms-container"></div>
+                            
+
+                            <div id="availability-summary-container" style="display: none;"></div>
+                        </div>
+
+                        <div class="team-roster-panel">
+                            <h4>Your Factions Roster.</h4>
+                            <div id="war-roster-display" class="roster-list">
+                                </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="leader-config-tab" class="tab-pane">
+                    <div class="config-grid">
+                        <div class="config-section">
+                            <h4>Edit Game Plan:</h4>
+                            <textarea id="gamePlanEditArea"></textarea>
+                            <div class="config-actions">
+                                <button id="saveGamePlanBtn" class="action-btn">Save Game Plan</button>
+                                <label for="gamePlanImageUpload" class="action-btn upload-btn">Upload Image 🖼️</label>
+                                <input type="file" id="gamePlanImageUpload" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="config-section">
+                            <h4>War Status Controls:</h4>
+                            <div class="war-status-toggles-grid">
+                                <div class="toggle-control">
+                                    <label for="toggleEnlisted">Enlisted:</label>
+                                    <input type="checkbox" id="toggleEnlisted">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleTermedWar">Termed War:</label>
+                                    <input type="checkbox" id="toggleTermedWar">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleTermedWinLoss">Win/Loss Termed:</label>
+                                    <input type="checkbox" id="toggleTermedWinLoss">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleChaining">Chaining:</label>
+                                    <input type="checkbox" id="toggleChaining">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleNoFlying">No Flying:</label>
+                                    <input type="checkbox" id="toggleNoFlying">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="toggleTurtleMode">Turtle Mode:</label>
+                                    <input type="checkbox" id="toggleTurtleMode">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="enemyFactionIDInputLeaderConfig">Enemy Faction ID:</label>
+                                    <input type="text" id="enemyFactionIDInputLeaderConfig" placeholder="Enter Enemy Faction ID">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="nextChainTimeInput">Next Chain Time:</label>
+                                    <input type="text" id="nextChainTimeInput" placeholder="e.g., 00:00:00">
+                                </div>
+                                <div class="toggle-control">
+                                    <label for="currentTeamLeadInput">Current Team Lead:</label>
+                                    <input type="text" id="currentTeamLeadInput" placeholder="Enter name">
+                                </div>
+                            </div>
+                    <div class="war-status-actions">
+    <button id="saveWarStatusControlsBtn" class="action-btn">Save War Status</button>
+    <button id="clearAllWarDataBtn" class="action-btn clear-btn">Clear All Data</button>
+</div>
+                        </div>
+                        <div class="config-section">
+                            <h4>Faction Announcements:</h4>
+                            <textarea id="quickAnnouncementInput" placeholder="Quick Message"></textarea>
+                            <div class="config-actions">
+                                <button id="postAnnouncementBtn" class="action-btn">Post Announcement</button>
+                                <label for="announcementImageUpload" id="announcementUploadLabel" class="action-btn upload-btn">Upload Image 🖼️</label>
+                                <input type="file" id="announcementImageUpload" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="config-section">
+                            <h4>Designated Tab 4 Admins:</h4>
+                            <p>Select members to designate as admins:</p>
+                            <div id="designatedAdminsContainer" class="member-checkbox-list"></div>
+                            <div id="designateAdminError" class="error-message"></div>
+                            <button id="saveAdminSelectionsBtn" class="action-btn save-config-btn">Save Admins</button>
+                        </div>
+                        <div class="config-section">
+                            <h4>Big Hitter Watchlist:</h4>
+                            <p>Select enemies to watch:</p>
+                            <div id="bigHitterWatchlistContainer" class="member-checkbox-list"></div>
+                            <button id="saveWatchlistSelectionsBtn" class="action-btn save-config-btn">Save Selections</button>
+                        </div>
+                        <div class="config-section">
+                            <h4>Energy Tracking Members:</h4>
+                            <p>Select members whose energy contributes to faction totals.</p>
+                            <div id="energyTrackingContainer" class="member-checkbox-list"></div>
+                            <button id="saveEnergyTrackMembersBtn" class="action-btn save-config-btn">Save Selections</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <div id="footer-container"></div>
+    
+
+    <script src="../../js/firebase-init.js"></script>
+    <script src="../../js/globalheader.js"></script>
+    <script src="../../js/war_page_hub.js"></script>
+    <script src="../../js/global.js" defer></script>
+
+    <div id="chainClaimModal" class="chain-claim-modal-overlay" style="display: none;">
+        <div class="chain-claim-modal-content">
+            <h3>Claim Next Hits</h3>
+            <p>Rushing the next <input type="number" id="chainHitsInput" min="1" value="1" class="modal-input"> hits.</p>
+            <p>From Chain Number <input type="number" id="chainNumberInput" min="1" value="1" class="modal-input"></p>
+            <div class="modal-actions">
+                <button id="submitChainClaimBtn" class="action-button">Claim!</button>
+                <button id="cancelChainClaimBtn" class="action-button cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="imageUploadInput" accept="image/png, image/jpeg, image/gif" style="display: none;">
+</body>
+</html>

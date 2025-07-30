@@ -1,0 +1,351 @@
+/* --- GymGain Specific Styles --- */
+
+/* Overall Page Layout for GymGain */
+.body-content-wrapper {
+    display: flex; /* Makes children (gym-main-content, gym-sidebar-right) go side-by-side */
+    justify-content: flex-start; /* Aligns content to the left within this wrapper */
+    align-items: flex-start; /* Aligns items to the top vertically */
+    padding: 20px;
+    box-sizing: border-box;
+    max-width: 2400px; /* Overall max width for the content area */
+    
+    /* DEFINITIVE MARGINS FOR TOP, RIGHT, BOTTOM, LEFT */
+    margin-top: 0px;    /* CHANGED: Removed top margin here, let body padding handle it */
+    margin-right: auto; /* Pushes content to the left if viewport is wider than max-width */
+    margin-bottom: 0px; /* CHANGED: Removed bottom margin here, let body padding handle it */
+    margin-left: auto;    /* Fixed left margin/indentation */
+
+    flex-grow: 1; /* Allows it to take remaining vertical space */
+    gap: 30px; /* Gap between the two columns */
+}
+
+/* Apply styled-container properties to main content and sidebar directly */
+.gym-main-content, .gym-sidebar-right {
+    background-color: rgba(19, 19, 20, 0.8);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 0 10px 3px rgba(0, 168, 255, 0.35);
+    border: 1px solid #00a8ff;
+    box-sizing: border-box;
+}
+
+
+.gym-main-content {
+    flex: 11; /* This creates a ~62.5% width for the left column */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 0px;
+}
+
+.gym-sidebar-right {
+    flex: 9; /* This creates a ~37.5% width for the right column */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-self: flex-start;
+    padding: 15px;
+}
+
+/* New: Styles for Stat Progression Container */
+.stat-progression-box, .gym-progression-box {
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    color: #00a8ff;
+}
+
+.stat-progression-box h3, .gym-progression-box h3 {
+    color: #00a8ff;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    
+}
+
+.graph-placeholder {
+    background-color: rgba(0,0,0,0.2);
+    border: 1px dashed var(--secondary-border-color);
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #bbb;
+    font-size: 0.9em;
+    padding: 10px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.progression-options {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+    /* This element now also acts as the relative positioning context for the dropdown */
+    /* ensure this is not overridden by global styles to be non-relative */
+}
+
+.progression-options .btn {
+    padding: 5px 10px;
+    font-size: 0.8em;
+    height: auto;
+    margin: 0;
+}
+.progression-details {
+    padding: 5px 0;
+    font-size: 0.95em;
+    color: var(--secondary-text-color);
+}
+.progression-details p {
+    display: flex;            
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+.progression-details p strong {
+    color: var(--primary-text-color);
+    min-width: 120px;
+    display: inline-block;
+}
+.progression-details span {
+    font-weight: bold;
+    color:#FFF
+}
+
+
+.gym-section {
+    width: 100%;
+    text-align: left;
+    padding-top: 15px;
+    padding-left: 7px;
+    padding-right: 7px;
+    box-sizing: border-box;
+}
+.underlined-heading {
+    text-decoration: underline;
+    text-decoration-color: #00a8ff;
+    text-underline-offset: 4px;
+    padding-bottom: 5px;
+    font-weight: bold;
+    color: var(--primary-text-color);
+}
+
+.gym-section h2#gymWelcomeMessage {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #00a8ff;
+    
+}
+
+/* Current Stats Section */
+.current-stats {
+    margin-top: 0px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--border-color);
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.battle-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+}
+
+.current-stats .stat-item {
+    padding: 5px 0;
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    background-color: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.energy-center-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+
+.current-stats h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--accent-color);
+    font-size: 1.1em;
+}
+
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+.stat-item strong {
+    color: var(--primary-text-color);
+}
+.stat-item span {
+    color: var(--secondary-text-color);
+    font-weight: bold;
+}
+
+/* Gain Summary Box */
+.gain-summary-box {
+    width: 100%;
+    margin-top: 15px;
+    box-sizing: border-box;
+    background-color: rgba(0,0,0,0.6);
+    border: 1px solid var(--secondary-border-color);
+    box-shadow: none;
+}
+.gain-summary-box h3.underlined-heading {
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--accent-color);
+    font-size: 1.1em;
+    color: #00a8ff;
+}
+.gain-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  
+    gap: 10px;
+}
+.gain-summary-item {
+    background-color: rgba(0,0,0,0.2);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--secondary-border-color);
+    color: var(--secondary-text-color);
+}
+.gain-summary-item strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary-text-color);
+    font-size: 0.95em;
+    text-align: center;
+}
+.gain-summary-item .gain-figures {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    justify-content: center;
+    align-items: start;
+    text-align: center;
+}
+.gain-summary-item .gain-text {
+    font-size: 0.95em;
+    font-weight: bold;
+    color: lightgreen;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 5px 0;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 4px;
+    background-color: rgba(255,255,255,0.02);
+    text-align: right;
+}
+
+.gain-disclaimer {
+    grid-column: 1 / -1; /* This is the magic line that spans all 4 columns */
+    text-align: center;
+    margin-top: 15px;
+    color: #FFA500 !important;
+    font-size: 0.9em; /* Adjusted slightly for better readability */
+    font-style: italic;
+}
+
+/* Torn Gym Link Button - Styling to match header buttons (Solid Dark Background, Blue Text) */
+.torn-gym-link-container {
+    width: 100%;
+    margin-top: 5px;
+    text-align: center;
+    padding-left: 20px;
+}
+.btn.torn-gym-btn {
+    background-color: rgba(19, 19, 20, 0.8);
+    color: var(--button-text-color);
+    border: 1px solid #00a8ff;
+    padding: 10px 25px;
+    font-size: 1em;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Ensure text and icon are light blue as seen in screenshot */
+.btn.torn-gym-btn .btn-text, .btn.torn-gym-btn .btn-icon {
+    color: #00a8ff;
+}
+
+.btn.torn-gym-btn:hover {
+    background-color: var(--button-hover-bg-color);
+    color: var(--button-hover-text-color, #8ab4f8);
+}
+/* --- Custom Stat Toggle Button Styles (High Specificity) --- */
+
+#statProgressionContainer .stat-toggle-options button[data-stat-toggle="0"] {
+    background-color: #F06292;  /* Pink/Red from chart */
+    color: #000000;              /* Black font color */
+    border: 2px solid #000000;  /* Black border */
+}
+
+#statProgressionContainer .stat-toggle-options button[data-stat-toggle="1"] {
+    background-color: #00a8ff;  /* Cyan from chart */
+    color: #000000;              /* Black font color */
+    border: 2px solid #000000;  /* Black border */
+}
+
+#statProgressionContainer .stat-toggle-options button[data-stat-toggle="2"] {
+    background-color: #FFD54F;  /* Amber/Yellow from chart */
+    color: #000000;              /* Black font color */
+    border: 2px solid #000000;  /* Black border */
+}
+
+#statProgressionContainer .stat-toggle-options button[data-stat-toggle="3"] {
+    background-color: #4DD0E1;  /* Purple from chart */
+    color: #000000;              /* Black font color */
+    border: 2px solid #000000;  /* Black border */
+}
+
+#statProgressionContainer .stat-toggle-options button[data-stat-toggle]:hover {
+    filter: brightness(110%);
+    cursor: pointer;
+}
+/* Styling for the new log confirmation popup */
+.gain-details-list p {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    margin: 2px 0;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.gain-details-list p strong {
+    color: var(--primary-text-color);
+}
+
+.gain-details-list p span {
+    color: #4CAF50; /* A nice green color for positive gains */
+    font-weight: bold;
+}
+/* Feedback/Error Messages */
+p.feedback-message { color: lightgreen; margin-top: 5px; text-align: center; }
+p.error-message { color: red; margin-top: 5px; text-align: center; }
+

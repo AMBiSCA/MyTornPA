@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy | MyTornPA</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/privacy.css"> </head>
+<body>
+
+  <div id="global-header-placeholder"></div>
+
+  <div class="main-content-wrapper">
+    <main class="privacy-page-content">
+      <h2 class="highlight">Privacy Policy</h2>
+      <p class="last-updated">Last Updated: July 18, 2025</p>
+
+      <div class="privacy-policy-overview-grid">
+          <section class="privacy-section-item"> 
+              <h3>What We Collect & Why:</h3>
+              <ul>
+                  <li><strong>Account:</strong> Email for login (Firebase Auth).</li>
+                  <li><strong>Profile:</strong> Display name, Torn Profile ID, & API Key (stored in Firebase Firestore).</li>
+                  <li><strong>Torn Data (via API Key):</strong> Fetched directly from official Torn City API (Your Torn ID, Name, Faction ID, stats, faction details). API Key is securely stored and used by your browser for direct API calls; we do not share it.</li>
+                  <li><strong>Usage Data:</strong> Anonymous, aggregated data on feature use to improve MyTornPA.</li>
+                  <li><strong>Chat Messages:</strong> In-app chat messages stored in Firebase Firestore, visible to participants.</li>
+              </ul>
+          </section>
+
+          <section class="privacy-section-item"> 
+              <h3>How We Use & Secure Information:</h3>
+              <ul>
+                  <li><strong>Use:</strong> To manage account, provide tools (stats, tracking, chat), improve features, & ensure security.</li>
+                  <li><strong>Storage:</strong> Data stored securely in Google's Firebase Firestore (encryption applies).</li>
+                  <li><strong>Security:</strong> API Key is securely stored & used only by your browser for Torn API calls; we do not share or sell your personal data.</li>
+              </ul>
+			   <h3>Policy Changes:</h3>
+              <ul>
+                  <li>Policy may be updated; significant changes will be posted here. Continued use implies acceptance.</li>
+          </section>
+
+          <section class="privacy-section-item"> 
+              <h3>Third-Party Services & Your Rights:</h3>
+              <ul>
+                  <li><strong>Google Firebase:</strong> For authentication and database.</li>
+                  <li><strong>Torn City API:</strong> For fetching game data.</li>
+                  <li><strong>PayPal:</strong> For optional donations (no payment info collected directly).</li>
+                  <li><strong>Your Rights:</strong> Access, correct, or delete your data (via profile settings or contact us). You can withdraw consent (e.g., by removing your API key).</li>
+				  <li><strong>Contact Us:</strong> For questions about this policy or data practices, email <a href="mailto:Support.Tcpa@gmail.com">Support.Tcpa@gmail.com</a>.</li> </ul>
+              </ul>
+          </section>
+      </div> </main>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="home.html">Home</a>
+      <a href="FAQ.html">F.A.Q</a>
+      <a href="Terms.html">Disclaimer & Terms</a>
+      <a href="report.html">Report an Issue</a>
+      <a href="about.html">About Us</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn City Wiki</a>
+      <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+      <a href="mailto:Support.Tcpa@gmail.com">Contact Us</a> 
+    </div>
+    <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-init.js"></script>
+  <script src="../js/globalheader.js"></script>
+  <script src="../js/privacy.js"></script> </body>
+</html>

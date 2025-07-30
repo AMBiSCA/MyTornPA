@@ -1,0 +1,1827 @@
+/* mysite/css/global.css - Consolidated Global Styles (Corrected & Cleaned) */
+
+/* Base HTML & Body Styles */
+html, body {
+    height: 100%; /* CHANGED: Use 100% instead of 100vh for more flexible height */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevt horizoal scrollbar from overflow */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee; /* Default text color for the whole site */
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradiebackground */
+    padding-top: 70px; /* Space for fixed header */
+    padding-bottom: 70px; /* Se for fixedor */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+
+    /* --- IMPORTANT FIX: Allow overall page scrolling --- */
+    overflow-y: auto; /* CHANGED: Allow vertical scrollbar to appear for the whole page */
+}
+
+/* Overall page background image with grayscale filter */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+    opacity: 0.8;
+    z-index: -1;
+}
+
+/* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) */
+/* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY */
+::-webkit-scrollbar {
+    width: 10px; height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #2b2b2b; border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #007acc; border-radius: 5px; border: 2px solid #2b2b2b;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #00a8ff;
+}
+::-webkit-scrollbar-corner {
+    background: #222;
+}
+
+
+/* HEADER Styles (ALL header styles are now here) */
+header {
+    width: 100%;
+    background: #222;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    border-bottom: 3px solid #00a8ff;
+}
+.header-left {
+    flex: 1; display: flex; justify-content: flex-start; align-items: center;
+}
+.header-left a {
+    display: flex; align-items: center; text-decoration: none;
+}
+.header-left h1 {
+    font-size: 1.6rem; color: #00a8ff; margin: 0; user-select: none; white-space: nowrap;
+}
+.header-left .tagline {
+    font-size: 0.8rem; color: #aaa; font-weight: 400; margin-left: 8px; font-weight: bold; display: inline-block; white-space: nowrap;
+}
+.header-center {
+    flex-shrink: 0; display: flex; justify-content: center; align-items: center;
+}
+#headerMainLogo {
+    max-height: 70px; width: auto; display: block; margin-top: -5px;
+    filter: drop-shadow(0px 0px 8px rgba(0, 122, 204, 0.7));
+}
+.header-right-controls {
+    flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+}
+.header-buttons {
+    display: flex; align-items: center; gap: 10px;
+}
+
+/* Refactored: Base Button Style */
+.btn, .btn-header {
+    font-weight: bold; border-radius: 20px; /* Global 20px radius */
+    cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center;
+    font-size: 14px; /* Global font size */
+    line-height: 1.4; padding: 0 12px; /* Global padding */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+    user-select: none;
+    -webkit-appearance: none; appearance: none;
+    background-image: none;
+    box-sizing: border-box;
+    outline: none; overflow: hidden; position: relative; z-index: 0;
+    text-align: center; text-transform: none;
+    vertical-align: middle; min-width: min-content;
+    margin: 8px 0; /* Default margin for all buttons */
+
+    /* Core "Little Button" appearance - removed !important */
+    background-color: #131314;
+    border: 1px solid #00a8ff;
+    color: #e3e3e3;
+    height: 40px;
+}
+
+/* Button Hover/Focus/Active States */
+.btn:not(:disabled):hover, .btn:not(:disabled):focus {
+    border-color: #4dc4ff; /* Lighter blue border on hover/focus */
+    box-shadow: 0 1px 2px 0 rgba(0, 168, 255, .30), 0 1px 3px 1px rgba(0, 168, 255, .15);
+    transform: translateY(-1px); /* Slight lift on hover */
+}
+.btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0;
+    border-radius: inherit;
+    transition: opacity 0.218s;
+    /* pointer-events: none; <-- REMOVED */
+    z-index: -1;
+}
+.btn:not(:disabled):hover::before { opacity: 0.08; }
+.btn:not(:disabled):active, .btn:not(:disabled):focus { border-color: #00a8ff; }
+.btn:not(:disabled):active::before, .btn:not(:disabled):focus::before { opacity: 0.12; }
+
+/* Disabled Button State */
+.btn:disabled {
+    cursor: default;
+    background-color: rgba(19, 19, 20, 0.38);
+    border-color: rgba(0, 168, 255, 0.38);
+    color: rgba(227, 227, 227, 0.38);
+}
+.btn:disabled::before { opacity: 0; }
+.btn:disabled .btn-text, .btn:disabled .btn-icon { opacity: 0.38; }
+
+/* Button Text/Icon Alignment */
+.btn .btn-text { order: 1; }
+.btn .btn-icon { order: 2; margin-left: 6px; display: inline-flex; align-items: center; }
+
+/* Specific Header Button Overrides */
+.btn-header {
+    margin: 0 4px; /* Adjust margin for header context */
+    box-shadow: none; /* No shadow by default for header buttons */
+    /* Height and padding from .btn base are usually sufficient */
+}
+.header-text-link { /* For text-based links in header */
+    font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
+    display: inline-flex; align-items: center; font-size: 0.9rem; line-height: 1.4; padding: 8px 12px;
+    color: #00a8ff; background: none; border: none; box-shadow: none;
+}
+.header-text-link:hover {
+    text-decoration: underline; color: #00e0ff; transform: translateY(-1px);
+}
+
+/* Added style for the Register button to ensure boldness */
+#signUpButtonHeader {
+    font-weight: bold; /* Ensures the text "Register:" is bold */
+}
+
+
+/* Dropdown Styles (Common to all pages) */
+.dropdown { position: relative; display: inline-block; }
+
+.dropdown-content {
+    display: none; position: absolute; background-color: #1e1e1e; min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); z-index: 1001; border-radius: 8px;
+    border: 1px solid #00a8ff;
+    left: 0; /* Default alignment (left edge of parent) */
+    top: calc(100% + 5px); /* 5px below parent */
+    overflow-y: auto; max-height: 300px; padding: 0;
+}
+.header-buttons .dropdown-content::-webkit-scrollbar { width: 8px; }
+.header-buttons .dropdown-content::-webkit-scrollbar-track { background: #00a8ff; border-radius: 0 8px 8px 0; }
+.header-buttons .dropdown-content::-webkit-scrollbar-thumb { background: #555; border-radius: 8px; }
+.header-buttons .dropdown-content::-webkit-scrollbar-thumb:hover { background: #00a8ff; }
+.dropdown-content.show { display: block; } /* This is what your JS toggles */
+.dropdown.align-right .dropdown-content { left: auto; right: 0; } /* Overrides left:0 for right alignment */
+.dropdown-content a {
+    color: #d0d0d0; padding: 10px 15px; text-decoration: none; display: block;
+    font-size: 0.9rem; font-weight: bold; white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease; position: relative; text-align: left;
+}
+#usefulLinksDropdown a::after { content: "\00a0\00a0🔗"; }
+.dropdown-content a:hover { background-color: #333333; color: #00c0ff; }
+
+#usefulLinksDropdown,
+#headerContactUsDropdown {
+    left: auto; /* Overrides the default left: 0; positioning */
+    right: 0;   /* Aligns the right edge of the dropdown with the right edge of its positioned parent */
+}
+
+
+/* Main Content Wrapper (Common to all pages) */
+.main-content-wrapper {
+    flex-grow: 1; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 1;
+}
+
+/* Background image glows (Common to all pages) */
+.image-glow {
+    position: fixed;
+    left: -3%;
+    bottom: 0;
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    max-width: 30%;
+    z-index: 0;
+    pointer-events: none;
+}
+.image-glow-flipped {
+    position: fixed;
+    right: -3%;
+    bottom: 0;
+    transform: scaleX(-1);
+    filter: drop-shadow(0px 0px 12px #00a8ff);
+    max-width: 30%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* FOOTER Styles (Common to all pages) */
+footer.footer {
+    flex-shrink: 0;
+    background-color: #222;
+    color: #999;
+    padding-top: 12px;
+    padding-bottom: 6px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+    font-size: 14px;
+    border-top: 2px solid #00a8ff;
+    width: 100%;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    user-select: none;
+    z-index: 102;
+    box-sizing: border-box;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+footer.footer .footer-links {
+    margin-bottom: 4px;
+}
+footer.footer .footer-links a { color: #00a8ff; margin: 0 5px; text-decoration: none; }
+footer.footer .footer-links a:hover { text-decoration: underline; }
+footer.footer > p {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+/* General Styles for common HTML elements inside main content sections */
+main { /* General main content area styling - might be used on home.html */
+    max-width: 1500px; margin: 20px auto; padding: 20px;
+    background-color: rgba(34, 34, 34, 0.85); border-radius: 12px; box-shadow: 0 0 15px rgba(0, 122, 204, 0.3);
+    width: 90%;
+}
+h2 { color: #007acc; margin-bottom: 20px; font-weight: 600; text-align: center; }
+ul { list-style: none; padding-left: 0; }
+ul li { padding: 10px 0; border-bottom: 1px solid #333; font-size: 1rem; color: #ccc; }
+ul li:last-child { border-bottom: none; }
+
+/* General form input style - used on login/profile modals/pages */
+.custom-input {
+    width: 100%; padding: 12px 15px; margin-bottom: 10px; border: 1px solid #555;
+    border-radius: 5px; background-color: #333; color: #fff; font-size: 16px;
+    box-sizing: border-box;
+}
+.custom-input::placeholder { color: #aaa; opacity: 1; }
+.custom-input:focus { border-color: #00a8ff; outline: none; box-shadow: 0 0 5px rgba(0, 168, 255, 0.5); }
+
+/* General Modal & Spinner Styles (ALL modal styles are now here) */
+.loading-overlay {
+    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.75);
+    display: flex;justify-content: center;align-items: center;z-index: 2000;
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    visibility: hidden;opacity: 0;transition: visibility 0s, opacity 0.3s ease-in-out;
+}
+.loading-overlay.visible {visibility: visible;opacity: 1;}
+.spinner {
+    border: 8px solid #444; border-top: 8px solid #00a8ff;border-radius: 50%;
+    width: 60px;height: 60px;animation: spin 1s linear infinite;
+}
+@keyframes spin {0% { transform: rotate(0deg); }100% { transform: rotate(360deg); }}
+
+.modal-overlay {
+    position: fixed;top: 0;left: 0;width: 100%;height: 100%;background-color: rgba(0, 0, 0, 0.85);
+    display: none; /* CHANGED: This is the default state now */
+    justify-content: center;align-items: center;z-index: 1500;
+    opacity: 0; /* Start transparent for fade-in effect */
+    transition: opacity 0.3s ease-in-out;padding: 20px;box-sizing: border-box;
+}
+.modal-overlay.visible {
+    display: flex; /* CHANGED: This makes it appear */
+    opacity: 1;
+}
+.modal-content {
+    background-color: var(--modal-content-bg, #282828); color: var(--text-color-light, #eee);
+    padding: 25px 30px; border-radius: var(--modal-border-radius, 12px);
+    border: 1px solid var(--theme-accent-color, #00a8ff); box-shadow: 0 0 30px var(--modal-shadow-color, rgba(0, 168, 255, 0.7));
+    width: 100%; max-width: 480px; position: relative; text-align: center; box-sizing: border-box; margin: auto;
+}
+.modal-content h2 {
+    color: var(--theme-accent-color); margin-top: 0; margin-bottom: 25px; font-size: 1.8rem; font-weight: 600;
+}
+.modal-content p {
+    color: var(--text-color-normal); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; text-align: left;
+}
+.modal-content p:last-of-type {
+    margin-bottom: 25px;
+}
+.modal-content a {
+    color: var(--theme-accent-color); text-decoration: underline; font-weight: 500;
+}
+.modal-content a:hover {
+    color: var(--theme-accent-hover-color);
+}
+.modal-content .custom-input {
+    margin-bottom: 18px; text-align: left;
+}
+.modal-content .btn {
+    margin-top: 15px; width: 100%; padding-top: 10px; padding-bottom: 10px; font-size: 1rem;
+}
+.modal-content .modal-close-btn {
+    position: absolute; top: 12px; right: 12px; background: none; border: none;
+    font-size: var(--btn-close-font-size, 1.8rem); color: var(--btn-close-color, #00a8ff);
+    cursor: pointer; line-height: 1;
+}
+.modal-content .modal-close-btn:hover {
+    color: var(--btn-close-hover-color, #00e0ff);
+}
+
+/* --- Global Confirmation Modal Styles --- */
+
+/* This targets the pop-up box itself */
+.modal-content-box.confirmation-modal {
+    background-color: #1a1a1a;        /* Dark background like your other modals */
+    border: 1px solid #00a8ff;          /* Blue border to match your theme */
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.5); /* Glowing effect */
+    padding: 25px 30px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 450px;                   /* Prevents it from being too wide on large screens */
+    color: #eee;
+}
+
+/* Styles the "Confirmation" title */
+#globalConfirmTitle {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    color: #ffffff;
+}
+
+/* Styles the message text */
+#globalConfirmMessage {
+    margin-bottom: 25px;
+    font-size: 1em;
+    line-height: 1.5;
+    color: #ccc;
+}
+
+/* This is the container for the 'OK' and 'Cancel' buttons */
+.confirmation-actions {
+    display: flex;
+    justify-content: center; /* Centers the buttons horizontally */
+    gap: 20px;               /* Adds some space between the buttons */
+}
+
+.btn-confirm-yes {
+  background-color: #28a745; /* A standard green for 'OK' */
+  color: white;
+}
+
+.btn-confirm-yes:hover {
+  background-color: #218838;
+}
+
+.btn-confirm-no {
+  background-color: #dc3545; /* A standard red for 'Cancel' */
+  color: white;
+}
+
+.btn-confirm-no:hover {
+  background-color: #c82333;
+}
+
+
+#firebaseui-auth-container {
+    margin-top: 25px; margin-bottom: 15px; text-align: left;
+}
+/* ======================================= */
+/* ======== CHAT SYSTEM STYLES =========== */
+/* ======================================= */
+
+#tornpa-chat-system {
+    /* This makes it stick to the bottom right of the screen */
+    position: fixed; /* Keep it fixed relative to the viewport */
+    bottom: 18px;    /* 18px from the bottom */
+    right: 0px;      /* 0px from the right */
+    z-index: 1000;   /* Ensures it sits on top of other content */
+    font-family: Arial, sans-serif;
+    
+    /* Ensure flexbox behavior for stacking the collapsed bar above the window */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Aligns its children (collapsed bar, chat window) to the right */
+}
+
+#chat-bar-collapsed {
+    /* --- Positioning --- */
+    position: fixed;
+    bottom: 15px;
+    right: 5px;
+    z-index: 1001; /* Keep it on top */
+
+    /* --- Layout & Styling (Your original styles) --- */
+    display: flex;
+    flex-direction: row; /* Ensures icons are side-by-side */
+    gap: 5px;
+    width: auto;
+    padding: 5px;
+    background-color: #0d1b2a;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+
+.chat-bar-icon {
+    font-size: 20px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    /* transition: background-color 0.2s ease; Removed to apply on parent hover */
+    display: flex; /* Allows text and icon to be inline-flex */
+    align-items: center; /* Vertically align icon and text */
+    justify-content: center; /* Horizontally center */
+}
+
+.chat-bar-icon .chat-icon-text {
+    font-size: 0.8em; /* Make text slightly smaller than icon */
+    margin-left: 5px; /* Space between icon and text */
+    display: none; /* Hide text by default in collapsed bar to save space */
+}
+
+#chat-bar-collapsed:hover {
+    background-color: #415a77; /* Hover for the entire bar */
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.4); /* Add a subtle blue glow on hover */
+}
+#chat-bar-collapsed:hover .chat-bar-icon .chat-icon-text {
+    display: inline; /* Show text on hover of the entire collapsed bar */
+}
+
+
+
+/* --- Expanded Chat Window Styles --- */
+#chat-window {
+    /* --- Positioning --- */
+    position: fixed;
+    right: 5px;     /* Aligns horizontally with the icon bar */
+    bottom: 73px;    /* This is the key: Lifts it above the icon bar */
+    z-index: 1000;
+
+    /* --- Your existing styles --- */
+    width: 400px;
+    height: 450px;
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* A utility class to hide elements */
+.hidden {
+    display: none !important; /* Use !important to ensure it overrides other display properties */
+}
+
+/* ======================================= */
+/* ====== NEW TAB SYSTEM STYLES ========== */
+/* ======================================= */
+
+/* Main container for the tab buttons */
+.chat-main-tabs-container {
+    display: none;
+    justify-content: space-between; /* This pushes the two inner containers apart */
+    background-color: #0d1b2a;
+    padding: 3px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents the tab bar from shrinking */
+    width: 100%; /* Ensure it spans the full width of the chat window */
+}
+
+#dynamic-tabs-container,
+#static-tabs-container {
+    display: flex; /* Makes tabs inside sit side-by-side */
+    gap: 3px; /* Space between tabs */
+}
+
+/* Individual tab buttons */
+.chat-tab {
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px; /* Adjust icon size */
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    line-height: 1; /* Helps vertical alignment of icons */
+}
+
+.chat-tab:hover {
+    background-color: #415a77;
+}
+
+/* Style for the currently active tab */
+.chat-tab.active {
+    background-color: #3a506b;
+    border-bottom: 1px solid #5bc0de;
+    color: #fff;
+}
+
+/* Main container for all tab content panels */
+.chat-panels-container {
+    flex-grow: 1;
+    position: relative; /* Needed for absolute positioning of children if any */
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; /* Ensure panels are column flex containers */
+}
+
+/* Specific styling for Faction, Alliance, and War chat panels */
+#faction-chat-panel,
+#alliance-chat-panel, /* Alliance chat panel */
+#war-chat-panel {
+    display: flex; /* Explicitly set display for panels that are flex containers */
+    flex-direction: column;
+    height: 100%; /* Ensures they fill the parent height */
+}
+
+/* Styles for the chat header (title and minimize button) */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #1b263b;
+    border-bottom: 1px solid #415a77;
+    color: #e0e1dd;
+    font-weight: bold;
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.minimize-chat-btn {
+    background: none;
+    border: 1px solid #778da9;
+    color: #e0e1dd;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.minimize-chat-btn:hover {
+    background-color: #778da9;
+    color: #0d1b2a;
+}
+
+
+/* We need to make sure the chat-display-area and input are sized correctly now */
+#chat-display-area, /* Faction chat display area */
+#alliance-chat-display-area, /* Alliance chat display area */
+#war-chat-display-area {
+    flex-grow: 1; /* This makes the message area take up all available space */
+    padding: 10px;
+    overflow-y: auto;
+    color: #e0e1dd;
+}
+
+/* Styles for the chat display area scrollbar */
+#chat-display-area::-webkit-scrollbar,
+#alliance-chat-display-area::-webkit-scrollbar,
+#war-chat-display-area::-webkit-scrollbar,
+.overview-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-display-area::-webkit-scrollbar-track,
+#alliance-chat-display-area::-webkit-scrollbar-track,
+#war-chat-display-area::-webkit-scrollbar-track,
+.overview-list-container::-webkit-scrollbar-track {
+    background: #1b263b;
+    border-radius: 10px;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb,
+#alliance-chat-display-area::-webkit-scrollbar-thumb,
+#war-chat-display-area::-webkit-scrollbar-thumb,
+.overview-list-container::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb:hover,
+#alliance-chat-display-area::-webkit-scrollbar-thumb:hover,
+#war-chat-display-area::-webkit-scrollbar-thumb:hover,
+.overview-list-container::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents input from shrinking */
+}
+
+.chat-text-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.chat-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #5bc0de;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.chat-send-btn:hover {
+    background-color: #4a9ecf;
+}
+
+/* Styles for individual messages */
+.chat-message {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-timestamp {
+    color: #778da9;
+    margin-right: 6px;
+    font-size: 0.9em;
+}
+
+.chat-sender {
+    font-weight: bold;
+    color: #a9c5de;
+    margin-right: 6px;
+}
+
+.chat-text {
+    color: #e0e1dd;
+}
+
+/* New or updated rules for a compact, single-line member display */
+
+.friends-panel-content .members-list-container {
+    padding: 5px; /* Add some padding around the whole list */
+    display: flex; /* Make the container a flex container */
+    flex-direction: column; /* Stack member items vertically */
+    gap: 2px; /* Small gap between individual member lines */
+}
+
+.friends-panel-content .member-item {
+    display: flex; /* Use flexbox for each member item */
+    align-items: center; /* Vertically align items in the middle */
+    justify-content: space-between; /* Space out content and action buttons */
+    padding: 4px 8px; /* Reduce padding to make it more compact */
+    border-bottom: 1px solid #333; /* Light separator between entries */
+    background-color: #2a2a2a; /* Slightly lighter background for each row */
+    font-size: 0.9em; /* Slightly smaller font size */
+    flex-wrap: nowrap; /* Prevent wrapping of content within the member item */
+    min-height: 30px; /* Ensure a minimum height for consistency */
+}
+
+.friends-panel-content .member-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.friends-panel-content .member-info-left {
+    display: flex; /* Use flexbox for the left side (rank, identity) */
+    align-items: center;
+    flex-grow: 1; /* Allow this section to grow */
+    overflow: hidden; /* Hide overflow if text is too long */
+    white-space: nowrap; /* Prevent text wrapping here */
+}
+
+.friends-panel-content .member-rank {
+    font-size: 0.75em; /* Smaller font for rank */
+    color: #bbb; /* Lighter color for rank */
+    margin-right: 8px; /* Space between rank and identity */
+    flex-shrink: 0; /* Prevent rank from shrinking */
+    max-width: 100px; /* Limit rank width if needed */
+    text-overflow: ellipsis; /* Add ellipsis for long ranks */
+    overflow: hidden;
+}
+
+.friends-panel-content .member-identity {
+    display: flex; /* Flex for profile pic and name */
+    align-items: center;
+    gap: 5px; /* Space between pic and name */
+    overflow: hidden; /* Hide overflow for name */
+    white-space: nowrap; /* Prevent name wrapping */
+    flex-grow: 1; /* Allow identity to grow */
+}
+
+/* === MODIFIED: Profile Picture Size and Border === */
+.friends-panel-content .member-profile-pic {
+    width: 32px; /* Slightly larger profile picture */
+    height: 32px; /* Maintain aspect ratio */
+    border-radius: 4px; /* Keep slightly rounded corners */
+    object-fit: cover; /* Ensure image covers the area */
+    flex-shrink: 0;
+    /* --- NEW BORDER STYLES --- */
+    border: 1px solid #00a8ff; /* A nice blue border */
+    padding: 2px; /* Adds space between image and border */
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.4); /* Subtle glow effect */
+    background-color: #1b263b; /* A subtle background behind the image for padding */
+}
+/* =============================================== */
+
+.friends-panel-content .member-name {
+    font-weight: bold;
+    color: #eee; /* Brighter color for name */
+    text-overflow: ellipsis; /* Add ellipsis for long names */
+    overflow: hidden;
+    flex-grow: 1; /* Allow name to grow */
+}
+
+.friends-panel-content .member-actions {
+    display: flex; /* Flex for action buttons */
+    align-items: center;
+    gap: 3px; /* Smaller gap between buttons */
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.friends-panel-content .item-button {
+    background-color: #444; /* Darker button background */
+    color: #fff;
+    border: 1px solid #555;
+    padding: 3px 6px; /* Smaller padding for buttons */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em; /* Smaller font for buttons */
+    line-height: 1; /* Adjust line height for vertical alignment */
+    text-decoration: none; /* Remove underline for link button */
+    display: inline-flex; /* Use flex for button content, especially for icon+text */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    min-width: 28px; /* Minimum width for small icons (increased slightly for border) */
+    min-height: 28px; /* Minimum height for small icons (increased slightly for border) */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.friends-panel-content .item-button:hover {
+    background-color: #555; /* Hover effect */
+}
+
+.friends-panel-content .add-member-button,
+.friends-panel-content .remove-friend-button {
+    position: relative;
+    padding: 3px 6px; /* Adjust padding for icon buttons */
+    font-size: 1.1em; /* Larger icon size */
+    line-height: 1;
+}
+
+.friends-panel-content .add-member-button .plus-sign,
+.friends-panel-content .remove-friend-button .plus-sign {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.7em; /* Smaller +/- sign */
+    font-weight: bold;
+}
+
+/* ------------------------------------- */
+/* Friends Panel Specific Styles        */
+/* ------------------------------------- */
+
+/* Ensure friends-panel is a flex container and takes full height */
+#friends-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #0d1b2a; /* Added background for visibility */
+}
+
+.friends-panel-subtabs {
+    display: flex;
+    justify-content: flex-start;
+    background-color: #1b263b;
+    padding: 5px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0;
+    flex-wrap: wrap; /* Allow sub-tabs to wrap */
+}
+
+.friends-panel-subtabs .sub-tab-button {
+    background-color: #2e435a;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    border-radius: 3px;
+    margin-right: 5px;
+    transition: background-color 0.2s;
+}
+
+.friends-panel-subtabs .sub-tab-button:hover {
+    background-color: #415a77;
+}
+
+.friends-panel-subtabs .sub-tab-button.active {
+    background-color: #3a506b;
+    color: #fff;
+    border-bottom: 1px solid #5bc0de;
+}
+
+.friends-panel-search {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #415a77;
+    background-color: #1b263b;
+    flex-shrink: 0;
+}
+
+.friends-panel-search .search-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+.friends-panel-search .search-icon {
+    color: #e0e1dd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+}
+
+.friends-panel-content {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+}
+
+/* ------------------------------------- */
+/* Notifications Panel Specific Styles   */
+/* ------------------------------------- */
+
+/* Ensure notifications-panel is a flex column container */
+#notifications-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Important to make its children flex properly */
+    background-color: #0d1b2a; /* Consistent background */
+}
+
+/* Wrapper for the notification sections */
+.notifications-content-wrapper {
+    flex-grow: 1; /* Allow this wrapper to take up available space */
+    display: flex;
+    flex-direction: column; /* Arrange sections vertically */
+    padding: 10px; /* Overall padding inside the panel */
+    gap: 15px; /* Space between notification sections */
+    overflow-y: auto; /* Allow scrolling if total content overflows wrapper */
+}
+
+/* Individual notification sections */
+.notification-section {
+    background-color: #1b263b; /* Slightly lighter background for sections */
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    /* You mentioned "half screen" - for now, they'll expand to fill available space.
+        If you want strict half-screen, we'd need more complex flex-basis or grid,
+        but this column layout makes more sense for varying notification counts. */
+}
+
+.notification-section h4 {
+    color: #a9c5de; /* Heading color */
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #3a506b;
+    font-size: 1em;
+}
+
+/* Container for the list of actual notifications within each section */
+.notification-list {
+    flex-grow: 1; /* Allows the list to take up remaining space in its section */
+    color: #e0e1dd; /* Text color for notifications */
+    font-size: 0.9em;
+    line-height: 1.4;
+    max-height: 150px; /* Example: set a max height for scrolling within a section */
+    overflow-y: auto; /* Enable scrolling for individual notification lists */
+    padding-right: 5px; /* Add some padding for scrollbar if present */
+}
+
+/* Style for individual notification items (if you add them dynamically) */
+.notification-item {
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(65, 90, 119, 0.3); /* Light dashed separator */
+}
+
+.notification-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+/* Optional: Scrollbar styling for notification lists */
+.notification-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #0d1b2a;
+    border-radius: 10px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #415a77;
+    border-radius: 10px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #5bc0de;
+}
+
+/* ------------------------------------- */
+/* Settings Panel Specific Styles        */
+/* ------------------------------------- */
+
+#settings-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #0d1b2a; /* Consistent background */
+}
+
+.settings-content-wrapper {
+    flex-grow: 1; /* Allows content to take up available space */
+    padding: 10px;
+    overflow-y: auto; /* Adds scrollbar if content exceeds height */
+    color: #e0e1dd;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between sections */
+}
+
+.settings-section {
+    background-color: #1b263b; /* Slightly lighter background for sections */
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    padding: 15px;
+}
+
+.settings-section h4 {
+    color: #a9c5de;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #3a506b;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between title and emoji */
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0; /* No margin after the last item in a section */
+}
+
+.setting-item label {
+    margin-left: 10px;
+    cursor: pointer;
+    color: #e0e1dd;
+}
+
+.setting-item p.setting-note {
+    font-size: 0.85em;
+    color: #778da9;
+    margin-left: 25px; /* Indent note under setting */
+    margin-top: 5px;
+    margin-bottom: 5px;
+    line-height: 1.3;
+}
+
+/* --- Toggle Switch Styles --- */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #778da9;
+    transition: .4s;
+    border-radius: 20px; /* Rounded slider */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #e0e1dd;
+    transition: .4s;
+    border-radius: 50%; /* Rounded circle */
+}
+
+input:checked + .slider {
+    background-color: #5bc0de;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #5bc0de;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* --- Radio Button Group Styles --- */
+.setting-group {
+    margin-bottom: 15px;
+}
+
+.setting-group p {
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #e0e1dd;
+}
+
+.setting-group .radio-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow radio buttons to wrap */
+    gap: 15px; /* Space between radio button labels */
+}
+
+.setting-group .radio-group input[type="radio"] {
+    display: none; /* Hide default radio button */
+}
+
+.setting-group .radio-group label {
+    background-color: #2e435a;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    padding: 6px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    margin-left: 0; /* Override default label margin for radio buttons */
+}
+
+.setting-group .radio-group input[type="radio"]:checked + label {
+    background-color: #3a506b;
+    border-color: #5bc0de;
+    color: #fff;
+}
+
+.setting-group .radio-group input[type="radio"]:hover + label {
+    background-color: #415a77;
+}
+
+/* --- Action Buttons --- */
+.action-button {
+    background-color: #5bc0de; /* Primary action color */
+    color: #0d1b2a;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.action-button:hover {
+    background-color: #4a9ecf;
+}
+
+.action-button.danger {
+    background-color: #e74c3c; /* Red for destructive actions */
+    color: #e0e1dd;
+}
+
+.action-button.danger:hover {
+    background-color: #c0392b;
+}
+
+.action-button:disabled {
+    background-color: #778da9;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Optional: Scrollbar styling for settings content wrapper */
+.settings-content-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-content-wrapper::-webkit-scrollbar-track {
+    background: #0d1b2a;
+    border-radius: 10px;
+}
+
+.settings-content-wrapper::-webkit-scrollbar-thumb {
+    background: #415a77;
+    border-radius: 10px;
+}
+
+.settings-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #5bc0de;
+}
+
+/* ======================================= */
+/* ====== PRIVATE CHAT WINDOW STYLES ===== */
+/* ======================================= */
+
+.private-chat-window {
+    position: fixed;
+    bottom: 10px;
+    /* Main chat is 350px wide + at 10px from edge. 350 + 10 + 10 space = 370px */
+    right: 370px; 
+    width: 300px;
+    height: 400px;
+    z-index: 999; /* Below the main chat window but above other content */
+
+    display: flex;
+    flex-direction: column;
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.pcw-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #0d1b2a; /* Darker header */
+    border-bottom: 1px solid #415a77;
+    color: #e0e1dd;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.pcw-title {
+    font-size: 1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pcw-close-btn {
+    background: none;
+    border: 1px solid #778da9;
+    color: #e0e1dd;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0px 6px;
+    line-height: 1.2;
+    border-radius: 3px;
+}
+.pcw-close-btn:hover {
+    background-color: #778da9;
+    color: #0d1b2a;
+}
+
+.pcw-messages {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    color: #e0e1dd;
+}
+
+.pcw-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0;
+}
+
+.pcw-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.pcw-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #5bc0de;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+}
+.pcw-send-btn:hover {
+    background-color: #4a9ecf;
+}
+
+/* --- Alliance Chat Settings Specific Styles --- */
+.settings-section h4 .alliance-icon {
+    /* Style for the alliance emoji next to the title */
+    color: #ffd700; /* Gold/yellow color for the shield emoji */
+    font-size: 0.9em; /* Slightly smaller than the title text */
+    vertical-align: middle; /* Align with text */
+    margin-left: -2px; /* Pull it slightly closer to the text */
+}
+
+
+
+.settings-section .setting-item:last-child {
+    margin-bottom: 0; /* No bottom margin on the last item in a section */
+}
+
+.settings-section .setting-item label[for="allianceFactionId"] {
+    /* Label for the faction ID input */
+    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-right: 10px; /* Space between label and input */
+    color: #e0e1dd; /* Consistent text color */
+}
+
+
+.settings-section #allianceFactionId::placeholder {
+    color: #99aab5; /* Lighter placeholder text */
+    opacity: 0.8;
+}
+
+.settings-section #allianceFactionId:focus {
+    border-color: #5bc0de; /* Highlight on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(91, 192, 222, 0.5); /* Blue glow on focus */
+}
+
+
+
+.settings-section .action-button.secondary {
+    /* Style for the Save button */
+    background-color: #3a506b; /* A more subdued blue/gray for save */
+    color: #e0e1dd;
+    border: 1px solid #5bc0de;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.settings-section .action-button.secondary:hover {
+    background-color: #415a77;
+    border-color: #88d7ff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 10px rgba(91, 192, 222, 0.4);
+}
+
+.settings-section .action-button.danger {
+    /* Red for Clear All Alliances button */
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border: 1px solid #e74c3c; /* Red border */
+}
+
+.settings-section .action-button.danger:hover {
+    background-color: #c0392b;
+    border-color: #ff6a5c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 10px rgba(231, 76, 60, 0.4);
+}
+
+.settings-section #allianceFactionId {
+    /* Existing styles, ensure these are present if not already */
+    flex-grow: 1;
+    padding: 8px 10px;
+    border: 1px solid #778da9;
+    background-color: #0d1b2a;
+    color: #e0e1dd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+
+    /* --- FIXES FOR OVERFLOW --- */
+    box-sizing: border-box; /* Crucial: Include padding and border in the element's total width */
+    min-width: 0;          /* Allow the flex item to shrink below its content size */
+}
+
+/* Ensure the parent setting-item correctly distributes space */
+.settings-section .setting-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    /* Ensure no fixed width that would prevent flex item shrinkage */
+    width: 100%; /* Make sure it takes full width of its parent */
+    box-sizing: border-box; /* Ensures padding on parent doesn't cause overflow */
+    padding: 0 5px; /* Adjust if the parent .settings-item has horizontal padding that wasn't accounted for */
+}
+
+/* You might also want to ensure the setting-item containing buttons behaves well */
+.settings-section .setting-item:has(button) {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+    width: 100%; /* Ensure this also takes full width */
+    box-sizing: border-box;
+    padding: 0 5px; /* Adjust if necessary */
+}
+
+.settings-section .info-icon {
+    /* Style for the 'i' icon */
+    cursor: pointer;
+    font-size: 1.1em; /* Make it slightly larger */
+    color: #778da9; /* A subtle color */
+    margin-left: 5px; /* Space from the button */
+    align-self: center; /* Ensure vertical alignment with buttons */
+    position: relative;
+    top: 1px; /* Fine-tune vertical alignment */
+    transition: color 0.2s;
+	flex-shrink: 0;
+}
+
+.settings-section .info-icon:hover {
+    color: #5bc0de; /* Highlight n hover */
+}
+
+.recent-chats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px; /* Small space between chat items */
+}
+
+.recent-chat-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: #1b263b;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.recent-chat-item:hover {
+    background-color: #3a506b;
+}
+
+.rc-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.rc-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Important for text truncation */
+}
+
+.rc-name {
+    font-weight: bold;
+    color: #e0e1dd;
+    white-space: nowrap;
+}
+
+.rc-last-message {
+    font-size: 0.9em;
+    color: #778da9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds "..." if the message is too long */
+}
+
+/* Custom Confirmation Modal Styles */
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.custom-confirm-box {
+    background: #1b263b;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #415a77;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.custom-confirm-box h4 {
+    margin-top: 0;
+    color: #e0e1dd;
+}
+
+.custom-confirm-box p {
+    color: #a9c5de;
+    margin-bottom: 20px;
+}
+
+.custom-confirm-checkbox {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a9c5de;
+}
+
+.custom-confirm-checkbox input {
+    margin-right: 8px;
+}
+
+.custom-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* --- Faction Overview Panel Styles (Corrected with Table Layout) --- */
+
+#faction-overview-content {
+    overflow-y: auto; /* Make the entire panel scrollable */
+    flex-grow: 1;
+}
+
+.overview-table {
+    width: 100%;
+    border-collapse: collapse; /* Makes borders connect cleanly */
+    font-size: 13px;
+}
+
+.overview-table thead {
+    position: sticky; /* Makes the header stick to the top when scrolling */
+    top: 0;
+    background-color: #0d1b2a; /* Dark background for sticky header */
+    z-index: 1;
+}
+
+.overview-table th {
+    font-weight: bold;
+    color: #bdc3c7;
+    padding: 8px 5px;
+    text-align: center;
+}
+
+.overview-table th, 
+.overview-table td {
+    border-bottom: 1px solid #2c3e50;
+    border-right: 1px solid #2c3e50;
+    padding: 8px 5px;
+    white-space: nowrap;
+}
+
+.overview-table th:last-child,
+.overview-table td:last-child {
+    border-right: none; /* Remove border from the last column */
+}
+
+.overview-table .energy-text {
+    color: #2ecc71; /* This is the same green as your 'status-okay' text */
+    font-weight: bold;
+}
+
+.overview-table .overview-name { text-align: left; }
+.overview-table .overview-status { 
+    white-space: normal; /* Allow the status column to wrap text */
+    word-break: break-word;
+}
+
+
+/* --- Revive Circle Styles (Unchanged) --- */
+.rev-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 0 auto;
+}
+.rev-circle-green { background-color: #2ecc71; }
+.rev-circle-orange { background-color: #f39c12; }
+.rev-circle-red { background-color: #e74c3c; }
+
+
+/* --- Status Text Color Styles (Unchanged) --- */
+.status-okay { color: #2ecc71; }
+.status-hospital { color: #e74c3c; }
+.status-other { color: #f39c12; }
+
+/* --- Scrollbar Styling --- */
+#faction-overview-content::-webkit-scrollbar {
+    width: 8px;
+}
+#faction-overview-content::-webkit-scrollbar-track {
+    background: #1b263b;
+}
+#faction-overview-content::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+#faction-overview-content::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
+}
+
+@media (max-width: 768px) {
+
+  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
+  html, body {
+    height: auto;
+    overflow-y: auto;       /* Enables page scrolling */
+    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
+    scrollbar-width: none;      /* Hides scrollbar on Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none;              /* Hides scrollbar on Chrome/Safari */
+  }
+  /* --- END OF ADDED CODE --- */
+
+
+
+/* --- Custom Confirmation Box CSS --- */
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.custom-confirm-box {
+    background-color: #1c2836;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #4a6a8a;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+
+.custom-confirm-box h4 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.custom-confirm-box p {
+    color: #cdd3d8;
+    margin-bottom: 25px;
+}
+
+.custom-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.custom-confirm-actions .action-button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+}
+
+.custom-confirm-actions .danger {
+    background-color: #d9534f; /* Red */
+}
+.custom-confirm-actions .danger:hover {
+    background-color: #c9302c;
+}
+
+.custom-confirm-actions .secondary {
+    background-color: #337ab7; /* Blue */
+}
+.custom-confirm-actions .secondary:hover {
+    background-color: #286090;
+}
+
+/* Center the main section titles */
+#settings-panel .settings-section h4 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Center the content of each individual setting row */
+#settings-panel .setting-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Adds space between a toggle and its label */
+}
+
+/* Center the groups of radio-style buttons */
+#settings-panel .radio-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+
+/* 2. UNIFORM BUTTON STYLING */
+
+/* Base style for ALL buttons in the settings panel */
+#settings-panel .action-button {
+    background-color: #337ab7; /* Standard blue color */
+    color: black;              /* Black font color */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+#settings-panel .action-button:hover {
+    background-color: #286090; /* Darker blue on hover */
+}
+
+/* Override for the "danger" (red) buttons */
+#settings-panel .action-button.danger {
+    background-color: #B9312C; /* A darker, less bright red */
+    color: black;              /* Black font color as requested */
+}
+#settings-panel .action-button.danger:hover {
+    background-color: #A42B27; /* Even darker red on hover */
+}
+
+/* Override for the "secondary" (Save) button to match the others */
+#settings-panel .action-button.secondary {
+    background-color: #337ab7; /* Standard blue color */
+    color: black;              /* Black font color */
+}
+#settings-panel .action-button.secondary:hover {
+    background-color: #286090; /* Darker blue on hover */
+}
+
+
+/* 3. RADIO BUTTON GROUP STYLING */
+
+/* Style for the labels to make them look like buttons */
+#settings-panel .radio-group label {
+    background-color: #2a3b4d; /* Darker, unselected blue */
+    color: #cdd3d8;           /* Light text for unselected state */
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid #337ab7;
+    transition: background-color 0.2s;
+}
+
+/* Style for the SELECTED radio button's label */
+#settings-panel .radio-group input[type="radio"]:checked + label {
+    background-color: #337ab7; /* Standard blue color */
+    color: black;              /* Black font color */
+    font-weight: bold;
+}
+
+/* Hide the actual radio buttons */
+#settings-panel .radio-group input[type="radio"] {
+    display: none;
+}
+
+  /* Your existing global mobile styles */
+  body { padding-top: 0; padding-bottom: 0; }
+  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+  #usefulLinksBtn { display: none; } /* Hides 'Useful Links' button on mobile */
+  .header-left h1 { font-size: 1.4rem; }
+  .tagline { font-size: 0.7rem; }
+  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+}
+
+@media (max-width: 480px) {
+  /* Mobile specific adjustments within the media queries */
+}
+
+@media (max-width: 768px) {
+
+  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
+  html, body {
+    height: auto;
+    overflow-y: auto;          /* Enables page scrolling */
+    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
+    scrollbar-width: none;      /* Hides scrollbar on Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none;              /* Hides scrollbar on Chrome/Safari */
+  }
+  /* --- END OF ADDED CODE --- */
+
+
+  /* Your existing global mobile styles */
+  body { padding-top: 0; padding-bottom: 0; }
+  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+  #usefulLinksBtn { display: none; } /* Hides 'Useful Links' button on mobile */
+  .header-left h1 { font-size: 1.4rem; }
+  .tagline { font-size: 0.7rem; }
+  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+}
+
+@media (max-width: 480px) {
+  /* Mobile specific adjustments within the media queries */
+}

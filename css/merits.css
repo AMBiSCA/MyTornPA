@@ -1,0 +1,462 @@
+/* --- merits.css --- */
+
+html, body {
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content-wrapper {
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box; /* IMPORTANT: Ensure border-box */
+    padding-top: 95px !important;   /* ADDED/MOED THIS LINE */
+    padding-bottom: 95px !important; /* ADDED/MODIFIED THIS LINE */
+}
+
+
+.page-specific-content-area {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+    width: 95%;
+    max-width: 1650px;
+    margin: 0 auto;
+    padding: 10px 40px;
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+    text-align: left;
+    position: relative;
+    z-index: 1;
+    border: 2px solid #00a8ff;
+    box-sizing: border-box;
+}
+
+.page-specific-content-area h2 {
+    color: #00a8ff;
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+.page-specific-content-area p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+#loading-indicator, #error-display {
+    display: none;
+    flex-shrink: 0;
+    text-align: center;
+    padding: 15px 20px;
+    font-size: 1.15em;
+    font-weight: bold;
+    border-radius: 8px;
+    margin: 20px auto;
+    width: fit-content;
+    max-width: 80%;
+    box-shadow: 0 0 8px rgba(0, 168, 255, 0.2);
+}
+
+#loading-indicator {
+    color: #00a8ff;
+    background-color: rgba(0, 168, 255, 0.1);
+    border: 1px solid rgba(0, 168, 255, 0.3);
+}
+
+#error-display {
+    color: #ff6b6b;
+    background-color: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.js-hidden-initially {
+    display: none !important;
+}
+
+.merits-layout-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.player-summary-section {
+    text-align: center;
+    background-color: #383838;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    color: #eee;
+    font-size: 1.05rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+.player-summary-section p {
+    margin: 0;
+    line-height: 1.5;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px 30px;
+    padding: 5px 0;
+}
+.player-summary-section span {
+    font-weight: bold;
+    color: #00e0ff;
+}
+
+.tabs-container {
+    display: flex;
+    justify-content: center;
+    /* ADDED THIS LINE */
+    margin-bottom: 20px;
+    background-color: #2e2e2e;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #00a8ff;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    flex-shrink: 0;
+	
+}
+.tab-button {
+    flex-grow: 1;
+    width: 180px; /* Set a fixed wr h button */
+    text-align: center;
+    padding: 12px 25px;
+    cursor: pointer;
+    background-color: #2a2a2a;
+    color: #00a8ff;
+    border: none;
+    border-right: 1px solid #1a1a1a;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    outline: none;
+}
+.tab-button:last-child {
+    border-right: none;
+}
+.tab-button:hover:not(.active) {
+    background-color: #353535;
+    color: #00e0ff;
+}
+.tab-button.active {
+    background-color: #007acc;
+    color: #fff;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    border-bottom: 3px solid #00e0ff;
+    padding-bottom: 9px;
+}
+
+.tab-content {
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    
+    /* MODIFIED THIS LINE 👇 */
+    padding: 0 15px 10px 15px; /* Symmetrical padding: top, right, bottom, left */
+
+    box-sizing: border-box;
+}
+
+.tab-pane {
+    display: none !important;
+    height: 100%;
+    flex-grow: 1;
+    min-height: 0;
+    flex-direction: column;
+	align-items: center;
+}
+
+.tab-pane.active {
+    display: flex !important;
+
+}
+
+.merit-category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+	width: 100%;
+    max-width: 1550px;
+    height: 100%;
+    
+    /* These two lines are the correct way to center the whole container */
+    margin-left: auto;
+    margin-right: auto;
+
+    /* These are other styling properties */
+    padding: 0 15px;
+    box-sizing: border-box;
+    align-content: center; /* Corrected typo and centers rows vertically */
+    overflow-y: auto;
+}
+
+/* Override grid for the active Awards Progress tab to be a flex container */
+#progress-tab.active .merit-category-grid {
+    display: flex; /* Make it a flex container to easily center its single child */
+    justify-content: center; /* Center its children horizontally */
+    align-items: flex-start; /* Align cdren to the top vertically */
+    flex-grow: 1;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 0; /* Remove inherited padding if it interferes with alignment */
+    padding-right: 0; /* Remove inherited padding if it interferes with alignment */
+}
+
+
+/* Center the single panel within the "Awards Progress" tab */
+#progress-tab.active .merit-category-grid .merit-category-panel.full-width {
+    max-width: 700px; /* Adjust this maximum width as desired for your design */
+    margin: 0 auto; /* This centers the panel horizontally */
+    grid-column: auto; /* IMPORTANT: Override 'full-width' to allow centering */
+}
+
+
+/* 1. Configure the grid specifically for the active Stats Overview tab */
+#stats-tab.active .merit-category-grid {
+    grid-template-columns: 1fr 1fr; /* Force two equal columns for these two panels */
+    gap: 30px; /* Add space between the two panels */
+    /* Ensure no conflicting properties from the general .merit-category-grid if they cause issues */
+}
+
+/* 2. Override the 'full-width' behavior for the panels within this specific grid */
+#stats-tab.active .merit-category-grid .merit-category-panel.full-width {
+    grid-column: auto; /* Allow panels to take their natural place in the two-column grid */
+}
+
+/* ... (rest of CSS code) ... */
+
+@media (min-width: 1200px) {
+    .merit-category-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1600px) {
+    .merit-category-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.merit-category-panel {
+    background-color: #2e2e2e;
+    border: 1px solid #00a8ff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 168, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 150px;
+    box-sizing: border-box;
+    overflow: hidden; /* This makes the internal ul scroll if content overflows */
+
+    /* ADJUST THIS LINE */
+    /* Try a smaller 'px' value to make the boxes taller */
+    max-height: calc(50vh - 60px); /* Original was -200px, trying -150px as a starting point */
+}
+
+.merit-category-panel.full-width {
+    grid-column: 1 / -1;
+}
+
+.merit-category-panel h3 {
+    color: #00a8ff;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.3rem;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(0, 168, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.merit-category-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    color: #ccc;
+    line-height: 1.4;
+    padding-right: 10px;
+}
+
+.merit-category-panel ul li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.merit-status-icon {
+    margin-right: 8px;
+    font-size: 1.1em;
+    flex-shrink: 0;
+}
+.merit-status-icon.completed { color: #2ecc71; }
+.merit-status-icon.in-progress { color: #f39c12; }
+.merit-status-icon.not-started { color: #95a5a6; }
+
+.merit-details {
+    flex-grow: 1;
+}
+.merit-name {
+    font-weight: bold;
+    color: #eee;
+    display: block;
+    margin-bottom: 2px;
+}
+.merit-requirement {
+    font-size: 0.85em;
+    color: #bbb;
+}
+.merit-progress {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 2px;
+}
+
+@media (max-width: 992px) {
+    .player-summary-section p {
+        flex-direction: column;
+        gap: 5px;
+    }
+    .merit-category-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    html, body {
+        overflow: auto;
+        height: auto;
+    }
+    body {
+        min-height: auto;
+    }
+    .main-content-wrapper {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: auto;
+        min-height: unset;
+        overflow: visible;
+    }
+    .page-specific-content-area {
+        padding: 15px;
+        height: auto;
+        min-height: unset;
+        overflow: visible;
+    }
+    .merits-layout-container,
+    .tab-content,
+    .tab-pane,
+    .merit-category-grid,
+    .merit-category-panel ul {
+        overflow-y: visible;
+        height: auto;
+        min-height: unset;
+        padding-right: 0;
+    }
+    .tab-pane {
+        flex-direction: column;
+    }
+    .tab-button {
+        font-size: 0.9rem;
+        padding: 10px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tab-button {
+        flex-grow: unset;
+        width: 100%;
+        border-right: none;
+        margin-bottom: 5px;
+    }
+    .tabs-container {
+        flex-wrap: wrap;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
+    }
+    .tab-button.active {
+        border-bottom: 3px solid #00e0ff;
+        border-radius: 8px;
+    }
+}
+
+/* In your merits.css or global.css */
+
+/* General styling for achievement items */
+.achievement-item {
+    position: relative; /* Keep this if you have other positioned elements */
+}
+
+/* Highlights in-progress achievement rows in orange */
+.achievement-item:has(.merit-status-icon.in-progress) {
+    background-color: rgba(255, 165, 0, 0.1); /* Light orange tint */
+    border-left: 5px solid #FFA500;           /* Solid e left border */
+    padding-left: 10px;                       /* Adds space for the border */
+}
+
+/* Rule to visually highlight the entire row/item when it's awarded */
+.achievement-item.awarded-by-api {
+    background-color: rgba(144, 238, 144, 0.1); /* Light green tint */
+    border-left: 5px solid #008000; /* Solid green left border */
+    padding-left: 10px; /* Add some padding for the border */
+    /* You can adjust/remove background-color and border-left if you only want the tick */
+}
+
+/* Style for the merit status icon (the container for the symbol/tick) */
+.merit-status-icon {
+    margin-right: 8px;
+    font-size: 1.1em; /* Base size for the symbol/icon */
+    flex-shrink: 0;
+    /* Crucially, remove any 'position: absolute', 'content', 'transform' from here */
+    /* or anything that tries to force a background or hide content for the tick */
+    display: inline-flex; /* Use flex to align its single content item */
+    align-items: center;
+    justify-content: center;
+    width: 1em; /* Give it a fixed width/height for consistent visual space */
+    height: 1em;
+    /* Ensure no text-indent or overflow: hidden that would hide the FA icon */
+}
+
+
+/* Base colors for progress status */
+/* These colors apply to the content inside .merit-status-icon */
+.merit-status-icon.completed { color: #008000; } /* Now also applies to the FA tick */
+.merit-status-icon.in-progress { color: #FFA500; }
+.merit-status-icon.not-started { color: #A9A9A9; }
+
+/* If you have any specific .awarded-tick CSS from previous attempts, remove it */
+/* This will prevent any conflict with the direct FA icon injected by JS */
+.awarded-tick { /* DELETE THIS RULE if it exists and remove its content */ }
+
+#player-stats-list li {
+    display: flex;
+    justify-content: space-between;
+}

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTornPA - GymGain</title>
+    
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/gymgain.css">
+</head>
+<body>
+    
+	<div id="global-header-placeholder"></div>
+
+    <div class="body-content-wrapper">
+        <div class="gym-main-content styled-container">
+            <div class="gym-section">
+                <h2 id="gymWelcomeMessage" class="underlined-heading">📚 Your Current In-Game Stats Information. 📚</h2> 
+                <div class="current-stats">
+                    <div class="stat-item"><strong>Strength💪:</strong> <span id="strengthStat">--</span></div>
+                    <div class="stat-item"><strong>Defense🛡️:</strong> <span id="defenseStat">--</span></div>
+                    <div class="stat-item"><strong>Speed⚡:</strong> <span id="speedStat">--</span></div>
+                    <div class="stat-item"><strong>Dexterity🎯:</strong> <span id="dexterityStat">--</span></div>
+                    <div class="stat-item"><strong>Energy🔋:</strong> <span id="availableEnergy">--/--</span></div>
+                </div>
+                <div class="gain-summary-box styled-container">
+                    <h3 class="underlined-heading">📋📊 Estimated Gains Summary. 📊📋</h3>
+                    <div class="gain-summary-grid">
+                        <div class="gain-summary-item">
+                            <strong>One Train (<span id="perTrainEnergyValue">--</span> E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="perTrainGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="perTrainGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="perTrainGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="perTrainGainDex">--</span></span>
+                            </div>
+                        </div>
+                        <div class="gain-summary-item">
+                            <strong>One Xanax (250 E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="xanaxGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="xanaxGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="xanaxGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="xanaxGainDex">--</span></span>
+                            </div>
+                        </div>
+                        <div class="gain-summary-item">
+                            <strong>Max Energy (<span id="maxEnergyValue">--</span> E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="maxEnergyGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="maxEnergyGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="maxEnergyGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="maxEnergyGainDex">--</span></span>
+                            </div>
+                        </div>
+                        <div class="gain-summary-item">
+                            <strong>Est. Happy Jump (1150 E) :</strong>
+                            <div class="gain-figures centralized-gain-figures">
+                                <span class="gain-text">Str: <span id="happyJumpGainStr">--</span></span>
+                                <span class="gain-text">Def: <span id="happyJumpGainDef">--</span></span>
+                                <span class="gain-text">Spd: <span id="happyJumpGainSpe">--</span></span>
+                                <span class="gain-text">Dex: <span id="happyJumpGainDex">--</span></span>
+                            </div>
+                        </div>
+                           <p class="gain-disclaimer" style="text-align: center; margin-top: 15px; color: #FFA500 !important;">(Note: Does not include perk multipliers due to API key limitations.)</p>
+                    </div>
+                </div>
+                <div class="torn-gym-link-container">
+                    <a href="https://www.torn.com/gym.php" target="_blank" rel="noopener noreferrer" class="btn torn-gym-btn header-btn">
+                        <span class="btn-text">Go to Torn Gym!</span>
+                        <span class="btn-icon">🔗</span>
+                    </a>
+                </div>
+                <p id="gymFeedback" class="feedback-message"></p>
+                <p id="gymError" class="error-message"></p>
+            </div>
+        </div>
+        <div class="gym-sidebar-right styled-container">
+            <div id="statProgressionContainer" class="stat-progression-box styled-container">
+                <h3 class="underlined-heading">📈 Stat Progression. 📈</h3>
+                <div id="statProgressionGraph" class="graph-placeholder">
+                    <canvas id="statChart"></canvas>
+                </div>
+              <div class="progression-options" style="position: relative;"> <a href="#" class="btn btn-small" data-time-filter="7">Last 7 Days</a>
+    <a href="#" class="btn btn-small" data-time-filter="30">Last 30 Days</a>
+    <a href="#" class="btn btn-small" data-time-filter="all">All Time</a>
+    <button id="logStatsBtn" class="btn btn-small" style="background-color: #28a745; border-color: #28a745;">Log Stats</button>
+
+    <div id="logConfirmationModal" class="log-popup-dropdown" style="display:none;"> 
+        <div class="modal-content"> <span class="modal-close-btn" id="closeLogModalBtn">&times;</span>
+            <div id="logConfirmationBody">
+            </div>
+        </div>
+    </div>
+</div>
+                <div class="stat-toggle-options" style="text-align: center; margin-top: 10px;">
+                    <button class="btn btn-small" data-stat-toggle="0">Strength</button>
+                    <button class="btn btn-small" data-stat-toggle="1">Defense</button>
+                    <button class="btn btn-small" data-stat-toggle="2">Speed</button>
+                    <button class="btn btn-small" data-stat-toggle="3">Dexterity</button>
+                    <button class="btn btn-small" data-stat-toggle="all">Show All</button>
+                </div>
+            </div>
+            <div id="gymProgressionContainer" class="gym-progression-box styled-container">
+                <h3 class="underlined-heading">🏆 Gym Progression. 🏆</h3>
+                <div class="progression-details">
+                    <p><strong>Current Gym:</strong> <span id="currentGymName">--</span></p>
+                    <p><strong>Next Gym:</strong> <span id="nextGymName">--</span></p>
+                    <p><strong>Req. Total Stats:</strong> <span id="nextGymReqStats">--</span></p>
+                    <p><strong>Stats Remaining:</strong> <span id="statsRemaining">--</span></p>
+                    <p><strong>Est. Energy to Next:</strong> <span id="eToNextGymDetailed">--</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+	<div id="chat-system-placeholder"></div>
+	
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+    <script src="../js/gymgain.js"></script>
+	<script src="../js/global.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyTornPA - Faction Activity Peeper</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/activitywatch.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div id="global-header-placeholder"></div>
+
+    <div class="main-content-wrapper">
+        <div id="activityPeeperContainer">
+            <div id="topControlPanel">
+                <div class="control-grid-item" id="myFactionIDGroup">
+                    <label for="myFactionID">My Faction ID:</label>
+                    <input type="text" id="myFactionID" value="" readonly />
+                </div>
+                <div class="control-grid-item" id="enemyFactionIDGroup">
+                    <label for="enemyFactionID">Enemy Faction ID:</label>
+                    <input type="text" id="enemyFactionID" value="" />
+                </div>
+                <div class="control-grid-item" id="activityIntervalGroup">
+                    <label for="activityInterval">Refresh Rate (minutes):</label>
+                    <select id="activityInterval">
+                        <option value="15">15</option>
+                        <option value="30" selected>30</option>
+                    </select>
+                </div>
+                <div class="control-grid-item" id="statusGroup">
+                    <label>Status:</label>
+                    <span id="statusDisplay">Ready.</span>
+                </div>
+                <div class="control-grid-item" id="factionNameGroup">
+                    <label>Faction Name:</label>
+                    <span id="factionNameDisplay"></span>
+                </div>
+                <div class="control-grid-item" id="totalMembersGroup">
+                    <label>Total Members:</label>
+                    <span id="totalMembersMyFaction"></span>
+                </div>
+                <div class="control-grid-item" id="actionButtonsGroup">
+                    <button id="startButton" class="action-btn start-btn">Start.</button>
+                    <button id="stopButton" class="action-btn stop-btn">Stop.</button>
+                    <button id="clearDataButton" class="action-btn clear-btn">Clear/Download.</button>
+                </div>
+                <div class="control-grid-item" id="lastRefreshGroup">
+                    <label>Last cycle refresh:</label>
+                    <span id="lastRefreshTime"></span>
+                </div>
+
+                <div class="control-grid-item" id="stopTimerGroup">
+                    <label for="stopTimerHours">Stop Running In: (hours)</label>
+                    <select id="stopTimerHours">
+                        <option value="6">6</option>
+                        <option value="12">12</option>
+                        <option value="24">24</option>
+                        <option value="48">2 Days</option>
+                        <option value="72">3 Days</option>
+                    </select>
+                    <div id="countdownDisplay" style="margin-top: 10px;">
+                        <label style="color: #00a8ff; font-weight: bold;">Analysis finished in:</label>
+                        <span id="countdownTimer" style="color: #fff; font-weight: bold;">0 hours and 0 minutes</span>
+                    </div>
+                </div>
+                <div class="control-grid-item" id="compareIndividualsGroup">
+                    <label>Compare individual members below:</label>
+                    <select id="compareUser1"></select>
+                    <select id="compareUser2"></select>
+                </div>
+            </div>
+
+            <div id="chartsGridArea">
+                <div class="chart-panel">
+                    <canvas id="rawActivityChart"></canvas>
+                </div>
+                <div class="chart-panel">
+                    <canvas id="myFactionIndividualsChart"></canvas>
+                </div>
+                <div class="chart-panel">         
+                    <canvas id="activityDifferenceChart"></canvas>
+                </div>
+                <div class="chart-panel">
+                    <canvas id="enemyFactionIndividualsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="reportModalCloseBtn" class="modal-close-btn">&times;</button>
+            <h2>Session Complete.</h2>
+            <p>Your tracking session has finished. You can download a report of the collected data or clear it permanently from your browser.</p>
+
+            <div class="modal-actions">
+                <button id="downloadReportBtn" class="action-btn start-btn">Download Report.</button>
+                <button id="confirmClearBtn" class="action-btn clear-btn">Clear Data.</button>
+            </div>
+
+            <div class="modal-options">
+                <input type="checkbox" id="skipConfirmCheckbox">
+                <label for="skipConfirmCheckbox">Don't ask for confirmation before clearing data?</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportOptionsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="reportOptionsModalCloseBtn" class="modal-close-btn">&times;</button>
+            <h2>Generate Your Report.</h2>
+            <p>Select members to include in a focused activity report and optional chart image download.</p>
+
+            <div class="custom-report-options">
+                <div class="report-dropdown-group">
+                    <label for="reportMyFactionMemberSelect">My Faction Member:</label>
+                    <select id="reportMyFactionMemberSelect"></select>
+                </div>
+                <div class="report-dropdown-group">
+                    <label for="reportEnemyFactionMemberSelect">Enemy Faction Member:</label>
+                    <select id="reportEnemyFactionMemberSelect"></select>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="generateCustomReportBtn" class="action-btn start-btn">Generate & Download Report.</button>
+               <button id="compareTwoIndividualsBtn" class="action-btn clear-btn">Compare Two Individuals.</button>
+            </div>
+            <p class="small-text">Note: Multiple individual Reports will be seperate downloads.</p>
+        </div>
+    </div>
+	
+	<div id="globalConfirmModal" class="modal-overlay">
+  <div class="modal-content-box confirmation-modal">
+    <h4 id="globalConfirmTitle">Confirmation</h4>
+    <p id="globalConfirmMessage">Are you sure?</p>
+    <div class="confirmation-actions">
+      <button id="globalConfirmBtnYes" class="btn btn-confirm-yes">OK</button>
+      <button id="globalConfirmBtnNo" class="btn btn-confirm-no">Cancel</button>
+    </div>
+  </div>
+</div>
+	
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="FAQ.html">F.A.Q</a>
+            <a href="Terms.html">Disclaimer & Terms</a>
+            <a href="report.html">Report an Issue</a>
+            <a href="about.html">About Us</a>
+            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
+            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
+        </div>
+        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+
+    <script src="../js/firebase-init.js"></script>
+    <script src="../js/globalheader.js"></script>
+	<script src="../js/global-confirm.js"></script>
+    <script src="../js/activitywatch.js"></script>
+</body>
+</html>
