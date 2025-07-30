@@ -17,7 +17,6 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async (event, context) => {
-    // Get the factionId from the URL (e.g., ...?factionId=12345)
     const factionId = event.queryStringParameters.factionId;
 
     if (!factionId) {
@@ -27,23 +26,21 @@ exports.handler = async (event, context) => {
     try {
         console.log(`Starting on-demand refresh for factionId: ${factionId}`);
 
-        // Get all users belonging to the specified faction
+        // Get the list of users to update from the 'userProfiles' collection
         const usersSnapshot = await db.collection('userProfiles').where('faction_id', '==', parseInt(factionId)).get();
 
         if (usersSnapshot.empty) {
             return { statusCode: 200, body: JSON.stringify({ message: `No users found for faction ${factionId}.`}) };
         }
 
-        // Create a list of promises to update each user in parallel
         const updatePromises = usersSnapshot.docs.map(doc => {
             const processUser = async () => {
                 const tornProfileId = doc.id;
                 const userDataFromDb = doc.data();
 
-                if (!userDataFromDb.tornApiKey) return; // Skip if no key
+                if (!userDataFromDb.tornApiKey) return;
 
                 try {
-                    // Your logic to fetch fresh data from the Torn API
                     const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
                     const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${userDataFromDb.tornApiKey}&comment=MyTornPA_Refresh`;
                     
@@ -51,18 +48,22 @@ exports.handler = async (event, context) => {
                     const data = await response.json();
 
                     if (!response.ok || data.error) throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
-
-                    // Create the object with all the data to save
-                    // This is the same logic from your old worker file
+                    
                     const userDataToSave = {
+                        // All of your data mapping logic...
                         name: data.name,
                         level: data.level,
                         faction_id: data.faction?.faction_id || null,
-                        // ... and all your other data fields ...
+                        energy: data.energy || {},
+                        nerve: data.nerve || {},
+                        // etc...
                         lastUpdated: admin.firestore.FieldValue.serverTimestamp()
                     };
                     
-                    const userRef = db.collection('userProfiles').doc(tornProfileId);
+                    // =========================================================================
+                    // ## THIS IS THE FIX: Saving data to the 'users' collection ##
+                    // =========================================================================
+                    const userRef = db.collection('users').doc(tornProfileId);
                     await userRef.set(userDataToSave, { merge: true });
 
                 } catch (error) {
@@ -72,10 +73,8 @@ exports.handler = async (event, context) => {
             return processUser();
         });
 
-        // Wait for all updates to finish
         await Promise.all(updatePromises);
 
-        console.log(`Successfully refreshed faction ${factionId}.`);
         return { statusCode: 200, body: JSON.stringify({ message: `Faction ${factionId} refreshed successfully.` }) };
 
     } catch (error) {
