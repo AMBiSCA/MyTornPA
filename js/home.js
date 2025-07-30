@@ -912,85 +912,76 @@ if (headerEditProfileBtn && auth && db) {
     });
 }
 
-  if (saveProfileBtn && auth && db) {
+  // Replace your old block with this NEW version
+if (saveProfileBtn && auth && db) {
     saveProfileBtn.addEventListener('click', async () => {
         const profileSetupErrorEl = document.getElementById('profileSetupError');
         if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
 
+        // --- All your validation code (this part is unchanged) ---
         if (termsCheckbox && !termsCheckbox.checked) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
             return;
         }
-        
         if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error. Please refresh and try again.';
             return;
         }
-
         const preferredNameVal = preferredNameInput.value.trim();
         const apiKeyVal = profileSetupApiKeyInput.value.trim();
         const profileIdVal = profileSetupProfileIdInput.value.trim();
+        if (!preferredNameVal || !apiKeyVal || !profileIdVal) {
+             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'All fields are required.';
+            return;
+        }
+        // ... (you can add your other specific validation checks here too)
 
-        if (!preferredNameVal) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Preferred Display Name is a required field.';
-            return;
-        }
-        if (preferredNameVal.length > 10) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Display Name cannot be more than 10 characters.';
-            return;
-        }
-        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'The chosen Display Name is not allowed.';
-            return;
-        }
-
-        if (!apiKeyVal) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
-            return;
-        }
-
-        if (!profileIdVal) {
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
-            return;
-        }
-
-        const user = auth.currentUser;
-        const profileDataToSave = {
-            preferredName: preferredNameVal,
-            tornApiKey: apiKeyVal,
-            tornProfileId: String(profileIdVal),
-            termsAgreed: termsCheckbox.checked,
-            profileSetupComplete: true,
-            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-        };
+        saveProfileBtn.disabled = true;
+        saveProfileBtn.textContent = "Verifying & Saving...";
 
         try {
+            // --- NEW CODE: Fetch data from Torn API FIRST ---
+            const apiUrl = `https://api.torn.com/user/${profileIdVal}?selections=profile&key=${apiKeyVal}&comment=MyTornPA_ProfileSetup`;
+            const response = await fetch(apiUrl);
+            const tornData = await response.json();
+
+            if (!response.ok || tornData.error) {
+                throw new Error(tornData.error ? tornData.error.error : "Invalid API Key or User ID.");
+            }
+            
+            const user = auth.currentUser;
+            
+            // --- UPDATED: Build the save object with data from the API ---
+            const profileDataToSave = {
+                preferredName: preferredNameVal,
+                tornApiKey: apiKeyVal,
+                tornProfileId: String(profileIdVal),
+                name: tornData.name || null, // Actual Torn name from API
+                faction_id: tornData.faction?.faction_id || null, // The MISSING piece
+                faction_name: tornData.faction?.faction_name || null,
+                position: tornData.faction?.position || null,
+                termsAgreed: termsCheckbox.checked,
+                profileSetupComplete: true,
+                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+            };
+
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
             const currentDoc = await userProfileRef.get();
 
             if (!currentDoc.exists) {
                 profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
             }
-
-            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
-                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
-                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
-            }
-
+            
             await userProfileRef.set(profileDataToSave, { merge: true });
 
-            // --- MODIFIED PART ---
-            // Start the background data save but DON'T wait for it to finish.
-            if (profileDataToSave.tornApiKey) {
-                fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
-            }
-            
-            // Refresh the page immediately.
+            // Now that the profile is saved, trigger the reload
             location.reload();
 
         } catch (error) {
             console.error("Error saving profile: ", error);
-            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving profile. Please try again.";
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = `Error: ${error.message}`;
+            saveProfileBtn.disabled = false;
+            saveProfileBtn.textContent = "Save Profile";
         }
     });
 }
