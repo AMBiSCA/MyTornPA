@@ -64,7 +64,7 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        // --- 1. Update user profile in 'userProfiles' collection (Firebase UID as document ID) ---
+        // --- 1. Update user profile in 'usofiles' collection (Firebase UID as document ID) ---
         const userProfileRef = db.collection('userProfiles').doc(uid);
         
         // Add serverTimestamp for tracking when this data was last updated by the API sync
