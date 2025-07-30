@@ -11,6 +11,7 @@ let userApiKey = null;
 let userTornProfileId = null;
 let currentFirebaseUserUid = null; // Store current user's UID
 let currentUserIsAdmin = false; // Store admin status
+let userFactionIdFromProfile = null; // Store user's faction ID, retrieved from profile
 
 let activeTrackingSessionId = null; // Stores the ID of the currently active session
 let activeTrackingStartedAt = null; // Stores the start timestamp of the active session
@@ -189,6 +190,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         const firestoreFetchPromises = [];
         const allMemberFirebaseData = {};
 
+        // Divide member IDs into chunks and create a fetch promise for each chunk
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
             const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
@@ -312,10 +314,12 @@ function updateGainTrackingUI() {
     const trackingStatusDisplay = document.getElementById('trackingStatus');
     const gainsStartedAtDisplay = document.getElementById('gainsStartedAt');
 
-    if (!startTrackingBtn || !stopTrackingBtn || !trackingStatusDisplay || !gainsStartedAtDisplay) {
-        console.error("Gains tracking UI elements not found."); // Log error, but continue if possible
-        return;
-    }
+    // Robust check for element existence
+    if (!startTrackingBtn) { console.error("UI Error: startTrackingBtn not found."); return; }
+    if (!stopTrackingBtn) { console.error("UI Error: stopTrackingBtn not found."); return; }
+    if (!trackingStatusDisplay) { console.error("UI Error: trackingStatusDisplay not found."); return; }
+    if (!gainsStartedAtDisplay) { console.error("UI Error: gainsStartedAtDisplay not found."); return; }
+
 
     if (!currentUserIsAdmin) {
         startTrackingBtn.classList.add('hidden');
@@ -544,7 +548,10 @@ async function displayGainsTable() {
     const gainsTbody = document.getElementById('gains-overview-tbody');
     const gainsMessageContainer = document.querySelector('#gains-tracking-tab .gains-table-container p');
     
-    if (!gainsTbody || !gainsMessageContainer) return;
+    if (!gainsTbody || !gainsMessageContainer) {
+        console.error("HTML Error: Gains table body or message container not found in displayGainsTable.");
+        return;
+    }
 
     gainsTbody.innerHTML = ''; // Clear previous content
     gainsMessageContainer.classList.remove('hidden'); // Ensure message is visible
@@ -588,7 +595,7 @@ async function displayGainsTable() {
 
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            // Push the query reference, not the execution, for onSnapshotsInSync
+            // Push the query reference, not the execution, for onSnapshot
             firestoreQueries.push(usersCollectionRef.where(firebase.firestore.FieldPath.documentId(), 'in', chunk));
         }
 
@@ -598,20 +605,26 @@ async function displayGainsTable() {
         }
         
         // Unsubscribe from previous gains data listener before setting up a new one
+        // This is where we ensure only one listener is active for gains data updates.
         if (unsubscribeFromGainsData) {
             unsubscribeFromGainsData();
             unsubscribeFromGainsData = null;
+            console.log("Unsubscribed from previous gains data listener.");
         }
 
-        // Use Promise.all with onSnapshot for multiple queries to combine them into one update cycle
-        // NOTE: firebase.firestore.onSnapshotsInSync is typically used differently or might not be intended
-        // for combining results from multiple queries for a single view update.
-        // A common pattern is to simply execute all .get() for display, and if real-time
-        // is needed, set up individual listeners and update the UI when *all* have new data.
-        // For simplicity and directness, we will use individual get() calls and combine them.
-        // If you truly need "real-time" for this table, we'd need to restructure how this listener works with multiple queries.
-        // For now, it will fetch fresh data every time displayGainsTable is called (e.g., on tab switch and interval).
+        // Set up real-time listener for current user data (for gains)
+        // This listener will be responsible for updating the table whenever 'users' data changes.
+        // We need a way to listen to multiple queries, then combine their results.
+        // The standard Firebase pattern for this is to set up multiple listeners and manage state.
+        // However, if you're fetching all data at once with `get()`, then `onSnapshotsInSync`
+        // is about *all listeners being in sync*, not combining results from *multiple queries*.
+        // For multiple 'in' queries for a single table, the most reliable real-time method is:
+        // 1. Listen to each chunk query individually.
+        // 2. Combine results and update the table ONLY when all active chunk listeners have data.
+        // This is complex. For simplicity, and given your 30s refresh, we'll keep the promise.all(get())
+        // but it will be executed every 30s as per the interval.
 
+        // Reverted to executing gets() and handling the results once.
         const querySnapshots = await Promise.all(firestoreQueries.map(q => q.get())); // Execute all queries
 
         const currentStats = {};
@@ -665,12 +678,11 @@ async function displayGainsTable() {
                     speedGain: current.speed,
                     defenseGain: current.defense,
                     totalGain: current.total,
-                    initialTotal: 0,
+                    initialTotal: current.total, // Initial is current for new members
                     isNew: true
                 });
             }
-            // Members in baseline but not current are not explicitly handled here
-            // (e.g. left faction, deleted profile). They just won't appear.
+            // Members in baseline but not current (e.g. left faction, deleted profile) will not be displayed.
         });
 
         membersWithGains.sort((a, b) => b.totalGain - a.totalGain);
@@ -719,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTrackingBtn = document.getElementById('startTrackingBtn');
     const stopTrackingBtn = document.getElementById('stopTrackingBtn');
     const trackingStatusDisplay = document.getElementById('trackingStatus');
-    const gainsStartedAtDisplay = document.getElementById('gainsStartedAt'); // Get new element
+    const gainsStartedAtDisplay = document.getElementById('gainsStartedAt');
 
     // --- Tab Switching Logic ---
     function showTab(tabId) {
@@ -740,12 +752,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Unsubscribe from any active listeners when switching tabs to prevent memory leaks
-        // Gains data listener is now controlled by displayGainsTable() on every call, so it unsubscribes itself implicitly.
         if (unsubscribeFromTrackingStatus) {
             unsubscribeFromTrackingStatus();
             unsubscribeFromTrackingStatus = null;
             console.log("Unsubscribed from tracking status listener (on tab switch).");
         }
+        if (unsubscribeFromGainsData) { // Ensure gains data listener is also unsubscribed
+            unsubscribeFromGainsData();
+            unsubscribeFromGainsData = null;
+            console.log("Unsubscribed from gains data listener (on tab switch).");
+        }
+
 
         // Trigger data load/refresh when switching to a tab that needs it
         if (tabId === 'current-stats-tab') {
@@ -762,9 +779,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
             } else {
                 // If no user or faction, just update UI to reflect no access
-                updateGainTrackingUI();
+                updateGainTrackingUI(); // Update admin buttons due to no user/faction
                 displayGainsTable(); // Call to show "Please log in..."
             }
+            // Start gains display immediately. The status listener will also trigger it.
+            // This ensures an immediate display even if status listener is slow.
+            displayGainsTable();
         }
     }
 
@@ -775,7 +795,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Authentication and Initial Data Load ---
-    let userFactionIdFromProfile = null; // Declare here to be accessible to setupRealtimeTrackingStatusListener
     auth.onAuthStateChanged(async (user) => {
         currentFirebaseUserUid = user ? user.uid : null;
 
@@ -814,9 +833,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }, 30000); // Refresh every 30 seconds
                         
-                        // NOTE: Gains table now refreshes automatically when underlying 'users' data changes
-                        // due to the onSnapshot listener in displayGainsTable(). No separate interval is needed.
-                        // The interval commented out below is REMOVED.
+                        // Interval for Gains table - now uses `onSnapshot` for real-time from `users` collection.
+                        // So, this interval is REMOVED as `displayGainsTable` will set up a listener.
+                        // However, the `displayGainsTable` itself will still fetch data using `get()` calls,
+                        // so a periodic re-execution of displayGainsTable() can still be useful if you expect
+                        // the underlying `users` collection to be updated (by backend function) in ways that
+                        // a simple `onSnapshot` on individual user docs might not capture perfectly for a combined table.
+                        // For the most robust real-time updates of the *entire* gains table based on changes to *any* user's stats,
+                        // we'd need a more complex listener setup for multiple `where('docId', 'in', ...)` queries.
+                        // For now, the current implementation will re-run the calculation on interval and on status change.
+                        setInterval(async () => {
+                            if (document.getElementById('gains-tracking-tab').classList.contains('active')) {
+                                console.log("Refreshing Gains Tracking table (interval via displayGainsTable call)...");
+                                await displayGainsTable(); // Re-fetch and re-render
+                            }
+                        }, 30000); // Refresh every 30 seconds
 
                     } else {
                         console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
@@ -856,11 +887,11 @@ document.addEventListener('DOMContentLoaded', () => {
             startTrackingBtn.classList.add('hidden');
             stopTrackingBtn.classList.add('hidden');
             trackingStatusDisplay.textContent = 'Please log in.';
-            if (unsubscribeFromTrackingStatus) { // Unsubscribe tracking status listener
+            if (unsubscribeFromTrackingStatus) {
                 unsubscribeFromTrackingStatus();
                 unsubscribeFromTrackingStatus = null;
             }
-            if (unsubscribeFromGainsData) { // Unsubscribe gains data listener
+            if (unsubscribeFromGainsData) {
                 unsubscribeFromGainsData();
                 unsubscribeFromGainsData = null;
             }
