@@ -130,7 +130,9 @@ h2 {
     justify-content: center;
 }
 
-.friendly-members-table {
+
+.friendly-members-table,
+.gains-overview-table { /* Added .gains-overview-table to common styles */
     width: 100%;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
@@ -140,8 +142,9 @@ h2 {
     display: table; /* Revert to table display for proper rendering */
 }
 
-/* Table Header (thead) styles */
-.friendly-members-table thead th {
+/* Table Header (thead) styles - applies to both tables now */
+.friendly-members-table thead th,
+.gains-overview-table thead th {
     background-color: #00a8ff;
     color: #1e1e1e;
     font-weight: bold;
@@ -155,18 +158,20 @@ h2 {
     border-right: 1px solid #303030;
 }
 
-/* Remove right border from the very last header for a clean look */
-.friendly-members-table thead th:last-child {
+/* Remove right border from the very last header for a clean look - applies to both tables now */
+.friendly-members-table thead th:last-child,
+.gains-overview-table thead th:last-child {
     border-right: none;
 }
 
-/* Table Body (tbody) cell styles */
-.friendly-members-table tbody td {
+/* Table Body (tbody) cell styles - applies to both tables now */
+.friendly-members-table tbody td,
+.gains-overview-table tbody td {
     padding: 8px 8px;
     border-bottom: 1px solid #3a3a40;
     vertical-align: middle;
     font-size: 0.85em;
-    color: #f0f0f0;
+    color: #f0f0f0; /* Default text color for data cells */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -174,35 +179,43 @@ h2 {
     border-right: 1px solid #303030;
 }
 
-/* Remove right border from the very last cell in each row */
-.friendly-members-table tbody td:last-child {
+/* Remove right border from the very last cell in each row - applies to both tables now */
+.friendly-members-table tbody td:last-child,
+.gains-overview-table tbody td:last-child {
     border-right: none;
 }
 
-/* Remove bottom border from the very last row */
-.friendly-members-table tbody tr:last-child td {
+/* Remove bottom border from the very last row - applies to both tables now */
+.friendly-members-table tbody tr:last-child td,
+.gains-overview-table tbody tr:last-child td {
     border-bottom: none;
 }
 
-/* Hover effect for table rows */
-.friendly-members-table tbody tr:hover {
+/* Hover effect for table rows - applies to both tables now */
+.friendly-members-table tbody tr:hover,
+.gains-overview-table tbody tr:hover {
     background-color: #38383e;
 }
 
-/* Link styles within table cells */
-.friendly-members-table a {
-    color: #8ab4f8;
-    text-decoration: none;
+/* Link styles within table cells - IMPORTANT: NOW APPLIES TO BOTH TABLES */
+.friendly-members-table a,
+.gains-overview-table a { /* ADDED: .gains-overview-table a */
+    color: #f0f0f0; /* Make link color white/light gray */
+    text-decoration: none; /* Remove underline */
 }
 
-.friendly-members-table a:hover {
-    text-decoration: underline;
+.friendly-members-table a:hover,
+.gains-overview-table a:hover { /* ADDED: .gains-overview-table a:hover */
+    text-decoration: underline; /* Add underline only on hover */
+    color: #8ab4f8; /* Optional: change color on hover to a blue, matching screenshot */
 }
+
 
 /* ==========================================================================
    Specific Column Widths (Adjust these based on content and preference)
    ========================================================================== */
 
+/* Current Stats Table Column Widths */
 .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; } /* Name */
 .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
 .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
@@ -214,7 +227,15 @@ h2 {
 .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
 .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; } /* Energy */
 .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; } /* Drug CD */
-/* Totaling 100% of the table width across 11 columns */
+
+/* Gains Overview Table Column Widths (already defined, but repeated for clarity after changes) */
+.gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Name */
+.gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
+.gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
+.gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
+.gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
+.gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
+
 
 /* ==========================================================================
    Dynamic Cell Styling (Status, Nerve, Energy, Drug CD, Battle Stats Color Coding)
@@ -339,67 +360,6 @@ h2 {
 /* Hidden utility class */
 .hidden {
     display: none !important;
-}
-
-/* Gains Overview Table (similar to friendly members table) */
-.gains-overview-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #ddd;
-    table-layout: fixed; /* Keep columns fixed */
-}
-
-.gains-overview-table thead th {
-    background-color: #00a8ff;
-    color: #1e1e1e;
-    font-weight: bold;
-    text-align: center;
-    padding: 10px 8px;
-    border-bottom: 2px solid #1e1e1e;
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-right: 1px solid #303030;
-}
-
-/* Column widths for the Gains table */
-.gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Name */
-.gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
-.gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
-.gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
-.gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
-.gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
-
-
-.gains-overview-table thead th:last-child {
-    border-right: none;
-}
-
-.gains-overview-table tbody td {
-    padding: 8px 8px;
-    border-bottom: 1px solid #3a3a40;
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    border-right: 1px solid #303030;
-}
-
-.gains-overview-table tbody td:last-child {
-    border-right: none;
-}
-
-.gains-overview-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.gains-overview-table tbody tr:hover {
-    background-color: #38383e;
 }
 
 /* Gains specific colors for the values (+X, -Y, 0) */
