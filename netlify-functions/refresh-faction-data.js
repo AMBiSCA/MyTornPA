@@ -25,8 +25,6 @@ exports.handler = async (event, context) => {
 
     try {
         console.log(`Starting on-demand refresh for factionId: ${factionId}`);
-
-        // Get the list of users to update from the 'userProfiles' collection
         const usersSnapshot = await db.collection('userProfiles').where('faction_id', '==', parseInt(factionId)).get();
 
         if (usersSnapshot.empty) {
@@ -35,38 +33,45 @@ exports.handler = async (event, context) => {
 
         const updatePromises = usersSnapshot.docs.map(doc => {
             const processUser = async () => {
-                const tornProfileId = doc.id;
                 const userDataFromDb = doc.data();
-
-                if (!userDataFromDb.tornApiKey) return;
+                
+                // =========================================================================
+                // ## THIS IS THE FIX: Get the correct IDs from the document's DATA ##
+                // =========================================================================
+                const tornProfileId = userDataFromDb.tornProfileId; // The numerical Torn ID
+                const tornApiKey = userDataFromDb.tornApiKey;      // The API Key
+                
+                // Skip if essential data is missing
+                if (!tornProfileId || !tornApiKey) {
+                    console.log(`Skipping user document ${doc.id}: Missing tornProfileId or tornApiKey.`);
+                    return;
+                }
 
                 try {
                     const selections = "profile,personalstats,battlestats,workstats,basic,cooldowns,bars";
-                    const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${userDataFromDb.tornApiKey}&comment=MyTornPA_Refresh`;
+                    const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${tornApiKey}&comment=MyTornPA_Refresh`;
                     
                     const response = await fetch(apiUrl);
                     const data = await response.json();
 
                     if (!response.ok || data.error) throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
-                    
+
                     const userDataToSave = {
-                        // All of your data mapping logic...
                         name: data.name,
                         level: data.level,
                         faction_id: data.faction?.faction_id || null,
                         energy: data.energy || {},
                         nerve: data.nerve || {},
-                        // etc...
+                        // etc... all your other fields from before
                         lastUpdated: admin.firestore.FieldValue.serverTimestamp()
                     };
                     
-                    // =========================================================================
-                    // ## THIS IS THE FIX: Saving data to the 'users' collection ##
-                    // =========================================================================
-                    const userRef = db.collection('users').doc(tornProfileId);
+                    // Save the data to the 'users' collection using the numerical Torn ID
+                    const userRef = db.collection('users').doc(String(tornProfileId));
                     await userRef.set(userDataToSave, { merge: true });
 
                 } catch (error) {
+                    // Log the error but don't stop the whole batch
                     console.error(`Failed to refresh user ${tornProfileId}:`, error.message);
                 }
             };
@@ -75,6 +80,7 @@ exports.handler = async (event, context) => {
 
         await Promise.all(updatePromises);
 
+        console.log(`Successfully refreshed faction ${factionId}.`);
         return { statusCode: 200, body: JSON.stringify({ message: `Faction ${factionId} refreshed successfully.` }) };
 
     } catch (error) {
