@@ -26,7 +26,10 @@
                 <button class="tab-button-bb" data-tab="gains-tracking">Gains Tracking</button>
             </div>
 
-            <div class="tab-content-container-bb">
+            <button id="downloadTableDataBtn" class="download-button" style="margin-top: 10px; margin-bottom: 20px; padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Download Current Tab</button>
+
+
+            <div class="tab-content-container-bb" id="tabContentContainer">
                 
                 <div id="current-stats-tab" class="tab-pane-bb active">
                     <div class="table-container">
@@ -93,6 +96,8 @@
         </div>
         <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
     </footer>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>

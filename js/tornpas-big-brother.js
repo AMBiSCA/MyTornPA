@@ -713,6 +713,53 @@ async function displayGainsTable() {
     }
 }
 
+// NEW CODE STARTS HERE
+
+/**
+ * Captures the currently active tab's content as an image and triggers a download.
+ * Requires html2canvas library to be loaded.
+ */
+function downloadCurrentTabAsImage() {
+    // Find the currently active tab pane
+    const activeTabPane = document.querySelector('.tab-pane-bb.active');
+
+    if (!activeTabPane) {
+        console.error('No active tab pane found to screenshot.');
+        alert('Could not find active content to download.');
+        return;
+    }
+
+    // Determine the filename based on the active tab's ID
+    let filename = 'tornpas_data.png';
+    if (activeTabPane.id === 'current-stats-tab') {
+        filename = 'tornpas_current_stats.png';
+    } else if (activeTabPane.id === 'gains-tracking-tab') {
+        filename = 'tornpas_gains_tracking.png';
+    }
+
+    // Use html2canvas to capture the active tab pane
+    html2canvas(activeTabPane, {
+        scale: 2, // Increase resolution for a sharper image. Adjust as needed.
+        useCORS: true, // Important if your table has images or content from different origins
+        logging: false // Set to true for debugging html2canvas issues in the console
+    }).then(canvas => {
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.download = filename; // Set the filename for the downloaded image
+        link.href = canvas.toDataURL('image/png'); // Get data URL of the canvas as PNG
+
+        // Append the link to the body, programmatically click it, and then remove it
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }).catch(error => {
+        console.error('Error capturing element for download:', error);
+        alert('Could not download image. An error occurred. Please check the console for details.');
+    });
+}
+
+// NEW CODE ENDS HERE
+
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -735,6 +782,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const stopTrackingBtn = document.getElementById('stopTrackingBtn');
     const trackingStatusDisplay = document.getElementById('trackingStatus');
     const gainsStartedAtDisplay = document.getElementById('gainsStartedAt');
+
+    // NEW CODE STARTS HERE: Get the download button and attach listener
+    const downloadButton = document.getElementById('downloadTableDataBtn');
+    if (downloadButton) {
+        downloadButton.addEventListener('click', downloadCurrentTabAsImage);
+    }
+    // NEW CODE ENDS HERE
+
 
     // --- Tab Switching Logic ---
     function showTab(tabId) {
