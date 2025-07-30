@@ -19,7 +19,7 @@ body {
     background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradiebackground */
     padding-top: 70px; /* Space for fixed header */
     padding-bottom: 70px; /* Se for fixedor */
-    min-height: 100vh; /* Ensure body takes full viewport height */
+    min-height: 100vh; /* Ensure bodakes full viewport height */
 
     /* --- IMPORTANT FIX: Allow overall page scrolling --- */
     overflow-y: auto; /* CHANGED: Allow vertical scrollbar to appear for the whole page */
