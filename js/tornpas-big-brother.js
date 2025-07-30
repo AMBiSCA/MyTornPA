@@ -44,28 +44,35 @@ function formatBattleStats(num) {
 /**
  * Helper function to parse a stat string (which might contain 'k', 'm', 'b') into a number.
  * This is crucial for numerical comparisons in applyStatColorCoding and gain calculations.
- * @param {string} statString The stat value as a string (e.g., "1.2m", "500k", "123,456").
+ * @param {string|number} statString The stat value as a string (e.g., "1.2m", "500k", "123,456") or a number.
  * @returns {number} The parsed numerical value.
  */
 function parseStatValue(statString) {
+    if (typeof statString === 'number') { // If it's already a number, just return it
+        return statString;
+    }
     if (typeof statString !== 'string' || statString.trim() === '' || statString.toLowerCase() === 'n/a') {
-        return 0;
+        return 0; // Handle null, undefined, empty string, or "N/A"
     }
-    let sanitizedString = String(statString).toLowerCase().replace(/,/g, ''); // Ensure string, remove commas
+
+    let value = statString.trim().toLowerCase(); // Use 'value' as a mutable copy
+
     let multiplier = 1;
-    if (sanitizedString.endsWith('k')) {
+    if (value.endsWith('k')) {
         multiplier = 1000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('m')) {
+        value = value.slice(0, -1);
+    } else if (value.endsWith('m')) {
         multiplier = 1000000;
-        sanitizedString = sanitizedString.slice(0, -1);
-    } else if (sanitizedString.endsWith('b')) {
+        value = value.slice(0, -1);
+    } else if (value.endsWith('b')) {
         multiplier = 1000000000;
-        sanitizedString = sanitizedString.slice(0, -1);
+        value = value.slice(0, -1);
     }
-    const number = parseFloat(sanitizedString);
+
+    const number = parseFloat(value.replace(/,/g, '')); // Remove commas before parsing to number
     return isNaN(number) ? 0 : number * multiplier;
 }
+
 
 /**
  * Applies CSS classes to table cells based on battle stat tiers for color coding.
@@ -229,7 +236,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const defense = (firebaseData.battlestats?.defense || 0).toLocaleString();
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
             
-            // Corrected energy variable
             const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
@@ -595,7 +601,6 @@ async function displayGainsTable() {
 
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            // Push the query reference, not the execution, for onSnapshot
             firestoreQueries.push(usersCollectionRef.where(firebase.firestore.FieldPath.documentId(), 'in', chunk));
         }
 
@@ -604,28 +609,17 @@ async function displayGainsTable() {
             return;
         }
         
-        // Unsubscribe from previous gains data listener before setting up a new one
-        // This is where we ensure only one listener is active for gains data updates.
+        // Unsubscribe from previous gains data listener if it was set up (from an earlier logic iteration)
         if (unsubscribeFromGainsData) {
             unsubscribeFromGainsData();
             unsubscribeFromGainsData = null;
-            console.log("Unsubscribed from previous gains data listener.");
         }
 
-        // Set up real-time listener for current user data (for gains)
-        // This listener will be responsible for updating the table whenever 'users' data changes.
-        // We need a way to listen to multiple queries, then combine their results.
-        // The standard Firebase pattern for this is to set up multiple listeners and manage state.
-        // However, if you're fetching all data at once with `get()`, then `onSnapshotsInSync`
-        // is about *all listeners being in sync*, not combining results from *multiple queries*.
-        // For multiple 'in' queries for a single table, the most reliable real-time method is:
-        // 1. Listen to each chunk query individually.
-        // 2. Combine results and update the table ONLY when all active chunk listeners have data.
-        // This is complex. For simplicity, and given your 30s refresh, we'll keep the promise.all(get())
-        // but it will be executed every 30s as per the interval.
-
-        // Reverted to executing gets() and handling the results once.
-        const querySnapshots = await Promise.all(firestoreQueries.map(q => q.get())); // Execute all queries
+        // We are using Promise.all(q.get()) here, meaning it fetches data once each time displayGainsTable is called.
+        // For real-time updates when underlying user stats change, this would need to be `onSnapshot` for each chunk,
+        // combined with a mechanism to update the table only when all listeners have fired, which is more complex.
+        // For now, it will update on tab switch and via the periodic interval.
+        const querySnapshots = await Promise.all(firestoreQueries.map(q => q.get()));
 
         const currentStats = {};
         querySnapshots.forEach(snapshot => {
@@ -660,7 +654,7 @@ async function displayGainsTable() {
 
                 membersWithGains.push({
                     name: memberTornData.name,
-                    memberId: memberId, // Keep Torn ID for profile link
+                    memberId: memberId,
                     strengthGain: strengthGain,
                     dexterityGain: dexterityGain,
                     speedGain: speedGain,
@@ -669,20 +663,18 @@ async function displayGainsTable() {
                     initialTotal: baseline.total
                 });
             } else if (current && !baseline) {
-                // Member exists currently but not in baseline (new member since tracking started)
                  membersWithGains.push({
                     name: memberTornData.name,
                     memberId: memberId,
-                    strengthGain: current.strength, // All stats are "gains" from zero
+                    strengthGain: current.strength,
                     dexterityGain: current.dexterity,
                     speedGain: current.speed,
                     defenseGain: current.defense,
                     totalGain: current.total,
-                    initialTotal: current.total, // Initial is current for new members
+                    initialTotal: 0,
                     isNew: true
                 });
             }
-            // Members in baseline but not current (e.g. left faction, deleted profile) will not be displayed.
         });
 
         membersWithGains.sort((a, b) => b.totalGain - a.totalGain);
@@ -703,7 +695,7 @@ async function displayGainsTable() {
         });
 
         gainsTbody.innerHTML = gainsRowsHtml.length > 0 ? gainsRowsHtml : '<tr><td colspan="6" style="text-align:center;">No members with tracked gains.</td></tr>';
-        gainsMessageContainer.classList.add('hidden'); // Hide message after data loads
+        gainsMessageContainer.classList.add('hidden');
     } catch (error) {
         console.error("Error displaying gains table:", error);
         gainsMessageContainer.textContent = `Error loading gains: ${error.message}`;
@@ -751,17 +743,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Unsubscribe from any active listeners when switching tabs to prevent memory leaks
+        // Unsubscribe from any active Firestore listeners when switching tabs
         if (unsubscribeFromTrackingStatus) {
             unsubscribeFromTrackingStatus();
             unsubscribeFromTrackingStatus = null;
             console.log("Unsubscribed from tracking status listener (on tab switch).");
         }
-        if (unsubscribeFromGainsData) { // Ensure gains data listener is also unsubscribed
-            unsubscribeFromGainsData();
-            unsubscribeFromGainsData = null;
-            console.log("Unsubscribed from gains data listener (on tab switch).");
-        }
+        // unsubscribeFromGainsData is managed within displayGainsTable itself for a single .get() call,
+        // so no explicit unsubscribe here if it's always re-run fresh.
+        // If it was a continuous listener, we'd unsubscribe it here.
 
 
         // Trigger data load/refresh when switching to a tab that needs it
@@ -779,11 +769,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
             } else {
                 // If no user or faction, just update UI to reflect no access
-                updateGainTrackingUI(); // Update admin buttons due to no user/faction
+                updateGainTrackingUI();
                 displayGainsTable(); // Call to show "Please log in..."
             }
-            // Start gains display immediately. The status listener will also trigger it.
-            // This ensures an immediate display even if status listener is slow.
+            // Also call displayGainsTable initially to show data/messages even before status listener fires
             displayGainsTable();
         }
     }
@@ -813,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (userFactionIdFromProfile) {
                         setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
                     } else {
-                        updateGainTrackingUI(); // Update admin buttons for no faction ID
+                        updateGainTrackingUI();
                     }
 
                     if (userApiKey && userTornProfileId) {
@@ -825,29 +814,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         // Set up intervals for automatic refresh
-                        // Interval for Current Stats table (only if Current Stats tab is active)
                         setInterval(async () => {
                             if (document.getElementById('current-stats-tab').classList.contains('active')) {
                                 console.log("Refreshing Current Stats table (interval)...");
                                 await updateFriendlyMembersTable(userApiKey, user.uid);
                             }
-                        }, 30000); // Refresh every 30 seconds
+                        }, 30000); // Refresh Current Stats every 30 seconds
                         
-                        // Interval for Gains table - now uses `onSnapshot` for real-time from `users` collection.
-                        // So, this interval is REMOVED as `displayGainsTable` will set up a listener.
-                        // However, the `displayGainsTable` itself will still fetch data using `get()` calls,
-                        // so a periodic re-execution of displayGainsTable() can still be useful if you expect
-                        // the underlying `users` collection to be updated (by backend function) in ways that
-                        // a simple `onSnapshot` on individual user docs might not capture perfectly for a combined table.
-                        // For the most robust real-time updates of the *entire* gains table based on changes to *any* user's stats,
-                        // we'd need a more complex listener setup for multiple `where('docId', 'in', ...)` queries.
-                        // For now, the current implementation will re-run the calculation on interval and on status change.
+                        // Interval for Gains table - still uses `get()` calls, so this interval is useful.
                         setInterval(async () => {
                             if (document.getElementById('gains-tracking-tab').classList.contains('active')) {
                                 console.log("Refreshing Gains Tracking table (interval via displayGainsTable call)...");
-                                await displayGainsTable(); // Re-fetch and re-render
+                                await displayGainsTable();
                             }
-                        }, 30000); // Refresh every 30 seconds
+                        }, 30000); // Refresh Gains every 30 seconds
 
                     } else {
                         console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
