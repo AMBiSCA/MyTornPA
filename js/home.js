@@ -623,188 +623,204 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 }
     async function fetchAllRequiredData(user, dbInstance) {
-        if (!user || !dbInstance) {
-            console.error("fetchAllRequiredData: User or DB not provided.");
+    if (!user || !dbInstance) {
+        console.error("fetchAllRequiredData: User or DB not provided.");
+        clearQuickStats(); // Assuming this clears relevant UI elements
+        return;
+    }
+    console.log("fetchAllRequiredData called for user:", user.uid);
+    const quickStatsErrorEl = document.getElementById('quickStatsError');
+    if (quickStatsErrorEl) quickStatsErrorEl.textContent = 'Loading data...';
+    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+    if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.disabled = false;
+    if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = false;
+    if (personalStatsLabel) personalStatsLabel.style.cursor = 'pointer';
+
+    ["drugCooldownStat", "boosterCooldownStat"].forEach(id => {
+        if (activeCooldownIntervals[id]) clearInterval(activeCooldownIntervals[id]);
+        delete activeCooldownIntervals[id];
+        delete activeCooldownEndTimes[id];
+        updateStatDisplay(id, 0, 0, true, 0);
+    });
+    updateStatDisplay("hospitalStat", null, null, false, "N/A");
+    updateStatDisplay("travelStatus", null, null, false, "N/A");
+
+    try {
+        const userProfileRef = dbInstance.collection('userProfiles').doc(user.uid);
+        const doc = await userProfileRef.get();
+        if (!doc.exists) {
+            console.log("User profile not found in Firestore.");
             clearQuickStats();
             return;
         }
-        console.log("fetchAllRequiredData called for user:", user.uid);
-        const quickStatsErrorEl = document.getElementById('quickStatsError');
-        if (quickStatsErrorEl) quickStatsErrorEl.textContent = 'Loading data...';
-        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
-        if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.disabled = false;
-        if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = false;
-        if (personalStatsLabel) personalStatsLabel.style.cursor = 'pointer';
+        const profileDataFromFirestore = doc.data();
+        const apiKey = profileDataFromFirestore.tornApiKey;
+        const tornProfileId = profileDataFromFirestore.tornProfileId;
 
-        ["drugCooldownStat", "boosterCooldownStat"].forEach(id => {
-            if (activeCooldownIntervals[id]) clearInterval(activeCooldownIntervals[id]);
-            delete activeCooldownIntervals[id];
-            delete activeCooldownEndTimes[id];
-            updateStatDisplay(id, 0, 0, true, 0);
-        });
-        updateStatDisplay("hospitalStat", null, null, false, "N/A");
-        updateStatDisplay("travelStatus", null, null, false, "N/A");
+        if (!apiKey || !tornProfileId) {
+            console.log("API key or Torn Profile ID missing in user profile. Cannot fetch Torn data.");
+            clearQuickStats();
+            if (quickStatsErrorEl && profileDataFromFirestore.profileSetupComplete) quickStatsErrorEl.textContent = 'API Key or Torn Profile ID not found. Please set it in your profile.';
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
+            if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
+            return;
+        }
+
+        // --- STEP 1: Fetch user's personal data and their direct faction status/ID/position from the /v2/user/ endpoint ---
+        // We keep v2 for user data as it's generally newer and provides specific user-faction link
+        const userSelections = "bars,cooldowns,travel,profile,faction,basic";
+        const userApiUrl = `https://api.torn.com/v2/user/${tornProfileId}?selections=${userSelections}&key=${apiKey}&comment=MyTornPA_HomeDashboard_UserFetch`;
+        console.log(`[Step 1] Fetching user data (selections: ${userSelections}, key hidden) for Torn ID: ${tornProfileId}`);
+
+        const userResponse = await fetch(userApiUrl);
+        const userData = await userResponse.json();
+        console.log("[Step 1] User API Response:", userData);
+
+        if (!userResponse.ok || userData.error) {
+            const errorMsg = userData?.error?.error || userResponse.statusText;
+            throw new Error(`[Step 1] Torn API Error: ${errorMsg} (Code: ${userData?.error?.code || 'N/A'})`);
+        }
+
+        // --- Update Quick Stats Display (from user data) ---
+        const barDataSource = userData.bars || userData;
+        updateStatDisplay("nerveStat", barDataSource.nerve?.current, barDataSource.nerve?.maximum);
+        updateStatDisplay("energyStat", barDataSource.energy?.current, barDataSource.energy?.maximum);
+        updateStatDisplay("happyStat", barDataSource.happy?.current, barDataSource.happy?.maximum);
+        updateStatDisplay("lifeStat", barDataSource.life?.current, barDataSource.life?.maximum);
+
+        if (userData.cooldowns) {
+            updateStatDisplay("drugCooldownStat", 0, 0, true, userData.cooldowns.drug || 0);
+            updateStatDisplay("boosterCooldownStat", 0, 0, true, userData.cooldowns.booster || 0);
+        } else {
+            updateStatDisplay("drugCooldownStat", 0, 0, true, 0);
+            updateStatDisplay("boosterCooldownStat", 0, 0, true, 0);
+            console.warn("Cooldowns data missing from User API response.");
+        }
+
+        const nowSecondsApi = Math.floor(Date.now() / 1000);
+        let inHospital = false;
+        let hospitalTimeRemaining = 0;
+        let determinedHospitalStatusText = "N/A";
+
+        const profileFromUserApi = userData.profile;
+        if (profileFromUserApi && typeof profileFromUserApi.status === 'object' && profileFromUserApi.status !== null) {
+            const statusObject = profileFromUserApi.status;
+            const hospitalUntil = statusObject.until || 0;
+            const statusState = statusObject.state || "";
+            const statusDesc = statusObject.description || "";
+            if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
+                inHospital = true;
+                if (hospitalUntil > nowSecondsApi) {
+                    hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
+                } else {
+                    determinedHospitalStatusText = "Yes 😥";
+                }
+            } else {
+                determinedHospitalStatusText = "No 😁";
+            }
+        } else {
+            console.warn("Hospital Check - Valid status object not found in user API response.");
+        }
+
+        if (inHospital && hospitalTimeRemaining > 0) {
+            updateStatDisplay("hospitalStat", null, null, true, hospitalTimeRemaining, "Yes");
+        } else {
+            updateStatDisplay("hospitalStat", null, null, false, determinedHospitalStatusText);
+        }
+
+        if (userData.travel && typeof userData.travel.destination === 'string') {
+            if (userData.travel.time_left > 0) {
+                updateStatDisplay("travelStatus", null, null, false, `Yes (${userData.travel.destination}, ${formatTimeRemaining(userData.travel.time_left)})`);
+            } else {
+                updateStatDisplay("travelStatus", null, null, false, `No (${userData.travel.destination})`);
+            }
+        } else {
+            updateStatDisplay("travelStatus", null, null, false, "No");
+            console.warn("Travel data missing or not as expected in User API response.");
+        }
+
+        if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
+
+        // --- Prepare Payload with User Data from Step 1 ---
+        let updatePayload = {
+            name: userData.name || '', // The actual Torn character name
+            profile_image: userData.profile_image || null,
+            tornProfileId: String(userData.player_id || ''), // Ensure consistency
+            lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp(), // Update this whenever data is fetched
+            hasFreeAccess: false, // Default, will be updated by custom logic later
+            
+            // Faction fields from /v2/user/ endpoint (faction_id and position are specific to the user)
+            faction_id: userData.faction?.faction_id ?? null,
+            position: userData.faction?.position ?? '', // User's specific position in their faction
+            
+            // Faction name and tag will come from Step 2, default here
+            faction_name: '',
+            faction_tag: '', 
+        };
+
+        // --- STEP 2: Fetch Faction data using /faction/?selections=basic (v1 API) based on API Key ---
+        // This is the change based on your specified URL
+        let factionDataFromBasicEndpoint = null;
+        const factionBasicApiUrl = `https://api.torn.com/faction/?selections=basic&key=${apiKey}&comment=MyTornPA_HomeDashboard_FactionBasicFetchV1`;
+        console.log(`[Step 2] Fetching faction basic data (key hidden) from V1 API: ${factionBasicApiUrl}`);
 
         try {
-            const userProfileRef = dbInstance.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            if (!doc.exists) {
-                console.log("User profile not found in Firestore.");
-                clearQuickStats();
-                return;
-            }
-            const profileDataFromFirestore = doc.data();
-            const apiKey = profileDataFromFirestore.tornApiKey;
+            const factionBasicResponse = await fetch(factionBasicApiUrl);
+            const fetchedFactionBasicData = await factionBasicResponse.json();
+            console.log("[Step 2] Faction Basic (V1) API Response:", fetchedFactionBasicData);
 
-            if (!apiKey) {
-                console.log("No API key found in user profile.");
-                clearQuickStats();
-                if (quickStatsErrorEl && profileDataFromFirestore.profileSetupComplete) quickStatsErrorEl.textContent = 'API Key not found. Please set it in your profile.';
-                if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
-                if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
-                return;
-            }
-
-            const selections = "bars,cooldowns,travel,profile";
-            const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_HomeDashboard`;
-            console.log(`Fetching dashboard data (selections: ${selections}, key hidden)`);
-
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            console.log("Dashboard API Response:", data);
-
-            if (!response.ok) {
-                const errorMsg = data?.error?.error || response.statusText;
-                throw new Error(`API Error ${response.status}: ${errorMsg}`);
-            }
-            if (data.error) {
-                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-            }
-
-            const barDataSource = data.bars || data;
-            updateStatDisplay("nerveStat", barDataSource.nerve?.current, barDataSource.nerve?.maximum);
-            updateStatDisplay("energyStat", barDataSource.energy?.current, barDataSource.energy?.maximum);
-            updateStatDisplay("happyStat", barDataSource.happy?.current, barDataSource.happy?.maximum);
-            updateStatDisplay("lifeStat", barDataSource.life?.current, barDataSource.life?.maximum);
-
-            if (data.cooldowns) {
-                updateStatDisplay("drugCooldownStat", 0, 0, true, data.cooldowns.drug || 0);
-                updateStatDisplay("boosterCooldownStat", 0, 0, true, data.cooldowns.booster || 0);
+            // V1 API for faction basic returns error differently, check for 'ID' property
+            if (fetchedFactionBasicData.error || !fetchedFactionBasicData.ID) { // Check if 'ID' exists as a primary indicator of success
+                const errorMsg = fetchedFactionBasicData?.error?.error || "Faction data not found or API error.";
+                console.warn(`[Step 2] Torn Faction Basic (V1) API Error: ${errorMsg}. Will use faction data from user endpoint.`);
             } else {
-                updateStatDisplay("drugCooldownStat", 0, 0, true, 0);
-                updateStatDisplay("boosterCooldownStat", 0, 0, true, 0);
-                console.warn("Cooldowns data missing from API response.");
+                factionDataFromBasicEndpoint = fetchedFactionBasicData;
             }
-
-            const nowSecondsApi = Math.floor(Date.now() / 1000);
-            let inHospital = false;
-            let hospitalTimeRemaining = 0;
-            let determinedHospitalStatusText = "N/A";
-
-            const profileFromApi = data.profile;
-
-            if (profileFromApi && typeof profileFromApi.status === 'object' && profileFromApi.status !== null) {
-                const statusObject = profileFromApi.status;
-                const hospitalUntil = statusObject.until || 0;
-                const statusState = statusObject.state || "";
-                const statusDesc = statusObject.description || "";
-                if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
-                    inHospital = true;
-                    if (hospitalUntil > nowSecondsApi) {
-                        hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
-                    } else {
-                        determinedHospitalStatusText = "Yes 😥";
-                    }
-                } else {
-                    determinedHospitalStatusText = "No 😁";
-                }
-            } else if (data.status && typeof data.status === 'object' && data.status !== null) {
-                const statusObject = data.status;
-                const hospitalUntil = statusObject.until || 0;
-                const statusState = statusObject.state || "";
-                const statusDesc = statusObject.description || "";
-                if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
-                    inHospital = true;
-                    if (hospitalUntil > nowSecondsApi) {
-                        hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
-                    } else {
-                        determinedHospitalStatusText = "Yes 😥";
-                    }
-                } else {
-                    determinedHospitalStatusText = "No 😁";
-                }
-            } else {
-                console.warn("Hospital Check - Valid status object not found in data.profile.status or data.status.");
-            }
-
-            if (inHospital && hospitalTimeRemaining > 0) {
-                updateStatDisplay("hospitalStat", null, null, true, hospitalTimeRemaining, "Yes");
-            } else {
-                updateStatDisplay("hospitalStat", null, null, false, determinedHospitalStatusText);
-            }
-
-            if (data.travel && typeof data.travel.destination === 'string') {
-                if (data.travel.time_left > 0) {
-                    updateStatDisplay("travelStatus", null, null, false, `Yes (${data.travel.destination}, ${formatTimeRemaining(data.travel.time_left)})`);
-                } else {
-                    updateStatDisplay("travelStatus", null, null, false, `No (${data.travel.destination})`);
-                }
-            } else {
-                updateStatDisplay("travelStatus", null, null, false, "No");
-                console.warn("Travel data missing or not as expected in API response.");
-            }
-
-            if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
-
-            // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
-            // It safely checks for the nested faction object and uses the correct property names.
-            const factionData = data?.profile?.faction || data?.faction || null;
-            
-            if (factionData) {
-   const updatePayload = {
-    uid: user.uid, // User's Firebase UID
-    faction_id: factionData.faction_id ?? null,
-    faction_name: factionData.faction_name ?? null,
-    position: factionData.position ?? null,
-    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
-    profile_image: data.profile_image || null,
-    name: data.name || null,
-    // THIS LINE IS NOW FIXED
-    tornProfileId: String(data.player_id || '') 
-    // --- END NEW ---
-};
-    console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
-
-    try {
-        const factionUpdateResponse = await fetch('/.netlify/functions/update-user-faction', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatePayload),
-        });
-
-        if (!factionUpdateResponse.ok) {
-            const errorData = await factionUpdateResponse.json().catch(() => ({}));
-            throw new Error(errorData.error || `HTTP error! Status: ${factionUpdateResponse.status}`);
+        } catch (factionBasicFetchError) {
+            console.error(`[Step 2] Error fetching faction basic data (V1):`, factionBasicFetchError);
+            // Continue without this specific faction data if there's a fetch error
         }
-        const responseData = await factionUpdateResponse.json();
-        console.log('Faction & Profile data update successful:', responseData.message);
+
+        // --- Update Payload with Faction Data from Step 2 (if available) ---
+        // Prioritize faction name/tag from the /faction/?selections=basic endpoint if it was successful
+        if (factionDataFromBasicEndpoint) {
+            updatePayload.faction_name = factionDataFromBasicEndpoint.name ?? '';
+            updatePayload.faction_tag = factionDataFromBasicEndpoint.tag ?? '';
+            // If the faction_id from /user/ was null but faction/basic found one, update it
+            if (updatePayload.faction_id === null && factionDataFromBasicEndpoint.ID) {
+                updatePayload.faction_id = factionDataFromBasicEndpoint.ID;
+            }
+        }
+
+        // IMPORTANT: Determine hasFreeAccess here based on your actual logic
+        // This is a placeholder. Replace with your actual logic.
+        let hasFreeAccessCalculated = userData.donator === true; // Example: Donators get free access
+        // You can add more logic here, potentially using data from `factionDataFromBasicEndpoint`
+        // e.g., if (factionDataFromBasicEndpoint?.name.includes("Elite Faction")) { hasFreeAccessCalculated = true; }
+        updatePayload.hasFreeAccess = hasFreeAccessCalculated;
+
+        // --- Save all combined data to Firestore ---
+        await userProfileRef.update(updatePayload);
+        console.log('Torn data successfully updated in Firestore for user:', user.uid, updatePayload);
 
     } catch (error) {
-        console.error('Faction & Profile data update via Netlify function failed:', error.message);
-    }
-} else {
-    // This 'else' block handles cases where no faction data is found, ensure it still clears errors
-    console.warn("No faction data found in API response to send to Netlify function.");
-    // Optionally, if you have a specific UI error display for this, update it here.
-}
-
-        } catch (error) {
-            console.error("Error in fetchAllRequiredData:", error);
-            clearQuickStats();
-            if (quickStatsErrorEl) quickStatsErrorEl.textContent = `Error loading data: ${error.message}. Check API key or Torn API status.`;
+        console.error('Error in fetchAllRequiredData:', error);
+        if (quickStatsErrorEl) {
+            let errorMessage = "Error fetching data.";
+            if (error.message.includes("API Key is invalid")) {
+                errorMessage = "Torn API Key Invalid. Please update it in your profile.";
+            } else if (error.message.includes("Access level too low")) {
+                errorMessage = "API Key Permissions Missing. Ensure your Torn API Key grants 'Public' access.";
+            } else {
+                errorMessage = `Error: ${error.message}`;
+            }
+            quickStatsErrorEl.textContent = errorMessage;
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
+            if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
         }
+        clearQuickStats();
     }
-
+}
 
     if (togglePersonalStatsCheckbox && personalStatsLabel) {
         togglePersonalStatsCheckbox.addEventListener('change', function() {
