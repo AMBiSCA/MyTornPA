@@ -755,6 +755,7 @@ function downloadCurrentTabAsImage() {
     const tempTable = document.createElement('table');
     // Copy the original table's classes to apply its styling
     tempTable.className = originalTable.className; 
+    tempTable.classList.add('download-table-preview'); // ADDED: Apply new class for condensed rows
     tempTable.style.width = '100%'; // Ensure it takes full width of tempContainer
 
     const tempThead = document.createElement('thead');

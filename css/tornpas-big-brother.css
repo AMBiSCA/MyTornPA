@@ -382,6 +382,25 @@ h2 {
 
 
 /* ==========================================================================
+   Styles for Temporary Download Table (to make rows tighter in screenshot)
+   ========================================================================== */
+
+.download-table-preview thead th {
+    padding: 6px 8px; /* Reduced vertical padding for headers in the downloaded image */
+}
+
+.download-table-preview tbody td {
+    padding: 4px 8px; /* Reduced vertical padding for data cells in the downloaded image */
+}
+
+/* You might also consider adjusting line-height if text seems too spaced out */
+.download-table-preview tbody td,
+.download-table-preview thead th {
+    line-height: 1.2; /* Reduce line height if needed for tighter text */
+}
+
+
+/* ==========================================================================
    Responsive Adjustments
    ========================================================================== */
 
