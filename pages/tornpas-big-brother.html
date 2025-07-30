@@ -3,45 +3,82 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MyTornPA - TornPAs Big Brother</title> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <title>MyTornPA - TornPAs Big Brother</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/tornpas-big-brother.css"> </head>
+    <link rel="stylesheet" href="../css/tornpas-big-brother.css">
+</head>
 <body>
 
     <div id="global-header-placeholder"></div>
 
     <main class="page-specific-content-area">
-        <h2>TornPAs Big Brother.</h2> <div class="table-container">
-            <p>Loading faction member data...</p>
-            <table class="friendly-members-table" id="friendly-members-table">
-                <thead>
-                    <tr>
-                        <th class="col-name">Name</th>
-                        <th class="col-last-action">Last Action</th>
-                        <th>Strength</th>
-                        <th>Dexterity</th>
-                        <th>Speed</th>
-                        <th>Defense</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Nerve</th>
-                        <th>Energy</th>
-                        <th>Drug CD</th>
-                        </tr>
-                </thead>
-                <tbody id="friendly-members-tbody">
-                    </tbody>
-            </table>
-        </div>
+        <h2>TornPAs Big Brother.</h2>
         
-    </main>
+        <div class="main-content-wrapper"> <div class="tab-navigation-bb"> <button class="tab-button-bb active" data-tab="current-stats">Current Stats</button>
+                <button class="tab-button-bb" data-tab="gains-tracking">Gains Tracking</button>
+            </div>
+
+            <div class="tab-content-container-bb"> <div id="current-stats-tab" class="tab-pane-bb active">
+                    <div class="table-container">
+                        <table class="friendly-members-table" id="friendly-members-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-name">Name</th>
+                                    <th class="col-last-action">Last Action</th>
+                                    <th>Strength</th>
+                                    <th>Dexterity</th>
+                                    <th>Speed</th>
+                                    <th>Defense</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Nerve</th>
+                                    <th>Energy</th>
+                                    <th>Drug CD</th>
+                                </tr>
+                            </thead>
+                            <tbody id="friendly-members-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="gains-tracking-tab" class="tab-pane-bb">
+                    <div class="gains-tracking-controls">
+                        <p>This tab will show stat gains over time for your faction members.</p>
+                        <p>More features coming soon!</p>
+                        <button id="startTrackingBtn" class="action-btn-bb">Start Tracking Gains</button>
+                        <button id="stopTrackingBtn" class="action-btn-bb hidden">Stop Tracking</button>
+                        <div id="trackingStatus">Not currently tracking.</div>
+                    </div>
+                    <div class="gains-table-container table-container">
+                        <p>No gains data available. Click "Start Tracking Gains" to begin a new session.</p>
+                        <table class="gains-overview-table" id="gains-overview-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Strength Gain</th>
+                                    <th>Dexterity Gain</th>
+                                    <th>Speed Gain</th>
+                                    <th>Defense Gain</th>
+                                    <th>Total Gain</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gains-overview-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div> </div> </main>
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="home.html" id="homeButtonFooter">Home</a>
+            <a href="home.html">Home</a>
             <a href="FAQ.html">F.A.Q</a>
             <a href="Terms.html">Disclaimer & Terms</a>
             <a href="report.html">Report an Issue</a>
@@ -58,5 +95,7 @@
 
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
-    <script src="../js/tornpas-big-brother.js"></script> <script src="../js/war_page_hub.js"></script> </body>
+    <script src="../js/tornpas-big-brother.js"></script>
+
+</body>
 </html>

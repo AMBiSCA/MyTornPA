@@ -6,7 +6,11 @@
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- Helper Functions (copied from war_page_hub.js for self-sufficiency) ---
+// Global variables for user data
+let userApiKey = null;
+let userTornProfileId = null;
+
+// --- Helper Functions (copied for self-sufficiency) ---
 
 /**
  * Formats a raw number into a human-readable string (e.g., 1.23b, 45.6m, 789k).
@@ -128,12 +132,72 @@ function formatRelativeTime(timestampInSeconds) {
     }
 }
 
+// --- Loading Message Control (Updated to use element created in JS) ---
+let loadingMessageElement; // Declare globally or in a scope accessible to updateFriendlyMembersTable
 
-// --- Main Data Fetching and Display Function for the Table (Modified for 'Big Brother' page) ---
+function showLoadingMessage() {
+    if (!loadingMessageElement) {
+        const tableContainer = document.querySelector('.table-container'); // Or the active tab pane
+        if (tableContainer) {
+            loadingMessageElement = document.createElement('p');
+            loadingMessageElement.id = 'loading-message-container';
+            loadingMessageElement.style.textAlign = 'center';
+            loadingMessageElement.style.padding = '20px';
+            loadingMessageElement.style.color = '#bbb';
+            loadingMessageElement.textContent = 'Loading faction member data...';
+            // Prepend to the table container, but only if it's the current-stats-tab's table-container
+            const currentStatsTab = document.getElementById('current-stats-tab');
+            if (currentStatsTab && currentStatsTab.contains(tableContainer)) {
+                tableContainer.prepend(loadingMessageElement);
+            }
+        }
+    }
+    if (loadingMessageElement) {
+        loadingMessageElement.style.display = 'block';
+    }
+}
 
+function hideLoadingMessage() {
+    if (loadingMessageElement) {
+        loadingMessageElement.style.display = 'none';
+    }
+}
+
+// --- User Role / Admin Check (Copied for self-sufficiency) ---
+async function checkIfUserIsAdmin(userUid) {
+    if (!userUid) return false;
+
+    try {
+        const userProfileDoc = await db.collection('userProfiles').doc(userUid).get();
+        if (!userProfileDoc.exists) {
+            return false;
+        }
+
+        const userProfile = userProfileDoc.data();
+        const userPosition = userProfile.position ? userProfile.position.toLowerCase() : '';
+        const userTornId = userProfile.tornProfileId || '';
+
+        if (userPosition === 'leader' || userPosition === 'co-leader') {
+            return true;
+        }
+
+        // Check against designated admins in factionWars config if necessary
+        // This part would depend on where your tab4Admins list is stored and how it's structured.
+        // For now, let's assume 'leader' or 'co-leader' is enough for this page's admin checks.
+        // If you need specific `tab4Admins` from `factionWars` to grant access to gains tracking,
+        // you'd need to fetch `db.collection('factionWars').doc('currentWar').get()` here as well.
+        return false; // Default to false if not leader/co-leader
+    } catch (error) {
+        console.error("Error during admin check in TornPAs Big Brother:", error);
+        return false;
+    }
+}
+
+
+// --- Main Data Fetching and Display Function for the Table ---
 /**
  * Fetches and displays friendly faction members' stats in a table.
- * Includes Firestore batching for efficiency and removes the 'Revivable' column.
+ * Includes Firestore batching for efficiency.
  * @param {string} apiKey The user's Torn API key.
  * @param {string} firebaseAuthUid The current logged-in Firebase user's UID.
  */
@@ -144,18 +208,20 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         return;
     }
 
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
+    showLoadingMessage(); // Show loading message
 
     try {
         const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
         const userProfileDoc = await userProfileDocRef.get();
         if (!userProfileDoc.exists) {
+            hideLoadingMessage();
             tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: red;">Error: User profile not found.</td></tr>';
             return;
         }
         const userFactionId = userProfileDoc.data().faction_id;
 
         if (!userFactionId) {
+            hideLoadingMessage();
             tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">Not in a faction or Faction ID not stored.</td></tr>';
             return;
         }
@@ -166,12 +232,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         const factionData = await factionResponse.json();
 
         if (!factionResponse.ok || factionData.error) {
+            hideLoadingMessage();
             tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red;">Error: ${factionData.error?.error || 'Torn API Error'}.</td></tr>`;
             return;
         }
 
         const membersArray = Object.values(factionData.members || {});
         if (membersArray.length === 0) {
+            hideLoadingMessage();
             tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No members found in your faction.</td></tr>';
             return;
         }
@@ -184,8 +252,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         // Divide member IDs into chunks and create a fetch promise for each chunk
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
-            // Ensure the IDs are actual document IDs if they were stored differently,
-            // otherwise, this is correct for matching document IDs directly.
             const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
             firestoreFetchPromises.push(query.get());
         }
@@ -233,7 +299,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const defense = (firebaseData.battlestats?.defense || 0).toLocaleString();
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
             const energy = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
-            // Removed isRevivable logic as the column is gone.
 
             const drugCooldownValue = firebaseData.cooldowns?.drug ?? 0;
             let drugCooldown, drugCooldownClass = '';
@@ -253,12 +318,12 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const originalDescription = tornData.status?.description || 'N/A';
             let formattedStatus = originalDescription;
             let statusClass = 'status-okay';
-            if (statusState === 'Hospital') { 
-                statusClass = 'status-hospital'; 
-            } else if (statusState === 'Abroad') { 
-                statusClass = 'status-abroad'; 
-            } else if (statusState !== 'Okay') { 
-                statusClass = 'status-other'; 
+            if (statusState === 'Hospital') {
+                statusClass = 'status-hospital';
+            } else if (statusState === 'Abroad') {
+                statusClass = 'status-abroad';
+            } else if (statusState !== 'Okay') {
+                statusClass = 'status-other';
             }
 
             const profileUrl = `https://www.torn.com/profiles.php?XID=${memberId}`;
@@ -276,69 +341,166 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                     <td class="nerve-text">${nerve}</td>
                     <td class="energy-text">${energy}</td>
                     <td class="${drugCooldownClass}">${drugCooldown}</td>
-                    </tr>
+                </tr>
             `;
         }
-
-        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11">No members to display.</td></tr>';
+        
+        hideLoadingMessage(); // Hide loading message on success
+        tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="11" style="text-align:center;">No members to display.</td></tr>';
         applyStatColorCoding(); // Apply colors after table is populated
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
+        hideLoadingMessage(); // Hide loading message on error
         tbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
     }
 }
 
 
-// --- Main execution block (same as before) ---
+// --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    let userApiKey = null;     // Will store the user's Torn API key
-    let userTornProfileId = null; // Will store the user's Torn Profile ID
+    // --- Initialize Loading Message Element on page load ---
+    const tableContainer = document.querySelector('.table-container'); // This targets the container within the 'Current Stats' tab
+    if (tableContainer) {
+        // Create the loading message element and append it once
+        loadingMessageElement = document.createElement('p'); // Assign to the global variable
+        loadingMessageElement.id = 'loading-message-container';
+        loadingMessageElement.style.textAlign = 'center';
+        loadingMessageElement.style.padding = '20px';
+        loadingMessageElement.style.color = '#bbb';
+        loadingMessageElement.textContent = 'Loading faction member data...';
+        tableContainer.prepend(loadingMessageElement); // Add at the beginning of table-container
+    }
 
+
+    // --- Tab Switching Logic ---
+    const tabButtons = document.querySelectorAll('.tab-button-bb');
+    const tabPanes = document.querySelectorAll('.tab-pane-bb');
+    const startTrackingBtn = document.getElementById('startTrackingBtn');
+    const stopTrackingBtn = document.getElementById('stopTrackingBtn');
+    const trackingStatusDisplay = document.getElementById('trackingStatus');
+
+    function showTab(tabId) {
+        tabPanes.forEach(pane => {
+            if (pane.id === tabId) {
+                pane.classList.add('active');
+            } else {
+                pane.classList.remove('active');
+            }
+        });
+
+        tabButtons.forEach(button => {
+            if (button.dataset.tab + '-tab' === tabId) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+
+        // Trigger data load/refresh when switching to a tab that needs it
+        if (tabId === 'current-stats-tab') {
+             if (userApiKey && auth.currentUser && auth.currentUser.uid) {
+                updateFriendlyMembersTable(userApiKey, auth.currentUser.uid);
+            }
+        } else if (tabId === 'gains-tracking-tab') {
+            // Placeholder: Logic to load/display gains data will go here later
+            console.log("Switched to Gains Tracking tab.");
+            // You might want to initially hide the loading message here if this tab has its own loading states
+            hideLoadingMessage(); // Hide the main table's loading message
+        }
+    }
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            showTab(button.dataset.tab + '-tab');
+        });
+    });
+
+    // --- Authentication and Initial Data Load ---
     auth.onAuthStateChanged(async (user) => {
         const friendlyMembersTbody = document.getElementById('friendly-members-tbody');
 
         if (user) {
             try {
-                // Fetch the user's profile to get their API key and Torn Profile ID
                 const userProfileDoc = await db.collection('userProfiles').doc(user.uid).get();
                 if (userProfileDoc.exists) {
                     const userData = userProfileDoc.data();
                     userApiKey = userData.tornApiKey || null;
                     userTornProfileId = userData.tornProfileId || null;
 
+                    // Check user's admin status to show/hide tracking controls
+                    const isAdmin = await checkIfUserIsAdmin(user.uid);
+                    if (isAdmin) {
+                        startTrackingBtn.classList.remove('hidden');
+                        stopTrackingBtn.classList.remove('hidden');
+                        trackingStatusDisplay.textContent = 'Tracking controls visible.';
+                        // You'll fetch actual tracking status from Firebase later
+                    } else {
+                        startTrackingBtn.classList.add('hidden');
+                        stopTrackingBtn.classList.add('hidden');
+                        trackingStatusDisplay.textContent = 'Only leaders/co-leaders can track gains.';
+                    }
+
                     if (userApiKey && userTornProfileId) {
                         console.log("Logged in and API key/Profile ID found. Populating TornPAs Big Brother table...");
                         
-                        await updateFriendlyMembersTable(userApiKey, user.uid);
-
-                        setInterval(async () => {
-                            console.log("Refreshing TornPAs Big Brother table (interval)...");
+                        // Initial load for the default active tab ('current-stats-tab')
+                        if (document.getElementById('current-stats-tab').classList.contains('active')) {
                             await updateFriendlyMembersTable(userApiKey, user.uid);
+                        }
+
+                        // Set up an interval to refresh Current Stats table periodically
+                        // This interval will only run when the 'Current Stats' tab is active
+                        setInterval(async () => {
+                            if (document.getElementById('current-stats-tab').classList.contains('active')) {
+                                console.log("Refreshing Current Stats table (interval)...");
+                                await updateFriendlyMembersTable(userApiKey, user.uid);
+                            }
                         }, 30000); // Refresh every 30 seconds (adjust as needed)
                         
                     } else {
                         console.warn("User logged in, but Torn API key or Profile ID missing in user profile. Cannot display full stats.");
+                        hideLoadingMessage();
                         if (friendlyMembersTbody) {
                             friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
                         }
                     }
                 } else {
                     console.warn("User profile document not found in Firestore for current user.");
+                    hideLoadingMessage();
                     if (friendlyMembersTbody) {
                         friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
                     }
                 }
             } catch (error) {
                 console.error("Error fetching user profile for TornPAs Big Brother page:", error);
+                hideLoadingMessage();
                 if (friendlyMembersTbody) {
-                    friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color: red; padding: 20px;">Error loading TornPAs Big Brother: ${error.message}</td></tr>`;
+                    friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
                 }
             }
         } else {
             console.log("User not logged in. Displaying login message for TornPAs Big Brother page.");
+            hideLoadingMessage();
             if (friendlyMembersTbody) {
                 friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">Please log in to view faction member stats.</td></tr>';
             }
+            // Hide tracking buttons if logged out
+            startTrackingBtn.classList.add('hidden');
+            stopTrackingBtn.classList.add('hidden');
+            trackingStatusDisplay.textContent = 'Please log in.';
         }
+    });
+
+    // --- Event Listeners for Gain Tracking Buttons (Placeholder) ---
+    startTrackingBtn.addEventListener('click', () => {
+        alert("Start Tracking Gains button clicked! (Functionality to be implemented)");
+        // Logic to capture snapshot and save to Firebase
+        // Change tracking status display, show/hide buttons
+    });
+
+    stopTrackingBtn.addEventListener('click', () => {
+        alert("Stop Tracking button clicked! (Functionality to be implemented)");
+        // Logic to stop tracking, maybe save final gains or clear session
+        // Change tracking status display, show/hide buttons
     });
 });

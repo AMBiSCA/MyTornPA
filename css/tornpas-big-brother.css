@@ -26,6 +26,88 @@ h2 {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+/* New wrapper for tab structure */
+.main-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between tabs and content */
+}
+
+/* ==========================================================================
+   Tab Navigation Styles (Specific to Big Brother Page - with '-bb' suffix)
+   ========================================================================== */
+
+.tab-navigation-bb {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: none; /* No separator below the tabs themselves */
+    flex-wrap: wrap;
+    margin-bottom: -1px; /* Overlap with the border of the content container */
+}
+
+.tab-button-bb {
+    background-color: #333; /* Default tab background */
+    color: #f0f0f0;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    border-radius: 8px 8px 0 0; /* Rounded top corners */
+    flex-grow: 1; /* Make buttons grow to fill space */
+    min-width: 150px; /* Minimum width for each tab */
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid transparent; /* Transparent border by default */
+    border-bottom: none; /* No bottom border for tab itself */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    outline: none; /* Remove focus outline */
+}
+
+.tab-button-bb:hover {
+    background-color: #555; /* Hover color */
+    color: #00a8ff; /* Highlight text on hover */
+}
+
+.tab-button-bb.active {
+    background-color: #222; /* Active tab background - matches content container */
+    color: #00a8ff; /* Active tab text color - your theme blue */
+    border-color: black; /* Stronger border for active tab */
+    border-bottom: 1px solid #222; /* Cover the content container's top border */
+    cursor: default; /* Indicate it's not clickable again */
+}
+
+/* Tab Content Container */
+.tab-content-container-bb {
+    background-color: #222; /* Dark background for content area */
+    border: 1px solid black; /* Border around the content */
+    border-radius: 8px; /* Rounded corners for the container */
+    padding: 15px; /* Internal padding */
+    flex-grow: 1;
+    min-height: 400px; /* Ensures a minimum height */
+    box-sizing: border-box;
+    overflow: hidden; /* Contains overflowing content */
+    display: flex; /* Use flex to manage inner tab panes */
+    flex-direction: column;
+}
+
+/* Individual Tab Panes */
+.tab-pane-bb {
+    display: none; /* Hidden by default */
+    height: 100%; /* Take full height of parent container */
+    width: 100%; /* Take full width */
+    overflow-y: auto; /* Enable scrolling for content if it overflows */
+    box-sizing: border-box;
+    /* Optional: Add internal padding for tab panes if content should be spaced from edges */
+    padding-right: 5px; /* Space for scrollbar if present */
+}
+
+.tab-pane-bb.active {
+    display: block; /* Show active tab pane */
+}
+
+/* ==========================================================================
+   Table Container & Friendly Members Table Styles (Same as previous step)
+   ========================================================================== */
+
 /* Table Container - Provides a visual grouping for the table */
 .table-container {
     background-color: #222; /* Slightly lighter dark background for the table area */
@@ -33,40 +115,47 @@ h2 {
     border-radius: 8px;
     overflow: hidden; /* Ensures table corners are rounded */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    /* For tab-pane, these are handled by the tab-pane itself for height */
+    height: 100%; /* Ensure table container fills its tab pane */
+    display: flex; /* Use flex to make loading message position correctly */
+    flex-direction: column;
 }
 
-/* Loading/Error Message within the table container */
-.table-container p {
+/* Loading/Error Message within the table container (managed by JS, but styled here) */
+#loading-message-container {
     text-align: center;
     padding: 20px;
     color: #bbb;
+    flex-grow: 1; /* Allows it to center vertically if nothing else is there */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* ==========================================================================
-   Friendly Members Table Styles
-   ========================================================================== */
 
 .friendly-members-table {
     width: 100%;
-    border-collapse: collapse; /* Removes space between table cells */
+    border-collapse: collapse;
     font-family: Arial, sans-serif;
-    color: #ddd; /* Default text color for table cells */
-    table-layout: fixed; /* Ensures consistent column widths */
+    color: #ddd;
+    table-layout: fixed;
+    flex-grow: 1; /* Allow table to fill available space in column */
+    display: table; /* Revert to table display for proper rendering */
 }
 
 /* Table Header (thead) styles */
 .friendly-members-table thead th {
-    background-color: #00a8ff; /* Blue header background */
-    color: #1e1e1e; /* Dark text on blue */
+    background-color: #00a8ff;
+    color: #1e1e1e;
     font-weight: bold;
     text-align: center;
-    padding: 10px 8px; /* Vertical and horizontal padding */
-    border-bottom: 2px solid #1e1e1e; /* Darker border below header */
+    padding: 10px 8px;
+    border-bottom: 2px solid #1e1e1e;
     font-size: 0.9em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    border-right: 1px solid #303030; /* Vertical separator for headers */
+    border-right: 1px solid #303030;
 }
 
 /* Remove right border from the very last header for a clean look */
@@ -76,16 +165,16 @@ h2 {
 
 /* Table Body (tbody) cell styles */
 .friendly-members-table tbody td {
-    padding: 8px 8px; /* Padding for data cells */
-    border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
+    padding: 8px 8px;
+    border-bottom: 1px solid #3a3a40;
     vertical-align: middle;
     font-size: 0.85em;
-    color: #f0f0f0; /* Default text color for data cells */
+    color: #f0f0f0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center; /* Center content in data cells */
-    border-right: 1px solid #303030; /* Vertical separator for cells */
+    text-align: center;
+    border-right: 1px solid #303030;
 }
 
 /* Remove right border from the very last cell in each row */
@@ -100,12 +189,12 @@ h2 {
 
 /* Hover effect for table rows */
 .friendly-members-table tbody tr:hover {
-    background-color: #38383e; /* Slightly lighter background on hover */
+    background-color: #38383e;
 }
 
 /* Link styles within table cells */
 .friendly-members-table a {
-    color: #8ab4f8; /* A nice blue for links */
+    color: #8ab4f8;
     text-decoration: none;
 }
 
@@ -180,7 +269,8 @@ h2 {
 }
 
 /* Drug Cooldown Column Text Colors */
-.friendly-members-table td.status-okay { /* Reusing status classes for Drug CD values */
+/* Reusing status classes for Drug CD values */
+.friendly-members-table td.status-okay {
     color: #28a745; /* Green for none/short CD */
 }
 .friendly-members-table td.status-other { /* Medium CD */
@@ -189,6 +279,132 @@ h2 {
 .friendly-members-table td.status-hospital { /* Long CD */
     color: #dc3545; /* Red */
 }
+
+
+/* ==========================================================================
+   Gains Tracking Tab Styles
+   ========================================================================== */
+
+.gains-tracking-controls {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px; /* Space below controls */
+    text-align: center;
+    color: #f0f0f0;
+}
+
+.gains-tracking-controls p {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+#trackingStatus {
+    font-weight: bold;
+    color: #e0a71a; /* Gold color for status */
+    margin-top: 10px;
+    font-size: 1.1em;
+}
+
+/* Shared button style for the Big Brother page */
+.action-btn-bb {
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    margin: 5px; /* Space between buttons */
+}
+
+.action-btn-bb:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Specific color for the "Stop Tracking" button */
+.action-btn-bb.stop-tracking {
+    background-color: #dc3545; /* Red for stop */
+}
+
+.action-btn-bb.stop-tracking:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+
+/* Hidden utility class */
+.hidden {
+    display: none !important;
+}
+
+/* Gains Overview Table (similar to friendly members table) */
+.gains-overview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    table-layout: fixed;
+}
+
+.gains-overview-table thead th {
+    background-color: #00a8ff;
+    color: #1e1e1e;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 8px;
+    border-bottom: 2px solid #1e1e1e;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-right: 1px solid #303030;
+}
+
+.gains-overview-table thead th:last-child {
+    border-right: none;
+}
+
+.gains-overview-table tbody td {
+    padding: 8px 8px;
+    border-bottom: 1px solid #3a3a40;
+    vertical-align: middle;
+    font-size: 0.85em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    border-right: 1px solid #303030;
+}
+
+.gains-overview-table tbody td:last-child {
+    border-right: none;
+}
+
+.gains-overview-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.gains-overview-table tbody tr:hover {
+    background-color: #38383e;
+}
+
+/* Gains specific colors */
+.gain-positive {
+    color: #4CAF50; /* Green for positive gains */
+    font-weight: bold;
+}
+
+.gain-negative {
+    color: #dc3545; /* Red for negative gains */
+    font-weight: bold;
+}
+
+.gain-neutral {
+    color: #f0f0f0; /* White/light for no change */
+}
+
 
 /* ==========================================================================
    Responsive Adjustments
@@ -199,8 +415,14 @@ h2 {
         padding: 15px;
         margin: 15px auto;
     }
+    .tab-button-bb {
+        padding: 8px 10px;
+        min-width: 120px;
+    }
     .friendly-members-table thead th,
-    .friendly-members-table tbody td {
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
         font-size: 0.8em;
         padding: 6px 4px;
     }
@@ -220,17 +442,26 @@ h2 {
 }
 
 @media (max-width: 768px) {
+    .tab-navigation-bb {
+        flex-direction: column;
+    }
+    .tab-button-bb {
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
     /* On mobile, potentially allow table to scroll horizontally if needed */
     .table-container {
         overflow-x: auto;
     }
-    .friendly-members-table {
+    .friendly-members-table,
+    .gains-overview-table {
         min-width: 700px; /* Ensure table doesn't collapse too much */
-        /* Remove fixed layout if it causes issues, or adjust widths aggressively */
         table-layout: auto; /* Allow column widths to adjust to content */
     }
     .friendly-members-table thead th,
-    .friendly-members-table tbody td {
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
         font-size: 0.75em;
         padding: 5px 3px;
     }
@@ -241,12 +472,19 @@ h2 {
         font-size: 1.5em;
         margin-bottom: 15px;
     }
-    .friendly-members-table {
+    .friendly-members-table,
+    .gains-overview-table {
         min-width: 600px; /* Further adjust min-width for very small screens */
     }
     .friendly-members-table thead th,
-    .friendly-members-table tbody td {
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
         font-size: 0.7em;
         padding: 4px 2px;
+    }
+    .action-btn-bb {
+        padding: 6px 10px;
+        font-size: 0.8em;
     }
 }
