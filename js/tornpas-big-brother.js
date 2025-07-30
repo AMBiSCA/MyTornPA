@@ -699,7 +699,7 @@ async function displayGainsTable() {
     }
 }
 
-// NEWLY MODIFIED CODE STARTS HERE:
+// MODIFIED downloadCurrentTabAsImage FUNCTION STARTS HERE:
 /**
  * Captures the currently active tab's content (with selected columns) as an image
  * and triggers a download. Requires html2canvas library to be loaded.
@@ -717,6 +717,8 @@ function downloadCurrentTabAsImage() {
     let columnIndicesToKeep = [];
     let headerTextsToKeep = [];
     let filename = 'tornpas_data.png';
+    const screenshotWidth = 800; // Define target width for the downloaded image in pixels
+    let columnWidths = []; // Pixel widths for the selected columns
 
     if (activeTabPane.id === 'current-stats-tab') {
         originalTable = document.getElementById('friendly-members-table');
@@ -724,12 +726,16 @@ function downloadCurrentTabAsImage() {
         columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; 
         headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
         filename = 'tornpas_current_stats_filtered.png';
+        // Custom pixel widths for 'Current Stats' columns (sum should be screenshotWidth)
+        columnWidths = [150, 130, 130, 130, 130, 130]; 
     } else if (activeTabPane.id === 'gains-tracking-tab') {
         originalTable = document.getElementById('gains-overview-table');
         // Indices of Name (0), Strength Gain (1), Dexterity Gain (2), Speed Gain (3), Defense Gain (4), Total Gain (5)
         columnIndicesToKeep = [0, 1, 2, 3, 4, 5];
         headerTextsToKeep = ["Name", "Strength Gain", "Dexterity Gain", "Speed Gain", "Defense Gain", "Total Gain"];
         filename = 'tornpas_gains_tracking_filtered.png';
+        // Custom pixel widths for 'Gains Tracking' columns (sum should be screenshotWidth)
+        columnWidths = [200, 120, 120, 120, 120, 120]; 
     } else {
         console.error('Unknown active tab for screenshot.');
         alert('Cannot download data for this tab.');
@@ -746,17 +752,17 @@ function downloadCurrentTabAsImage() {
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
-    tempContainer.style.width = originalTable.offsetWidth + 'px'; // Maintain original table width for styling
-    tempContainer.style.backgroundColor = '#222'; // Match your table's background for capture
-    tempContainer.style.padding = '15px'; // Add some padding around the captured content
-    tempContainer.style.borderRadius = '8px'; // Match the border-radius of your tab content container
-    tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)'; // Match box-shadow
+    tempContainer.style.width = screenshotWidth + 'px'; // Set fixed width for the container
+    tempContainer.style.backgroundColor = '#222';
+    tempContainer.style.padding = '15px';
+    tempContainer.style.borderRadius = '8px';
+    tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
 
     const tempTable = document.createElement('table');
-    // Copy the original table's classes to apply its styling
     tempTable.className = originalTable.className; 
-    tempTable.classList.add('download-table-preview'); // ADDED: Apply new class for condensed rows
+    tempTable.classList.add('download-table-preview'); // Apply new class for condensed rows
     tempTable.style.width = '100%'; // Ensure it takes full width of tempContainer
+    tempTable.style.tableLayout = 'fixed'; // Ensure fixed layout for column widths
 
     const tempThead = document.createElement('thead');
     const tempTbody = document.createElement('tbody');
@@ -765,10 +771,12 @@ function downloadCurrentTabAsImage() {
     const originalHeaderRow = originalTable.querySelector('thead tr');
     if (originalHeaderRow) {
         const tempHeaderRow = document.createElement('tr');
-        columnIndicesToKeep.forEach(index => {
-            const originalTh = originalHeaderRow.children[index];
+        columnIndicesToKeep.forEach((originalIndex, i) => { 
+            const originalTh = originalHeaderRow.children[originalIndex];
             if (originalTh) {
-                const clonedTh = originalTh.cloneNode(true); // Clone with content and attributes
+                const clonedTh = originalTh.cloneNode(true);
+                // Set inline width for the cloned header cell to control column width
+                clonedTh.style.width = columnWidths[i] + 'px';
                 tempHeaderRow.appendChild(clonedTh);
             }
         });
@@ -790,10 +798,12 @@ function downloadCurrentTabAsImage() {
         const tempRow = document.createElement('tr');
         const originalCells = originalRow.children;
         
-        columnIndicesToKeep.forEach(index => {
-            const originalCell = originalCells[index];
+        columnIndicesToKeep.forEach((originalIndex, i) => { 
+            const originalCell = originalCells[originalIndex];
             if (originalCell) {
-                const clonedCell = originalCell.cloneNode(true); // Clone with content and attributes
+                const clonedCell = originalCell.cloneNode(true);
+                // Set inline width for the cloned data cell for consistency
+                clonedCell.style.width = columnWidths[i] + 'px';
                 tempRow.appendChild(clonedCell);
             }
         });
@@ -829,7 +839,7 @@ function downloadCurrentTabAsImage() {
         }
     });
 }
-// NEWLY MODIFIED CODE ENDS HERE
+// MODIFIED downloadCurrentTabAsImage FUNCTION ENDS HERE
 
 
 // --- Main execution block and event listeners ---
