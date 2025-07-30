@@ -289,12 +289,52 @@ function initializeGlobals() {
                     });
                 }
 
-                if (openGraphIcon) {
-                    openGraphIcon.addEventListener('click', () => {
-                        openChatPanel(factionOverviewPanel);
-                        populateFactionOverview(); // This calls the function to load the data
-                    });
-                }
+                // Replace your old block with this NEW version
+if (openGraphIcon) {
+    openGraphIcon.addEventListener('click', async () => { // Make the function async
+        openChatPanel(factionOverviewPanel);
+
+        // --- NEW REFRESH LOGIC STARTS HERE ---
+
+        const overviewContent = document.getElementById('faction-overview-content');
+        
+        // Show a "Refreshing..." message to the user immediately
+        if (overviewContent) {
+            overviewContent.innerHTML = `<p style="text-align: center; color: #888; padding-top: 20px;">Refreshing latest faction data...</p>`;
+        }
+        
+        try {
+            // Check if we have the faction ID needed to make the call
+            if (!currentUserFactionId) {
+                throw new Error("You must be logged in to refresh faction data.");
+            }
+
+            // Call the new Netlify function to update the data in the database
+            const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${currentUserFactionId}`);
+            
+            if (!response.ok) {
+                // If the function returns an error, show it
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || 'The refresh process failed.');
+            }
+
+            console.log("Backend data refresh was successful.");
+
+        } catch (error) {
+            console.error("Error refreshing faction data:", error);
+            if (overviewContent) {
+                overviewContent.innerHTML = `<p style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</p>`;
+            }
+            return; // Stop if the refresh fails
+        }
+        
+        // --- NEW REFRESH LOGIC ENDS HERE ---
+
+        // Now that the data is fresh in the database, call your original
+        // function to display it on the screen.
+        populateFactionOverview();
+    });
+}
 
                 if (saveAllianceButton) {
     saveAllianceButton.addEventListener('click', async () => {
