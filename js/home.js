@@ -623,156 +623,194 @@ async function fetchDataForPersonalStatsModal(apiKey, firestoreProfileData) {
     }
 }
     async function fetchAllRequiredData(user, dbInstance) {
-        if (!user || !dbInstance) {
-            console.error("fetchAllRequiredData: User or DB not provided.");
+    if (!user || !dbInstance) {
+        console.error("fetchAllRequiredData: User or DB not provided.");
+        clearQuickStats(); // Assuming this clears relevant UI elements
+        return;
+    }
+    console.log("fetchAllRequiredData called for user:", user.uid);
+    const quickStatsErrorEl = document.getElementById('quickStatsError');
+    if (quickStatsErrorEl) quickStatsErrorEl.textContent = 'Loading data...';
+    if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+    if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.disabled = false;
+    if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = false;
+    if (personalStatsLabel) personalStatsLabel.style.cursor = 'pointer';
+
+    ["drugCooldownStat", "boosterCooldownStat"].forEach(id => {
+        if (activeCooldownIntervals[id]) clearInterval(activeCooldownIntervals[id]);
+        delete activeCooldownIntervals[id];
+        delete activeCooldownEndTimes[id];
+        updateStatDisplay(id, 0, 0, true, 0);
+    });
+    updateStatDisplay("hospitalStat", null, null, false, "N/A");
+    updateStatDisplay("travelStatus", null, null, false, "N/A");
+
+    try {
+        const userProfileRef = dbInstance.collection('userProfiles').doc(user.uid);
+        const doc = await userProfileRef.get();
+        if (!doc.exists) {
+            console.log("User profile not found in Firestore.");
             clearQuickStats();
             return;
         }
-        console.log("fetchAllRequiredData called for user:", user.uid);
-        const quickStatsErrorEl = document.getElementById('quickStatsError');
-        if (quickStatsErrorEl) quickStatsErrorEl.textContent = 'Loading data...';
-        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
-        if (shareFactionStatsToggleDashboard) shareFactionStatsToggleDashboard.disabled = false;
-        if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = false;
-        if (personalStatsLabel) personalStatsLabel.style.cursor = 'pointer';
+        const profileDataFromFirestore = doc.data();
+        const apiKey = profileDataFromFirestore.tornApiKey;
+        // Make sure to get the stored tornProfileId for the API call too
+        const tornProfileId = profileDataFromFirestore.tornProfileId; 
 
-        ["drugCooldownStat", "boosterCooldownStat"].forEach(id => {
-            if (activeCooldownIntervals[id]) clearInterval(activeCooldownIntervals[id]);
-            delete activeCooldownIntervals[id];
-            delete activeCooldownEndTimes[id];
-            updateStatDisplay(id, 0, 0, true, 0);
-        });
-        updateStatDisplay("hospitalStat", null, null, false, "N/A");
-        updateStatDisplay("travelStatus", null, null, false, "N/A");
+        if (!apiKey || !tornProfileId) { // Check for tornProfileId too
+            console.log("API key or Torn Profile ID missing in user profile.");
+            clearQuickStats();
+            if (quickStatsErrorEl && profileDataFromFirestore.profileSetupComplete) quickStatsErrorEl.textContent = 'API Key or Torn Profile ID not found. Please set it in your profile.';
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
+            if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
+            return;
+        }
 
-        try {
-            const userProfileRef = dbInstance.collection('userProfiles').doc(user.uid);
-            const doc = await userProfileRef.get();
-            if (!doc.exists) {
-                console.log("User profile not found in Firestore.");
-                clearQuickStats();
-                return;
-            }
-            const profileDataFromFirestore = doc.data();
-            const apiKey = profileDataFromFirestore.tornApiKey;
+        // --- THE CRITICAL FIX: ADD 'faction' TO SELECTIONS ---
+        // Also added 'basic' to get the top-level 'name' and 'player_id' directly if available
+        const selections = "bars,cooldowns,travel,profile,faction,basic"; 
+        const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=${selections}&key=${apiKey}&comment=MyTornPA_HomeDashboard`;
+        console.log(`Fetching dashboard data (selections: ${selections}, key hidden) for Torn ID: ${tornProfileId}`);
 
-            if (!apiKey) {
-                console.log("No API key found in user profile.");
-                clearQuickStats();
-                if (quickStatsErrorEl && profileDataFromFirestore.profileSetupComplete) quickStatsErrorEl.textContent = 'API Key not found. Please set it in your profile.';
-                if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
-                if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
-                return;
-            }
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        console.log("Dashboard API Response:", data);
 
-            const selections = "bars,cooldowns,travel,profile";
-            const apiUrl = `https://api.torn.com/user/?selections=${selections}&key=${apiKey}&comment=MyTornPA_HomeDashboard`;
-            console.log(`Fetching dashboard data (selections: ${selections}, key hidden)`);
+        if (!response.ok) {
+            const errorMsg = data?.error?.error || response.statusText;
+            throw new Error(`API Error ${response.status}: ${errorMsg}`);
+        }
+        if (data.error) {
+            // It's good practice to log the specific Torn error code for debugging
+            console.error('Torn API Error Code:', data.error.code);
+            throw new Error(`Torn API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
+        }
 
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            console.log("Dashboard API Response:", data);
+        const barDataSource = data.bars || data;
+        updateStatDisplay("nerveStat", barDataSource.nerve?.current, barDataSource.nerve?.maximum);
+        updateStatDisplay("energyStat", barDataSource.energy?.current, barDataSource.energy?.maximum);
+        updateStatDisplay("happyStat", barDataSource.happy?.current, barDataSource.happy?.maximum);
+        updateStatDisplay("lifeStat", barDataSource.life?.current, barDataSource.life?.maximum);
 
-            if (!response.ok) {
-                const errorMsg = data?.error?.error || response.statusText;
-                throw new Error(`API Error ${response.status}: ${errorMsg}`);
-            }
-            if (data.error) {
-                throw new Error(`API Error: ${data.error.error || data.error.message || JSON.stringify(data.error)}`);
-            }
+        if (data.cooldowns) {
+            updateStatDisplay("drugCooldownStat", 0, 0, true, data.cooldowns.drug || 0);
+            updateStatDisplay("boosterCooldownStat", 0, 0, true, data.cooldowns.booster || 0);
+        } else {
+            updateStatDisplay("drugCooldownStat", 0, 0, true, 0);
+            updateStatDisplay("boosterCooldownStat", 0, 0, true, 0);
+            console.warn("Cooldowns data missing from API response.");
+        }
 
-            const barDataSource = data.bars || data;
-            updateStatDisplay("nerveStat", barDataSource.nerve?.current, barDataSource.nerve?.maximum);
-            updateStatDisplay("energyStat", barDataSource.energy?.current, barDataSource.energy?.maximum);
-            updateStatDisplay("happyStat", barDataSource.happy?.current, barDataSource.happy?.maximum);
-            updateStatDisplay("lifeStat", barDataSource.life?.current, barDataSource.life?.maximum);
+        const nowSecondsApi = Math.floor(Date.now() / 1000);
+        let inHospital = false;
+        let hospitalTimeRemaining = 0;
+        let determinedHospitalStatusText = "N/A";
 
-            if (data.cooldowns) {
-                updateStatDisplay("drugCooldownStat", 0, 0, true, data.cooldowns.drug || 0);
-                updateStatDisplay("boosterCooldownStat", 0, 0, true, data.cooldowns.booster || 0);
-            } else {
-                updateStatDisplay("drugCooldownStat", 0, 0, true, 0);
-                updateStatDisplay("boosterCooldownStat", 0, 0, true, 0);
-                console.warn("Cooldowns data missing from API response.");
-            }
+        const profileFromApi = data.profile;
 
-            const nowSecondsApi = Math.floor(Date.now() / 1000);
-            let inHospital = false;
-            let hospitalTimeRemaining = 0;
-            let determinedHospitalStatusText = "N/A";
-
-            const profileFromApi = data.profile;
-
-            if (profileFromApi && typeof profileFromApi.status === 'object' && profileFromApi.status !== null) {
-                const statusObject = profileFromApi.status;
-                const hospitalUntil = statusObject.until || 0;
-                const statusState = statusObject.state || "";
-                const statusDesc = statusObject.description || "";
-                if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
-                    inHospital = true;
-                    if (hospitalUntil > nowSecondsApi) {
-                        hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
-                    } else {
-                        determinedHospitalStatusText = "Yes 😥";
-                    }
+        if (profileFromApi && typeof profileFromApi.status === 'object' && profileFromApi.status !== null) {
+            const statusObject = profileFromApi.status;
+            const hospitalUntil = statusObject.until || 0;
+            const statusState = statusObject.state || "";
+            const statusDesc = statusObject.description || "";
+            if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
+                inHospital = true;
+                if (hospitalUntil > nowSecondsApi) {
+                    hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
                 } else {
-                    determinedHospitalStatusText = "No 😁";
-                }
-            } else if (data.status && typeof data.status === 'object' && data.status !== null) {
-                const statusObject = data.status;
-                const hospitalUntil = statusObject.until || 0;
-                const statusState = statusObject.state || "";
-                const statusDesc = statusObject.description || "";
-                if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
-                    inHospital = true;
-                    if (hospitalUntil > nowSecondsApi) {
-                        hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
-                    } else {
-                        determinedHospitalStatusText = "Yes 😥";
-                    }
-                } else {
-                    determinedHospitalStatusText = "No 😁";
+                    determinedHospitalStatusText = "Yes 😥";
                 }
             } else {
-                console.warn("Hospital Check - Valid status object not found in data.profile.status or data.status.");
+                determinedHospitalStatusText = "No 😁";
             }
-
-            if (inHospital && hospitalTimeRemaining > 0) {
-                updateStatDisplay("hospitalStat", null, null, true, hospitalTimeRemaining, "Yes");
-            } else {
-                updateStatDisplay("hospitalStat", null, null, false, determinedHospitalStatusText);
-            }
-
-            if (data.travel && typeof data.travel.destination === 'string') {
-                if (data.travel.time_left > 0) {
-                    updateStatDisplay("travelStatus", null, null, false, `Yes (${data.travel.destination}, ${formatTimeRemaining(data.travel.time_left)})`);
+        } else if (data.status && typeof data.status === 'object' && data.status !== null) {
+            const statusObject = data.status;
+            const hospitalUntil = statusObject.until || 0;
+            const statusState = statusObject.state || "";
+            const statusDesc = statusObject.description || "";
+            if (statusState.toLowerCase() === "hospital" || statusDesc.toLowerCase().includes("in hospital")) {
+                inHospital = true;
+                if (hospitalUntil > nowSecondsApi) {
+                    hospitalTimeRemaining = hospitalUntil - nowSecondsApi;
                 } else {
-                    updateStatDisplay("travelStatus", null, null, false, `No (${data.travel.destination})`);
+                    determinedHospitalStatusText = "Yes 😥";
                 }
             } else {
-                updateStatDisplay("travelStatus", null, null, false, "No");
-                console.warn("Travel data missing or not as expected in API response.");
+                determinedHospitalStatusText = "No 😁";
             }
+        } else {
+            console.warn("Hospital Check - Valid status object not found in data.profile.status or data.status.");
+        }
 
-            if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
+        if (inHospital && hospitalTimeRemaining > 0) {
+            updateStatDisplay("hospitalStat", null, null, true, hospitalTimeRemaining, "Yes");
+        } else {
+            updateStatDisplay("hospitalStat", null, null, false, determinedHospitalStatusText);
+        }
 
-            // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
-            // It safely checks for the nested faction object and uses the correct property names.
-            const factionData = data?.profile?.faction || data?.faction || null;
+        if (data.travel && typeof data.travel.destination === 'string') {
+            if (data.travel.time_left > 0) {
+                updateStatDisplay("travelStatus", null, null, false, `Yes (${data.travel.destination}, ${formatTimeRemaining(data.travel.time_left)})`);
+            } else {
+                updateStatDisplay("travelStatus", null, null, false, `No (${data.travel.destination})`);
+            }
+        } else {
+            updateStatDisplay("travelStatus", null, null, false, "No");
+            console.warn("Travel data missing or not as expected in API response.");
+        }
+
+        if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
+
+        // --- CORRECTED SECTION FOR UPDATING FIREBASE ---
+        const factionData = data.faction || null; // Will now be present due to 'faction' selection
+        const tornCharacterName = data.name || ''; // From 'basic' selection
+        const tornPlayerIdFromApi = data.player_id || ''; // From 'basic' selection or top-level
+
+        // IMPORTANT: Determine hasFreeAccess here based on your actual logic
+        // This is a placeholder. Replace with your actual logic.
+        let hasFreeAccessCalculated = false; 
+        // Example: if (data.someSpecificField === 'premium') { hasFreeAccessCalculated = true; }
+        // Or if it's based on membership status etc.
+
+        const updatePayload = {
+            // uid: user.uid, // No need for UID in payload itself when doing doc.update()
+            faction_id: factionData ? (factionData.faction_id ?? null) : null,
+            faction_name: factionData ? (factionData.faction_name ?? '') : '',
+            position: factionData ? (factionData.position ?? '') : '',
             
-            if (factionData) {
-   const updatePayload = {
-    uid: user.uid, // User's Firebase UID
-    faction_id: factionData.faction_id ?? null,
-    faction_name: factionData.faction_name ?? null,
-    position: factionData.position ?? null,
-    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
-    profile_image: data.profile_image || null,
-    name: data.name || null,
-    // THIS LINE IS NOW FIXED
-    tornProfileId: String(data.player_id || '') 
-    // --- END NEW ---
-};
+            // These fields might come from 'profile' or 'basic' selection
+            profile_image: data.profile_image || null, // Ensure this exists in your API response
+            name: tornCharacterName, // The actual Torn character name
+            tornProfileId: String(tornPlayerIdFromApi), // Make sure this is consistently the string ID
+            
+            hasFreeAccess: hasFreeAccessCalculated, // Set based on your logic
+            lastLoginTimestamp: firebase.firestore.FieldValue.serverTimestamp(), // Update this whenever data is fetched
+        };
+
+        // Use .update() instead of .set({ merge: true }) if you are sure the document exists
+        // and you only want to update specific fields. This avoids accidental overwrites.
+        await userProfileRef.update(updatePayload); 
+        console.log('Torn data successfully updated in Firestore for user:', user.uid, updatePayload);
+
+    } catch (error) {
+        console.error('Error in fetchAllRequiredData:', error);
+        if (quickStatsErrorEl) {
+            let errorMessage = "Error fetching data.";
+            if (error.message.includes("API Key is invalid")) {
+                errorMessage = "Torn API Key Invalid. Please update it in your profile.";
+            } else if (error.message.includes("Access level too low")) {
+                errorMessage = "API Key Permissions Missing. Ensure your Torn API Key grants 'Public' access.";
+            } else {
+                errorMessage = `Error: ${error.message}`;
+            }
+            quickStatsErrorEl.textContent = errorMessage;
+            if (togglePersonalStatsCheckbox) togglePersonalStatsCheckbox.disabled = true;
+            if (personalStatsLabel) personalStatsLabel.style.cursor = 'default';
+        }
+        clearQuickStats();
+    }
+}
     console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
     try {
