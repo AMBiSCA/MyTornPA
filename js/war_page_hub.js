@@ -3660,14 +3660,21 @@ function populateEnemyMemberCheckboxes(enemyMembers, savedWatchlistMembers = [])
 }
 
 
+// Function to split an array into chunks
+function chunkArray(array, chunkSize) {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+        chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+}
+
 async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
     if (!tbody) {
         console.error("HTML Error: Friendly members table body (tbody) not found!");
         return;
     }
-
-    
 
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
 
@@ -3700,26 +3707,40 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
-        // Step 1: Process all members to get their data and calculated stats
-        const memberDataPromises = membersArray.map(async (memberTornData) => {
-            const memberId = memberTornData.user_id || memberTornData.id;
-            if (!memberId) return null;
+        // Extract all Torn IDs from the API data
+        const tornMemberIds = membersArray.map(memberTornData => String(memberTornData.user_id || memberTornData.id)).filter(Boolean);
 
-            const memberDocRef = db.collection('users').doc(String(memberId));
-            const doc = await memberDocRef.get();
-            const memberFirebaseData = doc.exists ? doc.data() : {};
-            
+        // Fetch Firebase data in batches (Firestore 'in' query limit is 10)
+        const firebaseMemberDataMap = new Map();
+        const idChunks = chunkArray(tornMemberIds, 10); // Split IDs into chunks of 10
+
+        for (const chunk of idChunks) {
+            if (chunk.length > 0) {
+                const firebaseSnapshot = await db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get();
+                firebaseSnapshot.forEach(doc => {
+                    firebaseMemberDataMap.set(doc.id, doc.data());
+                });
+            }
+        }
+        console.log("Firebase member data fetched in batches:", firebaseMemberDataMap);
+
+        // Step 1: Process all members to get their data and calculated stats
+        // Now, iterate through the membersArray (from Torn API) and merge with fetched Firebase data
+        let processedMembers = [];
+        for (const memberTornData of membersArray) {
+            const memberId = String(memberTornData.user_id || memberTornData.id);
+            if (!memberId) continue;
+
+            const memberFirebaseData = firebaseMemberDataMap.get(memberId) || {};
+
             const strengthNum = parseInt(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
             const speedNum = parseInt(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
             const dexterityNum = parseInt(String(memberFirebaseData.battlestats?.dexterity || 0).replace(/,/g, ''));
             const defenseNum = parseInt(String(memberFirebaseData.battlestats?.defense || 0).replace(/,/g, ''));
             const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
 
-            return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
-        });
-
-        let processedMembers = await Promise.all(memberDataPromises);
-        processedMembers = processedMembers.filter(m => m !== null);
+            processedMembers.push({ tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats });
+        }
 
         // Step 2: Sort the processed members by totalStats in descending order
         processedMembers.sort((a, b) => b.totalStats - a.totalStats);
@@ -3728,9 +3749,9 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         let allRowsHtml = '';
         for (const member of processedMembers) {
             const { tornData, firebaseData, totalStats } = member;
-            const memberId = tornData.user_id || tornData.id;
+            const memberId = String(tornData.user_id || tornData.id); // Ensure memberId is a string
             const name = tornData.name || 'Unknown';
-            const lastAction = tornData.last_action?.relative || 'N/A';
+            const lastAction = tornData.last_action ? formatRelativeTime(tornData.last_action.timestamp) : 'N/A';
             const strength = firebaseData.battlestats?.strength?.toLocaleString() || 'N/A';
             const dexterity = firebaseData.battlestats?.dexterity?.toLocaleString() || 'N/A';
             const speed = firebaseData.battlestats?.speed?.toLocaleString() || 'N/A';
@@ -3743,7 +3764,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const originalDescription = tornData.status?.description || 'N/A';
             let formattedStatus = originalDescription;
             let statusClass = 'status-okay';
-            if (statusState === 'Hospital') { statusClass = 'status-hospital'; } 
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
             else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
             else if (statusState !== 'Okay') { statusClass = 'status-other'; }
 
@@ -3766,11 +3787,11 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 <tr data-id="${memberId}">
                     <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                     <td>${lastAction}</td>
-                <td>${strength}</td>
-<td>${dexterity}</td>
-<td>${speed}</td>
-<td>${defense}</td>
-                   <td>${formatBattleStats(totalStats)}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
                     <td class="${statusClass}">${formattedStatus}</td>
                     <td class="nerve-text">${nerve}</td>
                     <td class="energy-text">${energy}</td>
@@ -3781,7 +3802,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-         applyStatColorCoding(); // <-- ADD THIS LINE HERE
+        applyStatColorCoding(); // <-- Keep this line here
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
