@@ -1,0 +1,252 @@
+/* File: tornpas-big-brother.css */
+
+/* ==========================================================================
+   Base Styles for TornPAs Big Brother Page
+   (Leverages global.css for general layout and fonts)
+   ========================================================================== */
+
+/* Main content area specific to this page */
+.page-specific-content-area {
+    padding: 20px; /* Adjust as needed */
+    max-width: 1200px; /* Limit overall content width */
+    margin: 20px auto; /* Center the content area */
+    background-color: #1e1e1e; /* Dark background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #f0f0f0; /* Light text color */
+}
+
+/* Page Title */
+h2 {
+    color: #00a8ff; /* Your theme's blue color */
+    text-align: center;
+    margin-bottom: 25px;
+    margin-top: 5px;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Table Container - Provides a visual grouping for the table */
+.table-container {
+    background-color: #222; /* Slightly lighter dark background for the table area */
+    border: 1px solid black; /* Subtle border */
+    border-radius: 8px;
+    overflow: hidden; /* Ensures table corners are rounded */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading/Error Message within the table container */
+.table-container p {
+    text-align: center;
+    padding: 20px;
+    color: #bbb;
+}
+
+/* ==========================================================================
+   Friendly Members Table Styles
+   ========================================================================== */
+
+.friendly-members-table {
+    width: 100%;
+    border-collapse: collapse; /* Removes space between table cells */
+    font-family: Arial, sans-serif;
+    color: #ddd; /* Default text color for table cells */
+    table-layout: fixed; /* Ensures consistent column widths */
+}
+
+/* Table Header (thead) styles */
+.friendly-members-table thead th {
+    background-color: #00a8ff; /* Blue header background */
+    color: #1e1e1e; /* Dark text on blue */
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 8px; /* Vertical and horizontal padding */
+    border-bottom: 2px solid #1e1e1e; /* Darker border below header */
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-right: 1px solid #303030; /* Vertical separator for headers */
+}
+
+/* Remove right border from the very last header for a clean look */
+.friendly-members-table thead th:last-child {
+    border-right: none;
+}
+
+/* Table Body (tbody) cell styles */
+.friendly-members-table tbody td {
+    padding: 8px 8px; /* Padding for data cells */
+    border-bottom: 1px solid #3a3a40; /* Subtle line between rows */
+    vertical-align: middle;
+    font-size: 0.85em;
+    color: #f0f0f0; /* Default text color for data cells */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center; /* Center content in data cells */
+    border-right: 1px solid #303030; /* Vertical separator for cells */
+}
+
+/* Remove right border from the very last cell in each row */
+.friendly-members-table tbody td:last-child {
+    border-right: none;
+}
+
+/* Remove bottom border from the very last row */
+.friendly-members-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Hover effect for table rows */
+.friendly-members-table tbody tr:hover {
+    background-color: #38383e; /* Slightly lighter background on hover */
+}
+
+/* Link styles within table cells */
+.friendly-members-table a {
+    color: #8ab4f8; /* A nice blue for links */
+    text-decoration: none;
+}
+
+.friendly-members-table a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   Specific Column Widths (Adjust these based on content and preference)
+   ========================================================================== */
+
+.friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; } /* Name */
+.friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
+.friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
+.friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }  /* Dexterity */
+.friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }  /* Speed */
+.friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }  /* Defense */
+.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }  /* Total */
+.friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 13%; } /* Status */
+.friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
+.friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; } /* Energy */
+.friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; } /* Drug CD */
+/* Totaling 100% of the table width across 11 columns */
+
+/* ==========================================================================
+   Dynamic Cell Styling (Status, Nerve, Energy, Drug CD, Battle Stats Color Coding)
+   ========================================================================== */
+
+/* This single rule makes the font black and bold on ALL battle stat tiers */
+.friendly-members-table td.stat-cell {
+    color: black !important;
+    font-weight: bold;
+}
+
+/* Battle Stats Tier Colors (Background colors applied by JS function applyStatColorCoding) */
+.stat-tier-1 { background-color: #F5F5F5; } /* Light Grey */
+.stat-tier-2 { background-color: #E3F2FD; } /* Pale Blue */
+.stat-tier-3 { background-color: #BBDEFB; } /* Light Blue */
+.stat-tier-4 { background-color: #FFCDD2; } /* Light Salmon / Pinkish-Red */
+.stat-tier-5 { background-color: #EF9A9A; } /* Salmon / Light Red */
+.stat-tier-6 { background-color: #E57373; } /* Coral / Orangey-Red */
+.stat-tier-7 { background-color: #F44336; } /* Standard Red */
+.stat-tier-8 { background-color: #D32F2F; } /* Darker Red (Crimson) */
+.stat-tier-9 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */
+
+/* Status Column Text Colors */
+.friendly-members-table tbody td.status-okay {
+    color: #28a745 !important; /* Green */
+}
+.friendly-members-table tbody td.status-hospital {
+    color: #dc3545 !important; /* Red */
+}
+.friendly-members-table tbody td.status-jail {
+    color: #ffc107 !important; /* Yellow/Orange */
+}
+.friendly-members-table tbody td.status-traveling {
+    color: #17a2b8 !important; /* Cyan */
+}
+.friendly-members-table tbody td.status-abroad {
+    color: #17a2b8 !important; /* A clear, pleasant blue for 'Abroad' */
+}
+.friendly-members-table tbody td.status-other {
+    color: #ffb86c !important; /* Orange for other states like Federal */
+}
+
+/* Nerve and Energy Column Text Colors */
+.friendly-members-table td.nerve-text {
+    color: #d32f2f; /* Red Text for Nerve Column */
+}
+.friendly-members-table td.energy-text {
+    color: #28a745; /* Green Text for Energy Column */
+}
+
+/* Drug Cooldown Column Text Colors */
+.friendly-members-table td.status-okay { /* Reusing status classes for Drug CD values */
+    color: #28a745; /* Green for none/short CD */
+}
+.friendly-members-table td.status-other { /* Medium CD */
+    color: #ffb86c; /* Orange */
+}
+.friendly-members-table td.status-hospital { /* Long CD */
+    color: #dc3545; /* Red */
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    .page-specific-content-area {
+        padding: 15px;
+        margin: 15px auto;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td {
+        font-size: 0.8em;
+        padding: 6px 4px;
+    }
+
+    /* Adjust column widths for tablets/smaller desktops */
+    .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; } /* Name */
+    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
+    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
+    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }  /* Dexterity */
+    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }  /* Speed */
+    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }  /* Defense */
+    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }  /* Total */
+    .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; } /* Status */
+    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
+    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; } /* Energy */
+    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; } /* Drug CD */
+}
+
+@media (max-width: 768px) {
+    /* On mobile, potentially allow table to scroll horizontally if needed */
+    .table-container {
+        overflow-x: auto;
+    }
+    .friendly-members-table {
+        min-width: 700px; /* Ensure table doesn't collapse too much */
+        /* Remove fixed layout if it causes issues, or adjust widths aggressively */
+        table-layout: auto; /* Allow column widths to adjust to content */
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td {
+        font-size: 0.75em;
+        padding: 5px 3px;
+    }
+}
+
+@media (max-width: 480px) {
+    h2 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    .friendly-members-table {
+        min-width: 600px; /* Further adjust min-width for very small screens */
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td {
+        font-size: 0.7em;
+        padding: 4px 2px;
+    }
+}
