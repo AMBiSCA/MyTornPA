@@ -257,13 +257,6 @@ async function updateToolLinksAccess(profile) {
         }
     });
 }
-
-// Function to validate if a string contains only numerical digits
-function isValidTornProfileId(idString) {
-    // Return true if the string consists only of one or more digits
-    return /^\d+$/.test(idString);
-}
-
     function updateStatDisplay(elementId, current, max, isCooldown = false, valueFromApi = 0, prefixText = "") {
         const element = document.getElementById(elementId);
         if (!element) { console.warn(`updateStatDisplay: Element ID ${elementId} not found.`); return; }
@@ -919,120 +912,85 @@ if (headerEditProfileBtn && auth && db) {
     });
 }
 
- if (saveProfileBtn && auth && db) { // Ensure auth and db are available
+  if (saveProfileBtn && auth && db) {
     saveProfileBtn.addEventListener('click', async () => {
-        // Clear previous errors
-        profileSetupErrorEl.textContent = ''; // CORRECTED: Using profileSetupErrorEl
-        profileSetupErrorEl.style.display = 'none'; // CORRECTED: Using profileSetupErrorEl
+        const profileSetupErrorEl = document.getElementById('profileSetupError');
+        if (profileSetupErrorEl) profileSetupErrorEl.textContent = '';
 
-        // Using globally declared DOM elements directly
-        const preferredName = preferredNameInput.value.trim();
-        const tornProfileId = profileSetupProfileIdInput.value.trim();
-        const tornApiKey = profileSetupApiKeyInput.value.trim();
-        const termsAgreed = termsAgreementProfileModalCheckbox.checked;
-
-        // --- ALL VALIDATION CHECKS GO HERE, IN ORDER ---
-
-        // 1. Check if terms are agreed
-        if (!termsAgreed) {
-            profileSetupErrorEl.textContent = "You must agree to the Terms of Service and Privacy Policy.";
-            profileSetupErrorEl.style.display = 'block';
+        if (termsCheckbox && !termsCheckbox.checked) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Please agree to the Terms of Service and Privacy Policy.';
+            return;
+        }
+        
+        if (!preferredNameInput || !profileSetupApiKeyInput || !profileSetupProfileIdInput || !auth.currentUser || !db) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Internal error. Please refresh and try again.';
             return;
         }
 
-        // 2. Check for empty fields
-        if (preferredName === '' || tornProfileId === '' || tornApiKey === '') {
-            profileSetupErrorEl.textContent = "All fields are required.";
-            profileSetupErrorEl.style.display = 'block';
+        const preferredNameVal = preferredNameInput.value.trim();
+        const apiKeyVal = profileSetupApiKeyInput.value.trim();
+        const profileIdVal = profileSetupProfileIdInput.value.trim();
+
+        if (!preferredNameVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Preferred Display Name is a required field.';
+            return;
+        }
+        if (preferredNameVal.length > 10) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Display Name cannot be more than 10 characters.';
+            return;
+        }
+        if (nameBlocklist.some(w => preferredNameVal.toLowerCase().includes(w))) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'The chosen Display Name is not allowed.';
             return;
         }
 
-        // 3. NEW: Validate Torn Profile ID is purely numerical
-        if (!isValidTornProfileId(tornProfileId)) {
-            profileSetupErrorEl.textContent = "Torn Profile ID must be numerical values only (e.g., 239420).";
-            profileSetupErrorEl.style.display = 'block';
-            return; // Stop the function if validation fails
+        if (!apiKeyVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
+            return;
         }
 
-        // --- END VALIDATION CHECKS ---
+        if (!profileIdVal) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
+            return;
+        }
 
-        // Disable button and show loading state
-        saveProfileBtn.disabled = true;
-        const originalButtonText = saveProfileBtn.innerHTML;
-        saveProfileBtn.innerHTML = 'Verifying & Saving...';
+        const user = auth.currentUser;
+        const profileDataToSave = {
+            preferredName: preferredNameVal,
+            tornApiKey: apiKeyVal,
+            tornProfileId: String(profileIdVal),
+            termsAgreed: termsCheckbox.checked,
+            profileSetupComplete: true,
+            shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+        };
 
         try {
-            const user = auth.currentUser;
-            if (!user) {
-                profileSetupErrorEl.textContent = "User not authenticated. Please log in again.";
-                profileSetupErrorEl.style.display = 'block';
-                return;
-            }
-
-            // --- Fetch data from Torn API to verify key and get faction info ---
-            const apiUrl = `https://api.torn.com/user/${tornProfileId}?selections=profile&key=${tornApiKey}&comment=MyTornPA_ProfileSetup`;
-            const response = await fetch(apiUrl);
-            const tornData = await response.json();
-
-            if (!response.ok || tornData.error) {
-                // Specific error handling for Torn API issues
-                let errorMessage = tornData.error ? tornData.error.error : "Invalid API Key or Torn Profile ID. Please check them.";
-                throw new Error(errorMessage);
-            }
-
-            // Reference to the user's profile document in Firestore
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
+            const currentDoc = await userProfileRef.get();
 
-            // Fetch current user's Firebase profile to retain existing data like tcpRegisteredAt, etc.
-            // This is important to avoid overwriting fields not handled by this modal.
-            const currentUserProfileSnap = await userProfileRef.get();
-            const existingProfileData = currentUserProfileSnap.exists ? currentUserProfileSnap.data() : {};
-
-            // Build the data object to save to Firestore
-            const profileDataToSave = {
-                ...existingProfileData, // Merge existing data to preserve fields not handled by the modal
-                preferredName: preferredName,
-                tornApiKey: tornApiKey,
-                tornProfileId: String(tornProfileId), // Ensure it's saved as a string
-                name: tornData.name || preferredName, // Use Torn name if available, else preferred name
-                faction_id: tornData.faction?.faction_id || null,
-                faction_name: tornData.faction?.faction_name || null,
-                position: tornData.faction?.position || null,
-                termsAgreed: termsAgreed,
-                profileSetupComplete: true, // Mark profile setup as complete
-                shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            // Set tcpRegisteredAt only if it's a new profile setup
-            if (!existingProfileData.tcpRegisteredAt) {
+            if (!currentDoc.exists) {
                 profileDataToSave.tcpRegisteredAt = firebase.firestore.FieldValue.serverTimestamp();
             }
 
-            // Save profile data to Firestore
-            await userProfileRef.set(profileDataToSave); // No merge needed if we explicitly merged existing data above
+            if (!currentDoc.exists || currentDoc.data().preferredName !== preferredNameVal) {
+                profileDataToSave.nameChangeCount = (currentDoc.exists && currentDoc.data().nameChangeCount ? currentDoc.data().nameChangeCount : 0) + 1;
+                profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
 
-            console.log("Profile data saved successfully!");
-            // Display success message
-            profileSetupErrorEl.textContent = "Profile saved successfully! Reloading page...";
-            profileSetupErrorEl.style.color = 'lightgreen';
-            profileSetupErrorEl.style.display = 'block';
+            await userProfileRef.set(profileDataToSave, { merge: true });
 
-            // Give a moment to read the success message, then close modal and reload
-            setTimeout(() => {
-                const profileSetupModal = document.getElementById('profileSetupModal');
-                if (profileSetupModal) profileSetupModal.style.display = 'none';
-                location.reload(); // Reload the page to apply new settings
-            }, 1500);
+            // --- MODIFIED PART ---
+            // Start the background data save but DON'T wait for it to finish.
+            if (profileDataToSave.tornApiKey) {
+                fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
+            }
+            
+            // Refresh the page immediately.
+            location.reload();
 
         } catch (error) {
-            console.error("Error saving profile:", error);
-            profileSetupErrorEl.textContent = `Error saving profile: ${error.message}`;
-            profileSetupErrorEl.style.color = 'red';
-            profileSetupErrorEl.style.display = 'block';
-        } finally {
-            saveProfileBtn.disabled = false;
-            saveProfileBtn.innerHTML = originalButtonText; // Restore original button text
+            console.error("Error saving profile: ", error);
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Error saving profile. Please try again.";
         }
     });
 }
