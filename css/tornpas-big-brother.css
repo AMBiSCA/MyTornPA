@@ -12,7 +12,7 @@
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     color: #f0f0f0;
-    position: relative;
+    position: relative; /* ADDED: Crucial for positioning the download button */
 }
 
 h2 {
@@ -201,9 +201,9 @@ h2 {
    Download Button Styles
    ========================================================================== */
 .download-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    position: absolute; /* ADDED: Position absolutely */
+    top: 20px; /* Adjust top padding from the container */
+    right: 20px; /* Adjust right padding from the container */
     padding: 8px 15px;
     background-color: #4CAF50;
     color: white;
@@ -212,7 +212,7 @@ h2 {
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.2s ease;
-    z-index: 10;
+    z-index: 10; /* Ensure it stays on top of other content */
 }
 
 .download-button:hover {
@@ -220,7 +220,7 @@ h2 {
 }
 
 /* ==========================================================================
-   Specific Column Widths (for on-screen tables)
+   Specific Column Widths
    ========================================================================== */
 
 .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; }
@@ -382,79 +382,23 @@ h2 {
 
 
 /* ==========================================================================
-   Styles for Temporary Download Table (to make rows tighter AND columns precise)
+   Styles for Temporary Download Table (to make rows tighter in screenshot)
    ========================================================================== */
 
-.download-table-preview {
-    width: 100%; /* Will take 100% of tempContainer's fixed width */
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #ddd;
-    table-layout: fixed; /* Reverted to fixed for precise control */
-}
-
-/* Explicit pixel widths for the 6 columns for the downloaded image */
-/* Adjust these pixel values as needed until they look good together and sum to 800px */
-.download-table-preview th:nth-child(1), .download-table-preview td:nth-child(1) { width: 150px; } /* Name */
-.download-table-preview th:nth-child(2), .download-table-preview td:nth-child(2) { width: 130px; } /* Strength / Strength Gain */
-.download-table-preview th:nth-child(3), .download-table-preview td:nth-child(3) { width: 130px; } /* Dexterity / Dexterity Gain */
-.download-table-preview th:nth-child(4), .download-table-preview td:nth-child(4) { width: 130px; } /* Speed / Speed Gain */
-.download-table-preview th:nth-child(5), .download-table-preview td:nth-child(5) { width: 130px; } /* Defense / Defense Gain */
-.download-table-preview th:nth-child(6), .download-table-preview td:nth-child(6) { width: 140px; } /* Total / Total Gain - Adjusted last one to make sum 800 */
-
-
 .download-table-preview thead th {
-    padding: 6px 8px; /* Reduced vertical padding for headers */
-    background-color: #00a8ff;
-    color: #1e1e1e;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 2px solid #1e1e1e;
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-right: 1px solid #303030;
-}
-
-.download-table-preview thead th:last-child {
-    border-right: none;
+    padding: 6px 8px; /* Reduced vertical padding for headers in the downloaded image */
 }
 
 .download-table-preview tbody td {
-    padding: 4px 8px; /* Reduced vertical padding for data cells */
-    border-bottom: 1px solid #3a3a40;
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    border-right: 1px solid #303030;
+    padding: 4px 8px; /* Reduced vertical padding for data cells in the downloaded image */
 }
 
-.download-table-preview tbody td:last-child {
-    border-right: none;
+/* You might also consider adjusting line-height if text seems too spaced out */
+.download-table-preview tbody td,
+.download-table-preview thead th {
+    line-height: 1.2; /* Reduce line height if needed for tighter text */
 }
 
-.download-table-preview tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.download-table-preview tbody tr:hover {
-    background-color: #38383e;
-}
-
-.download-table-preview a {
-    color: #f0f0f0;
-    text-decoration: none;
-}
-
-.download-table-preview a:hover {
-    text-decoration: underline;
-    color: #8ab4f8;
-}
 
 /* ==========================================================================
    Responsive Adjustments
