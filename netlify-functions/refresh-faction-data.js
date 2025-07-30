@@ -41,22 +41,16 @@ exports.handler = async (event, context) => {
                     const data = await response.json();
                     if (!response.ok || data.error) throw new Error(`Torn API Error: ${data.error?.error || response.statusText}`);
 
-                    // =========================================================================
-                    // ## DETAILED DATA MAPPING STARTS HERE ##
-                    // =========================================================================
-
-                    // --- Daily Refill Tracking Logic (from your original code) ---
+                    // --- Daily Refill Tracking Logic ---
                     const nowUtc = new Date();
                     const tornMidnightUtc = new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), nowUtc.getUTCDate()));
                     const currentApiEnergyRefills = data.personalstats?.refills || 0;
                     const currentApiNerveRefills = data.personalstats?.nerverefills || 0;
-
                     let storedLastKnownEnergyRefills = userDataFromDb.lastKnownEnergyRefills || 0;
                     let storedLastKnownNerveRefills = userDataFromDb.lastKnownNerveRefills || 0;
                     let storedLastDailyRefillResetTime = userDataFromDb.lastDailyRefillResetTime?.toDate() || new Date(0);
                     let energyRefillUsedToday = userDataFromDb.energyRefillUsedToday || false;
                     let nerveRefillUsedToday = userDataFromDb.nerveRefillUsedToday || false;
-
                     if (storedLastDailyRefillResetTime.getTime() < tornMidnightUtc.getTime()) {
                         energyRefillUsedToday = false;
                         nerveRefillUsedToday = false;
@@ -71,7 +65,9 @@ exports.handler = async (event, context) => {
                     }
                     // --- End of Refill Logic ---
 
-                    // Complete object with all fields to save
+                    // =========================================================================
+                    // ## THIS IS THE FIX: Manually building the battlestats object ##
+                    // =========================================================================
                     const userDataToSave = {
                         name: data.name,
                         level: data.level,
@@ -83,10 +79,20 @@ exports.handler = async (event, context) => {
                         life: data.life || {},
                         status: data.status || {},
                         cooldowns: data.cooldowns || {},
-                        personalstats: data.personalstats || {}, // Saves the entire personalstats map
-                        battlestats: data.battlestats || {},   // Saves the entire battlestats map
-                        workstats: data.workstats || {},     // Saves the entire workstats map
+                        personalstats: data.personalstats || {},
+                        workstats: data.workstats || {},
                         profile_image: data.profile_image || null,
+                        battlestats: {
+                            strength: data.strength || data.battlestats?.strength || 0,
+                            defense: data.defense || data.battlestats?.defense || 0,
+                            speed: data.speed || data.battlestats?.speed || 0,
+                            dexterity: data.dexterity || data.battlestats?.dexterity || 0,
+                            total: data.total || data.battlestats?.total || 0,
+                            strength_modifier: data.strength_modifier || data.battlestats?.strength_modifier || 0,
+                            defense_modifier: data.defense_modifier || data.battlestats?.defense_modifier || 0,
+                            speed_modifier: data.speed_modifier || data.battlestats?.speed_modifier || 0,
+                            dexterity_modifier: data.dexterity_modifier || data.battlestats?.dexterity_modifier || 0,
+                        },
                         energyRefillUsedToday: energyRefillUsedToday,
                         nerveRefillUsedToday: nerveRefillUsedToday,
                         lastKnownEnergyRefills: storedLastKnownEnergyRefills,
