@@ -919,13 +919,13 @@ if (headerEditProfileBtn && auth && db) {
     });
 }
 
-  // Replace your old block with this NEW version
-if (saveProfileBtn && auth && db) { // Ensure auth and db are available
+ if (saveProfileBtn && auth && db) { // Ensure auth and db are available
     saveProfileBtn.addEventListener('click', async () => {
         // Clear previous errors
-        profileSetupErrorDisplay.textContent = '';
-        profileSetupErrorDisplay.style.display = 'none';
+        profileSetupErrorEl.textContent = ''; // CORRECTED: Using profileSetupErrorEl
+        profileSetupErrorEl.style.display = 'none'; // CORRECTED: Using profileSetupErrorEl
 
+        // Using globally declared DOM elements directly
         const preferredName = preferredNameInput.value.trim();
         const tornProfileId = profileSetupProfileIdInput.value.trim();
         const tornApiKey = profileSetupApiKeyInput.value.trim();
@@ -935,22 +935,22 @@ if (saveProfileBtn && auth && db) { // Ensure auth and db are available
 
         // 1. Check if terms are agreed
         if (!termsAgreed) {
-            profileSetupErrorDisplay.textContent = "You must agree to the Terms of Service and Privacy Policy.";
-            profileSetupErrorDisplay.style.display = 'block';
+            profileSetupErrorEl.textContent = "You must agree to the Terms of Service and Privacy Policy.";
+            profileSetupErrorEl.style.display = 'block';
             return;
         }
 
         // 2. Check for empty fields
         if (preferredName === '' || tornProfileId === '' || tornApiKey === '') {
-            profileSetupErrorDisplay.textContent = "All fields are required.";
-            profileSetupErrorDisplay.style.display = 'block';
+            profileSetupErrorEl.textContent = "All fields are required.";
+            profileSetupErrorEl.style.display = 'block';
             return;
         }
 
         // 3. NEW: Validate Torn Profile ID is purely numerical
         if (!isValidTornProfileId(tornProfileId)) {
-            profileSetupErrorDisplay.textContent = "Torn Profile ID must be numerical values only (e.g., 239420).";
-            profileSetupErrorDisplay.style.display = 'block';
+            profileSetupErrorEl.textContent = "Torn Profile ID must be numerical values only (e.g., 239420).";
+            profileSetupErrorEl.style.display = 'block';
             return; // Stop the function if validation fails
         }
 
@@ -964,8 +964,8 @@ if (saveProfileBtn && auth && db) { // Ensure auth and db are available
         try {
             const user = auth.currentUser;
             if (!user) {
-                profileSetupErrorDisplay.textContent = "User not authenticated. Please log in again.";
-                profileSetupErrorDisplay.style.display = 'block';
+                profileSetupErrorEl.textContent = "User not authenticated. Please log in again.";
+                profileSetupErrorEl.style.display = 'block';
                 return;
             }
 
@@ -1014,9 +1014,9 @@ if (saveProfileBtn && auth && db) { // Ensure auth and db are available
 
             console.log("Profile data saved successfully!");
             // Display success message
-            profileSetupErrorDisplay.textContent = "Profile saved successfully! Reloading page...";
-            profileSetupErrorDisplay.style.color = 'lightgreen';
-            profileSetupErrorDisplay.style.display = 'block';
+            profileSetupErrorEl.textContent = "Profile saved successfully! Reloading page...";
+            profileSetupErrorEl.style.color = 'lightgreen';
+            profileSetupErrorEl.style.display = 'block';
 
             // Give a moment to read the success message, then close modal and reload
             setTimeout(() => {
@@ -1027,9 +1027,9 @@ if (saveProfileBtn && auth && db) { // Ensure auth and db are available
 
         } catch (error) {
             console.error("Error saving profile:", error);
-            profileSetupErrorDisplay.textContent = `Error saving profile: ${error.message}`;
-            profileSetupErrorDisplay.style.color = 'red';
-            profileSetupErrorDisplay.style.display = 'block';
+            profileSetupErrorEl.textContent = `Error saving profile: ${error.message}`;
+            profileSetupErrorEl.style.color = 'red';
+            profileSetupErrorEl.style.display = 'block';
         } finally {
             saveProfileBtn.disabled = false;
             saveProfileBtn.innerHTML = originalButtonText; // Restore original button text
