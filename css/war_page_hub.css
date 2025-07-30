@@ -54,6 +54,14 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+
+/* This makes the 'Live Faction Activity' tab scrollable */
+#live-faction-activity-tab {
+    max-height: 70vh; /* Sets a max height (70% of the browser window) */
+    overflow-y: auto; /* Adds a scrollbar only when the table is taller than the max height */
+}
+
+
 /* Tab Navigation Styles */
 .tab-navigation {
     /* Styles for the tab buttons container */
