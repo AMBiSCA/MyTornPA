@@ -955,6 +955,8 @@ if (headerEditProfileBtn && auth && db) {
         }
 
         const user = auth.currentUser;
+        
+        // --- MODIFIED PART: Added default values for faction and name fields ---
         const profileDataToSave = {
             preferredName: preferredNameVal,
             tornApiKey: apiKeyVal,
@@ -962,7 +964,15 @@ if (headerEditProfileBtn && auth && db) {
             termsAgreed: termsCheckbox.checked,
             profileSetupComplete: true,
             shareFactionStats: shareFactionStatsModalToggle ? shareFactionStatsModalToggle.checked : false,
+            
+            // Add default values for consistency
+            faction_id: null,        // Or an empty string: ''
+            faction_name: '',
+            name: '',                // The actual Torn character name
+            position: '',
+            hasFreeAccess: false,    // As discussed previously
         };
+        // --- END MODIFIED PART ---
 
         try {
             const userProfileRef = db.collection('userProfiles').doc(user.uid);
@@ -977,15 +987,14 @@ if (headerEditProfileBtn && auth && db) {
                 profileDataToSave.lastNameChangeTimestamp = firebase.firestore.FieldValue.serverTimestamp();
             }
 
+            // Using { merge: true } is crucial here, as it will overwrite these defaults
+            // with the actual values fetched by fetchAllRequiredData.
             await userProfileRef.set(profileDataToSave, { merge: true });
 
-            // --- MODIFIED PART ---
-            // Start the background data save but DON'T wait for it to finish.
             if (profileDataToSave.tornApiKey) {
-                fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
+                await fetchAllRequiredData(user, db); 
             }
             
-            // Refresh the page immediately.
             location.reload();
 
         } catch (error) {
@@ -994,7 +1003,6 @@ if (headerEditProfileBtn && auth && db) {
         }
     });
 }
-
 const toolsSection = document.getElementById('toolsSection');
 if (toolsSection) {
     toolsSection.addEventListener('click', async function(event) { // Note: now async
