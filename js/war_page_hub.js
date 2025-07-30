@@ -3667,8 +3667,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         return;
     }
 
-    
-
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Loading and sorting faction member stats...</td></tr>';
 
     try {
@@ -3700,26 +3698,45 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             return;
         }
 
+        // --- START OF MODIFIED LOGIC ---
+        const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
+        const CHUNK_SIZE = 10; // Firestore 'in' query limit is 10
+        const firestoreFetchPromises = [];
+        const allMemberFirebaseData = {}; // To store all fetched Firebase data indexed by Torn ID
+
+        // Divide member IDs into chunks and create a fetch promise for each chunk
+        for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
+            const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
+            const query = db.collection('users').where(firebase.firestore.FieldPath.documentId(), 'in', chunk);
+            firestoreFetchPromises.push(query.get());
+        }
+
+        // Wait for all Firestore queries to complete
+        const snapshots = await Promise.all(firestoreFetchPromises);
+
+        // Process all snapshots and populate allMemberFirebaseData
+        snapshots.forEach(snapshot => {
+            snapshot.forEach(doc => {
+                allMemberFirebaseData[doc.id] = doc.data();
+            });
+        });
+        // --- END OF MODIFIED LOGIC ---
+
         // Step 1: Process all members to get their data and calculated stats
-        const memberDataPromises = membersArray.map(async (memberTornData) => {
-            const memberId = memberTornData.user_id || memberTornData.id;
+        const processedMembers = membersArray.map((memberTornData) => {
+            const memberId = String(memberTornData.user_id || memberTornData.id); // Ensure memberId is string for lookup
             if (!memberId) return null;
 
-            const memberDocRef = db.collection('users').doc(String(memberId));
-            const doc = await memberDocRef.get();
-            const memberFirebaseData = doc.exists ? doc.data() : {};
+            const memberFirebaseData = allMemberFirebaseData[memberId] || {}; // Get data from our new combined object
             
-            const strengthNum = parseInt(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
-            const speedNum = parseInt(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
-            const dexterityNum = parseInt(String(memberFirebaseData.battlestats?.dexterity || 0).replace(/,/g, ''));
-            const defenseNum = parseInt(String(memberFirebaseData.battlestats?.defense || 0).replace(/,/g, ''));
+            const strengthNum = parseFloat(String(memberFirebaseData.battlestats?.strength || 0).replace(/,/g, ''));
+            const speedNum = parseFloat(String(memberFirebaseData.battlestats?.speed || 0).replace(/,/g, ''));
+            const dexterityNum = parseFloat(String(memberFirebaseData.battlestats?.dexterity || 0).replace(/,/g, ''));
+            const defenseNum = parseFloat(String(memberFirebaseData.battlestats?.defense || 0).replace(/,/g, ''));
             const totalStats = strengthNum + speedNum + dexterityNum + defenseNum;
 
             return { tornData: memberTornData, firebaseData: memberFirebaseData, totalStats: totalStats };
-        });
-
-        let processedMembers = await Promise.all(memberDataPromises);
-        processedMembers = processedMembers.filter(m => m !== null);
+        }).filter(m => m !== null); // Filter out any null entries if IDs were missing
 
         // Step 2: Sort the processed members by totalStats in descending order
         processedMembers.sort((a, b) => b.totalStats - a.totalStats);
@@ -3743,7 +3760,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const originalDescription = tornData.status?.description || 'N/A';
             let formattedStatus = originalDescription;
             let statusClass = 'status-okay';
-            if (statusState === 'Hospital') { statusClass = 'status-hospital'; } 
+            if (statusState === 'Hospital') { statusClass = 'status-hospital'; }
             else if (statusState === 'Abroad') { statusClass = 'status-abroad'; }
             else if (statusState !== 'Okay') { statusClass = 'status-other'; }
 
@@ -3766,11 +3783,11 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
                 <tr data-id="${memberId}">
                     <td><a href="https://www.torn.com/profiles.php?XID=${memberId}" target="_blank">${name}</a></td>
                     <td>${lastAction}</td>
-                <td>${strength}</td>
-<td>${dexterity}</td>
-<td>${speed}</td>
-<td>${defense}</td>
-                   <td>${formatBattleStats(totalStats)}</td>
+                    <td>${strength}</td>
+                    <td>${dexterity}</td>
+                    <td>${speed}</td>
+                    <td>${defense}</td>
+                    <td>${formatBattleStats(totalStats)}</td>
                     <td class="${statusClass}">${formattedStatus}</td>
                     <td class="nerve-text">${nerve}</td>
                     <td class="energy-text">${energy}</td>
@@ -3781,7 +3798,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         tbody.innerHTML = allRowsHtml.length > 0 ? allRowsHtml : '<tr><td colspan="12">No members to display.</td></tr>';
-         applyStatColorCoding(); // <-- ADD THIS LINE HERE
+        applyStatColorCoding();
     } catch (error) {
         console.error("Fatal error in updateFriendlyMembersTable:", error);
         tbody.innerHTML = `<tr><td colspan="12" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
