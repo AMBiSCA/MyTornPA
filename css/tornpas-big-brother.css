@@ -2,23 +2,21 @@
 
 /* ==========================================================================
    Base Styles for TornPAs Big Brother Page
-   (Leverages global.css for general layout and fonts)
    ========================================================================== */
 
-/* Main content area specific to this page */
 .page-specific-content-area {
-    padding: 20px; /* Adjust as needed */
-    max-width: 1200px; /* Limit overall content width */
-    margin: 20px auto; /* Center the content area */
-    background-color: #1e1e1e; /* Dark background */
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #1e1e1e;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    color: #f0f0f0; /* Light text color */
+    color: #f0f0f0;
+    position: relative; /* ADDED: Crucial for positioning the download button */
 }
 
-/* Page Title */
 h2 {
-    color: #00a8ff; /* Your theme's blue color */
+    color: #00a8ff;
     text-align: center;
     margin-bottom: 25px;
     margin-top: 5px;
@@ -26,123 +24,118 @@ h2 {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* New wrapper for tab structure */
 .main-content-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Space between tabs and content */
+    gap: 15px;
 }
 
 /* ==========================================================================
-   Tab Navigation Styles (Specific to Big Brother Page - with '-bb' suffix)
+   Tab Navigation Styles
    ========================================================================== */
 
 .tab-navigation-bb {
     display: flex;
     justify-content: space-around;
-    border-bottom: none; /* No separator below the tabs themselves */
+    border-bottom: none;
     flex-wrap: wrap;
-    margin-bottom: -1px; /* Overlap with the border of the content container */
+    margin-bottom: -1px;
 }
 
 .tab-button-bb {
-    background-color: #333; /* Default tab background */
+    background-color: #333;
     color: #f0f0f0;
     padding: 10px 15px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    border-radius: 8px 8px 0 0; /* Rounded top corners */
-    flex-grow: 1; /* Make buttons grow to fill space */
-    min-width: 150px; /* Minimum width for each tab */
+    border-radius: 8px 8px 0 0;
+    flex-grow: 1;
+    min-width: 150px;
     text-align: center;
     font-weight: bold;
-    border: 1px solid transparent; /* Transparent border by default */
-    border-bottom: none; /* No bottom border for tab itself */
-    box-sizing: border-box; /* Include padding and border in element's total width and height */
-    outline: none; /* Remove focus outline */
+    border: 1px solid transparent;
+    border-bottom: none;
+    box-sizing: border-box;
+    outline: none;
 }
 
 .tab-button-bb:hover {
-    background-color: #555; /* Hover color */
-    color: #00a8ff; /* Highlight text on hover */
+    background-color: #555;
+    color: #00a8ff;
 }
 
 .tab-button-bb.active {
-    background-color: #222; /* Active tab background - matches content container */
-    color: #00a8ff; /* Active tab text color - your theme blue */
-    border-color: black; /* Stronger border for active tab */
-    border-bottom: 1px solid #222; /* Cover the content container's top border */
-    cursor: default; /* Indicate it's not clickable again */
+    background-color: #222;
+    color: #00a8ff;
+    border-color: black;
+    border-bottom: 1px solid #222;
+    cursor: default;
 }
 
 /* Tab Content Container */
 .tab-content-container-bb {
-    background-color: #222; /* Dark background for content area */
-    border: 1px solid black; /* Border around the content */
-    border-radius: 8px; /* Rounded corners for the container */
-    padding: 15px; /* Internal padding */
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    padding: 15px;
     flex-grow: 1;
-    min-height: 400px; /* Ensures a minimum height */
+    min-height: 400px;
     box-sizing: border-box;
-    overflow: hidden; /* Contains overflowing content */
-    display: flex; /* Use flex to manage inner tab panes */
+    overflow: hidden;
+    display: flex;
     flex-direction: column;
 }
 
 /* Individual Tab Panes */
 .tab-pane-bb {
-    display: none; /* Hidden by default */
-    height: 100%; /* Take full height of parent container */
-    width: 100%; /* Take full width */
-    overflow-y: auto; /* Enable scrolling for content if it overflows */
+    display: none;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
     box-sizing: border-box;
-    padding-right: 5px; /* Space for scrollbar if present */
+    padding-right: 5px;
 }
 
 .tab-pane-bb.active {
-    display: block; /* Show active tab pane */
+    display: block;
 }
 
 /* ==========================================================================
-   Table Container & Friendly Members Table Styles
+   Table Container & Table Styles
    ========================================================================== */
 
-/* Table Container - Provides a visual grouping for the table */
 .table-container {
     background-color: #222;
     border: 1px solid black;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    height: 100%; /* Ensure table container fills its tab pane */
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
 
-/* Loading/Error Message within the table container (managed by JS, but styled here) */
 #loading-message-container {
     text-align: center;
     padding: 20px;
     color: #bbb;
-    flex-grow: 1; /* Allows it to center vertically if nothing else is there */
+    flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-
 .friendly-members-table,
-.gains-overview-table { /* Added .gains-overview-table to common styles */
+.gains-overview-table {
     width: 100%;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
     color: #ddd;
     table-layout: fixed;
-    flex-grow: 1; /* Allow table to fill available space in column */
-    display: table; /* Revert to table display for proper rendering */
+    flex-grow: 1;
+    display: table;
 }
 
-/* Table Header (thead) styles - applies to both tables now */
 .friendly-members-table thead th,
 .gains-overview-table thead th {
     background-color: #00a8ff;
@@ -158,20 +151,18 @@ h2 {
     border-right: 1px solid #303030;
 }
 
-/* Remove right border from the very last header for a clean look - applies to both tables now */
 .friendly-members-table thead th:last-child,
 .gains-overview-table thead th:last-child {
     border-right: none;
 }
 
-/* Table Body (tbody) cell styles - applies to both tables now */
 .friendly-members-table tbody td,
 .gains-overview-table tbody td {
     padding: 8px 8px;
     border-bottom: 1px solid #3a3a40;
     vertical-align: middle;
     font-size: 0.85em;
-    color: #f0f0f0; /* Default text color for data cells */
+    color: #f0f0f0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -179,123 +170,132 @@ h2 {
     border-right: 1px solid #303030;
 }
 
-/* Remove right border from the very last cell in each row - applies to both tables now */
 .friendly-members-table tbody td:last-child,
 .gains-overview-table tbody td:last-child {
     border-right: none;
 }
 
-/* Remove bottom border from the very last row - applies to both tables now */
 .friendly-members-table tbody tr:last-child td,
 .gains-overview-table tbody tr:last-child td {
     border-bottom: none;
 }
 
-/* Hover effect for table rows - applies to both tables now */
 .friendly-members-table tbody tr:hover,
 .gains-overview-table tbody tr:hover {
     background-color: #38383e;
 }
 
-/* Link styles within table cells - IMPORTANT: NOW APPLIES TO BOTH TABLES */
 .friendly-members-table a,
-.gains-overview-table a { /* ADDED: .gains-overview-table a */
-    color: #f0f0f0; /* Make link color white/light gray */
-    text-decoration: none; /* Remove underline */
+.gains-overview-table a {
+    color: #f0f0f0;
+    text-decoration: none;
 }
 
 .friendly-members-table a:hover,
-.gains-overview-table a:hover { /* ADDED: .gains-overview-table a:hover */
-    text-decoration: underline; /* Add underline only on hover */
-    color: #8ab4f8; /* Optional: change color on hover to a blue, matching screenshot */
+.gains-overview-table a:hover {
+    text-decoration: underline;
+    color: #8ab4f8;
 }
 
+/* ==========================================================================
+   Download Button Styles
+   ========================================================================== */
+.download-button {
+    position: absolute; /* ADDED: Position absolutely */
+    top: 20px; /* Adjust top padding from the container */
+    right: 20px; /* Adjust right padding from the container */
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    z-index: 10; /* Ensure it stays on top of other content */
+}
+
+.download-button:hover {
+    background-color: #45a049;
+}
 
 /* ==========================================================================
-   Specific Column Widths (Adjust these based on content and preference)
+   Specific Column Widths
    ========================================================================== */
 
-/* Current Stats Table Column Widths */
-.friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; } /* Name */
-.friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
-.friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
-.friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }  /* Dexterity */
-.friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }  /* Speed */
-.friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }  /* Defense */
-.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }  /* Total */
-.friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 13%; } /* Status */
-.friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
-.friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; } /* Energy */
-.friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; } /* Drug CD */
+.friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; }
+.friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
+.friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
+.friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
+.friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
+.friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
+.friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
+.friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 13%; }
+.friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
+.friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
+.friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
 
-/* Gains Overview Table Column Widths (already defined, but repeated for clarity after changes) */
-.gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Name */
-.gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
-.gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
-.gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
-.gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
-.gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
+.gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
+.gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
+.gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; }
+.gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; }
+.gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; }
+.gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; }
 
 
 /* ==========================================================================
    Dynamic Cell Styling (Status, Nerve, Energy, Drug CD, Battle Stats Color Coding)
    ========================================================================== */
 
-/* This single rule makes the font black and bold on ALL battle stat tiers */
 .friendly-members-table td.stat-cell {
     color: black !important;
     font-weight: bold;
 }
 
-/* Battle Stats Tier Colors (Background colors applied by JS function applyStatColorCoding) */
-.stat-tier-1 { background-color: #F5F5F5; } /* Light Grey */
-.stat-tier-2 { background-color: #E3F2FD; } /* Pale Blue */
-.stat-tier-3 { background-color: #BBDEFB; } /* Light Blue */
-.stat-tier-4 { background-color: #FFCDD2; } /* Light Salmon / Pinkish-Red */
-.stat-tier-5 { background-color: #EF9A9A; } /* Salmon / Light Red */
-.stat-tier-6 { background-color: #E57373; } /* Coral / Orangey-Red */
-.stat-tier-7 { background-color: #F44336; } /* Standard Red */
-.stat-tier-8 { background-color: #D32F2F; } /* Darker Red (Crimson) */
-.stat-tier-9 { background-color: #B71C1C; } /* Very Dark Red (Maroon) */
+.stat-tier-1 { background-color: #F5F5F5; }
+.stat-tier-2 { background-color: #E3F2FD; }
+.stat-tier-3 { background-color: #BBDEFB; }
+.stat-tier-4 { background-color: #FFCDD2; }
+.stat-tier-5 { background-color: #EF9A9A; }
+.stat-tier-6 { background-color: #E57373; }
+.stat-tier-7 { background-color: #F44336; }
+.stat-tier-8 { background-color: #D32F2F; }
+.stat-tier-9 { background-color: #B71C1C; }
 
-/* Status Column Text Colors */
 .friendly-members-table tbody td.status-okay {
-    color: #28a745 !important; /* Green */
+    color: #28a745 !important;
 }
 .friendly-members-table tbody td.status-hospital {
-    color: #dc3545 !important; /* Red */
+    color: #dc3545 !important;
 }
 .friendly-members-table tbody td.status-jail {
-    color: #ffc107 !important; /* Yellow/Orange */
+    color: #ffc107 !important;
 }
 .friendly-members-table tbody td.status-traveling {
-    color: #17a2b8 !important; /* Cyan */
+    color: #17a2b8 !important;
 }
 .friendly-members-table tbody td.status-abroad {
-    color: #17a2b8 !important; /* A clear, pleasant blue for 'Abroad' */
+    color: #17a2b8 !important;
 }
 .friendly-members-table tbody td.status-other {
-    color: #ffb86c !important; /* Orange for other states like Federal */
+    color: #ffb86c !important;
 }
 
-/* Nerve and Energy Column Text Colors */
 .friendly-members-table td.nerve-text {
-    color: #d32f2f; /* Red Text for Nerve Column */
+    color: #d32f2f;
 }
 .friendly-members-table td.energy-text {
-    color: #28a745; /* Green Text for Energy Column */
+    color: #28a745;
 }
 
-/* Drug Cooldown Column Text Colors */
-/* Reusing status classes for Drug CD values */
 .friendly-members-table td.status-okay {
-    color: #28a745; /* Green for none/short CD */
+    color: #28a745;
 }
-.friendly-members-table td.status-other { /* Medium CD */
-    color: #ffb86c; /* Orange */
+.friendly-members-table td.status-other {
+    color: #ffb86c;
 }
-.friendly-members-table td.status-hospital { /* Long CD */
-    color: #dc3545; /* Red */
+.friendly-members-table td.status-hospital {
+    color: #dc3545;
 }
 
 
@@ -308,7 +308,7 @@ h2 {
     border: 1px solid #333;
     border-radius: 8px;
     padding: 15px;
-    margin-bottom: 15px; /* Space below controls */
+    margin-bottom: 15px;
     text-align: center;
     color: #f0f0f0;
 }
@@ -320,20 +320,19 @@ h2 {
 
 #trackingStatus {
     font-weight: bold;
-    color: #e0a71a; /* Gold color for status */
+    color: #e0a71a;
     margin-top: 10px;
     font-size: 1.1em;
 }
 
-#gainsStartedAt { /* New style for the start time display */
+#gainsStartedAt {
     font-size: 0.85em;
     color: #bbb;
     margin-top: 5px;
 }
 
-/* Shared button style for the Big Brother page */
 .action-btn-bb {
-    background-color: #007bff; /* Blue */
+    background-color: #007bff;
     color: white;
     padding: 8px 15px;
     border: none;
@@ -341,48 +340,44 @@ h2 {
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.2s ease;
-    margin: 5px; /* Space between buttons */
+    margin: 5px;
 }
 
 .action-btn-bb:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
 }
 
-/* Specific color for the "Stop Tracking" button */
 .action-btn-bb.stop-tracking {
-    background-color: #dc3545; /* Red for stop */
+    background-color: #dc3545;
 }
 
 .action-btn-bb.stop-tracking:hover {
-    background-color: #c82333; /* Darker red on hover */
+    background-color: #c82333;
 }
 
-/* Hidden utility class */
 .hidden {
     display: none !important;
 }
 
-/* Gains specific colors for the values (+X, -Y, 0) */
 .gain-positive {
-    color: #4CAF50; /* Green for positive gains */
+    color: #4CAF50;
     font-weight: bold;
 }
 
 .gain-negative {
-    color: #dc3545; /* Red for negative gains */
+    color: #dc3545;
     font-weight: bold;
 }
 
 .gain-neutral {
-    color: #f0f0f0; /* White/light for no change (or a very subtle gray) */
+    color: #f0f0f0;
 }
 
-/* Optional: Highlight new members in the gains table */
 .gains-overview-table .new-member-gain {
-    background-color: rgba(0, 168, 255, 0.1); /* Subtle blue tint */
+    background-color: rgba(0, 168, 255, 0.1);
 }
 .gains-overview-table .new-member-gain a {
-    color: #00a8ff; /* Highlight name too */
+    color: #00a8ff;
 }
 
 
@@ -407,26 +402,24 @@ h2 {
         padding: 6px 4px;
     }
 
-    /* Adjust column widths for tablets/smaller desktops for current stats table */
-    .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; } /* Name */
-    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
-    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
-    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }  /* Dexterity */
-    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }  /* Speed */
-    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }  /* Defense */
-    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }  /* Total */
-    .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; } /* Status */
-    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
-    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; } /* Energy */
-    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; } /* Drug CD */
+    .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; }
+    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
+    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
+    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
+    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
+    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
+    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
+    .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; }
+    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
+    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
+    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
 
-    /* Adjust column widths for tablets/smaller desktops for gains table */
-    .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Name */
-    .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
-    .gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
-    .gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
-    .gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
-    .gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
+    .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
+    .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
+    .gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; }
+    .gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; }
+    .gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; }
+    .gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; }
 }
 
 @media (max-width: 768px) {
@@ -437,14 +430,13 @@ h2 {
         border-radius: 5px;
         margin-bottom: 5px;
     }
-    /* On mobile, potentially allow table to scroll horizontally if needed */
     .table-container {
         overflow-x: auto;
     }
     .friendly-members-table,
     .gains-overview-table {
-        min-width: 700px; /* Ensure table doesn't collapse too much */
-        table-layout: auto; /* Allow column widths to adjust to content */
+        min-width: 700px;
+        table-layout: auto;
     }
     .friendly-members-table thead th,
     .friendly-members-table tbody td,
@@ -462,7 +454,7 @@ h2 {
     }
     .friendly-members-table,
     .gains-overview-table {
-        min-width: 600px; /* Further adjust min-width for very small screens */
+        min-width: 600px;
     }
     .friendly-members-table thead th,
     .friendly-members-table tbody td,
