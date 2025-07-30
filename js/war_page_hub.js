@@ -5505,37 +5505,70 @@ async function displayQuickFFTargets(userApiKey, playerId) {
     const tabButtons = document.querySelectorAll('.tab-button');
     const mainTabPanes = document.querySelectorAll('.tab-pane'); // This variable is declared but not directly used in the provided snippet.
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const targetTabDataset = event.currentTarget.dataset.tab;
-            const targetTabId = targetTabDataset + '-tab';
+    // Replace your old block with this NEW version
+tabButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+        const targetTabDataset = event.currentTarget.dataset.tab;
+        const targetTabId = targetTabDataset + '-tab';
 
-            if (targetTabDataset === 'leader-config') {
-                const userIsAdmin = await checkIfUserIsAdmin();
-                if (!userIsAdmin) {
-                    const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
-                    showCustomAlert(permissionMessage, "Access Denied");
-                    return;
+        if (targetTabDataset === 'leader-config') {
+            const userIsAdmin = await checkIfUserIsAdmin();
+            if (!userIsAdmin) {
+                const permissionMessage = "You do not have permission to view leadership settings. Speak to your leader or co-leader if you believe you should have these permissions.";
+                showCustomAlert(permissionMessage, "Access Denied");
+                return;
+            }
+        }
+
+        showTab(targetTabId);
+
+        // This is the part we are updating
+        if (targetTabDataset === 'friendly-status') {
+            
+            // --- NEW REFRESH LOGIC STARTS HERE ---
+            const tbody = document.getElementById('friendly-members-tbody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Refreshing latest faction data...</td></tr>';
+            }
+            
+            try {
+                // We use the globalYourFactionID variable that is already set on this page
+                if (!globalYourFactionID) {
+                    throw new Error("You must be logged in to refresh faction data.");
+                }
+
+                // Call the SAME Netlify function to update the data in the database
+                const response = await fetch(`/.netlify/functions/refresh-faction-data?factionId=${globalYourFactionID}`);
+                
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    throw new Error(errorResult.message || 'The refresh process failed.');
+                }
+                console.log("Backend faction data refreshed successfully.");
+
+            } catch (error) {
+                console.error("Error refreshing faction data:", error);
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="12" style="color: red; text-align: center;">Error: Could not refresh faction data. ${error.message}</td></tr>`;
+                }
+                return; // Stop if the refresh fails
+            }
+            // --- NEW REFRESH LOGIC ENDS HERE ---
+
+
+            // Now that the data is fresh, call the function to display the table
+            const user = firebase.auth().currentUser;
+            if (user && userApiKey) {
+                await updateFriendlyMembersTable(userApiKey, user.uid);
+            } else {
+                console.warn("User not logged in or API Key missing.");
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
                 }
             }
-
-            showTab(targetTabId);
-
-            if (targetTabDataset === 'friendly-status') {
-                const user = firebase.auth().currentUser;
-                if (user && userApiKey) {
-                    await updateFriendlyMembersTable(userApiKey, user.uid);
-                } else {
-                    console.warn("User not logged in or API Key missing.");
-                    const tbody = document.getElementById('friendly-members-tbody');
-                    if (tbody) {
-                        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px; color: yellow;">Please log in and ensure API Key is available to view faction members.</td></tr>';
-                    }
-                }
-            }
-        });
+        }
     });
-
+});
 
 
     // --- RE-ADDED: THE WAR AVAILABILITY BUTTON EVENT LISTENERS ---
