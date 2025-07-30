@@ -9,8 +9,8 @@ const db = firebase.firestore();
 // Global variables for user data and tracking state
 let userApiKey = null;
 let userTornProfileId = null;
-let currentFirebaseUserUid = null;
-let currentUserIsAdmin = false;
+let currentFirebaseUserUid = null; // Store current user's UID
+let currentUserIsAdmin = false; // Store admin status
 
 let activeTrackingSessionId = null; // Stores the ID of the currently active session
 let activeTrackingStartedAt = null; // Stores the start timestamp of the active session
@@ -68,6 +68,7 @@ function parseStatValue(statString) {
 
 /**
  * Applies CSS classes to table cells based on battle stat tiers for color coding.
+ * This function needs to be called after the table is populated.
  */
 function applyStatColorCoding() {
     const table = document.getElementById('friendly-members-table');
@@ -121,7 +122,7 @@ function formatRelativeTime(timestampInSeconds) {
 }
 
 // --- Loading Message Control ---
-let loadingMessageElement;
+let loadingMessageElement; // Declared globally for management
 
 function showLoadingMessage() {
     if (loadingMessageElement) {
@@ -155,7 +156,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
     const tbody = document.getElementById('friendly-members-tbody');
     if (!tbody) return;
 
-    showLoadingMessage();
+    showLoadingMessage(); // Show loading message before fetching
 
     try {
         const userProfileDocRef = db.collection('userProfiles').doc(firebaseAuthUid);
@@ -184,7 +185,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         }
 
         const allMemberTornIds = membersArray.map(member => String(member.user_id || member.id));
-        const CHUNK_SIZE = 10;
+        const CHUNK_SIZE = 10; // Firestore 'in' query limit is 10
         const firestoreFetchPromises = [];
         const allMemberFirebaseData = {};
 
@@ -200,6 +201,7 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
         const processedMembers = membersArray.map((memberTornData) => {
             const memberId = String(memberTornData.user_id || memberTornData.id);
             if (!memberId) return null;
+
             const memberFirebaseData = allMemberFirebaseData[memberId] || {};
             
             const strengthNum = parseStatValue(memberFirebaseData.battlestats?.strength || 0);
@@ -224,7 +226,6 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
             const speed = (firebaseData.battlestats?.speed || 0).toLocaleString();
             const defense = (firebaseData.battlestats?.defense || 0).toLocaleString();
             const nerve = `${firebaseData.nerve?.current ?? 'N/A'} / ${firebaseData.nerve?.maximum ?? 'N/A'}`;
-            const energy = `${firebase.energy?.current ?? 'N/A'} / ${firebase.energy?.maximum ?? 'N/A'}`; // Should be firebaseData.energy
             
             // Corrected energy variable
             const energyValue = `${firebaseData.energy?.current ?? 'N/A'} / ${firebaseData.energy?.maximum ?? 'N/A'}`;
@@ -289,13 +290,14 @@ async function updateFriendlyMembersTable(apiKey, firebaseAuthUid) {
  * @returns {string} HTML string with formatted gain and class.
  */
 function formatGainValue(gain) {
-    if (typeof gain !== 'number') { // Handle non-numeric or missing gains
+    if (typeof gain !== 'number') {
         return '<span class="gain-neutral">N/A</span>';
     }
+    const formatted = gain.toLocaleString();
     if (gain > 0) {
-        return `<span class="gain-positive">+${gain.toLocaleString()}</span>`;
+        return `<span class="gain-positive">+${formatted}</span>`;
     } else if (gain < 0) {
-        return `<span class="gain-negative">${gain.toLocaleString()}</span>`;
+        return `<span class="gain-negative">${formatted}</span>`;
     } else {
         return `<span class="gain-neutral">0</span>`;
     }
@@ -308,10 +310,10 @@ function updateGainTrackingUI() {
     const startTrackingBtn = document.getElementById('startTrackingBtn');
     const stopTrackingBtn = document.getElementById('stopTrackingBtn');
     const trackingStatusDisplay = document.getElementById('trackingStatus');
-    const gainsStartedAtDisplay = document.getElementById('gainsStartedAt'); // New element to show start time
+    const gainsStartedAtDisplay = document.getElementById('gainsStartedAt');
 
     if (!startTrackingBtn || !stopTrackingBtn || !trackingStatusDisplay || !gainsStartedAtDisplay) {
-        console.error("Gains tracking UI elements not found.");
+        console.error("Gains tracking UI elements not found."); // Log error, but continue if possible
         return;
     }
 
@@ -331,7 +333,6 @@ function updateGainTrackingUI() {
         
         trackingStatusDisplay.textContent = 'Currently tracking gains.';
         if (activeTrackingStartedAt) {
-            // Check if activeTrackingStartedAt is a Timestamp object and convert to Date
             const startedDate = activeTrackingStartedAt.toDate ? activeTrackingStartedAt.toDate() : activeTrackingStartedAt;
             gainsStartedAtDisplay.textContent = 'Session started: ' + startedDate.toLocaleString();
         } else {
@@ -423,7 +424,7 @@ async function startTrackingGains() {
 
         console.log("Gains tracking started. Snapshot saved with ID:", newSnapshotRef.id);
         
-        // No explicit UI update here, as the real-time listener will handle it.
+        // UI will be updated by real-time listener
         alert("Gains tracking started successfully!");
 
     } catch (error) {
@@ -433,7 +434,7 @@ async function startTrackingGains() {
             startTrackingBtn.disabled = false;
             startTrackingBtn.textContent = 'Start Tracking Gains';
         }
-        updateGainTrackingUI(); // Revert UI if error
+        updateGainTrackingUI();
     }
 }
 
@@ -458,23 +459,21 @@ async function stopTrackingGains() {
         if (statusDoc.exists && statusDoc.data().activeSessionId) {
             const activeSessionIdToDelete = statusDoc.data().activeSessionId;
 
-            // Mark the session as inactive in its own document
             await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(activeSessionIdToDelete).update({
                 isActive: false,
                 stoppedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // Clear the active session ID in the status document
             await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(GAIN_TRACKING_STATUS_DOC).delete();
             
             console.log("Gains tracking stopped for session:", activeSessionIdToDelete);
 
-            // No explicit UI update here, as the real-time listener will handle it.
+            // UI will be updated by real-time listener
             alert("Gains tracking stopped successfully!");
 
         } else {
             alert("No active tracking session found.");
-            updateGainTrackingUI(); // Revert UI if no session
+            updateGainTrackingUI();
         }
     } catch (error) {
         console.error("Error stopping gains tracking:", error);
@@ -483,7 +482,7 @@ async function stopTrackingGains() {
             stopTrackingBtn.disabled = false;
             stopTrackingBtn.textContent = 'Stop Tracking';
         }
-        updateGainTrackingUI(); // Revert UI if error
+        updateGainTrackingUI();
     }
 }
 
@@ -499,17 +498,17 @@ function setupRealtimeTrackingStatusListener(userFactionId) {
     const statusDocRef = db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(GAIN_TRACKING_STATUS_DOC);
 
     unsubscribeFromTrackingStatus = statusDocRef.onSnapshot(async (doc) => {
-        if (doc.exists && doc.data().activeSessionId && doc.data().factionId === userFactionId) {
+        if (doc.exists && doc.data().factionId === userFactionId) { // Ensure it's for the current user's faction
             activeTrackingSessionId = doc.data().activeSessionId;
             activeTrackingStartedAt = doc.data().startedAt;
 
-            // Fetch the baseline stats for the new session if it changed
-            if (!baselineStatsCache[activeTrackingSessionId]) {
+            // Fetch and cache the baseline stats for the new session if it changed
+            if (activeTrackingSessionId && !baselineStatsCache[activeTrackingSessionId]) {
                 const baselineDoc = await db.collection(GAIN_TRACKING_SESSIONS_COLLECTION).doc(activeTrackingSessionId).get();
                 if (baselineDoc.exists && baselineDoc.data().snapshot) {
                     baselineStatsCache = { [activeTrackingSessionId]: baselineDoc.data().snapshot }; // Cache only the current one
                 } else {
-                    console.warn("Active session ID found, but baseline snapshot is missing from Firestore.");
+                    console.warn("Active session ID found, but baseline snapshot is missing from Firestore. Resetting status.");
                     activeTrackingSessionId = null; // Treat as no active session if baseline is bad
                     activeTrackingStartedAt = null;
                     baselineStatsCache = {};
@@ -571,11 +570,6 @@ async function displayGainsTable() {
 
         const baselineStats = baselineStatsCache[activeTrackingSessionId]; // Use cached baseline
 
-        // Set up real-time listener for current user data (for gains)
-        if (unsubscribeFromGainsData) {
-            unsubscribeFromGainsData(); // Unsubscribe from previous listener
-        }
-
         // Get all member IDs to fetch their current stats
         const factionMembersApiUrl = `https://api.torn.com/v2/faction/${userFactionId}?selections=members&key=${userApiKey}&comment=MyTornPA_BigBrother_GainsRefresh`;
         const factionResponse = await fetch(factionMembersApiUrl);
@@ -594,6 +588,7 @@ async function displayGainsTable() {
 
         for (let i = 0; i < allMemberTornIds.length; i += CHUNK_SIZE) {
             const chunk = allMemberTornIds.slice(i, i + CHUNK_SIZE);
+            // Push the query reference, not the execution, for onSnapshotsInSync
             firestoreQueries.push(usersCollectionRef.where(firebase.firestore.FieldPath.documentId(), 'in', chunk));
         }
 
@@ -601,95 +596,105 @@ async function displayGainsTable() {
             gainsMessageContainer.textContent = 'No members to display gains for.';
             return;
         }
+        
+        // Unsubscribe from previous gains data listener before setting up a new one
+        if (unsubscribeFromGainsData) {
+            unsubscribeFromGainsData();
+            unsubscribeFromGainsData = null;
+        }
 
-        // Combine multiple queries into a single listener
-        unsubscribeFromGainsData = db.firestore.onSnapshotsInSync((() => { // This is a trick to get a single listener for multiple queries
-            const promises = firestoreQueries.map(q => q.get()); // Execute all queries
-            return Promise.all(promises);
-        })().then(querySnapshots => { // Process the results once all promises resolve
-            const currentStats = {};
-            querySnapshots.forEach(snapshot => {
-                snapshot.forEach(doc => {
-                    const memberData = doc.data();
-                    currentStats[doc.id] = {
-                        name: memberData.name,
-                        strength: parseStatValue(memberData.battlestats?.strength || 0),
-                        dexterity: parseStatValue(memberData.battlestats?.dexterity || 0),
-                        speed: parseStatValue(memberData.battlestats?.speed || 0),
-                        defense: parseStatValue(memberData.battlestats?.defense || 0),
-                        total: parseStatValue(memberData.battlestats?.total || 0),
-                    };
-                });
+        // Use Promise.all with onSnapshot for multiple queries to combine them into one update cycle
+        // NOTE: firebase.firestore.onSnapshotsInSync is typically used differently or might not be intended
+        // for combining results from multiple queries for a single view update.
+        // A common pattern is to simply execute all .get() for display, and if real-time
+        // is needed, set up individual listeners and update the UI when *all* have new data.
+        // For simplicity and directness, we will use individual get() calls and combine them.
+        // If you truly need "real-time" for this table, we'd need to restructure how this listener works with multiple queries.
+        // For now, it will fetch fresh data every time displayGainsTable is called (e.g., on tab switch and interval).
+
+        const querySnapshots = await Promise.all(firestoreQueries.map(q => q.get())); // Execute all queries
+
+        const currentStats = {};
+        querySnapshots.forEach(snapshot => {
+            snapshot.forEach(doc => {
+                const memberData = doc.data();
+                currentStats[doc.id] = {
+                    name: memberData.name,
+                    strength: parseStatValue(memberData.battlestats?.strength || 0),
+                    dexterity: parseStatValue(memberData.battlestats?.dexterity || 0),
+                    speed: parseStatValue(memberData.battlestats?.speed || 0),
+                    defense: parseStatValue(memberData.battlestats?.defense || 0),
+                    total: parseStatValue(memberData.battlestats?.total || 0),
+                };
             });
-
-            // Calculate and display gains
-            let gainsRowsHtml = '';
-            const membersWithGains = [];
-
-            // Iterate over the members from the Torn API response to maintain order/completeness
-            membersArray.forEach(memberTornData => {
-                const memberId = String(memberTornData.user_id || memberTornData.id);
-                const baseline = baselineStats[memberId];
-                const current = currentStats[memberId];
-
-                if (baseline && current) {
-                    const strengthGain = current.strength - baseline.strength;
-                    const dexterityGain = current.dexterity - baseline.dexterity;
-                    const speedGain = current.speed - baseline.speed;
-                    const defenseGain = current.defense - baseline.defense;
-                    const totalGain = current.total - baseline.total;
-
-                    membersWithGains.push({
-                        name: memberTornData.name,
-                        memberId: memberId, // Keep Torn ID for profile link
-                        strengthGain: strengthGain,
-                        dexterityGain: dexterityGain,
-                        speedGain: speedGain,
-                        defenseGain: defenseGain,
-                        totalGain: totalGain,
-                        initialTotal: baseline.total // For potential future sorting/context
-                    });
-                } else if (current) {
-                    // Member exists currently but not in baseline (new member since tracking started)
-                     membersWithGains.push({
-                        name: memberTornData.name,
-                        memberId: memberId,
-                        strengthGain: 0, dexterityGain: 0, speedGain: 0, defenseGain: 0, totalGain: 0,
-                        initialTotal: 0,
-                        isNew: true
-                    });
-                }
-            });
-
-            // Sort members by total gain (descending)
-            membersWithGains.sort((a, b) => b.totalGain - a.totalGain);
-
-            membersWithGains.forEach(member => {
-                const profileUrl = `https://www.torn.com/profiles.php?XID=${member.memberId}`;
-                const rowClass = member.isNew ? 'new-member-gain' : '';
-                gainsRowsHtml += `
-                    <tr class="${rowClass}">
-                        <td><a href="${profileUrl}" target="_blank">${member.name}${member.isNew ? ' (New)' : ''}</a></td>
-                        <td>${formatGainValue(member.strengthGain)}</td>
-                        <td>${formatGainValue(member.dexterityGain)}</td>
-                        <td>${formatGainValue(member.speedGain)}</td>
-                        <td>${formatGainValue(member.defenseGain)}</td>
-                        <td>${formatGainValue(member.totalGain)}</td>
-                    </tr>
-                `;
-            });
-
-            gainsTbody.innerHTML = gainsRowsHtml.length > 0 ? gainsRowsHtml : '<tr><td colspan="6" style="text-align:center;">No members with tracked gains.</td></tr>';
-            gainsMessageContainer.classList.add('hidden'); // Hide message after data loads
-
-        }), (error) => {
-            console.error("Error listening to gains data:", error);
-            gainsMessageContainer.textContent = `Error loading gains: ${error.message}`;
         });
 
+        // Calculate and display gains
+        let gainsRowsHtml = '';
+        const membersWithGains = [];
+
+        membersArray.forEach(memberTornData => {
+            const memberId = String(memberTornData.user_id || memberTornData.id);
+            const baseline = baselineStats[memberId];
+            const current = currentStats[memberId];
+
+            if (baseline && current) {
+                const strengthGain = current.strength - baseline.strength;
+                const dexterityGain = current.dexterity - baseline.dexterity;
+                const speedGain = current.speed - baseline.speed;
+                const defenseGain = current.defense - baseline.defense;
+                const totalGain = current.total - baseline.total;
+
+                membersWithGains.push({
+                    name: memberTornData.name,
+                    memberId: memberId, // Keep Torn ID for profile link
+                    strengthGain: strengthGain,
+                    dexterityGain: dexterityGain,
+                    speedGain: speedGain,
+                    defenseGain: defenseGain,
+                    totalGain: totalGain,
+                    initialTotal: baseline.total
+                });
+            } else if (current && !baseline) {
+                // Member exists currently but not in baseline (new member since tracking started)
+                 membersWithGains.push({
+                    name: memberTornData.name,
+                    memberId: memberId,
+                    strengthGain: current.strength, // All stats are "gains" from zero
+                    dexterityGain: current.dexterity,
+                    speedGain: current.speed,
+                    defenseGain: current.defense,
+                    totalGain: current.total,
+                    initialTotal: 0,
+                    isNew: true
+                });
+            }
+            // Members in baseline but not current are not explicitly handled here
+            // (e.g. left faction, deleted profile). They just won't appear.
+        });
+
+        membersWithGains.sort((a, b) => b.totalGain - a.totalGain);
+
+        membersWithGains.forEach(member => {
+            const profileUrl = `https://www.torn.com/profiles.php?XID=${member.memberId}`;
+            const rowClass = member.isNew ? 'new-member-gain' : '';
+            gainsRowsHtml += `
+                <tr class="${rowClass}">
+                    <td><a href="${profileUrl}" target="_blank">${member.name}${member.isNew ? ' (New)' : ''}</a></td>
+                    <td>${formatGainValue(member.strengthGain)}</td>
+                    <td>${formatGainValue(member.dexterityGain)}</td>
+                    <td>${formatGainValue(member.speedGain)}</td>
+                    <td>${formatGainValue(member.defenseGain)}</td>
+                    <td>${formatGainValue(member.totalGain)}</td>
+                </tr>
+            `;
+        });
+
+        gainsTbody.innerHTML = gainsRowsHtml.length > 0 ? gainsRowsHtml : '<tr><td colspan="6" style="text-align:center;">No members with tracked gains.</td></tr>';
+        gainsMessageContainer.classList.add('hidden'); // Hide message after data loads
     } catch (error) {
-        console.error("Error setting up gains display:", error);
-        gainsMessageContainer.textContent = `Error setting up gains display: ${error.message}`;
+        console.error("Error displaying gains table:", error);
+        gainsMessageContainer.textContent = `Error loading gains: ${error.message}`;
     }
 }
 
@@ -714,6 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTrackingBtn = document.getElementById('startTrackingBtn');
     const stopTrackingBtn = document.getElementById('stopTrackingBtn');
     const trackingStatusDisplay = document.getElementById('trackingStatus');
+    const gainsStartedAtDisplay = document.getElementById('gainsStartedAt'); // Get new element
 
     // --- Tab Switching Logic ---
     function showTab(tabId) {
@@ -734,15 +740,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Unsubscribe from any active listeners when switching tabs to prevent memory leaks
-        if (unsubscribeFromGainsData) {
-            unsubscribeFromGainsData();
-            unsubscribeFromGainsData = null;
-            console.log("Unsubscribed from gains data listener.");
-        }
+        // Gains data listener is now controlled by displayGainsTable() on every call, so it unsubscribes itself implicitly.
         if (unsubscribeFromTrackingStatus) {
             unsubscribeFromTrackingStatus();
             unsubscribeFromTrackingStatus = null;
-            console.log("Unsubscribed from tracking status listener."); // Unsubscribe and re-subscribe for faction-specific context
+            console.log("Unsubscribed from tracking status listener (on tab switch).");
         }
 
         // Trigger data load/refresh when switching to a tab that needs it
@@ -755,14 +757,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Switched to Gains Tracking tab.");
             hideLoadingMessage(); // Hide the current stats loading message when on gains tab
 
-            // Set up real-time listener for tracking status FIRST
-            if (auth.currentUser) {
-                // This listener will trigger displayGainsTable when it updates
-                setupRealtimeTrackingStatusListener(userFactionIdFromProfile); // Pass faction ID from user profile
-            }
-            // displayGainsTable() will be called by the status listener, or directly if no listener active
-            if(!activeTrackingSessionId) { // Only call directly if no session is immediately apparent
-                 displayGainsTable(); // Initial call to show status (e.g. 'No active session')
+            // Always set up real-time listener for tracking status when on this tab
+            if (auth.currentUser && userFactionIdFromProfile) {
+                setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
+            } else {
+                // If no user or faction, just update UI to reflect no access
+                updateGainTrackingUI();
+                displayGainsTable(); // Call to show "Please log in..."
             }
         }
     }
@@ -785,23 +786,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const userData = userProfileDoc.data();
                     userApiKey = userData.tornApiKey || null;
                     userTornProfileId = userData.tornProfileId || null;
-                    userFactionIdFromProfile = userData.faction_id || null; // Store faction ID
+                    userFactionIdFromProfile = userData.faction_id || null;
 
                     currentUserIsAdmin = await checkIfUserIsAdmin(user.uid);
                     
-                    // Initial update of tracking UI based on current status from Firestore
-                    // This will also set up the real-time listener for tracking status changes
+                    // Initial setup of tracking status listener
                     if (userFactionIdFromProfile) {
                         setupRealtimeTrackingStatusListener(userFactionIdFromProfile);
                     } else {
-                        updateGainTrackingUI(); // Update UI for non-faction users
+                        updateGainTrackingUI(); // Update admin buttons for no faction ID
                     }
 
                     if (userApiKey && userTornProfileId) {
                         console.log("Logged in and API key/Profile ID found.");
                         
                         // Initial load for the default active tab ('current-stats-tab')
-                        // Only load if that tab is active initially
                         if (document.getElementById('current-stats-tab').classList.contains('active')) {
                             await updateFriendlyMembersTable(userApiKey, user.uid);
                         }
@@ -813,21 +812,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 console.log("Refreshing Current Stats table (interval)...");
                                 await updateFriendlyMembersTable(userApiKey, user.uid);
                             }
-                        }, 30000); // Refresh every 30 seconds (adjust as needed)
-
-                        // NOTE: Real-time update for Gains Table is handled by `onSnapshot` inside `displayGainsTable`
-                        // so a separate interval for gains is not strictly necessary anymore unless you want to re-run
-                        // the initial data fetching/processing even if underlying data hasn't changed.
-                        // I'll keep the interval for now, but comment it out as the onSnapshot is primary.
-                        /*
-                        setInterval(async () => {
-                            if (document.getElementById('gains-tracking-tab').classList.contains('active')) {
-                                console.log("Refreshing Gains Tracking table (interval)...");
-                                await displayGainsTable(); // This will re-fetch and re-render
-                            }
-                        }, 30000); // Refresh every 30 seconds (adjust as needed)
-                        */
+                        }, 30000); // Refresh every 30 seconds
                         
+                        // NOTE: Gains table now refreshes automatically when underlying 'users' data changes
+                        // due to the onSnapshot listener in displayGainsTable(). No separate interval is needed.
+                        // The interval commented out below is REMOVED.
+
                     } else {
                         console.warn("User logged in, but Torn API key or Profile ID missing. Cannot display full stats.");
                         hideLoadingMessage();
@@ -835,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (friendlyMembersTbody) {
                             friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">Please provide your Torn API key and Profile ID in your settings to view faction stats.</td></tr>';
                         }
-                        updateGainTrackingUI(); // Update admin buttons due to missing API key
+                        updateGainTrackingUI();
                     }
                 } else {
                     console.warn("User profile document not found in Firestore.");
@@ -844,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (friendlyMembersTbody) {
                         friendlyMembersTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: yellow; padding: 20px;">User profile not found. Please ensure your account is set up correctly.</td></tr>';
                     }
-                    updateGainTrackingUI(); // Update admin buttons due to no profile
+                    updateGainTrackingUI();
                 }
             } catch (error) {
                 console.error("Error fetching user profile for TornPAs Big Brother page:", error);
@@ -853,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (friendlyMembersTbody) {
                     friendlyMembersTbody.innerHTML = `<tr><td colspan="11" style="color:red;">A fatal error occurred: ${error.message}.</td></tr>`;
                 }
-                updateGainTrackingUI(); // Update admin buttons on error
+                updateGainTrackingUI();
             }
         } else {
             console.log("User not logged in. Displaying login message.");
@@ -866,13 +856,13 @@ document.addEventListener('DOMContentLoaded', () => {
             startTrackingBtn.classList.add('hidden');
             stopTrackingBtn.classList.add('hidden');
             trackingStatusDisplay.textContent = 'Please log in.';
-            if (unsubscribeFromGainsData) { // Also unsubscribe if logging out
-                unsubscribeFromGainsData();
-                unsubscribeFromGainsData = null;
-            }
-            if (unsubscribeFromTrackingStatus) { // Also unsubscribe if logging out
+            if (unsubscribeFromTrackingStatus) { // Unsubscribe tracking status listener
                 unsubscribeFromTrackingStatus();
                 unsubscribeFromTrackingStatus = null;
+            }
+            if (unsubscribeFromGainsData) { // Unsubscribe gains data listener
+                unsubscribeFromGainsData();
+                unsubscribeFromGainsData = null;
             }
         }
     });
