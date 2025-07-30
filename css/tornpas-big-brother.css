@@ -96,7 +96,6 @@ h2 {
     width: 100%; /* Take full width */
     overflow-y: auto; /* Enable scrolling for content if it overflows */
     box-sizing: border-box;
-    /* Optional: Add internal padding for tab panes if content should be spaced from edges */
     padding-right: 5px; /* Space for scrollbar if present */
 }
 
@@ -105,19 +104,18 @@ h2 {
 }
 
 /* ==========================================================================
-   Table Container & Friendly Members Table Styles (Same as previous step)
+   Table Container & Friendly Members Table Styles
    ========================================================================== */
 
 /* Table Container - Provides a visual grouping for the table */
 .table-container {
-    background-color: #222; /* Slightly lighter dark background for the table area */
-    border: 1px solid black; /* Subtle border */
+    background-color: #222;
+    border: 1px solid black;
     border-radius: 8px;
-    overflow: hidden; /* Ensures table corners are rounded */
+    overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    /* For tab-pane, these are handled by the tab-pane itself for height */
     height: 100%; /* Ensure table container fills its tab pane */
-    display: flex; /* Use flex to make loading message position correctly */
+    display: flex;
     flex-direction: column;
 }
 
@@ -131,7 +129,6 @@ h2 {
     align-items: center;
     justify-content: center;
 }
-
 
 .friendly-members-table {
     width: 100%;
@@ -307,6 +304,12 @@ h2 {
     font-size: 1.1em;
 }
 
+#gainsStartedAt { /* New style for the start time display */
+    font-size: 0.85em;
+    color: #bbb;
+    margin-top: 5px;
+}
+
 /* Shared button style for the Big Brother page */
 .action-btn-bb {
     background-color: #007bff; /* Blue */
@@ -344,7 +347,7 @@ h2 {
     border-collapse: collapse;
     font-family: Arial, sans-serif;
     color: #ddd;
-    table-layout: fixed;
+    table-layout: fixed; /* Keep columns fixed */
 }
 
 .gains-overview-table thead th {
@@ -360,6 +363,15 @@ h2 {
     text-overflow: ellipsis;
     border-right: 1px solid #303030;
 }
+
+/* Column widths for the Gains table */
+.gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Name */
+.gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
+.gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
+.gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
+.gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
+.gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
+
 
 .gains-overview-table thead th:last-child {
     border-right: none;
@@ -390,7 +402,7 @@ h2 {
     background-color: #38383e;
 }
 
-/* Gains specific colors */
+/* Gains specific colors for the values (+X, -Y, 0) */
 .gain-positive {
     color: #4CAF50; /* Green for positive gains */
     font-weight: bold;
@@ -402,7 +414,15 @@ h2 {
 }
 
 .gain-neutral {
-    color: #f0f0f0; /* White/light for no change */
+    color: #f0f0f0; /* White/light for no change (or a very subtle gray) */
+}
+
+/* Optional: Highlight new members in the gains table */
+.gains-overview-table .new-member-gain {
+    background-color: rgba(0, 168, 255, 0.1); /* Subtle blue tint */
+}
+.gains-overview-table .new-member-gain a {
+    color: #00a8ff; /* Highlight name too */
 }
 
 
@@ -427,7 +447,7 @@ h2 {
         padding: 6px 4px;
     }
 
-    /* Adjust column widths for tablets/smaller desktops */
+    /* Adjust column widths for tablets/smaller desktops for current stats table */
     .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; } /* Name */
     .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }  /* Last Action */
     .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }  /* Strength */
@@ -439,6 +459,14 @@ h2 {
     .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }  /* Nerve */
     .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; } /* Energy */
     .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; } /* Drug CD */
+
+    /* Adjust column widths for tablets/smaller desktops for gains table */
+    .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; } /* Name */
+    .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; } /* Strength Gain */
+    .gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; } /* Dexterity Gain */
+    .gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; } /* Speed Gain */
+    .gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; } /* Defense Gain */
+    .gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; } /* Total Gain */
 }
 
 @media (max-width: 768px) {

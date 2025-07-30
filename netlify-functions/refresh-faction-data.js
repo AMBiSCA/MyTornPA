@@ -50,7 +50,7 @@ exports.handler = async (event, context) => {
                     let storedLastKnownNerveRefills = userDataFromDb.lastKnownNerveRefills || 0;
                     let storedLastDailyRefillResetTime = userDataFromDb.lastDailyRefillResetTime?.toDate() || new Date(0);
                     let energyRefillUsedToday = userDataFromDb.energyRefillUsedToday || false;
-                    let nerveRefillUsedToday = userDataFromDb.nerveRefillUsedToday || false;
+                    let nerveRefillUsedToday = false; // Reset for today
                     if (storedLastDailyRefillResetTime.getTime() < tornMidnightUtc.getTime()) {
                         energyRefillUsedToday = false;
                         nerveRefillUsedToday = false;
@@ -66,7 +66,7 @@ exports.handler = async (event, context) => {
                     // --- End of Refill Logic ---
 
                     // =========================================================================
-                    // ## THIS IS THE FIX: Manually building the battlestats object ##
+                    // ## REVERTED CHANGE: Keeping workstats as the original direct object ##
                     // =========================================================================
                     const userDataToSave = {
                         name: data.name,
@@ -80,7 +80,7 @@ exports.handler = async (event, context) => {
                         status: data.status || {},
                         cooldowns: data.cooldowns || {},
                         personalstats: data.personalstats || {},
-                        workstats: data.workstats || {},
+                        workstats: data.workstats || {}, // Reverted to original handling of workstats
                         profile_image: data.profile_image || null,
                         battlestats: {
                             strength: data.strength || data.battlestats?.strength || 0,
@@ -100,6 +100,9 @@ exports.handler = async (event, context) => {
                         lastDailyRefillResetTime: admin.firestore.Timestamp.fromDate(storedLastDailyRefillResetTime),
                         lastUpdated: admin.firestore.FieldValue.serverTimestamp()
                     };
+                    // =========================================================================
+                    // ## END OF REVERTED CHANGE ##
+                    // =========================================================================
                     
                     const userRef = db.collection('users').doc(String(tornProfileId));
                     await userRef.set(userDataToSave, { merge: true });
