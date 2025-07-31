@@ -558,6 +558,49 @@ cursor: not-allowed;
 }
 
 
+/* --- Default (Desktop) Styles for the banner --- */
+/* Your existing styles for #trialCountdownContainer and its parent .header-left will apply here */
+/* Ensure #trialCountdownContainer is visible by default on desktop */
+#trialCountdownContainer {
+    display: block; /* Ensure it's not hidden by previous mobile rules */
+    /* Keep its existing desktop positioning and styling here */
+    /* Example: width: auto; max-width: none; etc. */
+}
+
+/* Hide the new mobile insertion point by default on desktop */
+#mobileBannerInsertionPoint {
+    display: none;
+}
+
+
+/* --- Mobile-specific styles using a Media Query --- */
+@media (max-width: 768px) { /* Adjust 768px if your mobile breakpoint is different */
+    
+    /* Hide the original banner in the header on mobile */
+    #trialCountdownContainer {
+        display: none !important; /* Hides the original element on mobile */
+    }
+
+    /* Make the mobile insertion point visible on mobile */
+    #mobileBannerInsertionPoint {
+        display: block !important; /* Make it visible on mobile */
+        /* Basic styling for the new mobile banner area itself */
+        text-align: center; /* Center the text */
+        padding: 8px 10px; /* Add some padding */
+        background-color: #3f3f3f; /* Darker background for the marked area */
+        color: orange; /* Keep text color consistent */
+        font-weight: bold;
+        font-size: 0.9em;
+        border-radius: 5px;
+        margin-top: 10px; /* Add space above it if needed */
+        margin-bottom: 15px; /* Add space below it */
+        width: calc(100% - 20px); /* Adjust width to fit the container, accounting for padding/margin */
+        max-width: 400px; /* Prevent it from getting too wide on slightly larger mobile devices */
+        margin-left: auto; /* Center it horizontally */
+        margin-right: auto; /* Center it horizontally */
+    }
+}
+
 
 /* === RESPONSIVE STYLES === */
 @media (max-width: 960px) {

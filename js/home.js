@@ -100,7 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const personalStatsLabel = document.getElementById('personalStatsLabel');
     const authModal = document.getElementById('authModal');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
-
+    const trialCountdownContainer = document.getElementById('trialCountdownContainer');
+    const mobileBannerInsertionPoint = document.getElementById('mobileBannerInsertionPoint');
+    const originalBannerParent = trialCountdownContainer ? trialCountdownContainer.parentNode : null; // Get its initial parent
     // NEW DOM ELEMENTS FOR MEMBERSHIP AND DELETE ACCOUNT BUTTONS / MODALS
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const upgradeMembershipBtn = document.getElementById('upgradeMembershipBtn');
@@ -604,6 +606,34 @@ async function updateToolLinksAccess(profile) {
         personalStatsModalBody.innerHTML = `<p style="color:red;">Error loading Personal Stats: ${error.message}. Check API key and console.</p>`;
     }
 }
+
+// --- NEW: Function to manage banner's parent based on screen size ---
+function manageBannerParentOnResize() {
+    // Only proceed if all necessary elements are found
+    if (!trialCountdownContainer || !mobileBannerInsertionPoint || !originalBannerParent) {
+        console.warn("One or more banner elements/parents not found. Cannot manage position.");
+        return;
+    }
+
+    const isMobileView = window.matchMedia("(max-width: 768px)").matches; // Use your CSS breakpoint
+
+    if (isMobileView) {
+        // On mobile: Move the actual 'trialCountdownContainer' DOM element to the mobile placeholder
+        if (trialCountdownContainer.parentNode !== mobileBannerInsertionPoint) {
+            mobileBannerInsertionPoint.appendChild(trialCountdownContainer);
+            console.log("Banner moved to mobile position.");
+        }
+    } else {
+        // On desktop: Move the 'trialCountdownContainer' DOM element back to its original parent
+        if (trialCountdownContainer.parentNode !== originalBannerParent) {
+            // This re-appends it as the last child of its original parent.
+            originalBannerParent.appendChild(trialCountdownContainer); 
+            console.log("Banner moved back to desktop position.");
+        }
+    }
+}
+
+
     async function fetchAllRequiredData(user, dbInstance) {
         if (!user || !dbInstance) {
             console.error("fetchAllRequiredData: User or DB not provided.");
@@ -1037,6 +1067,34 @@ if (toolsSection) {
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
             const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
 
+            // --- NEW: Function to manage banner's parent based on screen size (moved here for encapsulation) ---
+            // It's generally better to declare functions at a higher scope (e.g., global or right after DOMContentLoaded)
+            // but if you prefer to keep it within this listener for some reason, this is where it would go.
+            // For cleaner code, I recommend declaring manageBannerParentOnResize outside of this listener,
+            // but for a direct replacement of this block, I'll include it here.
+            function manageBannerParentOnResize() {
+                if (!trialCountdownContainer || !mobileBannerInsertionPoint || !originalBannerParent) {
+                    console.warn("One or more banner elements/parents not found. Cannot manage position.");
+                    return;
+                }
+
+                const isMobileView = window.matchMedia("(max-width: 768px)").matches;
+
+                if (isMobileView) {
+                    if (trialCountdownContainer.parentNode !== mobileBannerInsertionPoint) {
+                        mobileBannerInsertionPoint.appendChild(trialCountdownContainer);
+                        console.log("Banner moved to mobile position.");
+                    }
+                } else {
+                    if (trialCountdownContainer.parentNode !== originalBannerParent) {
+                        originalBannerParent.appendChild(trialCountdownContainer); 
+                        console.log("Banner moved back to desktop position.");
+                    }
+                }
+            }
+            // --- END manageBannerParentOnResize function definition ---
+
+
             if (user) {
                 if (mainHomepageContent) mainHomepageContent.style.display = 'block';
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
@@ -1051,7 +1109,7 @@ if (toolsSection) {
                         const doc = await db.collection('userProfiles').doc(user.uid).get();
                         profile = doc.exists ? doc.data() : null;
 						currentUserProfile = profile;
-						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
+						console.log("1. Profile loaded on page start:", currentUserProfile);
 						
 						// --- Check for an active membership and start the countdown ---
                         if (profile && profile.membershipEndTime) {
@@ -1062,38 +1120,30 @@ if (toolsSection) {
                             // If the membership is still active, start the timer
                             if (membershipInfo.membershipEndTime > Date.now()) {
                                 startMembershipCountdown(membershipInfo);
-                                const countdownContainer = document.getElementById('trialCountdownContainer');
-                                if (countdownContainer) {
-                                    console.log("Free trial banner shown on login."); // For debugging
-                                    const hideTimer = setTimeout(() => { // Store the setTimeout ID
-                                        countdownContainer.style.display = 'none';
-                                        console.log("Free trial banner hidden after 15 seconds."); // For debugging
-                                        // NEW: Clear the ongoing membership countdown interval here too
+                                // Ensure trialCountdownContainer is available, which it should be globally.
+                                if (trialCountdownContainer) { 
+                                    console.log("Free trial banner timer started."); // Debugging log
+                                    const hideTimer = setTimeout(() => {
+                                        trialCountdownContainer.style.display = 'none'; // Will hide the banner wherever it is
+                                        console.log("Free trial banner hidden after 5 seconds."); // Update log message
+                                        
                                         if (membershipCountdownInterval) {
                                             clearInterval(membershipCountdownInterval);
-                                            membershipCountdownInterval = null; // Reset to prevent issues
+                                            membershipCountdownInterval = null;
                                             console.log("Membership countdown interval cleared.");
                                         }
-                                    }, 5000);
+                                    }, 5000); // Changed to 5000 for 5 seconds
                                 }
                             }
                         }
 
-                        // REMOVED: This entire block was causing the 'catch' syntax error.
-                        // It was redundant and misplaced based on the surrounding try/catch.
-                        /*
-                        if (membershipOptionsModal && user && (!profile?.membershipEndTime || profile?.membershipEndTime < Date.now())) {
-                            membershipOptionsModal.style.display = 'flex'; // Show the modal
-                            setTimeout(() => {
-                                membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
-                                console.log("Membership prompt hidden after 15 seconds.");
-                            }, 15000);
-                        }
-                        */
-
+                        // --- IMPORTANT: Removed the problematic redundant block that caused 'catch' error. ---
+                        // The functionality for membershipOptionsModal would now need to be explicitly added
+                        // elsewhere if you still want it to show automatically on login for 15s.
+                        // Based on the conversation, we focused on the 'trialCountdownContainer' banner.
 
                         // --- Activate the gatekeeper for member-only links ---
-                        updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
+                        updateToolLinksAccess(profile);
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
                             userDisplayName = profile.preferredName; showSetup = false;
@@ -1129,6 +1179,10 @@ if (toolsSection) {
                     }
                 }
 
+                // IMPORTANT: Call manageBannerParentOnResize here too, after initial profile load
+                // to ensure the banner is in the correct place right after login state is determined.
+                manageBannerParentOnResize(); 
+
             } else { // User is signed out
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
                 if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
@@ -1150,6 +1204,15 @@ if (toolsSection) {
                     window.location.href = '../index.html';
                 } else {
                     console.log('User NOT signed in. On a public page, index, or root. No redirect needed:', window.location.pathname);
+                }
+
+                // If user logs out or is not signed in, ensure the banner is moved back to original parent
+                // (or hidden if it shouldn't show at all when not logged in).
+                // Assuming it should revert to its desktop position when logged out.
+                if (trialCountdownContainer && originalBannerParent) {
+                     originalBannerParent.appendChild(trialCountdownContainer);
+                     // If you want it completely hidden when logged out:
+                     // trialCountdownContainer.style.display = 'none';
                 }
             }
         });
