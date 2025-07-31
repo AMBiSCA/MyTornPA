@@ -379,3 +379,73 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     .btn-confirm-yes, .btn-confirm-no { width: 100%; }
 }
 
+/* --- New Styles for Collapse/Expand Functionality --- */
+
+/* Style for the collapse/expand toggle icon */
+/* This ensures the icon is always positioned correctly within its title */
+.section-title, .tool-category-header {
+    position: relative; /* Essential for absolute positioning of the icon */
+    display: flex; /* Allows content and icon to sit on the same line */
+    justify-content: space-between; /* Pushes the icon to the right */
+    align-items: center; /* Vertically centers the icon with the text */
+    padding-right: 30px; /* Provides space so the icon doesn't overlap text */
+}
+
+.collapse-toggle-icon {
+    font-size: 1.2em; /* Adjust size as needed */
+    cursor: pointer;
+    color: #00a8ff; /* Your theme accent color */
+    transition: transform 0.2s ease-in-out; /* Smooth rotation */
+    position: absolute; /* Position relative to the .section-title or .tool-category-header */
+    right: 10px; /* Distance from the right edge of the title container */
+    top: 50%;
+    transform: translateY(-50%); /* Centering vertically */
+    display: none; /* Hidden by default, only shown in mobile media query */
+}
+
+/* --- Mobile Specific Styles for Collapse/Expand --- */
+@media (max-width: 768px) {
+    /* Show the toggle icon only on mobile screens */
+    .collapse-toggle-icon {
+        display: block;
+    }
+
+    /* General style for collapsible content areas */
+    .collapsible-content {
+        max-height: 1000px; /* Arbitrary large value to allow full content when expanded */
+        overflow: hidden; /* Hides content that exceeds max-height */
+        transition: max-height 0.3s ease-out; /* Smooth transition for collapsing/expanding */
+    }
+
+    /* State when content is collapsed */
+    .collapsible-content.collapsed {
+        max-height: 0; /* Hides the content completely */
+    }
+
+    /* Rotate the icon when the content is collapsed (points down for expand, up for collapse) */
+    .collapse-toggle-icon.collapsed {
+        transform: translateY(-50%) rotate(180deg); /* Rotates 180 degrees to point upwards */
+    }
+
+    /* --- Specific Hiding Rules for "Your Quick Stats" when Collapsed --- */
+    /* Target non-essential stat items when quickStatsCollapsibleContent is collapsed */
+    #quickStatsCollapsibleContent.collapsed .non-essential-stat {
+        display: none !important; /* Hide elements marked as non-essential */
+    }
+    
+    /* Ensure essential stats remain visible */
+    #quickStatsCollapsibleContent.collapsed .essential-stat {
+        display: flex !important; /* Keep essential stats visible and laid out correctly */
+    }
+
+    /* --- Specific Hiding Rules for "Explore Your Tools" when Collapsed --- */
+    /* Hide non-essential tool categories when exploreToolsCollapsibleContent is collapsed */
+    #exploreToolsCollapsibleContent.collapsed .non-essential-tool-category {
+        display: none !important;
+    }
+    
+    /* Ensure essential tool categories remain visible */
+    #exploreToolsCollapsibleContent.collapsed .essential-tool-category {
+        display: block !important; /* Or flex if its internal items need flex */
+    }
+}
