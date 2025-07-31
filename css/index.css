@@ -1211,3 +1211,9 @@ header {
   }
 }
 
+@media (max-width: 991px) {
+  html, body {
+    overflow: hidden !important;
+  }
+}
+
