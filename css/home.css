@@ -382,6 +382,7 @@ cursor: not-allowed;
 
 /* === Trial & Membership Countdown Timer Box === */
 .trial-countdown-container {
+  display: none; /* Hidden by default, JS will show it */
   margin-top: 0px;
   margin-left: 40px;
   padding: 8px 12px;
@@ -556,68 +557,6 @@ cursor: not-allowed;
   width: 100%;        /* Ensures the text centers properly within the available space. */
 }
 
-
-/* === Trial & Membership Countdown Banner Styles === */
-/* This section styles the banner itself, applicable regardless of its parent */
-#trialCountdownContainer {
-    /* Base styles for the banner content */
-    margin-top: 0px; /* Adjust as needed for its header position on desktop */
-    margin-left: 40px; /* Adjust as needed for its header position on desktop */
-    padding: 8px 12px;
-    background-color: #1e2022;
-    border: 1px solid #00a8ff;
-    border-radius: 6px;
-    color: #FFC04D;
-    font-size: 0.9em;
-    font-weight: bold;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    white-space: nowrap;
-    /* By default, it should be block. JavaScript will set display:none for 5-sec hide. */
-    display: block; 
-    visibility: visible;
-    opacity: 1;
-}
-
-/* === Mobile Insertion Point Styling === */
-/* This is the new div that acts as a container for the banner on mobile. */
-/* It is hidden by default on desktop. */
-#mobileBannerInsertionPoint {
-    display: none; 
-    text-align: center;
-    padding: 8px 10px;
-    background-color: #3f3f3f; 
-    color: orange; 
-    font-weight: bold;
-    font-size: 0.9em;
-    border-radius: 5px;
-    margin-top: 10px;
-    margin-bottom: 15px;
-    width: calc(100% - 20px);
-    max-width: 400px; 
-    margin-left: auto; 
-    margin-right: auto; 
-}
-
-/* === Media Query for Mobile-Specific Behavior === */
-@media (max-width: 768px) {
-    /* On mobile, HIDE the original banner in the header */
-    #trialCountdownContainer {
-        display: none !important; /* Force hide the original element in its header location */
-        visibility: hidden !important; /* Extra hide for robustness */
-    }
-
-    /* On mobile, SHOW the mobile insertion point */
-    #mobileBannerInsertionPoint {
-        display: block !important; /* Force show the mobile placeholder */
-        visibility: visible !important; /* Force visible */
-    }
-
-    /* Adjust the header layout if the banner created space */
-    header .header-left {
-        /* Add any specific adjustments here if needed */
-    }
-}
 
 
 /* === RESPONSIVE STYLES === */
