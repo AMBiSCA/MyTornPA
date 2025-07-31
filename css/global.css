@@ -457,7 +457,7 @@ ul li:last-child { border-bottom: none; }
     background-color: #0d1b2a;
     border: 1px solid #415a77;
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+
     cursor: pointer;
 }
 
@@ -479,7 +479,7 @@ ul li:last-child { border-bottom: none; }
 
 #chat-bar-collapsed:hover {
     background-color: #415a77; /* Hover for the entire bar */
-    box-shadow: 0 0 15px rgba(0, 168, 255, 0.4); /* Add a subtle blue glow on hover */
+  
 }
 #chat-bar-collapsed:hover .chat-bar-icon .chat-icon-text {
     display: inline; /* Show text on hover of the entire collapsed bar */
@@ -487,21 +487,16 @@ ul li:last-child { border-bottom: none; }
 
 
 
-/* --- Expanded Chat Window Styles --- */
 #chat-window {
-    /* --- Positioning --- */
     position: fixed;
-    right: 5px;      /* Aligns horizontally with the icon bar */
-    bottom: 73px;    /* This is the key: Lifts it above the icon bar */
+    right: 5px;
+    bottom: 73px;
     z-index: 1000;
-
-    /* --- Your existing styles --- */
     width: 400px;
     height: 450px;
     background-color: #1b263b;
     border: 1px solid #415a77;
     border-radius: 5px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
     display: flex;
     flex-direction: column;
     overflow: hidden;
