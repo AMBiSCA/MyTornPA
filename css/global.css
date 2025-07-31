@@ -1871,3 +1871,9 @@ input:checked + .slider:before {
 @media (max-width: 480px) {
   /* Mobile specific adjustments within the media queries */
 }
+
+@media only screen and (max-width: 991px) {
+  #globalfooterplaceholder {
+    display: none;
+  }
+}
