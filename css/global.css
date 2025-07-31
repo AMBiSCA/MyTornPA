@@ -2012,6 +2012,7 @@ input:checked + .slider:before {
         padding: 8px 10px !important;
         justify-content: center !important;
         margin: 0 !important; /* Remove any external margins */
+		background-color: #1b263b !important;
     }
 
    #chat-window {
