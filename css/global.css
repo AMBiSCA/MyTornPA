@@ -1868,138 +1868,19 @@ input:checked + .slider:before {
   footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 }
 
-/* --- CONSOLIDATED MOBILE STYLES (768px breakpoint and below) --- */
-@media (max-width: 768px) {
-  /* --- KEEP THIS SECTION FOR SCROLLING & SCROLLBAR HIDING --- */
-  html, body {
-    height: auto;
-    overflow-y: auto;          /* Enables page scrolling */
-    -ms-overflow-style: none;  /* Hides scrollbar on IE/Edge */
-    scrollbar-width: none;     /* Hides scrollbar on Firefox */
-  }
-  body::-webkit-scrollbar {
-    display: none;             /* Hides scrollbar on Chrome/Safari */
-  }
-  /* --- END OF KEPT SCROLLBAR RULES --- */
+@media (max-width: 480px) {
+  /* Mobile specific adjustments within the media queries */
+}
 
-
-  /* --- NEW CONSOLIDATED HEADER & BUTTON STYLES --- */
-
-  /* Overall Header Styling for Mobile/Tablet */
-  header {
-    position: static;          /* Allows header to scroll with page content */
-    height: auto;              /* Height adjusts automatically to its content */
-    min-height: 70px;          /* Ensure a minimum height */
-    padding: 10px 20px;        /* Adjust vertical padding for mobile header */
-    flex-wrap: wrap;           /* Allow header content to wrap */
-    justify-content: center;   /* Center header content horizontally */
-    flex-direction: column;    /* Stack header-left, header-center, header-right-controls vertically */
-    align-items: center;       /* Center items within header */
-    border-bottom: 3px solid #00a8ff; /* Keep border */
-    box-shadow: 0 3px 8px rgba(0,0,0,0.5); /* Keep shadow */
-  }
-
-  /* Layout for the main sections within the header */
-  .header-left,
-  .header-center,
-  .header-right-controls {
-    flex-basis: auto;          /* Allow sizing based on content */
-    width: 100%;               /* Take full width on mobile */
-    display: flex;             /* Make them flex containers */
-    justify-content: center;   /* Center content within these sections */
-    align-items: center;
-    margin-bottom: 5px;        /* Add spacing between header sections */
-  }
-
-  /* Hide the main logo image on mobile (as per your previous setup) */
-  #headerMainLogo {
+@media only screen and (max-width: 991px) {
+  #globalfooterplaceholder {
     display: none;
   }
-
-  /* Hide the tagline text on mobile to make space */
-  .header-left .tagline {
-      display: none;
-  }
-
-  /* Adjust main title font size and alignment for mobile */
-  .header-left h1 {
-      font-size: 1.4rem;       /* Slightly smaller title */
-      text-align: center;      /* Center the title text itself */
-  }
-
-  /* --- Button Specific Mobile Styles (Home, Profile, Useful Links, Contact, Logout) --- */
-
-  /* Hide the text part from all header buttons. This is robust. */
-  .header-btn .btn-text,     /* Targets buttons with the .btn-text span (like 'Logout' on home, or text on problematic page if it exists) */
-  #homeHeaderButton:not(:has(.btn-icon)), /* Targets #homeHeaderButton if it doesn't have a .btn-icon span, assuming it's just emoji/text */
-  .btn.header-btn:not(:has(.btn-icon)) /* General fallback for any header button without a dedicated icon span */
-  {
-    display: none; /* Make text disappear */
-  }
-
-  /* Ensure 'Useful Links' button is displayed (overrides previous hide rule) */
-  #usefulLinksBtn {
-      display: flex !important; /* Force it to display as a flex container */
-  }
-
-  /* Universal styling for ALL header-related interactive elements that should act as consistent buttons */
-  /* This applies to:
-     - Buttons with class .header-btn (Profile, Useful Links' inner button, Contact's inner button, Logout)
-     - The specific #homeHeaderButton (on pages where it appears) */
-  .header-btn,
-  #homeHeaderButton {
-    display: flex;           /* Make each button a flex container */
-    justify-content: center; /* Center emoji/icon horizontally */
-    align-items: center;     /* Center emoji/icon vertically */
-    box-sizing: border-box;  /* Ensure padding and border are included in the total size */
-    width: 50px;             /* Fixed width for consistent square shape */
-    height: 50px;            /* Fixed height for consistent square shape */
-    padding: 0;              /* Remove internal padding for snug fit of emoji */
-    border-radius: 8px !important; /* FORCE rounded rectangle shape (overrides base 20px) */
-    flex-shrink: 0;          /* Prevent buttons from shrinking below their set size */
-    /* Ensure consistent visual styling to override any defaults */
-    background-color: #007acc; /* Consistent blue background */
-    color: #eee;               /* Consistent light text/emoji color */
-    border: 1px solid #005a99; /* Consistent blue border */
-    text-decoration: none !important; /* Ensure links acting as buttons don't have underlines */
-    margin: 0 4px; /* Adjust margin for proper spacing in the button row */
-  }
-
-  /* Style for the icon span within buttons (ensures emoji fills space and is centered) */
-  .header-btn .btn-icon,
-  #homeHeaderButton /* Directly target the emoji if it's the sole content of the button */
-  {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;             /* Make the icon/emoji fill the button's internal space */
-    height: 100%;
-    font-size: 24px;         /* Adjust emoji size as needed for optimal fit */
-  }
-
-  /* Adjust spacing and layout for the main container of the header buttons */
-  .header-buttons { /* Targeting the class as it's common to both #headerButtonsContainer and potentially others */
-    display: flex;
-    flex-wrap: wrap;         /* Allow buttons to wrap onto the next line if screen is too small */
-    justify-content: center; /* Center the group of buttons horizontally */
-    align-items: center;
-    gap: 15px;               /* Add consistent space between buttons */
-    margin-top: 10px;        /* Add space below the main title/header if needed */
-  }
-
-  /* Ensure dropdown wrappers adjust correctly within the flex layout */
-  .header-buttons .dropdown {
-    display: flex; /* Treat the dropdown container itself as a flex item */
-  }
-
-  /* --- Other mobile adjustments (from your existing global styles, kept and moved here for consolidation) --- */
-  body { padding-top: 0; padding-bottom: 0; } /* Adjust body padding for static header/footer */
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; } /* Adjust main content margins/padding */
-  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; } /* Make footer static */
-  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; } /* Adjust footer links layout */
 }
 
-/* Any further adjustments for very small screens (e.g., <480px) can go here */
-@media (max-width: 480px) {
-  /* You can add more specific rules here if needed for even smaller phones */
+@media only screen and (max-width: 991px) {
+  .footer {
+    display: none !important; /* Added !important */
+  }
 }
+
