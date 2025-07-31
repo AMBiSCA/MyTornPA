@@ -2027,7 +2027,6 @@ input:checked + .slider:before {
     max-width: unset !important;
     height: 65vh !important; /* Changed from full-screen height */
     border-radius: 8px 8px 0 0 !important; /* Rounds the top corners */
-    box-shadow: 0 0 15px rgba(0,0,0,0.5) !important;
     background-color: #1b263b !important;
     border: 1px solid #415a77 !important;
     z-index: 1000 !important;
