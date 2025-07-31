@@ -699,6 +699,10 @@ async function displayGainsTable() {
     }
 }
 
+/**
+ * Captures the currently active tab's content (with selected columns) as an image
+ * and triggers a download. Requires html2canvas library to be loaded.
+ */
 function downloadCurrentTabAsImage() {
     const activeTabPane = document.querySelector('.tab-pane-bb.active');
 
@@ -738,7 +742,6 @@ function downloadCurrentTabAsImage() {
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
-    // CORRECTED LINE: Set width to 820px (new table width) + 30px (padding) = 850px
     tempContainer.style.width = '850px';
     tempContainer.style.backgroundColor = '#222';
     tempContainer.style.padding = '15px';
@@ -769,7 +772,7 @@ function downloadCurrentTabAsImage() {
         headerTextsToKeep.forEach(text => {
             const th = document.createElement('th');
             th.textContent = text;
-      _         tempHeaderRow.appendChild(th);
+            tempHeaderRow.appendChild(th);
         });
         tempThead.appendChild(tempHeaderRow);
     }
