@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <link rel="stylesheet" href="../css/global.css"> 
+  <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/home.css">
 </head>
 <body>
@@ -18,14 +18,14 @@
     <a href="home.html" id="headerLogoLink" style="text-decoration: none;">
         <h1>MyTornPA.📝 <span class="tagline">Your Personal Assistant!</span></h1>
     </a>
-    
+
     <div id="trialCountdownContainer" class="trial-countdown-container"></div>
     </div>
     <div class="header-center">
         <img src="../images/Header.jpg" alt="MyTornPA Logo" id="headerMainLogo">
     </div>
     <div class="header-right-controls">
-        
+
         <div class="header-buttons" id="headerButtonsContainer">
             <button class="btn header-btn" id="headerEditProfileBtn">
                 <span class="btn-text">Profile:</span>
@@ -102,7 +102,7 @@
                             </div>
                         </div>
                         <label for="shareFactionStatsToggleDashboard">
-						
+
                             </label>
                     </div>
                     <div class="share-stats-time-container"> <div id="tornTimeContainer">TornCityTime : <span id="tornTimePlaceholder">[Time]</span></div>
@@ -188,7 +188,7 @@
                     <input type="checkbox" id="termsAgreementProfileModal" name="termsAgreementProfileModal">
                 </label>
             </div>
-         
+
             <div class="modal-error-message" id="profileSetupError"></div>
 
            <div class="modal-actions">
@@ -203,7 +203,7 @@
         <div class="modal-content-box">
             <span class="modal-close-button" id="closePersonalStatsDialogBtn">&times;</span>
             <div id="personalStatsModalBody">
-                <p>Loading stats...</p>          
+                <p>Loading stats...</p>
             </div>
         </div>
     </div>
@@ -213,14 +213,14 @@
         <span class="modal-close-button" id="closeMembershipOptionsBtn">&times;</span>
         <h3>Choose Your Membership!</h3>
         <p class="modal-subtitle">Unlock advanced features and support MyTornPA.</p>
-        
+
         <div class="membership-options-grid">
             <div class="membership-option-card free-trial-card card-free-trial">
                 <h4>🚀 1 Week Free Trial</h4>
                 <p>Experience all features, no commitment!</p>
                 <button class="btn membership-select-btn" id="startFreeTrialBtn">Start Your Free Trial</button>
             </div>
-            
+
             <div class="membership-option-card solo-membership-card card-solo-monthly">
                 <h4>💎 Individual Monthly Membership.</h4>
                 <div class="payment-instructions">
@@ -228,15 +228,15 @@
                     <ol>
                         <li><strong>Item:</strong> Xanax</li>
                         <li><strong>Amount:</strong> 15 (exactly)</li>
-                        <li><strong>To:</strong> 
-                            <span id="player-to-copy-solo-month">AMBiSCA [2662550]</span> 
+                        <li><strong>To:</strong>
+                            <span id="player-to-copy-solo-month">AMBiSCA [2662550]</span>
                             <button class="copy-btn" data-copy-target="player-to-copy-solo-month">Copy</button>
                         </li>
                     </ol>
                 </div>
                 <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
             </div>
-            
+
             <div class="membership-option-card yearly-membership-card card-solo-yearly">
                 <h4>🌟 Individual Yearly Membership.</h4>
                 <div class="payment-instructions">
@@ -244,7 +244,7 @@
                     <ol>
                         <li><strong>Item:</strong> Xanax</li>
                         <li><strong>Amount:</strong> 150 (exactly)</li>
-                        <li><strong>To:</strong> 
+                        <li><strong>To:</strong>
                             <span id="player-to-copy-solo-year">AMBiSCA [2662550]</span>
                             <button class="copy-btn" data-copy-target="player-to-copy-solo-year">Copy</button>
                         </li>
@@ -252,7 +252,7 @@
                 </div>
                 <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
             </div>
-            
+
             <div class="membership-option-card card-faction-monthly">
                 <h4>👥 Faction Monthly Membership.</h4>
                 <div class="payment-instructions">
@@ -261,7 +261,7 @@
                     <ol>
                         <li><strong>Item:</strong> Xanax</li>
                         <li><strong>Amount:</strong> 40 (exactly)</li>
-                        <li><strong>To:</strong> 
+                        <li><strong>To:</strong>
                             <span id="player-to-copy-faction-month">AMBiSCA [2662550]</span>
                             <button class="copy-btn" data-copy-target="player-to-copy-faction-month">Copy</button>
                         </li>
@@ -269,16 +269,15 @@
                 </div>
                 <a href="https://www.torn.com/item.php" target="_blank" class="btn membership-select-btn">Go to Torn Items</a>
             </div>
-            
+
             <div class="membership-option-card yearly-membership-card card-faction-yearly">
                 <h4>🌟 Faction Yearly Membership.</h4>
                 <div class="payment-instructions">
                     <p><strong>Save 80 Xanax per year!</strong></p>
-                    <p class="faction-warning-text">( Must be Leader or Co-Leader! )</p>
                     <ol>
                         <li><strong>Item:</strong> Xanax</li>
                         <li><strong>Amount:</strong> 400 (exactly)</li>
-                        <li><strong>To:</strong> 
+                        <li><strong>To:</strong>
                             <span id="player-to-copy-faction-year">AMBiSCA [2662550]</span>
                             <button class="copy-btn" data-copy-target="player-to-copy-faction-year">Copy</button>
                         </li>
@@ -291,8 +290,8 @@
         <div class="modal-error-message" id="membershipOptionsError"></div>
     </div>
 </div>
- 
- <div class="modal-overlay" id="freeTrialConfirmationModal">
+
+<div class="modal-overlay" id="freeTrialConfirmationModal">
         <div class="modal-content-box confirmation-modal">
             <span class="modal-close-button" id="closeFreeTrialConfirmationBtn">&times;</span>
             <h3>Confirm Free Trial Activation</h3>
@@ -304,8 +303,8 @@
             <div class="modal-error-message" id="freeTrialConfirmationError"></div>
         </div>
     </div>
-	
-	<div class="modal-overlay" id="subscribePromptModal">
+
+    <div class="modal-overlay" id="subscribePromptModal">
     <div class="modal-content-box confirmation-modal">
         <span class="modal-close-button" id="closeSubscribePromptBtn">&times;</span>
         <h3><span class="btn-icon">💎</span> Membership Required!  💎</h3>
@@ -370,9 +369,8 @@
     <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
   </footer>
 
-  <script src="../js/firebase-init.js"></script>
+  <div id="chat-system-placeholder"></div> <script src="../js/firebase-init.js"></script>
   <script src="../js/globalheader.js"></script>
-  <script src="../js/home.js"></script>
-  
-</body>
+  <script src="../js/global.js"></script> <script src="../js/home.js"></script>
+  </body>
 </html>

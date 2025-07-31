@@ -4,9 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MyTornPA - Faction Activity Peeper</title>
-	
-		
-	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -88,7 +87,7 @@
                 <div class="chart-panel">
                     <canvas id="myFactionIndividualsChart"></canvas>
                 </div>
-                <div class="chart-panel">         
+                <div class="chart-panel">
                     <canvas id="activityDifferenceChart"></canvas>
                 </div>
                 <div class="chart-panel">
@@ -140,39 +139,9 @@
             <p class="small-text">Note: Multiple individual Reports will be seperate downloads.</p>
         </div>
     </div>
-	
-	<div id="globalConfirmModal" class="modal-overlay">
-  <div class="modal-content-box confirmation-modal">
-    <h4 id="globalConfirmTitle">Confirmation</h4>
-    <p id="globalConfirmMessage">Are you sure?</p>
-    <div class="confirmation-actions">
-      <button id="globalConfirmBtnYes" class="btn btn-confirm-yes">OK</button>
-      <button id="globalConfirmBtnNo" class="btn btn-confirm-no">Cancel</button>
-    </div>
-  </div>
-</div>
-	
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="home.html" id="homeButtonFooter">Home</a>
-            <a href="FAQ.html">F.A.Q</a>
-            <a href="Terms.html">Disclaimer & Terms</a>
-            <a href="report.html">Report an Issue</a>
-            <a href="about.html">About Us</a>
-            <a href="https://wiki.torn.com/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Torn Wiki</a>
-            <a href="https://www.torn.com/index.php" target="_blank" rel="noopener noreferrer">Torn City</a>
-        </div>
-        <p>© 2025 MyTornPA — Made for Torn players, by Torn players.</p>
-    </footer>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-
-    <script src="../js/firebase-init.js"></script>
+    <div id="globalfooterplaceholder"></div> <div id="chat-system-placeholder"></div> <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
-	<script src="../js/global-confirm.js"></script>
-    <script src="../js/activitywatch.js"></script>
-</body>
+    <script src="../js/global.js"></script> <script src="../js/activitywatch.js"></script>
+    <script src="../js/globalfooter.js"></script> </body>
 </html>
