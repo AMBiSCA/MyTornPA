@@ -30,7 +30,7 @@
 }
 
 .gym-main-content {
-    flex: 11; /* This creates a ~62.5% width for the left column */
+    flex: 12; /* This creates a ~62.5% width for the left column */
     display: flex;
     flex-direction: column;
     align-items: center;
