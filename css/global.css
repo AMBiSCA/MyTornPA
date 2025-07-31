@@ -1885,33 +1885,53 @@ input:checked + .slider:before {
 }
 
 @media only screen and (max-width: 991px) {
-  /* Hide the text part of the header buttons on mobile/tablet */
-  #headerButtonsContainer .btn-text {
+  /* Hide text from all buttons that use btn-text span */
+  .header-btn .btn-text {
     display: none;
   }
 
-  /* Make the buttons themselves flex containers to perfectly center the icon/emoji */
-  #headerButtonsContainer .btn.header-btn,
-  #headerButtonsContainer .dropdown > .btn.header-btn {
-    display: flex;           /* Enable flexbox for centering */
-    justify-content: center; /* Center horizontally */
-    align-items: center;     /* Center vertically */
-    padding: 10px 15px;      /* Adjusted padding for better visual balance around emoji */
-    min-width: unset;        /* Remove any fixed minimum width that might stretch buttons */
-    border-radius: 8px;      /* Add rounded corners for a softer button look */
+  /* Apply consistent styling to ALL header buttons for a uniform look */
+  .header-btn,          /* Targets Profile, Useful Links (inner button), Contact (inner button), Logout */
+  #homeHeaderButton     /* Targets the specific Home button structure in dynamic headers */
+  {
+    display: flex;           /* Make each button a flex container */
+    justify-content: center; /* Center emoji horizontally */
+    align-items: center;     /* Center emoji vertically */
+    box-sizing: border-box;  /* Ensure padding and border are included in the total size */
+    width: 50px;             /* Set a fixed width for all buttons (making them consistently square) */
+    height: 50px;            /* Set a fixed height for all buttons */
+    padding: 0;              /* Remove internal padding for a tighter emoji fit if needed */
+    border-radius: 8px !important; /* FORCE rounded rectangle shape for ALL buttons */
+    flex-shrink: 0;          /* Prevent buttons from shrinking below their set size */
+    background-color: #007acc; /* Example: Apply a consistent background color */
+    color: #eee;             /* Example: Apply a consistent emoji color */
+    border: 1px solid #005a99; /* Example: Apply a consistent border */
+  }
+
+  /* Ensure the icon content itself is perfectly centered within its span or directly as the button content */
+  .header-btn .btn-icon,
+  #homeHeaderButton /* Directly target the emoji if it's the sole content of the button */
+  {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;             /* Make the icon/emoji fill the button's internal space */
+    height: 100%;
+    font-size: 24px;         /* Adjust emoji size if needed to fit well */
   }
 
   /* Adjust spacing and layout for the main container of these buttons */
   #headerButtonsContainer {
-    display: flex;           /* Ensure it's a flex container */
-    flex-wrap: wrap;         /* Allow buttons to wrap to the next line if screen is too narrow */
-    justify-content: center; /* Center the entire row of buttons within their container */
-    align-items: center;     /* Align the rows vertically */
-    gap: 15px;               /* Increased space between buttons */
+    display: flex;           /* Enable flexbox for the container */
+    flex-wrap: wrap;         /* Allow buttons to wrap onto the next line if space is limited */
+    justify-content: center; /* Center the entire group of buttons horizontally */
+    align-items: center;     /* Align the group of buttons vertically */
+    gap: 15px;               /* Add consistent space between buttons */
+    margin-top: 10px;        /* Add space below the main title/header if needed */
   }
 
-  /* Ensure dropdown wrappers also behave as flex items if necessary for alignment */
+  /* Ensure dropdown wrappers also behave correctly within the flex layout */
   #headerButtonsContainer .dropdown {
-    display: flex;
+    display: flex; /* Treat dropdown as a flex item to align its button */
   }
 }
