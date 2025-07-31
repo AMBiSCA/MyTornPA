@@ -2020,7 +2020,7 @@ input:checked + .slider:before {
     }
 
    #chat-window {
-    bottom: 55px !important;
+    bottom: 50px !important;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
