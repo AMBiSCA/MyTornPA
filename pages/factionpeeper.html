@@ -77,29 +77,6 @@
   <script src="../js/factionpeeper.js"></script>
   <script src="../js/globalfooter.js"></script>
   
-<script>
 
-
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const contactBtn = document.getElementById('headerContactUsBtn');
-    const contactDropdown = document.getElementById('headerContactUsDropdown');
-
-    // Hide dropdown initially
-    contactDropdown.style.display = 'none';
-
-    contactBtn.addEventListener('click', () => {
-      const isVisible = contactDropdown.style.display === 'block';
-      contactDropdown.style.display = isVisible ? 'none' : 'block';
-    });
-
-    // Optional: Hide dropdown if clicked outside
-    window.addEventListener('click', (e) => {
-      if (!contactBtn.contains(e.target) && !contactDropdown.contains(e.target)) {
-        contactDropdown.style.display = 'none';
-      }
-    });
-  });
-</script>
 </body>
 </html>
