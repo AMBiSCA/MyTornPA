@@ -122,12 +122,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // NEW DOM ELEMENTS FOR COLLAPSE/EXPAND FUNCTIONALITY
     const quickStatsToggle = document.getElementById('quickStatsToggle');
     const quickStatsCollapsibleContent = document.getElementById('quickStatsCollapsibleContent');
-    const quickStatsSection = document.getElementById('quickStatsSection'); // IMPORTANT: This is the outer section container
-
+    const quickStatsSection = document.getElementById('quickStatsSection'); // ADD THIS LINE
     const exploreToolsToggle = document.getElementById('exploreToolsToggle');
     const exploreToolsCollapsibleContent = document.getElementById('exploreToolsCollapsibleContent');
-    const exploreToolsSection = document.getElementById('exploreToolsSection'); // IMPORTANT: This is the outer section container
-
+    const exploreToolsSection = document.getElementById('exploreToolsSection');
 
     const hideSubscribePrompt = () => {
         if (subscribePromptModal) {
@@ -262,6 +260,59 @@ document.addEventListener('DOMContentLoaded', function() {
         const days = Math.floor(hrs / 24);
         return `${days} day${days === 1 ? "" : "s"} ago`;
     }
+	
+	 // --- NEW: Collapse/Expand Logic for Sections ---
+    // Helper function to check if current view is mobile
+    const isMobileView = () => window.matchMedia("(max-width: 768px)").matches;
+
+    // Generic function to toggle collapse/expand for a section
+    // Now toggles the 'collapsed' class on the *sectionElement* itself
+    const toggleSection = (toggleElement, sectionElement) => { // CHANGED parameter name
+        if (!toggleElement || !sectionElement) {
+            console.warn("Toggle or section element not found for collapse feature.");
+            return;
+        }
+
+        if (sectionElement.classList.contains('collapsed')) {
+            // It's currently collapsed, so expand it
+            sectionElement.classList.remove('collapsed');
+            toggleElement.textContent = '▲'; // Up arrow for expanded state (to collapse)
+            toggleElement.classList.remove('collapsed'); // Remove collapsed class from icon
+        } else {
+            // It's currently expanded, so collapse it
+            sectionElement.classList.add('collapsed');
+            toggleElement.textContent = '▼'; // Down arrow for collapsed state (to expand)
+            toggleElement.classList.add('collapsed'); // Add collapsed class to icon
+        }
+    };
+
+    // Event Listeners for Quick Stats
+    // Pass the main section element (#quickStatsSection)
+    if (quickStatsToggle && quickStatsSection) { // CHANGED `quickStatsCollapsibleContent` to `quickStatsSection`
+        quickStatsToggle.addEventListener('click', () => toggleSection(quickStatsToggle, quickStatsSection));
+    }
+
+    // Event Listeners for Explore Your Tools
+    // Pass the main section element (#exploreToolsSection)
+    if (exploreToolsToggle && exploreToolsSection) { // CHANGED `exploreToolsCollapsibleContent` to `exploreToolsSection`
+        exploreToolsToggle.addEventListener('click', () => toggleSection(exploreToolsToggle, exploreToolsSection));
+    }
+
+    // Set initial state on page load for mobile
+    // This runs after DOMContentLoaded, ensuring elements are available
+    if (isMobileView()) {
+        if (quickStatsSection && quickStatsToggle) { // CHANGED `quickStatsCollapsibleContent` to `quickStatsSection`
+            quickStatsSection.classList.add('collapsed'); // Add collapsed to the section
+            quickStatsToggle.textContent = '▼'; // Set initial down arrow for collapsed state
+            quickStatsToggle.classList.add('collapsed'); // Also add the class for consistency
+        }
+        if (exploreToolsSection && exploreToolsToggle) { // CHANGED `exploreToolsCollapsibleContent` to `exploreToolsSection`
+            exploreToolsSection.classList.add('collapsed'); // Add collapsed to the section
+            exploreToolsToggle.textContent = '▼'; // Set initial down arrow for collapsed state
+            exploreToolsToggle.classList.add('collapsed'); // Also add the class for consistency
+        }
+    }
+	
     async function updateToolLinksAccess(profile) {
         console.log('[DEBUG] Running updateToolLinksAccess...');
         const toolLinks = document.querySelectorAll('.tool-item-button');
@@ -277,6 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
+        // --- THIS LINE IS CORRECTED ---
         const hasPersonalComp = String(profile.hasFreeAccess) === 'true';
         const hasFactionComp = await isFactionComped(profile, db);
 
@@ -391,11 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (elementId === "happyStat") element.classList.add("stat-value-yellow");
                 else if (elementId === "lifeStat") element.classList.add("stat-value-blue");
             }
-        });
+        }
     }
 
     function validateTornProfileIdInput(event) {
         const input = event.target;
+        // Remove any character that is NOT a digit (0-9)
         input.value = input.value.replace(/\D/g, '');
     }
 
@@ -416,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const leaderProfile = leaderSnapshot.docs[0].data();
             const leaderHasMembership = leaderProfile.membershipEndTime && leaderProfile.membershipEndTime > Date.now();
+            // --- THIS LINE IS CORRECTED ---
             const leaderHasFreeAccess = String(leaderProfile.hasFreeAccess) === 'true';
             if (leaderHasMembership || leaderHasFreeAccess) {
                 console.log(`isFactionComped check: Access granted via faction leader's membership.`);
@@ -434,24 +488,27 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(membershipCountdownInterval);
         }
 
+        // Changed to target the factionHuddleMessage element
         const targetMessageEl = document.getElementById('factionHuddleMessage');
-        const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!";
+        const originalFactionMessage = "Looking for a Faction? Try out Faction Recruitment!"; // Store original text
 
         if (!targetMessageEl || !membershipInfo || !membershipInfo.membershipEndTime) {
+            // If target element is missing or no valid membership info, ensure original text is displayed
             if (targetMessageEl) {
-                targetMessageEl.textContent = originalFactionMessage;
-                targetMessageEl.style.display = 'block';
+                targetMessageEl.textContent = originalFactionMessage; // Reset to original if needed
+                targetMessageEl.style.display = 'block'; // Ensure it's visible
             }
             return;
         }
 
+        // Function to update the timer text, runs every second
         const updateTimer = () => {
             const remainingTime = membershipInfo.membershipEndTime - Date.now();
 
             if (remainingTime <= 0) {
                 clearInterval(membershipCountdownInterval);
-                targetMessageEl.textContent = originalFactionMessage;
-                targetMessageEl.style.display = 'block';
+                targetMessageEl.textContent = originalFactionMessage; // Revert to original message
+                targetMessageEl.style.display = 'block'; // Ensure it's visible
                 return;
             }
 
@@ -463,17 +520,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const days = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
                 countdownText = `${label} ends in: ${days} days`;
             } else {
-                const days = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-                countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`; // This line has 'hours' not defined.
+                countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
             }
 
+            // Update the content of the target message element
             targetMessageEl.textContent = countdownText;
-            targetMessageEl.style.display = 'block';
+            targetMessageEl.style.display = 'block'; // Make sure it's visible
         };
 
-        updateTimer();
-        membershipCountdownInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Run it once immediately
+        membershipCountdownInterval = setInterval(updateTimer, 1000); // Then run it every second
     }
 
     function clearQuickStats() {
@@ -775,17 +834,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (quickStatsErrorEl) quickStatsErrorEl.textContent = '';
 
+            // --- *** THIS IS THE ONLY CORRECTED SECTION *** ---
+            // It safely checks for the nested faction object and uses the correct property names.
             const factionData = data?.profile?.faction || data?.faction || null;
 
             if (factionData) {
                 const updatePayload = {
-                    uid: user.uid,
+                    uid: user.uid, // User's Firebase UID
                     faction_id: factionData.faction_id ?? null,
                     faction_name: factionData.faction_name ?? null,
                     position: factionData.position ?? null,
+                    // --- NEW: Add profile_image, Torn name, and Torn Player ID ---
                     profile_image: data.profile_image || null,
                     name: data.name || null,
+                    // THIS LINE IS NOW FIXED
                     tornProfileId: String(data.player_id || '')
+                    // --- END NEW ---
                 };
                 console.log('Sending updated faction and profile data to Netlify function:', updatePayload);
 
@@ -809,7 +873,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Faction & Profile data update via Netlify function failed:', error.message);
                 }
             } else {
+                // This 'else' block handles cases where no faction data is found, ensure it still clears errors
                 console.warn("No faction data found in API response to send to Netlify function.");
+                // Optionally, if you have a specific UI error display for this, update it here.
             }
 
         } catch (error) {
@@ -885,50 +951,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (closeProfileModalBtn && profileSetupModal) closeProfileModalBtn.addEventListener('click', hideProfileSetupModal);
 
+    // Locate this block in your home.js and replace it completely.
     if (headerEditProfileBtn && auth && db) {
         headerEditProfileBtn.addEventListener('click', async function(event) {
             event.preventDefault();
             const user = auth.currentUser;
             if (!user || !db) return;
 
+            // --- Prepare input fields ---
             if (preferredNameInput) preferredNameInput.value = '';
             if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = '';
             if (termsCheckbox) termsCheckbox.checked = false;
             if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = false;
 
+            // --- MODIFIED: We no longer make the Profile ID field read-only ---
             if (profileSetupProfileIdInput) {
-                profileSetupProfileIdInput.value = '';
-                profileSetupProfileIdInput.removeAttribute('readonly');
-                profileSetupProfileIdInput.type = 'text';
+                profileSetupProfileIdInput.value = ''; // Clear the value
+                profileSetupProfileIdInput.removeAttribute('readonly'); // Ensure it is NOT readonly
+                profileSetupProfileIdInput.type = 'text'; // Ensure it's a text field
             }
+            // --- END MODIFICATION ---
 
             try {
                 const userProfileRef = db.collection('userProfiles').doc(user.uid);
-                const doc = await userProfileRef.get();
+                const doc = await userProfileRef.get(); // Fetch the current user profile
 
                 if (doc.exists) {
                     const data = doc.data();
 
+                    // Populate fields with data from Firebase
                     if (preferredNameInput) preferredNameInput.value = data.preferredName || '';
                     if (profileSetupApiKeyInput) profileSetupApiKeyInput.value = data.tornApiKey || '';
 
+                    // --- MODIFIED: Populate TornProfileId but DO NOT make it readonly ---
                     if (profileSetupProfileIdInput) {
                         profileSetupProfileIdInput.value = data.tornProfileId ? String(data.tornProfileId) : '';
+                        // The line that set it to readonly here has been removed.
                     }
+                    // --- END MODIFICATION ---
 
                     if (termsCheckbox) termsCheckbox.checked = data.termsAgreed === true;
                     if (shareFactionStatsModalToggle) shareFactionStatsModalToggle.checked = data.shareFactionStats === true;
 
                 } else {
+                    // If no profile exists, set preferredName from Firebase displayName (if available)
                     if (preferredNameInput && user.displayName) {
                         preferredNameInput.value = user.displayName.substring(0, 10);
                     }
+                    // We don't need to do anything to the profile ID input here, it's already cleared and writable.
                 }
             } catch (err) {
                 console.error("Error fetching profile for edit:", err);
                 if (profileSetupErrorEl) profileSetupErrorEl.textContent = "Could not load profile.";
             }
-            showProfileSetupModal();
+            showProfileSetupModal(); // Show the modal after attempting to populate it
         });
     }
 
@@ -1007,10 +1083,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     merge: true
                 });
 
+                // --- MODIFIED PART ---
+                // Start the background data save but DON'T wait for it to finish.
                 if (profileDataToSave.tornApiKey) {
-                    fetchAllRequiredData(user, db);
+                    fetchAllRequiredData(user, db); // The "await" keyword is removed from here.
                 }
 
+                // Refresh the page immediately.
                 location.reload();
 
             } catch (error) {
@@ -1029,21 +1108,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const needsMembership = link.classList.contains('member-only');
+            // If it's a public link (doesn't need membership), do nothing and let it navigate normally.
             if (!needsMembership) {
                 return;
             }
 
+            // If we've reached this point, it IS a member-only link.
+            // We must stop the default navigation right now, before any 'await' calls.
             event.preventDefault();
 
             const profile = currentUserProfile;
             const hasAgreedToTerms = profile ? profile.termsAgreed === true : false;
 
+            // First, check if the issue is a lack of terms agreement.
             if (!hasAgreedToTerms) {
                 const termsPromptModal = document.getElementById('termsPromptModal');
                 if (termsPromptModal) termsPromptModal.style.display = 'flex';
-                return;
+                return; // Stop here, show the terms modal.
             }
 
+            // Now we can safely perform the async membership check.
             let isMember = false;
             if (profile) {
                 const hasPaidMembership = profile.membershipEndTime && profile.membershipEndTime > Date.now();
@@ -1052,20 +1136,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 isMember = hasPaidMembership || hasPersonalComp || hasFactionComp;
             }
 
+            // After checking, decide what to do.
             if (isMember) {
+                // If they are a member, navigate to the link's URL for them.
                 window.location.href = link.href;
             } else {
+                // If they are NOT a member, show the subscribe modal.
                 const subscribeModal = document.getElementById('subscribePromptModal');
                 if (subscribeModal) subscribeModal.style.display = 'flex';
             }
         });
     }
+    // ... (rest of your home.js file before onAuthStateChanged) ...
 
     if (auth) {
         auth.onAuthStateChanged(async function(user) {
             console.log('Auth State Changed. User:', user ? user.uid : 'No user');
             const isHomePage = window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
             const homeButtonHeaderEl = document.getElementById('homeButtonHeader');
+
+
 
             if (user) {
                 if (mainHomepageContent) mainHomepageContent.style.display = 'block';
@@ -1086,12 +1176,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         currentUserProfile = profile;
                         console.log("1. Profile loaded on page start:", currentUserProfile);
 
+                        // --- NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
                         if (factionHuddleMessageEl) {
+                            // Always start with the default message and no special styling class
                             factionHuddleMessageEl.textContent = originalFactionMessageText;
                             factionHuddleMessageEl.style.display = 'block';
-                            factionHuddleMessageEl.classList.remove('trial-countdown-display');
+                            factionHuddleMessageEl.classList.remove('trial-countdown-display'); // Ensure clean slate
                         }
 
+                        // Check for an active membership and temporarily show countdown with styling
                         if (profile && profile.membershipEndTime && profile.membershipEndTime > Date.now()) {
                             const membershipInfo = {
                                 membershipType: profile.membershipType,
@@ -1099,25 +1192,29 @@ document.addEventListener('DOMContentLoaded', function() {
                             };
 
                             if (factionHuddleMessageEl) {
-                                factionHuddleMessageEl.classList.add('trial-countdown-display');
+                                factionHuddleMessageEl.classList.add('trial-countdown-display'); // ADD THE STYLING CLASS
                             }
-                            startMembershipCountdown(membershipInfo);
+                            startMembershipCountdown(membershipInfo); // This function sets the trial countdown text
 
                             console.log("Free trial message shown temporarily with styling.");
                             setTimeout(() => {
+                                // After 5 seconds, switch back to the original faction message and remove styling
                                 if (factionHuddleMessageEl) {
                                     factionHuddleMessageEl.textContent = originalFactionMessageText;
                                     console.log("Switched back to faction recruitment message and removed styling after 5 seconds.");
-                                    factionHuddleMessageEl.classList.remove('trial-countdown-display');
+                                    factionHuddleMessageEl.classList.remove('trial-countdown-display'); // REMOVE THE STYLING CLASS
                                 }
+                                // Clear the continuous interval to stop it from overriding back to trial countdown
                                 if (membershipCountdownInterval) {
                                     clearInterval(membershipCountdownInterval);
                                     membershipCountdownInterval = null;
                                     console.log("Membership countdown interval cleared.");
                                 }
-                            }, 5000);
+                            }, 5000); // 5 seconds delay
                         }
+                        // --- END NEW LOGIC FOR MESSAGE SWAP AND STYLING ---
 
+                        // --- Activate the gatekeeper for member-only links ---
                         updateToolLinksAccess(profile);
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
@@ -1174,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-            } else {
+            } else { // User is signed out
                 if (headerButtonsContainer) headerButtonsContainer.style.display = 'none';
                 if (signUpButtonHeader) signUpButtonHeader.style.display = 'inline-flex';
                 if (mainHomepageContent) mainHomepageContent.style.display = 'none';
@@ -1212,6 +1309,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- NEW: Collapse/Expand Logic for Sections ---
+    // Helper function to check if current view is mobile
+    const isMobileView = () => window.matchMedia("(max-width: 768px)").matches;
+
+    // Generic function to toggle collapse/expand for a section
+    const toggleSection = (toggleElement, contentElement) => {
+        if (!toggleElement || !contentElement) {
+            console.warn("Toggle or content element not found for collapse feature.");
+            return;
+        }
+
+        if (contentElement.classList.contains('collapsed')) {
+            // It's currently collapsed, so expand it
+            contentElement.classList.remove('collapsed');
+            toggleElement.classList.remove('collapsed'); // Remove collapsed class from icon to rotate it
+        } else {
+            // It's currently expanded, so collapse it
+            contentElement.classList.add('collapsed');
+            toggleElement.classList.add('collapsed'); // Add collapsed class to icon to rotate it
+        }
+    };
+
+    // Event Listeners for Quick Stats
+    if (quickStatsToggle && quickStatsCollapsibleContent) {
+        quickStatsToggle.addEventListener('click', () => toggleSection(quickStatsToggle, quickStatsCollapsibleContent));
+    }
+
+    // Event Listeners for Explore Your Tools
+    if (exploreToolsToggle && exploreToolsCollapsibleContent) {
+        exploreToolsToggle.addEventListener('click', () => toggleSection(exploreToolsToggle, exploreToolsCollapsibleContent));
+    }
+
+    // Set initial state on page load for mobile
+    // This runs after DOMContentLoaded, ensuring elements are available
+    if (isMobileView()) {
+        if (quickStatsCollapsibleContent && quickStatsToggle) {
+            quickStatsCollapsibleContent.classList.add('collapsed');
+            quickStatsToggle.classList.add('collapsed');
+        }
+        if (exploreToolsCollapsibleContent && exploreToolsToggle) {
+            exploreToolsCollapsibleContent.classList.add('collapsed');
+            exploreToolsToggle.classList.add('collapsed');
+        }
+    }
+
+
+    // --- Existing tool-category-toggle (old style, likely unused now) ---
     document.querySelectorAll('.tool-category-toggle').forEach(toggle => {
         toggle.addEventListener('click', function() {
             this.classList.toggle('active');
@@ -1220,32 +1364,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // --- NEW: Membership Modals JavaScript ---
+
+    // Function to hide any open modal overlays
     function hideAllModalOverlays() {
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.style.display = 'none';
         });
     }
 
+    // Locate this block in your home.js
     if (upgradeMembershipBtn) {
         upgradeMembershipBtn.addEventListener('click', () => {
+            // Find the entire free trial card element by its unique class
             const freeTrialCard = document.querySelector('.card-free-trial');
 
+            // Check the globally available profile for the flag
             if (currentUserProfile && currentUserProfile.hasUsedTrial === true) {
+                // If trial has been used, HIDE the entire card
                 if (freeTrialCard) {
-                    freeTrialCard.classList.add('hidden-by-js');
+                    freeTrialCard.classList.add('hidden-by-js'); // Add a class to hide it
                 }
             } else {
+                // Otherwise, make sure the card is VISIBLE for new users (if it was hidden before)
                 if (freeTrialCard) {
-                    freeTrialCard.classList.remove('hidden-by-js');
+                    freeTrialCard.classList.remove('hidden-by-js'); // Remove class to show it
                 }
             }
 
+            // Now, hide the profile modal and show the membership options
             hideProfileSetupModal();
             if (membershipOptionsModal) {
                 membershipOptionsModal.style.display = 'flex';
             }
         });
     }
+    // 2. Close button for Membership Options Modal
     if (closeMembershipOptionsBtn && membershipOptionsModal) {
         closeMembershipOptionsBtn.addEventListener('click', () => {
             console.log("Close Membership Options button clicked.");
@@ -1253,6 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 3. Click outside to close Membership Options Modal
     if (membershipOptionsModal) {
         membershipOptionsModal.addEventListener('click', (event) => {
             if (event.target === membershipOptionsModal) {
@@ -1262,14 +1417,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 4. Start Free Trial Button opens Free Trial Confirmation Modal
     if (startFreeTrialBtn && freeTrialConfirmationModal && membershipOptionsModal) {
         startFreeTrialBtn.addEventListener('click', () => {
             console.log("Start Free Trial button clicked. Opening Free Trial Confirmation Modal.");
-            membershipOptionsModal.style.display = 'none';
+            membershipOptionsModal.style.display = 'none'; // Close the options modal first
             freeTrialConfirmationModal.style.display = 'flex';
         });
     }
 
+    // 5. Close button for Free Trial Confirmation Modal
     if (closeFreeTrialConfirmationBtn && freeTrialConfirmationModal) {
         closeFreeTrialConfirmationBtn.addEventListener('click', () => {
             console.log("Close Free Trial Confirmation button clicked.");
@@ -1277,6 +1434,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 6. Click outside to close Free Trial Confirmation Modal
     if (freeTrialConfirmationModal) {
         freeTrialConfirmationModal.addEventListener('click', (event) => {
             if (event.target === freeTrialConfirmationModal) {
@@ -1286,6 +1444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 7. 'Yes' button in Free Trial Confirmation Modal
     if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
         confirmFreeTrialYesBtn.addEventListener('click', async () => {
             console.log("Confirm Free Trial 'Yes' clicked. Writing to Firebase...");
@@ -1293,9 +1452,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = auth.currentUser;
             if (!user) {
                 console.error("User not logged in. Cannot start trial.");
+                // Optionally show an error message to the user here
                 return;
             }
 
+            // Set the end time to 7 days from now
             const trialEndTime = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
             const membershipInfo = {
@@ -1305,67 +1466,95 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             try {
+                // Get a reference to the user's profile document
                 const userProfileRef = db.collection('userProfiles').doc(user.uid);
 
+                // Update the document with the new membership fields
                 await userProfileRef.update(membershipInfo);
 
                 console.log("Successfully saved trial info to Firebase.");
 
+                // Hide the confirmation modal
                 freeTrialConfirmationModal.style.display = 'none';
 
+                // Start the countdown timer with the new info
                 startMembershipCountdown(membershipInfo);
 
+                // >>> ADD THIS LINE TO REFRESH THE PAGE <<<
                 location.reload();
 
             } catch (error) {
                 console.error("Error saving trial info to Firebase:", error);
+                // Optionally show an error message to the user here
             }
         });
     }
+    // 8. 'No' button in Free Trial Confirmation Modal
     if (confirmFreeTrialNoBtn && freeTrialConfirmationModal) {
         confirmFreeTrialNoBtn.addEventListener('click', () => {
             console.log("Confirm Free Trial 'No' clicked. Closing modal.");
             freeTrialConfirmationModal.style.display = 'none';
+            // Optionally, you could re-open the membership options modal here if desired:
+            // membershipOptionsModal.style.display = 'flex';
         });
     }
 
+    // 9. Solo Membership Button (from options modal)
     if (buySoloMembershipBtn && membershipOptionsModal) {
         buySoloMembershipBtn.addEventListener('click', () => {
             console.log("Solo Membership button clicked.");
+            // --- Placeholder for Solo Membership Payment/Enrollment Logic ---
             alert("Proceeding to Solo Membership (15 Xanax/Month) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
             membershipOptionsModal.style.display = 'none';
         });
     }
 
+    // 10. Yearly Membership Button (from options modal)
     if (buyYearlyMembershipBtn && membershipOptionsModal) {
         buyYearlyMembershipBtn.addEventListener('click', () => {
             console.log("Yearly Membership button clicked.");
+            // --- Placeholder for Yearly Membership Payment/Enrollment Logic ---
             alert("Proceeding to Yearly Membership (150 Xanax/Year) payment. (Functionality to be implemented later)");
+            // After initiating payment, close the modal
             membershipOptionsModal.style.display = 'none';
         });
     }
 
+    // 11. Delete Account Button (from profile setup modal)
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', () => {
             console.log("Delete Account button clicked.");
+            // --- Placeholder for Delete Account Confirmation/Logic ---
             alert("Delete Account functionality will be implemented here. (Requires confirmation step!)");
+            // You'll likely want another confirmation modal here before proceeding.
+            // For now, it just alerts.
         });
     }
 
 
+    // --- NEW: Logic for the "Copy" buttons in the Membership Modal ---
     document.addEventListener('click', function(event) {
+
+        // Check if the clicked element is one of our copy buttons
         if (event.target.matches('.copy-btn')) {
+
+            // Find the ID of the text we need to copy from the button's 'data-copy-target' attribute
             const targetId = event.target.dataset.copyTarget;
             const targetElement = document.getElementById(targetId);
 
             if (targetElement) {
+                // Get the text content (e.g., "AMBiSCA [2662550]")
                 const textToCopy = targetElement.textContent;
 
+                // Use the modern navigator.clipboard API to copy the text
                 navigator.clipboard.writeText(textToCopy.trim()).then(() => {
 
-                    const originalText = event.target.textContent;
-                    event.target.textContent = 'Copied!';
+                    // --- Provide feedback to the user ---
+                    const originalText = event.target.textContent; // "Copy"
+                    event.target.textContent = 'Copied!'; // Change button text
 
+                    // Change it back to "Copy" after 2 seconds
                     setTimeout(() => {
                         event.target.textContent = originalText;
                     }, 2000);
@@ -1379,4 +1568,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     console.log("home.js: All initial event listeners and setup attempts complete.");
-});
+}); // End of DOMContentLoaded
