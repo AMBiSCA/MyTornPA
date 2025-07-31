@@ -1820,6 +1820,37 @@ input:checked + .slider:before {
     display: none;
 }
 
+/* Add this inside your @media (max-width: 768px) block or create a new one for mobile chat adjustments */
+@media (max-width: 768px) {
+    /* ... your existing mobile styles ... */
+
+    #tornpa-chat-system {
+        bottom: 0px !important; /* Set directly to the very bottom */
+        right: 0px !important; /* Ensure it sticks to the right edge */
+        /* You might want to adjust width for mobile too if it's too wide */
+        width: auto; /* Or a specific width like 100% if you want it full screen width */
+    }
+
+    #chat-bar-collapsed {
+        bottom: 0px !important; /* Set directly to the very bottom for the collapsed bar */
+        right: 0px !important; /* Stick to the right edge */
+        width: auto; /* Allow width to be determined by content */
+        padding: 8px 10px; /* Adjust padding if needed for a better look */
+        border-radius: 0; /* Remove border-radius for a flush bottom look */
+        border-bottom: none; /* Remove bottom border if it has one */
+    }
+
+    #chat-window {
+        /* If the collapsed bar is at 0, the window needs to be offset by its height */
+        bottom: 50px !important; /* Adjust this value based on the actual height of your collapsed bar + desired gap */
+        right: 0px !important;
+        width: 100% !important; /* Make it full width on mobile for better usability */
+        max-width: unset !important; /* Remove any max-width constraints */
+        height: 80vh !important; /* Make it take up a larger portion of the screen height */
+        border-radius: 0 !important; /* Remove border-radius for a flush look */
+    }
+}
+
   /* Your existing global mobile styles */
   body { padding-top: 0; padding-bottom: 0; }
   header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
