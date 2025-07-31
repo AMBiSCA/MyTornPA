@@ -2123,13 +2123,3 @@ input:checked + .slider:before {
     .confirmation-modal { padding: 15px !important; width: 95% !important; }
     .btn-confirm-yes, .btn-confirm-no { width: 100% !important; }
 }
-
-/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
-@media only screen and (max-width: 991px) {
-    #globalfooterplaceholder {
-        display: none !important;
-    }
-    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
-        display: none !important;
-    }
-}
