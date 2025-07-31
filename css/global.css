@@ -480,14 +480,6 @@ ul li:last-child { border-bottom: none; }
     display: none; /* Hide text by default in collapsed bar to save space */
 }
 
-#chat-bar-collapsed:hover {
-    background-color: #415a77; /* Hover for the entire bar */
-  
-}
-#chat-bar-collapsed:hover .chat-bar-icon .chat-icon-text {
-    display: inline; /* Show text on hover of the entire collapsed bar */
-}
-
 
 
 #chat-window {
