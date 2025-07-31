@@ -830,7 +830,53 @@ ul li:last-child { border-bottom: none; }
     font-weight: bold;
 }
 
-/* ------------------------------------- */
+/* --- Global Alert Modal Styles (for customAlert) --- */
+.modal-content-box.alert-modal {
+    background-color: #1a1a1a;
+    border: 1px solid #00a8ff;
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.5);
+    padding: 25px 30px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px; /* Slightly narrower than confirm for simple alerts */
+    color: #eee;
+}
+
+#customAlertTitle {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    color: #ffffff;
+}
+
+#customAlertMessage {
+    margin-bottom: 25px;
+    font-size: 1em;
+    line-height: 1.5;
+    color: #ccc;
+}
+
+.alert-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 10px; /* Space between message and button */
+}
+
+.btn-alert-ok {
+    background-color: #007acc; /* A primary blue color for 'OK' */
+    color: white;
+    padding: 10px 25px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.btn-alert-ok:hover {
+    background-color: #0091e6; /* Lighter blue on hover */
+}
 /* Friends Panel Specific Styles        */
 /* ------------------------------------- */
 
