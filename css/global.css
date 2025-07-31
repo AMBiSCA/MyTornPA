@@ -1805,34 +1805,6 @@ input:checked + .slider:before {
     display: none;
 }
 
-  /* Your existing global mobile styles */
-  body { padding-top: 0; padding-bottom: 0; }
-  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-  #usefulLinksBtn { display: none; } /* Hides 'Useful Links' button on mobile */
-  .header-left h1 { font-size: 1.4rem; }
-  .tagline { font-size: 0.7rem; }
-  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
-
-
-  /* Your existing global mobile styles */
-  body { padding-top: 0; padding-bottom: 0; }
-  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-  #usefulLinksBtn { display: none; } /* Hides 'Useful Links' button on mobile */
-  .header-left h1 { font-size: 1.4rem; }
-  .tagline { font-size: 0.7rem; }
-  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
 
 @media (max-width: 480px) {
   /* Mobile specific adjustments within the media queries */
