@@ -424,6 +424,411 @@ ul li:last-child { border-bottom: none; }
 #firebaseui-auth-container {
     margin-top: 25px; margin-bottom: 15px; text-align: left;
 }
+/* ======================================= */
+/* ======== CHAT SYSTEM STYLES =========== */
+/* ======================================= */
+
+#tornpa-chat-system {
+    /* This makes it stick to the bottom right of the screen */
+    position: fixed; /* Keep it fixed relative to the viewport */
+    bottom: 18px;    /* 18px from the bottom */
+    right: 0px;      /* 0px from the right */
+    z-index: 1000;   /* Ensures it sits on top of other content */
+    font-family: Arial, sans-serif;
+    
+    /* Ensure flexbox behavior for stacking the collapsed bar above the window */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Aligns its children (collapsed bar, chat window) to the right */
+}
+
+#chat-bar-collapsed {
+    /* --- Positioning --- */
+    position: fixed;
+    bottom: 15px;
+    right: 5px;
+    z-index: 1001; /* Keep it on top */
+
+    /* --- Layout & Styling (Your original styles) --- */
+    display: flex;
+    flex-direction: row; /* Ensures icons are side-by-side */
+    gap: 5px;
+    width: auto;
+    padding: 5px;
+    background-color: #0d1b2a;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    cursor: pointer;
+}
+
+.chat-bar-icon {
+    font-size: 20px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    /* transition: background-color 0.2s ease; Removed to apply on parent hover */
+    display: flex; /* Allows text and icon to be inline-flex */
+    align-items: center; /* Vertically align icon and text */
+    justify-content: center; /* Horizontally center */
+}
+
+.chat-bar-icon .chat-icon-text {
+    font-size: 0.8em; /* Make text slightly smaller than icon */
+    margin-left: 5px; /* Space between icon and text */
+    display: none; /* Hide text by default in collapsed bar to save space */
+}
+
+#chat-bar-collapsed:hover {
+    background-color: #415a77; /* Hover for the entire bar */
+    box-shadow: 0 0 15px rgba(0, 168, 255, 0.4); /* Add a subtle blue glow on hover */
+}
+#chat-bar-collapsed:hover .chat-bar-icon .chat-icon-text {
+    display: inline; /* Show text on hover of the entire collapsed bar */
+}
+
+
+
+/* --- Expanded Chat Window Styles --- */
+#chat-window {
+    /* --- Positioning --- */
+    position: fixed;
+    right: 5px;     /* Aligns horizontally with the icon bar */
+    bottom: 73px;    /* This is the key: Lifts it above the icon bar */
+    z-index: 1000;
+
+    /* --- Your existing styles --- */
+    width: 400px;
+    height: 450px;
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* A utility class to hide elements */
+.hidden {
+    display: none !important; /* Use !important to ensure it overrides other display properties */
+}
+
+/* ======================================= */
+/* ====== NEW TAB SYSTEM STYLES ========== */
+/* ======================================= */
+
+/* Main container for the tab buttons */
+.chat-main-tabs-container {
+    display: none;
+    justify-content: space-between; /* This pushes the two inner containers apart */
+    background-color: #0d1b2a;
+    padding: 3px;
+    border-bottom: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents the tab bar from shrinking */
+    width: 100%; /* Ensure it spans the full width of the chat window */
+}
+
+#dynamic-tabs-container,
+#static-tabs-container {
+    display: flex; /* Makes tabs inside sit side-by-side */
+    gap: 3px; /* Space between tabs */
+}
+
+/* Individual tab buttons */
+.chat-tab {
+    background-color: #1b263b;
+    border: 1px solid #415a77;
+    color: #e0e1dd;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px; /* Adjust icon size */
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    line-height: 1; /* Helps vertical alignment of icons */
+}
+
+.chat-tab:hover {
+    background-color: #415a77;
+}
+
+/* Style for the currently active tab */
+.chat-tab.active {
+    background-color: #3a506b;
+    border-bottom: 1px solid #5bc0de;
+    color: #fff;
+}
+
+/* Main container for all tab content panels */
+.chat-panels-container {
+    flex-grow: 1;
+    position: relative; /* Needed for absolute positioning of children if any */
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; /* Ensure panels are column flex containers */
+}
+
+/* Specific styling for Faction, Alliance, and War chat panels */
+#faction-chat-panel,
+#alliance-chat-panel, /* Alliance chat panel */
+#war-chat-panel {
+    display: flex; /* Explicitly set display for panels that are flex containers */
+    flex-direction: column;
+    height: 100%; /* Ensures they fill the parent height */
+}
+
+/* Styles for the chat header (title and minimize button) */
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #1b263b;
+    border-bottom: 1px solid #415a77;
+    color: #e0e1dd;
+    font-weight: bold;
+    flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.minimize-chat-btn {
+    background: none;
+    border: 1px solid #778da9;
+    color: #e0e1dd;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.minimize-chat-btn:hover {
+    background-color: #778da9;
+    color: #0d1b2a;
+}
+
+
+/* We need to make sure the chat-display-area and input are sized correctly now */
+#chat-display-area, /* Faction chat display area */
+#alliance-chat-display-area, /* Alliance chat display area */
+#war-chat-display-area {
+    flex-grow: 1; /* This makes the message area take up all available space */
+    padding: 10px;
+    overflow-y: auto;
+    color: #e0e1dd;
+}
+
+/* Styles for the chat display area scrollbar */
+#chat-display-area::-webkit-scrollbar,
+#alliance-chat-display-area::-webkit-scrollbar,
+#war-chat-display-area::-webkit-scrollbar,
+.overview-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-display-area::-webkit-scrollbar-track,
+#alliance-chat-display-area::-webkit-scrollbar-track,
+#war-chat-display-area::-webkit-scrollbar-track,
+.overview-list-container::-webkit-scrollbar-track {
+    background: #1b263b;
+    border-radius: 10px;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb,
+#alliance-chat-display-area::-webkit-scrollbar-thumb,
+#war-chat-display-area::-webkit-scrollbar-thumb,
+.overview-list-container::-webkit-scrollbar-thumb {
+    background-color: #415a77;
+    border-radius: 10px;
+    border: 2px solid #1b263b;
+}
+
+#chat-display-area::-webkit-scrollbar-thumb:hover,
+#alliance-chat-display-area::-webkit-scrollbar-thumb:hover,
+#war-chat-display-area::-webkit-scrollbar-thumb:hover,
+.overview-list-container::-webkit-scrollbar-thumb:hover {
+    background-color: #5bc0de;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #415a77;
+    flex-shrink: 0; /* Prevents input from shrinking */
+}
+
+.chat-text-input {
+    flex-grow: 1;
+    border: 1px solid #778da9;
+    background-color: #e0e1dd;
+    color: #0d1b2a;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.chat-send-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #5bc0de;
+    color: #0d1b2a;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.chat-send-btn:hover {
+    background-color: #4a9ecf;
+}
+
+/* Styles for individual messages */
+.chat-message {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-timestamp {
+    color: #778da9;
+    margin-right: 6px;
+    font-size: 0.9em;
+}
+
+.chat-sender {
+    font-weight: bold;
+    color: #a9c5de;
+    margin-right: 6px;
+}
+
+.chat-text {
+    color: #e0e1dd;
+}
+
+/* New or updated rules for a compact, single-line member display */
+
+.friends-panel-content .members-list-container {
+    padding: 5px; /* Add some padding around the whole list */
+    display: flex; /* Make the container a flex container */
+    flex-direction: column; /* Stack member items vertically */
+    gap: 2px; /* Small gap between individual member lines */
+}
+
+.friends-panel-content .member-item {
+    display: flex; /* Use flexbox for each member item */
+    align-items: center; /* Vertically align items in the middle */
+    justify-content: space-between; /* Space out content and action buttons */
+    padding: 4px 8px; /* Reduce padding to make it more compact */
+    border-bottom: 1px solid #333; /* Light separator between entries */
+    background-color: #2a2a2a; /* Slightly lighter background for each row */
+    font-size: 0.9em; /* Slightly smaller font size */
+    flex-wrap: nowrap; /* Prevent wrapping of content within the member item */
+    min-height: 30px; /* Ensure a minimum height for consistency */
+}
+
+.friends-panel-content .member-item:last-child {
+    border-bottom: none; /* No border for the last item */
+}
+
+.friends-panel-content .member-info-left {
+    display: flex; /* Use flexbox for the left side (rank, identity) */
+    align-items: center;
+    flex-grow: 1; /* Allow this section to grow */
+    overflow: hidden; /* Hide overflow if text is too long */
+    white-space: nowrap; /* Prevent text wrapping here */
+}
+
+.friends-panel-content .member-rank {
+    font-size: 0.75em; /* Smaller font for rank */
+    color: #bbb; /* Lighter color for rank */
+    margin-right: 8px; /* Space between rank and identity */
+    flex-shrink: 0; /* Prevent rank from shrinking */
+    max-width: 100px; /* Limit rank width if needed */
+    text-overflow: ellipsis; /* Add ellipsis for long ranks */
+    overflow: hidden;
+}
+
+.friends-panel-content .member-identity {
+    display: flex; /* Flex for profile pic and name */
+    align-items: center;
+    gap: 5px; /* Space between pic and name */
+    overflow: hidden; /* Hide overflow for name */
+    white-space: nowrap; /* Prevent name wrapping */
+    flex-grow: 1; /* Allow identity to grow */
+}
+
+/* === MODIFIED: Profile Picture Size and Border === */
+.friends-panel-content .member-profile-pic {
+    width: 32px; /* Slightly larger profile picture */
+    height: 32px; /* Maintain aspect ratio */
+    border-radius: 4px; /* Keep slightly rounded corners */
+    object-fit: cover; /* Ensure image covers the area */
+    flex-shrink: 0;
+    /* --- NEW BORDER STYLES --- */
+    border: 1px solid #00a8ff; /* A nice blue border */
+    padding: 2px; /* Adds space between image and border */
+    box-shadow: 0 0 5px rgba(0, 168, 255, 0.4); /* Subtle glow effect */
+    background-color: #1b263b; /* A subtle background behind the image for padding */
+}
+/* =============================================== */
+
+.friends-panel-content .member-name {
+    font-weight: bold;
+    color: #eee; /* Brighter color for name */
+    text-overflow: ellipsis; /* Add ellipsis for long names */
+    overflow: hidden;
+    flex-grow: 1; /* Allow name to grow */
+}
+
+.friends-panel-content .member-actions {
+    display: flex; /* Flex for action buttons */
+    align-items: center;
+    gap: 3px; /* Smaller gap between buttons */
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.friends-panel-content .item-button {
+    background-color: #444; /* Darker button background */
+    color: #fff;
+    border: 1px solid #555;
+    padding: 3px 6px; /* Smaller padding for buttons */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8em; /* Smaller font for buttons */
+    line-height: 1; /* Adjust line height for vertical alignment */
+    text-decoration: none; /* Remove underline for link button */
+    display: inline-flex; /* Use flex for button content, especially for icon+text */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+    min-width: 28px; /* Minimum width for small icons (increased slightly for border) */
+    min-height: 28px; /* Minimum height for small icons (increased slightly for border) */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.friends-panel-content .item-button:hover {
+    background-color: #555; /* Hover effect */
+}
+
+.friends-panel-content .add-member-button,
+.friends-panel-content .remove-friend-button {
+    position: relative;
+    padding: 3px 6px; /* Adjust padding for icon buttons */
+    font-size: 1.1em; /* Larger icon size */
+    line-height: 1;
+}
+
+.friends-panel-content .add-member-button .plus-sign,
+.friends-panel-content .remove-friend-button .plus-sign {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.7em; /* Smaller +/- sign */
+    font-weight: bold;
+}
 
 /* --- Global Alert Modal Styles (for customAlert) --- */
 .modal-content-box.alert-modal {

@@ -1,379 +1,301 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTornPA</title> <link rel="stylesheet" href="mysite/css/global.css">
-    
-    <link rel="stylesheet" href="mysite/css/globalchat.css"> 
-    
-</head>
-<body>
-    <header>
-        <div class="header-left">
-            <a href="#">
-                <h1>MyTornPA</h1>
-                <span class="tagline">Your Personal Assistant</span>
-            </a>
-        </div>
-        <div class="header-center">
-            <img id="headerMainLogo" src="mysite/images/logo.png" alt="TCP Logo"> </div>
-        <div class="header-right-controls">
-            <a href="#" class="header-text-link">Home <span class="header-icon">🏠</span></a>
-            <div class="dropdown align-right">
-                <button class="btn btn-header" id="usefulLinksBtn">Useful Links <span class="btn-icon">🔗</span></button>
-                <div class="dropdown-content" id="usefulLinksDropdown">
-                    <a href="#">Link 1</a>
-                    <a href="#">Link 2</a>
-                </div>
-            </div>
-            <div class="dropdown align-right">
-                <button class="btn btn-header">Contact <span class="btn-icon">✉️</span></button>
-                <div class="dropdown-content" id="headerContactUsDropdown">
-                    <a href="#">Email Us</a>
-                    <a href="#">Support</a>
-                </div>
-            </div>
-            <button class="btn btn-header">Logout <span class="btn-icon">➡️</span></button>
-        </div>
-    </header>
-
-    <div class="main-content-wrapper">
-        <img src="mysite/images/image-glow.png" alt="Glow Effect" class="image-glow">
-        <img src="mysite/images/image-glow-flipped.png" alt="Glow Effect Flipped" class="image-glow-flipped">
-
-        <main>
-            <div id="war-chat-panel" class="chat-panel"> <div class="chat-header">
-                    <h4 id="war-chat-title">War Chat - Loading...</h4>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div id="war-chat-display-area" class="chat-messages-scroll-wrapper">
-                    <div id="war-info-display" class="war-info-display">
-                        <span id="war-factions-display">Loading War Details...</span>
-                        <span id="war-timer-display">Time: N/A</span>
-                        <div id="war-chat-note-display" class="war-chat-note">
-                            Please note: War chat can be turned off in settings (Leadership can override individual settings).
-                        </div>
-                    </div>
-                    <p>No war messages yet.</p>
-                </div>
-                <div id="war-chat-input-area" class="chat-input-area">
-                    <input type="text" class="chat-text-input" placeholder="Type your message...">
-                    <button class="chat-send-btn">Send</button>
-                </div>
-            </div>
-            <p style="text-align: center; color: #888; padding-top: 20px;">
-                The content shown in the screenshot for "Friends" and "Notifications" are typically
-                dynamically loaded into their respective panels within the chat system, not directly
-                in the main `<body>` outside of the chat system.
-                I've added the chat system below in its proper place.
-            </p>
-        </main>
+<div id="tornpa-chat-system">
+    <div id="chat-bar-collapsed">
+        <div id="open-faction-chat-icon" class="chat-bar-icon" title="Faction Chat">🤝</div>
+        <div id="open-alliance-chat-icon" class="chat-bar-icon" title="Alliance Chat">🤝</div>
+        <div id="open-war-chat-icon" class="chat-bar-icon" title="War Chat">⚔️</div>
+		<div id="open-global-chat-icon" class="chat-bar-icon" title="Global Chat">🌍️</div>
+        <div id="open-friends-icon" class="chat-bar-icon" title="Friends">👥</div>
+        <div id="open-graph-icon" class="chat-bar-icon" title="Faction Overview">📊</div>
+        <div id="open-notifications-icon" class="chat-bar-icon" title="Notifications">🔔</div>
+        <div id="open-settings-icon" class="chat-bar-icon" title="Settings">⚙️</div>
     </div>
 
-    <div id="tornpa-chat-system">
-        <div id="chat-bar-collapsed">
-            <div id="open-faction-chat-icon" class="chat-bar-icon" title="Faction Chat">🤝</div>
-            <div id="open-alliance-chat-icon" class="chat-bar-icon" title="Alliance Chat">🤝</div>
-            <div id="open-war-chat-icon" class="chat-bar-icon" title="War Chat">⚔️</div>
-            <div id="open-global-chat-icon" class="chat-bar-icon" title="Global Chat">🌍️</div>
-            <div id="open-friends-icon" class="chat-bar-icon" title="Friends">👥</div>
-            <div id="open-graph-icon" class="chat-bar-icon" title="Faction Overview">📊</div>
-            <div id="open-notifications-icon" class="chat-bar-icon" title="Notifications">🔔</div>
-            <div id="open-settings-icon" class="chat-bar-icon" title="Settings">⚙️</div>
+    <div id="chat-window" class="hidden">
+        <div class="chat-main-tabs-container hidden">
+            <div id="dynamic-tabs-container"></div>
+            <div id="static-tabs-container">
+            </div>
         </div>
 
-        <div id="chat-window" class="hidden">
-            <div class="chat-main-tabs-container hidden">
-                <div id="dynamic-tabs-container"></div>
-                <div id="static-tabs-container">
-                </div>
+        <div id="faction-chat-panel" class="chat-panel active">
+            <div class="chat-header">
+                <span class="chat-title">Faction Chat</span>
+                <button class="minimize-chat-btn">-</button>
             </div>
-
-            <div id="faction-chat-panel" class="chat-panel active">
-                <div class="chat-header">
-                    <span class="chat-title">Faction Chat</span>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div id="chat-display-area" class="chat-display-area">
-                </div>
-                <div id="chat-input-area" class="chat-input-area">
-                    <input type="text" class="chat-text-input" placeholder="Type your message...">
-                    <button class="chat-send-btn">Send</button>
-                </div>
+            <div id="chat-display-area" class="chat-display-area">
             </div>
-
-            <div id="alliance-chat-panel" class="chat-panel hidden">
-                <div class="chat-header">
-                    <span class="chat-title">Alliance Chat</span>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div class="chat-display-area" id="alliance-chat-display-area">
-                    <p>Loading alliance messages...</p>
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" class="chat-text-input" id="alliance-chat-text-input" placeholder="Type your message...">
-                    <button class="chat-send-btn" id="alliance-chat-send-btn">Send</button>
-                </div>
+            <div id="chat-input-area" class="chat-input-area">
+                <input type="text" class="chat-text-input" placeholder="Type your message...">
+                <button class="chat-send-btn">Send</button>
             </div>
+        </div>
 
-            <div id="war-chat-panel" class="chat-panel hidden">
-                <div class="chat-header">
-                    <h4 id="war-chat-title">War Chat - Loading...</h4>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div id="war-chat-display-area" class="chat-messages-scroll-wrapper">
-                    <div id="war-info-display" class="war-info-display">
-                        <span id="war-factions-display">Loading War Details...</span>
-                        <span id="war-timer-display">Time: N/A</span>
-                        <div id="war-chat-note-display" class="war-chat-note">
-                            Please note: War chat can be turned off in settings (Leadership can override individual settings).
-                        </div>
+        <div id="alliance-chat-panel" class="chat-panel hidden">
+            <div class="chat-header">
+                <span class="chat-title">Alliance Chat</span>
+                 <button class="minimize-chat-btn">-</button>
+            </div>
+            <div class="chat-display-area" id="alliance-chat-display-area">
+                <p>Loading alliance messages...</p>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-text-input" id="alliance-chat-text-input" placeholder="Type your message...">
+                <button class="chat-send-btn" id="alliance-chat-send-btn">Send</button>
+            </div>
+        </div>
+
+        <div id="war-chat-panel" class="chat-panel hidden">
+    <div class="chat-header">
+        <h4 id="war-chat-title">War Chat - Loading...</h4>
+        <button class="minimize-chat-btn">-</button>
+    </div>
+    <div id="war-chat-display-area" class="chat-messages-scroll-wrapper">
+        <div id="war-info-display" class="war-info-display">
+            <span id="war-factions-display">Loading War Details...</span>
+            <span id="war-timer-display">Time: N/A</span>
+            <div id="war-chat-note-display" class="war-chat-note">
+                Please note: War chat can be turned off in settings (Leadership can override individual settings).
+            </div>
+        </div>
+        <p>No war messages yet.</p>
+    </div>
+    <div id="war-chat-input-area" class="chat-input-area">
+        <input type="text" class="chat-text-input" placeholder="Type your message...">
+        <button class="chat-send-btn">Send</button>
+    </div>
+</div>
+
+        <div id="friends-panel" class="chat-panel hidden">
+            <div class="chat-header">
+                <span class="chat-title">Friends</span>
+                <button class="minimize-chat-btn">-</button>
+            </div>
+            <div class="friends-panel-subtabs">
+                <button class="sub-tab-button active" data-subtab="recent-chats" title="Recent Chats">✉️</button>
+                <button class="sub-tab-button" data-subtab="recently-met" title="Recently Met">👋</button>
+                <button class="sub-tab-button" data-subtab="faction-members" title="Faction Members">🏰</button>
+                <button class="sub-tab-button" data-subtab="friend-list" title="Friend List">👤</button>
+                <button class="sub-tab-button" data-subtab="ignore-list" title="Ignore List">🚫</button>
+            </div>
+            <div class="friends-panel-search">
+                <input type="text" class="search-input" placeholder="Search by player name...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="friends-panel-content">
+                <p style="text-align: center; color: #888; padding-top: 20px;">Content will be loaded here.</p>
+            </div>
+        </div>
+
+        <div id="notifications-panel" class="chat-panel hidden">
+            <div class="chat-header">
+                <span class="chat-title">Notifications</span>
+                <button class="minimize-chat-btn">-</button>
+            </div>
+            <div class="notifications-content-wrapper">
+                <div class="notification-section site-notifications">
+                    <h4>Site Notifications 🌐</h4>
+                    <div class="notification-list" id="site-notification-list">
+                        <p>No new site notifications.</p>
                     </div>
-                    <p>No war messages yet.</p>
                 </div>
-                <div id="war-chat-input-area" class="chat-input-area">
-                    <input type="text" class="chat-text-input" placeholder="Type your message...">
-                    <button class="chat-send-btn">Send</button>
-                </div>
-            </div>
-
-            <div id="friends-panel" class="chat-panel hidden">
-                <div class="chat-header">
-                    <span class="chat-title">Friends</span>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div class="friends-panel-subtabs">
-                    <button class="sub-tab-button active" data-subtab="recent-chats" title="Recent Chats">✉️</button>
-                    <button class="sub-tab-button" data-subtab="recently-met" title="Recently Met">👋</button>
-                    <button class="sub-tab-button" data-subtab="faction-members" title="Faction Members">🏰</button>
-                    <button class="sub-tab-button" data-subtab="friend-list" title="Friend List">👤</button>
-                    <button class="sub-tab-button" data-subtab="ignore-list" title="Ignore List">🚫</button>
-                </div>
-                <div class="friends-panel-search">
-                    <input type="text" class="search-input" placeholder="Search by player name...">
-                    <span class="search-icon">🔍</span>
-                </div>
-                <div class="friends-panel-content">
-                    <p style="text-align: center; color: #888; padding-top: 20px;">Content will be loaded here.</p>
-                </div>
-            </div>
-
-            <div id="notifications-panel" class="chat-panel hidden">
-                <div class="chat-header">
-                    <span class="chat-title">Notifications</span>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div class="notifications-content-wrapper">
-                    <div class="notification-section site-notifications">
-                        <h4>Site Notifications 🌐</h4>
-                        <div class="notification-list" id="site-notification-list">
-                            <p>No new site notifications.</p>
-                        </div>
+                <div class="notification-section friend-notifications">
+                    <h4>Friend Notifications 👥</h4>
+                    <div class="notification-list" id="friend-notification-list">
+                        <p>No new friend notifications.</p>
                     </div>
-                    <div class="notification-section friend-notifications">
-                        <h4>Friend Notifications 👥</h4>
-                        <div class="notification-list" id="friend-notification-list">
-                            <p>No new friend notifications.</p>
-                        </div>
-                    </div>
-                    <div class="notification-section general-notifications">
-                        <h4>Other Notifications 🔔</h4>
-                        <div class="notification-list" id="general-notification-list">
-                            <p>No other notifications.</p>
-                        </div>
+                </div>
+                <div class="notification-section general-notifications">
+                    <h4>Other Notifications 🔔</h4>
+                    <div class="notification-list" id="general-notification-list">
+                        <p>No other notifications.</p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div id="settings-panel" class="chat-panel hidden">
-                <div class="chat-header">
-                    <span class="chat-title">Settings</span>
-                    <button class="minimize-chat-btn">-</button>
+        <div id="settings-panel" class="chat-panel hidden">
+            <div class="chat-header">
+                <span class="chat-title">Settings</span>
+                <button class="minimize-chat-btn">-</button>
+            </div>
+            <div class="settings-content-wrapper">
+                <div class="settings-section">
+                    <h4>General Actions ⚙️</h4>
+                    <div class="setting-item">
+    <button class="action-button" id="markAllChatsReadButton">Mark All Chats as Read</button>
+</div>
+                    <div class="setting-item">
+                        <button class="action-button" id="closeAllPrivateChats">Close All Private Chats</button>
+                    </div>
+                    <div class="setting-item">
+                        <button class="action-button" id="deleteAllPrivateMessages">Delete All Private Messages</button>
+                    </div>
                 </div>
-                <div class="settings-content-wrapper">
-                    <div class="settings-section">
-                        <h4>General Actions ⚙️</h4>
-                        <div class="setting-item">
-                            <button class="action-button" id="markAllChatsReadButton">Mark All Chats as Read</button>
-                        </div>
-                        <div class="setting-item">
-                            <button class="action-button" id="closeAllPrivateChats">Close All Private Chats</button>
-                        </div>
-                        <div class="setting-item">
-                            <button class="action-button" id="deleteAllPrivateMessages">Delete All Private Messages</button>
+                <div class="settings-section">
+                    <h4>Alliance Chat Settings 🤝</h4>
+                    <div class="setting-item">
+                        <label for="allianceFactionId">Enter Alliance Password:</label>
+<input type="text" id="allianceFactionId" placeholder="e.g., Alliance7843">
+                    </div>
+                    <div class="setting-item">
+                        <button class="action-button secondary" id="saveAlliance">Save</button>
+                        <button class="action-button danger" id="clearAlliances">Clear All Alliances</button>
+                        <span class="info-icon" id="allianceInfoIcon" title="Your current saved alliances will appear here on hover.">ℹ️</span>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Global Chat Toggles 🌍</h4>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleWarChat">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="toggleWarChat">Toggle War Chat (On/Off)</label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="profanityFilter">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="profanityFilter">Profanity Filter (On/Off)</label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="muteSiteSounds">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="muteSiteSounds">Mute Site Sounds</label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="muteWarSounds">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="muteWarSounds">Mute War Sounds</label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>User Status & Display 🧍</h4>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="appearOnlineOffline">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="appearOnlineOffline">Appear Online/Offline</label>
+                    </div>
+                    <div class="setting-group">
+                        <p>User Status Display:</p>
+                        <div class="radio-group">
+                            <input type="radio" id="statusOnlineOffline" name="userStatusDisplay" value="onlineOffline">
+                            <label for="statusOnlineOffline">Online/Offline</label>
+                            <input type="radio" id="statusLastAction" name="userStatusDisplay" value="lastAction">
+                            <label for="statusLastAction">Last Action</label>
+                            <input type="radio" id="statusNone" name="userStatusDisplay" value="none" checked>
+                            <label for="statusNone">None</label>
                         </div>
                     </div>
-                    <div class="settings-section">
-                        <h4>Alliance Chat Settings 🤝</h4>
-                        <div class="setting-item">
-                            <label for="allianceFactionId">Enter Alliance Password:</label>
-                            <input type="text" id="allianceFactionId" placeholder="e.g., Alliance7843">
-                        </div>
-                        <div class="setting-item">
-                            <button class="action-button secondary" id="saveAlliance">Save</button>
-                            <button class="action-button danger" id="clearAlliances">Clear All Alliances</button>
-                            <span class="info-icon" id="allianceInfoIcon" title="Your current saved alliances will appear here on hover.">ℹ️</span>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h4>Global Chat Toggles 🌍</h4>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="toggleWarChat">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="toggleWarChat">Toggle War Chat (On/Off)</label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="profanityFilter">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="profanityFilter">Profanity Filter (On/Off)</label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="muteSiteSounds">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="muteSiteSounds">Mute Site Sounds</label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="muteWarSounds">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="muteWarSounds">Mute War Sounds</label>
+                </div>
+                <div class="settings-section">
+                    <h4>General Chat Display 💬</h4>
+                    <div class="setting-group">
+                        <p>Font Size:</p>
+                        <div class="radio-group">
+                            <input type="radio" id="fontSizeSmall" name="fontSize" value="small">
+                            <label for="fontSizeSmall">Small</label>
+                            <input type="radio" id="fontSizeMedium" name="fontSize" value="medium" checked>
+                            <label for="fontSizeMedium">Medium</label>
+                            <input type="radio" id="fontSizeLarge" name="fontSize" value="large">
+                            <label for="fontSizeLarge">Large</label>
                         </div>
                     </div>
-                    <div class="settings-section">
-                        <h4>User Status & Display 🧍</h4>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="appearOnlineOffline">
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="appearOnlineOffline">Appear Online/Offline</label>
-                        </div>
-                        <div class="setting-group">
-                            <p>User Status Display:</p>
-                            <div class="radio-group">
-                                <input type="radio" id="statusOnlineOffline" name="userStatusDisplay" value="onlineOffline">
-                                <label for="statusOnlineOffline">Online/Offline</label>
-                                <input type="radio" id="statusLastAction" name="userStatusDisplay" value="lastAction">
-                                <label for="statusLastAction">Last Action</label>
-                                <input type="radio" id="statusNone" name="userStatusDisplay" value="none" checked>
-                                <label for="statusNone">None</label>
-                            </div>
+                    <div class="setting-group">
+                        <p>Chat Theme:</p>
+                        <div class="radio-group">
+                            <input type="radio" id="themeDark" name="chatTheme" value="dark" checked>
+                            <label for="themeDark">Dark</label>
+                            <input type="radio" id="themeLight" name="chatTheme" value="light" disabled>
+                            <label for="themeLight">Light (Coming Soon)</label>
                         </div>
                     </div>
-                    <div class="settings-section">
-                        <h4>General Chat Display 💬</h4>
-                        <div class="setting-group">
-                            <p>Font Size:</p>
-                            <div class="radio-group">
-                                <input type="radio" id="fontSizeSmall" name="fontSize" value="small">
-                                <label for="fontSizeSmall">Small</label>
-                                <input type="radio" id="fontSizeMedium" name="fontSize" value="medium" checked>
-                                <label for="fontSizeMedium">Medium</label>
-                                <input type="radio" id="fontSizeLarge" name="fontSize" value="large">
-                                <label for="fontSizeLarge">Large</label>
-                            </div>
-                        </div>
-                        <div class="setting-group">
-                            <p>Chat Theme:</p>
-                            <div class="radio-group">
-                                <input type="radio" id="themeDark" name="chatTheme" value="dark" checked>
-                                <label for="themeDark">Dark</label>
-                                <input type="radio" id="themeLight" name="chatTheme" value="light" disabled>
-                                <label for="themeLight">Light (Coming Soon)</label>
-                            </div>
-                        </div>
-                        <div class="setting-group">
-                            <p>Message Density:</p>
-                            <div class="radio-group">
-                                <input type="radio" id="densityCompact" name="messageDensity" value="compact">
-                                <label for="densityCompact">Compact</label>
-                                <input type="radio" id="densityNormal" name="messageDensity" value="normal" checked>
-                                <label for="densityNormal">Normal</label>
-                                <input type="radio" id="densitySpacious" name="messageDensity" value="spacious">
-                                <label for="densitySpacious">Spacious</label>
-                            </div>
-                        </div>
-                        <div class="setting-group">
-                            <p>Chat Input Size:</p>
-                            <div class="radio-group">
-                                <input type="radio" id="inputSizeSmall" name="inputSize" value="small">
-                                <label for="inputSizeSmall">Small</label>
-                                <input type="radio" id="inputSizeMedium" name="inputSize" value="medium" checked>
-                                <label for="inputSizeMedium">Medium</label>
-                                <input type="radio" id="inputSizeLarge" name="inputSize" value="large">
-                                <label for="inputSizeLarge">Large</label>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="showTimestamps" checked>
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="showTimestamps">Show Timestamps in Chat</label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="autoScrollChat" checked>
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="autoScrollChat">Auto-Scroll Chat</label>
-                        </div>
-                        <div class="setting-item">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="profanityFilterLocal" checked>
-                                <span class="slider round"></span>
-                            </label>
-                            <label for="profanityFilterLocal">Profanity Filter (Local)</label>
+                    <div class="setting-group">
+                        <p>Message Density:</p>
+                        <div class="radio-group">
+                            <input type="radio" id="densityCompact" name="messageDensity" value="compact">
+                            <label for="densityCompact">Compact</label>
+                            <input type="radio" id="densityNormal" name="messageDensity" value="normal" checked>
+                            <label for="densityNormal">Normal</label>
+                            <input type="radio" id="densitySpacious" name="messageDensity" value="spacious">
+                            <label for="densitySpacious">Spacious</label>
                         </div>
                     </div>
-                    <div class="settings-section">
-                        <h4>Notification Method 🔔</h4>
-                        <div class="setting-group">
-                            <p>Notification Method:</p>
-                            <div class="radio-group">
-                                <input type="radio" id="notifyBrowser" name="notificationMethod" value="browser">
-                                <label for="notifyBrowser">Browser Pop-up</label>
-                                <input type="radio" id="notifySoundOnly" name="notificationMethod" value="soundOnly" checked>
-                                <label for="notifySoundOnly">Sound Only</label>
-                                <input type="radio" id="notifyNone" name="notificationMethod" value="none">
-                                <label for="notifyNone">None</label>
-                            </div>
+                    <div class="setting-group">
+                        <p>Chat Input Size:</p>
+                        <div class="radio-group">
+                            <input type="radio" id="inputSizeSmall" name="inputSize" value="small">
+                            <label for="inputSizeSmall">Small</label>
+                            <input type="radio" id="inputSizeMedium" name="inputSize" value="medium" checked>
+                            <label for="inputSizeMedium">Medium</label>
+                            <input type="radio" id="inputSizeLarge" name="inputSize" value="large">
+                            <label for="inputSizeLarge">Large</label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showTimestamps" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="showTimestamps">Show Timestamps in Chat</label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoScrollChat" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="autoScrollChat">Auto-Scroll Chat</label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="profanityFilterLocal" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="profanityFilterLocal">Profanity Filter (Local)</label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Notification Method 🔔</h4>
+                    <div class="setting-group">
+                        <p>Notification Method:</p>
+                        <div class="radio-group">
+                            <input type="radio" id="notifyBrowser" name="notificationMethod" value="browser">
+                            <label for="notifyBrowser">Browser Pop-up</label>
+                            <input type="radio" id="notifySoundOnly" name="notificationMethod" value="soundOnly" checked>
+                            <label for="notifySoundOnly">Sound Only</label>
+                            <input type="radio" id="notifyNone" name="notificationMethod" value="none">
+                            <label for="notifyNone">None</label>
                         </div>
                         <p class="setting-note">(Note: Browser pop-ups are an advanced feature requiring user permission.)</p>
                     </div>
-                    <div class="settings-section">
-                        <h4>Data & Actions 💾</h4>
-                        <div class="setting-item">
-                            <button class="action-button primary" id="saveAllSettings">Save All Settings</button>
-                        </div>
-                        <div class="setting-item">
-                            <button class="action-button danger" id="clearChatHistoryLocal">Clear Chat History (Local)</button>
-                        </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Data & Actions 💾</h4>
+                    <div class="setting-item">
+                        <button class="action-button primary" id="saveAllSettings">Save All Settings</button>
+                    </div>
+                    <div class="setting-item">
+                        <button class="action-button danger" id="clearChatHistoryLocal">Clear Chat History (Local)</button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div id="faction-overview-panel" class="chat-panel hidden">
-                <div class="chat-header">
-                    <span class="chat-title">Faction Overview</span>
-                    <button class="minimize-chat-btn">-</button>
-                </div>
-                <div id="faction-overview-content" class="chat-display-area">
-                    <p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>
-                </div>
+        <div id="faction-overview-panel" class="chat-panel hidden">
+            <div class="chat-header">
+                <span class="chat-title">Faction Overview</span>
+                <button class="minimize-chat-btn">-</button>
+            </div>
+            <div id="faction-overview-content" class="chat-display-area">
+                <p style="text-align: center; color: #888; padding-top: 20px;">Loading Faction Overview...</p>
             </div>
         </div>
-    </div>
-
-  
-
-</body>
-</html>
+        </div>
+</div>
