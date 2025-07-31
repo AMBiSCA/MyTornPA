@@ -1820,37 +1820,41 @@ input:checked + .slider:before {
     display: none;
 }
 
-/* Add this inside your @media (max-width: 768px) block or create a new one for mobile chat adjustments */
+/* Add/Modify this inside your @media (max-width: 768px) block for mobile chat */
 @media (max-width: 768px) {
     /* ... your existing mobile styles ... */
 
     #tornpa-chat-system {
-        bottom: 0px !important; /* Set directly to the very bottom */
-        right: 0px !important; /* Ensure it sticks to the right edge */
-        /* You might want to adjust width for mobile too if it's too wide */
-        width: auto; /* Or a specific width like 100% if you want it full screen width */
+        bottom: 0px !important; /* Flush with the bottom */
+        left: 0px !important;   /* Flush with the left edge */
+        right: 0px !important;  /* Flush with the right edge */
+        width: 100% !important; /* Make it full width */
+        flex-direction: row !important; /* Ensure children are side-by-side if they stack */
+        justify-content: flex-end !important; /* Keep collapsed chat to the right */
+        align-items: flex-end !important; /* Align to the bottom of the container */
     }
 
     #chat-bar-collapsed {
-        bottom: 0px !important; /* Set directly to the very bottom for the collapsed bar */
-        right: 0px !important; /* Stick to the right edge */
-        width: auto; /* Allow width to be determined by content */
-        padding: 8px 10px; /* Adjust padding if needed for a better look */
-        border-radius: 0; /* Remove border-radius for a flush bottom look */
-        border-bottom: none; /* Remove bottom border if it has one */
+        bottom: 0px !important; /* Flush with the bottom */
+        left: auto !important; /* Allow it to position automatically from the right */
+        right: 0px !important; /* Keep it on the right for collapsed state */
+        width: auto !important; /* Let width be determined by content */
+        padding: 8px 10px !important; /* Adjust padding if needed for a better look */
+        border-radius: 0 !important; /* Remove border-radius for a flush bottom look */
+        border-bottom: none !important; /* Remove bottom border if it has one */
     }
 
     #chat-window {
-        /* If the collapsed bar is at 0, the window needs to be offset by its height */
-        bottom: 50px !important; /* Adjust this value based on the actual height of your collapsed bar + desired gap */
-        right: 0px !important;
-        width: 100% !important; /* Make it full width on mobile for better usability */
+        /* This will still need to be positioned above the collapsed bar */
+        bottom: 50px !important; /* Re-evaluate this based on actual height of collapsed bar */
+        left: 0px !important;   /* Make it flush with the left edge */
+        right: 0px !important;  /* Make it flush with the right edge */
+        width: 100% !important; /* Make it full width on mobile */
         max-width: unset !important; /* Remove any max-width constraints */
         height: 80vh !important; /* Make it take up a larger portion of the screen height */
         border-radius: 0 !important; /* Remove border-radius for a flush look */
     }
 }
-
   /* Your existing global mobile styles */
   body { padding-top: 0; padding-bottom: 0; }
   header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
