@@ -1866,47 +1866,54 @@ async function addOrUpdateUserAllianceId(newAllianceId) {
     }
 
 
-    function openPrivateChatWindow(userId, userName) {
-        // First, remove any other private chat window that might be open
-        const existingWindow = document.querySelector('.private-chat-window');
-        if (existingWindow) {
-            // Important: Manually trigger the close button's click to unsubscribe from listeners
-            existingWindow.querySelector('.pcw-close-btn').click();
-        }
-
-        // Create the main window container
-        const chatDiv = document.createElement('div');
-        chatDiv.className = 'private-chat-window';
-        chatDiv.id = `private-chat-window-${userId}`;
-
-        // Create the inner HTML for the window
-        chatDiv.innerHTML = `
-            <div class="pcw-header">
-                <span class="pcw-title" title="${userName} [${userId}]">Chat with ${userName}</span>
-                <button class="pcw-close-btn" title="Close">×</button>
-            </div>
-            <div class="pcw-messages">
-                <p style="color: #888;">Loading messages...</p>
-            </div>
-            <div class="pcw-input-area">
-                <input type="text" class="pcw-input" placeholder="Type a message...">
-                <button class="pcw-send-btn">Send</button>
-            </div>
-        `;
-
-        // Add the new chat window to the page
-        document.body.appendChild(chatDiv);
-
-        // Make the close button work (it now only handles removing the element)
-        chatDiv.querySelector('.pcw-close-btn').addEventListener('click', () => {
-            chatDiv.remove();
-        });
-
-        // --- THIS IS THE NEW LINE ---
-        // After creating the window, call the function to load its messages and make it work
-        loadAndHandlePrivateChat(userId, userName, chatDiv);
+    // THIS FUNCTION IS NOW EXPLICITLY ATTACHED TO WINDOW FOR GLOBAL ACCESS
+window.openPrivateChatWindow = async function(tornId, userName) {
+    // First, remove any other private chat window that might be open
+    const existingWindow = document.querySelector('.private-chat-window');
+    if (existingWindow) {
+        // Important: Manually trigger the close button's click to unsubscribe from listeners
+        // This assumes your existing pcw-close-btn listener properly unsubscribes before removing.
+        existingWindow.querySelector('.pcw-close-btn').click();
     }
 
+    // Create the main window container
+    const chatDiv = document.createElement('div');
+    chatDiv.className = 'private-chat-window';
+    chatDiv.id = `private-chat-window-${tornId}`;
+
+    // Create the inner HTML for the window
+    chatDiv.innerHTML = `
+        <div class="pcw-header">
+            <span class="pcw-title" title="${userName} [${tornId}]">Chat with ${userName}</span>
+            <button class="pcw-close-btn" title="Close">×</button>
+        </div>
+        <div class="pcw-messages">
+            <p style="color: #888;">Loading messages...</p>
+        </div>
+        <div class="pcw-input-area">
+            <input type="text" class="pcw-input" placeholder="Type a message...">
+            <button class="pcw-send-btn">Send</button>
+        </div>
+    `;
+
+    // Add the new chat window to the page
+    document.body.appendChild(chatDiv);
+
+    // Make the close button work
+    // We remove the old listener and add a new one to prevent multiple event listeners on the same button instance.
+    const closeButton = chatDiv.querySelector('.pcw-close-btn');
+    const closeWindowAndUnsubscribe = () => {
+        // Ensure unsubscribe for the chat listener specific to this window happens here
+        // (This part is handled within loadAndHandlePrivateChat, which passes the unsubscribe function to the close button)
+        chatDiv.remove();
+        closeButton.removeEventListener('click', closeWindowAndUnsubscribe); // Clean up this listener
+    };
+    closeButton.addEventListener('click', closeWindowAndUnsubscribe);
+
+    // After creating the window, call the function to load its messages and make it work
+    // Ensure `loadAndHandlePrivateChat` correctly attaches its own unsubscribe to the close button click as well.
+    loadAndHandlePrivateChat(tornId, userName, chatDiv);
+};
     async function populateFriendListTab(targetDisplayElement) {
         if (!targetDisplayElement) {
             console.error("HTML Error: Target display element not provided for Friend List tab.");
