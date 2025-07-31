@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Corrected path, assuming globalfooter.html is in your main 'mysite' folder.
-    const footerUrl = '../globalfooter.html';
+    // --- THIS LINE IS CORRECTED ---
+    // Path now looks for the footer in the SAME folder as the page.
+    const footerUrl = 'globalfooter.html';
     
     // The ID of the div where the footer will be loaded.
     const placeholderId = 'globalfooterplaceholder';
