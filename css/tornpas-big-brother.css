@@ -407,7 +407,7 @@ h2 {
 
 /* Explicit pixel widths for the 6 columns for the downloaded image */
 /* Adjust these pixel values as needed until they look good together and sum to 800px */
-.download-table-preview th:nth-child(1), .download-table-preview td:nth-child(1) { width: 130px; } /* Name */
+.download-table-preview th:nth-child(1), .download-table-preview td:nth-child(1) { width: 120px; } /* Name */
 .download-table-preview th:nth-child(2), .download-table-preview td:nth-child(2) { width: 130px; } /* Strength / Strength Gain */
 .download-table-preview th:nth-child(3), .download-table-preview td:nth-child(3) { width: 130px; } /* Dexterity / Dexterity Gain */
 .download-table-preview th:nth-child(4), .download-table-preview td:nth-child(4) { width: 130px; } /* Speed / Speed Gain */
