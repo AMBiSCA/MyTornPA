@@ -392,7 +392,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
 	@media (max-width: 768px) {
     /* Adjust the top margin of the main content wrapper on the homepage only */
     .homepage-content-wrapper {
-        margin-top: -10px !important; /* Move content UP by 10px to reduce the gap */
+        margin-top: -25px !important; /* Move content UP by 10px to reduce the gap */
     }
 
     /* You can also adjust the welcome-block-area's internal padding if needed for minor fine-tuning */
