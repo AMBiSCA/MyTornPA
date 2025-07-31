@@ -1043,7 +1043,7 @@ if (toolsSection) {
             if (headerButtonsContainer) headerButtonsContainer.style.display = 'flex';
             if (signUpButtonHeader) signUpButtonHeader.style.display = 'none';
             if (homeButtonFooter) homeButtonFooter.style.display = (isHomePage && window.location.pathname !== '/') ? 'none' : 'inline-block';
-            if (logoutButtonHeader) logoutL`ogoutButtonHeader`.style.display = 'inline-flex';
+            if (logoutButtonHeader) logoutButtonHeader.style.display = 'inline-flex';
             if (homeButtonHeaderEl) homeButtonHeaderEl.style.display = isHomePage ? 'none' : 'inline-flex';
 
             let userDisplayName = "User", showSetup = true, firstTip = false, profile = null;
