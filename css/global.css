@@ -1653,23 +1653,6 @@ input:checked + .slider:before {
     background-color: #5bc0de;
 }
 
-@media (max-width: 768px) {
-
-  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
-  html, body {
-    height: auto;
-    overflow-y: auto;       /* Enables page scrolling */
-    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
-    scrollbar-width: none;      /* Hides scrollbar on Firefox */
-  }
-
-  body::-webkit-scrollbar {
-    display: none;              /* Hides scrollbar on Chrome/Safari */
-  }
-  /* --- END OF ADDED CODE --- */
-
-
-
 /* --- Custom Confirmation Box CSS --- */
 .custom-confirm-overlay {
     position: fixed;
@@ -1834,104 +1817,59 @@ input:checked + .slider:before {
   footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
 }
 
-@media (max-width: 480px) {
-  /* Mobile specific adjustments within the media queries */
-}
+/* global.css - Consolidated and updated mobile styles for header buttons */
 
 @media (max-width: 768px) {
-
-  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
-  html, body {
-    height: auto;
-    overflow-y: auto;          /* Enables page scrolling */
-    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
-    scrollbar-width: none;      /* Hides scrollbar on Firefox */
-  }
-
-  body::-webkit-scrollbar {
-    display: none;              /* Hides scrollbar on Chrome/Safari */
-  }
-  /* --- END OF ADDED CODE --- */
-
-
-  /* Your existing global mobile styles */
-  body { padding-top: 0; padding-bottom: 0; }
-  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-  #usefulLinksBtn { display: none; } /* Hides 'Useful Links' button on mobile */
-  .header-left h1 { font-size: 1.4rem; }
-  .tagline { font-size: 0.7rem; }
-  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
-
-@media (max-width: 480px) {
-  /* Mobile spedjustments within the media queries */
-}
-
-@media only screen and (max-width: 991px) {
-  #globalfooterplaceholder {
-    display: none;
-  }
-}
-
-@media only screen and (max-width: 991px) {
-  .footer {
-    display: none !important; /* Added !important */
-  }
-}
-
-/* global.css - Add this block at the end or in a suitable responsive section */
-
-/* Mobile-specific styles for header buttons */
-@media (max-width: 768px) { /* Adjust this breakpoint if your mobile view starts at a different width */
-
-    /* Hide the text part of all header buttons */
-    header .btn-text {
-        display: none;
-    }
-
-    /* Make buttons more compact */
+    /* Consolidate general button styles first */
     header .header-btn {
-        padding: 5px 8px; /* Reduced padding for compact size */
-        min-width: unset; /* Allow buttons to shrink based on content */
+        padding: 5px 8px; /* More compact padding */
+        font-size: 0.85rem; /* Standard font size for text that might still be there */
+        height: auto; /* Allow height to adjust */
+        min-width: unset; /* Allow buttons to shrink */
         width: auto; /* Let content dictate width */
         justify-content: center; /* Center content (emoji) */
         overflow: hidden; /* Hide any overflow */
     }
 
+    /* Hide the text part of all header buttons definitively */
+    header .btn-text {
+        display: none !important; /* Use !important to strongly ensure text is hidden */
+    }
+
     /* Style for buttons that should only show their single emoji (e.g., Profile, Logout) */
     #headerEditProfileBtn .btn-icon,
     #logoutButtonHeader .btn-icon {
-        font-size: 1.6em; /* Make icon a bit larger since it's now the only content */
-        line-height: 1; /* Better vertical alignment */
-        display: block; /* Ensure it behaves as a block for correct centering */
-        margin: auto; /* Center the emoji if there's extra space */
+        font-size: 1.6em !important; /* Make icon larger and ensure it applies */
+        line-height: 1 !important; /* Better vertical alignment */
+        display: block !important; /* Ensure block behavior for margin:auto centering */
+        margin: auto !important; /* Center the emoji */
+        /* Ensure no content property is overriding this for these specific icons */
+        content: none !important; /* Clear any accidental ::before/::after content */
     }
 
-    /* Specific styling for dropdown buttons to only show the dropdown arrow */
-    /* This applies to Useful Links and Contact buttons */
+
+    /* Specific styling for dropdown buttons to ONLY show the dropdown arrow */
     #usefulLinksBtn .btn-icon,
     #headerContactUsBtn .btn-icon {
-        font-size: 0; /* Hide all original content of the span (e.g., "🔗 🔽 " or "💬 🔽 ") */
-        position: relative; /* Needed for absolute positioning of ::after */
-        width: 1em; /* Give it a small explicit width if needed for consistent spacing */
-        height: 1em; /* Give it a small explicit height if needed */
-        display: block; /* Ensure it behaves as a block for positioning */
-        margin: auto; /* Center the icon space */
+        font-size: 0 !important; /* Hide ALL original content of the span (e.g., "🔗 🔽 " or "💬 🔽 ") */
+        position: relative !important; /* Needed for absolute positioning of ::after */
+        width: 1em !important; /* Give it a small explicit width if needed */
+        height: 1em !important; /* Give it a small explicit height if needed */
+        display: block !important; /* Ensure it behaves as a block for positioning */
+        margin: auto !important; /* Center the icon space */
     }
 
-    /* Add the dropdown arrow emoji using a pseudo-element */
+    /* Add the dropdown arrow emoji using a pseudo-element for dropdown buttons */
     #usefulLinksBtn .btn-icon::after,
     #headerContactUsBtn .btn-icon::after {
-        content: '🔽'; /* The dropdown arrow emoji */
-        font-size: 1.6em; /* Make it visible and sized */
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%); /* Center the emoji precisely */
+        content: '🔽' !important; /* The dropdown arrow emoji - ENSURE IT OVERRIDES */
+        font-size: 1.6em !important; /* Make it visible and sized */
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important; /* Center precisely */
+        display: block !important; /* Ensure pseudo-element is rendered */
+        width: auto !important; /* Let content width */
+        height: auto !important; /* Let content height */
     }
 }
