@@ -1191,6 +1191,6 @@ header {
   }
 
   .main-content {
-    padding-top: -40px !important; /* You can change this value */
+    margin-top: -40px !important; /* This will pull the content UP by 40px */
   }
 }
