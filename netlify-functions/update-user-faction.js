@@ -17,6 +17,9 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error('Firebase Admin SDK initialization failed:', error);
+        // It's important to exit the process or handle this critical error
+        // to prevent the function from running with an uninitialized Admin SDK.
+        // For Netlify, throwing an error might be sufficient to mark the invocation as failed.
         throw new Error('Firebase Admin SDK initialization failed: ' + error.message);
     }
 }
@@ -24,6 +27,7 @@ if (!admin.apps.length) {
 // Get a Firestore database instance
 const db = admin.firestore();
 
+// Main handler for the Netlify function
 exports.handler = async (event, context) => {
     // Only allow POST requests for this function
     if (event.httpMethod !== 'POST') {
@@ -33,25 +37,28 @@ exports.handler = async (event, context) => {
         };
     }
 
-    let uid;
-    let tornPlayerId; // This is the Torn User ID from the API
-    let userDataToSave; // This will hold the entire comprehensive user data object from the client
+    // Declare all expected variables from the request body
+    let uid, faction_id, faction_name, position, profile_image, name, tornProfileId;
 
     try {
-        // Parse the request body
+        // Parse the request body (which is a JSON string)
         const body = JSON.parse(event.body);
 
-        // Extract the top-level 'uid', 'tornPlayerId', and the 'userData' object
+        // Extract the values from the parsed body
         uid = body.uid;
-        tornPlayerId = body.tornPlayerId;
-        userDataToSave = body.userData; // This is the comprehensive object from the client (API response data)
+        faction_id = body.faction_id;
+        faction_name = body.faction_name;
+        position = body.position;
+        profile_image = body.profile_image; // NEW: Profile image URL
+        name = body.name;                   // NEW: User's Torn name
+        tornProfileId = body.tornProfileId; // NEW: User's Torn Player ID
 
-        // Validate required parameters
-        if (!uid || !tornPlayerId || !userDataToSave || typeof userDataToSave !== 'object') {
-            console.warn('Missing UID, tornPlayerId, or invalid userData in request body.');
+        // Validate required parameters (uid is always required for user-specific updates)
+        if (!uid) {
+            console.warn('Missing UID in request body.');
             return {
                 statusCode: 400, // Bad Request
-                body: JSON.stringify({ error: 'Missing UID, tornPlayerId, or invalid user data payload.' }),
+                body: JSON.stringify({ error: 'Missing UID.' }),
             };
         }
 
@@ -64,51 +71,58 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        // --- 1. Update user profile in 'usofiles' collection (Firebase UID as document ID) ---
+        // --- 1. Update user profile in 'userProfiles' collection (Firebase UID as document ID) ---
+        // This document is where core app user data, API keys, etc., are stored.
         const userProfileRef = db.collection('userProfiles').doc(uid);
         
-        // Add serverTimestamp for tracking when this data was last updated by the API sync
-        userDataToSave.lastApiSync = admin.firestore.FieldValue.serverTimestamp();
-
-        // Ensure tornProfileId is explicitly set from the top-level tornPlayerId for consistency
-        // as this function's primary role is to sync Torn API data to Firestore.
-        userDataToSave.tornProfileId = String(tornPlayerId); 
-
-        // Update the user's main profile document with ALL the comprehensive data received.
-        // Use merge: true to update existing fields and add new ones without overwriting the entire document.
-        await userProfileRef.set(userDataToSave, { merge: true });
+        // Prepare data to update in userProfiles
+        const updateProfileData = {
+            lastFactionUpdated: admin.firestore.FieldValue.serverTimestamp(), // Timestamp of this update
+            faction_id: faction_id !== undefined ? faction_id : null,
+            faction_name: faction_name !== undefined ? faction_name : null,
+            position: position !== undefined ? position : null,
+            profile_image: profile_image !== undefined ? profile_image : null, // NEW: Add profile_image
+            name: name !== undefined ? name : null,                             // NEW: Add Torn name
+            tornProfileId: tornProfileId !== undefined ? tornProfileId : null,   // NEW: Add Torn Player ID
+        };
+        // Use 'set' with 'merge: true' to create the document if it doesn't exist (on first login)
+        // or update it without deleting other existing fields.
+        await userProfileRef.set(updateProfileData, { merge: true }); 
 
         // --- 2. Also update 'users' collection (Torn Player ID as document ID) ---
-        // This collection seems to be for public/basic Torn user info lookup by Torn ID.
-        // It should contain only essential public-facing info.
-        if (tornPlayerId) {
-            const userBasicInfoRef = db.collection('users').doc(String(tornPlayerId));
+        // This collection is typically used for quick lookups by Torn ID (e.g., for friend lists, member displays).
+        if (tornProfileId) { // Only update this if a Torn Player ID is provided
+            const userBasicInfoRef = db.collection('users').doc(String(tornProfileId)); // Document ID is Torn Player ID
             const updateBasicInfoData = {
-                name: userDataToSave.name || null, // Use name from userDataToSave
-                profile_image: userDataToSave.profile_image || null, // Use profile_image from userDataToSave
-                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+                profile_image: profile_image !== undefined ? profile_image : null, // NEW: Add profile_image
+                name: name !== undefined ? name : null,                             // NEW: Add Torn name
+                lastUpdated: admin.firestore.FieldValue.serverTimestamp()          // To track freshness of this basic data
             };
-            await userBasicInfoRef.set(updateBasicInfoData, { merge: true });
+            // Use 'set' with 'merge: true' to create/update the document
+            await userBasicInfoRef.set(updateBasicInfoData, { merge: true }); 
         }
         
-        console.log(`Successfully updated comprehensive user data in Firestore for Firebase UID: ${uid} (Torn ID: ${tornPlayerId}).`);
+        console.log(`Successfully updated faction and profile data for Firebase UID: ${uid} (Torn ID: ${tornProfileId}).`);
 
         // Return a success response to the client
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: 'Comprehensive user data updated successfully.',
-                tornProfileId: tornPlayerId,
-                faction_id: userDataToSave.faction_id || null, // Return relevant fields for client confirmation
-                faction_name: userDataToSave.faction_name || null,
+                message: 'Faction and Profile data updated successfully.',
+                faction_id: faction_id,
+                faction_name: faction_name,
+                position: position,
+                profile_image: profile_image, // Return these for client confirmation
+                name: name,
+                tornProfileId: tornProfileId
             }),
         };
 
-    } catch (mainError) {
-        console.error(`Error updating comprehensive user data for UID ${uid}:`, mainError);
+    } catch (error) {
+        console.error(`Error updating faction/profile data for UID ${uid}:`, error);
         return {
             statusCode: 500, // Internal Server Error
-            body: JSON.stringify({ error: 'Failed to update user data due to internal server error.' }),
+            body: JSON.stringify({ error: 'Failed to update faction/profile data due to internal server error.' }),
         };
     }
 };
