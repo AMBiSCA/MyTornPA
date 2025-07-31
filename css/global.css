@@ -1988,3 +1988,23 @@ input:checked + .slider:before {
         display: inline-block !important; /* Ensure it renders properly after margin-left */
     }
 }
+
+/* IMPORTANT: Place this specific rule at the absolute END of your global.css file,
+   after ALL other @media blocks and any other rules. This is a targeted override. */
+@media (max-width: 768px) {
+    #usefulLinksBtn .btn-icon::after,
+    #headerContactUsBtn .btn-icon::after {
+        content: '🔽' !important;        /* Force the dropdown arrow content */
+        font-size: 0.8em !important;    /* Force its size */
+        margin-left: 0.2em !important;  /* Space it from the main icon */
+        display: inline-block !important; /* Ensure it's displayed */
+        position: static !important;    /* Keep it in normal flow (not absolutely positioned) */
+        transform: none !important;     /* Clear any unwanted transforms */
+        vertical-align: middle !important; /* Help with vertical alignment */
+        line-height: 1 !important;      /* Ensure proper line height for icon */
+        color: inherit !important;      /* Ensure it inherits button text color */
+        background: none !important;    /* No background */
+        border: none !important;        /* No border */
+        z-index: auto !important;       /* Default z-index */
+    }
+}
