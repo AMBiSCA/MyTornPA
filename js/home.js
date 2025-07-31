@@ -1053,20 +1053,16 @@ if (toolsSection) {
 						currentUserProfile = profile;
 						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
 						
-						// ... inside onAuthStateChanged, after fetching the profile
-profile = doc.exists ? doc.data() : null;
-
-// START: Add this new block
-// --- Check for an active membership and start the countdown ---
-if (profile && profile.membershipEndTime) {
-    const membershipInfo = {
-        membershipType: profile.membershipType,
-        membershipEndTime: profile.membershipEndTime
-    };
-    // If the membership is still active, start the timer
-    if (membershipInfo.membershipEndTime > Date.now()) {
-        startMembershipCountdown(membershipInfo);
-		const countdownContainer = document.getElementById('trialCountdownContainer');
+						// --- Check for an active membership and start the countdown ---
+                        if (profile && profile.membershipEndTime) {
+                            const membershipInfo = {
+                                membershipType: profile.membershipType,
+                                membershipEndTime: profile.membershipEndTime
+                            };
+                            // If the membership is still active, start the timer
+                            if (membershipInfo.membershipEndTime > Date.now()) {
+                                startMembershipCountdown(membershipInfo);
+                                const countdownContainer = document.getElementById('trialCountdownContainer');
                                 if (countdownContainer) {
                                     console.log("Free trial banner shown on login."); // For debugging
                                     setTimeout(() => {
@@ -1074,21 +1070,24 @@ if (profile && profile.membershipEndTime) {
                                         console.log("Free trial banner hidden after 15 seconds."); // For debugging
                                     }, 15000);
                                 }
-		
-    
+                            }
+                        }
 
- if (membershipOptionsModal && user && !profile?.membershipEndTime || profile?.membershipEndTime < Date.now()) {
-                  membershipOptionsModal.style.display = 'flex'; // Show the modal
-                  setTimeout(() => {
-                    membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
-                    console.log("Membership prompt hidden after 15 seconds.");
-                  }, 15000);
-                }
+                        // REMOVED: This entire block was causing the 'catch' syntax error.
+                        // It was redundant and misplaced based on the surrounding try/catch.
+                        /*
+                        if (membershipOptionsModal && user && (!profile?.membershipEndTime || profile?.membershipEndTime < Date.now())) {
+                            membershipOptionsModal.style.display = 'flex'; // Show the modal
+                            setTimeout(() => {
+                                membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
+                                console.log("Membership prompt hidden after 15 seconds.");
+                            }, 15000);
+                        }
+                        */
 
 
-
-// --- Activate the gatekeeper for member-only links ---
-updateToolLinksAccess(profile);; //
+                        // --- Activate the gatekeeper for member-only links ---
+                        updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
                             userDisplayName = profile.preferredName; showSetup = false;
@@ -1115,7 +1114,7 @@ updateToolLinksAccess(profile);; //
                     if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
                     else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                     if (profile && profile.tornApiKey) {
-                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+                        if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
                         fetchAllRequiredData(user, db);
                     } else {
                         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
