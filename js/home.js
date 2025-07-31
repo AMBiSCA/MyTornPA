@@ -1027,6 +1027,8 @@ if (toolsSection) {
         }
     });
 }
+    // ... (rest of your home.js file before onAuthStateChanged) ...
+
     if (auth) {
     auth.onAuthStateChanged(async function(user) {
         console.log('Auth State Changed. User:', user ? user.uid : 'No user');
@@ -1078,11 +1080,12 @@ if (toolsSection) {
                                 factionHuddleMessageEl.textContent = originalFactionMessageText;
                                 console.log("Switched back to faction recruitment message after 5 seconds.");
                             }
-                            // Important: Do NOT clear membershipCountdownInterval here.
-                            // The startMembershipCountdown function manages its own interval clearing
-                            // when the trial expires, or it can continue running in the background if
-                            // you adapt it to show the full-time countdown elsewhere later.
-                            // For this specific request, the main goal is the initial 5-second swap.
+                            // *** CORRECTED LINE: Clear the interval here to stop continuous updates ***
+                            if (membershipCountdownInterval) {
+                                clearInterval(membershipCountdownInterval);
+                                membershipCountdownInterval = null; // Reset for future use if needed
+                                console.log("Membership countdown interval cleared to prevent override.");
+                            }
                         }, 5000); // 5 seconds delay
                     }
                     // --- END NEW LOGIC FOR MESSAGE SWAP ---
@@ -1162,8 +1165,6 @@ if (toolsSection) {
         }
     });
 } else { console.error("Firebase auth object not available for auth state listener."); }
-
-
     if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
             auth.signOut().then(() => {
