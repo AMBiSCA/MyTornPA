@@ -1890,23 +1890,28 @@ input:checked + .slider:before {
     display: none;
   }
 
-  /* Adjust padding for the header buttons now that the text is gone */
+  /* Make the buttons themselves flex containers to perfectly center the icon/emoji */
   #headerButtonsContainer .btn.header-btn,
-  #headerButtonsContainer .dropdown > .btn.header-btn { /* Target buttons directly and within dropdowns */
-    padding: 8px 12px; /* Example padding; adjust as needed for desired size */
-    min-width: unset; /* Remove any fixed min-width if present */
+  #headerButtonsContainer .dropdown > .btn.header-btn {
+    display: flex;           /* Enable flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    padding: 10px 15px;      /* Adjusted padding for better visual balance around emoji */
+    min-width: unset;        /* Remove any fixed minimum width that might stretch buttons */
+    border-radius: 8px;      /* Add rounded corners for a softer button look */
   }
 
-  /* Adjust spacing between the buttons */
+  /* Adjust spacing and layout for the main container of these buttons */
   #headerButtonsContainer {
-    display: flex; /* Use flexbox to arrange buttons horizontally */
-    justify-content: space-around; /* Distribute space evenly */
-    align-items: center; /* Align items vertically */
-    gap: 5px; /* Add a small gap between buttons */
+    display: flex;           /* Ensure it's a flex container */
+    flex-wrap: wrap;         /* Allow buttons to wrap to the next line if screen is too narrow */
+    justify-content: center; /* Center the entire row of buttons within their container */
+    align-items: center;     /* Align the rows vertically */
+    gap: 15px;               /* Increased space between buttons */
   }
 
-  /* Ensure dropdowns within the header buttons also adjust */
+  /* Ensure dropdown wrappers also behave as flex items if necessary for alignment */
   #headerButtonsContainer .dropdown {
-    display: flex; /* Treat dropdown as a flex item to align its button */
+    display: flex;
   }
 }
