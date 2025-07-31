@@ -462,13 +462,12 @@ ul li:last-child { border-bottom: none; }
 }
 
 .chat-bar-icon {
+    display: inline-flex; /* Changed from 'flex' to allow text-align to work */
     font-size: 20px;
     padding: 5px 8px;
     border-radius: 3px;
-    /* transition: background-color 0.2s ease; Removed to apply on parent hover */
-    display: flex; /* Allows text and icon to be inline-flex */
-    align-items: center; /* Vertically align icon and text */
-    justify-content: center; /* Horizontally center */
+    align-items: center;
+    justify-content: center;
 }
 
 .chat-bar-icon .chat-icon-text {
