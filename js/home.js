@@ -392,11 +392,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (elementId === "lifeStat") element.classList.add("stat-value-blue");
             }
         });
-    
+    }
 
     function validateTornProfileIdInput(event) {
         const input = event.target;
-        // Remove any character that is NOT a digit (0-9)
         input.value = input.value.replace(/\D/g, '');
     }
 
@@ -464,10 +463,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const days = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
                 countdownText = `${label} ends in: ${days} days`;
             } else {
-                const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const days = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-                countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`;
+                countdownText = `${label} ends in: ${days}d ${hours}h ${minutes}m`; // This line has 'hours' not defined.
             }
 
             targetMessageEl.textContent = countdownText;
