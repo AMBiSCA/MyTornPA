@@ -1653,6 +1653,21 @@ input:checked + .slider:before {
     background-color: #5bc0de;
 }
 
+@media (max-width: 768px) {
+
+  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
+  html, body {
+    height: auto;
+    overflow-y: auto;       /* Enables page scrolling */
+    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
+    scrollbar-width: none;      /* Hides scrollbar on Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none;              /* Hides scrollbar on Chrome/Safari */
+  }
+  /* --- END OF ADDED CODE --- */
+
 
 
 /* --- Custom Confirmation Box CSS --- */
@@ -1805,6 +1820,51 @@ input:checked + .slider:before {
     display: none;
 }
 
+  /* Your existing global mobile styles */
+  body { padding-top: 0; padding-bottom: 0; }
+  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+  .header-left h1 { font-size: 1.4rem; }
+  .tagline { font-size: 0.7rem; }
+  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+}
+
+@media (max-width: 480px) {
+  /* Mobile specific adjustments within the media queries */
+}
+
+@media (max-width: 768px) {
+
+  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
+  html, body {
+    height: auto;
+    overflow-y: auto;          /* Enables page scrolling */
+    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
+    scrollbar-width: none;      /* Hides scrollbar on Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none;              /* Hides scrollbar on Chrome/Safari */
+  }
+  /* --- END OF ADDED CODE --- */
+
+
+  /* Your existing global mobile styles */
+  body { padding-top: 0; padding-bottom: 0; }
+  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+  .header-left h1 { font-size: 1.4rem; }
+  .tagline { font-size: 0.7rem; }
+  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
+  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+}
 
 @media (max-width: 480px) {
   /* Mobile specific adjustments within the media queries */
@@ -1849,34 +1909,6 @@ input:checked + .slider:before {
         display: block; /* Ensure it behaves as a block for correct centering */
         margin: auto; /* Center the emoji if there's extra space */
     }
-	
-	
-
-  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
-  html, body {
-    height: auto;
-    overflow-y: auto;       /* Enables page scrolling */
-    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
-    scrollbar-width: none;      /* Hides scrollbar on Firefox */
-  }
-
-  body::-webkit-scrollbar {
-    display: none;              
-  }
-  
-  body { padding-top: 0; padding-bottom: 0; }
-  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-  
-  .header-left h1 { font-size: 1.4rem; }
-  .tagline { font-size: 0.7rem; }
-  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-
-}
-
-
 
     /* Specific styling for dropdown buttons to only show the dropdown arrow */
     /* This applies to Useful Links and Contact buttons */
@@ -1900,7 +1932,4 @@ input:checked + .slider:before {
         left: 50%;
         transform: translate(-50%, -50%); /* Center the emoji precisely */
     }
-	
-
-	
 }
