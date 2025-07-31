@@ -1,61 +1,4 @@
-/* Option 1 CSS: More Vertical Padding & Box Push Down */
-:root {
-    /* Button Shell: General Properties */
-    --btn-font-family: 'Roboto', Arial, sans-serif;
-    --btn-font-weight: 500;
-    --btn-letter-spacing: 0.25px;
-    --btn-border-radius: 20px;
-    --btn-transition-speed: 0.218s;
-    --btn-text-transform: none;
-    --btn-default-bg-color: #131314;
-    --btn-default-text-color: #e3e3e3;
-    --btn-default-border-color: #00a8ff;
-    --btn-default-height: 40px;
-    --btn-default-font-size: 14px;
-    --btn-default-padding: 0 12px;
-    --btn-default-hover-border-color: #4dc4ff;
-    --btn-default-hover-shadow-color1: rgba(0, 168, 255, .30);
-    --btn-default-hover-shadow-color2: rgba(0, 168, 255, .15);
-    --btn-default-focus-overlay-opacity: 0.12;
-    --btn-default-hover-overlay-opacity: 0.08;
-    --btn-default-disabled-bg-color: rgba(19, 19, 20, 0.38);
-    --btn-default-disabled-border-color: rgba(0, 168, 255, 0.38);
-    --btn-default-disabled-text-color: rgba(227, 227, 227, 0.38);
-    --btn-default-disabled-opacity: 0.38;
-    --btn-close-color: #00a8ff;
-    --btn-close-hover-color: #00e0ff;
-    --btn-close-font-size: 1.8rem;
-    --btn-close-padding: 0 5px;
-    --btn-close-transition-speed: 0.2s;
-    --theme-accent-color: #00a8ff;
-    --theme-accent-hover-color: #00e0ff;
-    --modal-content-bg: #2a2a2a;
-    --modal-border-radius: 12px;
-    --text-color-light: #eee;
-    --text-color-normal: #d0d0d0;
-    --modal-shadow-color: rgba(0, 168, 255, 0.35);
-    --loginui-modal-bg: #181a1b;
-    --loginui-modal-border-radius: 10px;
-    --loginui-modal-main-border-color: var(--theme-accent-color);
-    --loginui-modal-top-border-thickness: 4px;
-    --loginui-modal-shadow: 0 8px 30px rgba(0,0,0,0.75);
-    --loginui-modal-subtitle-color: #bbb;
-}
 
-@media (max-width: 768px) {
-  .index-main-feature-box {
-    display: none;
-  }
-
-  #tornCityHomepageLink,
-  #signUpButtonHeader {
-    display: none !important;
-  }
-
-  .main-content {
-    padding-top: 0px; /* You can change this value */
-  }
-}
 
 .btn {
     -moz-user-select: none;
@@ -1240,5 +1183,14 @@ header {
 @media (max-width: 768px) {
   .index-main-feature-box {
     display: none;
+  }
+
+  #tornCityHomepageLink,
+  #signUpButtonHeader {
+    display: none !important;
+  }
+
+  .main-content {
+    padding-top: 30px !important; /* You can change this value */
   }
 }
