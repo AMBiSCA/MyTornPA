@@ -930,6 +930,12 @@ if (headerEditProfileBtn && auth && db) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key is a required field.';
             return;
         }
+		
+		const tornApiKeyPattern = /^[a-zA-Z0-9]{16}$/; 
+        if (!tornApiKeyPattern.test(apiKeyVal)) {
+            if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn API Key format is invalid. It should be 16 alphanumeric characters.';
+            return;
+        }
 
         if (!profileIdVal) {
             if (profileSetupErrorEl) profileSetupErrorEl.textContent = 'Torn Profile ID is a required field.';
