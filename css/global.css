@@ -1822,37 +1822,89 @@ input:checked + .slider:before {
 
 /* Add/Modify this inside your @media (max-width: 768px) block for mobile chat */
 @media (max-width: 768px) {
-    /* ... your existing mobile styles ... */
+    /* --- Ensure NO Horizontal Padding on Body/HTML for Mobile --- */
+    html, body {
+        height: auto;
+        overflow-y: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        padding-left: 0 !important; /* Explicitly remove any left padding */
+        padding-right: 0 !important; /* Explicitly remove any right padding */
+        margin-left: 0 !important;   /* Explicitly remove any left margin */
+        margin-right: 0 !important;  /* Explicitly remove any right margin */
+    }
 
+    body::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Your existing global mobile styles (keeping them for context, but ensure no conflicting padding/margins) */
+    body { padding-top: 0; padding-bottom: 0; }
+    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
+    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
+    #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
+    
+    .header-left h1 { font-size: 1.4rem; }
+    .tagline { font-size: 0.7rem; }
+    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
+    main { margin: 20px 15px; padding: 25px 20px; width: auto; } /* Review this 'main' margin, it might be pushing content too. Consider margin: 0 auto; on main only. */
+    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
+    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
+
+    /* ======================================= */
+    /* ======== CHAT SYSTEM STYLES =========== */
+    /* ======================================= */
     #tornpa-chat-system {
-        bottom: 0px !important; /* Flush with the bottom */
-        left: 0px !important;   /* Flush with the left edge */
-        right: 0px !important;  /* Flush with the right edge */
-        width: 100% !important; /* Make it full width */
-        flex-direction: row !important; /* Ensure children are side-by-side if they stack */
-        justify-content: flex-end !important; /* Keep collapsed chat to the right */
-        align-items: flex-end !important; /* Align to the bottom of the container */
+        position: fixed !important; /* Ensure it stays fixed */
+        bottom: 0px !important;    /* Flush with the bottom */
+        left: 0px !important;      /* Flush with the left edge */
+        right: 0px !important;     /* Flush with the right edge */
+        width: 100% !important;    /* Make it full width */
+        z-index: 1000 !important;  /* Ensure it's on top */
+
+        /* Ensure its children (collapsed bar) are positioned correctly within this new full width */
+        display: flex !important;
+        flex-direction: row !important; /* Keep icons side-by-side if needed */
+        justify-content: flex-end !important; /* Push the collapsed bar to the right */
+        align-items: flex-end !important; /* Align to the bottom of this full-width container */
+        
+        /* Remove any inherent padding/margin on the container itself */
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     #chat-bar-collapsed {
-        bottom: 0px !important; /* Flush with the bottom */
-        left: auto !important; /* Allow it to position automatically from the right */
-        right: 0px !important; /* Keep it on the right for collapsed state */
-        width: auto !important; /* Let width be determined by content */
-        padding: 8px 10px !important; /* Adjust padding if needed for a better look */
-        border-radius: 0 !important; /* Remove border-radius for a flush bottom look */
-        border-bottom: none !important; /* Remove bottom border if it has one */
+        /* This should be inside #tornpa-chat-system, so 'fixed' is now redundant if its parent is fixed */
+        /* Change to relative positioning within the fixed #tornpa-chat-system, or just remove fixed */
+        position: static !important; /* Let its parent control positioning */
+        bottom: unset !important;    /* Remove explicit bottom positioning */
+        right: unset !important;     /* Remove explicit right positioning */
+        
+        /* Layout and styling for the bar itself */
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 5px !important;
+        width: auto !important; /* Let content determine width */
+        padding: 8px 10px !important; /* Adjust padding for the bar */
+        background-color: #0d1b2a !important;
+        border: 1px solid #415a77 !important;
+        border-radius: 0 !important; /* No rounded corners for flush look */
+        box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
+        cursor: pointer !important;
+        z-index: 1001 !important; /* Keep it on top of other content if it ever overlaps */
+        margin: 0 !important; /* Ensure no internal margins push it */
     }
 
     #chat-window {
-        /* This will still need to be positioned above the collapsed bar */
-        bottom: 50px !important; /* Re-evaluate this based on actual height of collapsed bar */
-        left: 0px !important;   /* Make it flush with the left edge */
-        right: 0px !important;  /* Make it flush with the right edge */
-        width: 100% !important; /* Make it full width on mobile */
-        max-width: unset !important; /* Remove any max-width constraints */
-        height: 80vh !important; /* Make it take up a larger portion of the screen height */
-        border-radius: 0 !important; /* Remove border-radius for a flush look */
+        position: fixed !important; /* Keep fixed relative to viewport */
+        bottom: 50px !important;   /* **IMPORTANT:** Adjust this based on ACTUAL height of #chat-bar-collapsed */
+        left: 0px !important;      /* Flush with the left edge */
+        right: 0px !important;     /* Flush with the right edge */
+        width: 100% !important;    /* Full width on mobile */
+        max-width: unset !important; /* Remove max-width constraints */
+        height: 80vh !important;   /* Take up 80% of viewport height for better usability */
+        border-radius: 0 !important; /* No rounded corners for flush look */
+        z-index: 1000 !important;  /* Ensure it's above page content */
     }
 }
   /* Your existing global mobile styles */
