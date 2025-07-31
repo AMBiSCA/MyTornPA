@@ -681,6 +681,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * a listener for the user's *current* stats.
      * Adapted from tornpas-big-brother.js.
      */
+   /**
+     * Sets up a real-time listener for the active personal gains tracking session status.
+     * This updates the buttons and status message, and triggers gains display.
+     * Adapted from tornpas-big-brother.js.
+     * Removed dependency on 'users' collection listener for current stats.
+     */
     function setupPersonalRealtimeTrackingStatusListener() {
         if (!currentUser) {
             console.warn("Cannot setup personal tracking listener: No current user.");
@@ -691,14 +697,11 @@ document.addEventListener('DOMContentLoaded', () => {
             unsubscribeFromPersonalTrackingStatus();
             unsubscribeFromPersonalTrackingStatus = null;
         }
-        if (unsubscribeFromUserCurrentStats) { // Also unsubscribe if listening to user's current stats
-            unsubscribeFromUserCurrentStats();
-            unsubscribeFromUserCurrentStats = null;
-        }
+        // No longer need to unsubscribe from unsubscribeFromUserCurrentStats here
+        // as that listener is being removed from the display logic entirely.
 
         const personalTrackingDocRef = db.collection(PERSONAL_GAIN_TRACKING_COLLECTION).doc(currentUser.uid);
-        const userCurrentStatsDocRef = db.collection('users').doc(currentUser.uid); // The document where user's current stats are stored
-
+        
         unsubscribeFromPersonalTrackingStatus = personalTrackingDocRef.onSnapshot(async (doc) => {
             if (doc.exists && doc.data().activeSessionId) {
                 activePersonalTrackingSessionId = doc.data().activeSessionId;
@@ -720,51 +723,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         personalBaselineStatsCache = null;
                     }
                 }
-
-                // If tracking is active, set up a listener for the user's current stats
-              // If a tracking session is active AND a currentUser exists
-                if (activePersonalTrackingSessionId && currentUser && currentUser.uid) {
-                    const userCurrentStatsDocRef = db.collection('users').doc(currentUser.uid); // Define it here
-                     if (unsubscribeFromUserCurrentStats) { // Ensure no duplicate listeners
-                        unsubscribeFromUserCurrentStats();
-                     }
-                    unsubscribeFromUserCurrentStats = userCurrentStatsDocRef.onSnapshot((userDoc) => {
-                        if (userDoc.exists) {
-                            console.log("User current stats updated via listener, recalculating gains.");
-                            displayPersonalGains(userDoc.data()); // Pass the current user's data
-                        } else {
-                            console.warn("User's current stats document not found in 'users' collection. This might happen if backend hasn't saved user stats yet.");
-                            // Optionally, reset gains display here if the user's core stats document somehow disappears
-                            // displayPersonalGains(null); 
-                        }
-                    }, (error) => {
-                        console.error("Error listening to user's current stats for gains:", error);
-                    });
-                }
+                // Removed the block that set up unsubscribeFromUserCurrentStats listener from here.
+                
             } else {
                 // No active session: clear state
                 activePersonalTrackingSessionId = null;
                 activePersonalTrackingStartedAt = null;
                 personalBaselineStatsCache = null;
-                // Also unsubscribe from user current stats listener if no session
-                if (unsubscribeFromUserCurrentStats) {
+                // Also ensure unsubscribeFromUserCurrentStats is null if it was active
+                if (unsubscribeFromUserCurrentStats) { // Defensive check, should be null by now
                     unsubscribeFromUserCurrentStats();
                     unsubscribeFromUserCurrentStats = null;
                 }
             }
             updatePersonalGainTrackingUI(); // Update button states and status message
 
-            // Only display gains if this tab is active AND there's an active session
+            // Always display gains if this tab is active AND there's an active session
             if (document.getElementById('personal-gym-gains-tab').classList.contains('active')) {
-                if (activePersonalTrackingSessionId) {
-                     // If listener for userCurrentStats is active, it will call displayPersonalGains.
-                     // Otherwise, call it once to show current gains if a session exists on initial load.
-                     if (!unsubscribeFromUserCurrentStats) {
-                         displayPersonalGains(); // Call once if no live listener is setup yet
-                     }
-                } else {
-                    displayPersonalGains(); // Call to clear gains if session ended
-                }
+                // displayPersonalGains now always fetches from Torn API directly
+                displayPersonalGains(); 
             }
 
         }, (error) => {
@@ -780,102 +757,86 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Real-time personal tracking status listener set up.");
     }
 
-    /**
-     * Displays the personal gains by comparing current stats to the active snapshot.
-     * Takes an optional current user data object for real-time updates.
-     * Adapted from tornpas-big-brother.js.
-     */
-    async function displayPersonalGains(currentUserFirebaseData = null) {
-        // Hide all stat items initially
-        personalGainStrItem.classList.add('hidden');
-        personalGainDefItem.classList.add('hidden');
-        personalGainSpdItem.classList.add('hidden');
-        personalGainDexItem.classList.add('hidden');
-        personalGainTotalItem.classList.add('hidden');
+   async function displayPersonalGains() { // Removed parameter
+    // Hide all stat items initially
+    personalGainStrItem.classList.add('hidden');
+    personalGainDefItem.classList.add('hidden');
+    personalGainSpdItem.classList.add('hidden');
+    personalGainDexItem.classList.add('hidden');
+    personalGainTotalItem.classList.add('hidden');
 
-        if (!noPersonalGainsData) {
-            console.error("HTML Error: noPersonalGainsData element not found.");
-            return;
-        }
-
-        if (!currentUser || !userApiKey || !userTornProfileId) {
-            noPersonalGainsData.textContent = 'Please log in with your API key to track gains.';
-            noPersonalGainsData.classList.remove('hidden');
-            return;
-        }
-
-        if (!activePersonalTrackingSessionId || !personalBaselineStatsCache) {
-            noPersonalGainsData.textContent = 'No active gains tracking session. Click "Start Tracking Gains" to begin.';
-            noPersonalGainsData.classList.remove('hidden');
-            return;
-        }
-
-        noPersonalGainsData.textContent = 'Calculating gains...';
-        noPersonalGainsData.classList.remove('hidden'); // Show loading message
-
-        try {
-            let currentStats = {};
-            if (currentUserFirebaseData && currentUserFirebaseData.battlestats) {
-                // Use data from the real-time listener if available
-                currentStats = {
-                    strength: parseStatValue(currentUserFirebaseData.battlestats?.strength),
-                    defense: parseStatValue(currentUserFirebaseData.battlestats?.defense),
-                    speed: parseStatValue(currentUserFirebaseData.battlestats?.speed),
-                    dexterity: parseStatValue(currentUserFirebaseData.battlestats?.dexterity)
-                };
-            } else {
-                // Fallback: Fetch user stats directly from Torn API if listener data is not provided/available
-                console.log("Fetching current stats from Torn API for displayPersonalGains (fallback).");
-                const apiUrl = `https://api.torn.com/user/${userTornProfileId}?selections=personalstats&key=${userApiKey}&comment=MyTornPA_GymGain_GainsRefresh`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-
-                if (!response.ok || data.error) {
-                    throw new Error(`Torn API Error: ${data.error?.error || 'API Error'}.`);
-                }
-                currentStats = {
-                    strength: parseStatValue(data.personalstats?.strength),
-                    defense: parseStatValue(data.personalstats?.defense),
-                    speed: parseStatValue(data.personalstats?.speed),
-                    dexterity: parseStatValue(data.personalstats?.dexterity)
-                };
-            }
-            currentStats.total = currentStats.strength + currentStats.defense + currentStats.speed + currentStats.dexterity;
-
-            const baselineStats = personalBaselineStatsCache.data;
-
-            const strengthGain = currentStats.strength - baselineStats.strength;
-            const defenseGain = currentStats.defense - baselineStats.defense;
-            const speedGain = currentStats.speed - baselineStats.speed;
-            const dexterityGain = currentStats.dexterity - baselineStats.dexterity;
-            const totalGain = currentStats.total - baselineStats.total;
-
-            personalGainStrSpan.innerHTML = formatGainValue(strengthGain);
-            personalGainDefSpan.innerHTML = formatGainValue(defenseGain);
-            personalGainSpdSpan.innerHTML = formatGainValue(speedGain);
-            personalGainDexSpan.innerHTML = formatGainValue(dexterityGain);
-            personalGainTotalSpan.innerHTML = formatGainValue(totalGain);
-
-            personalGainStrItem.classList.remove('hidden');
-            personalGainDefItem.classList.remove('hidden');
-            personalGainSpdItem.classList.remove('hidden');
-            personalGainDexItem.classList.remove('hidden');
-            personalGainTotalItem.classList.remove('hidden');
-            noPersonalGainsData.classList.add('hidden'); // Hide loading message
-            
-        } catch (error) {
-            console.error("Error displaying personal gains:", error);
-            noPersonalGainsData.textContent = `Error loading gains: ${error.message}. Please check your API key.`;
-            noPersonalGainsData.classList.remove('hidden');
-            // Hide all stat items on error
-            personalGainStrItem.classList.add('hidden');
-            personalGainDefItem.classList.add('hidden');
-            personalGainSpdItem.classList.add('hidden');
-            personalGainDexItem.classList.add('hidden');
-            personalGainTotalItem.classList.add('hidden');
-        }
+    if (!noPersonalGainsData) {
+        console.error("HTML Error: noPersonalGainsData element not found.");
+        return;
     }
 
+    if (!currentUser || !userApiKey || !userTornProfileId) {
+        noPersonalGainsData.textContent = 'Please log in with your API key to track gains.';
+        noPersonalGainsData.classList.remove('hidden');
+        return;
+    }
+
+    if (!activePersonalTrackingSessionId || !personalBaselineStatsCache) {
+        noPersonalGainsData.textContent = 'No active gains tracking session. Click "Start Tracking Gains" to begin.';
+        noPersonalGainsData.classList.remove('hidden');
+        return;
+    }
+
+    noPersonalGainsData.textContent = 'Calculating gains...';
+    noPersonalGainsData.classList.remove('hidden'); // Show loading message
+
+    try {
+        // Always fetch user stats directly from Torn API for displayPersonalGains
+        console.log("Fetching current stats from Torn API for displayPersonalGains.");
+        const apiUrl = `https://api.torn.com/user/${userTornProfileId}?selections=personalstats&key=${userApiKey}&comment=MyTornPA_GymGain_GainsRefresh`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            throw new Error(`Torn API Error: ${data.error?.error || 'API Error'}.`);
+        }
+        
+        const currentStats = {
+            strength: parseStatValue(data.personalstats?.strength),
+            defense: parseStatValue(data.personalstats?.defense),
+            speed: parseStatValue(data.personalstats?.speed),
+            dexterity: parseStatValue(data.personalstats?.dexterity)
+        };
+        currentStats.total = currentStats.strength + currentStats.defense + currentStats.speed + currentStats.dexterity;
+
+        const baselineStats = personalBaselineStatsCache.data;
+
+        const strengthGain = currentStats.strength - baselineStats.strength;
+        const defenseGain = currentStats.defense - baselineStats.defense;
+        const speedGain = currentStats.speed - baselineStats.speed;
+        const dexterityGain = currentStats.dexterity - baselineStats.dexterity;
+        const totalGain = currentStats.total - baselineStats.total;
+
+        if (personalGainStrSpan) personalGainStrSpan.innerHTML = formatGainValue(strengthGain);
+        if (personalGainDefSpan) personalGainDefSpan.innerHTML = formatGainValue(defenseGain);
+        if (personalGainSpdSpan) personalGainSpdSpan.innerHTML = formatGainValue(speedGain);
+        if (personalGainDexSpan) personalGainDexSpan.innerHTML = formatGainValue(dexterityGain);
+        if (personalGainTotalSpan) personalGainTotalSpan.innerHTML = formatGainValue(totalGain);
+
+        if (personalGainStrItem) personalGainStrItem.classList.remove('hidden');
+        if (personalGainDefItem) personalGainDefItem.classList.remove('hidden');
+        if (personalGainSpdItem) personalGainSpdItem.classList.remove('hidden');
+        if (personalGainDexItem) personalGainDexItem.classList.remove('hidden');
+        if (personalGainTotalItem) personalGainTotalItem.classList.remove('hidden');
+        noPersonalGainsData.classList.add('hidden'); // Hide loading message
+        
+    } catch (error) {
+        console.error("Error displaying personal gains:", error);
+        if (noPersonalGainsData) noPersonalGainsData.textContent = `Error loading gains: ${error.message}. Please check your API key.`;
+        if (noPersonalGainsData) noPersonalGainsData.classList.remove('hidden');
+        // Hide all stat items on error
+        if (personalGainStrItem) personalGainStrItem.classList.add('hidden');
+        if (personalGainDefItem) personalGainDefItem.classList.add('hidden');
+        if (personalGainSpdItem) personalGainSpdItem.classList.add('hidden');
+        if (personalGainDexItem) personalGainDexItem.classList.add('hidden');
+        if (personalGainTotalItem) personalGainTotalItem.classList.add('hidden');
+    }
+}
 
     /**
      * Captures the content of the currently active tab in the right panel as an image
