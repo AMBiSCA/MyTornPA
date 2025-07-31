@@ -841,6 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Captures the content of the currently active tab in the right panel as an image
      * and triggers a download. Requires html2canvas library.
+     * Adapted from tornpas-big-brother.js.
      */
     function downloadPersonalTabAsImage() {
         const activeTabPane = document.querySelector('#personalTabContentContainer .tab-pane-bb.active');
@@ -851,72 +852,54 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let filename = 'tornpa_report_'; // More generic filename prefix
-        let headerText = '';
-        let headerStyle = 'text-align: center; margin-bottom: 10px; font-weight: bold; color: #ADD8E6; font-size: 1.2em;'; // Light blue for headers
+        let filename = 'tornpa_gymgain_';
+        let contentToCapture = activeTabPane; // Default to capturing the whole pane
 
-        // Clone the entire active tab pane to work with off-screen
-        const clonedActiveTabPane = activeTabPane.cloneNode(true);
-
-        // Determine specific filename and header text based on active tab ID
+        // Determine specific content and filename based on active tab
         if (activeTabPane.id === 'current-gym-stats-tab') {
             filename += 'current_gym_stats.png';
-            const now = new Date();
-            headerText = `Stats Current As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            contentToCapture = activeTabPane.querySelector('.current-stats-personal') || activeTabPane;
         } else if (activeTabPane.id === 'personal-gym-gains-tab') {
             filename += 'personal_gains_tracking.png';
-            // Get the stored start time for gains
-            if (activePersonalTrackingStartedAt) {
-                const startedDate = activePersonalTrackingStartedAt.toDate ? activePersonalTrackingStartedAt.toDate() : activePersonalTrackingStartedAt;
-                headerText = `Gains Since: ${startedDate.toLocaleDateString()} ${startedDate.toLocaleTimeString()}`;
-            } else {
-                headerText = 'Gains Since: N/A (Tracking Not Started)';
-            }
-            // Special handling for gains tab: ensure "No gains data" message is hidden if gains are showing
-            const noGainsMsg = clonedActiveTabPane.querySelector('#noPersonalGainsData');
-            const gainItems = clonedActiveTabPane.querySelectorAll('.personal-gains-display .stat-item:not(.hidden)');
-            if (noGainsMsg && gainItems.length > 0) {
-                 noGainsMsg.classList.add('hidden'); // Hide the message if there are active gain items
-            }
+            contentToCapture = activeTabPane.querySelector('.personal-gains-display') || activeTabPane;
         } else if (activeTabPane.id === 'personal-work-stats-tab') {
             filename += 'work_stats.png';
-            const now = new Date();
-            headerText = `Work Stats As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            contentToCapture = activeTabPane.querySelector('.current-work-stats') || activeTabPane;
         } else if (activeTabPane.id === 'personal-crimes-tab') {
             filename += 'crime_stats.png';
-            const now = new Date();
-            headerText = `Crime Stats As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            contentToCapture = activeTabPane.querySelector('.current-crime-stats') || activeTabPane;
         } else {
             console.warn('Unknown active tab for screenshot, using generic filename and capturing entire pane.');
             filename += 'tab_content.png';
-            const now = new Date();
-            headerText = `Report Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-        }
-        
-        // Create the header element
-        let headerDiv = null;
-        if (headerText) {
-            headerDiv = document.createElement('div');
-            headerDiv.style.cssText = headerStyle;
-            headerDiv.textContent = headerText;
-            clonedActiveTabPane.prepend(headerDiv); // Prepend to the cloned tab pane
         }
 
         // Create a temporary container for rendering the screenshot
         const tempRenderContainer = document.createElement('div');
-        // Match the styling of the original tab-content-container-bb for a consistent look
-        tempRenderContainer.style.background = '#222';
-        tempRenderContainer.style.padding = '15px';
-        tempRenderContainer.style.borderRadius = '8px';
+        tempRenderContainer.style.background = '#222'; // Match tab-content-container-bb background
+        tempRenderContainer.style.padding = '15px'; // Match tab-content-container-bb padding
+        tempRenderContainer.style.borderRadius = '8px'; // Match tab-content-container-bb border-radius
         tempRenderContainer.style.position = 'absolute';
         tempRenderContainer.style.left = '-9999px'; // Move off-screen
-        // Set width based on the original activeTabPane to ensure consistent sizing
-        tempRenderContainer.style.width = activeTabPane.offsetWidth + 'px'; 
-        tempRenderContainer.style.height = 'auto';
-        tempRenderContainer.style.overflow = 'hidden'; 
+        tempRenderContainer.style.width = contentToCapture.offsetWidth + 'px'; // Maintain width
+        tempRenderContainer.style.height = 'auto'; // Auto height
+        tempRenderContainer.style.overflow = 'hidden'; // Hide overflow of temporary container
 
-        // Append the *cloned tab pane* to the temporary render container
-        tempRenderContainer.appendChild(clonedActiveTabPane);
+        // Clone the content to be captured to avoid altering the live DOM
+        const clonedContent = contentToCapture.cloneNode(true);
+        // Special handling for gains tab: ensure "No gains data" message is hidden if gains are showing
+        if (clonedContent.id === 'personal-gym-gains-tab') {
+            const noGainsMsg = clonedContent.querySelector('#noPersonalGainsData');
+            const gainItems = clonedContent.querySelectorAll('.personal-gains-display .stat-item:not(.hidden)');
+            if (noGainsMsg && gainItems.length > 0) {
+                 noGainsMsg.classList.add('hidden'); // Hide the message if there are active gain items
+            }
+        }
+        
+        // Temporarily hide scrollbars or other unwanted elements in the clone for cleaner screenshot
+        clonedContent.style.overflowY = 'hidden';
+        clonedContent.style.paddingRight = '0'; // Remove padding for scrollbar
+
+        tempRenderContainer.appendChild(clonedContent);
         document.body.appendChild(tempRenderContainer);
 
         html2canvas(tempRenderContainer, {
@@ -941,6 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
 
     // --- Tab Switching Logic (Adapted) ---
     function showTab(tabId) {

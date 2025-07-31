@@ -731,19 +731,30 @@ function downloadCurrentTabAsImage() {
 
     let originalTable;
     let columnIndicesToKeep = [];
-    let headerTextsToKeep = [];
-    let filename = 'tornpas_data.png';
+    let headerTextsToKeep = []; // This array is used as a fallback if original table header is missing
+    let filename = 'tornpas_report.png'; // Default generic filename
+    let reportTitle = ''; // Text for the report title/date
+    let titleStyle = 'text-align: center; margin-bottom: 15px; font-weight: bold; color: #ADD8E6; font-size: 1.5em;'; // Style for the title
 
     if (activeTabPane.id === 'current-stats-tab') {
         originalTable = document.getElementById('friendly-members-table');
         columnIndicesToKeep = [0, 2, 3, 4, 5, 6]; // Name, Str, Dex, Spd, Def, Total
         headerTextsToKeep = ["Name", "Strength", "Dexterity", "Speed", "Defense", "Total"];
         filename = 'tornpas_current_stats_filtered.png';
+        const now = new Date();
+        reportTitle = `Faction Stats Current As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
     } else if (activeTabPane.id === 'gains-tracking-tab') {
         originalTable = document.getElementById('gains-overview-table');
         columnIndicesToKeep = [0, 1, 2, 3, 4, 5]; // Name, Str Gain, Dex Gain, Spd Gain, Def Gain, Total Gain
         headerTextsToKeep = ["Name", "Strength Gain", "Dexterity Gain", "Speed Gain", "Defense Gain", "Total Gain"];
         filename = 'tornpas_gains_tracking_filtered.png';
+        // Use the faction's active tracking start time for gains
+        if (activeTrackingStartedAt) {
+            const startedDate = activeTrackingStartedAt.toDate ? activeTrackingStartedAt.toDate() : activeTrackingStartedAt;
+            reportTitle = `Faction Gains Since: ${startedDate.toLocaleDateString()} ${startedDate.toLocaleTimeString()}`;
+        } else {
+            reportTitle = 'Faction Gains Since: N/A (Tracking Not Started)';
+        }
     } else {
         console.error('Unknown active tab for screenshot.');
         alert('Cannot download data for this tab.');
@@ -751,8 +762,8 @@ function downloadCurrentTabAsImage() {
     }
 
     if (!originalTable) {
-        console.error('Original table not found for screenshot.');
-        alert('Could not find table data to download.');
+        console.error('Original table not found for screenshot for tab:', activeTabPane.id);
+        alert('Could not find table data to download for the current tab. Please ensure the table is loaded.');
         return;
     }
 
@@ -760,15 +771,27 @@ function downloadCurrentTabAsImage() {
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
     tempContainer.style.width = '850px'; // Set a fixed width for consistent screenshot size
-    tempContainer.style.backgroundColor = '#222';
-    tempContainer.style.padding = '15px';
+    tempContainer.style.backgroundColor = '#222'; // Match your application's background
+    tempContainer.style.padding = '20px'; // Increased padding for better spacing
     tempContainer.style.borderRadius = '8px';
     tempContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    tempContainer.style.color = '#fff'; // Ensure text is visible on dark background
+
+    // Add the report title/date to the tempContainer FIRST
+    if (reportTitle) {
+        const titleElement = document.createElement('h3');
+        titleElement.style.cssText = titleStyle;
+        titleElement.textContent = reportTitle;
+        tempContainer.appendChild(titleElement);
+        console.log("Report title added:", titleElement.outerHTML); // Debugging
+    }
 
     const tempTable = document.createElement('table');
     tempTable.className = originalTable.className; // Copy original table classes for styling
     tempTable.classList.add('download-table-preview'); // Add a specific class for download preview styling
     tempTable.style.width = '100%'; // Ensure it fills the temp container
+    tempTable.style.borderCollapse = 'collapse'; // Ensure table borders collapse
+    tempTable.style.marginTop = '15px'; // Add space between title and table
 
     const tempThead = document.createElement('thead');
     const tempTbody = document.createElement('tbody');
@@ -780,6 +803,12 @@ function downloadCurrentTabAsImage() {
             const originalTh = originalHeaderRow.children[index];
             if (originalTh) {
                 const clonedTh = originalTh.cloneNode(true);
+                // Apply a basic style to cloned headers for consistency
+                clonedTh.style.padding = '8px';
+                clonedTh.style.border = '1px solid #444';
+                clonedTh.style.backgroundColor = '#333';
+                clonedTh.style.color = '#eee';
+                clonedTh.style.textAlign = 'left'; // Adjust as needed
                 tempHeaderRow.appendChild(clonedTh);
             }
         });
@@ -790,6 +819,11 @@ function downloadCurrentTabAsImage() {
         headerTextsToKeep.forEach(text => {
             const th = document.createElement('th');
             th.textContent = text;
+            th.style.padding = '8px';
+            th.style.border = '1px solid #444';
+            th.style.backgroundColor = '#333';
+            th.style.color = '#eee';
+            th.style.textAlign = 'left'; // Adjust as needed
             tempHeaderRow.appendChild(th);
         });
         tempThead.appendChild(tempHeaderRow);
@@ -804,6 +838,31 @@ function downloadCurrentTabAsImage() {
             const originalCell = originalCells[index];
             if (originalCell) {
                 const clonedCell = originalCell.cloneNode(true);
+                // Apply a basic style to cloned cells for consistency
+                clonedCell.style.padding = '8px';
+                clonedCell.style.border = '1px solid #444';
+                clonedCell.style.color = '#fff'; // Default text color
+                
+                // Keep original background colors, but apply fallback if needed
+                if (!clonedCell.style.backgroundColor) {
+                    clonedCell.style.backgroundColor = '#2a2a2a'; // Default row background
+                }
+
+                // Check for specific classes that might have color-coding
+                if (clonedCell.classList.contains('stat-tier-1')) clonedCell.style.color = '#E0BBE4';
+                else if (clonedCell.classList.contains('stat-tier-2')) clonedCell.style.color = '#957DAD';
+                else if (clonedCell.classList.contains('stat-tier-3')) clonedCell.style.color = '#D291BC';
+                else if (clonedCell.classList.contains('stat-tier-4')) clonedCell.style.color = '#FFC300';
+                else if (clonedCell.classList.contains('stat-tier-5')) clonedCell.style.color = '#FF5733';
+                else if (clonedCell.classList.contains('stat-tier-6')) clonedCell.style.color = '#C70039';
+                else if (clonedCell.classList.contains('stat-tier-7')) clonedCell.style.color = '#900C3F';
+                else if (clonedCell.classList.contains('stat-tier-8')) clonedCell.style.color = '#581845';
+                else if (clonedCell.classList.contains('stat-tier-9')) clonedCell.style.color = '#1E8449'; // Using a darker green
+                
+                if (clonedCell.classList.contains('gain-positive')) clonedCell.style.color = '#00FF00'; // Bright Green for positive gains
+                if (clonedCell.classList.contains('gain-negative')) clonedCell.style.color = '#FF0000'; // Red for negative gains
+                if (clonedCell.classList.contains('gain-neutral')) clonedCell.style.color = '#999999'; // Grey for neutral gains
+
                 tempRow.appendChild(clonedCell);
             }
         });
@@ -812,14 +871,20 @@ function downloadCurrentTabAsImage() {
 
     tempTable.appendChild(tempThead);
     tempTable.appendChild(tempTbody);
-    tempContainer.appendChild(tempTable);
+    tempContainer.appendChild(tempTable); // Append the table after the title
 
     document.body.appendChild(tempContainer); // Add to DOM to be rendered for html2canvas
+
+    console.log("Temporary render container appended to body:", tempContainer.outerHTML); // Debug: Log the full container
 
     html2canvas(tempContainer, {
         scale: 2, // Increase scale for higher resolution image
         useCORS: true, // Needed if your images/fonts are from different origins
-        logging: false, // Disable verbose logging
+        logging: true, // Enable verbose logging for debugging
+        backgroundColor: null, // Let the tempContainer's background handle it
+        // Explicitly set width to match the desired output width
+        width: tempContainer.offsetWidth,
+        height: tempContainer.offsetHeight
     }).then(canvas => {
         const link = document.createElement('a');
         link.download = filename;
@@ -836,9 +901,9 @@ function downloadCurrentTabAsImage() {
         if (tempContainer.parentNode) {
             document.body.removeChild(tempContainer);
         }
+        console.log("Cleaned up temporary render container.");
     });
 }
-
 
 // --- Main execution block and event listeners ---
 document.addEventListener('DOMContentLoaded', () => {
