@@ -15,6 +15,18 @@
     position: relative;
 }
 
+.download-table-preview {
+  table-layout: fixed;
+  width: 100%; /* Ensure it respects the container's width */
+}
+
+/* This targets the cells inside the download table specifically */
+.download-table-preview td,
+.download-table-preview th {
+  overflow-wrap: break-word; /* Allows long numbers to wrap if needed */
+  word-wrap: break-word; /* Fallback for older browsers */
+}
+
 h2 {
     color: #00a8ff;
     text-align: center;
