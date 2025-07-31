@@ -10,6 +10,14 @@ document.addEventListener('DOMContentLoaded', function() {
         messagingSenderId: "205970466308",
         appId: "1:205970466308:web:b2f8ec5d1a38ef05213751"
     };
+	
+	window.addEventListener('pageshow', function(event) {
+    // The 'persisted' property is true if the page was restored from the back-forward cache.
+    if (event.persisted) {
+        console.log('Page was loaded from the back-forward cache. Forcing a reload to ensure correct user state.');
+        window.location.reload();
+    }
+});
 
     let db = null;
     let auth = null;
