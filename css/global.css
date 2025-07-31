@@ -2151,7 +2151,7 @@ input:checked + .slider:before {
 
     /* Further reduce top margins of the content immediately following the header */
     .homepage-content-wrapper {
-        margin-top: 5px !important; /* Further reduce margin from your previous suggestion */
+        margin-top: 8px !important; /* Further reduce margin from your previous suggestion */
         padding-top: 0px !important; /* Ensure no top padding on this wrapper */
     }
 
