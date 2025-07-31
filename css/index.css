@@ -1191,7 +1191,7 @@ header {
   }
 
   .login-page-layout-container {
-    margin-top: -80px !important;
+    margin-top: -150px !important;
   }
 
   /* --- Styles to force the footer to show --- */
@@ -1203,5 +1203,16 @@ header {
   
   .main-content-wrapper {
     flex-grow: 1 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: red !important;      /* Make it obvious */
+    z-index: 9999 !important;         /* Make it sit on top of everything */
   }
 }
