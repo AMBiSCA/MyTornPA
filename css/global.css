@@ -1997,42 +1997,23 @@ input:checked + .slider:before {
         content: none !important;    /* Clear any pseudo-content */
     }
 
-    /* Specific styling for Useful Links and Contact icons (Option B: original icon + dropdown arrow) */
-    #usefulLinksBtn .btn-icon,
-    #headerContactUsBtn .btn-icon {
-        font-size: 1.6em !important;    /* Keep original icon size */
-        display: flex !important;       /* Use flexbox to align original icon and ::after arrow */
-        align-items: center !important; /* Vertically align content */
-        justify-content: center !important; /* Center content */
-        position: relative !important;  /* For ::after positioning */
-        margin: auto !important;        /* Center the overall icon span */
-    }
-
-    /* Add the dropdown arrow emoji using a pseudo-element for dropdown buttons */
-    #usefulLinksBtn .btn-icon::after,
-    #headerContactUsBtn .btn-icon::after {
-        content: '🔽' !important;        /* The dropdown arrow emoji */
-        font-size: 0.8em !important;    /* Make dropdown arrow slightly smaller */
-        margin-left: 0.2em !important;  /* Small space between original icon and dropdown arrow */
-        position: static !important;    /* Keep it in the normal flow of the flex container */
-        transform: none !important;     /* Remove previous absolute centering transform */
-        display: inline-block !important; /* Ensure it renders properly after margin-left */
-    }
-}
-
-/* Targeted Override for Useful Links & Contact Button Icons (Place at the absolute END of global.css) */
+/* ABSOLUTE FINAL OVERRIDE FOR MOBILE HEADER BUTTON ICONS - PLACE THIS BLOCK AT THE VERY, VERY END OF global.css */
 @media (max-width: 768px) {
+
+    /* This targets the main icon container for Useful Links and Contact buttons */
     #usefulLinksBtn .btn-icon,
     #headerContactUsBtn .btn-icon {
-        /* Force original emoji (🔗 or 💬) to be visible and correctly sized/aligned */
-        font-size: 1.6em !important; /* Adjust if you want the main icon larger/smaller */
-        display: flex !important;       /* Force flexbox for alignment of internal content */
-        align-items: center !important; /* Vertically center original icon and ::after */
-        justify-content: center !important; /* Horizontally center original icon */
-        margin: auto !important;        /* Center the entire icon span within the button */
-        position: relative !important;  /* Crucial for proper ::after positioning */
-
-        /* Clear any potential hiding/transform properties from other rules */
+        font-size: 1.6em !important;    /* Force main emoji size (e.g., 🔗, 💬) */
+        display: flex !important;       /* Ensure flex container behavior */
+        align-items: center !important; /* Vertically center content */
+        justify-content: center !important; /* Horizontally center content */
+        margin: auto !important;        /* Center the span within its button */
+        position: relative !important;  /* Essential for pseudo-element positioning */
+        width: auto !important;         /* Allow content to define width */
+        height: auto !important;        /* Allow content to define height */
+        min-width: unset !important;    /* Remove minimum width constraints */
+        
+        /* Crucial: Ensure no other rule is hiding or transforming the base content */
         line-height: 1 !important;
         vertical-align: middle !important;
         text-indent: 0 !important;
@@ -2041,26 +2022,31 @@ input:checked + .slider:before {
         border: none !important;
         outline: none !important;
         text-shadow: none !important;
+        overflow: visible !important; /* Ensure content is not clipped */
     }
 
-    /* Targeted override for the dropdown arrow (🔽) pseudo-element */
+    /* This targets the dropdown arrow pseudo-element for Useful Links and Contact */
     #usefulLinksBtn .btn-icon::after,
     #headerContactUsBtn .btn-icon::after {
-        content: '🔽' !important;         /* Force the dropdown arrow content */
-        font-size: 0.8em !important;     /* Make dropdown arrow slightly smaller than main icon */
-        margin-left: 0.2em !important;   /* Small space between original icon and dropdown arrow */
-
+        content: '🔽' !important;         /* Force the dropdown arrow emoji */
+        font-size: 0.8em !important;     /* Size of the dropdown arrow relative to main icon */
+        margin-left: 0.2em !important;   /* Small space between main icon and arrow */
+        
         /* Ensure proper display and clear any conflicting positioning */
-        display: inline-block !important; /* Make it display */
-        position: static !important;     /* Keep it in normal flow within the flex container */
-        transform: none !important;      /* Clear any unwanted absolute transforms */
+        display: inline-block !important; /* Make it render */
+        position: static !important;     /* Keep it in normal flow (not absolutely positioned relative to window) */
+        transform: none !important;      /* Clear any unwanted transforms from other rules */
 
-        /* Clear other potentially conflicting properties */
+        /* Clear any conflicting styles */
         line-height: 1 !important;
         vertical-align: middle !important;
         color: inherit !important;
         background: none !important;
         border: none !important;
         z-index: auto !important;
+        opacity: 1 !important; /* Ensure visibility */
     }
 }
+
+
+
