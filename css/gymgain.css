@@ -551,7 +551,7 @@ p.error-message { color: red; margin-top: 5px; text-align: center; }
     }
     .tab-button-bb {
         border-radius: 5px;
-        margin-bottom: 0; /* Remove bottom margin if stacking */
+        margin-bottom: 0; /* Remove bottom margin if staking */
     }
 
     /* Further reduce font sizes for very small screens */
