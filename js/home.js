@@ -1054,33 +1054,35 @@ if (toolsSection) {
 						console.log("1. Profile loaded on page start:", currentUserProfile); // <-- ADD THIS
 						
 						// ... inside onAuthStateChanged, after fetching the profile
-profile = doc.exists ? doc.data() : null;
+                        profile = doc.exists ? doc.data() : null;
 
-// START: Add this new block
-// --- Check for an active membership and start the countdown ---
-if (profile && profile.membershipEndTime) {
-    const membershipInfo = {
-        membershipType: profile.membershipType,
-        membershipEndTime: profile.membershipEndTime
-    };
-    // If the membership is still active, start the timer
-    if (membershipInfo.membershipEndTime > Date.now()) {
-        startMembershipCountdown(membershipInfo);
-    }
-}
+                        // --- Check for an active membership and start the countdown ---
+                        if (profile && profile.membershipEndTime) {
+                            const membershipInfo = {
+                                membershipType: profile.membershipType,
+                                membershipEndTime: profile.membershipEndTime
+                            };
+                            // If the membership is still active, start the timer
+                            if (membershipInfo.membershipEndTime > Date.now()) {
+                                startMembershipCountdown(membershipInfo);
+                            }
+                        }
 
- if (membershipOptionsModal && user && !profile?.membershipEndTime || profile?.membershipEndTime < Date.now()) {
-                  membershipOptionsModal.style.display = 'flex'; // Show the modal
-                  setTimeout(() => {
-                    membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
-                    console.log("Membership prompt hidden after 15 seconds.");
-                  }, 15000);
-                }
+                        // >>> MAJOR CHANGE HERE: This block now *always* runs if user is logged in <<<
+                        // AND the modal element exists. The 15-second timer is set here.
+                        if (membershipOptionsModal && user) {
+                            membershipOptionsModal.style.display = 'flex'; // Show the modal
+                            console.log("Membership prompt shown on login."); // Log when it's shown
+                            setTimeout(() => {
+                                membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
+                                console.log("Membership prompt hidden after 15 seconds."); // Log when it's hidden
+                            }, 15000);
+                        }
+                        // >>> END MAJOR CHANGE <<<
 
 
-
-// --- Activate the gatekeeper for member-only links ---
-updateToolLinksAccess(profile);; //
+                        // --- Activate the gatekeeper for member-only links ---
+                        updateToolLinksAccess(profile); // Ensure this is called with the latest profile data
 
                         if (profile && profile.preferredName && profile.profileSetupComplete) {
                             userDisplayName = profile.preferredName; showSetup = false;
@@ -1107,7 +1109,7 @@ updateToolLinksAccess(profile);; //
                     if (firstTip) { displayRandomTip(); localStorage.setItem(`hasSeenWelcomeTip_${user.uid}`, 'true'); }
                     else if (tornTipPlaceholderEl) { tornTipPlaceholderEl.style.display = 'none'; }
                     if (profile && profile.tornApiKey) {
-                        if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'none';
+                        if (apiKeyMessageEl) apiKeyMessage.style.display = 'none';
                         fetchAllRequiredData(user, db);
                     } else {
                         if (apiKeyMessageEl) apiKeyMessageEl.style.display = 'block';
@@ -1141,7 +1143,7 @@ updateToolLinksAccess(profile);; //
             }
         });
     } else { console.error("Firebase auth object not available for auth state listener."); }
-
+	
     if (logoutButtonHeader && auth) {
         logoutButtonHeader.addEventListener('click', () => {
             auth.signOut().then(() => {
