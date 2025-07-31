@@ -1,227 +1,227 @@
 /* File: tornpas-big-brother.css */
 
 /* ==========================================================================
-   Base Styles for TornPAs Big Brother Page
-   ========================================================================== */
+   Base Styles for TornPAs Big Brother Page
+   ========================================================================== */
 
 .page-specific-content-area {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 20px auto;
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    color: #f0f0f0;
-    position: relative;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #f0f0f0;
+    position: relative;
 }
 
 h2 {
-    color: #00a8ff;
-    text-align: center;
-    margin-bottom: 25px;
-    margin-top: 5px;
-    font-size: 2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #00a8ff;
+    text-align: center;
+    margin-bottom: 25px;
+    margin-top: 5px;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .main-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 /* ==========================================================================
-   Tab Navigation Styles
-   ========================================================================== */
+   Tab Navigation Styles
+   ========================================================================== */
 
 .tab-navigation-bb {
-    display: flex;
-    justify-content: space-around;
-    border-bottom: none;
-    flex-wrap: wrap;
-    margin-bottom: -1px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: none;
+    flex-wrap: wrap;
+    margin-bottom: -1px;
 }
 
 .tab-button-bb {
-    background-color: #333;
-    color: #f0f0f0;
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    border-radius: 8px 8px 0 0;
-    flex-grow: 1;
-    min-width: 150px;
-    text-align: center;
-    font-weight: bold;
-    border: 1px solid transparent;
-    border-bottom: none;
-    box-sizing: border-box;
-    outline: none;
+    background-color: #333;
+    color: #f0f0f0;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    flex-grow: 1;
+    min-width: 150px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid transparent;
+    border-bottom: none;
+    box-sizing: border-box;
+    outline: none;
 }
 
 .tab-button-bb:hover {
-    background-color: #555;
-    color: #00a8ff;
+    background-color: #555;
+    color: #00a8ff;
 }
 
 .tab-button-bb.active {
-    background-color: #222;
-    color: #00a8ff;
-    border-color: black;
-    border-bottom: 1px solid #222;
-    cursor: default;
+    background-color: #222;
+    color: #00a8ff;
+    border-color: black;
+    border-bottom: 1px solid #222;
+    cursor: default;
 }
 
 /* Tab Content Container */
 .tab-content-container-bb {
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 8px;
-    padding: 15px;
-    flex-grow: 1;
-    min-height: 400px;
-    box-sizing: border-box;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    padding: 15px;
+    flex-grow: 1;
+    min-height: 400px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Individual Tab Panes */
 .tab-pane-bb {
-    display: none;
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
-    box-sizing: border-box;
-    padding-right: 5px;
+    display: none;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding-right: 5px;
 }
 
 .tab-pane-bb.active {
-    display: block;
+    display: block;
 }
 
 /* ==========================================================================
-   Table Container & Table Styles
-   ========================================================================== */
+   Table Container & Table Styles
+   ========================================================================== */
 
 .table-container {
-    background-color: #222;
-    border: 1px solid black;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    background-color: #222;
+    border: 1px solid black;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 #loading-message-container {
-    text-align: center;
-    padding: 20px;
-    color: #bbb;
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: #bbb;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .friendly-members-table,
 .gains-overview-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #ddd;
-    table-layout: fixed;
-    flex-grow: 1;
-    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    table-layout: fixed;
+    flex-grow: 1;
+    display: table;
 }
 
 .friendly-members-table thead th,
 .gains-overview-table thead th {
-    background-color: #00a8ff;
-    color: #1e1e1e;
-    font-weight: bold;
-    text-align: center;
-    padding: 10px 8px;
-    border-bottom: 2px solid #1e1e1e;
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-right: 1px solid #303030;
+    background-color: #00a8ff;
+    color: #1e1e1e;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 8px;
+    border-bottom: 2px solid #1e1e1e;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-right: 1px solid #303030;
 }
 
 .friendly-members-table thead th:last-child,
 .gains-overview-table thead th:last-child {
-    border-right: none;
+    border-right: none;
 }
 
 .friendly-members-table tbody td,
 .gains-overview-table tbody td {
-    padding: 8px 8px;
-    border-bottom: 1px solid #3a3a40;
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    border-right: 1px solid #303030;
+    padding: 8px 8px;
+    border-bottom: 1px solid #3a3a40;
+    vertical-align: middle;
+    font-size: 0.85em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    border-right: 1px solid #303030;
 }
 
 .friendly-members-table tbody td:last-child,
 .gains-overview-table tbody td:last-child {
-    border-right: none;
+    border-right: none;
 }
 
 .friendly-members-table tbody tr:last-child td,
 .gains-overview-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: none;
 }
 
 .friendly-members-table tbody tr:hover,
 .gains-overview-table tbody tr:hover {
-    background-color: #38383e;
+    background-color: #38383e;
 }
 
 .friendly-members-table a,
 .gains-overview-table a {
-    color: #f0f0f0;
-    text-decoration: none;
+    color: #f0f0f0;
+    text-decoration: none;
 }
 
 .friendly-members-table a:hover,
 .gains-overview-table a:hover {
-    text-decoration: underline;
-    color: #8ab4f8;
+    text-decoration: underline;
+    color: #8ab4f8;
 }
 
 /* ==========================================================================
-   Download Button Styles
-   ========================================================================== */
+   Download Button Styles
+   ========================================================================== */
 .download-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-    z-index: 10;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    z-index: 10;
 }
 
 .download-button:hover {
-    background-color: #45a049;
+    background-color: #45a049;
 }
 
 /* ==========================================================================
-   Specific Column Widths (for on-screen tables)
-   ========================================================================== */
+   Specific Column Widths (for on-screen tables)
+   ========================================================================== */
 
 .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 12%; }
 .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
@@ -244,12 +244,12 @@ h2 {
 
 
 /* ==========================================================================
-   Dynamic Cell Styling (Status, Nerve, Energy, Drug CD, Battle Stats Color Coding)
-   ========================================================================== */
+   Dynamic Cell Styling (Status, Nerve, Energy, Drug CD, Battle Stats Color Coding)
+   ========================================================================== */
 
 .friendly-members-table td.stat-cell {
-    color: black !important;
-    font-weight: bold;
+    color: black !important;
+    font-weight: bold;
 }
 
 .stat-tier-1 { background-color: #F5F5F5; }
@@ -263,283 +263,283 @@ h2 {
 .stat-tier-9 { background-color: #B71C1C; }
 
 .friendly-members-table tbody td.status-okay {
-    color: #28a745 !important;
+    color: #28a745 !important;
 }
 .friendly-members-table tbody td.status-hospital {
-    color: #dc3545 !important;
+    color: #dc3545 !important;
 }
 .friendly-members-table tbody td.status-jail {
-    color: #ffc107 !important;
+    color: #ffc107 !important;
 }
 .friendly-members-table tbody td.status-traveling {
-    color: #17a2b8 !important;
+    color: #17a2b8 !important;
 }
 .friendly-members-table tbody td.status-abroad {
-    color: #17a2b8 !important;
+    color: #17a2b8 !important;
 }
 .friendly-members-table tbody td.status-other {
-    color: #ffb86c !important;
+    color: #ffb86c !important;
 }
 
 .friendly-members-table td.nerve-text {
-    color: #d32f2f;
+    color: #d32f2f;
 }
 .friendly-members-table td.energy-text {
-    color: #28a745;
+    color: #28a745;
 }
 
 .friendly-members-table td.status-okay {
-    color: #28a745;
+    color: #28a745;
 }
 .friendly-members-table td.status-other {
-    color: #ffb86c;
+    color: #ffb86c;
 }
 .friendly-members-table td.status-hospital {
-    color: #dc3545;
+    color: #dc3545;
 }
 
 
 /* ==========================================================================
-   Gains Tracking Tab Styles
-   ========================================================================== */
+   Gains Tracking Tab Styles
+   ========================================================================== */
 
 .gains-tracking-controls {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    text-align: center;
-    color: #f0f0f0;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #f0f0f0;
 }
 
 .gains-tracking-controls p {
-    margin-bottom: 10px;
-    font-size: 0.9em;
+    margin-bottom: 10px;
+    font-size: 0.9em;
 }
 
 #trackingStatus {
-    font-weight: bold;
-    color: #e0a71a;
-    margin-top: 10px;
-    font-size: 1.1em;
+    font-weight: bold;
+    color: #e0a71a;
+    margin-top: 10px;
+    font-size: 1.1em;
 }
 
 #gainsStartedAt {
-    font-size: 0.85em;
-    color: #bbb;
-    margin-top: 5px;
+    font-size: 0.85em;
+    color: #bbb;
+    margin-top: 5px;
 }
 
 .action-btn-bb {
-    background-color: #007bff;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-    margin: 5px;
+    background-color: #007bff;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    margin: 5px;
 }
 
 .action-btn-bb:hover {
-    background-color: #0056b3;
+    background-color: #0056b3;
 }
 
 .action-btn-bb.stop-tracking {
-    background-color: #dc3545;
+    background-color: #dc3545;
 }
 
 .action-btn-bb.stop-tracking:hover {
-    background-color: #c82333;
+    background-color: #c82333;
 }
 
 .hidden {
-    display: none !important;
+    display: none !important;
 }
 
 .gain-positive {
-    color: #4CAF50;
-    font-weight: bold;
+    color: #4CAF50;
+    font-weight: bold;
 }
 
 .gain-negative {
-    color: #dc3545;
-    font-weight: bold;
+    color: #dc3545;
+    font-weight: bold;
 }
 
 .gain-neutral {
-    color: #f0f0f0;
+    color: #f0f0f0;
 }
 
 .gains-overview-table .new-member-gain {
-    background-color: rgba(0, 168, 255, 0.1);
+    background-color: rgba(0, 168, 255, 0.1);
 }
 .gains-overview-table .new-member-gain a {
-    color: #00a8ff;
+    color: #00a8ff;
 }
 
 
 /* ==========================================================================
-   Styles for Temporary Download Table (to make rows tighter AND columns precise)
-   ========================================================================== */
+   Styles for Temporary Download Table (to make rows tighter AND columns precise)
+   ========================================================================== */
 
 .download-table-preview {
-    width: 100%; /* Will take 100% of tempContainer's fixed width */
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #ddd;
-    table-layout: fixed; /* Reverted to fixed for precise control */
+    width: 100%; /* Will take 100% of tempContainer's fixed width */
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    table-layout: fixed; /* Reverted to fixed for precise control */
 }
 
-/* MODIFIED: Explicit pixel widths for the 6 columns for the downloaded image */
-/* These values now sum to a narrower 700px total width */
-.download-table-preview th:nth-child(1), .download-table-preview td:nth-child(1) { width: 140px; } /* Name */
-.download-table-preview th:nth-child(2), .download-table-preview td:nth-child(2) { width: 110px; } /* Strength / Strength Gain */
-.download-table-preview th:nth-child(3), .download-table-preview td:nth-child(3) { width: 110px; } /* Dexterity / Dexterity Gain */
-.download-table-preview th:nth-child(4), .download-table-preview td:nth-child(4) { width: 110px; } /* Speed / Speed Gain */
-.download-table-preview th:nth-child(5), .download-table-preview td:nth-child(5) { width: 110px; } /* Defense / Defense Gain */
-.download-table-preview th:nth-child(6), .download-table-preview td:nth-child(6) { width: 120px; } /* Total / Total Gain */
+/* Explicit pixel widths for the 6 columns for the downloaded image */
+/* Adjust these pixel values as needed until they look good together and sum to 800px */
+.download-table-preview th:nth-child(1), .download-table-preview td:nth-child(1) { width: 150px; } /* Name */
+.download-table-preview th:nth-child(2), .download-table-preview td:nth-child(2) { width: 130px; } /* Strength / Strength Gain */
+.download-table-preview th:nth-child(3), .download-table-preview td:nth-child(3) { width: 130px; } /* Dexterity / Dexterity Gain */
+.download-table-preview th:nth-child(4), .download-table-preview td:nth-child(4) { width: 130px; } /* Speed / Speed Gain */
+.download-table-preview th:nth-child(5), .download-table-preview td:nth-child(5) { width: 130px; } /* Defense / Defense Gain */
+.download-table-preview th:nth-child(6), .download-table-preview td:nth-child(6) { width: 140px; } /* Total / Total Gain - Adjusted last one to make sum 800 */
 
 
 .download-table-preview thead th {
-    padding: 6px 8px; /* Reduced vertical padding for headers */
-    background-color: #00a8ff;
-    color: #1e1e1e;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 2px solid #1e1e1e;
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-right: 1px solid #303030;
+    padding: 6px 8px; /* Reduced vertical padding for headers */
+    background-color: #00a8ff;
+    color: #1e1e1e;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #1e1e1e;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-right: 1px solid #303030;
 }
 
 .download-table-preview thead th:last-child {
-    border-right: none;
+    border-right: none;
 }
 
 .download-table-preview tbody td {
-    padding: 4px 8px; /* Reduced vertical padding for data cells */
-    border-bottom: 1px solid #3a3a40;
-    vertical-align: middle;
-    font-size: 0.85em;
-    color: #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    border-right: 1px solid #303030;
+    padding: 4px 8px; /* Reduced vertical padding for data cells */
+    border-bottom: 1px solid #3a3a40;
+    vertical-align: middle;
+    font-size: 0.85em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    border-right: 1px solid #303030;
 }
 
 .download-table-preview tbody td:last-child {
-    border-right: none;
+    border-right: none;
 }
 
 .download-table-preview tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: none;
 }
 
 .download-table-preview tbody tr:hover {
-    background-color: #38383e;
+    background-color: #38383e;
 }
 
 .download-table-preview a {
-    color: #f0f0f0;
-    text-decoration: none;
+    color: #f0f0f0;
+    text-decoration: none;
 }
 
 .download-table-preview a:hover {
-    text-decoration: underline;
-    color: #8ab4f8;
+    text-decoration: underline;
+    color: #8ab4f8;
 }
 
 /* ==========================================================================
-   Responsive Adjustments
-   ========================================================================== */
+   Responsive Adjustments
+   ========================================================================== */
 
 @media (max-width: 992px) {
-    .page-specific-content-area {
-        padding: 15px;
-        margin: 15px auto;
-    }
-    .tab-button-bb {
-        padding: 8px 10px;
-        min-width: 120px;
-    }
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td,
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td {
-        font-size: 0.8em;
-        padding: 6px 4px;
-    }
+    .page-specific-content-area {
+        padding: 15px;
+        margin: 15px auto;
+    }
+    .tab-button-bb {
+        padding: 8px 10px;
+        min-width: 120px;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
+        font-size: 0.8em;
+        padding: 6px 4px;
+    }
 
-    .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; }
-    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
-    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
-    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
-    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
-    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
-    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
-    .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; }
-    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
-    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
-    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
+    .friendly-members-table th:nth-child(1), .friendly-members-table td:nth-child(1) { width: 14%; }
+    .friendly-members-table th:nth-child(2), .friendly-members-table td:nth-child(2) { width: 9%; }
+    .friendly-members-table th:nth-child(3), .friendly-members-table td:nth-child(3) { width: 9%; }
+    .friendly-members-table th:nth-child(4), .friendly-members-table td:nth-child(4) { width: 9%; }
+    .friendly-members-table th:nth-child(5), .friendly-members-table td:nth-child(5) { width: 9%; }
+    .friendly-members-table th:nth-child(6), .friendly-members-table td:nth-child(6) { width: 9%; }
+    .friendly-members-table th:nth-child(7), .friendly-members-table td:nth-child(7) { width: 8%; }
+    .friendly-members-table th:nth-child(8), .friendly-members-table td:nth-child(8) { width: 12%; }
+    .friendly-members-table th:nth-child(9), .friendly-members-table td:nth-child(9) { width: 8%; }
+    .friendly-members-table th:nth-child(10), .friendly-members-table td:nth-child(10) { width: 8%; }
+    .friendly-members-table th:nth-child(11), .friendly-members-table td:nth-child(11) { width: 8%; }
 
-    .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
-    .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
-    .gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; }
-    .gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; }
-    .gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; }
-    .gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; }
+    .gains-overview-table th:nth-child(1), .gains-overview-table td:nth-child(1) { width: 25%; }
+    .gains-overview-table th:nth-child(2), .gains-overview-table td:nth-child(2) { width: 15%; }
+    .gains-overview-table th:nth-child(3), .gains-overview-table td:nth-child(3) { width: 15%; }
+    .gains-overview-table th:nth-child(4), .gains-overview-table td:nth-child(4) { width: 15%; }
+    .gains-overview-table th:nth-child(5), .gains-overview-table td:nth-child(5) { width: 15%; }
+    .gains-overview-table th:nth-child(6), .gains-overview-table td:nth-child(6) { width: 15%; }
 }
 
 @media (max-width: 768px) {
-    .tab-navigation-bb {
-        flex-direction: column;
-    }
-    .tab-button-bb {
-        border-radius: 5px;
-        margin-bottom: 5px;
-    }
-    .table-container {
-        overflow-x: auto;
-    }
-    .friendly-members-table,
-    .gains-overview-table {
-        min-width: 700px;
-        table-layout: auto;
-    }
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td,
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td {
-        font-size: 0.75em;
-        padding: 5px 3px;
-    }
+    .tab-navigation-bb {
+        flex-direction: column;
+    }
+    .tab-button-bb {
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+    .table-container {
+        overflow-x: auto;
+    }
+    .friendly-members-table,
+    .gains-overview-table {
+        min-width: 700px;
+        table-layout: auto;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
+        font-size: 0.75em;
+        padding: 5px 3px;
+    }
 }
 
 @media (max-width: 480px) {
-    h2 {
-        font-size: 1.5em;
-        margin-bottom: 15px;
-    }
-    .friendly-members-table,
-    .gains-overview-table {
-        min-width: 600px;
-    }
-    .friendly-members-table thead th,
-    .friendly-members-table tbody td,
-    .gains-overview-table thead th,
-    .gains-overview-table tbody td {
-        font-size: 0.7em;
-        padding: 4px 2px;
-    }
-    .action-btn-bb {
-        padding: 6px 10px;
-        font-size: 0.8em;
-    }
+    h2 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    .friendly-members-table,
+    .gains-overview-table {
+        min-width: 600px;
+    }
+    .friendly-members-table thead th,
+    .friendly-members-table tbody td,
+    .gains-overview-table thead th,
+    .gains-overview-table tbody td {
+        font-size: 0.7em;
+        padding: 4px 2px;
+    }
+    .action-btn-bb {
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
 }
