@@ -722,7 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // If tracking is active, set up a listener for the user's current stats
-                if (activePersonalTrackingSessionId && userCurrentStatsDocRef) {
+              // If a tracking session is active AND a currentUser exists
+                if (activePersonalTrackingSessionId && currentUser && currentUser.uid) {
+                    const userCurrentStatsDocRef = db.collection('users').doc(currentUser.uid); // Define it here
                      if (unsubscribeFromUserCurrentStats) { // Ensure no duplicate listeners
                         unsubscribeFromUserCurrentStats();
                      }
@@ -731,8 +733,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.log("User current stats updated via listener, recalculating gains.");
                             displayPersonalGains(userDoc.data()); // Pass the current user's data
                         } else {
-                            console.warn("User's current stats document not found in 'users' collection.");
-                            // Handle case where user stats doc might be missing
+                            console.warn("User's current stats document not found in 'users' collection. This might happen if backend hasn't saved user stats yet.");
+                            // Optionally, reset gains display here if the user's core stats document somehow disappears
+                            // displayPersonalGains(null); 
                         }
                     }, (error) => {
                         console.error("Error listening to user's current stats for gains:", error);
