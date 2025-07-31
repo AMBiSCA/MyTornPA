@@ -2367,6 +2367,66 @@ window.openPrivateChatWindow = async function(tornId, userName) {
             targetDisplayElement.innerHTML = `<p style="color: red; text-align:center;">Error: ${error.message}</p>`;
         }
     }
+	
+	// NEW FUNCTION: Display Faction Members in the Chat Tab
+function displayFactionMembersInChatTab(membersData, targetDisplayElement) {
+    if (!targetDisplayElement) {
+        console.error("HTML Error: Target display element not provided for Faction Members tab.");
+        return;
+    }
+
+    // Convert membersData object to an array of members, and sort them by name
+    const membersArray = Object.values(membersData).map(member => ({
+        id: member.player_id,
+        name: member.name,
+        // You can add more properties here from the Torn API's faction members data if needed
+        // e.g., status, last_action.timestamp, etc.
+        // For now, we'll just use name and ID.
+    }));
+
+    membersArray.sort((a, b) => a.name.localeCompare(b.name));
+
+    let membersHtml = '';
+    if (membersArray.length === 0) {
+        membersHtml = '<p style="text-align:center; padding: 20px;">No faction members found or data unavailable.</p>';
+    } else {
+        membersArray.forEach(member => {
+            // Check if player has a profile image stored in your 'users' collection
+            // We need an async call here to fetch the profile image
+            // For simplicity in this function, we'll use a default or assume one for now
+            // and maybe fetch later if this becomes a performance bottleneck or if dynamic image loading is desired.
+            // For now, let's just use the default icon.
+            const profileImage = DEFAULT_PROFILE_ICONS[0]; // Using a default generic icon for now
+
+            membersHtml += `
+                <div class="member-item">
+                    <div class="member-identity">
+                        <img src="${profileImage}" alt="${member.name}'s profile pic" class="member-profile-pic">
+                        <a href="https://www.torn.com/profiles.php?XID=${member.id}" target="_blank" class="member-name">${member.name} [${member.id}]</a>
+                    </div>
+                    <div class="member-actions">
+                        <button class="item-button message-member-button" data-torn-id="${member.id}" data-torn-name="${member.name}" title="Send Message">✉️</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    const membersListContainer = document.createElement('div');
+    membersListContainer.className = 'members-list-container';
+    membersListContainer.innerHTML = membersHtml;
+    targetDisplayElement.innerHTML = ''; // Clear previous content
+    targetDisplayElement.appendChild(membersListContainer);
+
+    // Add event listeners for message buttons within this newly added content
+    membersListContainer.querySelectorAll('.message-member-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const tornId = event.target.dataset.tornId;
+            const tornName = event.target.dataset.tornName;
+            // Call the globally exposed function to open private chat
+            window.openPrivateChatWindow(tornId, tornName);
+        });
+    });
+}
     // ---- CORE CHAT FUNCTIONS ----
     function displayChatMessage(messageObj, chatDisplayAreaId) {
         const chatDisplayArea = document.getElementById(chatDisplayAreaId);
