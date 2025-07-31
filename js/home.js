@@ -1074,7 +1074,7 @@ if (toolsSection) {
                                             membershipCountdownInterval = null; // Reset to prevent issues
                                             console.log("Membership countdown interval cleared.");
                                         }
-                                    }, 15000);
+                                    }, 5000);
                                 }
                             }
                         }
