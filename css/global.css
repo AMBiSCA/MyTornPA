@@ -1878,6 +1878,7 @@ input:checked + .slider:before {
         box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
         cursor: pointer !important;
         margin: 0 !important;
+	    margin-left: -10px !important; /* Adjust this value (e.g., -5px, -15px) to fine-tune the left push */
     }
 
     /* ... rest of your mobile styles ... */
