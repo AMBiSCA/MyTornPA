@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (elementId === "lifeStat") element.classList.add("stat-value-blue");
             }
         });
-    }
+    
 
     function validateTornProfileIdInput(event) {
         const input = event.target;
