@@ -2131,3 +2131,49 @@ input:checked + .slider:before {
     /* If you have a .footer rule here that needs to hide the footer at 991px but show at 768px,
        you would need a more complex strategy, but the 768px block now overrides display. */
 }
+
+/* CONSOLIDATED MOBILE MEDIA QUERIES - REPLACE ALL OTHER @media (max-width: 768px) BLOCKS WITH THIS ONE */
+@media (max-width: 768px) {
+    /* ... (Your existing 768px mobile rules) ... */
+
+    /* Adjust the header's own padding for a more compact look */
+    header {
+        padding-top: 5px !important; /* Reduce top padding within the header itself */
+        padding-bottom: 5px !important; /* Reduce bottom padding within the header itself */
+        min-height: auto !important; /* Allow height to shrink based on content */
+        height: auto !important; /* Allow height to shrink based on content */
+    }
+
+    /* Reduce margin-bottom of header-left, header-center, header-right-controls */
+    .header-left, .header-center, .header-right-controls {
+        margin-bottom: 0px !important; /* Remove or drastically reduce margin between header rows */
+    }
+
+    /* Further reduce top margins of the content immediately following the header */
+    .homepage-content-wrapper {
+        margin-top: 5px !important; /* Further reduce margin from your previous suggestion */
+        padding-top: 0px !important; /* Ensure no top padding on this wrapper */
+    }
+
+    .welcome-block-area {
+        margin-top: 5px !important; /* Reduce the top margin of the welcome block */
+        margin-bottom: 5px !important; /* Also reduce bottom margin for overall compactness */
+        padding: 8px !important; /* Slightly reduce internal padding of the welcome block */
+    }
+
+    .welcome-block-area h2#welcomeMessage {
+        font-size: 1.2em !important; /* Make the welcome message text slightly smaller */
+        margin-bottom: 3px !important;
+    }
+
+    #factionHuddleMessage {
+        font-size: 0.85em !important; /* Make the faction message text slightly smaller */
+        margin-top: 3px !important;
+    }
+
+    /* Target specific buttons within the header if they have their own margins */
+    .header-buttons .btn, .header-buttons .header-text-link {
+        margin: 2px 2px !important; /* Reduce margin around individual header buttons */
+        height: 30px !important; /* Set a fixed smaller height for header buttons */
+    }
+}
