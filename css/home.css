@@ -386,18 +386,19 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
 .section-title, .tool-category-header {
     position: relative; /* Essential for absolute positioning of the icon */
     display: flex; /* Allows content and icon to sit on the same line */
-    justify-content: space-between; /* Pushes the icon to the right */
+    justify-content: space-between; /* Pushes the icon to the right (maintains space-between) */
     align-items: center; /* Vertically centers the icon with the text */
-    padding-right: 30px; /* Provides space so the icon doesn't overlap text */
+    padding-right: 25px; /* ADJUSTED: Slightly less padding for the icon to move left */
 }
 
 .collapse-toggle-icon {
+    font-family: sans-serif; /* Use a basic font to ensure Unicode characters render */
     font-size: 1.2em; /* Adjust size as needed */
     cursor: pointer;
     color: #00a8ff; /* Your theme accent color */
     transition: transform 0.2s ease-in-out; /* Smooth rotation */
     position: absolute; /* Position relative to the .section-title or .tool-category-header */
-    right: 10px; /* Distance from the right edge of the title container */
+    right: 5px; /* ADJUSTED: Closer to the right edge of the padding */
     top: 50%;
     transform: translateY(-50%); /* Centering vertically */
     display: none; /* Hidden by default, only shown in mobile media query */
@@ -420,15 +421,23 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     /* State when content is collapsed */
     .collapsible-content.collapsed {
         max-height: 0; /* Hides the content completely */
+        /* Ensure there's no visible padding/margin pushing things when collapsed */
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
-
+    
     /* Rotate the icon when the content is collapsed (points down for expand, up for collapse) */
+    /* This rule no longer applies rotation; JS handles setting the correct char for collapsed/expanded */
     .collapse-toggle-icon.collapsed {
-        transform: translateY(-50%) rotate(180deg); /* Rotates 180 degrees to point upwards */
+        /* No transform property here, as JS sets the correct character */
+        /* For consistency, you might want a slight adjustment if the '▼' and '▲' have different natural vertical alignment */
+        /* For example: transform: translateY(-50%) translateY(1px); for tiny vertical nudge */
     }
 
     /* --- Specific Hiding Rules for "Your Quick Stats" when Collapsed --- */
-    /* Target non-essential stat items when quickStatsCollapsibleContent is collapsed */
+    /* Only hide non-essential stat items when quickStatsCollapsibleContent is collapsed */
     #quickStatsCollapsibleContent.collapsed .non-essential-stat {
         display: none !important; /* Hide elements marked as non-essential */
     }
@@ -444,6 +453,13 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         display: none !important;
     }
     
+    /* If the inner sections still show unwanted space, you might need to target their direct parent
+       when the main container is collapsed. Adding a rule to hide its direct children if they are not
+       the essential category: */
+    #exploreToolsCollapsibleContent.collapsed > .tool-category-section:not(.essential-tool-category) {
+        display: none !important;
+    }
+
     /* Ensure essential tool categories remain visible */
     #exploreToolsCollapsibleContent.collapsed .essential-tool-category {
         display: block !important; /* Or flex if its internal items need flex */
