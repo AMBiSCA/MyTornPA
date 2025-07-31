@@ -1065,9 +1065,15 @@ if (toolsSection) {
                                 const countdownContainer = document.getElementById('trialCountdownContainer');
                                 if (countdownContainer) {
                                     console.log("Free trial banner shown on login."); // For debugging
-                                    setTimeout(() => {
+                                    const hideTimer = setTimeout(() => { // Store the setTimeout ID
                                         countdownContainer.style.display = 'none';
                                         console.log("Free trial banner hidden after 15 seconds."); // For debugging
+                                        // NEW: Clear the ongoing membership countdown interval here too
+                                        if (membershipCountdownInterval) {
+                                            clearInterval(membershipCountdownInterval);
+                                            membershipCountdownInterval = null; // Reset to prevent issues
+                                            console.log("Membership countdown interval cleared.");
+                                        }
                                     }, 15000);
                                 }
                             }
