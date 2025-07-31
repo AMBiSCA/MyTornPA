@@ -2003,16 +2003,21 @@ input:checked + .slider:before {
     }
 
     #chat-bar-collapsed {
-        position: static !important; /* Make it flow with tornpa-chat-system */
-        bottom: unset !important;
-        right: unset !important;
-        left: unset !important;
-        width: 100% !important;
-        border-radius: 0 !important;
-        padding: 8px 10px !important;
-        justify-content: center !important;
-        margin: 0 !important; /* Remove any external margins */
-    }
+    position: fixed;
+    bottom: 15px;
+    right: 5px;
+    z-index: 1001;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    width: auto;
+    padding: 5px;
+    background-color: #1b263b; /* Changed to match chat window */
+    border: 1px solid #415a77;
+    border-top: 1px solid black; /* Added 1px separator line */
+    border-radius: 5px;
+    cursor: pointer;
+}
 
    #chat-window {
     bottom: 50px !important;
