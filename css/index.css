@@ -1191,28 +1191,14 @@ header {
   }
 
   .login-page-layout-container {
-    margin-top: -170px !important;
-  }
-
-  /* --- Styles to force the footer to show --- */
-  body {
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 100vh !important;
-  }
-  
-  .main-content-wrapper {
-    flex-grow: 1 !important;
+    margin-top: -150px !important; /* Or whatever value you settle on */
   }
 }
 
-@media (max-width: 768px) {
+/* Override global.css to show footer on index page for mobile */
+@media (max-width: 991px) {
   .footer {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    background: red !important;      /* Make it obvious */
-    z-index: 9999 !important;         /* Make it sit on top of everything */
+    display: flex !important;
   }
 }
+
