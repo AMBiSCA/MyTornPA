@@ -349,6 +349,47 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
 
 @media (max-width: 768px) {
     .membership-options-grid { gap: 15px; }
+
+    /* --- IMPORTANT: Corrected Styles for Collapse/Expand Functionality --- */
+    /* Show the toggle icon only on mobile screens */
+    .collapse-toggle-icon {
+        display: block;
+    }
+
+    /* General style for the collapsible content container */
+    /* Height will now be determined by its visible children */
+    .collapsible-content {
+        overflow: hidden; /* Still needed to hide potential overflow */
+        /* You might want a height transition here if you want a smooth visual shrink/expand for the *entire section* height.
+           If so, add: transition: height 0.3s ease-out; and manage section height in JS/CSS.
+           For now, it's about hiding content within, not shrinking the entire box. */
+    }
+
+    /* --- IMPORTANT: When the main SECTION is collapsed, hide non-essential items --- */
+    /* Quick Stats Section when collapsed */
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent .non-essential-stat {
+        display: none !important; /* Hides specific stat items */
+    }
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent .share-stats-time-container,
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent #quickStatsError,
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent #apiKeyMessage {
+        display: none !important; /* Hides other non-essential blocks */
+    }
+    
+    /* Ensure essential stats are *always* displayed as flex (or whatever their default layout is) */
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent .essential-stat {
+        display: flex !important; /* Forces essential stats to remain visible */
+    }
+
+
+    /* Explore Your Tools Section when collapsed */
+    #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .non-essential-tool-category {
+        display: none !important; /* Hides specific non-popular tool categories */
+    }
+    /* Ensure essential tool categories are *always* displayed as block (or whatever their default layout is) */
+    #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .essential-tool-category {
+        display: block !important; /* Forces essential tools to remain visible */
+    }
 }
 
 @media (max-width: 580px) {
@@ -377,70 +418,4 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     .confirmation-actions { flex-direction: column; gap: 10px; }
     .confirmation-modal { padding: 15px; width: 95%; }
     .btn-confirm-yes, .btn-confirm-no { width: 100%; }
-}
-
-/* --- Corrected Styles for Collapse/Expand Functionality --- */
-
-/* Style for the collapse/expand toggle icon */
-/* This ensures the icon is always positioned correctly within its title */
-.section-title, .tool-category-header {
-    position: relative; /* Essential for absolute positioning of the icon */
-    display: flex; /* Allows content and icon to sit on the same line */
-    justify-content: space-between; /* Pushes the title text left, icon right */
-    align-items: center; /* Vertically centers the icon with the text */
-    padding-right: 25px; /* Provides space so the icon doesn't overlap text */
-}
-
-.collapse-toggle-icon {
-    font-family: sans-serif; /* Use a basic font to ensure Unicode characters render */
-    font-size: 1.2em; /* Adjust size as needed */
-    cursor: pointer;
-    color: #00a8ff; /* Your theme accent color */
-    transition: transform 0.2s ease-in-out; /* Smooth rotation */
-    position: absolute; /* Position relative to the .section-title or .tool-category-header */
-    right: 5px; /* Adjusted: Closer to the right edge of the padding */
-    top: 50%;
-    transform: translateY(-50%); /* Centering vertically */
-    display: none; /* Hidden by default, only shown in mobile media query */
-}
-
-/* --- Mobile Specific Styles for Collapse/Expand --- */
-@media (max-width: 768px) {
-    /* Show the toggle icon only on mobile screens */
-    .collapse-toggle-icon {
-        display: block;
-    }
-
-    /* General style for the collapsible content container (no max-height: 0 here) */
-    .collapsible-content {
-        overflow: hidden; /* Still needed to hide potential overflow from content */
-        transition: all 0.3s ease-out; /* Transition for height/opacity if applied */
-        /* height will now be determined by its visible children */
-    }
-
-    /* --- IMPORTANT: When the main SECTION is collapsed, hide non-essential items --- */
-    /* Quick Stats Section when collapsed */
-    #quickStatsSection.collapsed #quickStatsCollapsibleContent .non-essential-stat {
-        display: none !important; /* Hides specific stat items */
-    }
-    #quickStatsSection.collapsed #quickStatsCollapsibleContent .share-stats-time-container,
-    #quickStatsSection.collapsed #quickStatsCollapsibleContent #quickStatsError,
-    #quickStatsSection.collapsed #quickStatsCollapsibleContent #apiKeyMessage {
-        display: none !important; /* Hides other non-essential blocks */
-    }
-    
-    /* Ensure essential stats are *always* displayed as flex (or whatever their default layout is) */
-    #quickStatsSection.collapsed #quickStatsCollapsibleContent .essential-stat {
-        display: flex !important; /* Forces essential stats to remain visible */
-    }
-
-
-    /* Explore Your Tools Section when collapsed */
-    #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .non-essential-tool-category {
-        display: none !important; /* Hides specific non-popular tool categories */
-    }
-    /* Ensure essential tool categories are *always* displayed as block (or whatever their default layout is) */
-    #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .essential-tool-category {
-        display: block !important; /* Forces essential tools to remain visible */
-    }
 }
