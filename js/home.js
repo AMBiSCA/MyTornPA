@@ -1069,6 +1069,14 @@ if (profile && profile.membershipEndTime) {
     }
 }
 
+ if (membershipOptionsModal && user && !profile?.membershipEndTime || profile?.membershipEndTime < Date.now()) {
+                  membershipOptionsModal.style.display = 'flex'; // Show the modal
+                  setTimeout(() => {
+                    membershipOptionsModal.style.display = 'none'; // Hide after 15 seconds
+                    console.log("Membership prompt hidden after 15 seconds.");
+                  }, 15000);
+                }
+
 
 
 // --- Activate the gatekeeper for member-only links ---
