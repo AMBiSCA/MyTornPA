@@ -1191,7 +1191,7 @@ header {
   }
 
   .login-page-layout-container {
-    margin-top: -150px !important; /* Or whatever value you settle on */
+    margin-top: -100px !important; /* Or whatever value you settle on */
   }
 }
 

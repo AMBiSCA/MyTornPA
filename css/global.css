@@ -1937,10 +1937,7 @@ input:checked + .slider:before {
     }
 
 
-    /* FOOTER Styles for Mobile (Hidden) */
-    footer.footer {
-        display: none !important; /* Hides the footer on mobile */
-    }
+  
     /* Hide the global footer placeholder that might push content down */
     #globalfooterplaceholder {
         display: none !important;
