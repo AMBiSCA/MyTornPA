@@ -348,21 +348,19 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
 }
 
 @media (max-width: 768px) {
+   /* This is the CONTENT that goes INSIDE your ONLY @media (max-width: 768px) block */
     .membership-options-grid { gap: 15px; }
 
-    /* --- IMPORTANT: Corrected Styles for Collapse/Expand Functionality --- */
+    /* --- IMPORTANT: CORRECTED & CONSOLIDATED Collapse/Expand Styles --- */
     /* Show the toggle icon only on mobile screens */
     .collapse-toggle-icon {
-        display: block;
+        display: block !important; /* Added !important to ensure it displays */
     }
 
     /* General style for the collapsible content container */
-    /* Height will now be determined by its visible children */
     .collapsible-content {
         overflow: hidden; /* Still needed to hide potential overflow */
-        /* You might want a height transition here if you want a smooth visual shrink/expand for the *entire section* height.
-           If so, add: transition: height 0.3s ease-out; and manage section height in JS/CSS.
-           For now, it's about hiding content within, not shrinking the entire box. */
+        /* Note: No max-height: 0; here, as section-level class handles visibility */
     }
 
     /* --- IMPORTANT: When the main SECTION is collapsed, hide non-essential items --- */
@@ -390,7 +388,6 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .essential-tool-category {
         display: block !important; /* Forces essential tools to remain visible */
     }
-}
 
 @media (max-width: 580px) {
     .membership-options-grid {
