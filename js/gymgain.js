@@ -854,23 +854,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filename = 'tornpa_gymgain_';
         let contentToCapture = activeTabPane; // Default to capturing the whole pane
+        let headerText = '';
+        let headerStyle = 'text-align: center; margin-bottom: 10px; font-weight: bold; color: #ADD8E6;'; // Light blue for headers
 
         // Determine specific content and filename based on active tab
         if (activeTabPane.id === 'current-gym-stats-tab') {
             filename += 'current_gym_stats.png';
             contentToCapture = activeTabPane.querySelector('.current-stats-personal') || activeTabPane;
+            const now = new Date();
+            headerText = `Stats Current As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
         } else if (activeTabPane.id === 'personal-gym-gains-tab') {
             filename += 'personal_gains_tracking.png';
             contentToCapture = activeTabPane.querySelector('.personal-gains-display') || activeTabPane;
+            // Get the stored start time for gains
+            if (activePersonalTrackingStartedAt) {
+                const startedDate = activePersonalTrackingStartedAt.toDate ? activePersonalTrackingStartedAt.toDate() : activePersonalTrackingStartedAt;
+                headerText = `Gains Since: ${startedDate.toLocaleDateString()} ${startedDate.toLocaleTimeString()}`;
+            } else {
+                headerText = 'Gains Since: N/A (Tracking Not Started)';
+            }
         } else if (activeTabPane.id === 'personal-work-stats-tab') {
             filename += 'work_stats.png';
             contentToCapture = activeTabPane.querySelector('.current-work-stats') || activeTabPane;
+            const now = new Date();
+            headerText = `Work Stats As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`; // New header for Work Stats
         } else if (activeTabPane.id === 'personal-crimes-tab') {
             filename += 'crime_stats.png';
             contentToCapture = activeTabPane.querySelector('.current-crime-stats') || activeTabPane;
+            const now = new Date();
+            headerText = `Crime Stats As Of: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`; // New header for Crime Stats
         } else {
             console.warn('Unknown active tab for screenshot, using generic filename and capturing entire pane.');
             filename += 'tab_content.png';
+            const now = new Date();
+            headerText = `Report Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
         }
 
         // Create a temporary container for rendering the screenshot
@@ -886,15 +903,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Clone the content to be captured to avoid altering the live DOM
         const clonedContent = contentToCapture.cloneNode(true);
+
         // Special handling for gains tab: ensure "No gains data" message is hidden if gains are showing
         if (clonedContent.id === 'personal-gym-gains-tab') {
             const noGainsMsg = clonedContent.querySelector('#noPersonalGainsData');
             const gainItems = clonedContent.querySelectorAll('.personal-gains-display .stat-item:not(.hidden)');
             if (noGainsMsg && gainItems.length > 0) {
-                 noGainsMsg.classList.add('hidden'); // Hide the message if there are active gain items
+                noGainsMsg.classList.add('hidden'); // Hide the message if there are active gain items
             }
         }
         
+        // Add the header with date/time to the cloned content if headerText exists
+        if (headerText) {
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = headerStyle;
+            headerDiv.textContent = headerText;
+            clonedContent.prepend(headerDiv); // Add the header at the very beginning of the cloned content
+        }
+
         // Temporarily hide scrollbars or other unwanted elements in the clone for cleaner screenshot
         clonedContent.style.overflowY = 'hidden';
         clonedContent.style.paddingRight = '0'; // Remove padding for scrollbar
@@ -924,7 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
 
     // --- Tab Switching Logic (Adapted) ---
     function showTab(tabId) {
