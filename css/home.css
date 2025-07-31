@@ -379,16 +379,16 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     .btn-confirm-yes, .btn-confirm-no { width: 100%; }
 }
 
-/* --- New Styles for Collapse/Expand Functionality --- */
+/* --- Corrected Styles for Collapse/Expand Functionality --- */
 
 /* Style for the collapse/expand toggle icon */
 /* This ensures the icon is always positioned correctly within its title */
 .section-title, .tool-category-header {
     position: relative; /* Essential for absolute positioning of the icon */
     display: flex; /* Allows content and icon to sit on the same line */
-    justify-content: space-between; /* Pushes the icon to the right (maintains space-between) */
+    justify-content: space-between; /* Pushes the title text left, icon right */
     align-items: center; /* Vertically centers the icon with the text */
-    padding-right: 25px; /* ADJUSTED: Slightly less padding for the icon to move left */
+    padding-right: 25px; /* Provides space so the icon doesn't overlap text */
 }
 
 .collapse-toggle-icon {
@@ -398,7 +398,7 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     color: #00a8ff; /* Your theme accent color */
     transition: transform 0.2s ease-in-out; /* Smooth rotation */
     position: absolute; /* Position relative to the .section-title or .tool-category-header */
-    right: 5px; /* ADJUSTED: Closer to the right edge of the padding */
+    right: 5px; /* Adjusted: Closer to the right edge of the padding */
     top: 50%;
     transform: translateY(-50%); /* Centering vertically */
     display: none; /* Hidden by default, only shown in mobile media query */
@@ -411,57 +411,36 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
         display: block;
     }
 
-    /* General style for collapsible content areas */
+    /* General style for the collapsible content container (no max-height: 0 here) */
     .collapsible-content {
-        max-height: 1000px; /* Arbitrary large value to allow full content when expanded */
-        overflow: hidden; /* Hides content that exceeds max-height */
-        transition: max-height 0.3s ease-out; /* Smooth transition for collapsing/expanding */
+        overflow: hidden; /* Still needed to hide potential overflow from content */
+        transition: all 0.3s ease-out; /* Transition for height/opacity if applied */
+        /* height will now be determined by its visible children */
     }
 
-    /* State when content is collapsed */
-    .collapsible-content.collapsed {
-        max-height: 0; /* Hides the content completely */
-        /* Ensure there's no visible padding/margin pushing things when collapsed */
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
+    /* --- IMPORTANT: When the main SECTION is collapsed, hide non-essential items --- */
+    /* Quick Stats Section when collapsed */
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent .non-essential-stat {
+        display: none !important; /* Hides specific stat items */
+    }
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent .share-stats-time-container,
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent #quickStatsError,
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent #apiKeyMessage {
+        display: none !important; /* Hides other non-essential blocks */
     }
     
-    /* Rotate the icon when the content is collapsed (points down for expand, up for collapse) */
-    /* This rule no longer applies rotation; JS handles setting the correct char for collapsed/expanded */
-    .collapse-toggle-icon.collapsed {
-        /* No transform property here, as JS sets the correct character */
-        /* For consistency, you might want a slight adjustment if the '▼' and '▲' have different natural vertical alignment */
-        /* For example: transform: translateY(-50%) translateY(1px); for tiny vertical nudge */
+    /* Ensure essential stats are *always* displayed as flex (or whatever their default layout is) */
+    #quickStatsSection.collapsed #quickStatsCollapsibleContent .essential-stat {
+        display: flex !important; /* Forces essential stats to remain visible */
     }
 
-    /* --- Specific Hiding Rules for "Your Quick Stats" when Collapsed --- */
-    /* Only hide non-essential stat items when quickStatsCollapsibleContent is collapsed */
-    #quickStatsCollapsibleContent.collapsed .non-essential-stat {
-        display: none !important; /* Hide elements marked as non-essential */
-    }
-    
-    /* Ensure essential stats remain visible */
-    #quickStatsCollapsibleContent.collapsed .essential-stat {
-        display: flex !important; /* Keep essential stats visible and laid out correctly */
-    }
 
-    /* --- Specific Hiding Rules for "Explore Your Tools" when Collapsed --- */
-    /* Hide non-essential tool categories when exploreToolsCollapsibleContent is collapsed */
-    #exploreToolsCollapsibleContent.collapsed .non-essential-tool-category {
-        display: none !important;
+    /* Explore Your Tools Section when collapsed */
+    #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .non-essential-tool-category {
+        display: none !important; /* Hides specific non-popular tool categories */
     }
-    
-    /* If the inner sections still show unwanted space, you might need to target their direct parent
-       when the main container is collapsed. Adding a rule to hide its direct children if they are not
-       the essential category: */
-    #exploreToolsCollapsibleContent.collapsed > .tool-category-section:not(.essential-tool-category) {
-        display: none !important;
-    }
-
-    /* Ensure essential tool categories remain visible */
-    #exploreToolsCollapsibleContent.collapsed .essential-tool-category {
-        display: block !important; /* Or flex if its internal items need flex */
+    /* Ensure essential tool categories are *always* displayed as block (or whatever their default layout is) */
+    #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .essential-tool-category {
+        display: block !important; /* Forces essential tools to remain visible */
     }
 }
