@@ -214,7 +214,7 @@ function initializeGlobals() {
                 const saveAllianceButton = document.getElementById('saveAlliance');
                 const clearAlliancesButton = document.getElementById('clearAlliances');
                 const allianceInfoIcon = document.getElementById('allianceInfoIcon'); // For hover display
-
+                handleKeyboardVisibility();
 
                 const friendsPanelContent = document.querySelector('#friends-panel .friends-panel-content');
                 const recentlyMetSubTab = document.querySelector('.sub-tab-button[data-subtab="recently-met"]');
@@ -667,6 +667,30 @@ window.displayFactionMembersInChatTab = async function(membersData, targetDispla
             console.log("User logged out. Chat functionalities are reset.");
         }
     });
+	
+	// New function to handle keyboard visibility
+function handleKeyboardVisibility() {
+    const chatWindow = document.getElementById('chat-window');
+    // Select all possible chat inputs, including for the main chat and private chats
+    const chatInputs = document.querySelectorAll('.chat-text-input, .pcw-input');
+
+    if (!chatWindow || chatInputs.length === 0) {
+        console.log('Chat window or inputs not found for keyboard handler.');
+        return;
+    }
+
+    chatInputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            // Add a class to the chat window when an input is focused (keyboard opens)
+            chatWindow.classList.add('keyboard-visible');
+        });
+
+        input.addEventListener('blur', () => {
+            // Remove the class when the input loses focus (keyboard closes)
+            chatWindow.classList.remove('keyboard-visible');
+        });
+    });
+}
 
 async function fetchAndSetWarChatContext() {
     const warChatTitle = document.getElementById('war-chat-title');
