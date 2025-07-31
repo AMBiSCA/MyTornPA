@@ -382,7 +382,6 @@ cursor: not-allowed;
 
 /* === Trial & Membership Countdown Timer Box === */
 .trial-countdown-container {
-  display: none; /* Hidden by default, JS will show it */
   margin-top: 0px;
   margin-left: 40px;
   padding: 8px 12px;
@@ -558,14 +557,12 @@ cursor: not-allowed;
 }
 
 
-/* === Trial & Membership Countdown Timer Box (Original, desktop position) === */
-/* These are the styles for the banner when it's in its default header location */
+/* === Trial & Membership Countdown Banner Styles === */
+/* This section styles the banner itself, applicable regardless of its parent */
 #trialCountdownContainer {
-    /* Your original styles for the banner as you had them before */
-    /* This ensures it looks correct in the header on desktop */
-    display: block; /* Ensure it's shown by default */
-    margin-top: 0px; /* Adjust as needed for its header position */
-    margin-left: 40px; /* Adjust as needed for its header position */
+    /* Base styles for the banner content */
+    margin-top: 0px; /* Adjust as needed for its header position on desktop */
+    margin-left: 40px; /* Adjust as needed for its header position on desktop */
     padding: 8px 12px;
     background-color: #1e2022;
     border: 1px solid #00a8ff;
@@ -576,35 +573,34 @@ cursor: not-allowed;
     text-align: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     white-space: nowrap;
-    /* Crucial for desktop: ensure it's not hidden by display:none from JS logic */
-    /* This will be managed by JS, but if there's any lingering global CSS overriding it, this helps */
+    /* By default, it should be block. JavaScript will set display:none for 5-sec hide. */
+    display: block; 
     visibility: visible;
     opacity: 1;
 }
 
 /* === Mobile Insertion Point Styling === */
-/* This is the new div that acts as a container for the banner on mobile */
+/* This is the new div that acts as a container for the banner on mobile. */
+/* It is hidden by default on desktop. */
 #mobileBannerInsertionPoint {
-    display: none; /* Hidden by default on desktop */
-    /* Add mobile-specific styling for the *container* here */
+    display: none; 
     text-align: center;
     padding: 8px 10px;
-    background-color: #3f3f3f; /* Darker background for the marked area */
-    color: orange; /* Keep text color consistent */
+    background-color: #3f3f3f; 
+    color: orange; 
     font-weight: bold;
     font-size: 0.9em;
     border-radius: 5px;
     margin-top: 10px;
     margin-bottom: 15px;
-    width: calc(100% - 20px); /* Adjust width to fit the container, accounting for padding/margin */
-    max-width: 400px; /* Prevent it from getting too wide on slightly larger mobile devices */
-    margin-left: auto; /* Center it horizontally */
-    margin-right: auto; /* Center it horizontally */
+    width: calc(100% - 20px);
+    max-width: 400px; 
+    margin-left: auto; 
+    margin-right: auto; 
 }
 
 /* === Media Query for Mobile-Specific Behavior === */
-@media (max-width: 768px) { /* Adjust 768px to your desired breakpoint */
-    
+@media (max-width: 768px) {
     /* On mobile, HIDE the original banner in the header */
     #trialCountdownContainer {
         display: none !important; /* Force hide the original element in its header location */
@@ -619,9 +615,7 @@ cursor: not-allowed;
 
     /* Adjust the header layout if the banner created space */
     header .header-left {
-        /* If .header-left needs specific adjustments after banner is removed, add them here */
-        /* For example, if it had padding-right to accommodate the banner: */
-        /* padding-right: 0; */
+        /* Add any specific adjustments here if needed */
     }
 }
 

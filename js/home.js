@@ -1443,7 +1443,11 @@ if (confirmFreeTrialYesBtn && freeTrialConfirmationModal) {
     });
 	
 	
-  
+// IMPORTANT: Call the banner management function on initial load
+manageBannerParentOnResize();
 
-    console.log("home.js: All initial event listeners and setup attempts complete.");
+// Also call it on window resize events for responsive behavior
+window.addEventListener('resize', manageBannerParentOnResize);
+
+console.log("home.js: All initial event listeners and setup attempts complete.");
 }); // End of DOMContentLoaded
