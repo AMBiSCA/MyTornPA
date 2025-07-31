@@ -4,10 +4,10 @@
     <title>MyTornPA - Target Finder</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
+
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/fairfight.css"> 
-    
+    <link rel="stylesheet" href="../css/fairfight.css">
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -26,14 +26,15 @@
 
         <div class="peeper-tool-container">
             <h2 class="script-title">Personal Target Finder</h2>
-            
+
             <div id="fairFightApiKeyError" class="error-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;"></div>
-            
+
             <div class="target-finder-container">
                 <p>Find personalized targets from the database based on your battle stats to maximize respect gain.</p>
                 <button id="fetchTargetsBtn" class="fetch-btn">Fetch My Targets</button>
-                <div id="myTargetsResults" class="results-inline-status"></div> </div>
-            
+                <div id="myTargetsResults" class="results-inline-status"></div>
+            </div>
+
             <div class="note">
                 <p>Please Note: Target suggestions are based on the data you have gathered with the admin tool. Keep your data fresh for the best results.</p>
             </div>
@@ -61,14 +62,14 @@
         </div>
     </div>
 
-     <div id="globalfooterplaceholder"></div>
+    <div id="globalfooterplaceholder"></div>
 
     <div id="chat-system-placeholder"></div>
 
     <script src="../js/firebase-init.js"></script>
     <script src="../js/globalheader.js"></script>
-    <script src="../js/fairfight.js"></script> 
-	<script src="../js/globalfooter.js"></script>
+    <script src="../js/global.js"></script> <script src="../js/fairfight.js"></script>
+    <script src="../js/globalfooter.js"></script>
 
 </body>
 </html>
