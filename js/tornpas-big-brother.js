@@ -867,7 +867,7 @@ function downloadCurrentTabAsImage() {
     tempTable.appendChild(tempTbody);
     tempContainer.appendChild(tempTable); // Append the table after the title
 
-    document.body.appendChild(tempContainer); // Add to DOM to be rendered for html2canvas
+    document.body.appendChild(tempContainer); // Add too be rendered for html2canvas
 
     console.log("Temporary render container appended to body (with colors):", tempContainer.outerHTML); // Debugging
 

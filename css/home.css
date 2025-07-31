@@ -388,6 +388,20 @@ input[type="checkbox"]#togglePersonalStatsCheckbox { accent-color:#00a8ff; flex-
     #exploreToolsSection.collapsed #exploreToolsCollapsibleContent .essential-tool-category {
         display: block !important; /* Forces essential tools to remain visible */
     }
+	
+	@media (max-width: 768px) {
+    /* Adjust the top margin of the main content wrapper on the homepage only */
+    .homepage-content-wrapper {
+        margin-top: -10px !important; /* Move content UP by 10px to reduce the gap */
+    }
+
+    /* You can also adjust the welcome-block-area's internal padding if needed for minor fine-tuning */
+    .welcome-block-area {
+        padding-top: 8px !important; /* Slightly reduce top padding inside the welcome block */
+        padding-bottom: 8px !important; /* Slightl padding inside the welcome block */
+    }
+}
+	
 
 @media (max-width: 580px) {
     .membership-options-grid {
