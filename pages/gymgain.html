@@ -77,7 +77,7 @@
         </div>
         <div class="gym-sidebar-right styled-container">
             <div id="statProgressionContainer" class="stat-progression-box styled-container">
-                <h3 class="underlined-heading">📈 Your Progression. 📈</h3>
+                <h3 class="underlined-heading">📈 Your Stats & Progression. 📈</h3>
                 
                 <button id="downloadPersonalTabBtn" class="download-button" style="position: absolute; top: 10px; right: 10px; z-index: 10;">Download Current Tab</button>
 
@@ -105,25 +105,16 @@
                         <div class="gains-tracking-controls" style="text-align: center; margin-top: 15px;">
                             <button id="startPersonalTrackingBtn" class="action-btn-bb">Start Tracking Gains</button>
                             <button id="stopPersonalTrackingBtn" class="action-btn-bb hidden">Stop Tracking</button>
-                            <div id="personalTrackingStatus">Not currently tracking.</div>
-                            <span id="personalGainsStartedAt"></span>
+                            <div id="personalTrackingStatus" style="margin-top: 10px;">Not currently tracking.</div>
+                            <span id="personalGainsStartedAt" style="font-size: 0.85em; color: #bbb;"></span>
                         </div>
-                        <div class="gains-table-container table-container" style="margin-top: 15px;">
+                        <div class="personal-gains-display" style="margin-top: 15px;">
                             <p id="noPersonalGainsData" style="text-align: center;">No gains data available. Click "Start Tracking Gains" to begin a new session.</p>
-                            <table class="gains-overview-table" id="personal-gains-overview-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Strength Gain</th>
-                                        <th>Dexterity Gain</th>
-                                        <th>Speed Gain</th>
-                                        <th>Defense Gain</th>
-                                        <th>Total Gain</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="personal-gains-overview-tbody">
-                                    </tbody>
-                            </table>
+                            <div class="stat-item hidden" id="personalGainStrItem"><strong>Strength Gain💪:</strong> <span id="personalGainStr">--</span></div>
+                            <div class="stat-item hidden" id="personalGainDefItem"><strong>Defense Gain🛡️:</strong> <span id="personalGainDef">--</span></div>
+                            <div class="stat-item hidden" id="personalGainSpdItem"><strong>Speed Gain⚡:</strong> <span id="personalGainSpd">--</span></div>
+                            <div class="stat-item hidden" id="personalGainDexItem"><strong>Dexterity Gain🎯:</strong> <span id="personalGainDex">--</span></div>
+                            <div class="stat-item hidden" id="personalGainTotalItem"><strong>Total Gain:</strong> <span id="personalGainTotal">--</span></div>
                         </div>
                     </div>
 
@@ -147,7 +138,7 @@
 
                 </div>
             </div>
-            </div>
+        </div>
     </div>
 
 
