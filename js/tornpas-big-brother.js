@@ -838,30 +838,24 @@ function downloadCurrentTabAsImage() {
             const originalCell = originalCells[index];
             if (originalCell) {
                 const clonedCell = originalCell.cloneNode(true);
+                
+                // --- NEW CODE HERE: Capture and apply computed background color ---
+                const computedStyle = window.getComputedStyle(originalCell);
+                clonedCell.style.backgroundColor = computedStyle.backgroundColor;
+                // --- END NEW CODE ---
+
                 // Apply a basic style to cloned cells for consistency
                 clonedCell.style.padding = '8px';
                 clonedCell.style.border = '1px solid #444';
-                clonedCell.style.color = '#fff'; // Default text color
-                
-                // Keep original background colors, but apply fallback if needed
-                if (!clonedCell.style.backgroundColor) {
-                    clonedCell.style.backgroundColor = '#2a2a2a'; // Default row background
-                }
-
-                // Check for specific classes that might have color-coding
-                if (clonedCell.classList.contains('stat-tier-1')) clonedCell.style.color = '#E0BBE4';
-                else if (clonedCell.classList.contains('stat-tier-2')) clonedCell.style.color = '#957DAD';
-                else if (clonedCell.classList.contains('stat-tier-3')) clonedCell.style.color = '#D291BC';
-                else if (clonedCell.classList.contains('stat-tier-4')) clonedCell.style.color = '#FFC300';
-                else if (clonedCell.classList.contains('stat-tier-5')) clonedCell.style.color = '#FF5733';
-                else if (clonedCell.classList.contains('stat-tier-6')) clonedCell.style.color = '#C70039';
-                else if (clonedCell.classList.contains('stat-tier-7')) clonedCell.style.color = '#900C3F';
-                else if (clonedCell.classList.contains('stat-tier-8')) clonedCell.style.color = '#581845';
-                else if (clonedCell.classList.contains('stat-tier-9')) clonedCell.style.color = '#1E8449'; // Using a darker green
-                
+                // Keep existing text color logic if it's explicitly applied for gains
                 if (clonedCell.classList.contains('gain-positive')) clonedCell.style.color = '#00FF00'; // Bright Green for positive gains
-                if (clonedCell.classList.contains('gain-negative')) clonedCell.style.color = '#FF0000'; // Red for negative gains
-                if (clonedCell.classList.contains('gain-neutral')) clonedCell.style.color = '#999999'; // Grey for neutral gains
+                else if (clonedCell.classList.contains('gain-negative')) clonedCell.style.color = '#FF0000'; // Red for negative gains
+                else if (clonedCell.classList.contains('gain-neutral')) clonedCell.style.color = '#999999'; // Grey for neutral gains
+                else {
+                    // Fallback for other text colors if not explicitly set by gain classes
+                    clonedCell.style.color = '#fff'; 
+                }
+                
 
                 tempRow.appendChild(clonedCell);
             }
@@ -875,14 +869,13 @@ function downloadCurrentTabAsImage() {
 
     document.body.appendChild(tempContainer); // Add to DOM to be rendered for html2canvas
 
-    console.log("Temporary render container appended to body:", tempContainer.outerHTML); // Debug: Log the full container
+    console.log("Temporary render container appended to body (with colors):", tempContainer.outerHTML); // Debugging
 
     html2canvas(tempContainer, {
         scale: 2, // Increase scale for higher resolution image
         useCORS: true, // Needed if your images/fonts are from different origins
-        logging: true, // Enable verbose logging for debugging
+        logging: true, // Keep verbose logging for debugging
         backgroundColor: null, // Let the tempContainer's background handle it
-        // Explicitly set width to match the desired output width
         width: tempContainer.offsetWidth,
         height: tempContainer.offsetHeight
     }).then(canvas => {
