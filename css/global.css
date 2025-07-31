@@ -1869,7 +1869,7 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 480px) {
-  /* Mobile specdjustments within the media queries */
+  /* Mobile spedjustments within the media queries */
 }
 
 @media only screen and (max-width: 991px) {
@@ -1884,3 +1884,54 @@ input:checked + .slider:before {
   }
 }
 
+/* global.css - Add this block at the end or in a suitable responsive section */
+
+/* Mobile-specific styles for header buttons */
+@media (max-width: 768px) { /* Adjust this breakpoint if your mobile view starts at a different width */
+
+    /* Hide the text part of all header buttons */
+    header .btn-text {
+        display: none;
+    }
+
+    /* Make buttons more compact */
+    header .header-btn {
+        padding: 5px 8px; /* Reduced padding for compact size */
+        min-width: unset; /* Allow buttons to shrink based on content */
+        width: auto; /* Let content dictate width */
+        justify-content: center; /* Center content (emoji) */
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    /* Style for buttons that should only show their single emoji (e.g., Profile, Logout) */
+    #headerEditProfileBtn .btn-icon,
+    #logoutButtonHeader .btn-icon {
+        font-size: 1.6em; /* Make icon a bit larger since it's now the only content */
+        line-height: 1; /* Better vertical alignment */
+        display: block; /* Ensure it behaves as a block for correct centering */
+        margin: auto; /* Center the emoji if there's extra space */
+    }
+
+    /* Specific styling for dropdown buttons to only show the dropdown arrow */
+    /* This applies to Useful Links and Contact buttons */
+    #usefulLinksBtn .btn-icon,
+    #headerContactUsBtn .btn-icon {
+        font-size: 0; /* Hide all original content of the span (e.g., "🔗 🔽 " or "💬 🔽 ") */
+        position: relative; /* Needed for absolute positioning of ::after */
+        width: 1em; /* Give it a small explicit width if needed for consistent spacing */
+        height: 1em; /* Give it a small explicit height if needed */
+        display: block; /* Ensure it behaves as a block for positioning */
+        margin: auto; /* Center the icon space */
+    }
+
+    /* Add the dropdown arrow emoji using a pseudo-element */
+    #usefulLinksBtn .btn-icon::after,
+    #headerContactUsBtn .btn-icon::after {
+        content: '🔽'; /* The dropdown arrow emoji */
+        font-size: 1.6em; /* Make it visible and sized */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); /* Center the emoji precisely */
+    }
+}
