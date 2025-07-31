@@ -49,7 +49,7 @@
 
   #tornCityHomepageLink,
   #signUpButtonHeader {
-    display: none;
+    display: none !important;
   }
 }
 
