@@ -5,7 +5,7 @@ html, body {
     height: 100%; /* CHANGED: Use 100% instead of 100vh for more flexible height */
     margin: 0;
     padding: 0;
-    overflow-x: hidden; /* Prevt horizoal scrollbar from overflow */
+    overflow-x: hidden; /* Prevent horizontal scrollbar from overflow */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #eee; /* Default text color for the whole site */
 }
@@ -16,13 +16,13 @@ body {
     box-sizing: border-box;
     position: relative;
     z-index: 0;
-    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradiebackground */
-    padding-top: 70px; /* Space for fixed header */
-    padding-bottom: 70px; /* Se for fixedor */
-    min-height: 100vh; /* Ensure bodakes full viewport height */
+    background: linear-gradient(135deg, #2b2b2b 0%, #444 50%, #2b2b2b 100%); /* Gradient background */
+    padding-top: 70px; /* Space for fixed header on desktop */
+    padding-bottom: 70px; /* Space for fixed footer on desktop */
+    min-height: 100vh; /* Ensure body takes full viewport height */
 
-    /* --- IMPORTANT FIX: Allow overall page scrolling --- */
-    overflow-y: auto; /* CHANGED: Allow vertical scrollbar to appear for the whole page */
+    /* IMPORTANT: Allow overall page scrolling for desktop */
+    overflow-y: auto;
 }
 
 /* Overall page background image with grayscale filter */
@@ -42,8 +42,8 @@ body::before {
     z-index: -1;
 }
 
-/* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) */
-/* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY */
+/* Custom Scrollbars (for Webkit browsers: Chrome, Safari, Edge, Opera) - Desktop */
+/* THESE RULES ARE FOR CUSTOM STYLING OF SCROLLBARS ON ELEMENTS OTHER THAN BODY ON DESKTOP */
 ::-webkit-scrollbar {
     width: 10px; height: 10px;
 }
@@ -171,7 +171,6 @@ header {
 .btn-header {
     margin: 0 4px; /* Adjust margin for header context */
     box-shadow: none; /* No shadow by default for header buttons */
-    /* Height and padding from .btn base are usually sufficient */
 }
 .header-text-link { /* For text-based links in header */
     font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap; text-decoration: none;
@@ -399,7 +398,7 @@ ul li:last-child { border-bottom: none; }
 .confirmation-actions {
     display: flex;
     justify-content: center; /* Centers the buttons horizontally */
-    gap: 20px;               /* Adds some space between the buttons */
+    gap: 20px;                /* Adds some space between the buttons */
 }
 
 .btn-confirm-yes {
@@ -492,7 +491,7 @@ ul li:last-child { border-bottom: none; }
 #chat-window {
     /* --- Positioning --- */
     position: fixed;
-    right: 5px;     /* Aligns horizontally with the icon bar */
+    right: 5px;      /* Aligns horizontally with the icon bar */
     bottom: 73px;    /* This is the key: Lifts it above the icon bar */
     z-index: 1000;
 
@@ -985,8 +984,8 @@ ul li:last-child { border-bottom: none; }
     display: flex;
     flex-direction: column;
     /* You mentioned "half screen" - for now, they'll expand to fill available space.
-        If you want strict half-screen, we'd need more complex flex-basis or grid,
-        but this column layout makes more sense for varying notification counts. */
+       If you want strict half-screen, we'd need more complex flex-basis or grid,
+       but this column layout makes more sense for varying notification counts. */
 }
 
 .notification-section h4 {
@@ -1092,7 +1091,7 @@ ul li:last-child { border-bottom: none; }
 .setting-item label {
     margin-left: 10px;
     cursor: pointer;
-    color: #e0e1dd;
+    color: #e0e0e0;
 }
 
 .setting-item p.setting-note {
@@ -1254,7 +1253,7 @@ input:checked + .slider:before {
     position: fixed;
     bottom: 10px;
     /* Main chat is 350px wide + at 10px from edge. 350 + 10 + 10 space = 370px */
-    right: 370px; 
+    right: 370px;
     width: 300px;
     height: 400px;
     z-index: 999; /* Below the main chat window but above other content */
@@ -1420,7 +1419,7 @@ input:checked + .slider:before {
 
     /* --- FIXES FOR OVERFLOW --- */
     box-sizing: border-box; /* Crucial: Include padding and border in the element's total width */
-    min-width: 0;          /* Allow the flex item to shrink below its content size */
+    min-width: 0;           /* Allow the flex item to shrink below its content size */
 }
 
 /* Ensure the parent setting-item correctly distributes space */
@@ -1593,7 +1592,7 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-.overview-table th, 
+.overview-table th,
 .overview-table td {
     border-bottom: 1px solid #2c3e50;
     border-right: 1px solid #2c3e50;
@@ -1612,7 +1611,7 @@ input:checked + .slider:before {
 }
 
 .overview-table .overview-name { text-align: left; }
-.overview-table .overview-status { 
+.overview-table .overview-status {
     white-space: normal; /* Allow the status column to wrap text */
     word-break: break-word;
 }
@@ -1652,23 +1651,6 @@ input:checked + .slider:before {
 #faction-overview-content::-webkit-scrollbar-thumb:hover {
     background-color: #5bc0de;
 }
-
-@media (max-width: 768px) {
-
-  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
-  html, body {
-    height: auto;
-    overflow-y: auto;       /* Enables page scrolling */
-    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
-    scrollbar-width: none;      /* Hides scrollbar on Firefox */
-  }
-
-  body::-webkit-scrollbar {
-    display: none;              /* Hides scrollbar on Chrome/Safari */
-  }
-  /* --- END OF ADDED CODE --- */
-
-
 
 /* --- Custom Confirmation Box CSS --- */
 .custom-confirm-overlay {
@@ -1800,7 +1782,7 @@ input:checked + .slider:before {
 /* Style for the labels to make them look like buttons */
 #settings-panel .radio-group label {
     background-color: #2a3b4d; /* Darker, unselected blue */
-    color: #cdd3d8;           /* Light text for unselected state */
+    color: #cdd3d8;            /* Light text for unselected state */
     padding: 8px 12px;
     border-radius: 5px;
     cursor: pointer;
@@ -1820,699 +1802,16 @@ input:checked + .slider:before {
     display: none;
 }
 
-/* global.css - Consolidated Global Styles (Corrected & Cleaned) */
-
-/* ... (All your CSS rules above the media queries remain the same) ... */
-
-/* Your existing media query for general mobile styles */
-@media (max-width: 768px) {
-    /* --- IMPORTANT: General Mobile Layout Adjustments (ensure no unwanted padding/margins) --- */
-    html, body {
-        height: auto;
-        overflow-y: auto;
-        -ms-overflow-style: none; /* Hides scrollbar on IE/Edge */
-        scrollbar-width: none;    /* Hides scrollbar on Firefox */
-        padding-left: 0 !important; /* Force no left padding */
-        padding-right: 0 !important;/* Force no right padding */
-        margin-left: 0 !important;  /* Force no left margin */
-        margin-right: 0 !important; /* Force no right margin */
-    }
-
-    body::-webkit-scrollbar {
-        display: none; /* Hides scrollbar on Chrome/Safari */
-    }
-
-    /* Your other general mobile styles */
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; display: none; }
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-
-    #chat-bar-collapsed {
-        position: fixed !important;
-        bottom: 0px !important;
-        left: 0px !important;
-        right: 0px !important;
-        width: 100% !important;
-        
-        z-index: 1001 !important;
-
-        display: flex !important;
-        flex-direction: row !important;
-        /* --- THIS IS THE ONLY LINE YOU NEED TO CHANGE --- */
-        justify-content: center !important; /* CENTERS THE ICONS NOW */
-        /* --- END OF CHANGE --- */
-        align-items: center !important;
-        gap: 5px !important;
-
-        padding: 8px 10px !important;
-        background-color: #0d1b2a !important;
-        border: 1px solid #415a77 !important;
-        border-radius: 0 !important;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
-        cursor: pointer !important;
-        margin: 0 !important;
-	    margin-left: -10px !important; /* Adjust this value (e.g., -5px, -15px) to fine-tune the left push */
-    }
-
-    /* ... rest of your mobile styles ... */
-}
-
-  .homepage-content-wrapper {
-        margin-top: 5px !important;
-        padding-top: 5px !important;
-    }
-    .welcome-block-area {
-        margin-top: 5px !important;
-    }
-
-/* All other @media (max-width: 480px) and @media (max-width: 991px) blocks
-   and the Custom Overrides for Mobile Header Buttons should remain as they are,
-   typically placed after this main 768px media query. */
-  /* Your existing global mobile styles */
-  body { padding-top: 0; padding-bottom: 0; }
-  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
- 
-  .header-left h1 { font-size: 1.4rem; }
-  .tagline { font-size: 0.7rem; }
-  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
-
-@media (max-width: 480px) {
-  /* Mobile specific adjustments within the media queries */
-}
-
-@media (max-width: 768px) {
-
-  /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
-  html, body {
-    height: auto;
-    overflow-y: auto;          /* Enables page scrolling */
-    -ms-overflow-style: none;   /* Hides scrollbar on IE/Edge */
-    scrollbar-width: none;      /* Hides scrollbar on Firefox */
-  }
-
-  body::-webkit-scrollbar {
-    display: none;              /* Hides scrollbar on Chrome/Safari */
-  }
-  /* --- END OF ADDED CODE --- */
-
-
-  /* Your existing global mobile styles */
-  body { padding-top: 0; padding-bottom: 0; }
-  header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-  .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-  #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-  .header-left h1 { font-size: 1.4rem; }
-  .tagline { font-size: 0.7rem; }
-  .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-  main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-  footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-  footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
-
-@media (max-width: 480px) {
-  /* Mobile specific adjustments within the media queries */
-}
-
-@media only screen and (max-width: 991px) {
-  #globalfooterplaceholder {
-    display: none;
-  }
-}
-
-@media only screen and (max-width: 991px) {
-  .footer {
-    display: none !important; /* Added !important */
-  }
-}
-
-
-/* Custom Overrides for Mobile Header Buttons - Place at the very END of global.css */
-@media (max-width: 768px) {
-
-    /* Ensure the Useful Links button is displayed and compact on mobile */
-    #usefulLinksBtn,
-    #headerContactUsBtn,
-    #headerEditProfileBtn,
-    #logoutButtonHeader {
-        display: inline-flex !important; /* Force display for all header buttons */
-        padding: 5px 8px !important;    /* Force compact padding */
-        min-width: unset !important;    /* Allow shrinking */
-        width: auto !important;         /* Let content define width */
-        justify-content: center !important; /* Center content */
-        overflow: hidden !important;    /* Hide overflows */
-    }
-
-    /* Hide the text part for all header buttons (redundant if already hidden, but safe override) */
-    header .btn-text {
-        display: none !important;
-    }
-
-    /* Style for Profile and Logout icons */
-    #headerEditProfileBtn .btn-icon,
-    #logoutButtonHeader .btn-icon {
-        font-size: 1.6em !important; /* Larger icon */
-        line-height: 1 !important;   /* Better alignment */
-        display: block !important;   /* Force block for centering */
-        margin: auto !important;     /* Center icon */
-        content: none !important;    /* Clear any pseudo-content */
-    }
-
-//* CONSOLIDATED MOBILE MEDIA QUERIES - REPLACE ALL OTHER @media (max-width: 768px) BLOCKS WITH THIS ONE */
-@media (max-width: 768px) {
-    /* HTML & Body adjustments for mobile scrolling */
-    html, body {
-        height: auto;
-        overflow-y: auto;
-        -ms-overflow-style: none; /* Hides scrollbar on IE/Edge */
-        scrollbar-width: none;   /* Hides scrollbar on Firefox */
-    }
-    body::-webkit-scrollbar {
-        display: none; /* Hides scrollbar on Chrome/Safari */
-    }
-
-    /* Header adjustments for mobile */
-    body { padding-top: 90px !important; padding-bottom: 0; }
-   
-   header {
-        position: fixed !important; /* Forces header to stay fixed at the top */
-        top: 0 !important;         /* Aligns it to the top edge */
-        left: 0 !important;        /* Aligns it to the left edge */
-        width: 100% !important;    /* Ensures it spans full width */
-        z-index: 102 !important;   /* Keeps it on top of other content */
-        height: auto;
-        min-height: 70px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        border-bottom: 3px solid #00a8ff;
-    }
-    .header-left, .header-center, .header-right-controls {
-        flex-basis: auto;
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 5px;
-    }
-    #headerMainLogo {
-        max-height: 50px;
-        margin-top: 0;
-        display: none; /* Hides header logo on mobile */
-    }
-
-    /* Welcome Container Gap Adjustment */
-    .homepage-content-wrapper {
-        margin-top: 0px !important; /* Remove or reduce top margin of the main content wrapper */
-        padding-top: 0px !important; /* Ensure no unwanted padding pushes it down */
-    }
-    .welcome-block-area {
-        margin-top: 0px !important; /* Remove or reduce top margin of the welcome block itself */
-    }
-
-    /* Ensure all header buttons are visible and compact */
-    #usefulLinksBtn,
-    #headerContactUsBtn,
-    #headerEditProfileBtn,
-    #logoutButtonHeader {
-        display: inline-flex !important; /* Force display for all header buttons */
-        padding: 5px 8px !important;    /* Force compact padding */
-        min-width: unset !important;    /* Allow shrinking */
-        width: auto !important;         /* Let content define width */
-        justify-content: center !important; /* Center content */
-        overflow: hidden !important;    /* Hide overflows */
-    }
-
-    /* Hide the text part of all header buttons definitively */
-    header .btn-text {
-        display: none !important;
-    }
-
-    /* Style for Profile and Logout icons (single emoji buttons) */
-    #headerEditProfileBtn .btn-icon,
-    #logoutButtonHeader .btn-icon {
-        font-size: 1.6em !important; /* Larger icon */
-        line-height: 1 !important;   /* Better vertical alignment */
-        display: block !important;   /* Ensure block behavior for margin:auto centering */
-        margin: auto !important;     /* Center icon */
-        content: none !important;    /* Clear any accidental ::before/::after content */
-    }
-
-    /* Style for Useful Links & Contact buttons - display original icon + original dropdown arrow */
-    /* This section expects original HTML like: <span class="btn-icon">🔗 🔽 </span> */
-    #usefulLinksBtn .btn-icon,
-    #headerContactUsBtn .btn-icon {
-        font-size: 1.6em !important;    /* Force original icon size (🔗, 💬, and original 🔽) */
-        display: flex !important;       /* Use flexbox to align original content */
-        align-items: center !important; /* Vertically align content */
-        justify-content: center !important; /* Horizontally center content */
-        position: relative !important;  /* Keep relative for self-contained content */
-        margin: auto !important;        /* Center the overall icon span */
-        
-        /* Ensure no hiding/clipping/transform from prior failed attempts to rebuild icon */
-        line-height: 1 !important;
-        vertical-align: middle !important;
-        text-indent: 0 !important;
-        color: inherit !important;
-        background: none !important;
-        border: none !important;
-        outline: none !important;
-        text-shadow: none !important;
-        overflow: visible !important; /* Ensure content is not clipped */
-        
-        /* Importantly, NO ::before or ::after content rules here, as the original HTML has the content */
-    }
-
-    /* Main content and footer adjustments for mobile */
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer {
-        position: static;
-        height: auto;
-        min-height: 70px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        display: flex !important; /* Ensure footer displays */
-    }
-    footer.footer .footer-links {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px 10px;
-        margin-bottom: 8px;
-    }
-
-    /* Other mobile specific adjustments */
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { /* Re-included here for general padding/font-size if needed as a base */
-        padding: 6px 10px;
-        font-size: 0.85rem;
-        height: auto;
-    }
-}
-/* mysite/css/global.css - Consolidated Global Styles (Corrected & Cleaned) */
-
-/* ... (All your CSS rules above the media queries remain the same) ... */
-
-/* Your existing media query for general mobile styles */
-@media (max-width: 768px) {
-    /* --- IMPORTANT: General Mobile Layout Adjustments (ensure no unwanted padding/margins) --- */
-    html, body {
-        height: auto;
-        overflow-y: auto;
-        -ms-overflow-style: none; /* Hides scrollbar on IE/Edge */
-        scrollbar-width: none;    /* Hides scrollbar on Firefox */
-        padding-left: 0 !important; /* Force no left padding */
-        padding-right: 0 !important;/* Force no right padding */
-        margin-left: 0 !important;  /* Force no left margin */
-        margin-right: 0 !important; /* Force no right margin */
-    }
-
-    body::-webkit-scrollbar {
-        display: none; /* Hides scrollbar on Chrome/Safari */
-    }
-
-    /* Your other general mobile styles */
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; display: none; }
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-
-    #chat-bar-collapsed {
-        position: fixed !important;
-        bottom: 0px !important;
-        left: 0px !important;
-        right: 0px !important;
-        width: 100% !important;
-
-        z-index: 1001 !important;
-
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: center !important; /* CENTERS THE ICONS NOW */
-        align-items: center !important;
-        gap: 5px !important;
-
-        padding: 8px 10px !important;
-        background-color: #0d1b2a !important;
-        border: 1px solid #415a77 !important;
-        border-radius: 0 !important;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
-        cursor: pointer !important;
-        margin: 0 !important;
-        margin-left: -10px !important; /* Adjust this value (e.g., -5px, -15px) to fine-tune the left push */
-    }
-
-    /* --- BEGIN CHAT SYSTEM MOBILE ADJUSTMENTS --- */
-
-    #chat-window {
-        /* Adjust positioning to be fully visible above the collapsed bar */
-        bottom: 73px !important; /* Already there, keep this */
-        left: 0 !important;       /* Align to left edge of screen */
-        right: 0 !important;      /* Align to right edge of screen */
-        width: 100% !important;   /* Take full width */
-        max-width: unset !important; /* Remove any max-width constraints */
-        height: calc(100vh - 73px) !important; /* Fill remaining height, accounting for collapsed bar */
-        border-radius: 0 !important; /* No border-radius for full screen */
-    }
-
-    /* Main container for the tab buttons */
-    .chat-main-tabs-container {
-        display: flex !important; /* Ensure it's displayed */
-        flex-wrap: wrap;         /* ALLOW TABS TO WRAP TO THE NEXT LINE */
-        justify-content: center; /* Center tabs when they wrap */
-        padding: 5px !important; /* Slightly more padding for touch targets */
-        gap: 5px !important;     /* Increase gap slightly for better spacing */
-    }
-
-    #dynamic-tabs-container,
-    #static-tabs-container {
-        flex-wrap: wrap;         /* Ensure these also wrap their content */
-        justify-content: center; /* Center content within these containers */
-        gap: 5px !important;     /* Consistent gap */
-        flex-grow: 1;            /* Allow them to grow and take space */
-    }
-
-    .chat-tab {
-        padding: 8px 10px !important; /* Slightly reduced horizontal padding */
-        font-size: 14px !important;   /* Slightly smaller font for compactness */
-        flex-shrink: 0;               /* Prevent tabs from shrinking too much */
-        flex-basis: auto;             /* Let content define width, but allow shrinking */
-        white-space: nowrap;          /* Keep tab text on one line if possible */
-    }
-
-    /* If you have a specific icon or text within the tab that prevents wrapping, you might need to adjust it here */
-    .chat-tab .material-icons, .chat-tab .fa { /* Assuming you use Material Icons or FontAwesome */
-        font-size: 18px !important; /* Keep icons readable */
-    }
-
-    /* Ensure specific panels take full height */
-    #faction-chat-panel,
-    #alliance-chat-panel,
-    #war-chat-panel,
-    #friends-panel,
-    #notifications-panel,
-    #settings-panel {
-        height: 100% !important; /* Make sure these panels fill the height of the chat window */
-    }
-
-    /* Adjust chat input area for mobile */
-    .chat-input-area {
-        padding: 8px !important; /* Reduced padding */
-    }
-
-    .chat-text-input {
-        padding: 8px !important; /* More comfortable padding for typing */
-        font-size: 1em !important; /* Standard font size */
-    }
-
-    .chat-send-btn {
-        padding: 8px 12px !important; /* Larger touch target */
-    }
-
-    /* Private Chat Windows - adjust position for mobile if they appear */
-    .private-chat-window {
-        right: 0px !important; /* Align to right edge */
-        left: 0px !important;  /* Take full width */
-        width: 100% !important;
-        height: 300px !important; /* Make them smaller or responsive */
-        bottom: 73px !important; /* Place above the collapsed bar */
-    }
-
-
-    /* --- END CHAT SYSTEM MOBILE ADJUSTMENTS --- */
-
-    .homepage-content-wrapper {
-        margin-top: 5px !important;
-        padding-top: 5px !important;
-    }
-    .welcome-block-area {
-        margin-top: 5px !important;
-    }
-}
-
-/* All other @media (max-width: 480px) and @media (max-width: 991px) blocks
-    and the Custom Overrides for Mobile Header Buttons should remain as they are,
-    typically placed after this main 768px media query. */
-    /* Your existing global mobile styles */
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
-
-@media (max-width: 480px) {
-    /* Mobile specific adjustments within the media queries */
-}
-
-@media (max-width: 768px) {
-
-    /* --- ADDED FOR SCROLLING & SCROLLBAR HIDING --- */
-    html, body {
-        height: auto;
-        overflow-y: auto;          /* Enables page scrolling */
-        -ms-overflow-style: none;    /* Hides scrollbar on IE/Edge */
-        scrollbar-width: none;       /* Hides scrollbar on Firefox */
-    }
-
-    body::-webkit-scrollbar {
-        display: none;             /* Hides scrollbar on Chrome/Safari */
-    }
-    /* --- END OF ADDED CODE --- */
-
-
-    /* Your existing global mobile styles */
-    body { padding-top: 0; padding-bottom: 0; }
-    header { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; justify-content: center; border-bottom: 3px solid #00a8ff; }
-    .header-left, .header-center, .header-right-controls { flex-basis: auto; width: 100%; justify-content: center; margin-bottom: 5px; }
-    #headerMainLogo { max-height: 50px; margin-top: 0; display: none; } /* Hides header logo on mobile */
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { padding: 6px 10px; font-size: 0.85rem; height: auto; }
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer { position: static; height: auto; min-height: 70px; padding-top: 10px; padding-bottom: 10px; }
-    footer.footer .footer-links { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 8px; }
-}
-
-@media (max-width: 480px) {
-    /* Mobile specific adjustments within the media queries */
-}
-
+/* Existing @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
 @media only screen and (max-width: 991px) {
     #globalfooterplaceholder {
-        display: none;
-    }
-}
-
-@media only screen and (max-width: 991px) {
-    .footer {
-        display: none !important; /* Added !important */
-    }
-}
-
-
-/* Custom Overrides for Mobile Header Buttons - Place at the very END of global.css */
-@media (max-width: 768px) {
-
-    /* Ensure the Useful Links button is displayed and compact on mobile */
-    #usefulLinksBtn,
-    #headerContactUsBtn,
-    #headerEditProfileBtn,
-    #logoutButtonHeader {
-        display: inline-flex !important; /* Force display for all header buttons */
-        padding: 5px 8px !important;     /* Force compact padding */
-        min-width: unset !important;     /* Allow shrinking */
-        width: auto !important;          /* Let content define width */
-        justify-content: center !important; /* Center content */
-        overflow: hidden !important;     /* Hide overflows */
-    }
-
-    /* Hide the text part for all header buttons (redundant if already hidden, but safe override) */
-    header .btn-text {
         display: none !important;
     }
-
-    /* Style for Profile and Logout icons */
-    #headerEditProfileBtn .btn-icon,
-    #logoutButtonHeader .btn-icon {
-        font-size: 1.6em !important; /* Larger icon */
-        line-height: 1 !important;    /* Better alignment */
-        display: block !important;    /* Force block for centering */
-        margin: auto !important;      /* Center icon */
-        content: none !important;     /* Clear any pseudo-content */
-    }
-
-//* CONSOLIDATED MOBILE MEDIA QUERIES - REPLACE ALL OTHER @media (max-width: 768px) BLOCKS WITH THIS ONE */
-@media (max-width: 768px) {
-    /* HTML & Body adjustments for mobile scrolling */
-    html, body {
-        height: auto;
-        overflow-y: auto;
-        -ms-overflow-style: none; /* Hides scrollbar on IE/Edge */
-        scrollbar-width: none;    /* Hides scrollbar on Firefox */
-    }
-    body::-webkit-scrollbar {
-        display: none; /* Hides scrollbar on Chrome/Safari */
-    }
-
-    /* Header adjustments for mobile */
-    body { padding-top: 90px !important; padding-bottom: 0; }
-
-    header {
-        position: fixed !important; /* Forces header to stay fixed at the top */
-        top: 0 !important;          /* Aligns it to the top edge */
-        left: 0 !important;         /* Aligns it to the left edge */
-        width: 100% !important;     /* Ensures it spans full width */
-        z-index: 102 !important;    /* Keeps it on top of other content */
-        height: auto;
-        min-height: 70px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        border-bottom: 3px solid #00a8ff;
-    }
-    .header-left, .header-center, .header-right-controls {
-        flex-basis: auto;
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 5px;
-    }
-    #headerMainLogo {
-        max-height: 50px;
-        margin-top: 0;
-        display: none; /* Hides header logo on mobile */
-    }
-
-    /* Welcome Container Gap Adjustment */
-    .homepage-content-wrapper {
-        margin-top: 0px !important; /* Remove or reduce top margin of the main content wrapper */
-        padding-top: 0px !important; /* Ensure no unwanted padding pushes it down */
-    }
-    .welcome-block-area {
-        margin-top: 0px !important; /* Remove or reduce top margin of the welcome block itself */
-    }
-
-    /* Ensure all header buttons are visible and compact */
-    #usefulLinksBtn,
-    #headerContactUsBtn,
-    #headerEditProfileBtn,
-    #logoutButtonHeader {
-        display: inline-flex !important; /* Force display for all header buttons */
-        padding: 5px 8px !important;     /* Force compact padding */
-        min-width: unset !important;     /* Allow shrinking */
-        width: auto !important;          /* Let content define width */
-        justify-content: center !important; /* Center content */
-        overflow: hidden !important;     /* Hide overflows */
-    }
-
-    /* Hide the text part of all header buttons definitively */
-    header .btn-text {
+    .footer { /* This rule will hide the footer on screen sizes up to 991px. */
         display: none !important;
     }
-
-    /* Style for Profile and Logout icons (single emoji buttons) */
-    #headerEditProfileBtn .btn-icon,
-    #logoutButtonHeader .btn-icon {
-        font-size: 1.6em !important; /* Larger icon */
-        line-height: 1 !important;    /* Better vertical alignment */
-        display: block !important;    /* Ensure block behavior for margin:auto centering */
-        margin: auto !important;      /* Center icon */
-        content: none !important;     /* Clear any accidental ::before/::after content */
-    }
-
-    /* Style for Useful Links & Contact buttons - display original icon + original dropdown arrow */
-    /* This section expects original HTML like: <span class="btn-icon">🔗 🔽 </span> */
-    #usefulLinksBtn .btn-icon,
-    #headerContactUsBtn .btn-icon {
-        font-size: 1.6em !important;    /* Force original icon size (🔗, 💬, and original 🔽) */
-        display: flex !important;       /* Use flexbox to align original content */
-        align-items: center !important; /* Vertically align content */
-        justify-content: center !important; /* Horizontally center content */
-        position: relative !important;  /* Keep relative for self-contained content */
-        margin: auto !important;        /* Center the overall icon span */
-
-        /* Ensure no hiding/clipping/transform from prior failed attempts to rebuild icon */
-        line-height: 1 !important;
-        vertical-align: middle !important;
-        text-indent: 0 !important;
-        color: inherit !important;
-        background: none !important;
-        border: none !important;
-        outline: none !important;
-        text-shadow: none !important;
-        overflow: visible !important; /* Ensure content is not clipped */
-
-        /* Importantly, NO ::before or ::after content rules here, as the original HTML has the content */
-    }
-
-    /* Main content and footer adjustments for mobile */
-    main { margin: 20px 15px; padding: 25px 20px; width: auto; }
-    footer.footer {
-        position: static;
-        height: auto;
-        min-height: 70px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        display: flex !important; /* Ensure footer displays */
-    }
-    footer.footer .footer-links {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px 10px;
-        margin-bottom: 8px;
-    }
-
-    /* Other mobile specific adjustments */
-    .header-left h1 { font-size: 1.4rem; }
-    .tagline { font-size: 0.7rem; }
-    .header-text-link, .btn.header-btn { /* Re-included here for general padding/font-size if needed as a base */
-        padding: 6px 10px;
-        font-size: 0.85rem;
-        height: auto;
-    }
 }
 
-/* Any @media (max-width: 480px) blocks should remain as separate, more specific mobile rules below this */
-@media (max-width: 480px) {
-    /* Mobile specific adjustments for smaller phones */
-}
-
-/* Any @media only screen and (max-width: 991px) blocks should remain if they apply to different elements or purposes */
-@media only screen and (max-width: 991px) {
-    #globalfooterplaceholder {
-        display: none;
-    }
-    /* If you have a .footer rule here that needs to hide the footer at 991px but show at 768px,
-        you would need a more complex strategy, but the 768px block now overrides display. */
-}
 
 /* CONSOLIDATED MOBILE MEDIA QUERIES - GLOBAL.CSS */
 @media (max-width: 768px) {
@@ -2648,8 +1947,6 @@ input:checked + .slider:before {
     /* FOOTER Styles for Mobile (Hidden) */
     footer.footer {
         display: none !important; /* Hides the footer on mobile */
-        /* You can remove any other positioning rules here since it's hidden,
-           but keeping them won't hurt if display:none is last and has !important */
     }
     /* Hide the global footer placeholder that might push content down */
     #globalfooterplaceholder {
