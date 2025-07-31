@@ -2002,19 +2002,20 @@ input:checked + .slider:before {
         z-index: 1000 !important; /* Ensure it's above other page content */
     }
 
-    #chat-bar-collapsed {
-        position: static !important; /* Make it flow with tornpa-chat-system */
-        bottom: unset !important;
-        right: unset !important;
-        left: unset !important;
-        width: 100% !important;
-        border-radius: 0 !important;
-        padding: 8px 10px !important;
-        justify-content: center !important;
-        margin: 0 !important; /* Remove any external margins */
-		background-color: #1b263b !important;
-		border-top: 2px solid black;
-    }
+   #chat-bar-collapsed {
+    display: flex !important; /* Added this to enable flexbox centering */
+    position: static !important;
+    bottom: unset !important;
+    right: unset !important;
+    left: unset !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    padding: 8px 10px !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    background-color: #1b263b !important;
+    border-top: 2px solid black;
+}
 
    #chat-window {
     bottom: 50px !important;
