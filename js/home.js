@@ -116,15 +116,20 @@ const closeSubscribePromptBtn = document.getElementById('closeSubscribePromptBtn
 const closeSubscribeModalBtn = document.getElementById('closeSubscribeModalBtn');
 const goToProfileBtn = document.getElementById('goToProfileBtn');
 const termsCheckbox = document.getElementById('termsAgreementProfileModal');
-// ... other DOM elements
-// Function to hide the subscribe prompt
+
+const profileSetupProfileIdInput = document.getElementById('profileSetupProfileId');
+if (profileSetupProfileIdInput) {
+    profileSetupProfileIdInput.addEventListener('input', validateTornProfileIdInput);
+}
+
 const hideSubscribePrompt = () => {
     if (subscribePromptModal) {
         subscribePromptModal.style.display = 'none';
     }
 };
+
  if(closeSubscribePromptBtn) closeSubscribePromptBtn.addEventListener('click', hideSubscribePrompt);
-if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
+ if(closeSubscribeModalBtn) closeSubscribeModalBtn.addEventListener('click', hideSubscribePrompt);
 
 // Make the 'View Memberships' button open the profile modal
 if(goToProfileBtn) {
@@ -359,6 +364,12 @@ async function updateToolLinksAccess(profile) {
             }
         }
     }
+	
+	function validateTornProfileIdInput(event) {
+    const input = event.target;
+    // Remove any character that is NOT a digit (0-9)
+    input.value = input.value.replace(/\D/g, '');
+}
 	
 	async function isFactionComped(profile, db) {
     if (!profile || !profile.faction_id) {
