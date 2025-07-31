@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const availableEnergy = document.getElementById('availableEnergy');
     const perTrainEnergyValueDisplay = document.getElementById('perTrainEnergyValue');
     const perTrainGainStr = document.getElementById('perTrainGainStr');
-    const perTrainGainDef = document.getElementById('perTrainGainDef');
+    const perTrainGainDef = document.getElementById('perTrainDef');
     const perTrainGainSpe = document.getElementById('perTrainGainSpe');
     const perTrainGainDex = document.getElementById('perTrainGainDex');
     const xanaxGainStr = document.getElementById('xanaxGainStr');
@@ -279,12 +279,21 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error updating player stats (gym mechanic):", error);
             gymError.textContent = error.message || "Failed to update stats. Please try again.";
         } finally {
-            if (currentUser) { fetchTornPlayerStats(currentUser.uid); }
+            if (currentUser) {
+                // After simulating a train, trigger a re-check of Torn stats and gains
+                await fetchTornPlayerStats(currentUser.uid);
+                if (activePersonalTrackingSessionId) { // Only update gains display if a session is active
+                    // This will be called by the userCurrentStats listener, or as fallback
+                    displayPersonalGains();
+                }
+            }
         }
     }
 
 
-   // ... (rest of your gymgain.js code remains the same above this point)
+    // =======================================================
+    // 3. CORE FUNCTIONS (RIGHT PANEL - NEW / MODIFIED)
+    // =======================================================
 
     /**
      * Fetches Torn API player stats and updates both left panel and "Current Gym Stats" tab.
@@ -303,7 +312,11 @@ document.addEventListener('DOMContentLoaded', () => {
         maxEnergyGainSpe.textContent = 'Calculating...'; maxEnergyGainDex.textContent = 'Calculating...'; maxEnergyValueDisplay.textContent = '--';
         happyJumpGainStr.textContent = 'Calculating...'; happyJumpGainDef.textContent = 'Calculating...';
         happyJumpGainSpe.textContent = 'Calculating...'; happyJumpGainDex.textContent = 'Calculating...';
-        gymError.textContent = ''; // Clear previous errors
+        
+        // --- IMPORTANT: Clear gymError.textContent at the start of every fetch attempt ---
+        if (gymError) { // Defensive check
+            gymError.textContent = ''; // Clear previous errors
+        }
 
         // Reset displays on the new "Current Gym Stats" tab
         currentGymStr.textContent = '--';
@@ -333,14 +346,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await response.json();
                     console.log("Torn API Response:", data);
                     if (!response.ok || data.error) {
-                        // --- DEBUG: Added console.trace() here ---
-                        console.trace("Error setting gymError.textContent from Torn API response failure.");
-                        gymError.textContent = `Torn API Error: ${data.error?.error || 'Unknown error'}. Check your API key and Torn ID in profile.`;
-                        console.error("Torn API returned an error:", data.error);
-                        // Ensure all stat displays are N/A on error
+                        // Removed direct gymError.textContent setting here.
+                        // The outer catch block will handle general fetch errors.
+                        // However, if the API *returns* an error even with 200 OK, we still need to set N/A
+                        console.error("Torn API returned an error even with OK response or non-OK response:", data.error || response.statusText);
+                        
+                        // Set all displays to N/A on a true API error
                         strengthStat.textContent = 'N/A'; defenseStat.textContent = 'N/A'; speedStat.textContent = 'N/A'; dexterityStat.textContent = 'N/A';
                         availableEnergy.textContent = 'N/A/N/A'; maxEnergyValueDisplay.textContent = 'N/A';
-                        perTrainGainStr.innerHTML = `<span style="color: grey;">N/A</span>`; // ... and all other gain calculations
+                        perTrainGainStr.innerHTML = `<span style="color: grey;">N/A</span>`;
                         perTrainGainDef.innerHTML = `<span style="color: grey;">N/A</span>`;
                         perTrainGainSpe.innerHTML = `<span style="color: grey;">N/A</span>`;
                         perTrainGainDex.innerHTML = `<span style="color: grey;">N/A</span>`;
@@ -362,6 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         statsRemainingDisplay.textContent = 'N/A';
                         eToNextGymDetailedDisplay.textContent = 'N/A';
                         currentGymStr.textContent = 'N/A'; currentGymDef.textContent = 'N/A'; currentGymSpd.textContent = 'N/A'; currentGymDex.textContent = 'N/A'; currentGymTotal.textContent = 'N/A';
+                        
+                        // Throw error to be caught by outer try-catch block for central error message handling
+                        throw new Error(`Torn API Error: ${data.error?.error || 'Unknown API response error'}.`);
                     } else {
                         const currentStrength = data.personalstats?.strength || 0;
                         const currentDefense = data.personalstats?.defense || 0;
@@ -373,29 +390,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         const maxEnergy = data.energy?.maximum || 0;
 
                         // Update Left Panel DOM elements
-                        strengthStat.textContent = currentStrength.toLocaleString();
-                        defenseStat.textContent = currentDefense.toLocaleString();
-                        speedStat.textContent = currentSpeed.toLocaleString();
-                        dexterityStat.textContent = currentDexterity.toLocaleString();
-                        availableEnergy.textContent = `${currentEnergy}/${maxEnergy}`;
-                        maxEnergyValueDisplay.textContent = maxEnergy;
+                        if (strengthStat) strengthStat.textContent = currentStrength.toLocaleString();
+                        if (defenseStat) defenseStat.textContent = currentDefense.toLocaleString();
+                        if (speedStat) speedStat.textContent = currentSpeed.toLocaleString();
+                        if (dexterityStat) dexterityStat.textContent = currentDexterity.toLocaleString();
+                        if (availableEnergy) availableEnergy.textContent = `${currentEnergy}/${maxEnergy}`;
+                        if (maxEnergyValueDisplay) maxEnergyValueDisplay.textContent = maxEnergy;
 
                         // Update New "Current Gym Stats" tab DOM elements
-                        currentGymStr.textContent = currentStrength.toLocaleString();
-                        currentGymDef.textContent = currentDefense.toLocaleString();
-                        currentGymSpd.textContent = currentSpeed.toLocaleString();
-                        currentGymDex.textContent = currentDexterity.toLocaleString();
-                        currentGymTotal.textContent = currentTotal.toLocaleString();
+                        if (currentGymStr) currentGymStr.textContent = currentStrength.toLocaleString();
+                        if (currentGymDef) currentGymDef.textContent = currentDefense.toLocaleString();
+                        if (currentGymSpd) currentGymSpd.textContent = currentSpeed.toLocaleString();
+                        if (currentGymDex) currentGymDex.textContent = currentDexterity.toLocaleString();
+                        if (currentGymTotal) currentGymTotal.textContent = currentTotal.toLocaleString();
                         
                         // NOTE: Work and Crimes data are NOT fetched in this simplified API call.
                         // They will remain as 'N/A' or hardcoded placeholders unless separate API calls are made.
-                        workJob.textContent = 'Data N/A (API Key)'; // Explicitly state data limitation
-                        workRank.textContent = 'Data N/A (API Key)';
-                        workStats.textContent = 'Data N/A (API Key)';
+                        if (workJob) workJob.textContent = 'Data N/A (API Key)'; // Explicitly state data limitation
+                        if (workRank) workRank.textContent = 'Data N/A (API Key)';
+                        if (workStats) workStats.textContent = 'Data N/A (API Key)';
 
-                        crimesCommitted.textContent = 'Data N/A (API Key)';
-                        nerveGained.textContent = 'Data N/A (API Key)';
-                        jailTime.textContent = 'Data N/A (API Key)';
+                        if (crimesCommitted) crimesCommitted.textContent = 'Data N/A (API Key)';
+                        if (nerveGained) nerveGained.textContent = 'Data N/A (API Key)';
+                        if (jailTime) jailTime.textContent = 'Data N/A (API Key)';
 
 
                         const gymNumber = (data.active_gym !== undefined && data.active_gym !== null) ? data.active_gym - 1 : -1;
@@ -412,15 +429,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             const XANAX_ENERGY = 250;
                             const trainsPerXanax = parseInt(XANAX_ENERGY / energyPerTrain);
                             const gainStrXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Str), energyPerTrain, modifierStr, 'str', trainsPerXanax);
-                            const gainDefXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerXanax);
-                            const gainSpeXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerXanax);
-                            const gainDexXanax = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerXanax);
+                            const gainDefXanax = calculateTotal(currentDefense, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerXanax);
+                            const gainSpeXanax = calculateTotal(currentSpeed, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerXanax);
+                            const gainDexXanax = calculateTotal(currentDexterity, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerXanax);
                             
                             const trainsPerMaxEnergy = parseInt(maxEnergy / energyPerTrain);
                             const gainStrMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Str), energyPerTrain, modifierStr, 'str', trainsPerMaxEnergy);
-                            const gainDefMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerMaxEnergy);
-                            const gainSpeMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerMaxEnergy);
-                            const gainDexMaxEnergy = calculateTotal(currentStrength, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerMaxEnergy);
+                            const gainDefMaxEnergy = calculateTotal(currentDefense, currentHappy, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerMaxEnergy);
+                            const gainSpeMaxEnergy = calculateTotal(currentSpeed, currentHappy, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerMaxEnergy);
+                            const gainDexMaxEnergy = calculateTotal(currentDexterity, currentHappy, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerMaxEnergy);
                             
                             const HAPPY_JUMP_ENERGY = 1150;
                             const PI_HAPPY_BONUS = 4000;
@@ -428,43 +445,43 @@ document.addEventListener('DOMContentLoaded', () => {
                             const HAPPY_JUMP_HAPPY_VAL = (currentHappy + (5 * E_DVD_HAPPY_PER_UNIT) + PI_HAPPY_BONUS) * 2;
                             const trainsPerHappyJump = parseInt(HAPPY_JUMP_ENERGY / energyPerTrain);
                             const gainStrHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Str), energyPerTrain, modifierStr, 'str', trainsPerHappyJump);
-                            const gainDefHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerHappyJump);
-                            const gainSpeHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerHappyJump);
-                            const gainDexHappyJump = calculateTotal(currentStrength, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerHappyJump);
+                            const gainDefHappyJump = calculateTotal(currentDefense, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Def), energyPerTrain, modifierDef, 'def', trainsPerHappyJump);
+                            const gainSpeHappyJump = calculateTotal(currentSpeed, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Spe), energyPerTrain, modifierSpe, 'spe', trainsPerHappyJump);
+                            const gainDexHappyJump = calculateTotal(currentDexterity, HAPPY_JUMP_HAPPY_VAL, parseFloat(currentGym.Dex), energyPerTrain, modifierDex, 'dex', trainsPerHappyJump);
                             
                             const displayGain = (gainValue, gymDots) => gymDots > 0 ? ROUND(gainValue, 2).toLocaleString() : `<span style="color: grey;">N/A</span>`;
                             
-                            perTrainEnergyValueDisplay.textContent = energyPerTrain;
-                            perTrainGainStr.innerHTML = displayGain(gainStrPerTrain[0], parseFloat(currentGym.Str));
-                            perTrainGainDef.innerHTML = displayGain(gainDefPerTrain[0], parseFloat(currentGym.Def));
-                            perTrainGainSpe.innerHTML = displayGain(gainSpePerTrain[0], parseFloat(currentGym.Spe));
-                            perTrainGainDex.innerHTML = displayGain(gainDexPerTrain[0], parseFloat(currentGym.Dex));
+                            if (perTrainEnergyValueDisplay) perTrainEnergyValueDisplay.textContent = energyPerTrain;
+                            if (perTrainGainStr) perTrainGainStr.innerHTML = displayGain(gainStrPerTrain[0], parseFloat(currentGym.Str));
+                            if (perTrainGainDef) perTrainGainDef.innerHTML = displayGain(gainDefPerTrain[0], parseFloat(currentGym.Def));
+                            if (perTrainGainSpe) perTrainGainSpe.innerHTML = displayGain(gainSpePerTrain[0], parseFloat(currentGym.Spe));
+                            if (perTrainGainDex) perTrainGainDex.innerHTML = displayGain(gainDexPerTrain[0], parseFloat(currentGym.Dex));
                             
-                            xanaxGainStr.innerHTML = displayGain(gainStrXanax[1], parseFloat(currentGym.Str));
-                            xanaxGainDef.innerHTML = displayGain(gainDefXanax[1], parseFloat(currentGym.Def));
-                            xanaxGainSpe.innerHTML = displayGain(gainSpeXanax[1], parseFloat(currentGym.Spe));
-                            xanaxGainDex.innerHTML = displayGain(gainDexXanax[1], parseFloat(currentGym.Dex));
+                            if (xanaxGainStr) xanaxGainStr.innerHTML = displayGain(gainStrXanax[1], parseFloat(currentGym.Str));
+                            if (xanaxGainDef) xanaxGainDef.innerHTML = displayGain(gainDefXanax[1], parseFloat(currentGym.Def));
+                            if (xanaxGainSpe) xanaxGainSpe.innerHTML = displayGain(gainSpeXanax[1], parseFloat(currentGym.Spe));
+                            if (xanaxGainDex) xanaxGainDex.innerHTML = displayGain(gainDexXanax[1], parseFloat(currentGym.Dex));
                             
-                            maxEnergyGainStr.innerHTML = displayGain(gainStrMaxEnergy[1], parseFloat(currentGym.Str));
-                            maxEnergyGainDef.innerHTML = displayGain(gainDefMaxEnergy[1], parseFloat(currentGym.Def));
-                            maxEnergyGainSpe.innerHTML = displayGain(gainSpeMaxEnergy[1], parseFloat(currentGym.Spe));
-                            maxEnergyGainDex.innerHTML = displayGain(gainDexMaxEnergy[1], parseFloat(currentGym.Dex));
+                            if (maxEnergyGainStr) maxEnergyGainStr.innerHTML = displayGain(gainStrMaxEnergy[1], parseFloat(currentGym.Str));
+                            if (maxEnergyGainDef) maxEnergyGainDef.innerHTML = displayGain(gainDefMaxEnergy[1], parseFloat(currentGym.Def));
+                            if (maxEnergyGainSpe) maxEnergyGainSpe.innerHTML = displayGain(gainSpeMaxEnergy[1], parseFloat(currentGym.Spe));
+                            if (maxEnergyGainDex) maxEnergyGainDex.innerHTML = displayGain(gainDexMaxEnergy[1], parseFloat(currentGym.Dex));
                             
-                            happyJumpGainStr.innerHTML = displayGain(gainStrHappyJump[1], parseFloat(currentGym.Str));
-                            happyJumpGainDef.innerHTML = displayGain(gainDefHappyJump[1], parseFloat(currentGym.Def));
-                            happyJumpGainSpe.innerHTML = displayGain(gainSpeHappyJump[1], parseFloat(currentGym.Spe));
-                            happyJumpGainDex.innerHTML = displayGain(gainDexHappyJump[1], parseFloat(currentGym.Dex));
+                            if (happyJumpGainStr) happyJumpGainStr.innerHTML = displayGain(gainStrHappyJump[1], parseFloat(currentGym.Str));
+                            if (happyJumpGainDef) happyJumpGainDef.innerHTML = displayGain(gainDefHappyJump[1], parseFloat(currentGym.Def));
+                            if (happyJumpGainSpe) happyJumpGainSpe.innerHTML = displayGain(gainSpeHappyJump[1], parseFloat(currentGym.Spe));
+                            if (happyJumpGainDex) happyJumpGainDex.innerHTML = displayGain(gainDexHappyJump[1], parseFloat(currentGym.Dex));
                             
-                            currentGymNameDisplay.textContent = currentGym.Gym;
+                            if (currentGymNameDisplay) currentGymNameDisplay.textContent = currentGym.Gym;
                             
                             const nextGymEnergyNeeded = calculateETillNextGym(currentStrength, currentDefense, currentSpeed, currentDexterity, currentHappy, currentGym, gymNumber);
                             if (typeof nextGymEnergyNeeded === 'string') {
-                                eToNextGymDetailedDisplay.textContent = nextGymEnergyNeeded;
-                                nextGymNameDisplay.textContent = '--';
-                                nextGymReqStatsDisplay.textContent = '--';
-                                statsRemainingDisplay.textContent = '--';
+                                if (eToNextGymDetailedDisplay) eToNextGymDetailedDisplay.textContent = nextGymEnergyNeeded;
+                                if (nextGymNameDisplay) nextGymNameDisplay.textContent = '--';
+                                if (nextGymReqStatsDisplay) nextGymReqStatsDisplay.textContent = '--';
+                                if (statsRemainingDisplay) statsRemainingDisplay.textContent = '--';
                             } else {
-                                eToNextGymDetailedDisplay.textContent = nextGymEnergyNeeded.toLocaleString();
+                                if (eToNextGymDetailedDisplay) eToNextGymDetailedDisplay.textContent = nextGymEnergyNeeded.toLocaleString();
                                 let nextGymReq = null;
                                 for (let i = gymNumber + 1; i < GYM_STAT_REQUIREMENTS.length; i++) {
                                     if (GYM_STAT_REQUIREMENTS[i].total_stats > currentTotalStats) {
@@ -473,39 +490,37 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 }
                                 if (nextGymReq) {
-                                    nextGymNameDisplay.textContent = nextGymReq.gym_name;
-                                    nextGymReqStatsDisplay.textContent = nextGymReq.total_stats.toLocaleString();
-                                    statsRemainingDisplay.textContent = (nextGymReq.total_stats - currentTotalStats).toLocaleString();
+                                    if (nextGymNameDisplay) nextGymNameDisplay.textContent = nextGymReq.gym_name;
+                                    if (nextGymReqStatsDisplay) nextGymReqStatsDisplay.textContent = nextGymReq.total_stats.toLocaleString();
+                                    if (statsRemainingDisplay) statsRemainingDisplay.textContent = (nextGymReq.total_stats - currentTotalStats).toLocaleString();
                                 } else {
-                                    nextGymNameDisplay.textContent = 'Final Gym';
-                                    nextGymReqStatsDisplay.textContent = 'N/A';
-                                    statsRemainingDisplay.textContent = 'N/A';
+                                    if (nextGymNameDisplay) nextGymNameDisplay.textContent = 'Final Gym';
+                                    if (nextGymReqStatsDisplay) nextGymReqStatsDisplay.textContent = 'N/A';
+                                    if (statsRemainingDisplay) statsRemainingDisplay.textContent = 'N/A';
                                 }
                             }
                         } else {
-                            gymError.textContent = "Could not determine current gym from Torn API data.";
+                            // This condition happens if data.active_gym is invalid, it's not an API key error.
+                            if (gymError) gymError.textContent = "Could not determine current gym from Torn API data.";
                             console.warn("Gym number invalid or out of bounds:", gymNumber);
                         }
                     }
                 } else {
-                    // --- DEBUG: Added console.trace() here ---
-                    console.trace("Error setting gymError.textContent due to missing API key/Torn ID.");
-                    gymError.textContent = "Torn Profile ID or API Key missing from your profile. Please update your profile settings.";
+                    // This condition happens if API key/Torn ID is missing in Firebase profile, not an API fetch error.
+                    if (gymError) gymError.textContent = "Torn Profile ID or API Key missing from your profile. Please update your profile settings.";
                     console.error("Torn Profile ID or API Key missing from user profile in Firestore.");
                 }
             } else {
-                // --- DEBUG: Added console.trace() here ---
-                console.trace("Error setting gymError.textContent due to missing user profile doc.");
-                gymError.textContent = "Player profile data not found in Firestore. Make sure you are logged in.";
+                // This condition happens if Firebase user profile document is missing.
+                if (gymError) gymError.textContent = "Player profile data not found in Firestore. Make sure you are logged in.";
                 console.error("User profile document not found in Firestore for UID:", userId);
             }
         } catch (error) {
-            // --- DEBUG: Added console.trace() here ---
-            console.trace("Error setting gymError.textContent from general fetch error.");
+            // --- This is the primary catch for NETWORK errors or thrown errors from above ---
+            if (gymError) gymError.textContent = `Failed to fetch live game stats. Error: ${error.message}. Check your connection or API key.`;
             console.error("Error fetching Torn API stats:", error);
         }
     }
-
 
     /**
      * Updates the UI elements related to personal gains tracking status (buttons, text).
@@ -731,8 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.log("User current stats updated via listener, recalculating gains.");
                             displayPersonalGains(userDoc.data()); // Pass the current user's data
                         } else {
-                            console.warn("User's current stats document not found in 'users' collection.");
-                            // Handle case where user stats doc might be missing
+                            console.warn("User's current stats document not found in 'users' collection. This might happen if backend hasn't saved user stats yet.");
+                            // displayPersonalGains(); // Optionally call without data to show N/A or previous state
                         }
                     }, (error) => {
                         console.error("Error listening to user's current stats for gains:", error);
@@ -847,29 +862,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const dexterityGain = currentStats.dexterity - baselineStats.dexterity;
             const totalGain = currentStats.total - baselineStats.total;
 
-            personalGainStrSpan.innerHTML = formatGainValue(strengthGain);
-            personalGainDefSpan.innerHTML = formatGainValue(defenseGain);
-            personalGainSpdSpan.innerHTML = formatGainValue(speedGain);
-            personalGainDexSpan.innerHTML = formatGainValue(dexterityGain);
-            personalGainTotalSpan.innerHTML = formatGainValue(totalGain);
+            if (personalGainStrSpan) personalGainStrSpan.innerHTML = formatGainValue(strengthGain);
+            if (personalGainDefSpan) personalGainDefSpan.innerHTML = formatGainValue(defenseGain);
+            if (personalGainSpdSpan) personalGainSpdSpan.innerHTML = formatGainValue(speedGain);
+            if (personalGainDexSpan) personalGainDexSpan.innerHTML = formatGainValue(dexterityGain);
+            if (personalGainTotalSpan) personalGainTotalSpan.innerHTML = formatGainValue(totalGain);
 
-            personalGainStrItem.classList.remove('hidden');
-            personalGainDefItem.classList.remove('hidden');
-            personalGainSpdItem.classList.remove('hidden');
-            personalGainDexItem.classList.remove('hidden');
-            personalGainTotalItem.classList.remove('hidden');
+            if (personalGainStrItem) personalGainStrItem.classList.remove('hidden');
+            if (personalGainDefItem) personalGainDefItem.classList.remove('hidden');
+            if (personalGainSpdItem) personalGainSpdItem.classList.remove('hidden');
+            if (personalGainDexItem) personalGainDexItem.classList.remove('hidden');
+            if (personalGainTotalItem) personalGainTotalItem.classList.remove('hidden');
             noPersonalGainsData.classList.add('hidden'); // Hide loading message
             
         } catch (error) {
             console.error("Error displaying personal gains:", error);
-            noPersonalGainsData.textContent = `Error loading gains: ${error.message}. Please check your API key.`;
-            noPersonalGainsData.classList.remove('hidden');
+            if (noPersonalGainsData) noPersonalGainsData.textContent = `Error loading gains: ${error.message}. Please check your API key.`;
+            if (noPersonalGainsData) noPersonalGainsData.classList.remove('hidden');
             // Hide all stat items on error
-            personalGainStrItem.classList.add('hidden');
-            personalGainDefItem.classList.add('hidden');
-            personalGainSpdItem.classList.add('hidden');
-            personalGainDexItem.classList.add('hidden');
-            personalGainTotalItem.classList.add('hidden');
+            if (personalGainStrItem) personalGainStrItem.classList.add('hidden');
+            if (personalGainDefItem) personalGainDefItem.classList.add('hidden');
+            if (personalGainSpdItem) personalGainSpdItem.classList.add('hidden');
+            if (personalGainDexItem) personalGainDexItem.classList.add('hidden');
+            if (personalGainTotalItem) personalGainTotalItem.classList.add('hidden');
         }
     }
 
@@ -897,7 +912,24 @@ document.addEventListener('DOMContentLoaded', () => {
             contentToCapture = activeTabPane.querySelector('.current-stats-personal') || activeTabPane;
         } else if (activeTabPane.id === 'personal-gym-gains-tab') {
             filename += 'personal_gains_tracking.png';
-            contentToCapture = activeTabPane.querySelector('.personal-gains-display') || activeTabPane;
+            // Need to capture the tracking controls + gains display
+            const gainsTrackingControls = activeTabPane.querySelector('.gains-tracking-controls');
+            const personalGainsDisplay = activeTabPane.querySelector('.personal-gains-display');
+            
+            // Create a temporary div to wrap both elements for screenshot if both exist
+            if (gainsTrackingControls && personalGainsDisplay) {
+                const wrapper = document.createElement('div');
+                wrapper.appendChild(gainsTrackingControls.cloneNode(true));
+                wrapper.appendChild(personalGainsDisplay.cloneNode(true));
+                contentToCapture = wrapper; // Capture the temporary wrapper
+            } else if (gainsTrackingControls) {
+                contentToCapture = gainsTrackingControls;
+            } else if (personalGainsDisplay) {
+                contentToCapture = personalGainsDisplay;
+            } else {
+                contentToCapture = activeTabPane;
+            }
+
         } else if (activeTabPane.id === 'personal-work-stats-tab') {
             filename += 'work_stats.png';
             contentToCapture = activeTabPane.querySelector('.current-work-stats') || activeTabPane;
@@ -916,18 +948,23 @@ document.addEventListener('DOMContentLoaded', () => {
         tempRenderContainer.style.borderRadius = '8px'; // Match tab-content-container-bb border-radius
         tempRenderContainer.style.position = 'absolute';
         tempRenderContainer.style.left = '-9999px'; // Move off-screen
-        tempRenderContainer.style.width = contentToCapture.offsetWidth + 'px'; // Maintain width
-        tempRenderContainer.style.height = 'auto'; // Auto height
+        // We'll set width/height dynamically after appending content to get accurate sizing
         tempRenderContainer.style.overflow = 'hidden'; // Hide overflow of temporary container
 
         // Clone the content to be captured to avoid altering the live DOM
-        const clonedContent = contentToCapture.cloneNode(true);
+        let clonedContent;
+        if (contentToCapture.cloneNode) { // Check if it's an actual DOM element
+             clonedContent = contentToCapture.cloneNode(true);
+        } else { // It's a temporary wrapper from gains tab, use as is
+            clonedContent = contentToCapture; 
+        }
+
         // Special handling for gains tab: ensure "No gains data" message is hidden if gains are showing
-        if (clonedContent.id === 'personal-gym-gains-tab') {
-            const noGainsMsg = clonedContent.querySelector('#noPersonalGainsData');
-            const gainItems = clonedContent.querySelectorAll('.personal-gains-display .stat-item:not(.hidden)');
-            if (noGainsMsg && gainItems.length > 0) {
-                 noGainsMsg.classList.add('hidden'); // Hide the message if there are active gain items
+        if (activeTabPane.id === 'personal-gym-gains-tab' && personalGainsDisplay) {
+            const noGainsMsgInClone = clonedContent.querySelector('#noPersonalGainsData');
+            const gainItemsInClone = clonedContent.querySelectorAll('.personal-gains-display .stat-item:not(.hidden)');
+            if (noGainsMsgInClone && gainItemsInClone.length > 0) {
+                 noGainsMsgInClone.classList.add('hidden'); // Hide the message if there are active gain items
             }
         }
         
@@ -937,6 +974,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tempRenderContainer.appendChild(clonedContent);
         document.body.appendChild(tempRenderContainer);
+
+        // Now set the width/height based on the cloned content's actual rendered size
+        tempRenderContainer.style.width = clonedContent.offsetWidth + 'px';
+        tempRenderContainer.style.height = clonedContent.offsetHeight + 'px';
+
 
         html2canvas(tempRenderContainer, {
             scale: 2, // Capture at a higher resolution for better quality
@@ -1060,27 +1102,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.log("No user logged in. Displaying login message.");
             // If no user, clear displays and prompt login
-            gymError.textContent = 'Please log in to view your gym stats.';
-            strengthStat.textContent = '--'; // Clear left panel stats
-            defenseStat.textContent = '--';
-            speedStat.textContent = '--';
-            dexterityStat.textContent = '--';
-            availableEnergy.textContent = '--/--';
+            if (gymError) gymError.textContent = 'Please log in to view your gym stats.';
+            if (strengthStat) strengthStat.textContent = '--'; // Clear left panel stats
+            if (defenseStat) defenseStat.textContent = '--';
+            if (speedStat) speedStat.textContent = '--';
+            if (dexterityStat) dexterityStat.textContent = '--';
+            if (availableEnergy) availableEnergy.textContent = '--/--';
             
             // Clear right panel "Current Gym Stats" tab
-            currentGymStr.textContent = '--';
-            currentGymDef.textContent = '--';
-            currentGymSpd.textContent = '--';
-            currentGymDex.textContent = '--';
-            currentGymTotal.textContent = '--';
+            if (currentGymStr) currentGymStr.textContent = '--';
+            if (currentGymDef) currentGymDef.textContent = '--';
+            if (currentGymSpd) currentGymSpd.textContent = '--';
+            if (currentGymDex) currentGymDex.textContent = '--';
+            if (currentGymTotal) currentGymTotal.textContent = '--';
 
             // Also update gains tracking UI to reflect logged-out state
             activePersonalTrackingSessionId = null; // Ensure no active session
             updatePersonalGainTrackingUI(); // This will reset buttons and show 'no gains data' message
             
             // Clear work/crimes if no user
-            workJob.textContent = '--'; workRank.textContent = '--'; workStats.textContent = '--';
-            crimesCommitted.textContent = '--'; nerveGained.textContent = '--'; jailTime.textContent = '--';
+            if (workJob) workJob.textContent = '--';
+            if (workRank) workRank.textContent = '--';
+            if (workStats) workStats.textContent = '--';
+            if (crimesCommitted) crimesCommitted.textContent = '--';
+            if (nerveGained) nerveGained.textContent = '--';
+            if (jailTime) jailTime.textContent = '--';
 
             // Unsubscribe all listeners if user logs out
             if (unsubscribeFromPersonalTrackingStatus) {
@@ -1098,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // The train-btn listeners remain as they are for the left panel functionality.
     document.querySelectorAll('.train-btn').forEach(button => {
         button.addEventListener('click', () => {
-            if (!currentUser) { gymError.textContent = "You must be logged in to train!"; return; }
+            if (!currentUser) { if (gymError) gymError.textContent = "You must be logged in to train!"; return; }
             const card = button.closest('.gym-action-card');
             const trainingType = card.dataset.trainingType;
             const energyCost = parseInt(button.dataset.energyCost);
@@ -1111,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'dexterity': statToBoost = 'dexterity'; boostAmount = 2; break;
                 case 'full-body': statToBoost = 'full-body'; boostAmount = 1; break;
                 case 'rest': statToBoost = 'rest'; boostAmount = 20; break;
-                default: gymError.textContent = "Unknown training type selected."; return;
+                default: if (gymError) gymError.textContent = "Unknown training type selected."; return;
             }
             updatePlayerStats(currentUser.uid, statToBoost, boostAmount, energyCost);
         });
